@@ -57,7 +57,8 @@ module mod_ocn_albedo
     real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
                  cf1 , cff , conn , cons , wspd , czeta , czf , &
                  dfalbl , dfalbs , dralbl , dralbs , sl , sl2 , &
-                 sli , tdiff , tdiffs , wfac , scrat , scvk
+                 sli , tdiff , tdiffs , wfac , scrat , scvk ,   &
+                 onemc , w0
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocn_albedo'
@@ -91,6 +92,30 @@ module mod_ocn_albedo
           albgl = albg
           albgsd = 0.05_rkx + 0.11 * wfac
           albgld = 0.05_rkx
+        else if ( iwhitecap == 2 ) then
+          wspd = um10(i)
+          onemc = 1.0_rkx-czeta
+          w0 = 180.0_rkx*(czeta**3)*onemc**2
+          wfac = 3.84_rkx * 1.0e-6_rkx * wspd**3.41_rkx
+          if ( wspd > w0 ) then
+            albg = 0.021_rkx + 0.0421_rkx*onemc**2 + &
+                   0.128_rkx*onemc**3 - 0.04_rkx*onemc**6 + &
+                   (4.0_rkx / (5.68_rkx+wspd-w0) + (0.074_rkx * &
+                   onemc)/(1.0_rkx+3.0_rkx*(wspd-w0))) * onemc**6
+          else
+            albg = (1.0_rkx + (5.4_rkx*czeta**2*onemc**2*wspd * &
+                               (wspd-1.1_rkx*w0)**2)/w0**3) * &
+                   (0.021_rkx + 0.0421_rkx*onemc**2 + &
+                    0.128_rkx*onemc**3 - 0.04*onemc**6 + &
+                    (4.0_rkx/5.68_rkx + 0.074_rkx*onemc)*onemc**6)
+          end if
+          albg = (1.0_rkx-wfac)*albg + 0.3_rkx*wfac
+          albgs = albg
+          albgl = 0.05_rkx/(czeta+0.15_rkx)
+          albgsd = 0.022_rkx*(1.0_rkx+0.55_rkx*exp(-(wspd/7.0_rkx)**2) + &
+                   1.45_rkx*exp(-(wspd/40.0_rkx)**2))
+          albgsd = (1.0_rkx-wfac)*albgsd + 0.3_rkx*wfac
+          albgld = 0.08_rkx
         else
           if ( czeta >= d_zero ) then
             ! albedo independent of wavelength

@@ -275,10 +275,12 @@ module mod_clm_control
     call getlog(user)
 #endif
     if ( ifrest ) then
-      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrContinue, &
+      call set_clmvarctl(trim(prestr)//trim(domname), &
+                         'RegCM driven CLM4.5', nsrContinue, &
                          GIT_VER, hostname, user)
     else
-      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrStartup, &
+      call set_clmvarctl(trim(prestr)//trim(domname), &
+                         'RegCM driven CLM4.5', nsrStartup, &
                          GIT_VER, hostname, user)
     end if
 
@@ -325,7 +327,7 @@ module mod_clm_control
   end subroutine control_init
   !
   ! Distribute namelist data all processors. All program i/o is
-  ! funnelled through the master processor. Processor 0 either
+  ! funnelled through the main processor. Processor 0 either
   ! reads restart/history data from the disk and distributes
   ! it to all processors, or collects data from
   ! all processors and writes it to disk.

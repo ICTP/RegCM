@@ -74,9 +74,9 @@ module mod_ocn_zeng
     implicit none
     real(rkx) :: dqh , dth , facttq , lh , q995 , qs , sh , zo , &
                  t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
-    real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,   &
-                 th , thv , thvstar , tstar , um , visa , zot ,     &
-                 xlv , wc , zeta , zoq , wt1 , wt2 , rhp , twbulb , &
+    real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
+                 th , thv , thvstar , tstar , um , visa , zot , &
+                 wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
                  pcpcool , tha , nobu
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
@@ -125,10 +125,8 @@ module mod_ocn_zeng
       thv = th*(d_one+ep1*q995)
       dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
       ! density
-      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*q995))
+      xdens = sfps(i)/(rgas*tatm(i)*(d_one+ep1*q995))
       ! J/kg
-      xlv = wlh(tgrd(i))
-      !
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
       !
@@ -176,7 +174,7 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      do nconv = 1 , 5
+      do nconv = 1 , 2
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         if ( flag2 ) then
           ustar = vonkar*um/log(hu/zo)
@@ -276,7 +274,7 @@ module mod_ocn_zeng
         pcpcool = d_zero
       end if
       tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*xlv*qstar*ustar
+      lh = -xdens*wlh(tatm(i))*qstar*ustar
       sh = -xdens*cpd*tstar*ustar - pcpcool
       !
       ! x and y components of tau:
@@ -381,7 +379,7 @@ module mod_ocn_zeng
 
       tgbrd(i) = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
       sent(i) = sh
-      evpr(i) = max(lh/wlh(tgrd(i)),d_zero)
+      evpr(i) = lh/wlh(tatm(i))
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
@@ -407,7 +405,6 @@ module mod_ocn_zeng
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <wlh.inc>
-
     !
     ! stability function for rb < 0
     !

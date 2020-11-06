@@ -35,6 +35,8 @@ module mod_micro_interface
   use mod_cloud_thomp
   use mod_cloud_guli2007
   use mod_cloud_texeira
+  use mod_cloud_tompkins
+  use mod_cloud_echam5
 
   implicit none
 
@@ -48,7 +50,8 @@ module mod_micro_interface
   type(micro_2_mod) :: mc2mo
 
   real(rkx) , pointer , dimension(:,:) :: rh0
-  real(rkx) , pointer , dimension(:,:,:) :: totc
+  ! rh0adj - Adjusted relative humidity threshold
+  real(rkx) , pointer , dimension(:,:,:) :: totc , rh0adj
 
   real(rkx) , parameter :: alphaice = d_one
 
@@ -65,6 +68,7 @@ module mod_micro_interface
     real(rkx) :: cf
     if ( ipptls == 1 ) then
       call allocate_subex
+      call getmem3d(rh0adj,jci1,jci2,ici1,ici2,1,kz,'micro:rh0adj')
     else if ( ipptls == 2 ) then
       call allocate_mod_nogtom
 #ifdef DEBUG
@@ -135,6 +139,7 @@ module mod_micro_interface
     call assignpnt(atms%rhob3d,mo2mc%rho)
     call assignpnt(atms%rhb3d,mo2mc%rh)
     call assignpnt(atms%qsb3d,mo2mc%qs)
+    call assignpnt(atms%ps2d,mo2mc%ps2)
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
 
@@ -203,10 +208,11 @@ module mod_micro_interface
   ! liquid water content (in cloud value).  Both are use in
   ! radiation.
   !
-  subroutine cldfrac
-    use mod_atm_interface , only : atms , cldlwc , cldfra
+  subroutine cldfrac(cldlwc,cldfra)
+    use mod_atm_interface , only : atms
     implicit none
     real(rkx) :: exlwc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
     integer(ik4) :: i , j , k , ichi
 
     if ( ipptls > 1 ) then
@@ -257,6 +263,10 @@ module mod_micro_interface
         call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
       case (4)
         call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+      case (5)
+        call tompkins_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
+      case (6)
+        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
@@ -276,8 +286,8 @@ module mod_micro_interface
                 ! The seasonal cycle of low stratiform clouds,
                 ! J. Climate, 6, 1587-1606, 1993
                 mc2mo%fcc(j,i,k) = max(mc2mo%fcc(j,i,k), &
-                      (atms%th700(j,i)-atms%th3d(j,i,k)) * &
-                           0.057_rkx - 0.5573_rkx)
+                      min(((atms%th700(j,i)-atms%th3d(j,i,k)) * &
+                           0.057_rkx) - 0.5573_rkx,1.0_rkx))
               end if
             end if
           end do
@@ -340,6 +350,11 @@ module mod_micro_interface
       end do
     end do
 
+    if ( ipptls == 1 ) then
+      rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
+      rh0adj = max(0.0_rkx,min(rh0adj,0.99999_rkx))
+    end if
+
     contains
 
 #include <clwfromt.inc>
@@ -369,11 +384,10 @@ module mod_micro_interface
     implicit none
     !
     ! rhc    - Relative humidity at ktau+1
-    ! rh0adj - Adjusted relative humidity threshold at ktau+1
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rh0adj , rhc , wwlh
+               r1 , rhc
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -387,10 +401,14 @@ module mod_micro_interface
             qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
             qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
             pres = mo_atm%p(j,i,k)
+            qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
           else
             tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
             qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
             qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
+            qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
             if ( idynamic == 1 ) then
               pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
             else
@@ -420,38 +438,16 @@ module mod_micro_interface
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           qvs = pfwsat(tmp3,pres)
-          rhc = min(max(qvcs/qvs,d_zero),rhmax)
-          wwlh = wlh(tmp3)
-
-          r1 = d_one/(d_one+wwlh*wwlh*qvs/(rwat*cpd*tmp3*tmp3))
-
+          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
+          rhc = min(max(qvcs/qvs,d_zero),d_one)
           ! 2b. Compute the relative humidity threshold at ktau+1
-          if ( tmp3 > tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
-          end if
-          rh0adj = max(d_zero,min(rh0adj,rhmax))
-          if ( rhc < rh0adj ) then      ! Low cloud cover
+          if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
             dqv = conf * (qvcs - qvs)
-          else if ( rhc >= rhmax ) then ! Full cloud cover
-            dqv = conf * (qvcs - qvs)
+          else if ( rhc > 0.99999_rkx ) then
+            dqv = conf * (qvcs - qvs)      ! High cloud cover
           else
-            if ( rh0adj >= rhmax ) then
-              fccc = hicld
-            else if ( rh0adj <= rhmin ) then
-              fccc = d_zero
-            else
-              fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            end if
+            fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
             fccc = min(max(fccc,d_zero),d_one)
-            if ( idynamic == 3 ) then
-              qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
-            else
-              qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
-            end if
             ! qv diff between predicted qv_c
             dqv = conf * fccc * (qvc_cld - qvs)
           end if
@@ -473,14 +469,14 @@ module mod_micro_interface
             if ( idynamic == 3 ) then
               mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
               mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
-              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*wwlh*rcpd
+              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*wlhv*rcpd
             else
               aten%qx(j,i,k,iqv,pc_physic) = &
                   aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
               aten%qx(j,i,k,iqc,pc_physic) = &
                   aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
               aten%t(j,i,k,pc_physic) = &
-                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wwlh*rcpd
+                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wlhv*rcpd
             end if
           end if
         end do

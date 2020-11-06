@@ -48,8 +48,9 @@ module mod_atm_interface
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb , xpaib
+  type(v3dbound) , public :: xlb , xib
   type(v2dbound) , public :: xpsb , xtsb
-  type(bound_area) , public :: ba_cr , ba_dt
+  type(bound_area) , public :: ba_cr , ba_dt , ba_ut , ba_vt
   type(reference_atmosphere) , public :: atm0
   type(mass_divergence) , public :: mdv
   type(nhboundhelp) , public :: nhbh0 , nhbh1
@@ -379,26 +380,34 @@ module mod_atm_interface
 #endif
     end subroutine setup_model_indexes
 
-    subroutine setup_boundaries(ldot,ba)
+    subroutine setup_boundaries(ldotx,ldoty,ba)
       implicit none
-      logical , intent(in) :: ldot
+      logical , intent(in) :: ldotx , ldoty
       type(bound_area) , intent(out) :: ba
-      integer(ik4) :: ic
+      integer(ik4) :: icx , icy
       integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
       integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
       integer(ik4) :: i , j , i1 , i2 , j1 , j2
 
-      ba%dotflag = ldot
       call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
       call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
       call getmem2d(ba%bnorth,jde1,jde2,ide1,ide2,'setup_boundaries:bnorth')
       call getmem2d(ba%beast,jde1,jde2,ide1,ide2,'setup_boundaries:beast')
       call getmem2d(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
-      if ( ldot ) then
-        ic = 0
+
+      if ( ldotx ) then
+        icx = 0
+      else
+        icx = 1
+      end if
+      if ( ldoty ) then
+        icy = 0
+      else
+        icy = 1
+      end if
+      if ( ldotx .or. ldoty ) then
         ba%nsp = nspgd
       else
-        ic = 1
         ba%nsp = nspgx
       end if
       ba%ibnd(:,:) = -1
@@ -406,10 +415,10 @@ module mod_atm_interface
       igbb2 = ba%nsp-1
       jgbl1 = 2
       jgbl2 = ba%nsp-1
-      igbt1 = iy-ic-ba%nsp+2
-      igbt2 = iy-ic-1
-      jgbr1 = jx-ic-ba%nsp+2
-      jgbr2 = jx-ic-1
+      igbt1 = iy-icy-ba%nsp+2
+      igbt2 = iy-icy-1
+      jgbr1 = jx-icx-ba%nsp+2
+      jgbr2 = jx-icx-1
       i1 = ide1
       i2 = ide2
       j1 = jde1
@@ -506,7 +515,8 @@ module mod_atm_interface
       ba%havebound = (ba%ns /= 0 .or. ba%nn /= 0 .or. &
                       ba%nw /= 0 .or. ba%ne /= 0)
 #ifdef DEBUG
-      write(ndebug,*) 'DOT  : ', ldot
+      write(ndebug,*) 'DOTX : ', ldotx
+      write(ndebug,*) 'DOTY : ', ldoty
       write(ndebug,*) 'BDYS : ', ba%ns
       write(ndebug,*) 'BDYN : ', ba%nn
       write(ndebug,*) 'BDYW : ', ba%nw
@@ -583,13 +593,8 @@ module mod_atm_interface
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
-      if ( any(icup == 5) ) then
-        call getmem3d(atm%uten,jdi1ga,jdi2ga,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1ga,idi2ga,1,kz,'atmstate:uten')
-      else
-        call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:uten')
-      end if
+      call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
+      call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
       call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
@@ -754,6 +759,7 @@ module mod_atm_interface
       call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
       call getmem3d(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:rho')
       call getmem3d(atm%z,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:z')
+      call getmem3d(atm%zd,jdi1,jdi2,idi1,idi2,1,kz,'reference:zd')
       call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
       call getmem3d(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
@@ -810,6 +816,8 @@ module mod_atm_interface
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
+      call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
+      call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       if ( idynamic == 3 ) then
         call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
@@ -821,14 +829,13 @@ module mod_atm_interface
         call getmem2d(dom%ulon,jde1,jde2,ide1,ide2,'storage:ulon')
         call getmem2d(dom%vlat,jde1,jde2,ide1,ide2,'storage:vlat')
         call getmem2d(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
-        call getmem2d(dom%coriol,jde1ga,jde2ga,ide1ga,ide2ga,'storage:f')
+        call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
+        call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
       else
-        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
-        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
         call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       end if
+      call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
@@ -926,7 +933,6 @@ module mod_atm_interface
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
         call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
-        call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
         if ( ibltyp == 4 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
@@ -960,6 +966,7 @@ module mod_atm_interface
           call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
           call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
           call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
+          call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
         else
           call assignpnt(a0%z,atms%za)
           call assignpnt(a0%zf,atms%zq)
@@ -967,7 +974,6 @@ module mod_atm_interface
         end if
         call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
         call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
-        call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
         if ( ibltyp == 4 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if

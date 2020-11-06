@@ -166,7 +166,7 @@ module mod_wrtoxd
         aespec => aesulf
         doaero = .true.
         dooxcl = .true.
-      case ( 'SUCA' )
+      case ( 'SUCA' , 'SUCE' )
         naesp = 7
         aespec => aesuca
         doaero = .true.

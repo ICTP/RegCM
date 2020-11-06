@@ -64,14 +64,15 @@ program chem_icbc
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
         iindirect , ichebdy , ichjphcld , ichbion , ismoke , ichlinox , &
-        isnowdark
+        isnowdark , ichecold
+  logical :: carb_aging_control
   integer(ik4) :: ichem , iclimaaer
   integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn , &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,      &
     iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
     icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
     islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
-    iwhitecap , ifixsolar , year_offset , ipcpcool
+    iwhitecap , ifixsolar , year_offset , ipcpcool , ichdustparam
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
   real(rkx) :: rdstemfac , rocemfac
@@ -85,7 +86,8 @@ program chem_icbc
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect , &
     ichsursrc , ichebdy , rdstemfac , rocemfac , ichjphcld , ichbion ,   &
-    ismoke , ichlinox , isnowdark
+    ismoke , ichlinox , isnowdark , carb_aging_control , ichecold ,      &
+    ichdustparam
 
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -159,7 +161,7 @@ program chem_icbc
         dochem = .true.
       case ( 'DUST', 'DU12', 'SSLT', 'DUSS' )
         doaero = .true.
-      case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+      case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' , 'SUCE' )
         doaero = .true.
         dooxcl = .true.
       case ( 'DCCB' )

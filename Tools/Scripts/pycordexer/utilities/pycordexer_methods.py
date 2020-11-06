@@ -493,10 +493,13 @@ class InterpolateHeight(Filter):
                     'Reading ptop variable from regcm file and saving its content '
                     'in memory'
                 )
-                ptop_array = np.array(
-                    get_var_with_name(ptop_names, f)[:],
-                    dtype=DATATYPE_AUXILIARIES,
-                )
+                try:
+                    ptop_array = np.array(
+                        get_var_with_name(ptop_names, f)[:],
+                        dtype=DATATYPE_AUXILIARIES,
+                    )
+                except:
+                    ptop_array = np.array([100.0,])
             elif self.core == 'moloch':
                 LOGGER.debug('Reading pai variable from regcm file')
                 pai = get_var_with_name(pai_names, f)
@@ -518,11 +521,13 @@ class InterpolateHeight(Filter):
                     'Reading ptop variable from regcm file and saving its content '
                     'in memory'
                 )
-                ptop_array = np.array(
-                    get_var_with_name(ptop_names, f)[:],
-                    dtype=DATATYPE_AUXILIARIES,
-                )
-
+                try:
+                    ptop_array = np.array(
+                        get_var_with_name(ptop_names, f)[:],
+                        dtype=DATATYPE_AUXILIARIES,
+                    )
+                except:
+                    ptop_array = np.array([100.0,])
             LOGGER.debug(
                 'Reading sigma variable from regcm file and saving its content '
                 'in memory'

@@ -194,9 +194,9 @@ module mod_micro_subex
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = mc2mo%fcc(j,i,1)     ![frac][avg]
+        pptnew = d_zero
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
-          pptnew = d_zero
           pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -252,6 +252,7 @@ module mod_micro_subex
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
+          pptnew = d_zero
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg                ![kg/kg/s][avg]
           else
@@ -284,8 +285,7 @@ module mod_micro_subex
                   mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + rdevap
                   ! 2bcf. Compute the temperature tendency [K/s]
                   ![K/s][avg]
-                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                          wlh(mo2mc%t(j,i,k))*rcpd*rdevap
+                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - wlhv*rcpd*rdevap
                 else
                   ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
                   ![kg/kg/s*cb][avg]
@@ -294,14 +294,13 @@ module mod_micro_subex
                   ! 2bcf. Compute the temperature tendency [K/s*cb]
                   ![k/s*cb][avg]
                   mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                          wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+                                   wlhv*rcpd*rdevap*mo2mc%psb(j,i)
                 end if
               end if
             end if
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
-            pptnew = d_zero
             pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
@@ -397,7 +396,6 @@ module mod_micro_subex
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>
-#include <wlh.inc>
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none

@@ -39,13 +39,15 @@ module mod_bdycod
   use mod_zita
   use mod_stdatm
   use mod_slabocean
+  use mod_spline
 
   implicit none
 
   private
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-  public :: sponge , nudge , setup_bdycon , raydamp , mo_cmax
+  public :: sponge , nudge , setup_bdycon , raydamp
+  public :: is_present_qc , is_present_qi
 
   !
   ! West U External  = WUE
@@ -74,7 +76,7 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
-  real(rkx) :: mo_cmax
+  real(rk8) :: jday
   integer(ik4) :: som_month
 
   interface timeint
@@ -115,8 +117,20 @@ module mod_bdycod
   end interface raydamp
 
   logical , parameter :: bdyflow = .true.
+  logical :: present_qc = .false.
+  logical :: present_qi = .false.
 
   contains
+
+  logical function is_present_qc( )
+    implicit none
+    is_present_qc = present_qc
+  end function is_present_qc
+
+  logical function is_present_qi( )
+    implicit none
+    is_present_qi = present_qi
+  end function is_present_qi
 
   subroutine allocate_mod_bdycon
     implicit none
@@ -172,39 +186,47 @@ module mod_bdycod
     real(rkx) , dimension(kz) :: anudge
     real(rkx) :: xfun
     integer(ik4) :: n , k
+    real(rkx) , dimension(3) :: ncin
+    real(rkx) , dimension(3) :: zcin
+    real(rkx) , dimension(3) :: ycin
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
+#endif
+    data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
+#ifdef DEBUG
     call time_begin(subroutine_name,idindx)
 #endif
     !
     ! Specify the coefficients for nudging boundary conditions:
+    !
+    ! Development of a Second-Generation Regional Climate Model (RegCM2).
+    ! Part II: Convective Processes and Assimilation of Lateral Boundary
+    ! Conditions
+    !
+    ! Article in Monthly Weather Review · October 1993
+    ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        if ( idynamic == 3 ) then
-          fnudge = 0.009_rkx * mo_cmax
-          if ( myid == italk ) then
-            write(stdout,'(a, f12.4)') ' Relaxation N : ', fnudge
-          end if
-        else
-          fnudge = 0.1_rkx/(dtsec*2.0_rkx)
-        end if
+        fnudge = 0.1_rkx/dt
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
-        if ( idynamic == 3 ) then
-          gnudge = 0.006_rkx * mo_cmax
-          if ( myid == italk ) then
-            write(stdout,'(a, f12.4)') ' Relaxation D : ', gnudge
-          end if
-        else
-          gnudge = d_one/(50.0_rkx*dtsec)
-        end if
+        ! The dxsq is simplified in below when dividing by dxsq
+        gnudge = d_one/(dt*50.0_rkx)
+      end if
+      if ( idynamic == 3 ) then
+        fnudge = fnudge * mo_nadv * mo_nsound
+        gnudge = gnudge * mo_nadv * mo_nsound
+      end if
+      if ( myid == italk ) then
+        write(stdout, '(a,f12.6,a,f12.6)') &
+          ' Nudging coefficients F1=',fnudge,', F2=',gnudge
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -235,15 +257,20 @@ module mod_bdycod
       end do
     end if
     if ( iboudy == 5 ) then
-      do k = 1 , kz
-        if ( hsigma(k) < 0.4_rkx ) then
-          anudge(k) = high_nudge
-        else if ( hsigma(k) < 0.8_rkx ) then
-          anudge(k) = medium_nudge
-        else
-          anudge(k) = low_nudge
-        end if
-      end do
+      ncin(1) = high_nudge
+      ncin(2) = medium_nudge
+      ncin(3) = low_nudge
+      zcin(1) = 0.0_rkx
+      zcin(3) = 1.0_rkx
+      if ( idynamic == 3 ) then
+        zcin(2) = 0.5_rkx
+      else
+        zcin(2) = 0.6_rkx
+      end if
+      call spline1d(3,zcin,ncin,ycin,kz,hsigma,anudge)
+      if ( myid == italk ) then
+        call vprntv(anudge,kz,'Nudging coefficient profile')
+      end if
       do k = 1 , kz
         do n = 2 , nspgx-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
@@ -288,6 +315,16 @@ module mod_bdycod
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
     end if
+    call fixqcqi( )
+
+    if ( we_have_qc( ) ) then
+     call allocate_v3dbound(xlb,kz,cross)
+     present_qc = .true.
+    end if
+    if ( we_have_qi( ) ) then
+     call allocate_v3dbound(xib,kz,cross)
+     present_qi = .true.
+    end if
 
     datefound = icbc_search(bdydate1)
     if (datefound < 0) then
@@ -300,7 +337,7 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       call read_icbc(nhbh0%ps,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
-                     xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -316,8 +353,8 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
-
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b0,xqb%b0,xub%b0,xvb%b0,xpsb%b0,xtsb%b0)
       end if
@@ -340,7 +377,8 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
+                     xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -385,11 +423,23 @@ module mod_bdycod
       call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
       call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
       call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      if ( present_qc ) then
+        call couple(xlb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      end if
+      if ( present_qi ) then
+        call couple(xib%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      end if
     end if
     call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( present_qc ) then
+      call exchange(xlb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+    if ( present_qi ) then
+      call exchange(xib%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     if ( idynamic == 2 ) then
       call couple(xppb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
       call couple(xwwb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kzp1)
@@ -414,7 +464,7 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -430,8 +480,8 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
-
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
       end if
@@ -454,7 +504,8 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -496,11 +547,23 @@ module mod_bdycod
       call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
       call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
       call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      if ( present_qc ) then
+        call couple(xlb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      end if
+      if ( present_qi ) then
+        call couple(xib%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      end if
     end if
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( present_qc ) then
+      call exchange(xlb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+    if ( present_qi ) then
+      call exchange(xib%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     if ( idynamic == 2 ) then
       call couple(xppb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
@@ -576,6 +639,12 @@ module mod_bdycod
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    if ( present_qc ) then
+      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    end if
+    if ( present_qi ) then
+      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    end if
     call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
     if ( idynamic == 1 ) then
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
@@ -583,8 +652,9 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
+      jday = yeardayfrac(rcmtimer%idate)
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
 
@@ -616,6 +686,12 @@ module mod_bdycod
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
+    if ( present_qc ) then
+      xlb%b0(:,:,:) = xlb%b1(:,:,:)
+    end if
+    if ( present_qi ) then
+      xib%b0(:,:,:) = xib%b1(:,:,:)
+    end if
     xtsb%b0(:,:) = xtsb%b1(:,:)
     if ( idynamic == 2 ) then
       xppb%b0(:,:,:) = xppb%b1(:,:,:)
@@ -651,7 +727,7 @@ module mod_bdycod
     end if
     if ( idynamic == 2 ) then
       call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
-                     xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -667,8 +743,8 @@ module mod_bdycod
         end do
       end if
     else if ( idynamic == 3 ) then
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
-
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
       if ( moloch_do_test_1 ) then
         call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
       end if
@@ -691,7 +767,8 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
     end if
 
     if ( update_slabocn ) then
@@ -723,11 +800,23 @@ module mod_bdycod
       call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
       call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
       call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      if ( present_qc ) then
+        call couple(xlb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      end if
+      if ( present_qi ) then
+        call couple(xib%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      end if
     end if
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( present_qc ) then
+      call exchange(xlb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+    if ( present_qi ) then
+      call exchange(xib%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     if ( idynamic == 2 ) then
       call couple(xppb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
@@ -740,13 +829,20 @@ module mod_bdycod
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    if ( present_qc ) then
+      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    end if
+    if ( present_qi ) then
+      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    end if
     if ( idynamic == 1 ) then
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
     else if ( idynamic == 2 ) then
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
+      jday = yeardayfrac(rcmtimer%idate)
+      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
     !
@@ -1878,336 +1974,322 @@ module mod_bdycod
     !
     ! west boundary:
     !
-    if ( idynamic == 3 ) then
-      if ( bdyflow ) then
-        if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ici1 , ici2
-                qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
-                windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(jce1,i,k,n) = max(qxext - &
-                              d_half * qxext * dt/dx * windavg, d_zero)
-                else
-                  mo_atm%qx(jce1,i,k,n) = qxext + &
-                              d_half * qxint * dt/dx * windavg
-                end if
+    if ( .not. present_qc ) then
+      if ( idynamic == 3 ) then
+        if ( bdyflow ) then
+          if ( ma%has_bdyleft ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ici1 , ici2
+                  qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
+                  windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
+                  if ( windavg >= d_zero ) then
+                    mo_atm%qx(jce1,i,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce1,i,k,n) = qxint
+                  end if
+                end do
               end do
             end do
-          end do
+            if ( ma%has_bdybottom ) then
+              do n = iqfrst , iqlst
+                do k = 1 , kz
+                  qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
+                  windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
+                             mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
+                  if ( windavg >= d_zero ) then
+                    mo_atm%qx(jce1,ice1,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce1,ice1,k,n) = qxint
+                  end if
+                end do
+              end do
+            end if
+            if ( ma%has_bdytop ) then
+              do n = iqfrst , iqlst
+                do k = 1 , kz
+                  qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
+                  windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
+                             mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
+                  if ( windavg >= d_zero ) then
+                    mo_atm%qx(jce1,ice2,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce1,ice2,k,n) = qxint
+                  end if
+                end do
+              end do
+            end if
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ici1 , ici2
+                  qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
+                  windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
+                  if ( windavg <= d_zero ) then
+                    mo_atm%qx(jce2,i,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce2,i,k,n) = qxint
+                  end if
+                end do
+              end do
+            end do
+            if ( ma%has_bdybottom ) then
+              do n = iqfrst , iqlst
+                do k = 1 , kz
+                  qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
+                  windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
+                             mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
+                  if ( windavg <= d_zero ) then
+                    mo_atm%qx(jce2,ice1,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce2,ice1,k,n) = qxint
+                  end if
+                end do
+              end do
+            end if
+            if ( ma%has_bdytop ) then
+              do n = iqfrst , iqlst
+                do k = 1 , kz
+                  qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
+                  qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
+                  windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
+                             mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
+                  if ( windavg <= d_zero ) then
+                    mo_atm%qx(jce2,ice2,k,n) = d_zero
+                  else
+                    mo_atm%qx(jce2,ice2,k,n) = qxint
+                  end if
+                end do
+              end do
+            end if
+          end if
+          !
+          ! south boundary:
+          !
           if ( ma%has_bdybottom ) then
             do n = iqfrst , iqlst
               do k = 1 , kz
-                qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
-                windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
-                           mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(jce1,ice1,k,n) = max(qxext - &
-                              0.25_rkx * qxext * dt/dx * windavg, d_zero)
-                else
-                  mo_atm%qx(jce1,ice1,k,n) = qxext + &
-                              0.25_rkx * qxint * dt/dx * windavg
-                end if
+                do j = jci1 , jci2
+                  qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
+                  qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
+                  windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
+                  if ( windavg >= d_zero ) then
+                    mo_atm%qx(j,ice1,k,n) = d_zero
+                  else
+                    mo_atm%qx(j,ice1,k,n) = qxint
+                  end if
+                end do
               end do
             end do
           end if
+          !
+          ! north boundary:
+          !
           if ( ma%has_bdytop ) then
             do n = iqfrst , iqlst
               do k = 1 , kz
-                qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
-                windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
-                           mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(jce1,ice2,k,n) = max(qxext - &
-                              0.25_rkx * qxext * dt/dx * windavg, d_zero)
-                else
-                  mo_atm%qx(jce1,ice2,k,n) = qxext + &
-                              0.25_rkx * qxint * dt/dx * windavg
-                end if
+                do j = jci1 , jci2
+                  qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
+                  qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
+                  windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
+                  if ( windavg <= d_zero ) then
+                    mo_atm%qx(j,ice2,k,n) = d_zero
+                  else
+                    mo_atm%qx(j,ice2,k,n) = qxint
+                  end if
+                end do
               end do
             end do
           end if
-        end if
-        !
-        ! east boundary:
-        !
-        if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ici1 , ici2
-                qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
-                windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(jce2,i,k,n) = max(qxext + &
-                              d_half * qxext * dt/dx * windavg, d_zero)
-                else
-                  mo_atm%qx(jce2,i,k,n) = qxext - &
-                              d_half * qxint * dt/dx * windavg
-                end if
+        else
+          if ( ma%has_bdyleft ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = mo_atm%qx(jci1,i,k,n)
+                  qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
+                  mo_atm%qx(jce1,i,k,n) = qxint*qrat
+                end do
               end do
             end do
-          end do
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = mo_atm%qx(jci2,i,k,n)
+                  qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
+                  mo_atm%qx(jce2,i,k,n) = qxint*qrat
+                end do
+              end do
+            end do
+          end if
+          !
+          ! south boundary:
+          !
           if ( ma%has_bdybottom ) then
             do n = iqfrst , iqlst
               do k = 1 , kz
-                qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
-                windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
-                           mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(jce2,ice1,k,n) = max(qxext + &
-                              0.25_rkx * qxext * dt/dx * windavg,d_zero)
-                else
-                  mo_atm%qx(jce2,ice1,k,n) = qxext - &
-                              0.25_rkx * qxint * dt/dx * windavg
-                end if
+                do j = jci1 , jci2
+                  qxint = mo_atm%qx(j,ici1,k,n)
+                  qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
+                  mo_atm%qx(j,ice1,k,n) = qxint*qrat
+                end do
               end do
             end do
           end if
+          !
+          ! north boundary:
+          !
           if ( ma%has_bdytop ) then
             do n = iqfrst , iqlst
               do k = 1 , kz
-                qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
-                windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
-                           mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(jce2,ice2,k,n) = max(qxext + &
-                              0.25_rkx * qxext * dt/dx * windavg,d_zero)
-                else
-                  mo_atm%qx(jce2,ice2,k,n) = qxext - &
-                              0.25_rkx * qxint * dt/dx * windavg
-                end if
+                do j = jci1 , jci2
+                  qxint = mo_atm%qx(j,ici2,k,n)
+                  qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
+                  mo_atm%qx(j,ice2,k,n) = qxint*qrat
+                end do
               end do
             end do
           end if
         end if
-        !
-        ! south boundary:
-        !
-        if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
-                windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(j,ice1,k,n) = max(qxext - &
-                                d_half * qxext * dt/dx * windavg,d_zero)
-                else
-                  mo_atm%qx(j,ice1,k,n) = qxext + &
-                                d_half * qxint * dt/dx * windavg
-                end if
-              end do
-            end do
-          end do
-        end if
-        !
-        ! north boundary:
-        !
-        if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
-                windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(j,ice2,k,n) = max(qxext + &
-                                d_half * qxext * dt/dx * windavg,d_zero)
-                else
-                  mo_atm%qx(j,ice2,k,n) = qxext - &
-                                d_half * qxint * dt/dx * windavg
-                end if
-              end do
-            end do
-          end do
-        end if
       else
-        if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = mo_atm%qx(jci1,i,k,n)
-                qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
-                mo_atm%qx(jce1,i,k,n) = qxint*qrat
+        if ( bdyflow ) then
+          if ( ma%has_bdyleft ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = atm1%qx(jci1,i,k,n)
+                  windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+                  if ( windavg > d_zero ) then
+                    atm1%qx(jce1,i,k,n) = d_zero
+                  else
+                    atm1%qx(jce1,i,k,n) = qxint
+                  end if
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! east boundary:
-        !
-        if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = mo_atm%qx(jci2,i,k,n)
-                qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
-                mo_atm%qx(jce2,i,k,n) = qxint*qrat
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = atm1%qx(jci2,i,k,n)
+                  windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+                  if ( windavg < d_zero ) then
+                    atm1%qx(jce2,i,k,n) = d_zero
+                  else
+                    atm1%qx(jce2,i,k,n) = qxint
+                  end if
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! south boundary:
-        !
-        if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = mo_atm%qx(j,ici1,k,n)
-                qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
-                mo_atm%qx(j,ice1,k,n) = qxint*qrat
+          end if
+          !
+          ! south boundary:
+          !
+          if ( ma%has_bdybottom ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do j = jci1 , jci2
+                  qxint = atm1%qx(j,ici1,k,n)
+                  windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+                  if ( windavg > d_zero ) then
+                    atm1%qx(j,ice1,k,n) = d_zero
+                  else
+                    atm1%qx(j,ice1,k,n) = qxint
+                  end if
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! north boundary:
-        !
-        if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = mo_atm%qx(j,ici2,k,n)
-                qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
-                mo_atm%qx(j,ice2,k,n) = qxint*qrat
+          end if
+          !
+          ! north boundary:
+          !
+          if ( ma%has_bdytop ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do j = jci1 , jci2
+                  qxint = atm1%qx(j,ici2,k,n)
+                  windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+                  if ( windavg < d_zero ) then
+                    atm1%qx(j,ice2,k,n) = d_zero
+                  else
+                    atm1%qx(j,ice2,k,n) = qxint
+                  end if
+                end do
               end do
             end do
-          end do
-        end if
-      end if
-    else
-      if ( bdyflow ) then
-        if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
-                windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-                if ( windavg > d_zero ) then
-                  atm1%qx(jce1,i,k,n) = d_zero
-                else
-                  atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
-                end if
+          end if
+        else
+          if ( ma%has_bdyleft ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
+                  qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
+                  atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! east boundary:
-        !
-        if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
-                windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-                if ( windavg < d_zero ) then
-                  atm1%qx(jce2,i,k,n) = d_zero
-                else
-                  atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
-                end if
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
+                  qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
+                  atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! south boundary:
-        !
-        if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
-                windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-                if ( windavg > d_zero ) then
-                  atm1%qx(j,ice1,k,n) = d_zero
-                else
-                  atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
-                end if
+          end if
+          !
+          ! south boundary:
+          !
+          if ( ma%has_bdybottom ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do j = jci1 , jci2
+                  qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
+                  qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
+                  atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
+                end do
               end do
             end do
-          end do
-        end if
-        !
-        ! north boundary:
-        !
-        if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
-                windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-                if ( windavg < d_zero ) then
-                  atm1%qx(j,ice2,k,n) = d_zero
-                else
-                  atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
-                end if
+          end if
+          !
+          ! north boundary:
+          !
+          if ( ma%has_bdytop ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                do j = jci1 , jci2
+                  qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
+                  qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
+                  atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat
+                end do
               end do
             end do
-          end do
-        end if
-      else
-        if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
-                qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
-                atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
-              end do
-            end do
-          end do
-        end if
-        !
-        ! east boundary:
-        !
-        if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
-                qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
-                atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
-              end do
-            end do
-          end do
-        end if
-        !
-        ! south boundary:
-        !
-        if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
-                qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
-                atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
-              end do
-            end do
-          end do
-        end if
-        !
-        ! north boundary:
-        !
-        if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
-            do k = 1 , kz
-              do j = jci1 , jci2
-                qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
-                qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
-                atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat
-              end do
-            end do
-          end do
+          end if
         end if
       end if
     end if
@@ -2757,81 +2839,97 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( .not. ba_dt%havebound ) then
+    if ( .not. ba_ut%havebound .and. .not. ba_vt%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
       return
     end if
 
-    if ( ba_dt%ns /= 0 ) then
+    if ( ba_ut%ns /= 0 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1 , jdi2
-            if ( .not. ba_dt%bsouth(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
-            fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
+            if ( .not. ba_ut%bsouth(j,i) ) cycle
+            ib = ba_ut%ibnd(j,i)
+            fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
           end do
         end do
+      end do
+    end if
+    if ( ba_vt%ns /= 0 ) then
+      do k = 1 , kz
         do i = idi1 , idi2
           do j = jci1 , jci2
-            if ( .not. ba_dt%bsouth(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
+            if ( .not. ba_vt%bsouth(j,i) ) cycle
+            ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
           end do
         end do
       end do
     end if
-    if ( ba_dt%nn /= 0 ) then
+    if ( ba_ut%nn /= 0 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1 , jdi2
-            if ( .not. ba_dt%bnorth(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
-            fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
+            if ( .not. ba_ut%bnorth(j,i) ) cycle
+            ib = ba_ut%ibnd(j,i)
+            fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
           end do
         end do
+      end do
+    end if
+    if ( ba_vt%nn /= 0 ) then
+      do k = 1 , kz
         do i = idi1 , idi2
           do j = jci1 , jci2
-            if ( .not. ba_dt%bnorth(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
+            if ( .not. ba_vt%bnorth(j,i) ) cycle
+            ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
           end do
         end do
       end do
     end if
-    if ( ba_dt%nw /= 0 ) then
+    if ( ba_ut%nw /= 0 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1 , jdi2
-            if ( .not. ba_dt%bwest(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
+            if ( .not. ba_ut%bwest(j,i) ) cycle
+            ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
-          end do
-        end do
-        do i = idi1 , idi2
-          do j = jci1 , jci2
-            if ( .not. ba_dt%bwest(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
-            fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
           end do
         end do
       end do
     end if
-    if ( ba_dt%ne /= 0 ) then
+    if ( ba_vt%nw /= 0 ) then
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jci1 , jci2
+            if ( .not. ba_vt%bwest(j,i) ) cycle
+            ib = ba_vt%ibnd(j,i)
+            fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
+          end do
+        end do
+      end do
+    end if
+    if ( ba_ut%ne /= 0 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1 , jdi2
-            if ( .not. ba_dt%beast(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
+            if ( .not. ba_ut%beast(j,i) ) cycle
+            ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
           end do
         end do
+      end do
+    end if
+    if ( ba_vt%ne /= 0 ) then
+      do k = 1 , kz
         do i = idi1 , idi2
           do j = jci1 , jci2
-            if ( .not. ba_dt%beast(j,i) ) cycle
-            ib = ba_dt%ibnd(j,i)
-            fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
+            if ( .not. ba_vt%beast(j,i) ) cycle
+            ib = ba_vt%ibnd(j,i)
+            fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
           end do
         end do
       end do
@@ -3127,8 +3225,6 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    real(rkx) , parameter :: nfac = 1.0e3_rkx
-    real(rkx) , parameter :: rfac = d_one/nfac
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d3d'
@@ -3145,7 +3241,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-      fg1(j,i,k) = nfac*(bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - nfac*f(j,i,k,n)
+      fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
     if ( ibdy == 1 ) then
@@ -3162,8 +3258,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3181,8 +3277,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3200,8 +3296,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3219,8 +3315,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3239,8 +3335,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3258,8 +3354,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3277,8 +3373,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3296,8 +3392,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3314,8 +3410,6 @@ module mod_bdycod
     real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    real(rkx) , parameter :: nfac = 1.0e3_rkx
-    real(rkx) , parameter :: rfac = d_one/nfac
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge4d3d'
@@ -3332,7 +3426,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-      fg1(j,i,k) = nfac*(bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - nfac*f(j,i,k,n)
+      fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
     if ( ibdy == 1 ) then
@@ -3349,8 +3443,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3368,8 +3462,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3387,8 +3481,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3406,8 +3500,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3426,8 +3520,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3445,8 +3539,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3464,8 +3558,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3483,8 +3577,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3751,7 +3845,7 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    if ( .not. ba_dt%havebound ) then
+    if ( .not. ba_ut%havebound .and. .not. ba_vt%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
@@ -3769,14 +3863,14 @@ module mod_bdycod
     end do
 
     if ( ibdy == 1 ) then
-      if ( ba_dt%ns /= 0 ) then
+      if ( ba_ut%ns /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici1
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bsouth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = fcd(ib)
-              xg = gcd(ib)
+              if ( .not. ba_ut%bsouth(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
+              xf = fcx(ib)
+              xg = gcx(ib)
               fls0 = fg1(j,i,k)
               fls1 = fg1(j-1,i,k)
               fls2 = fg1(j+1,i,k)
@@ -3786,10 +3880,14 @@ module mod_bdycod
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%ns /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jci1 , jci2
-              if ( .not. ba_dt%bsouth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_vt%bsouth(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
               xf = fcd(ib)
               xg = gcd(ib)
               fls0 = fg2(j,i,k)
@@ -3803,14 +3901,14 @@ module mod_bdycod
           end do
         end do
       end if
-      if ( ba_dt%nn /= 0 ) then
+      if ( ba_ut%nn /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bnorth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = fcd(ib)
-              xg = gcd(ib)
+              if ( .not. ba_ut%bnorth(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
+              xf = fcx(ib)
+              xg = gcx(ib)
               fls0 = fg1(j,i,k)
               fls1 = fg1(j-1,i,k)
               fls2 = fg1(j+1,i,k)
@@ -3820,10 +3918,14 @@ module mod_bdycod
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%nn /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jci1 , jci2
-              if ( .not. ba_dt%bnorth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_vt%bnorth(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
               xf = fcd(ib)
               xg = gcd(ib)
               fls0 = fg2(j,i,k)
@@ -3837,12 +3939,12 @@ module mod_bdycod
           end do
         end do
       end if
-      if ( ba_dt%nw /= 0 ) then
+      if ( ba_ut%nw /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bwest(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_ut%bwest(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
               xf = fcd(ib)
               xg = gcd(ib)
               fls0 = fg1(j,i,k)
@@ -3854,12 +3956,16 @@ module mod_bdycod
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%nw /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jci1 , jci2
-              if ( .not. ba_dt%bwest(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = fcd(ib)
-              xg = gcd(ib)
+              if ( .not. ba_vt%bwest(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
+              xf = fcx(ib)
+              xg = gcx(ib)
               fls0 = fg2(j,i,k)
               fls1 = fg2(j-1,i,k)
               fls2 = fg2(j+1,i,k)
@@ -3871,12 +3977,12 @@ module mod_bdycod
           end do
         end do
       end if
-      if ( ba_dt%ne /= 0 ) then
+      if ( ba_ut%ne /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%beast(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_ut%beast(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
               xf = fcd(ib)
               xg = gcd(ib)
               fls0 = fg1(j,i,k)
@@ -3888,12 +3994,16 @@ module mod_bdycod
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%ne /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jci1 , jci2
-              if ( .not. ba_dt%beast(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = fcd(ib)
-              xg = gcd(ib)
+              if ( .not. ba_vt%beast(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
+              xf = fcx(ib)
+              xg = gcx(ib)
               fls0 = fg2(j,i,k)
               fls1 = fg2(j-1,i,k)
               fls2 = fg2(j+1,i,k)
@@ -3906,12 +4016,12 @@ module mod_bdycod
         end do
       end if
     else
-      if ( ba_dt%ns /= 0 ) then
+      if ( ba_ut%ns /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bsouth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_ut%bsouth(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
               xf = hefc(ib,k)
               xg = hegc(ib,k)
               fls0 = fg1(j,i,k)
@@ -3923,10 +4033,90 @@ module mod_bdycod
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%ns /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bsouth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_vt%bsouth(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
+              fls0 = fg2(j,i,k)
+              fls1 = fg2(j-1,i,k)
+              fls2 = fg2(j+1,i,k)
+              fls3 = fg2(j,i-1,k)
+              fls4 = fg2(j,i+1,k)
+              fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba_ut%nn /= 0 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              if ( .not. ba_ut%bnorth(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
+              xf = hefc(ib,k)
+              xg = hegc(ib,k)
+              fls0 = fg1(j,i,k)
+              fls1 = fg1(j-1,i,k)
+              fls2 = fg1(j+1,i,k)
+              fls3 = fg1(j,i-1,k)
+              fls4 = fg1(j,i+1,k)
+              fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba_vt%nn /= 0 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              if ( .not. ba_vt%bnorth(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
+              fls0 = fg2(j,i,k)
+              fls1 = fg2(j-1,i,k)
+              fls2 = fg2(j+1,i,k)
+              fls3 = fg2(j,i-1,k)
+              fls4 = fg2(j,i+1,k)
+              fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba_ut%nw /= 0 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jdi1 , jdi2
+              if ( .not. ba_ut%bwest(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
+              fls0 = fg1(j,i,k)
+              fls1 = fg1(j-1,i,k)
+              fls2 = fg1(j+1,i,k)
+              fls3 = fg1(j,i-1,k)
+              fls4 = fg1(j,i+1,k)
+              fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba_vt%nw /= 0 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              if ( .not. ba_vt%bwest(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
               xf = hefc(ib,k)
               xg = hegc(ib,k)
               fls0 = fg2(j,i,k)
@@ -3940,80 +4130,12 @@ module mod_bdycod
           end do
         end do
       end if
-      if ( ba_dt%nn /= 0 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              if ( .not. ba_dt%bnorth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = hefd(ib,k)
-              xg = hegd(ib,k)
-              fls0 = fg1(j,i,k)
-              fls1 = fg1(j-1,i,k)
-              fls2 = fg1(j+1,i,k)
-              fls3 = fg1(j,i-1,k)
-              fls4 = fg1(j,i+1,k)
-              fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-          do i = idi1 , idi2
-            do j = jci1 , jci2
-              if ( .not. ba_dt%bnorth(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = hefd(ib,k)
-              xg = hegd(ib,k)
-              fls0 = fg2(j,i,k)
-              fls1 = fg2(j-1,i,k)
-              fls2 = fg2(j+1,i,k)
-              fls3 = fg2(j,i-1,k)
-              fls4 = fg2(j,i+1,k)
-              fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-      if ( ba_dt%nw /= 0 ) then
+      if ( ba_ut%ne /= 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdi1 , jdi2
-              if ( .not. ba_dt%bwest(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = hefd(ib,k)
-              xg = hegd(ib,k)
-              fls0 = fg1(j,i,k)
-              fls1 = fg1(j-1,i,k)
-              fls2 = fg1(j+1,i,k)
-              fls3 = fg1(j,i-1,k)
-              fls4 = fg1(j,i+1,k)
-              fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-          do i = idi1 , idi2
-            do j = jci1 , jci2
-              if ( .not. ba_dt%bwest(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = hefd(ib,k)
-              xg = hegd(ib,k)
-              fls0 = fg2(j,i,k)
-              fls1 = fg2(j-1,i,k)
-              fls2 = fg2(j+1,i,k)
-              fls3 = fg2(j,i-1,k)
-              fls4 = fg2(j,i+1,k)
-              fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-      if ( ba_dt%ne /= 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jdi1 , jdi2
-              if ( .not. ba_dt%beast(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
+              if ( .not. ba_ut%beast(j,i) ) cycle
+              ib = ba_ut%ibnd(j,i)
               xf = hefd(ib,k)
               xg = hegd(ib,k)
               fls0 = fg1(j,i,k)
@@ -4025,12 +4147,16 @@ module mod_bdycod
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
+        end do
+      end if
+      if ( ba_vt%ne /= 0 ) then
+        do k = 1 , kz
           do i = idi1 , idi2
             do j = jci1 , jci2
-              if ( .not. ba_dt%beast(j,i) ) cycle
-              ib = ba_dt%ibnd(j,i)
-              xf = hefd(ib,k)
-              xg = hegd(ib,k)
+              if ( .not. ba_vt%beast(j,i) ) cycle
+              ib = ba_vt%ibnd(j,i)
+              xf = hefc(ib,k)
+              xg = hegc(ib,k)
               fls0 = fg2(j,i,k)
               fls1 = fg2(j-1,i,k)
               fls2 = fg2(j+1,i,k)
@@ -4841,16 +4967,14 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     type(v3dbound) , intent(in) :: ubnd , vbnd
-    real(rkx) :: zz , zm , xt , bval
+    real(rkx) :: xt , bval
     integer(ik4) :: i , j , k
     xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-          uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (bval-u(j,i,k))
+          uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-u(j,i,k))
         end do
       end do
     end do
@@ -4858,9 +4982,7 @@ module mod_bdycod
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-          vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (bval-v(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-v(j,i,k))
         end do
       end do
     end do
@@ -4872,23 +4994,18 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
   real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
   real(rkx) , intent(in) :: sval
-  real(rkx) :: zz , zm
   integer(ik4) :: i , j , k
   do k = 1 , min(kz,rayndamp)
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-        uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (sval-u(j,i,k))
+        uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-u(j,i,k))
       end do
     end do
   end do
   do k = 1 , min(kz,rayndamp)
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-        vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (sval-v(j,i,k))
+        vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-v(j,i,k))
       end do
     end do
   end do
@@ -5007,38 +5124,39 @@ module mod_bdycod
     end if
   end function tau
 
-  subroutine paicompute(xpsb,xtb,xqb,xpaib)
+  subroutine paicompute(lat,ps,z,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xpaib
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zz2 , zlr
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , lat
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
-    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
-        zz1 = mo_atm%zeta(j,i,kz)
-        ! zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
-        zlr = -lrate
-        tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
-        zz2 = egrav/(rgas*tv)
-        p = xpsb(j,i) * exp(-zz1*zz2)
-        xpaib(j,i,kz) = (p/p00)**rovcp
+        zdelta = z(j,i,kz)*egrav
+        tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
+        tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
+        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
+        lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
+        tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
+        zz = d_one/(rgas*tv)
+        p = ps(j,i) * exp(-zdelta*zz)
+        pai(j,i,kz) = (p/p00)**rovcp
       end do
     end do
     do k = kzm1 , 1 , -1
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv1 = xtb(j,i,k) * (d_one + ep1*xqb(j,i,k))
-          tv2 = xtb(j,i,k+1) * (d_one + ep1*xqb(j,i,k+1))
+          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
           zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
-          xpaib(j,i,k) = -xpaib(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+          pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
         end do
       end do
     end do
-    call exchange(xpaib,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
   end subroutine paicompute
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
@@ -5050,7 +5168,7 @@ module mod_bdycod
     xps = stdpmb
     xu = d_zero
     xv = d_zero
-    xq = d_zero
+    xq = 1.0e-8_rkx
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -5084,6 +5202,66 @@ module mod_bdycod
       end do
     end do
   end subroutine moloch_static_test2
+
+  !  Computes optimal relaxation coefficients for lateral
+  !  boundary conditions (Lehmann, MAP, 1993,1-14)
+  !  See the paper for more comments
+  !  NOTE : IS MUST BE POWER OF 2
+  !  Input:  is       width of boundary relaxation zone (power of 2)
+  !          gammin   minimal Courant number (c*dt/dx)
+  !          gammax   maximal Courant number
+  !  Output: alpha()  weight of externally specified values in the boundary
+  !                   zone (corresponding to optimal relax. coefficients)
+  subroutine relax (is, gammin, gammax, alpha)
+    implicit none
+    integer(ik4) , intent(in) :: is
+    real(rkx) , intent(in) :: gammin , gammax
+    real(rkx) , dimension(is) , intent(out) :: alpha
+    real(rkx) , dimension(0:2*is) :: p , q , pp , qq
+    real(rkx) :: my , kk , kdt2 , xxx
+    integer(ik4) :: i , j , n
+
+    n = 1
+    p(0) = 0.0_rkx
+    p(1) = 1.0_rkx
+    q(0) = 1.0_rkx
+    q(1) = 0.0_rkx
+    my = sqrt(gammax/gammin)
+    do
+      my = sqrt((my+1.0_rkx/my)/2.0_rkx)
+      do i = 0 , n+n
+        pp(i) = 0.0_rkx
+        qq(i) = 0.0_rkx
+      end do
+      do i = 0 , n
+        do j = 0 , n
+          pp(i+j) = pp(i+j) + p(i)*p(j) + q(i)*q(j)
+          qq(i+j) = qq(i+j) + 2.0_rkx*my*p(i)*q(j)
+        end do
+      end do
+      do i = 0 , n+n
+        p(i) = pp(i)
+        q(i) = qq(i)
+      end do
+      n = 2*n
+      if ( n >= is ) exit
+    end do
+    do i = n , 1 , -1
+      kk = p(i)/q(i-1)
+      do j = i , 1 , -1
+        xxx = q(j)
+        q(j) = p(j) - kk*q(j-1)
+        p(j) = xxx
+      end do
+      xxx = q(0)
+      q(0) = p(0)
+      p(0) = xxx
+      kdt2 = kk*sqrt(gammin*gammax)
+      alpha(i) = kdt2/(1.0_rkx+kdt2)
+    end do
+    !  Remark: this alpha corresponds to the leapfrog scheme,
+    !  whereas kdt2 is independent of the integration scheme
+  end subroutine relax
 
 end module mod_bdycod
 

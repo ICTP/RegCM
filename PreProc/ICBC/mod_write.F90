@@ -36,13 +36,13 @@ module mod_write
   real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
   real(rkx) , pointer , dimension(:,:) :: pd4
   real(rkx) , pointer , dimension(:,:) :: pr , ssr , strd , clt
-  real(rkx) , pointer , dimension(:,:,:) :: q4
+  real(rkx) , pointer , dimension(:,:,:) :: q4 , qc4 , qi4
   real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
   real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
   real(rkx) , pointer , dimension(:,:,:) :: zud4 , zvd4
 
   public :: ps4 , pd4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4 , zud4 , zvd4
-  public :: pr , ssr , strd , clt
+  public :: qc4 , qi4 , pr , ssr , strd , clt
   public :: init_output , close_output , dispose_output , newfile , writef
   public :: init_houtput , newhfile , writehf
 
@@ -107,10 +107,14 @@ module mod_write
 
   subroutine init_output
     implicit none
-    integer(ik4) :: ierr
+    integer(ik4) :: ierr , i3i
     call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
     call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
     call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
+    if ( dattyp == 'FNEST' ) then
+      call getmem3d(qc4,1,jx,1,iy,1,kz,'mod_write:qc4')
+      call getmem3d(qi4,1,jx,1,iy,1,kz,'mod_write:qi4')
+    end if
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
@@ -119,8 +123,8 @@ module mod_write
       nvar3d = 4
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
     else if ( idynamic == 2 ) then
-      nvar3d = 6
       nvar2d = 9
+      nvar3d = 6
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
@@ -135,6 +139,9 @@ module mod_write
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
       call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
       call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
+    end if
+    if ( dattyp == 'FNEST' ) then
+      nvar3d = nvar3d + 2
     end if
     allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
     if ( ierr /= 0 ) then
@@ -187,23 +194,39 @@ module mod_write
     v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
     v3dvar_icbc(4)%standard_name = 'grid_northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
+    if ( dattyp == 'FNEST' ) then
+      v3dvar_icbc(5)%vname = 'qc'
+      v3dvar_icbc(5)%vunit = 'kg kg-1'
+      v3dvar_icbc(5)%long_name = 'Mass Fraction of Cloud Liquid Water'
+      v3dvar_icbc(5)%standard_name = &
+                   'mass_fraction_of_cloud_liquid_water_in_air'
+      v3dvar_icbc(5)%lrecords = .true.
+      v3dvar_icbc(6)%vname = 'qi'
+      v3dvar_icbc(6)%vunit = 'kg kg-1'
+      v3dvar_icbc(6)%long_name = 'Mass Fraction of Cloud Ice'
+      v3dvar_icbc(6)%standard_name = 'mass_fraction_of_cloud_ice_in_air'
+      v3dvar_icbc(6)%lrecords = .true.
+      i3i = 7
+    else
+      i3i = 5
+    end if
     if ( idynamic == 2 ) then
       v2dvar_icbc(9)%vname = 'wtop'
       v2dvar_icbc(9)%vunit = 'm s-1'
       v2dvar_icbc(9)%long_name = 'Model top vertical velocity'
       v2dvar_icbc(9)%standard_name = 'upward_air_velocity'
       v2dvar_icbc(9)%lrecords = .true.
-      v3dvar_icbc(5)%vname = 'w'
-      v3dvar_icbc(5)%vunit = 'm s-1'
-      v3dvar_icbc(5)%long_name = 'Vertical wind'
-      v3dvar_icbc(5)%standard_name = 'upward_air_velocity'
-      v3dvar_icbc(5)%lrecords = .true.
-      v3dvar_icbc(6)%vname = 'pp'
-      v3dvar_icbc(6)%vunit = 'Pa'
-      v3dvar_icbc(6)%long_name = 'Pressure perturbation'
-      v3dvar_icbc(6)%standard_name = &
+      v3dvar_icbc(i3i)%vname = 'w'
+      v3dvar_icbc(i3i)%vunit = 'm s-1'
+      v3dvar_icbc(i3i)%long_name = 'Vertical wind'
+      v3dvar_icbc(i3i)%standard_name = 'upward_air_velocity'
+      v3dvar_icbc(i3i)%lrecords = .true.
+      v3dvar_icbc(i3i+1)%vname = 'pp'
+      v3dvar_icbc(i3i+1)%vunit = 'Pa'
+      v3dvar_icbc(i3i+1)%long_name = 'Pressure perturbation'
+      v3dvar_icbc(i3i+1)%standard_name = &
         'difference_of_air_pressure_from_model_reference'
-      v3dvar_icbc(6)%lrecords = .true.
+      v3dvar_icbc(i3i+1)%lrecords = .true.
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%vname = 'ulon'
@@ -284,7 +307,7 @@ module mod_write
     type(rcm_time_and_date) , intent(in) :: idate1
 
     type(ncoutstream_params) :: opar
-    integer(ik4) :: ivar
+    integer(ik4) :: ivar , i3i
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
@@ -306,10 +329,17 @@ module mod_write
     v3dvar_icbc(2)%rval => q4
     v3dvar_icbc(3)%rval => u4
     v3dvar_icbc(4)%rval => v4
+    if ( dattyp == 'FNEST' ) then
+      v3dvar_icbc(5)%rval => qc4
+      v3dvar_icbc(6)%rval => qi4
+      i3i = 7
+    else
+      i3i = 5
+    end if
     if ( idynamic == 2 ) then
       v2dvar_icbc(9)%rval => wtop4
-      v3dvar_icbc(5)%rval => ww4
-      v3dvar_icbc(6)%rval => pp4
+      v3dvar_icbc(i3i)%rval => ww4
+      v3dvar_icbc(i3i+1)%rval => pp4
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%rval => ulon
@@ -373,6 +403,10 @@ module mod_write
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,v4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,t4,tv4,ps4,ps0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,q4,tv4,ps4,ps0,2)
+      if ( dattyp == 'FNEST' ) then
+        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qc4,tv4,ps4,ps0,1)
+        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qi4,tv4,ps4,ps0,1)
+      end if
       ! Recompute virtual temperature on non hydrostatic sigma.
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).

@@ -39,7 +39,7 @@ module mod_che_common
   real(rkx) :: cfdout
 
   integer(ik4) , parameter :: sbin = 2
-  integer(ik4) , parameter :: cbin = 9
+  integer(ik4) , parameter :: cbin = 12
   integer(ik4) , parameter :: maxntr = 50
   !
   ! Only one cover type per grid cell for now
@@ -403,7 +403,7 @@ module mod_che_common
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'
         write (stderr,*) 'Valid simulations are : ' , &
-           'DUST DU12 SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
+           'DUST DU12 SSLT DUSS CARB SULF SUCA SUCE AERO CBMZ DCCB POLLEN'
       end if
       call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
     end if

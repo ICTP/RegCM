@@ -807,9 +807,9 @@ module mod_clm_typeinit
     pps%frac_veg_nosno(ibeg:iend) = bigint
     pps%frac_veg_nosno_alb(ibeg:iend) = 0
     pps%emv(ibeg:iend) = nan
-    pps%z0mv(ibeg:iend) = nan
-    pps%z0hv(ibeg:iend) = nan
-    pps%z0qv(ibeg:iend) = nan
+    pps%z0mv(ibeg:iend) = 0.0_rk8
+    pps%z0hv(ibeg:iend) = 0.0_rk8
+    pps%z0qv(ibeg:iend) = 0.0_rk8
     pps%rootfr(ibeg:iend,:nlevgrnd) = spval
     pps%rootr (ibeg:iend,:nlevgrnd) = spval
     pps%rresis(ibeg:iend,:nlevgrnd) = spval

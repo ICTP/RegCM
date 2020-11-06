@@ -66,10 +66,10 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , chibot , dlargc , &
-               dsmalc , dxtemc , pk , ptmb , pz , qk , qkp1 ,  &
-               sig700 , ssum , vqmax , wk , wkp1 , xbot ,      &
+    real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
+               qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
                xtop , xx , yy , mo_c1 , mo_c2
+    real(rkx) , dimension(kzp1) :: fak , fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     integer(ik4) :: i , j , k , kbase , ktop , ns
@@ -89,14 +89,14 @@ module mod_params
 
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
-    namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
-      ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq ,        &
-      srffrq , subfrq , lakfrq , radfrq , chemfrq , enable_atm_vars ,    &
-      enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
-      enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
-      enable_che_vars , enable_shf_vars , dirout , lsync , uvrotate ,    &
-      idiag , icosp , do_parallel_netcdf_in , do_parallel_netcdf_out ,   &
-      deflate_level
+    namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
+      iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
+      srffrq , subfrq , lakfrq , radfrq , chemfrq , dirout , uvrotate ,   &
+      enable_atm_vars , enable_srf_vars , enable_rad_vars ,               &
+      enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
+      enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
+      lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
+      do_parallel_netcdf_out , deflate_level , chechgact
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -113,9 +113,10 @@ module mod_params
 
     namelist /hydroparam/ nsplit , lstand
 
-    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,      &
-      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge , &
-      mo_wmax , mo_nadv , mo_nsound , mo_nzfilt , mo_anu2
+    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
+      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
+      mo_anu2 , mo_filterpai , mo_nadv , mo_nsound ,       &
+      mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -156,7 +157,8 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam
+      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold ,   &
+      carb_aging_control
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -201,6 +203,7 @@ module mod_params
     !
     ! outparam ;
     !
+    prestr = ''
     ifsave = .true.
     ifatm  = .true.
     ifrad  = .true.
@@ -233,6 +236,7 @@ module mod_params
     uvrotate = .false.
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
+    chechgact = .false.
     idiag = 0
     icosp = 0
     !
@@ -265,7 +269,7 @@ module mod_params
     idesseas = 0
     iconvlwp = 1
     icldfrac = 0
-    icldmstrat = 1
+    icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0
@@ -291,13 +295,14 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = 5
-    rayalpha0 = 0.0003_rkx
+    rayalpha0 = 0.003_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
-    mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
-    mo_nzfilt = 3
+    mo_anu2 = 0.6_rkx
+    mo_nzfilt = 0
+    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
@@ -336,7 +341,7 @@ module mod_params
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
-    k2_const  = 10.0_rkx   ! K2 CF factor relation with updraft mass flux
+    k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
     lsrfhack  = .false.    ! Surface radiation hack
@@ -519,6 +524,7 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichdustparam = 0  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
+    ichecold = 0      ! chemistry cold start (restart without chem data in SAV)
     idirect = 0       ! tracer direct effect
 #ifdef CLM45
     isnowdark = 1     ! Snow darkening by CARB/DUST
@@ -533,6 +539,7 @@ module mod_params
     rdstemfac = d_one
     ichbion = 0
     rocemfac = 1.33_rkx
+    carb_aging_control = .false.
 
     ntr = 0
     nbin = 0
@@ -708,6 +715,12 @@ module mod_params
       icup(1) = icup_lnd
       icup(2) = icup_ocn
       if ( any(icup == 1) ) then
+        if ( idynamic == 3 ) then
+          write(stderr,*) &
+            'ERROR: Kuo scheme cannot be used with MOLOCH dynamical scheme'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST ICUP INCONSISTENT')
+        end if
         if ( icup_lnd /= icup_ocn ) then
           write(stderr,*) &
             'ERROR: Kuo scheme MUST be used on both Land and Ocean'
@@ -734,8 +747,8 @@ module mod_params
       end if
       if ( cftotmax < 0.0 ) then
           cftotmax = 0.1_rkx
-      else if ( cftotmax >= 1.0_rkx ) then
-        cftotmax = 0.99_rkx
+      else if ( cftotmax > 1.0_rkx ) then
+        cftotmax = 1.00_rkx
       end if
       if ( icldfrac == 2 .and. ipptls < 2 ) then
         write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
@@ -765,9 +778,9 @@ module mod_params
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
         end if
-        if ( cftotmax < 0.99_rkx ) then
-          write(stdout,*) 'Will set cftotmax == 0.99'
-          cftotmax = 0.99_rkx
+        if ( cftotmax < 1.0_rkx ) then
+          write(stdout,*) 'Will set cftotmax == 1.0'
+          cftotmax = 1.0_rkx
         end if
       end if
 
@@ -1066,6 +1079,7 @@ module mod_params
     call bcast(dtche)
     call bcast(dtabem)
 
+    call bcast(prestr,64)
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
@@ -1099,6 +1113,7 @@ module mod_params
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
     call bcast(do_parallel_netcdf_out)
+    call bcast(chechgact)
 #ifdef NETCDF4_HDF5
     call bcast(deflate_level)
 #endif
@@ -1160,11 +1175,12 @@ module mod_params
       end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
-      call bcast(mo_wmax)
       call bcast(mo_anu2)
+      call bcast(mo_wmax)
+      call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
-      call bcast(mo_nzfilt)
+      call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
@@ -1516,6 +1532,7 @@ module mod_params
       call bcast(ichdrdepo)
       call bcast(ichcumtra)
       call bcast(idirect)
+      call bcast(ichecold)
       call bcast(isnowdark)
       call bcast(iindirect)
       call bcast(ichsolver)
@@ -1530,6 +1547,7 @@ module mod_params
       call bcast(ichlinox)
       call bcast(ichbion)
       call bcast(ismoke)
+      call bcast(carb_aging_control)
 
       ! Set chemistry dimensions and tracer names
       call chem_config
@@ -1730,6 +1748,8 @@ module mod_params
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
                           mddom%rmoist,mddom%dhlake,base_state_ts0)
     if ( moloch_do_test_1 ) then
+      ifrayd = 0
+      mo_filterpai = .false.
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
@@ -1738,7 +1758,6 @@ module mod_params
     if ( moloch_do_test_2 ) then
       !mddom%ht(jde1:jde2,ide1:ide2) = 100.0_rkx * &
       !              abs(sin(mddom%xlat(jde1:jde2,ide1:ide2)*degrad))
-      mo_nzfilt = 0
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
@@ -1746,7 +1765,11 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriol = d_zero
+      mddom%coriol = d_one
+    end if
+
+    if ( idynamic == 3 ) then
+      ptop = 0.1_rkx ! assume 1 mbar (.1 cbar)
     end if
     call bcast(ds)
     call bcast(ptop)
@@ -1762,14 +1785,19 @@ module mod_params
     rdxsq = 1.0_rkx/dxsq
 
     if ( idynamic == 3 ) then
-      mo_c1 = sqrt(d_two)*(1.10_rkx*mo_wmax)*dtsec/real(mo_nadv,rkx)/dx
-      mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*350.0_rkx)* &
-              dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
-      mo_cmax = max(mo_c1,mo_c2)
+      mo_c1 = sqrt(d_two)*150.0_rkx*dtsec/dx/real(mo_nadv,rkx)
+      mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*313.16_rkx)* &
+              dtsec/dx/real(mo_nadv,rkx)/real(mo_nsound,rkx)
       if ( myid == italk ) then
-        write(stdout,'(a, f7.4)') &
+        write(stdout,'(a, f9.3, a, i2, a)') &
+           ' Advection timestep = ', dtsec/real(mo_nadv,rkx), &
+           ' (factor ', mo_nadv, ')'
+        write(stdout,'(a, f9.4)') &
            ' Max. Courant number for horizontal advection = ', mo_c1
-        write(stdout,'(a, f7.4)') &
+        write(stdout,'(a, f9.3, a, i2, a)') ' Sound waves timestep = ', &
+           dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx), &
+           ' (factor ', mo_nsound, ')'
+        write(stdout,'(a, f9.4)') &
            ' Courant number of horizontal sound waves = ', mo_c2
       end if
     end if
@@ -1777,8 +1805,13 @@ module mod_params
     !
     ! Calculate boundary areas per processor
     !
-    call setup_boundaries(cross,ba_cr)
-    call setup_boundaries(dot,ba_dt)
+    call setup_boundaries(cross,cross,ba_cr)
+    if ( idynamic == 3 ) then
+      call setup_boundaries(dot,cross,ba_ut)
+      call setup_boundaries(cross,dot,ba_vt)
+    else
+      call setup_boundaries(dot,dot,ba_dt)
+    end if
 
     call allocate_v2dbound(xpsb,cross)
     call allocate_v2dbound(xtsb,cross)
@@ -1990,7 +2023,23 @@ module mod_params
     !
     !-----compute half sigma levels.
     !
-    if ( idynamic < 3 ) then
+    if ( idynamic == 3 ) then
+      zita(kzp1) = d_zero
+      do k = kz , 1 , -1
+        zita(k) = zita(k+1) + mo_dz
+        zitah(k) = zita(k) - mo_dz*d_half
+      end do
+      sigma(2:kzp1) = d_one - zita(2:kzp1)/hzita
+      sigma(1) = mo_b0 * sigma(2)
+      hsigma = d_one - zitah/hzita
+      fak = -hzita * bzita(zita) * log(sigma)
+      fbk = gzita(zita)
+      ak = -hzita * bzita(zitah) * log(hsigma)
+      bk = gzita(zitah)
+      do k = 1 , kz
+        dsigma(k) = (sigma(k+1) - sigma(k))
+      end do
+    else
       do k = 1 , kz
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
         dsigma(k) = (sigma(k+1) - sigma(k))
@@ -2034,9 +2083,8 @@ module mod_params
       if ( isladvec == 1 ) then
         call init_sladvection
       end if
-    else
-      call init_slice
     end if
+    call init_slice
     call init_micro
     if ( ichem == 1 ) then
       call init_chem
@@ -2074,7 +2122,9 @@ module mod_params
       write(stdout,'(a,a)') '  Map Projection        : ',iproj
       write(stdout,'(a,i4,a,i4,a,i3)') &
         '  Dot Grid Full Extent  : ',jx,'x',iy,'x',kz
-      write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
+      end if
       write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
       write(stdout,'(a,f11.6,a)') '  Proj Center Latitude  : ',clat,' deg'
       write(stdout,'(a,f11.6,a)') '  Proj Center longitude : ',clon,' deg'
@@ -2438,19 +2488,6 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
     end if
 
-    chibot = 450.0_rkx
-    ptmb = d_10*ptop
-    pz = hsigma(1)*(d_1000-ptmb) + ptmb
-    if ( pz > chibot ) then
-      call fatal(__FILE__,__LINE__, &
-                 'VERTICAL INTERPOLATION ERROR')
-    end if
-
-    do k = 1 , kz
-      pk = hsigma(k)*(d_1000-ptmb) + ptmb
-      if ( pk <= chibot ) kchi = k
-    end do
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( isocean(mddom%lndcat(j,i)) ) then
@@ -2635,6 +2672,15 @@ module mod_params
             end do
           end do
         end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              atm0%zd(j,i,k) = d_rfour * &
+                   (atm0%z(j,i,k) + atm0%z(j-1,i,k) + &
+                    atm0%z(j,i-1,k) + atm0%z(j-1,i-1,k))
+            end do
+          end do
+        end do
         do i = ice1 , ice2
           do j = jci1 , jci2
             dpsdxm(j,i) = (atm0%ps(j+1,i) - atm0%ps(j-1,i)) / &
@@ -2741,12 +2787,7 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer(ik4) :: i , j
-        real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
-        if ( iproj == 'ROTLLR' ) then
-          mddom%msfv = d_one
-        end if
-        call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
@@ -2755,49 +2796,23 @@ module mod_params
                              mddom%msfu(j,i) * rdx * regrav
           end do
         end do
-        do i = idi1 , idi2
-          do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                             mddom%msfv(j,i) * rdx * regrav
+        if ( iproj == 'ROTLLR' ) then
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                               rdx * regrav
+            end do
           end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do i = ice1 , ice2
-            mddom%hx(jde1,i) = mddom%hx(jdi1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ice1 , ice2
-            mddom%hx(jde2,i) = mddom%hx(jdi2,i)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide1) = mddom%hy(j,idi1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide2) = mddom%hy(j,idi2)
+        else
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                               mddom%msfv(j,i) * rdx * regrav
+            end do
           end do
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
         call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
-        zita(kzp1) = d_zero
-        do k = kz , 1 , -1
-          zita(k) = zita(k+1) + mo_dz
-          zitah(k) = zita(k) - mo_dz*d_half
-        end do
-        sigma(1) = d_zero
-        sigma = d_one - zita/hzita
-        hsigma = d_one - zitah/hzita
-        fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
-        fbk = gzita(zita)
-        ak = -hzita * bzita(zitah) * log(hsigma)
-        bk = gzita(zitah)
-        do k = 1 , kz
-          dsigma(k) = (sigma(k+1) - sigma(k))
-        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -2809,9 +2824,7 @@ module mod_params
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
-        mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
-        mo_atm%zetaf(:,:,1) = 47500.0_rkx ! Supposedly infinite
-        do k = 2 , kzp1
+        do k = 1 , kzp1
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))

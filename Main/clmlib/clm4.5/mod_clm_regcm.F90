@@ -32,10 +32,12 @@ module mod_clm_regcm
   public :: initclm45 , runclm45 , albedoclm45
   public :: initsaclm45 , runsaclm45
 
-  real(rk8) , dimension(:) , pointer :: glon , glat , ihfac
-  real(rk8) , dimension(:,:) , pointer :: temps
-  real(rk8) , dimension(:,:) , pointer :: alon , alat , rcp
-  real(rk8) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
+  real(rkx) , dimension(:) , pointer :: glon , glat
+  real(rkx) , dimension(:) , pointer :: ihfac
+  real(rkx) , dimension(:,:) , pointer :: temps
+  real(rkx) , dimension(:,:) , pointer :: alon , alat
+  real(rkx) , dimension(:,:) , pointer :: rcp
+  real(rkx) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
   real(rk8) , dimension(:,:,:) , pointer :: emis2d
 
   type(h_interpolator) :: hint
@@ -437,7 +439,7 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i , iy
+    integer(ik4) :: begg , endg , i , iyear , n
     real(rkx) :: satq , satp
 
     call get_proc_bounds(begg,endg)
@@ -496,12 +498,12 @@ module mod_clm_regcm
 
     ! interface chemistry / surface
 
-    iy = max(1850,min(2100,rcmtimer%year))
+    iyear = max(1850,min(2100,rcmtimer%year))
 
     if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,iyear)*1.e-6_rk8*clm_a2l%forc_psrf
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,iyear)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
@@ -514,9 +516,9 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,iyear)*1.e-6_rk8*clm_a2l%forc_psrf
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,iyear)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
         ! C13O2 partial pressure (Pa)
@@ -531,29 +533,40 @@ module mod_clm_regcm
       ! b) drydeposition BC HL
       !    flux arriving through lm interface are accumulated between
       !    two surface call : needs to average with syncro_srf%rw
-      ! c) dry deposition BC HL
       if ( isnowdark == 1 ) then
-        if ( ibchl > 0 ) then
-          temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * syncro_srf%rw
+        ! dry deposition BC HL
+        if ( nbchl > 0 ) then
+          temps = d_zero
+          do n = 1 , nbchl
+            temps(:,:) = temps(:,:) + &
+              lm%drydepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
+          end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           clm_a2l%forc_aer(:,1) = clm_a2l%notused
         end if
-        ! drydeposition BCHB
+        ! drydeposition BC HB
         if ( ibchb > 0 ) then
           temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           clm_a2l%forc_aer(:,2) = clm_a2l%notused
         end if
         ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
-        if ( ibchb > 0 .and. ibchl > 0 ) then
-          temps(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb) + &
-                         lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl))*syncro_srf%rw
+        if ( ibchb > 0 .and. nbchl > 0 ) then
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
+          do n = 1 , nbchl
+            temps(:,:) = temps(:,:) + &
+                 lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl(n)) * syncro_srf%rw
+          end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           clm_a2l%forc_aer(:,3) = clm_a2l%notused
         end if
         ! drydeposition OC HL
-        if ( iochl > 0 ) then
-          temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl) * syncro_srf%rw
+        if ( nochl > 0 ) then
+          temps = d_zero
+          do n = 1 , nochl
+            temps(:,:) = temps(:,:) + &
+              lm%drydepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
+          end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           clm_a2l%forc_aer(:,4) = clm_a2l%notused
         end if
@@ -564,9 +577,12 @@ module mod_clm_regcm
           clm_a2l%forc_aer(:,5) = clm_a2l%notused
         end if
         ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
-        if ( iochb > 0 .and. iochl > 0 ) then
-          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) + &
-                        lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * syncro_srf%rw
+        if ( iochb > 0 .and. nochl > 0 ) then
+          temps(:,:) = lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) * syncro_srf%rw
+          do n = 1 , nochl
+            temps(:,:) = temps(:,:) + &
+                   lm%wetdepflx(jci1:jci2,ici1:ici2,iochl(n)) * syncro_srf%rw
+          end do
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
           clm_a2l%forc_aer(:,6) = clm_a2l%notused
         end if
@@ -727,7 +743,7 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_snomelt,lms%snwm)
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
@@ -796,7 +812,7 @@ module mod_clm_regcm
   subroutine read_cru_pre(lm,temps)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    real(rk8) , dimension(:,:) , pointer , intent(inout) :: temps
+    real(rkx) , dimension(:,:) , pointer , intent(inout) :: temps
     integer(ik4) , save :: ncid = -1
     integer(ik4) , save :: ivar = -1
     integer(ik4) , save :: imon = -1
@@ -955,7 +971,7 @@ module mod_clm_regcm
       end if
       if ( lcru_rand ) then
         if ( iday /= id ) then
-          call random_pick(24.0_rk8,ihfac,24)
+          call random_pick(24.0_rkx,ihfac,24)
           call bcast(ihfac)
           iday = id
         end if

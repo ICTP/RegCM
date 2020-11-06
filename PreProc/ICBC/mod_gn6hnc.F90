@@ -78,7 +78,7 @@ module mod_gn6hnc
   integer(ik4) :: npl , nrhlev
   real(rkx) , pointer , dimension(:) :: pplev
   real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss
+  real(rkx) :: pss , pst
 
   ! Whole space
   real(rkx) , pointer , dimension(:,:,:) :: b2
@@ -95,6 +95,8 @@ module mod_gn6hnc
   real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
   real(rkx) , pointer :: up(:,:,:) , vp(:,:,:)
   real(rkx) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+  real(rkx) , pointer , dimension(:,:,:) :: h3v , h3u
+  real(rkx) , pointer , dimension(:,:) :: topou , topov
 
   ! Input space
   real(rkx) :: p0
@@ -842,6 +844,10 @@ module mod_gn6hnc
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3v')
+      call getmem3d(h3u,1,jx,1,iy,1,npl,'mod_era5:h3u')
+      call getmem3d(h3v,1,jx,1,iy,1,npl,'mod_era5:h3v')
+      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
     end if
@@ -915,14 +921,22 @@ module mod_gn6hnc
 
     if ( dattyp(1:3) == 'EC_' .or. dattyp == 'JRA55') then
       do k = 1 , npl
-        sigmar(k) = pplev(npl-k+1)/pplev(1)
+        sigmar(k) = (pplev(k)-pplev(npl))/(pplev(1)-pplev(npl))
       end do
-      pss = pplev(1)/1000.0_rkx ! Pa -> cb
+      pss = (pplev(1)-pplev(npl))/1000.0_rkx ! Pa -> cb
+      pst = pplev(npl)/1000.0_rkx ! Pa -> cb
     else
       do k = 1 , npl
-        sigmar(k) = pplev(k)/pplev(npl)
+        sigmar(k) = (pplev(npl-k+1)-pplev(1))/(pplev(npl)-pplev(1))
       end do
-      pss = pplev(npl)/10.0_rkx ! mb -> cb
+      pss = (pplev(npl)-pplev(1))/10.0_rkx ! mb -> cb
+      pst = pplev(1)/10.0_rkx ! mb -> cb
+    end if
+    if ( idynamic == 3 ) then
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
 
     write (stdout,*) 'Read in Static fields OK'
@@ -946,19 +960,19 @@ module mod_gn6hnc
       if ( dattyp(1:3) == 'HA_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-        call top2btm(tvar,nlon,nlat,klev)
+        call top2btm(tvar)
 !$OMP SECTION
-        call top2btm(qvar,nlon,nlat,klev)
+        call top2btm(qvar)
 !$OMP SECTION
-        call top2btm(uvar,nlon,nlat,klev)
+        call top2btm(uvar)
 !$OMP SECTION
-        call top2btm(vvar,nlon,nlat,klev)
+        call top2btm(vvar)
 !$OMP SECTION
-        call top2btm(pp3d,nlon,nlat,klev)
+        call top2btm(pp3d)
 !$OMP SECTION
-        call top2btm(pp3d1,nlon,nlat,klev)
+        call top2btm(pp3d1)
 !$OMP SECTION
-        call top2btm(hvar,nlon,nlat,klev)
+        call top2btm(hvar)
 !$OMP END SECTIONS
       end if
 
@@ -970,15 +984,15 @@ module mod_gn6hnc
            dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-        call top2btm(tvar,nlon,nlat,klev)
+        call top2btm(tvar)
 !$OMP SECTION
-        call top2btm(qvar,nlon,nlat,klev)
+        call top2btm(qvar)
 !$OMP SECTION
-        call top2btm(uvar,nlon,nlat,klev)
+        call top2btm(uvar)
 !$OMP SECTION
-        call top2btm(vvar,nlon,nlat,klev)
+        call top2btm(vvar)
 !$OMP SECTION
-        call top2btm(pp3d,nlon,nlat,klev)
+        call top2btm(pp3d)
 !$OMP END SECTIONS
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
@@ -1023,17 +1037,17 @@ module mod_gn6hnc
     if ( dattyp == 'JRA55' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call top2btm(tvar,nlon,nlat,klev)
+      call top2btm(tvar)
 !$OMP SECTION
-      call top2btm(qvar,nlon,nlat,klev)
+      call top2btm(qvar)
 !$OMP SECTION
-      call top2btm(uvar,nlon,nlat,klev)
+      call top2btm(uvar)
 !$OMP SECTION
-      call top2btm(vvar,nlon,nlat,klev)
+      call top2btm(vvar)
 !$OMP SECTION
-      call top2btm(pp3d,nlon,nlat,klev)
+      call top2btm(pp3d)
 !$OMP SECTION
-      call top2btm(hvar,nlon,nlat,klev)
+      call top2btm(hvar)
 !$OMP END SECTIONS
     end if
 
@@ -1058,29 +1072,30 @@ module mod_gn6hnc
     if ( dattyp(1:3) /= 'EC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call top2btm(t3,jx,iy,npl)
+      call top2btm(t3)
 !$OMP SECTION
-      call top2btm(q3,jx,iy,npl)
+      call top2btm(q3)
 !$OMP SECTION
-      call top2btm(h3,jx,iy,npl)
+      call top2btm(h3)
 !$OMP SECTION
-      call top2btm(u3,jx,iy,npl)
+      call top2btm(u3)
 !$OMP SECTION
-      call top2btm(v3,jx,iy,npl)
+      call top2btm(v3)
 !$OMP END SECTIONS
     end if
 
     ! Recalculate pressure on RegCM orography
     if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,npl)
-      call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,0.85_rkx,0.5_rkx)
+      call ucrs2dot(h3u,h3,jx,iy,npl,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,npl,i_crm)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,npl)
+      call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,npl)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,npl)
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,npl)
     end if
 
     call readsst(ts4,idate)
@@ -1090,24 +1105,24 @@ module mod_gn6hnc
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,npl,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,npl,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,npl,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,npl,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,npl,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP END SECTIONS
     end if
   end subroutine get_gn6hnc

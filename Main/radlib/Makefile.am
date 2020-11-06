@@ -19,7 +19,7 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:RRTMG_SW/:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/external:$(REGCM_ROOT)/Main/mpplib:RRTMG_SW/:.
 
 SUBDIRS = RRTMG_SW
 RRTMGSW = RRTMG_SW/librrtmgsw.a
@@ -28,9 +28,11 @@ REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
 if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
+FCFLAGS += -M$(MPP_INCLUDE) -M$(REGCM_ROOT)/external
+NOOPTFC += -M$(MPP_INCLUDE) -M$(REGCM_ROOT)/external
 else
-FCFLAGS += -I$(MPP_INCLUDE)
+FCFLAGS += -I$(MPP_INCLUDE) -I$(REGCM_ROOT)/external
+NOOPTFC += -I$(MPP_INCLUDE) -I$(REGCM_ROOT)/external
 endif
 
 noinst_LIBRARIES = librad.a
@@ -68,9 +70,10 @@ mcica_random_numbers.o : mcica_random_numbers.F90 parkind.o
 mcica_subcol_gen_lw.o : mcica_subcol_gen_lw.F90 parkind.o parrrtm.o rrlw_con.o rrlw_wvn.o rrlw_vsn.o mcica_random_numbers.o
 mcica_subcol_gen_sw.o : mcica_subcol_gen_sw.F90 parkind.o parrrsw.o rrsw_con.o rrsw_wvn.o rrsw_vsn.o mcica_random_numbers.o
 mod_atm_msis.o : mod_atm_msis.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_spline.o
-mod_rad_aerosol.o : mod_rad_aerosol.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_regcm_types.o mod_runparams.o mod_constants.o mod_memutil.o mod_mpmessage.o mod_rad_common.o mod_mppparam.o mod_nhinterp.o mod_zita.o
+mod_rad_aerosol.o : mod_rad_aerosol.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_regcm_types.o mod_runparams.o mod_constants.o mod_memutil.o mod_mpmessage.o mod_rad_common.o mod_mppparam.o mod_nhinterp.o mod_zita.o mo_simple_plumes.o
 mod_rad_colmod3.o : mod_rad_colmod3.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_service.o mod_runparams.o mod_rad_radiation.o mod_rad_common.o mod_rad_outrad.o mod_rrtmg_driver.o mod_rad_aerosol.o mod_regcm_types.o
-mod_rad_common.o : mod_rad_common.F90 mod_intkinds.o mod_realkinds.o
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(NOOPTFC) -c $<
+mod_rad_common.o : mod_rad_common.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o
 mod_rad_o3blk.o : mod_rad_o3blk.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o mod_kdinterp.o mod_vertint.o mod_mppparam.o mod_mpmessage.o mod_dynparam.o mod_memutil.o mod_rad_common.o mod_stdio.o mod_runparams.o mod_regcm_types.o
 mod_rad_outrad.o : mod_rad_outrad.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_rad_common.o mod_runparams.o mod_outvars.o mod_regcm_types.o
 mod_rad_radiation.o : mod_rad_radiation.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_service.o mod_runparams.o mod_memutil.o mod_rad_common.o mod_rad_tracer.o mod_ipcc_scenario.o mod_rad_aerosol.o mod_mppparam.o

@@ -652,7 +652,8 @@ module mod_che_wetdep
     integer(ik4) , intent(in) :: i , mbin
     integer(ik4) , dimension(mbin) , intent(in) :: indp
     real(rkx) , dimension(mbin) , intent(in) :: beffdiam
-    real(rkx) , intent(in) :: rhoaer ! specific aerosol density
+    ! specific aerosol density
+    real(rkx) , intent(in) , dimension(mbin) :: rhoaer
     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: wl , t , rho , &
                                                        strappt
      real(rkx) , dimension(jci1:jci2,kz) , intent(in)  :: convppt
@@ -797,13 +798,13 @@ module mod_che_wetdep
     ! take particule effective diameter as the average bin
     ! kept as dry diameter . multiply by 0.5 since the radius is
     ! used in collection efficiency calculation.
+    ! dry density for now
     do k = 1 , kz
       do j = jci1 , jci2
         rhsize(j,k,1:mbin) = d_half * 1.e-6_rkx * beffdiam(1:mbin)
+        rhop(j,k,1:mbin) = rhoaer(1:mbin)
       end do
     end do
-    ! dry density for now
-    rhop(:,:,:) = rhoaer
 
     ! convppt is a pseudo-3d array of con prec rate conatining constant rate
     ! (equals to surface cumul precipi) from surface to cumtop.

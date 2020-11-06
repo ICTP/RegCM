@@ -424,7 +424,7 @@ module mod_tendency
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
                           0.53_rkx,sfs%psa,sfs%psb)
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-                          iqfrst,iqlst,d_zero)
+                          iqfrst,iqlst,1.0e-16_rkx)
 
     if ( idynamic == 1 ) then
       !
@@ -466,14 +466,13 @@ module mod_tendency
       if ( ifrayd == 1 ) then
         if ( i_crm == 1 ) then
           ! TAO damp velocities to 0 if using CRM mode
-          call raydamp(atms%za,atm2%u,atm2%v,uten,vten,d_zero)
-          call raydamp(atms%za,atm2%pp,ppten,d_zero)
-          call raydamp(atms%zq,atm2%w,wten,d_zero)
+          call raydamp(atm0%zd,atm2%u,atm2%v,uten,vten,d_zero)
+          call raydamp(atm0%z,atm2%pp,ppten,d_zero)
         else
-          call raydamp(atms%za,atm2%u,atm2%v,uten,vten,xub,xvb)
-          call raydamp(atms%za,atm2%pp,ppten,xppb)
-          call raydamp(atms%zq,atm2%w,wten,d_zero)
+          call raydamp(atm0%zd,atm2%u,atm2%v,uten,vten,xub,xvb)
+          call raydamp(atm0%z,atm2%pp,ppten,xppb)
         end if
+        call raydamp(atm0%zf,atm2%w,wten,d_zero)
       end if
       do k = 1 , kz
         do i = idi1 , idi2
@@ -1014,11 +1013,11 @@ module mod_tendency
         atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-        atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv)*rpsa(j,i),minqq)
+        atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv),minqq)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , &
                       k = 1:kz , n = iqfrst:iqlst )
-        atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),d_zero)
+        atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n),d_zero)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
         atmx%tv(j,i,k) = atmx%t(j,i,k) * (d_one + ep1*atmx%qx(j,i,k,iqv))
@@ -1195,8 +1194,8 @@ module mod_tendency
       !
       ! compute omega
       !
-      omega(:,:,:) = d_zero
       if ( idynamic == 1 ) then
+        omega(:,:,:) = d_zero
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
         end do
@@ -1212,14 +1211,6 @@ module mod_tendency
                           (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
                            atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
                            (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
-        end do
-      else if ( idynamic == 2 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          !
-          ! omega in the non-hydrostatic model: compute from w
-          !
-          omega(j,i,k) = -d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
-                           (atm2%w(j,i,k)+atm2%w(j,i,k+1))
         end do
       end if
     end subroutine compute_omega
@@ -1469,6 +1460,12 @@ module mod_tendency
         call nudge(iboudy,atm2%t,xtb,tdyn)
         call nudge(iboudy,atm2%qx,xqb,qxdyn,iqv)
         call nudge(iboudy,atm2%u,atm2%v,xub,xvb,udyn,vdyn)
+        if ( is_present_qc( ) ) then
+          call nudge(iboudy,atm2%qx,xlb,qxdyn,iqc)
+        end if
+        if ( is_present_qi( ) ) then
+          call nudge(iboudy,atm2%qx,xib,qxdyn,iqi)
+        end if
         if ( idiag > 0 ) then
           call ten2diag(aten%t,tdiag%bdy,pc_dynamic,ten0)
           call ten2diag(aten%qx,qdiag%bdy,pc_dynamic,qen0)
@@ -1481,6 +1478,12 @@ module mod_tendency
         call sponge(xtb,tten)
         call sponge(xqb,qxten,iqv)
         call sponge(xub,xvb,uten,vten)
+        if ( is_present_qc( ) ) then
+          call sponge(xlb,qxten,iqc)
+        end if
+        if ( is_present_qi( ) ) then
+          call sponge(xib,qxten,iqi)
+        end if
         if ( idiag > 0 ) then
           call ten2diag(aten%t,tdiag%bdy,pc_total)
           call ten2diag(aten%qx,qdiag%bdy,pc_total)
@@ -1523,7 +1526,7 @@ module mod_tendency
         qen0 = qxdyn(:,:,:,iqv)
       end if
       call diffu_x(tdyn,atms%tb3d)
-      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
+      call diffu_x(qxdyn,atms%qxb3d,1,nqx,1.0_rkx)
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
         call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)
@@ -1533,12 +1536,12 @@ module mod_tendency
         ! compute the diffusion term for vertical velocity w
         ! compute the diffusion term for perturb pressure pp
         !
+        call diffu_x(wdyn,atms%wb3d,1.0_rkx)
         call diffu_x(ppdyn,atms%ppb3d)
-        call diffu_x(wdyn,atms%wb3d,d_one)
       end if
       if ( ichem == 1 ) then
         if ( ichdiag > 0 ) chiten0 = chidyn
-        call diffu_x(chidyn,atms%chib3d,1,ntr,d_one)
+        call diffu_x(chidyn,atms%chib3d,1,ntr,1.0_rkx)
         if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
       if ( ibltyp == 2 ) then
@@ -1727,7 +1730,7 @@ module mod_tendency
           convcldfra(:,:,:) = cldfra(:,:,:)
         end if
         ! Clouds and large scale precipitation
-        call cldfrac
+        call cldfrac(cldlwc,cldfra)
         call microscheme
         if ( idiag > 0 ) then
           call ten2diag(aten%t,tdiag%lsc,pc_physic,ten0)
@@ -1758,6 +1761,8 @@ module mod_tendency
           call updateaerosol(rcmtimer%idate)
         else if ( iclimaaer == 2 ) then
           call updateaeropp(rcmtimer%idate)
+        else if ( iclimaaer == 3 ) then
+          call updateaeropp_cmip6(rcmtimer%idate)
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
         labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )

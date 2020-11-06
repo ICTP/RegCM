@@ -127,7 +127,11 @@ module mod_ocn_bats
       if ( tgb(i) >= icetriggert ) then
         tgrd(i) = tgb(i)
       else
-        tgrd(i) = icetriggert
+        if ( tatm(i) > icetriggert ) then
+          tgrd(i) = icetriggert
+        else
+          tgrd(i) = tatm(i) - 0.01_rkx
+        end if
       end if
       tgbrd(i) = icetriggert
 

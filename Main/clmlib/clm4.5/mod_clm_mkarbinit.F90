@@ -970,7 +970,7 @@ module mod_clm_mkarbinit
 
       if ( .not. lakpoi(l) ) then  !not lake
         if ( ltype(l) == istice ) then
-          h2osno(c) = h2osno_max
+          h2osno(c) = 0.0_rk8
         else if ( ltype(l) /= isturb ) then
           if ( adomain%snow(g) < 1.0e+10_rk8 ) then
             h2osno(c) = adomain%snow(g)

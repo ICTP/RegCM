@@ -49,17 +49,19 @@ module mod_ein
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
   real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: h3u(:,:,:) , h3v(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: topou(:,:) , topov(:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
-  integer(ik4) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
-  real(rkx) :: pss
+  real(rkx) , pointer , dimension(:) :: plevs
+  real(rkx) , pointer , dimension(:) :: sigmar
+  real(rkx) :: pss , pst
   integer(2) , pointer , dimension(:,:,:) :: work
 
   integer(ik4) , dimension(5,4) :: inet5
@@ -78,7 +80,7 @@ module mod_ein
 
   subroutine init_ein
     implicit none
-    integer(ik4) :: k , kr
+    integer(ik4) :: k
     integer(ik4) :: year , month , monthp1 , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
@@ -131,12 +133,15 @@ module mod_ein
     call getmem1d(glat,1,jlat,'mod_ein:glat')
     call getmem1d(glon,1,ilon,'mod_ein:glon')
     call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
-    call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
     call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ein:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ein:d3v')
+      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_ein:h3u')
+      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_ein:h3v')
+      call getmem2d(topou,1,jx,1,iy,'mod_ein:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_ein:topov')
     else
       call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
     end if
@@ -165,15 +170,11 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
-    pss = plevs(klev)/10.0_rkx ! mb -> cb
-    !
-    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
-    !
     do k = 1 , klev
-      kr = klev - k + 1
-      sigma1(k) = sigmar(kr)
+      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
+    pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
+    pst = plevs(1)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !
@@ -222,6 +223,12 @@ module mod_ein
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     qvar => b2(:,:,2*klev+1:3*klev)
+    if ( idynamic == 3 ) then
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
+    end if
   end subroutine init_ein
 
   subroutine get_ein(idate)
@@ -256,30 +263,31 @@ module mod_ein
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3,jx,iy,klev)
+    call top2btm(t3)
 !$OMP SECTION
-    call top2btm(q3,jx,iy,klev)
+    call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3,jx,iy,klev)
+    call top2btm(h3)
 !$OMP SECTION
-    call top2btm(u3,jx,iy,klev)
+    call top2btm(u3)
 !$OMP SECTION
-    call top2btm(v3,jx,iy,klev)
+    call top2btm(v3)
 !$OMP END SECTIONS
     !
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
     !
     if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
-      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,klev)
+      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,klev)
     end if
 
     call readsst(ts4,idate)
@@ -289,24 +297,24 @@ module mod_ein
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
     ! Get from RHUM to mixing ratio

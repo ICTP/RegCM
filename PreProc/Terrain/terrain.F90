@@ -100,18 +100,18 @@ program terrain
   integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
-  real(rkx) :: clong , dsnsg
+  real(rkx) :: clong , dsnsg , zsurf
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , sigh
+  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , sigf
   real(rkx) :: ts0
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
   character(len=*) , parameter :: f99002 = '(a,a,a,a)'
   logical :: laround0 = .true.
 
-  data ibndry /.true./
+  data ibndry /.false./
 
   ! You should nor modify those, but it may help with "difficult" domains
   ! to obtain better representation of topography and landuse
@@ -181,8 +181,8 @@ program terrain
       zita(k) = zita(k+1) + dz
     end do
     sigma = 1.0_rkx - zita/hzita
-    sigma(1) = 0.0_rkx
-    ak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+    sigma(1) = mo_b0*sigma(2)
+    ak = -hzita * bzita(zita) * log(sigma)
     bk = gzita(zita)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
@@ -196,6 +196,15 @@ program terrain
 
   if ( idynamic == 3 ) then
     write(stdout, *) 'Using non hydrostatic Moloch dynamic'
+  else
+    if ( iproj == 'ROTLLR' ) then
+    write (stderr,*) 'Temporary fix:'
+    write (stderr,*) 'Rotated Longitude/Latitude projection supported only&
+                    & by MOLOCH'
+    write (stderr,*) 'Either change iproj or use idynamic=3 in &
+                    &coreparam (MOLOCH)'
+    call die('terrain')
+    end if
   end if
 
   clong = clon
@@ -216,6 +225,7 @@ program terrain
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
     write (stdout,*) 'iy     = ' , iysg
     write (stdout,*) 'jx     = ' , jxsg
+    write (stdout,*) 'kz     = ' , kz
     write (stdout,*) 'ds     = ' , ds/nsg
     write (stdout,*) 'clat   = ' , clat
     write (stdout,*) 'clon   = ' , clong
@@ -413,8 +423,9 @@ program terrain
   !
   write (stdout,*) ''
   write (stdout,*) 'Doing Horizontal Grid with following parameters'
-  write (stdout,*) 'iy     = ' , iysg
-  write (stdout,*) 'jx     = ' , jxsg
+  write (stdout,*) 'iy     = ' , iy
+  write (stdout,*) 'jx     = ' , jx
+  write (stdout,*) 'kz     = ' , kz
   write (stdout,*) 'ds     = ' , ds
   write (stdout,*) 'clat   = ' , clat
   write (stdout,*) 'clon   = ' , clong
@@ -622,11 +633,6 @@ program terrain
   elsewhere
     mask = 2.0_rkx
   end where
-  if ( .not. h2ohgt ) then
-    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
-      htgrid = 0.0_rkx
-    end where
-  end if
   if (lakedpth) then
     where ( mask > 1.0 )
       dpth = 0.0_rkx
@@ -653,6 +659,12 @@ program terrain
   do ism = 1 , ismthlev
     call smth121(htgrid,jx,iy)
   end do
+
+  if ( .not. h2ohgt ) then
+    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
+      htgrid = 0.0_rkx
+    end where
+  end if
 
   if ( ibndry ) then
     do j = 1 , jx
@@ -713,9 +725,12 @@ program terrain
     elsewhere
       mask_s = 2.0_rkx
     end where
-    if ( .not. h2ohgt ) then
-      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
-        htgrid_s = 0.0_rkx
+    if (lakedpth) then
+      where ( mask_s > 1.0_rkx )
+        dpth_s = 0.0_rkx
+      end where
+      where ( mask_s < 1.0_rkx .and. dpth_s < 2.0_rkx )
+        dpth_s = 2.0_rkx
       end where
     end if
 
@@ -727,12 +742,9 @@ program terrain
       call smth121(htgrid_s,jxsg,iysg)
     end do
 
-    if (lakedpth) then
-      where ( mask_s > 1.0_rkx )
-        dpth_s = 0.0_rkx
-      end where
-      where ( mask_s < 1.0_rkx .and. dpth_s < 2.0_rkx )
-        dpth_s = 2.0_rkx
+    if ( .not. h2ohgt ) then
+      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
+        htgrid_s = 0.0_rkx
       end where
     end if
     if ( lakedpth ) then
@@ -890,6 +902,8 @@ program terrain
     end do
     ! Filling.
     fmz(:,:,1) = 0.0_rkx
+    !zsurf = sum(htgrid)/real(jx*iy,rkx)
+    zsurf = 0.0_rkx
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
     write (stdout,*) ''
@@ -897,8 +911,8 @@ program terrain
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'
     do k = kz, 1, -1
-      sigh = 1.0_rkx - (((kz-k) * dz + dz*d_half)/hzita)
-      zsig = sum(zeta(:,:,k+1))/real(jx*iy,rkx)
+      sigf = 1.0_rkx - (((kz-k) * dz + 0.5_rkx * dz)/hzita)
+      zsig = 0.5*sum(zeta(:,:,k+1)+zeta(:,:,k))/real(jx*iy,rkx) + zsurf
       if ( zsig > 20000.0_rkx ) then
         tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
       else if ( zsig > 10000.0_rkx ) then
@@ -907,9 +921,10 @@ program terrain
         tsig = stdt - lrate * zsig
       end if
       psig = stdp*exp(-zsig/hzita)
-      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigh, &
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigf, &
         psig * d_r100 , zsig , tsig
     end do
+    ptop = max(int(psig * d_r100),5) ! Approximation of top pressure. hPa
   end if
 
   write (outname,'(a,i0.3,a)') &

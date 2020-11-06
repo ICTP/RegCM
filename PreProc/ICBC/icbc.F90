@@ -41,15 +41,7 @@ program icbc
 !   ICBC is the third component of the REGional Climate Modeling       !
 !   (RegCM) system version 3.0 and used to access archived global      !
 !   analysed datasets at regular latitude-longititude (NNRP1, NNRP2,   !
-!   ERA40, ERAIN,EIN75,EIN15, EIN25, GFS11)                            !
-!   or original T159 (N80) datasets(ERAHI),                            !
-!   or T42 datasets at Gaussian grids (ECWCRP, simply ECMWF), as well  !
-!   as NEST run from previous FVGCM run (FVGCM), ECHAM5 run  (EH5OM)   !
-!   and RegCM run (FNEST).                                             !
-!                                                                      !
-!   The present ICBC code could treat NNRP1, NNRP2, ECWCRP, ERA40,     !
-!   ERAIN, EIN75, EIN15, EIN25, GFS11, ERAHI, FVGCM, EH5OM, ECEXY,     !
-!   and RegCM datasets,  4 times daily.                                !
+!   EIN75,EIN15,EIN25,ERA5,GFS11,etc) and RegCM run (FNEST).           !
 !                                                                      !
 !                        Xunqiang Bi, ESP group, Abdus Salam ICTP      !
 !                                                October 07, 2009      !
@@ -77,46 +69,12 @@ program icbc
 !          Current holdings: 1979 - 2009, 2.5x2.5L13, netCDF.          !
 !   CFSXX: CFS seasonal forecast on pressure level.                    !
 !          XX stands for ensemble member (in 01 02 03 04)              !
-!   ECMWF: ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP)               !
-!          NCAR MSS:/TRENBERT/CTEC/ , ET42yymmdd, where yy = year,     !
-!          mm = month, dd = day = 01,04,07,10,13,16,19,22,25,28, or 31 !
-!          Current holdings: January, 1993 - December, 1997            !
-!          Reformatted by PWC/ICTP to direct-access binary,            !
-!          T42L15, Gaussian Grid.                                      !
-!   EH5OM: EH5OM run by the MPI at Hamburg, T63, Gaussian grid.        !
-!          For present day  run: 1941 - 2000;                          !
-!          For A1B scenario run: 2001 - 2100.                          !
-!          17 pressure levels, 4 times daily, direct-access binary.    !
-!   ERA40: ECMWF 40 year reanalysis datasets are available at:         !
-!          http://data.ecmwf.int/data/d/era40_daily/                   !
-!          Current holdings: 01/09/1957 - 31/08/2002,                  !
-!          Pressure levels, 2.5x2.5L23, 4 times daily.                 !
-!   ERAIN/EIN15: ECMWF INTERIM 10 year reanalysis datasets             !
-!          Current holdings: 01/01/1989 - 31/05/2009,                  !
-!          Pressure levels, 1.5x1.5L37, 4 times daily.                 !
-!   EIN75: ECMWF INTERIM 10 year reanalysis datasets                   !
-!          Current holdings: 01/01/1989 - 31/12/2007,                  !
-!          Pressure levels, 0.75x0.75L37, 4 times daily.               !
-!   EIN25: ECMWF INTERIM 10 year reanalysis datasets                   !
-!          Current holdings: 01/01/1989 - 31/12/1998,                  !
-!          Pressure levels, 2.5x2.5L37, 4 times daily.                 !
+!   EINXX: ECMWF INTERIM reanalysis datasets                           !
 !   GFS11: NCEP Global Forecast System (GFS) product FNL are           !
 !                                                available at:         !
 !          http://dss.ucar.edu/datasets/ds083.2/data/fnl-yyyymm/       !
 !          Current holdings: 01/01/2000 - present,                     !
 !          Pressure levels, 1.0x1.0L27, 4 times daily.                 !
-!   ERAHI: ECMWF 40 year reanalysis datasets, origigal model level     !
-!          fields: T, U, V and log(Ps) are in spectral coefficients    !
-!          Oro and Q are at the reduced Gaussian grids.                !
-!          T159L60 (N80L60), 01/09/1957 - 31/08/2002.                  !
-!   ECEXY: ECMWF Ensemble forecast model. The X stands for model       !
-!          version, the Y for the ensemble member number.              !
-!          For example, ECE21 stands for ECMWF Ensemble model 2,       !
-!          member number 1.                                            !
-!   FVGCM: FVGCM run by the PWC group of Abdus Salam ICTP.             !
-!          For present day run: 1960 - 1990;                           !
-!          For A2          run: 2070 - 2100.                           !
-!          1x1.25L18, 4 times daily, direct-access binary.             !
 !   JRA55: The Japan Meteorological Agency (JMA) JRA-55, the second    !
 !          Japanese global atmospheric reanalysis project.             !
 !   FNEST: do Further oneway NESTing from previous RegCM run.          !
@@ -142,18 +100,13 @@ program icbc
   use mod_date
   use mod_grid
   use mod_date
-  use mod_ecwcp
-  use mod_eh5om
   use mod_ein
-  use mod_era40
   use mod_era5
-  use mod_erahi
-  use mod_ecens
-  use mod_fvgcm
   use mod_ncep
   use mod_nest
   use mod_gn6hnc
   use mod_write
+  use mod_ifs
   use mod_projections
 #ifdef PNETCDF
   use mpi
@@ -271,25 +224,14 @@ program icbc
 
   if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call init_ncep
-  else if ( dattyp == 'ECMWF' ) then
-    call init_ecwcp
-  else if ( dattyp == 'ERA40' ) then
-    call init_era40
   else if ( dattyp(1:4) == 'ERA5' ) then
     call init_era5
-  else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
-            dattyp == 'EIXXX' ) then
+  else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
     call init_ein
-  else if ( dattyp(1:3) == 'ECE' ) then
-    call init_ecens
-  else if ( dattyp == 'ERAHI' ) then
-    call init_ehi
-  else if ( dattyp(1:2) == 'EH' ) then
-    call init_eh5om
-  else if ( dattyp == 'FVGCM' ) then
-    call init_fvgcm
   else if ( dattyp == 'FNEST' ) then
     call init_nest
+  else if ( dattyp == 'IFSXX' ) then
+    call init_ifs
   else
     if ( dattyp(4:5) == 'RF' ) then
       write(stderr,*) 'THIS CODE IS NOT SUPPORTED.'
@@ -309,25 +251,14 @@ program icbc
 
     if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call get_ncep(idate)
-    else if ( dattyp == 'ECMWF' ) then
-      call get_ecwcp(idate)
-    else if ( dattyp == 'ERA40' ) then
-      call get_era40(idate)
     else if ( dattyp(1:4) == 'ERA5' ) then
       call get_era5(idate)
-    else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
-              dattyp == 'EIXXX' ) then
+    else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
       call get_ein(idate)
-    else if ( dattyp == 'ERAHI' ) then
-      call get_ehi(idate)
-    else if ( dattyp(1:3) == 'ECE' ) then
-      call get_ecens(idate)
-    else if ( dattyp(1:2) == 'EH' ) then
-      call get_eh5om(idate)
-    else if ( dattyp == 'FVGCM' ) then
-      call get_fvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
+    else if ( dattyp == 'IFSXX' ) then
+      call get_ifs(idate)
     else
       call get_gn6hnc(idate)
     end if
@@ -344,21 +275,8 @@ program icbc
 
   if ( dattyp(1:4) == 'ERA5' ) then
     call conclude_era5
-  else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
-            dattyp == 'EIXXX' ) then
+  else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
     call conclude_ein
-  else if ( dattyp(1:3) == 'ECE' ) then
-    call conclude_ecens
-  else if ( dattyp == 'ECMWF' ) then
-    call conclude_ecwcp
-  else if ( dattyp(1:2) == 'EH' ) then
-    call conclude_eh5om
-  else if ( dattyp == 'ERA40' ) then
-    call conclude_era40
-  else if ( dattyp == 'ERAHI' ) then
-    call conclude_ehi
-  else if ( dattyp == 'FVGCM' ) then
-    call conclude_fvgcm
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call conclude_ncep
   else if ( dattyp == 'FNEST' ) then

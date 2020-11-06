@@ -197,6 +197,14 @@ def parse_input():
              'not submitted and it is mandatory otherwise.'
     )
     parser.add_argument(
+        '--regcm-nest-tag',
+        type=str,
+        default=None,
+        help='The nesting tag of the current model of RegCM. Usually, this is '
+             'a complex string like x2yz2v1. This argument is ignored if'
+             ' --regcm-version is not submitted and it is mandatory otherwise.'
+    )
+    parser.add_argument(
         '-v',
         '--verbosity',
         choices=['debug', 'info', 'warning'],
@@ -211,7 +219,7 @@ def parse_input():
 def save_vars(datafile, requested_vars, worker_pool,
               mail='esp@ictp.it', domain='NONE', global_model='NONE',
               experiment='none', ensemble='NN', notes='none', corrflag=True,
-              regcm_version=None, regcm_version_id=None,
+              regcm_version=None, regcm_version_id=None, regcm_nest_tag=None,
               cordex_root_dir=OUTPUTDIR, sigterm_handler=None,
               sigint_handler=None):
 
@@ -247,7 +255,8 @@ def save_vars(datafile, requested_vars, worker_pool,
             ncf,
             datafile,
             regcm_version,
-            regcm_version_id
+            regcm_version_id,
+            regcm_nest_tag
         )
 
     for variable in requested_vars:
@@ -414,12 +423,14 @@ def main():
     regcm_version = args.regcm_version
     if regcm_version is None:
         regcm_version_id = None
+        regcm_nest_tag = None
     else:
         regcm_version_id = args.regcm_version_id
-        if regcm_version_id is None:
+        regcm_nest_tag = args.regcm_nest_tag
+        if regcm_version_id is None and regcm_nest_tag is None:
             raise ValueError(
-                'If --regcm-version is submitted, the --regcm-version-id is '
-                'mandatory and must be an integer'
+                'If --regcm-version is submitted, one in --regcm-version-id or '
+                '--regcm_nest_tag is mandatory'
             )
 
     LOGGER.debug(
@@ -427,8 +438,8 @@ def main():
     )
     collect_logs()
 
-    LOGGER.debug('Building a pool of slave processes to perform elaborations')
-    worker_pool = Pool(max_num_of_process=args.processes, name='Slave')
+    LOGGER.debug('Building a pool of subordinate processes to perform elaborations')
+    worker_pool = Pool(max_num_of_process=args.processes, name='Subordinate')
 
     if args.disable_corrflag:
         corrflag = False
@@ -449,6 +460,7 @@ def main():
         corrflag,
         regcm_version,
         regcm_version_id,
+        regcm_nest_tag,
         output_dir
     )
 

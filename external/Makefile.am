@@ -2,18 +2,19 @@
 include $(REGCM_ROOT)/makeinc
 
 vpath %.F90 $(REGCM_ROOT)/external/mpi-serial
-vpath %.F90 $(REGCM_ROOT)/external/mpi-serial
+vpath %.f90 $(REGCM_ROOT)/external/aerosols
 vpath %.c $(REGCM_ROOT)/external/mpi-serial
 vpath %.h $(REGCM_ROOT)/external/mpi-serial
 
 if REGCM_PARALLEL
-noinst_LIBRARIES =
+noinst_LIBRARIES = libaerosol.a
 else
-noinst_LIBRARIES = libmpiser.a
+noinst_LIBRARIES = libmpiser.a libaerosol.a
 endif
 libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
                       handles.c comm.c group.c time.c pack.c fort.F90 \
                       mpistub.F90
+libaerosol_a_SOURCES = mo_simple_plumes.f90
 
 MPIFH= mpif.$(FORT_SIZE).h
 
@@ -23,7 +24,7 @@ mpif.h:
 %.o: %.c
 	$(CC) $(CFLAGS) $(MPEUCFLAGS) -c $<
 
-%.o: %.F90
+%.o: %.f90
 	  $(FC) $(CPPFLAGS) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 %.o: %.F90

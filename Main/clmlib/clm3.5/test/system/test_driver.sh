@@ -500,7 +500,6 @@ export OMP_DYNAMIC="FALSE"
 export _DSM_PLACEMENT="ROUND_ROBIN"
 export _DSM_WAIT="SPIN"
 export MPC_GANG="OFF"
-export MP_SLAVE_STACKSIZE="40000000"
 ## MIPSpro module required for f90
 . /opt/modules/modules/init/sh
 module purge

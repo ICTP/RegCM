@@ -28,7 +28,7 @@ module mod_cu_interface
   use mod_memutil
   use mod_regcm_types
   use mod_mppparam , only : exchange_lrbt , uvcross2dot , uvdot2cross , italk
-  use mod_mppparam , only : tenxtouvten
+  use mod_mppparam , only : tenxtouvten , uvtentotenx
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
@@ -114,32 +114,23 @@ module mod_cu_interface
     if ( any(icup == 3) ) then
       call allocate_mod_cu_bm
     end if
+    if ( any(icup == 4) .or. any(icup == 5) ) then
+      if ( idynamic == 3 ) then
+        call getmem3d(utend,jdi1gb,jdi2gb,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jci1,jci2,idi1gb,idi2gb,1,kz,'pbl_common:vtend')
+      else
+        call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+      end if
+    end if
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
-      if ( idynamic == 3 ) then
-        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
-      else
-        call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
-      end if
     end if
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
-      call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
-      call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
-      if ( .not. associated(utend) ) then
-        if ( idynamic == 3 ) then
-          call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-          call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
-        else
-          call getmem3d(utend,jde1ga,jde2ga, &
-                              ide1ga,ide2ga,1,kz,'pbl_common:utend')
-          call getmem3d(vtend,jde1ga,jde2ga, &
-                              ide1ga,ide2ga,1,kz,'pbl_common:vtend')
-        end if
-      end if
+      call getmem3d(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
+      call getmem3d(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
@@ -198,11 +189,11 @@ module mod_cu_interface
       call assignpnt(mo_atm%qxten,c2m%qxten)
       if ( ichem == 1 ) call assignpnt(mo_atm%chiten,c2m%chiten)
     else
-      call assignpnt(aten%t,m2c%tten,pc_dynamic)
-      call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
-      call assignpnt(aten%u,m2c%uten,pc_dynamic)
-      call assignpnt(aten%v,m2c%vten,pc_dynamic)
-      if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
+      call assignpnt(aten%t,m2c%tten,pc_physic)
+      call assignpnt(aten%qx,m2c%qxten,pc_physic)
+      call assignpnt(aten%u,m2c%uten,pc_physic)
+      call assignpnt(aten%v,m2c%vten,pc_physic)
+      if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_physic)
       ! OUTPUT
       call assignpnt(aten%t,c2m%tten,pc_physic)
       call assignpnt(aten%u,c2m%uten,pc_physic)
@@ -269,7 +260,7 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
-      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,3600.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -291,26 +282,6 @@ module mod_cu_interface
           write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
         end if
 
-        ! Update input wind cumulus tendencies (dot to cross points)
-
-        if ( any(icup == 5) ) then
-          if ( idynamic /= 3 ) then
-            do k = 1 , kz
-              do i = idi1 , idi2
-                do j = jdi1 , jdi2
-                  utend(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
-                  vtend(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
-                end do
-              end do
-            end do
-            call uvdot2cross(utend,vtend,utenx,vtenx)
-          else
-            ! input tendencies to cumulus null
-            ! utenx = d_zero
-            ! vtenx = d_zero
-          end if
-        end if
-
         cu_prate(:,:) = d_zero
         cu_ktop(:,:) = 0
         cu_kbot(:,:) = 0
@@ -318,6 +289,19 @@ module mod_cu_interface
         if ( any(icup == 4) .or. any(icup == 5) ) then
           cu_uten(:,:,:) = d_zero
           cu_vten(:,:,:) = d_zero
+          if ( any(icup == 5) ) then
+            if ( idynamic == 3 ) then
+              utend(jdi1:jdi2,ici1:ici2,:) = m2c%uten
+              vtend(jci1:jci2,idi1:idi2,:) = m2c%vten
+              call uvtentotenx(utend,vtend,utenx,vtenx)
+            else
+              utend(jdi1:jdi2,idi1:idi2,:) = m2c%uten
+              vtend(jdi1:jdi2,idi1:idi2,:) = m2c%vten
+              call uvdot2cross(utend,vtend,utenx,vtenx)
+            end if
+          end if
+          utend = d_zero
+          vtend = d_zero
         end if
         cu_qten(:,:,:,:) = d_zero
         cu_cldfrc(:,:,:) = d_zero
@@ -376,8 +360,6 @@ module mod_cu_interface
             call tenxtouvten(cu_uten,cu_vten,utend,vtend)
           else
             call uvcross2dot(cu_uten,cu_vten,utend,vtend)
-            call exchange_lrbt(utend,1,jde1,jde2,ide1,ide2,1,kz)
-            call exchange_lrbt(vtend,1,jde1,jde2,ide1,ide2,1,kz)
           end if
         end if
 
@@ -400,7 +382,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%tten(j,i,k) = cu_tten(j,i,k)
+              c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k)
             end do
           end do
         end do
@@ -409,14 +391,14 @@ module mod_cu_interface
           do k = 1 , kz
             do i = idi1 , idi2
               do j = jci1 , jci2
-                c2m%vten(j,i,k) = vtend(j,i,k)
+                c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
               end do
             end do
           end do
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jdi1 , jdi2
-                c2m%uten(j,i,k) = utend(j,i,k)
+                c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
               end do
             end do
           end do
@@ -426,7 +408,7 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                c2m%qxten(j,i,k,n) = cu_qten(j,i,k,n)
+                c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + cu_qten(j,i,k,n)
               end do
             end do
           end do
@@ -437,7 +419,8 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  c2m%chiten(j,i,k,n) = cu_chiten(j,i,k,n)
+                  c2m%chiten(j,i,k,n) = &
+                      c2m%chiten(j,i,k,n) + cu_chiten(j,i,k,n)
                 end do
               end do
             end do
@@ -547,15 +530,14 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + cu_tten(j,i,k)
+              mo_atm%tten(j,i,k) = cu_tten(j,i,k)
             end do
           end do
         end do
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) + &
-                          cu_qten(j,i,k,iqv)
+              mo_atm%qxten(j,i,k,iqv) = cu_qten(j,i,k,iqv)
             end do
           end do
         end do

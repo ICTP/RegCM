@@ -389,16 +389,18 @@ Spherical coordinates longitude and latitude $(\lambda, \phi)$ can be computed
 from the grid index values $i,j$ as:
 
 \begin{eqnarray}
-  \lambda &=& \lambda_c + \frac{ds \left(j-j_c\right)}{R} \\
-  \phi &=& 2 \arctan\left[\exp\left(\frac{y_c ds\left(i-i_c\right)}{R}\right)
-             \right]-\frac{\pi}{2}
+  \lambda &=& \lambda_c + \frac{ds \left(j-j_c\right)}{C_2} \\
+  \phi &=& 2 \arctan\left[\exp\left(\frac{y_c + 
+         ds\left(i-i_c\right)}{C_2}\right)\right]-\frac{\pi}{2}
 \end{eqnarray}
 
 where $R$ is the Earth radius and
 
-\begin{equation}
-  y_c = R \ln \left(\frac{1+\sin(\phi_c)}{cos(\phi_c)}\right)
-\end{equation}
+\begin{eqnarray}
+  \phi_1 &=& 0 \\
+  C_2 &=& R cos(\phi_1) \\
+  y_c &=& C_2 \ln \left(\frac{1+\sin(\phi_c)}{cos(\phi_c)}\right)
+\end{eqnarray}
 
 is the distance from the pole to the center of the domain, $(\lambda_c,\phi_c)$.
 
@@ -523,5 +525,40 @@ are the domain center coordinates, and
 \end{eqnarray}
 
 \subsection{Rotated Latitude Longitude projection}
+
+Spherical coordinates longitude and latitude $(\lambda, \phi)$ can be computed
+from the grid index values $i,j$ as:
+
+\begin{eqnarray}
+  \phi &=& \arcsin\left[ \cos(\phi_r) \sin(\phi_{r_0}) \cos(\lambda_r) +
+           \sin(\phi_r) \cos(\phi_{r_0}) \right] \\
+  \lambda &=& \lambda_{r_0} \mp \frac{-\sin(\phi_r) \sin(\phi_{r_0}) +
+              \cos(\phi_{r_0}) \cos(\lambda_r) \cos(\phi_r)}{\cos(\phi)}
+\end{eqnarray}
+
+where $\lambda_{r_0},\phi_{r_0}$ is the lower left corner of the grid in
+the rotated coordinates, the $- (+)$ corresponds to the case $\lambda_r < 0
+(\lambda_r > 0)$ and
+
+\begin{eqnarray}
+  \phi_r &=& \phi_{r_0} + i \Delta\phi_r \\
+  \lambda_r &=& \lambda_{r_0} + j \Delta\lambda_r
+\end{eqnarray}
+
+are the point coordinates in the rotated grid coordinates. To compute the
+rotated coordinates of the lower left corner of the grid, the following
+formula is used:
+
+\begin{eqnarray}
+  \phi_{r_0} &=& \arcsin \left[ -\cos(\phi_0) \sin(\phi_p)
+           \cos(\lambda_0 - \lambda_p) + \sin(\phi_0) \cos(\phi_p)\right] \\
+  \lambda_{r_0} &=& \mp \arccos \left[\frac{\sin(\phi_0) -
+          \cos(\phi_p) \sin(\phi_{r_0})}{\sin(\phi_p) \cos(\phi_{r_0})}\right]
+\end{eqnarray}
+
+where $\lambda_0,\phi_0$ are the actual coordinates of the domain lower left
+corner and $\lambda_p,\phi_p$ are the coordinated of the rotated pole in the
+actual coordinates and the $- (+)$ corresponds to the case
+$\lambda_0 < \lambda_p (\lambda_0 > \lambda_p)$.
 
 % vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

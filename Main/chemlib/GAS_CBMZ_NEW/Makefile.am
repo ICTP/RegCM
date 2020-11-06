@@ -57,7 +57,7 @@ mod_cbmz_function.o: mod_cbmz_function.F90 mod_cbmz_parameters.o
 mod_cbmz_Stochastic.o: mod_cbmz_Stochastic.F90  
 mod_cbmz_jacobiansp.o: mod_cbmz_jacobiansp.F90 
 mod_cbmz_jacobian.o: mod_cbmz_jacobian.F90   mod_cbmz_jacobiansp.o
-mod_cbmz_linearalgebra.o: mod_cbmz_linearalgebra.F90  mod_cbmz_jacobiansp.o
+mod_cbmz_linearalgebra.o: mod_cbmz_linearalgebra.F90  mod_cbmz_jacobiansp.o mod_cbmz_parameters.o
 mod_cbmz_rates.o: mod_cbmz_rates.F90 mod_cbmz_global.o
 mod_cbmz_HessianSP.o: mod_cbmz_HessianSP.F90  
 mod_cbmz_Hessian.o:  mod_cbmz_Hessian.F90  mod_cbmz_HessianSP.o

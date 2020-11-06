@@ -87,7 +87,7 @@ module mod_sound
     call getmem3d(rhs,jci1,jci2,ici1,ici2,2,kz,'sound:rhs')
     call getmem3d(sigdot,jci1,jci2,ici1,ici2,1,kzp1,'sound:sigdot')
     call getmem3d(wo,jci1,jci2,ici1,ici2,1,kzp1,'sound:wo')
-    call getmem3d(e,jci1,jci2,ici1,ici2,1,kz,'sound:e')
+    call getmem3d(e,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'sound:e')
     call getmem3d(f,jci1,jci2,ici1,ici2,1,kz,'sound:f')
     call getmem3d(ca,jci1,jci2,ici1,ici2,2,kz,'sound:ca')
     call getmem3d(g1,jci1,jci2,ici1,ici2,2,kz,'sound:g1')
@@ -714,6 +714,27 @@ module mod_sound
     contains
 
 #include <cpmf.inc>
+
+    subroutine smallfilter
+      implicit none
+      integer :: i , j , k
+      real(rkx) , dimension(jcii1:jcii2,icii1:icii2) :: e2
+      call exchange(e,1,jci1,jci2,ici1,ici2,1,kz)
+      do k = 1 , kz
+        do i = icii1 , icii2
+          do j = jcii1 , jcii2
+            e2(j,i) = 0.125_rkx * (e(j-1,i,k) + e(j+1,i,k) + &
+                                   e(j,i-1,k) + e(j,i+1,k)) - &
+                      0.5_rkx   * e(j,i,k)
+          end do
+        end do
+        do i = icii1 , icii2
+          do j = jcii1 , jcii2
+            e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i) 
+          end do
+        end do
+      end do
+    end subroutine smallfilter
 
   end subroutine sound
 

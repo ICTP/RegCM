@@ -137,7 +137,7 @@ module mod_che_ncio
         case ( 'SULF' )
           n_aebcvar = 2
           aebcname => aesulf
-        case ( 'SUCA' )
+        case ( 'SUCA' , 'SUCE' )
           n_aebcvar = 6
           aebcname => aesuca
         case ( 'AERO' )
@@ -199,7 +199,7 @@ module mod_che_ncio
 
    subroutine read_dust_param(erodfc, aez0)
 !read dust emission relevant parameters
-!for now : erod_dsfc = source function / erodibility mask 
+!for now : erod_dsfc = source function / erodibility mask
 !e.g. see  Zender et al., Laurent et al.
 !place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
       implicit none

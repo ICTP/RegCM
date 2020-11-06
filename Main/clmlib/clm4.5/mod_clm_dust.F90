@@ -621,7 +621,7 @@ module mod_clm_dust
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 
 #ifdef __PGI
-    real(rk8) , external :: erf
+    !real(rk8) , external :: erf
 #endif
     ! Assign local pointers to derived type scalar members (column-level)
 

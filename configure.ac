@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-AC_INIT([RegCM], [4.7.0], [ggiulian@ictp.it])
+AC_INIT([RegCM], [4.9.0], [ggiulian@ictp.it])
 
 AC_SUBST([PACKAGE_URL], ["https://gforge.ictp.it/gf/project/regcm"])
 
@@ -553,8 +553,8 @@ if eval "test x$DEBUG = x1"; then
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
-             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=denorm -O0 -g \
-             -traceback $FCFLAGS"
+             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
+             -gopt -traceback $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
@@ -566,6 +566,8 @@ else
   if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
@@ -581,6 +583,8 @@ else
       fi
     fi
     AC_SUBST(FCFLAGS)
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
@@ -592,25 +596,35 @@ else
       FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_SUN_TRUE"; then
     FCFLAGS="-O3 -xfilebyteorder=big16:%all \
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
+    NOOPTFC="-O1 $FCFLAGS"
     FCFLAGS="-fastsse $FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
     FCFLAGS="$(FCFLAGS)"
     AC_SUBST(FCFLAGS)
     CPRDEF="GNU"
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(NOOPTFC)
   fi
 fi
 

@@ -1139,9 +1139,9 @@ contains
     pps%frac_veg_nosno(beg:end) = bigint
     pps%frac_veg_nosno_alb(beg:end) = 0
     pps%emv(beg:end) = nan
-    pps%z0mv(beg:end) = nan
-    pps%z0hv(beg:end) = nan
-    pps%z0qv(beg:end) = nan
+    pps%z0mv(beg:end) = 0.0_r8
+    pps%z0hv(beg:end) = 0.0_r8
+    pps%z0qv(beg:end) = 0.0_r8
     pps%rootfr(beg:end,:nlevsoi) = nan
     pps%rootr (beg:end,:nlevsoi) = nan
     pps%rresis(beg:end,:nlevsoi) = nan

@@ -332,10 +332,6 @@ module mod_constants
   real(rkx) , parameter :: bice = 22.452_rkx
   real(rkx) , parameter :: cice = 6133.0_rkx
   real(rkx) , parameter :: dice = 0.61_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
-  real(rkx) , parameter :: xls0 = 2.905e6_rkx
-  real(rkx) , parameter :: xls1 = 259.532_rkx
 
   ! GTS system constants
   real(rkx) , parameter :: egravgts = egrav*d_100

@@ -82,6 +82,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: msfx
     real(rkx) , pointer , dimension(:,:) :: msfd
     real(rkx) , pointer , dimension(:,:) :: coriol
+    real(rkx) , pointer , dimension(:,:) :: coriou
+    real(rkx) , pointer , dimension(:,:) :: coriov
     real(rkx) , pointer , dimension(:,:) :: ef
     real(rkx) , pointer , dimension(:,:) :: ddx
     real(rkx) , pointer , dimension(:,:) :: ddy
@@ -155,6 +157,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pr
     real(rkx) , pointer , dimension(:,:,:) :: rho
     real(rkx) , pointer , dimension(:,:,:) :: z
+    real(rkx) , pointer , dimension(:,:,:) :: zd
     real(rkx) , pointer , dimension(:,:,:) :: tf
     real(rkx) , pointer , dimension(:,:,:) :: pf
     real(rkx) , pointer , dimension(:,:,:) :: rhof
@@ -346,7 +349,6 @@ module mod_regcm_types
   end type nhboundhelp
 
   type bound_area
-    logical :: dotflag
     logical :: havebound
     logical , pointer , dimension(:,:) :: bsouth
     logical , pointer , dimension(:,:) :: bnorth
@@ -570,6 +572,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: tg              ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: xlat            ! mddom%xlat
     real(rkx) , pointer , dimension(:,:) :: xlon            ! mddom%xlon
+    real(rkx) , pointer , dimension(:,:) :: ht              ! mddom%ht
     real(rkx) , pointer , dimension(:,:) :: ptrop
     real(rkx) , pointer , dimension(:,:) :: coszrs
     real(rkx) , pointer , dimension(:,:) :: albvs
@@ -720,7 +723,7 @@ module mod_regcm_types
   type mod_2_micro
     real(rkx) , pointer , dimension(:,:) :: xlat     ! mddom
     real(rkx) , pointer , dimension(:,:) :: psb      ! sfc
-    real(rkx) , pointer , dimension(:,:,:) :: pfcc   ! from atm
+    real(rkx) , pointer , dimension(:,:) :: ps2      ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: phs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: pfs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: delz   ! from atms

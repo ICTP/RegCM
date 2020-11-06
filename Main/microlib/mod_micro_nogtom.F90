@@ -85,7 +85,6 @@ module mod_micro_nogtom
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
@@ -497,7 +496,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dpfs(j,i,k) = mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k)
+          dpfs(j,i,k) = max(mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k),1.0_rkx)
         end do
       end do
     end do

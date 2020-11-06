@@ -47,8 +47,8 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
-                    deltaz,outtaucl,outtauci,r2m,m2r,                    &
-                    asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
+                    deltaz,outtaucl,outtauci,asaeradfo,asaeradfos,       &
+                    asaerlwfo,asaerlwfos,r2m,m2r)
     implicit none
     !
     ! copy radiation output quantities to model buffer
@@ -80,25 +80,16 @@ module mod_rad_outrad
     ! solsd  - Downward solar rad onto surface (sw diffuse)
     !
     logical , intent(in) :: lout ! Preapre data for outfile
-    real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
-                clrss , clrst , lwout , frla , frsa ,      &
-                solout , slwd , solin , soll , solld ,     &
-                sols , solsd , totcf , totcl , totci ,     &
-                totwv , abv , sol
-    real(rkx) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
-    real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
-    real(rkx) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
-    real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos
-    real(rkx) , optional, pointer , dimension(:) :: asaeradfo , &
-      asaeradfos , asaerlwfo , asaerlwfos
-    real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
-    intent (in) cld , clrls , clrlt , clrss , clrst , clwp , &
-                lwout , frla , frsa , qrl , qrs , solout ,   &
-                slwd , solin , soll , solld , sols , solsd , &
-                totcf , totcl , totci , aeradfo , aeradfos,  &
-                asaeradfo , asaeradfos , aerlwfo , aerlwfos ,&
-                asaerlwfo , asaerlwfos , deltaz , outtaucl , &
-                outtauci
+    real(rkx) , pointer , dimension(:) , intent(inout) :: clrls , clrlt ,  &
+           clrss , clrst , lwout , frla , frsa , solout , slwd , solin ,   &
+           soll , solld , sols , solsd , totcf , totcl , totci , totwv ,   &
+           abv , sol , aeradfo , aeradfos , aerlwfo , aerlwfos
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: cld , clwp ,   &
+           qrl , qrs , deltaz
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtaucl ,  &
+           outtauci , tauxar3d , tauasc3d , gtota3d
+    real(rkx) , pointer , dimension(:) , intent(inout) :: asaeradfo , &
+           asaeradfos , asaerlwfo , asaerlwfos
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
 
@@ -217,12 +208,12 @@ module mod_rad_outrad
       if ( idirect > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
-        if (present(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)
-        if (present(asaeradfos)) call copy2d_add(asaeradfos,opt_aastsrrf_out)
+        if (associated(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)
+        if (associated(asaeradfos)) call copy2d_add(asaeradfos,opt_aastsrrf_out)
         call copy2d_add(aerlwfo,opt_acstalrf_out)
         call copy2d_add(aerlwfos,opt_acssrlrf_out)
-        if (present(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
-        if (present(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
+        if (associated(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
+        if (associated(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
       end if
     end if
 

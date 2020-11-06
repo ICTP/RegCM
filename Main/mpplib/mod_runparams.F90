@@ -32,7 +32,7 @@ module mod_runparams
 
   character(len=256) , public :: namelistfile , prgname
 
-  logical , public , parameter :: carb_aging_control = .false.
+  logical , public :: carb_aging_control = .false.
 
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
@@ -146,6 +146,7 @@ module mod_runparams
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
   integer(ik4) , public :: isnowdark
+  integer(ik4) , public :: ichecold
   ! Fixed solar constant for ifixsolar = 1
   real(rkx) , public :: fixedsolarval
   ! Semi-Langrangian advection for tracers
@@ -171,10 +172,11 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_1 = .false.
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dz , mo_anu2
-  real(rkx) , public :: mo_wmax = 100.0 ! m/s maximum wind intensity
-  integer(ik4) , public :: mo_nadv = 1
-  integer(ik4) , public :: mo_nsound = 6
-  integer(ik4) , public :: mo_nzfilt = 3
+  real(rkx) , public :: mo_wmax , mo_cflhmax , mo_cflsmax
+  logical , public :: mo_filterpai
+  integer(ik4) , public :: mo_nzfilt
+  integer(ik4) , public :: mo_nadv
+  integer(ik4) , public :: mo_nsound
 
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
@@ -200,9 +202,7 @@ module mod_runparams
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: do_parallel_save
-  logical , public :: ifrest , doing_restart , lsync
-
-  integer(ik4) , public :: kchi , kclo , kcmd
+  logical , public :: ifrest , doing_restart , lsync , chechgact
 
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
@@ -352,7 +352,6 @@ module mod_runparams
   real(rkx) , public :: kf_max_dtcape
   real(rkx) , public :: kf_tkemax
   real(rkx) , public :: kf_wthreshold
-  !
 
   ! Tweak Global data
 
@@ -428,8 +427,11 @@ module mod_runparams
   ! chemistry species indices that are used not only in chemlib but also in
   ! other interface ( e.g CLM4.5)/ other species are delcared in
   ! chemlib/mod_che_indices
-  integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , &
-                           iano3 , iisop , ich4 , ism1 , ism2 , ino
+  integer(ik4) , public , parameter :: nchlmax = 3
+  integer(ik4) , public :: nochl , nbchl
+  integer(ik4) , public , dimension(nchlmax) :: iochl , ibchl
+  integer(ik4) , public :: ibchb , iochb , ianh4 , iano3 , iisop , &
+                           ich4 , ism1 , ism2 , ino
 
   ! Cloud control parameters
 

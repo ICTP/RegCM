@@ -4,7 +4,7 @@ module mod_clm_initialize
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : rcmtimer , dtsrf
+  use mod_runparams , only : rcmtimer , dtsrf , ichecold
   use mod_runparams , only : eccen , mvelpp , lambm0 , obliqr
   use mod_date
   use mod_stdio
@@ -266,7 +266,7 @@ module mod_clm_initialize
     ! On restart process the history namelist. Later the namelist from the
     ! restart file will be used. But, this allows some basic checking to make
     ! sure you didn't try to change the history namelist on restart.
-    if ( nsrest == nsrContinue ) then
+    if ( nsrest == nsrContinue .and. ichecold == 0 ) then
       call htapes_fieldlist()
     end if
 
@@ -365,7 +365,7 @@ module mod_clm_initialize
     ! Note that routine hist_htapes_build needs time manager information, so
     ! this call must be made after the restart information has been read.
 
-    if ( nsrest == nsrStartup ) then
+    if ( nsrest == nsrStartup .or. ichecold == 1 ) then
       call hist_htapes_build()
     end if
 

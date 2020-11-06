@@ -18,6 +18,7 @@ module histFileMod
   use clm_varcon  , only : spval,ispval
   use clm_varsur   , only : r2coutfrq
   use mod_runparams , only : dtsec
+  use mod_dynparam , only : prestr , pthsep
   implicit none
   save
   private
@@ -3637,7 +3638,7 @@ contains
       write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
    endif
    write(hist_index,'(i1.1)') hist_file - 1
-   set_hist_filename = trim(dirout)//trim(caseid)//".clm2.h"//hist_index//"."//&
+   set_hist_filename = trim(dirout)//pthsep//trim(prestr)//trim(caseid)//".clm2.h"//hist_index//"."//&
         trim(cdate)//".nc"
 
   end function set_hist_filename

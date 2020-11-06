@@ -1199,20 +1199,20 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
       end if
-      call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
-                               0, mpi_info_null,node_local_communicator, &
-                               mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
-      end if
-      call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
-      end if
-      call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
-      end if
+      !call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
+      !                         0, mpi_info_null,node_local_communicator, &
+      !                         mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
+      !end if
+      !call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
+      !end if
+      !call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
+      !end if
 
       if ( myid == iocpu ) ccio = ccid
 
@@ -13502,23 +13502,53 @@ module mod_mppparam
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     integer(ik4) :: i , j , k
 
-    call exchange_lr(u,1,jdi1,jdi2,ici1,ici2,1,kz)
-    call exchange_bt(v,1,jci1,jci2,idi1,idi2,1,kz)
+    call exchange_lr(u,2,jdi1,jdi2,ici1,ici2,1,kz)
+    call exchange_bt(v,2,jci1,jci2,idi1,idi2,1,kz)
     ! Back to wind points
     do k = 1 , kz
       do i = ici1 , ici2
-        do j = jci1 , jci2
-          ux(j,i,k) = 0.5_rkx * (u(j,i,k)+u(j+1,i,k))
+        do j = jcii1 , jcii2
+          ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                      0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
         end do
       end do
     end do
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ux(jci1,i,k) = 0.5_rkx * (u(jdi1,i,k)+u(jdii1,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ux(jci2,i,k) = 0.5_rkx*(u(jdi2,i,k) + u(jdii2,i,k))
+        end do
+      end do
+    end if
     do k = 1 , kz
-      do i = ici1 , ici2
+      do i = icii1 , icii2
         do j = jci1 , jci2
-          vx(j,i,k) = 0.5_rkx * (v(j,i,k)+v(j,i+1,k))
+          vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                      0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
         end do
       end do
     end do
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          vx(j,ici1,k) = 0.5_rkx * (v(j,idi1,k)+v(j,idii1,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          vx(j,ici2,k) = 0.5_rkx*(v(j,idi2,k) + v(j,idii2,k))
+        end do
+      end do
+    end if
   end subroutine uvtentotenx
 
   subroutine tenxtouvten(ux,vx,u,v)
@@ -13593,8 +13623,8 @@ module mod_mppparam
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
     integer(ik4) :: i , j , k
 
-    call exchange(ux,1,jci1,jci2,ici1,ici2,1,kz)
-    call exchange(vx,1,jci1,jci2,ici1,ici2,1,kz)
+    call exchange(ux,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(vx,1,jce1,jce2,ice1,ice2,1,kz)
 
     !
     !  o     o     o     o     o     o     o
@@ -13619,54 +13649,14 @@ module mod_mppparam
     ! to put the u and v variables on the dot grid.
 
     do k = 1 , kz
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
           ud(j,i,k) =  d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
                                 ux(j,i-1,k) + ux(j-1,i-1,k))
           vd(j,i,k) =  d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
                                 vx(j,i-1,k) + vx(j-1,i-1,k))
         end do
       end do
-      if ( ma%has_bdyleft ) then
-        do i = idii1 , idii2
-          ud(jdi1,i,k) = d_half*(ux(jci1,i,k) + ux(jci1,i-1,k))
-          vd(jdi1,i,k) = d_half*(vx(jci1,i,k) + vx(jci1,i-1,k))
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = idii1 , idii2
-          ud(jdi2,i,k) = d_half*(ux(jci2,i,k) + ux(jci2,i-1,k))
-          vd(jdi2,i,k) = d_half*(vx(jci2,i,k) + vx(jci2,i-1,k))
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jdii1 , jdii2
-          ud(j,idi2,k) = d_half*(ux(j,ici2,k) + ux(j-1,ici2,k))
-          vd(j,idi2,k) = d_half*(vx(j,ici2,k) + vx(j-1,ici2,k))
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jdii1 , jdii2
-          ud(j,idi1,k) = d_half*(ux(j,ici1,k) + ux(j-1,ici1,k))
-          vd(j,idi1,k) = d_half*(vx(j,ici1,k) + vx(j-1,ici1,k))
-        end do
-      end if
-      if ( ma%has_bdytopleft ) then
-        ud(jdi1,idi2,k) = ux(jci1,ici2,k)
-        vd(jdi1,idi2,k) = vx(jci1,ici2,k)
-      end if
-      if ( ma%has_bdybottomleft ) then
-        ud(jdi1,idi1,k) = ux(jci1,ici1,k)
-        vd(jdi1,idi1,k) = vx(jci1,ici1,k)
-      end if
-      if ( ma%has_bdytopright ) then
-        ud(jdi2,idi2,k) = ux(jci2,ici2,k)
-        vd(jdi2,idi2,k) = vx(jci2,ici2,k)
-      end if
-      if ( ma%has_bdybottomright ) then
-        ud(jdi2,idi1,k) = ux(jci2,ici1,k)
-        vd(jdi2,idi1,k) = vx(jci2,ici1,k)
-      end if
     end do
   end subroutine uvcross2dot
 

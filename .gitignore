@@ -108,6 +108,9 @@ PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile.in
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/emcre_grid
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.o
 PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.mod
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/emcre
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.o
+PreProc/CH_EMISSIONS/creation/tools/emcre_v0.5/src/*.mod
 
 PreProc/CLM/Makefile
 PreProc/CLM/Makefile.in
@@ -146,6 +149,8 @@ Share/*.mod
 Share/*.o
 
 Tools/Scripts/pycordexer/utilities/__pycache__
+Tools/Scripts/pycordexer/__pycache__
+Tools/Scripts/pycordexer/docs/__pycache__
 Tools/Programs/CheckSun/Makefile
 Tools/Programs/CheckSun/Makefile.in
 Tools/Programs/RegCM_read/Makefile
@@ -156,6 +161,12 @@ Tools/Programs/timeseries/Makefile.in
 external/.deps
 external/Makefile
 external/Makefile.in
+external/*.mod
+external/*.o
+external/*.a
+external/aerosols/*.mod
+external/aerosols/*.o
+external/aerosols/sptest*
 
 aclocal.m4
 autom4te.cache

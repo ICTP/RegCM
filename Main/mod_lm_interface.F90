@@ -900,7 +900,7 @@ module mod_lm_interface
         if ( associated(srf_scv_out) ) &
           srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
-          where( lm%rswf > 120.0_rkx )
+          where( lm%swdir+lm%lwdir > 120.0_rkx )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if
@@ -1043,14 +1043,15 @@ module mod_lm_interface
     end if
 
     ! Those are for the output, but collected only at POINT in time
-
-    if ( alarm_out_srf%will_act(dtsrf) ) then
-
+    if ( alarm_out_atm%will_act(dtsrf) ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) then
           atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
         end if
       end if
+    end if
+
+    if ( alarm_out_srf%will_act(dtsrf) ) then
 
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &

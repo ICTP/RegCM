@@ -217,18 +217,9 @@ module mod_interp
 
   subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
     implicit none
-    !  Input:  function g defined at irregular but strictly monotonic xi
-    !  Output: f interpolated values at arbitrary coordinates xo
     real(rk8) , dimension(:) , intent(in) :: xi , xo , g
     real(rk8) , dimension(:) , intent(out) :: f
-    ! alfa: spline tension parameter, comprised between 0 and 1:
-    ! if alfa=1, pure linear interpolation; if alfa=0, pure spline
     real(rk8) , intent(in) :: alfa
-    ! ex1: param. determining extrapolation for x < xi(1)
-    ! ex2: param. determining extrapolation for x > xi(npi)
-    ! if ex1=0 or ex2=0, constant value extrapolation is used at extreme
-    ! if ex1=1 or ex2=1, linear extrapolation is used at corresponding extreme
-    ! intermediate values of ex1 and ex2 give intermediate extrapolation values
     real(rk8) , intent(in) :: ex1
     real(rk8) , intent(in) :: ex2
 
@@ -264,7 +255,6 @@ module mod_interp
       zg(:) = g(:)
     end if
 
-    ! small deviation used to set apart interlaced coordinates
     zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
     deinterlace: &
     do
@@ -288,7 +278,6 @@ module mod_interp
     end do deinterlace
 
     do j = 1 , npo
-      ! 2 cases of extrapolation
       if ( xo(j) < zi(1) ) then
         f(j) = zg(1) + ex1*(zg(1)-zg(2))/(zi(1)-zi(2)) * (xo(j)-zi(1))
         cycle
@@ -298,8 +287,6 @@ module mod_interp
         cycle
       end if
       ir = 0
-      ! ir is a reference index determining the interpolation interval
-      ! The interpolation expression is applied also if xo = zi(j)
       do jj = 1 , npi
         if ( xo(j) >= zi(jj) ) ir = ir + 1
       end do
@@ -331,15 +318,12 @@ module mod_interp
       delxs  = delx**2
       delx1s = delx1**2
       delx2s = delx2**2
-      !  Spline contribution to interpolation
       spl = fm*(delx2/delx + delx1*delx2s/(delxs*delxm) - delx1s*     &
             delx2/((delx+delxp)*delxs)) + fp*(delx1/delx +            &
             delx1s*delx2/(delxs*delxp) - delx1*delx2s/((delx+delxm)*  &
             delxs)) - fmm * delx1*delx2s/((delx+delxm)*delx*delxm) -  &
             fpp * delx1s*delx2/((delx+delxp)*delx*delxp)
-      !  Linear interpolation contribution
       clin = (fm*delx2 + fp*delx1)/delx
-      !  Final interpolation combined using alfa
       f(j) = alfa*clin + (1.0_rk8-alfa)*spl
     end do
   end subroutine interp1d_r8

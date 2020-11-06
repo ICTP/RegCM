@@ -202,6 +202,23 @@ module mod_che_output
         cemisdiag(:,:,:,itr) = d_zero
       endif
 
+      if ( associated(che_chgact_out) ) then
+        che_chgact_out(:,:,:) = save_chagct(:,:,:,itr)
+      end if
+      if ( associated(che_massc_out) ) then
+        che_massc_out(:,:,:) = che_mixrat_out(:,:,:) * crhob3d(:,:,:)
+      end if
+      if ( associated(che_ncon_out) ) then
+        che_ncon_out(:,:,:) = save_ncon(:,:,:,itr)
+      end if
+
+      if ( associated(opt_ncon_out) ) then
+        opt_ncon_out(:,:,:) = ncon(:,:,:)
+      end if
+      if ( associated(opt_surf_out) ) then
+        opt_surf_out(:,:,:) = surf(:,:,:)
+      end if
+
       rainout(:,:,:,itr) = d_zero
       washout(:,:,:,itr) = d_zero
 

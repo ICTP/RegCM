@@ -82,6 +82,7 @@
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
       real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: ustar
       real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: xra
+      real(rkx) , dimension(ntr) :: xrho
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
@@ -309,8 +310,8 @@
       !
       ! aging of carboneaceous aerosols
       !
-      if ( (ibchb > 0 .and. ibchl > 0) .or. &
-           (iochb > 0 .and. iochl > 0) .or. &
+      if ( (ibchb > 0 .and. nbchl > 0) .or. &
+           (iochb > 0 .and. nochl > 0) .or. &
            (ism1 > 0  .and. ism2 > 0) ) then
         call aging_carb
       end if
@@ -330,7 +331,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( idust(1) > 0 .and. ichsursrc == 1 ) then
+      if ( nbin > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
                 call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
                       crho2d,dustbsiz)
@@ -376,7 +377,7 @@
       pdepv(:,:,:,:) = d_zero
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
-      if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
+      if ( nbin > 0 .and. ichdrdepo > 0 ) then
         do i = ici1 , ici2
           call drydep_aero(i,nbin,idust,rhodust,ivegcov(:,i),       &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
@@ -450,37 +451,42 @@
       !
       ! WET deposition (rainout and washout) for aerosol
       !
-      if ( idust(1) > 0 .and. ichremlsc == 1 ) then
+      if ( nbin > 0 .and. ichremlsc == 1 ) then
+        xrho(1:nbin) = rhodust
         do i = ici1 , ici2
-          call wetdepa(i,nbin,idust,dustbed,rhodust,ttb(:,:,i),  &
-                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),  &
-                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i), &
+          call wetdepa(i,nbin,idust,dustbed,xrho(1:nbin),ttb(:,:,i), &
+                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),      &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),     &
                        convprec(:,:,i), pdepv(:,:,:,i))
         end do
         ! mineralogical tracers
         if ( nmine > 0 ) then
+          xrho(1:nbin) = rhodust
           do n = 1 , nmine
             do i = ici1 , ici2
-              call wetdepa(i,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,i), &
-                           wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),      &
-                           psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),     &
+              call wetdepa(i,nbin,imine(:,n),dustbed,xrho(1:nbin),ttb(:,:,i), &
+                           wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),           &
+                           psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),          &
                            convprec(:,:,i), pdepv(:,:,:,i))
             end do
           end do
         end if
       end if
       if ( isslt(1) > 0 .and. ichremlsc == 1 )  then
+        xrho(1:sbin) = rhosslt
         do i = ici1 , ici2
-          call wetdepa(i,sbin,isslt,ssltbed,rhosslt,ttb(:,:,i),  &
-                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),  &
-                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i), &
+          call wetdepa(i,sbin,isslt,ssltbed,xrho(1:sbin),ttb(:,:,i),  &
+                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),       &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),      &
                        convprec(:,:,i), pdepv(:,:,:,i))
         end do
       end if
       if ( icarb(1) > 0 .and. ichremlsc == 1 )  then
         ibin = count( icarb > 0 )
+        ! Yep ?
+        xrho(1:ibin) = rhobchl(1)
         do i = ici1 , ici2
-          call wetdepa(i,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
+          call wetdepa(i,ibin,icarb(1:ibin),carbed(1:ibin),xrho(1:ibin),   &
                        ttb(:,:,i),wl(:,:,i),fracloud(:,:,i),fracum(:,:,i), &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),           &
                        convprec(:,:,i),pdepv(:,:,:,i))
@@ -491,10 +497,11 @@
         ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
+        xrho(1) = rhopollen
         do i = ici1 , ici2
-          call wetdepa(i,ibin,poltab,polrftab,rhopollen,        &
-                       ttb(:,:,i),wl(:,:,i),fracloud(:,:,i),fracum(:,:,i), &
-                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),           &
+          call wetdepa(i,ibin,poltab,polrftab,xrho(1:1),ttb(:,:,i), &
+                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),     &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),    &
                        convprec(:,:,i),pdepv(:,:,:,i))
         end do
       end if

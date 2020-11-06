@@ -44,8 +44,8 @@ module mod_ncep
 
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: sigmar , sigma1
-  real(rkx) :: pss
+  real(rkx) , pointer , dimension(:) :: sigmar , plevs
+  real(rkx) :: pss , pst
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -53,6 +53,8 @@ module mod_ncep
   real(rkx) , pointer , dimension(:,:,:) :: d3
   real(rkx) , pointer , dimension(:,:,:) :: d3u
   real(rkx) , pointer , dimension(:,:,:) :: d3v
+  real(rkx) , pointer , dimension(:,:,:) :: h3v , h3u
+  real(rkx) , pointer , dimension(:,:) :: topou , topov
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
@@ -123,19 +125,19 @@ module mod_ncep
     call getmem1d(glon,1,ilon,'mod_ncep:glon')
     call getmem1d(glat,1,jlat,'mod_ncep:glat')
     call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
-    call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
+    call getmem1d(plevs,1,klev,'mod_ncep:plevs')
 
     istatus = nf90_inq_varid(inet,'level',idv)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var level')
-    istatus = nf90_get_var(inet,idv,sigma1)
+    istatus = nf90_get_var(inet,idv,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read level')
-    ! Invert levels
     do k = 1 , klev
-      sigmar(k) = sigma1(klev-k+1)/sigma1(1)
+      sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
     end do
-    pss = sigma1(1) / d_10 ! centibars
+    pss = (plevs(1)-plevs(klev)) / d_10 ! centibars
+    pst = plevs(klev) / d_10 ! centibars
     !
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
     !
@@ -178,6 +180,10 @@ module mod_ncep
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ncep:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ncep:d3v')
+      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
+      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
+      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
     end if
@@ -201,6 +207,12 @@ module mod_ncep
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     rhvar => b2(:,:,2*klev+1:3*klev)
+    if ( idynamic == 3 ) then
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
+    end if
   end subroutine init_ncep
 
   subroutine get_ncep(idate)
@@ -240,15 +252,16 @@ module mod_ncep
     ! New calculation of P* on rcm topography.
     !
     if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
-      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,klev)
+      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,klev)
     end if
 
     call readsst(ts4,idate)
@@ -258,24 +271,24 @@ module mod_ncep
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)

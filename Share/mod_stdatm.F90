@@ -119,7 +119,7 @@ module mod_stdatm
     2.0_rkx, 802.00_rkx,285.00_rkx,0.975700e+3_rkx,0.590000e+1_rkx,0.600000e-4_rkx , &
     3.0_rkx, 710.00_rkx,279.00_rkx,0.884600e+3_rkx,0.330000e+1_rkx,0.620000e-4_rkx , &
     4.0_rkx, 628.00_rkx,273.00_rkx,0.799800e+3_rkx,0.190000e+1_rkx,0.640000e-4_rkx , &
-    5.0_rkx, 554.00_rkx,267.00_rkx,0.721100e+3_rkx,0.100000E+01,0.660000e-4_rkx , &
+    5.0_rkx, 554.00_rkx,267.00_rkx,0.721100e+3_rkx,0.100000e+1_rkx,0.660000e-4_rkx , &
     6.0_rkx, 487.00_rkx,261.00_rkx,0.648700e+3_rkx,0.610000e+0_rkx,0.690000e-4_rkx , &
     7.0_rkx, 426.00_rkx,255.00_rkx,0.583000e+3_rkx,0.370000e+0_rkx,0.750000e-4_rkx , &
     8.0_rkx, 372.00_rkx,248.00_rkx,0.522500e+3_rkx,0.210000e+0_rkx,0.790000e-4_rkx , &
@@ -308,7 +308,7 @@ module mod_stdatm
 
      real(rkx) function stdatm_val_seasonal(jday,lat,plev,ival)
        implicit none
-       real(rkx) , intent(in) :: jday
+       real(rk8) , intent(in) :: jday
        real(rkx) , intent(in) :: lat
        real(rkx) , intent(in) :: plev
        integer(ik4) , intent(in) :: ival

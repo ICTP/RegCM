@@ -79,16 +79,16 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 16 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 5
+  integer(ik4) , parameter :: nrad3dvars = 6
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 5
+  integer(ik4) , parameter :: nopt3dvars = 8
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 13
+  integer(ik4) , parameter :: nche3dvars = 17
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -361,10 +361,11 @@ module mod_ncout
   integer(ik4) , parameter :: rad_lowcl  = 21
 
   integer(ik4) , parameter :: rad_pp     = 1
-  integer(ik4) , parameter :: rad_cld    = 2
-  integer(ik4) , parameter :: rad_clwp   = 3
-  integer(ik4) , parameter :: rad_qrs    = 4
-  integer(ik4) , parameter :: rad_qrl    = 5
+  integer(ik4) , parameter :: rad_pai    = 2
+  integer(ik4) , parameter :: rad_cld    = 3
+  integer(ik4) , parameter :: rad_clwp   = 4
+  integer(ik4) , parameter :: rad_qrs    = 5
+  integer(ik4) , parameter :: rad_qrl    = 6
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
@@ -406,10 +407,13 @@ module mod_ncout
   integer(ik4) , parameter :: opt_aassrlrf = 15
 
   integer(ik4) , parameter :: opt_pp       = 1
-  integer(ik4) , parameter :: opt_aext8    = 2
-  integer(ik4) , parameter :: opt_assa8    = 3
-  integer(ik4) , parameter :: opt_agfu8    = 4
-  integer(ik4) , parameter :: opt_deltaz   = 5
+  integer(ik4) , parameter :: opt_pai      = 2
+  integer(ik4) , parameter :: opt_aext8    = 3
+  integer(ik4) , parameter :: opt_assa8    = 4
+  integer(ik4) , parameter :: opt_agfu8    = 5
+  integer(ik4) , parameter :: opt_deltaz   = 6
+  integer(ik4) , parameter :: opt_ncon     = 7
+  integer(ik4) , parameter :: opt_surf     = 8
 
   integer(ik4) , parameter :: che_xlon     = 1
   integer(ik4) , parameter :: che_xlat     = 2
@@ -426,18 +430,22 @@ module mod_ncout
   integer(ik4) , parameter :: che_pblten   = 13
 
   integer(ik4) , parameter :: che_pp       = 1
-  integer(ik4) , parameter :: che_mixrat   = 2
-  integer(ik4) , parameter :: che_cheten   = 3
-  integer(ik4) , parameter :: che_advhten  = 4
-  integer(ik4) , parameter :: che_advvten  = 5
-  integer(ik4) , parameter :: che_difhten  = 6
-  integer(ik4) , parameter :: che_cuten    = 7
-  integer(ik4) , parameter :: che_tuten    = 8
-  integer(ik4) , parameter :: che_raiten   = 9
-  integer(ik4) , parameter :: che_wasten   = 10
-  integer(ik4) , parameter :: che_bdyten   = 11
-  integer(ik4) , parameter :: che_sedten   = 12
-  integer(ik4) , parameter :: che_emten    = 13
+  integer(ik4) , parameter :: che_pai      = 2
+  integer(ik4) , parameter :: che_mixrat   = 3
+  integer(ik4) , parameter :: che_cheten   = 4
+  integer(ik4) , parameter :: che_advhten  = 5
+  integer(ik4) , parameter :: che_advvten  = 6
+  integer(ik4) , parameter :: che_difhten  = 7
+  integer(ik4) , parameter :: che_cuten    = 8
+  integer(ik4) , parameter :: che_tuten    = 9
+  integer(ik4) , parameter :: che_raiten   = 10
+  integer(ik4) , parameter :: che_wasten   = 11
+  integer(ik4) , parameter :: che_bdyten   = 12
+  integer(ik4) , parameter :: che_sedten   = 13
+  integer(ik4) , parameter :: che_emten    = 14
+  integer(ik4) , parameter :: che_chgact   = 15
+  integer(ik4) , parameter :: che_ncon     = 16
+  integer(ik4) , parameter :: che_massc    = 17
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -1935,8 +1943,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             rad_pp_out => v3dvar_rad(rad_pp)%rval
           end if
+          enable_rad3d_vars(rad_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_rad3d_vars(rad_pai) ) then
+            call setup_var(v3dvar_rad,rad_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            rad_pai_out => v3dvar_rad(rad_pai)%rval
+          end if
+          enable_rad3d_vars(rad_pp) = .false.
         else
           enable_rad3d_vars(rad_pp) = .false.
+          enable_rad3d_vars(rad_pai) = .false.
         end if
         if ( enable_rad3d_vars(rad_cld) ) then
           call setup_var(v3dvar_rad,rad_cld,vsize,'cl','1', &
@@ -2293,8 +2310,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             opt_pp_out => v3dvar_opt(opt_pp)%rval
           end if
+          enable_opt3d_vars(opt_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_opt3d_vars(opt_pai) ) then
+            call setup_var(v3dvar_opt,opt_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            opt_pai_out => v3dvar_opt(opt_pai)%rval
+          end if
+          enable_opt3d_vars(opt_pp) = .false.
         else
           enable_opt3d_vars(opt_pp) = .false.
+          enable_opt3d_vars(opt_pai) = .false.
         end if
         if ( enable_opt3d_vars(opt_aext8) ) then
           call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','(m^-1)', &
@@ -2320,6 +2346,23 @@ module mod_ncout
             'Thickness layer in (m). Normal Order: TOA=1, SRF=18', &
             'thickness_layer',.true.)
           opt_deltaz_out => v3dvar_opt(opt_deltaz)%rval
+        end if
+        if ( carb_aging_control ) then
+          if ( enable_opt3d_vars(opt_ncon) ) then
+            call setup_var(v3dvar_opt,opt_ncon,vsize,'ncon','1', &
+              'Total layer aerosol number concentration', &
+              'atmosphere_layer_number_content_of_aerosol_particles',.true.)
+            opt_ncon_out => v3dvar_opt(opt_ncon)%rval
+          end if
+          if ( enable_opt3d_vars(opt_surf) ) then
+            call setup_var(v3dvar_opt,opt_surf,vsize,'surf','m2/kg', &
+              'Total layer aerosol surface area', &
+              'atmosphere_layer_surface_area_of_aerosol_particles',.true.)
+            opt_surf_out => v3dvar_opt(opt_surf)%rval
+          end if
+        else
+          enable_opt3d_vars(opt_ncon) = .false.
+          enable_opt3d_vars(opt_surf) = .false.
         end if
 
         enable_opt_vars(1:nopt2dvars) = enable_opt2d_vars
@@ -2434,8 +2477,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             che_pp_out => v3dvar_che(che_pp)%rval
           end if
+          enable_che3d_vars(che_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_che3d_vars(che_pai) ) then
+            call setup_var(v3dvar_che,che_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            che_pai_out => v3dvar_che(che_pai)%rval
+          end if
+          enable_che3d_vars(che_pp) = .false.
         else
           enable_che3d_vars(che_pp) = .false.
+          enable_che3d_vars(che_pai) = .false.
         end if
         if ( enable_che3d_vars(che_mixrat) ) then
           call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','1', &
@@ -2513,6 +2565,31 @@ module mod_ncout
         else
           enable_che3d_vars(che_cheten:che_emten) = .false.
         end if
+        if ( carb_aging_control .and. chechgact ) then
+          if ( enable_che3d_vars(che_chgact) ) then
+            call setup_var(v3dvar_che,che_chgact,vsize,'chagct', &
+              's', 'Aging efolding time', &
+              'aging_efolding_time',.true.)
+            che_chgact_out => v3dvar_che(che_chgact)%rval
+          end if
+          if ( enable_che3d_vars(che_ncon) ) then
+            call setup_var(v3dvar_che,che_ncon,vsize,'ncon', '1', &
+              'Total layer aerosol number concentration', &
+              'atmosphere_layer_number_content_of_aerosol_particles',.true.)
+            che_ncon_out => v3dvar_che(che_ncon)%rval
+          end if
+          if ( enable_che3d_vars(che_massc) ) then
+            call setup_var(v3dvar_che,che_massc,vsize,'massc', 'kg m-3', &
+              'Atmosphere tracer mass concentration', &
+              'mass_concentration_of_tracer_in_air',.true.)
+            che_massc_out => v3dvar_che(che_massc)%rval
+          end if
+        else
+          enable_che3d_vars(che_chgact) = .false.
+          enable_che3d_vars(che_ncon) = .false.
+          enable_che3d_vars(che_massc) = .false.
+        end if
+
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
         enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars
 
@@ -2667,13 +2744,15 @@ module mod_ncout
           write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
             '.YYYYMMDDHH'
           outstream(i)%opar%fname = &
-            trim(dirglob)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+            trim(dirglob)//pthsep//trim(prestr)//trim(domname)// &
+            '_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         else
           write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
             '.', trim(tochar10(idate))
           outstream(i)%opar%fname = &
-            trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+            trim(dirout)//pthsep//trim(prestr)//trim(domname)// &
+            '_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         end if
 
@@ -2866,6 +2945,8 @@ module mod_ncout
                   ncattribute_integer('rayleigh_damping',ifrayd))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('maximum_wind_speed',mo_wmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_logical('filter_pai_temdencies',mo_filterpai))
           if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_integer('rayleigh_ndamp',rayndamp))
@@ -3278,6 +3359,8 @@ module mod_ncout
         if ( ichem == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_string('chem_simulation_type',chemsimtype))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_cold_restart',ichecold))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_reaction_solver',ichsolver))
           call outstream_addatt(outstream(i)%ncout(j), &

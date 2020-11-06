@@ -301,7 +301,7 @@ module mod_clm_initimeconst
     real(rk8) :: dfdd , slope0 , slopebeta
 
 #ifdef __PGI
-    real(rk8) , external :: erf
+    !real(rk8) , external :: erf
 #endif
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize time invariant variables'

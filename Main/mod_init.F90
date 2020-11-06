@@ -77,9 +77,8 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg
-    real(rkx) :: zzi , zfilt , zuh , zvh
+    real(rkx) :: zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
-    integer(ik4) :: ntop
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4) , save :: idindx = 0
@@ -114,6 +113,30 @@ module mod_init
             end do
           end do
         end do
+        if ( ipptls > 0 ) then
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                  atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
+              end do
+            end do
+          end if
+          if ( ipptls > 1 ) then
+            if ( is_present_qi( ) ) then
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                    atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                  end do
+                end do
+              end do
+            end if
+          end if
+        end if
         if ( idynamic == 1 ) then
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -172,15 +195,67 @@ module mod_init
             do j = jce1 , jce2
               mo_atm%t(j,i,k) = xtb%b0(j,i,k)
               mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-              mo_atm%qx(j,i,k,iqc) = minqc
             end do
           end do
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psa(j,i) = xpsb%b0(j,i)
-          end do
-        end do
+        if ( ipptls > 1 ) then
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  if ( mo_atm%t(j,i,k) > 253.15 ) then
+                    mo_atm%qx(j,i,k,iqc) = minqc
+                  end if
+                end do
+              end do
+            end do
+          end if
+          if ( is_present_qi( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  if ( mo_atm%t(j,i,k) < 253.15 ) then
+                    mo_atm%qx(j,i,k,iqi) = minqc
+                  end if
+                end do
+              end do
+            end do
+          end if
+        else if ( ipptls == 1 ) then
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = minqc
+                end do
+              end do
+            end do
+          end if
+        end if
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -196,6 +271,11 @@ module mod_init
             do j = jce1 , jce2
               mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            sfs%psa(j,i) = xpsb%b0(j,i)
           end do
         end do
         do k = 1 , kz
@@ -226,30 +306,8 @@ module mod_init
             mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
           end do
         end do
-        do k = 2 , kzm1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              zuh = xub%b0(j,i,k) * mddom%hx(j,i) +     &
-                    xub%b0(j+1,i,k) * mddom%hx(j+1,i) + &
-                    xub%b0(j,i,k+1) * mddom%hx(j,i) +   &
-                    xub%b0(j+1,i,k+1) * mddom%hx(j+1,i)
-              zvh = xvb%b0(j,i,k) * mddom%hy(j,i) +     &
-                    xvb%b0(j,i+1,k) * mddom%hy(j,i+1) + &
-                    xvb%b0(j,i,k+1) * mddom%hy(j,i) +   &
-                    xvb%b0(j,i+1,k+1) * mddom%hy(j,i+1)
-              mo_atm%w(j,i,k) = d_rfour * (zuh+zvh)
-            end do
-          end do
-        end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            zuh = xub%b0(j,i,kz) * mddom%hx(j,i) +     &
-                  xub%b0(j+1,i,kz) * mddom%hx(j+1,i)
-            zvh = xvb%b0(j,i,kz) * mddom%hy(j,i) +     &
-                  xvb%b0(j,i+1,kz) * mddom%hy(j,i+1)
-            mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-          end do
-        end do
+
+        mo_atm%w(:,:,:) = d_zero
 
       end if
 
@@ -328,6 +386,15 @@ module mod_init
       ! End of initial run case
       !
     else
+      if ( ichem == 1 .and. ichecold == 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'Starting tracer run in a previous run with ichem==0'
+        end if
+        if ( ichem == 1 ) then
+          sfracv2d(:,:)  = d_half
+          sfracb2d(:,:)  = d_half
+        end if
+      end if
       !
       ! When restarting, read in the data saved from previous run
       !
@@ -348,7 +415,7 @@ module mod_init
             mo_atm%tke(jce1:jce2,ice1:ice2,:) = &
                      atm_tke_io(jce1:jce2,ice1:ice2,:)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             mo_atm%trac(jce1:jce2,ice1:ice2,:,:) = &
                        trac_io(jce1:jce2,ice1:ice2,:,:)
           end if
@@ -370,7 +437,7 @@ module mod_init
             atm2%tke(jce1:jce2,ice1:ice2,:) = &
                      atm2_tke_io(jce1:jce2,ice1:ice2,:)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             atm1%chi(jce1:jce2,ice1:ice2,:,:) = &
                      chia_io(jce1:jce2,ice1:ice2,:,:)
             atm2%chi(jce1:jce2,ice1:ice2,:,:) = &
@@ -433,7 +500,7 @@ module mod_init
         end if
         lms%sw = sw_io
 #ifdef CLM45
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           tsoi = tsoi_io
           sw_vol = swvol_io
         end if
@@ -489,7 +556,7 @@ module mod_init
           dstor(jde1:jde2,ide1:ide2,:) = dstor_io(jde1:jde2,ide1:ide2,:)
           hstor(jde1:jde2,ide1:ide2,:) = hstor_io(jde1:jde2,ide1:ide2,:)
         end if
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           convpr = convpr_io
           rainout = rainout_io
           washout = washout_io
@@ -821,6 +888,7 @@ module mod_init
             mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+            mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
           end do
         end do
       end do
@@ -860,7 +928,12 @@ module mod_init
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+                  avg_ww(j,i,k) = 0.5_rkx * &
+                    (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
+                end if
+                if ( cuscheme(j,i) == 5 ) then
+                  avg_ww(j,i,k) = -0.5_rkx * egrav * atm1%rho(j,i,k) * &
+                    (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
                 end if
               end do
             end do
@@ -870,7 +943,12 @@ module mod_init
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = 0.5_rkx * mo_atm%w(j,i,k)
+                  avg_ww(j,i,k) = 0.5_rkx * &
+                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
+                end if
+                if ( cuscheme(j,i) == 5 ) then
+                  avg_ww(j,i,k) = -0.5_rkx * egrav * mo_atm%rho(j,i,k) * &
+                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
                 end if
               end do
             end do
@@ -914,10 +992,9 @@ module mod_init
     if ( idynamic == 3 ) then
       if ( mo_nzfilt > 0 ) then
         ! Sponge layer at the top of the atmosphere
-        ntop = int(0.08_rkx * real(kz,rkx))
-        zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
+        zfilt = (kzp1-mo_nzfilt)*mo_dz
         do k = 1 , kz
-          if ( k > ntop+mo_nzfilt-1 ) then
+          if ( k > mo_nzfilt ) then
             ffilt(k) = d_zero
           else
             zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
@@ -927,8 +1004,6 @@ module mod_init
       else
         ffilt(:) = d_zero
       end if
-    else
-      call init_slice
     end if
     call initialize_surface_model
     if ( idynamic /= 3 ) then

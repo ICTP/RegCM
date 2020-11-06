@@ -37,6 +37,7 @@ module mod_ncio
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som
   public :: open_clmbc , clmbc_search , close_clmbc , read_clmbc
+  public :: fixqcqi , we_have_qc , we_have_qi
 
   integer(ik4) :: ibcin , somin , clmbcin
   integer(ik4) :: istatus
@@ -44,9 +45,11 @@ module mod_ncio
   integer(ik4) :: somrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   type(rcm_time_and_date) , dimension(:) , allocatable :: clmbc_idate
-  integer(ik4) , dimension(9) :: icbc_ivar
+  integer(ik4) , dimension(16) :: icbc_ivar
   integer(ik4) , dimension(4) :: clmbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
+  logical :: has_qc = .false.
+  logical :: has_qi = .false.
 
   data ibcin   /-1/
   data clmbcin /-1/
@@ -65,6 +68,21 @@ module mod_ncio
   real(rkx) , dimension(:,:) , pointer :: tempwtop => null()
 
   contains
+
+  subroutine fixqcqi( )
+    implicit none
+    call bcast(has_qc)
+    call bcast(has_qi)
+  end subroutine
+
+  logical function we_have_qc( )
+    implicit none
+    we_have_qc = has_qc
+  end function we_have_qc
+  logical function we_have_qi( )
+    implicit none
+    we_have_qi = has_qi
+  end function we_have_qi
 
   subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,  &
@@ -131,6 +149,10 @@ module mod_ncio
       xlat(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
       xlon(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+      dlat(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+      dlon(jde1:jde2,ide1:ide2) = rspace
       if ( idynamic == 3 ) then
         call read_var2d_static(idmin,'ulat',rspace,istart=istart,icount=icount)
         ulat(jde1:jde2,ide1:ide2) = rspace
@@ -147,10 +169,6 @@ module mod_ncio
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
       else
-        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
-        dlat(jde1:jde2,ide1:ide2) = rspace
-        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
-        dlon(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
@@ -235,6 +253,10 @@ module mod_ncio
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
         if ( idynamic == 3 ) then
           call read_var2d_static(idmin,'ulat',rspace, &
                                  istart=istart,icount=icount)
@@ -258,12 +280,6 @@ module mod_ncio
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
-          call read_var2d_static(idmin,'dlat',rspace, &
-                                 istart=istart,icount=icount)
-          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-          call read_var2d_static(idmin,'dlon',rspace, &
-                                 istart=istart,icount=icount)
-          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
           call read_var2d_static(idmin,'xmap',rspace, &
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
@@ -326,6 +342,8 @@ module mod_ncio
         call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
         if ( idynamic == 3 ) then
           call grid_distribute(rspace,ulat,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,ulon,jde1,jde2,ide1,ide2)
@@ -335,8 +353,6 @@ module mod_ncio
           call grid_distribute(rspace,msfv,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
-          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         end if
@@ -651,6 +667,16 @@ module mod_ncio
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
     end if
+    istatus = nf90_inq_varid(ibcin, 'qc', icbc_ivar(10))
+    if ( istatus == nf90_noerr ) then
+      has_qc = .true.
+    end if
+    istatus = nf90_inq_varid(ibcin, 'qi', icbc_ivar(11))
+    if ( istatus == nf90_noerr ) then
+      if ( ipptls > 1 ) then
+        has_qi = .true.
+      end if
+    end if
     if ( do_parallel_netcdf_in ) then
       allocate(rspace2(jde1:jde2,ide1:ide2))
       allocate(rspace3(jde1:jde2,ide1:ide2,kz))
@@ -806,7 +832,7 @@ module mod_ncio
     clmbcrec = clmbcrec + 1
   end subroutine read_clmbc
 
-  subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,pp,ww)
+  subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
@@ -815,8 +841,10 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qv
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: pp
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: ww
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qi
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pp
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ww
 
     integer(ik4) , dimension(4) :: istart , icount
     integer(ik4) :: i , j , k
@@ -906,6 +934,16 @@ module mod_ncio
         end if
       end if
       qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      if ( has_qc ) then
+        istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
+        qc(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      end if
+      if ( has_qi ) then
+        istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
+        qi(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      end if
       if ( idynamic == 2 ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
@@ -1000,6 +1038,16 @@ module mod_ncio
           end if
         end if
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+        if ( has_qc ) then
+          istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
+          call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
+          call grid_distribute(rspace3,qc,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( has_qi ) then
+          istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
+          call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
+          call grid_distribute(rspace3,qi,jce1,jce2,ice1,ice2,1,kz)
+        end if
         if ( idynamic == 2 ) then
           istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
@@ -1028,6 +1076,12 @@ module mod_ncio
         call grid_distribute(rspace3,v,jde1,jde2,ide1,ide2,1,kz)
         call grid_distribute(rspace3,t,jce1,jce2,ice1,ice2,1,kz)
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+        if ( has_qc ) then
+          call grid_distribute(rspace3,qc,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( has_qi ) then
+          call grid_distribute(rspace3,qi,jce1,jce2,ice1,ice2,1,kz)
+        end if
         if ( idynamic == 2 ) then
           call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
           call grid_distribute(rspace3,tempw,jce1,jce2,ice1,ice2,1,kz)

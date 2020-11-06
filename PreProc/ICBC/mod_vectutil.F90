@@ -39,6 +39,11 @@ module mod_vectutil
     module procedure vcrs2dot_3d
   end interface vcrs2dot
 
+  interface crs2dot
+    module procedure crs2dot_2d
+    module procedure crs2dot_3d
+  end interface crs2dot
+
   contains
 
   subroutine ucrs2dot_3d(pd,px,ni,nj,nk,iband)
@@ -217,7 +222,7 @@ module mod_vectutil
     end if
   end subroutine vcrs2dot_2d
 
-  subroutine crs2dot(pd,px,ni,nj,iband,icrm)
+  subroutine crs2dot_2d(pd,px,ni,nj,iband,icrm)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     integer(ik4) , intent(in) :: iband , icrm
@@ -279,10 +284,81 @@ module mod_vectutil
       pd(ni,1) = px(ni1,1)
       pd(ni,nj) = px(ni1,nj1)
     end if
-  end subroutine crs2dot
-  !
-  !-----------------------------------------------------------------------
-  !
+  end subroutine crs2dot_2d
+
+  subroutine crs2dot_3d(pd,px,ni,nj,nk,iband,icrm)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    integer(ik4) , intent(in) :: iband , icrm
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
+    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+
+    integer(ik4) :: i , j , k , ni1 , nj1 , im1 , jm1
+    !
+    ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+    ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+    ! SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
+    ! I'S.
+    !
+    if ( iband == 1 ) then
+      if ( icrm == 1 ) then
+        do k = 1 , nk
+          do j = 1 , nj
+            do i = 1 , ni
+              im1 = i-1
+              jm1 = j-1
+              if (im1 == 0) im1 = ni
+              if (jm1 == 0) jm1 = nj
+              pd(i,j,k) = d_rfour*(px(i,j,k)+px(im1,j,k) + &
+                                   px(i,jm1,k)+px(im1,jm1,k))
+            end do
+          end do
+        end do
+      else
+        nj1 = nj - 1
+        do k = 1 , nk
+          do j = 2 , nj1
+            do i = 1 , ni
+              im1 = i-1
+              if (im1 == 0) im1 = ni
+              pd(i,j,k) = d_rfour*(px(i,j,k)+px(im1,j,k) + &
+                                   px(i,j-1,k)+px(im1,j-1,k))
+            end do
+          end do
+          do i = 1 , ni
+            im1 = i-1
+            if (im1 == 0) im1 = ni
+            pd(i,1,k) = d_half*(px(i,1,k)+px(im1,1,k))
+            pd(i,nj,k) = d_half*(px(i,nj1,k)+px(im1,nj1,k))
+          end do
+        end do
+      end if
+    else
+      ni1 = ni - 1
+      nj1 = nj - 1
+      do k = 1 , nk
+        do j = 2 , nj1
+          do i = 2 , ni1
+            pd(i,j,k) = d_rfour*(px(i,j,k)+px(i-1,j,k) + &
+                                 px(i,j-1,k)+px(i-1,j-1,k))
+          end do
+        end do
+        do i = 2 , ni1
+          pd(i,1,k) = d_half*(px(i,1,k)+px(i-1,1,k))
+          pd(i,nj,k) = d_half*(px(i,nj1,k)+px(i-1,nj1,k))
+        end do
+        do j = 2 , nj1
+          pd(1,j,k) = d_half*(px(1,j,k)+px(1,j-1,k))
+          pd(ni,j,k) = d_half*(px(ni1,j,k)+px(ni1,j-1,k))
+        end do
+        pd(1,1,k) = px(1,1,k)
+        pd(1,nj,k) = px(1,nj1,k)
+        pd(ni,1,k) = px(ni1,1,k)
+        pd(ni,nj,k) = px(ni1,nj1,k)
+      end do
+    end if
+  end subroutine crs2dot_3d
+
   subroutine dot2crs(px,pd,ni,nj,iband,icrm)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
@@ -330,21 +406,26 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine top2btm(x,nlon1,nlat1,nlev1)
+  subroutine top2btm(x)
     implicit none
-    integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
-    real(rkx) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
-
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: x
+    integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2
     integer(ik4) :: i , j , k , kr
-    real(rkx) , dimension(nlev1) :: work
+    real(rkx) , dimension(size(x,3)) :: work
 
-    do j = 1 , nlat1
-      do i = 1 , nlon1
-        do k = 1 , nlev1
+    i1 = lbound(x,1)
+    i2 = ubound(x,1)
+    j1 = lbound(x,2)
+    j2 = ubound(x,2)
+    k1 = lbound(x,3)
+    k2 = ubound(x,3)
+    do j = j1 , j2
+      do i = i1 , i2
+        do k = k1 , k2
           work(k) = x(i,j,k)
         end do
-        do k = 1 , nlev1
-          kr = nlev1 - k + 1
+        do k = k1 , k2
+          kr = k2 - k + 1
           x(i,j,k) = work(kr)
         end do
       end do
@@ -353,11 +434,10 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine btm2top(x,nlon1,nlat1,nlev1)
+  subroutine btm2top(x)
     implicit none
-    integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
-    real(rkx) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
-    call top2btm(x,nlon1,nlat1,nlev1)
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: x
+    call top2btm(x)
   end subroutine btm2top
   !
   !-----------------------------------------------------------------------

@@ -696,7 +696,10 @@ sensitivity experiments to select the best scheme for your application.
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
  iclimaaer =         0, ! Use AEROSOL climatic dataset from AERGLOB for non
                         ! interactive aerosol load affecting radiative scheme.
-                        ! Requires running chem_icbc
+                        ! 0 => No aereosol considered
+                        ! 1 => Use interpolated mixing ratios from chem ICBC
+                        ! 2 => Use climate MACV2 dataset
+                        ! 3 => Use inline CMIP6 plume model
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
@@ -752,7 +755,7 @@ conditions and the base state vertical profile curve shape.
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
  /
  &nonhydroparam
- ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
+ ifupr = 0,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
                     ! determines the time-weighting, where zero gives a
@@ -765,6 +768,12 @@ conditions and the base state vertical profile curve shape.
  rayndamp = 5,      ! Number of top levels to apply
  rayalpha0 = 0.0003,! Rate alpha0
  rayhd = 10000.0,   ! Damping scale depth
+ mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
+ mo_nadv = 3,       ! Number of advection loops for phisics loop
+ mo_nsound = 6,     ! Number of sound loops for advection loop
+ mo_nzfilt = 3,     ! Number of top levels where W filter is active
+ mo_anu2 = 0.8,     ! Moloch factor for divergence filtering
+ mo_filterpai = .T.,! Filter on Exner function tendencies activated
  /
 \end{Verbatim}
 }

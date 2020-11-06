@@ -76,8 +76,8 @@ module mod_cu_common
         call getmem3d(cu_uten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:uten')
         call getmem3d(cu_vten,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'cumulus:vten')
       else
-        call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:uten')
-        call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vten')
+        call getmem3d(cu_uten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:uten')
+        call getmem3d(cu_vten,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'cumulus:vten')
       end if
     end if
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')

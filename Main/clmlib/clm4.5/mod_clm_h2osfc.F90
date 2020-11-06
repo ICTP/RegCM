@@ -53,7 +53,7 @@ module mod_clm_h2osfc
     real(rk8):: min_h2osfc
 
 #ifdef __PGI
-    real(rk8) , external :: erf
+    !real(rk8) , external :: erf
 #endif
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -71,7 +71,7 @@ module mod_clm_h2osfc
     h2osno              => clm3%g%l%c%cws%h2osno
 
     ! arbitrary lower limit on h2osfc for safer numerics...
-    min_h2osfc = 1.e-8_rk8
+    min_h2osfc = 1.e-6_rk8
 
     do f = 1 , num_h2osfc
       c = filter_h2osfc(f)
