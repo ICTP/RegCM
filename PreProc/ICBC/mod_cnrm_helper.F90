@@ -34,8 +34,8 @@ module mod_cnrm_helper
   character(len=3) , target , dimension(nvars) :: cnrmvars = &
             ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
-  character(len=64) :: cnrmbase1  = '_6hrLev_CNRM-CM5_historical'
-  character(len=64) :: cnrmbase2  = '_6hrLev_CNRM-CM5_rcp'
+  character(len=64) :: cnrmbase1 = '_6hrPlev_CNRM-CM5_historical'
+  character(len=64) :: cnrmbase2 = '_6hrPlev_CNRM-CM5_rcp'
   character(len=64) :: cnrmbase3 = '_r1i1p1_'
 
   contains
@@ -90,15 +90,11 @@ module mod_cnrm_helper
     if ( scen == 'RF' ) then
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase1)//  &
-              trim(cnrmbase3)//trim(d1)//'00-'//trim(d2)//'00.nc'
+              trim(cnrmbase3)//trim(d1)//'-'//trim(d2)//'.nc'
     else if ( scen == 'RCP85' ) then
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase2)//  &
               scen(4:5)//trim(cnrmbase3)//trim(d1)//'-'//trim(d2)//'.nc'
-    else
-      fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
-              pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase2)//  &
-              scen(4:5)//trim(cnrmbase3)//trim(d1)//'00-'//trim(d2)//'00.nc'
     end if
   end subroutine assemble_path
 
@@ -107,7 +103,7 @@ module mod_cnrm_helper
     character(len=256) , intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
-    call assemble_path(dim_filename,'RF','ta','1950010106','1950020100')
+    call assemble_path(dim_filename,'RF','ta','1970010106','1971010100')
   end subroutine find_cnrm_dim
 
   subroutine find_cnrm_topo(topo_filename)
@@ -124,26 +120,16 @@ module mod_cnrm_helper
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: d1 , d2
     integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , y2 , m1 , m2
+    integer(ik4) :: y1 , y2
     call split_idate(idate,y,m,d,h)
     y1 = y
-    y2 = y
-    if ( d == 1 .and. h == 0 ) then
-      m1 = m - 1
-      if ( m1 < 1 ) then
-        m1 = 12
-        y1 = y1 - 1
-      end if
-    else
-      m1 = m
+    y2 = y+1
+    if ( m == 1 .and. d == 1 .and. h == 0 ) then
+      y2 = y1
+      y1 = y1 - 1
     end if
-    m2 = m1+1
-    if ( m2 > 12 ) then
-      m2 = 1
-      y2 = y1+1
-    end if
-    write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 6
-    write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
+    write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 6
+    write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, 1, 1, 0
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(cnrm_filename,'RF',var,d1,d2)
     else

@@ -245,9 +245,15 @@ module mod_gn6hnc
     istatus = nf90_inquire_dimension(inet1,jdim,len=nlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire lat dim')
-    istatus = nf90_inq_dimid(inet1,'lev',jdim)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find lev dim')
+    if ( dattyp(1:3) == 'CN_' ) then
+      istatus = nf90_inq_dimid(inet1,'plev',jdim)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev dim')
+    else
+      istatus = nf90_inq_dimid(inet1,'lev',jdim)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev dim')
+    end if
     istatus = nf90_inquire_dimension(inet1,jdim,len=klev)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire lev dim')
@@ -304,7 +310,8 @@ module mod_gn6hnc
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
+         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' .and. &
+         dattyp(1:3) /= 'CN_' ) then
       call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
       call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
       call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
@@ -719,25 +726,12 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
     else if ( dattyp(1:3) == 'CN_' ) then
-      istatus = nf90_inq_varid(inet1,'a',ivar1)
+      npl = klev ! Data are on pressure levels
+      call getmem1d(pplev,1,klev,'mod_gn6hnc:plev')
+      istatus = nf90_inq_varid(inet1,'plev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find a var')
-      istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read a var')
-      istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find b var')
-      istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read b var')
-      istatus = nf90_inq_varid(inet1,'p0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find p0 var')
-      istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read p0 var')
-      p0 = real(dp0)
+                      'Error find plev var')
+      istatus = nf90_get_var(inet1,ivar1,pplev)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -853,7 +847,8 @@ module mod_gn6hnc
     end if
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
+         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' .and. &
+         dattyp(1:3) /= 'CN_' ) then
       call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
       call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
       up => d2(:,:,1:npl)
@@ -919,7 +914,9 @@ module mod_gn6hnc
       call setcal(itimes(1), noleap)
     end if
 
-    if ( dattyp(1:3) == 'EC_' .or. dattyp == 'JRA55') then
+    if ( dattyp(1:3) == 'EC_' .or. &
+         dattyp(1:3) == 'CN_' .or. &
+         dattyp == 'JRA55' ) then
       do k = 1 , npl
         sigmar(k) = (pplev(k)-pplev(npl))/(pplev(1)-pplev(npl))
       end do
@@ -951,9 +948,10 @@ module mod_gn6hnc
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
 
-    ! JRA55, GFS, EC-EARTH and ECHAM5 grids are already on pressure levels.
+    ! JRA55, GFS, EC-EARTH, CNRM and ECHAM5 grids are already on pressure levels
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
+         dattyp(1:2) /= 'E5' .and. dattyp(1:3) /= 'CN_' .and. &
+         dattyp /= 'JRA55' ) then
 
       ! All processing assumes dataset in top -> bottom
       ! HadGEM is read bottom -> top
@@ -979,9 +977,9 @@ module mod_gn6hnc
       ! All processing assumes dataset in top -> bottom
       ! CanESM and IPSL are read bottom -> top
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
-           dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-           dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
-           dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
+           dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CS_' .or. &
+           dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'NO_' .or. &
+           dattyp(1:3) == 'CC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
         call top2btm(tvar)
@@ -1032,6 +1030,22 @@ module mod_gn6hnc
         call intlin(qp,qvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP END SECTIONS
       end if
+    end if
+
+    if ( dattyp(1:3) == 'CN_' ) then
+!$OMP SECTIONS
+!$OMP SECTION
+      call top2btm(tvar)
+!$OMP SECTION
+      call top2btm(qvar)
+!$OMP SECTION
+      call top2btm(uvar)
+!$OMP SECTION
+      call top2btm(vvar)
+!$OMP SECTION
+      call top2btm(pp3d)
+!$OMP END SECTIONS
+      call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
     end if
 
     if ( dattyp == 'JRA55' ) then
@@ -1997,6 +2011,7 @@ module mod_gn6hnc
               write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
+          !varname => cnrmvars
           varname => cnrmvars
         else if ( dattyp(1:3) == 'CS_' ) then
           ! yearly files, one for each variable
@@ -2167,9 +2182,15 @@ module mod_gn6hnc
         end do
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
-      else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-                dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
-                dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
+      else if ( dattyp(1:3) == 'CN_' ) then
+        ! Go to hPa
+        do k = 1, klev
+          pp3d(:,:,k) = pplev(k)*0.01
+        end do
+        psvar(:,:) = psvar(:,:)*0.01
+      else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CS_' .or. &
+                dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'NO_' .or. &
+                dattyp(1:3) == 'CC_' ) then
         do k = 1, klev
           pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
         end do
