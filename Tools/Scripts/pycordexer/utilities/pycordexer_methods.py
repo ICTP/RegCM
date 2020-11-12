@@ -29,6 +29,23 @@ __credits__ = ["Stefano Piani", "Graziano Giuliani"]
 
 LOGGER = logging.getLogger(__name__)
 
+class fake_var(np.ndarray):
+
+    def __new__(cls, input_array, dimensions=[None,], name='noname'):
+        # Input array is an already formed ndarray instance
+        # We first cast to be our class type
+        obj = np.asarray(input_array).view(cls)
+        # add the new attribute to the created instance
+        obj.dimensions = dimensions
+        obj.name = name
+        # Finally, we must return the newly created object:
+        return obj
+
+    def __array_finalize__(self, obj):
+        # see InfoArray.__array_finalize__ for comments
+        if obj is None: return
+        self.dimensions = getattr(obj, 'dimensions', [None,])
+        self.name = getattr(obj, 'name', 'noname')
 
 class Method(object):
     """A Method is a callable object that performs actions on a variable.
@@ -1912,7 +1929,13 @@ class ComputeGeopotentialHeight(ActionStarter):
             needed_vars = []
             for v in needed_var_names:
                 v_names = get_regcm_variable_names(v)
-                v_pointer = get_var_with_name(v_names, f)
+                if v_names == ['ptop']:
+                    try:
+                        v_pointer = get_var_with_name(v_names, f)
+                    except:
+                        v_pointer = fake_var((100.0,))
+                else:
+                    v_pointer = get_var_with_name(v_names, f)
                 needed_vars.append(v_pointer)
 
             # This is the name of the variable that will be used to copy the
