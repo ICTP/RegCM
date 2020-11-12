@@ -251,7 +251,7 @@ function emissions_interpolate
     $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc aeolian_roughness_lenght.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc
 
     # merge averything
-    $CDO $CDOOPTIONS  merge $REGCM_dir/${DOMNAME}_DUST_TMP1.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUST.nc
+    $CDO $CDOOPTIONS  merge $REGCM_dir/${DOMNAME}_DUST_TMP1.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUSTPARAM.nc
 
 }
 ######################################################################

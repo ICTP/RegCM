@@ -204,11 +204,14 @@ module mod_che_ncio
 !place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
       implicit none
 
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc, aez0
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: aez0
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
+      integer(ik4) , dimension(3) :: istart3 , icount3
       character(len=256) :: dname
       real(rkx) , pointer , dimension(:,:) ::  rspace
+      real(rkx), pointer , dimension(:,:,:) ::  rspace3
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DUSTPARAM.nc'
 
@@ -238,15 +241,24 @@ module mod_che_ncio
           rspace = max(rspace,d_zero)
           call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
 
-          call read_var2d_static(idmin,'z0',rspace, &
-            istart=istart,icount=icount)
-          rspace = max(rspace,d_zero)
-          call grid_distribute(rspace,aez0,jci1,jci2,ici1,ici2)
+          istart3(1) = 1
+          istart3(2) = 1
+          istart3(3) = 1
+          icount3(1) = jx
+          icount3(2) = iy
+          icount3(3) = 12
+          allocate(rspace3(jx,iy,12))
+          call read_var3d_static(idmin,'z0',rspace3, &
+            istart=istart3,icount=icount3)
+          rspace3 = max(rspace3,d_zero)
+          call grid_distribute(rspace3,aez0,jci1,jci2,ici1,ici2,1,12)
+
           call closefile(idmin)
           deallocate(rspace)
+          deallocate(rspace3)
         else
           call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
-          call grid_distribute(rspace,aez0,jci1,jci2,ici1,ici2)
+          call grid_distribute(rspace3,aez0,jci1,jci2,ici1,ici2,1,12)
         end if
       end if
     end subroutine read_dust_param

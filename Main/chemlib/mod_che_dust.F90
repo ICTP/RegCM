@@ -152,7 +152,7 @@ module mod_che_dust
   ! erodibility : source function parameter 
   real(rkx) , pointer , dimension(:,:) :: erodfc
   ! aeolian roughness from satellite obs
-  real(rkx) , pointer , dimension(:,:) :: aez0
+  real(rkx) , pointer , dimension(:,:,:) :: aez0
 
   ! Mineralogy fraction of minerals in clay and silt categories
   real(rkx) , pointer , dimension(:,:,:) :: cminer , sminer
@@ -191,7 +191,7 @@ module mod_che_dust
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
         call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
         call getmem2d(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
-        call getmem2d(aez0,jci1,jci2,ici1,ici2,'che_dust:aez0')
+        call getmem3d(aez0,jci1,jci2,ici1,ici2,1,12,'che_dust:aez0')
         call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
         call getmem1d(soldust,1,nbin,'che_dust:soldust')
         call getmem1d(frac1,1,nbin,'che_dust:frac1')
@@ -311,7 +311,7 @@ module mod_che_dust
          call read_dust_param(erodfc, aez0 )
       else 
          erodfc(jci1:jci2,ici1:ici2) = d_one 
-         aez0(jci1:jci2,ici1:ici2) =1.e-2_rkx ! This is a default value(in cm)for 
+         aez0(jci1:jci2,ici1:ici2,:) =1.e-2_rkx ! This is a default value(in cm)for 
                      ! aeolian roughness lenght 
       end if
 
@@ -554,9 +554,10 @@ module mod_che_dust
     !   * Zakey et al., 2006                                ******
     !   **********************************************************
     !
-    subroutine sfflux(ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
+    subroutine sfflux(lmonth, ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize)
       implicit none
+      integer(ik4), intent(in)  :: lmonth
       integer(ik4) , intent(in) , dimension(jci1:jci2,ici1:ici2) ::  ivegcov
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: roarow
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: soilw
@@ -601,7 +602,7 @@ module mod_che_dust
             xroarow(ieff) = roarow(j,i)
             xustarnd(ieff) = ustarnd(j,i)
             xclayrow(ieff) = clayrow2(j,i)
-            xaez0(ieff) = aez0(j,i)
+            xaez0(ieff) = aez0(j,i,lmonth)
             do n = 1 , nats
               xftex(ieff,n) = dustsotex(j,i,n)
               do  ns = 1 , nsoil

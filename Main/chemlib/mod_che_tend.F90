@@ -333,7 +333,7 @@
       !
       if ( nbin > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
-                call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
+                call sfflux(lmonth,ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
                       crho2d,dustbsiz)
         else
           ! OPTION for using CLM45 dust emission scheme
