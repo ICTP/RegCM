@@ -221,6 +221,8 @@ module mod_moloch
     nsound = mo_nsound
     dz = mo_dz
     nupait = 0.05_rkx
+    wwkw(:,:,kzp1) = d_zero
+    w(:,:,1) = d_zero
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -1102,9 +1104,10 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = min(i+1,icross2)
+                  ih = i+1
                 end if
                 ihm1 = max(ih-1,icross1)
+                ih = min(ih,icross2)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1164,9 +1167,10 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = min(j+1,jcross2)
+                  jh = j+1
                 end if
                 jhm1 = max(jh-1,jcross1)
+                jh = min(jh,jcross2)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b

@@ -91,7 +91,9 @@ module mod_che_dust
 
   integer(ik4) , parameter :: nsoil = 152
   integer(ik4) , parameter :: mode = 5
-  integer(ik4) , parameter :: jsoilm = 1
+  !integer(ik4) , parameter :: jsoilm = 1 ! TEST PLEASE REMOVE
+  integer(ik4) , parameter :: jsoilm = 0
+
   integer(ik4) , parameter :: ust = 1
   integer(ik4) , parameter :: ndi_4 = 4000
   integer(ik4) , parameter :: ndi_12 = 6500
@@ -149,6 +151,9 @@ module mod_che_dust
   !
   ! erodibility : source function parameter 
   real(rkx) , pointer , dimension(:,:) :: erodfc
+  ! aeolian roughness from satellite obs
+  real(rkx) , pointer , dimension(:,:,:) :: aez0
+
   ! Mineralogy fraction of minerals in clay and silt categories
   real(rkx) , pointer , dimension(:,:,:) :: cminer , sminer
 
@@ -186,6 +191,7 @@ module mod_che_dust
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
         call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
         call getmem2d(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
+        call getmem3d(aez0,jci1,jci2,ici1,ici2,1,12,'che_dust:aez0')
         call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
         call getmem1d(soldust,1,nbin,'che_dust:soldust')
         call getmem1d(frac1,1,nbin,'che_dust:frac1')
@@ -302,7 +308,11 @@ module mod_che_dust
       end if
  
       if (ichdustparam == 1) then 
-         call read_dust_param(erodfc)
+         call read_dust_param(erodfc, aez0 )
+      else 
+         erodfc(jci1:jci2,ici1:ici2) = d_one 
+         aez0(jci1:jci2,ici1:ici2,:) =1.e-2_rkx ! This is a default value(in cm)for 
+                     ! aeolian roughness lenght 
       end if
 
       ! read mineral fractions
@@ -544,9 +554,10 @@ module mod_che_dust
     !   * Zakey et al., 2006                                ******
     !   **********************************************************
     !
-    subroutine sfflux(ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
+    subroutine sfflux(lmonth, ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize)
       implicit none
+      integer(ik4), intent(in)  :: lmonth
       integer(ik4) , intent(in) , dimension(jci1:jci2,ici1:ici2) ::  ivegcov
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: roarow
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: soilw
@@ -557,7 +568,7 @@ module mod_che_dust
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: ustarnd
       real(rkx) , intent(in) , dimension(nbin,2) :: trsize
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
-                xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
+                xsurfwd , xvegfrac , xz0 , xaez0,xustarnd , xsnowfrac
       real(rkx) , dimension(ilg,nbin) :: xrsfrow
       real(rkx) , dimension(ilg,nats) :: xftex 
       real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
@@ -575,12 +586,13 @@ module mod_che_dust
       xsrel2d = d_zero
       xustarnd=d_zero
       xrsfrow = d_zero
-     
+      xaez0 = d_zero
 
       ieff = 0
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+!          if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+            if ( vegfrac(j,i) < 0.999_rkx .and. ivegcov(j,i) > 0 ) then
             ieff = ieff + 1
             xvegfrac(ieff) = vegfrac(j,i)
             xsnowfrac(ieff) =  snowfrac(j,i)
@@ -590,6 +602,7 @@ module mod_che_dust
             xroarow(ieff) = roarow(j,i)
             xustarnd(ieff) = ustarnd(j,i)
             xclayrow(ieff) = clayrow2(j,i)
+            xaez0(ieff) = aez0(j,i,lmonth)
             do n = 1 , nats
               xftex(ieff,n) = dustsotex(j,i,n)
               do  ns = 1 , nsoil
@@ -602,7 +615,7 @@ module mod_che_dust
 
       if ( ieff > 0 ) then
         call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsnowfrac,xsurfwd, &
-                         xftex,xclayrow,xroarow,fclay,xz0, &
+                         xftex,xclayrow,xroarow,fclay,xz0,xaez0, &
                          xsrel2d,xustarnd,xrsfrow)
       end if
 
@@ -612,7 +625,8 @@ module mod_che_dust
         ieff = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+           ! if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+             if (vegfrac(j,i) < 0.999_rkx .and. ivegcov(j,i) > 0) then 
               if ( ichdrdepo == 1 ) then
                 if ( idynamic == 3 ) then
                   chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
@@ -676,11 +690,11 @@ module mod_che_dust
     end subroutine sfflux
 
     subroutine dust_module(jl1,jl2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
-                           clayrow,roarow,fclay,z0,srel,ustarnd,rsfrow)
+                           clayrow,roarow,fclay,z0,aez0,srel,ustarnd,rsfrow)
       implicit none
       integer(ik4) :: jl1 , jl2
       real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                   vegfrac , z0 , ustarnd , snowfrac
+                                   vegfrac , z0 , ustarnd , snowfrac,aez0
       real(rkx) , dimension(ilg,nbin) :: rsfrow
       real(rkx) , dimension(ilg,nats) :: ftex 
       real(rkx), dimension(nats)      :: fclay
@@ -715,10 +729,15 @@ module mod_che_dust
         srl(j) = z0(j)*d_100
         rc(j) = d_one
         ! Marticorena et al., 1997: thershold friction velocity correction factor for non
-        ! erodible elements
-          rc(j) = d_one - (log(0.50e-2_rkx/z0s) / &
-                          (log(0.35_rkx*(x/z0s)**0.8_rkx)))
-
+        ! erodible elements. aez0 , aeolian roughness
+        if (aez0(j) <= d_zero) then
+          rc(j) = d_zero
+        elseif (aez0(j) > z0s ) then
+          rc(j) = d_one - (log(aez0(j)/z0s) / &
+                  (log(0.35_rkx*(x/z0s)**0.8_rkx)))
+        else
+          rc(j) = d_one 
+        end if   
         ! threshold velocity correction for soil humidity hc
         ! based on Fécan et al. 1999. Grid level.
         if (jsoilm == 1) then 
@@ -744,7 +763,6 @@ module mod_che_dust
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998
-        ustarfw = (vonkar*100.0_rkx*surfwd(j))/(log(1000.0_rkx/srl(j)))
         ustarns = ustarnd(j)*d_100 !cm.s-1
         utmin = (umin/(d_100*vonkar*rc(j)))*log(d_1000/srl(j))
         if ( surfwd(j) >= utmin ) then
@@ -900,7 +918,7 @@ module mod_che_dust
                                srel(j,ns,nt)* &
                                fclay(nt) * Cd * &
                                k1 * uth ** k2  
-              end if               
+               end if               
             end if
            end do
            end if
