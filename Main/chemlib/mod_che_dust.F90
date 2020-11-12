@@ -568,7 +568,7 @@ module mod_che_dust
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: ustarnd
       real(rkx) , intent(in) , dimension(nbin,2) :: trsize
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
-                xsurfwd , xvegfrac , xz0 , xaez0,xustarnd , xsnowfrac
+                xsurfwd , xvegfrac , xz0 , xaez0 , xustarnd , xsnowfrac
       real(rkx) , dimension(ilg,nbin) :: xrsfrow
       real(rkx) , dimension(ilg,nats) :: xftex
       real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
@@ -694,7 +694,7 @@ module mod_che_dust
       implicit none
       integer(ik4) :: jl1 , jl2
       real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
-                                   vegfrac , z0 , ustarnd , snowfrac,aez0
+                            vegfrac , z0 , ustarnd , snowfrac , aez0
       real(rkx) , dimension(ilg,nbin) :: rsfrow
       real(rkx) , dimension(ilg,nats) :: ftex
       real(rkx), dimension(nats)      :: fclay
@@ -728,11 +728,11 @@ module mod_che_dust
       do j = jl1 , jl2
         srl(j) = z0(j)*d_100
         rc(j) = d_one
-        ! Marticorena et al., 1997: thershold friction velocity correction factor for non
-        ! erodible elements. aez0 , aeolian roughness
-        if (aez0(j) <= d_zero) then
+        ! Marticorena et al., 1997: thershold friction velocity correction
+        ! factor for non erodible elements. aez0 , aeolian roughness
+        if ( aez0(j) <= d_zero ) then
           rc(j) = d_zero
-        elseif (aez0(j) > z0s ) then
+        else if ( aez0(j) > z0s ) then
           rc(j) = d_one - (log(aez0(j)/z0s) / &
                   (log(0.35_rkx*(x/z0s)**0.8_rkx)))
         else
@@ -828,27 +828,27 @@ module mod_che_dust
       fsoil(:,:) = d_zero
       if ( ichdustemd == 1 ) then
 
-      p1 = d_zero
-      p2 = d_zero
-      p3 = d_zero
+        p1 = d_zero
+        p2 = d_zero
+        p3 = d_zero
 
-      fsoil1(:,:) = d_zero
-      fsoil2(:,:) = d_zero
-      fsoil3(:,:) = d_zero
+        fsoil1(:,:) = d_zero
+        fsoil2(:,:) = d_zero
+        fsoil3(:,:) = d_zero
 
-      do nt = 1 , nats
-        do j = jl1 , jl2
-          if ( ftex(j,nt) < 1.e-10_rkx ) cycle
-          do ns = 1 , nsoil
-            if ( rc(j) > d_zero .and. ustar(j) > d_zero ) then
-              uth = utheff(j,ns)/(rc(j)*ustar(j))
-              if ( uth <= d_one ) then
-                fdp1 = ustar(j)**3*(d_one-uth*uth)
-                fdp2 = (d_one+uth)*rdstemfac*(1.0e-5_rkx)*roarow(j)*regrav
-                if ( fdp2 <= d_zero ) fdp2 = d_zero
-                ! FAB: with subgrid soil texture, the aggregation of vertical
-                ! fluxes per texture type at the grid cell level is done in
-                ! fine.
+        do nt = 1 , nats
+          do j = jl1 , jl2
+            if ( ftex(j,nt) < 1.e-10_rkx ) cycle
+            do ns = 1 , nsoil
+              if ( rc(j) > d_zero .and. ustar(j) > d_zero ) then
+                uth = utheff(j,ns)/(rc(j)*ustar(j))
+                if ( uth <= d_one ) then
+                  fdp1 = ustar(j)**3*(d_one-uth*uth)
+                  fdp2 = (d_one+uth)*rdstemfac*(1.0e-5_rkx)*roarow(j)*regrav
+                  if ( fdp2 <= d_zero ) fdp2 = d_zero
+                  ! FAB: with subgrid soil texture, the aggregation of vertical
+                  ! fluxes per texture type at the grid cell level is done in
+                  ! fine.
 
                   fsoil(j,nt) = srel(j,ns,nt)*fdp1*fdp2
                   ! size-distributed kinetic energy flux(per texture type)
@@ -856,7 +856,7 @@ module mod_che_dust
                   ! individual kinetic energy for an aggregate of size dp (
                   ! g cm2 s-2) cf alfaro (dp) is in cm
                   ec = (mathpi/12.0_rkx)*rhodust*1.0e-3_rkx * &
-                    (dp_array(ns)**3)*(20.0_rkx*ustar(j))**2
+                      (dp_array(ns)**3)*(20.0_rkx*ustar(j))**2
                   if ( ec > e1 ) then
                     p1 = (ec-e1)/(ec-e3)
                     p2 = (d_one-p1)*(ec-e2)/(ec-e3)
@@ -875,53 +875,53 @@ module mod_che_dust
                     p3 = d_zero
                   end if
                   fsoil1(j,nt) = fsoil1(j,nt) + 1.0e-2_rkx*p1*(dec/e1)* &
-                            (mathpi/6.0_rkx)*rhodust*((d1*1.0e-4_rkx)**3)
+                              (mathpi/6.0_rkx)*rhodust*((d1*1.0e-4_rkx)**3)
                   fsoil2(j,nt) = fsoil2(j,nt) + 1.0e-2_rkx*p2*(dec/e2)* &
-                            (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
+                              (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
                   fsoil3(j,nt) = fsoil3(j,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
-                            (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
+                              (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
 
 
+                end if
               end if
-            end if
+            end do
           end do
         end do
-      end do
-     end if
+      end if
 
-     if ( ichdustemd == 2 ) then
-      ! Kok et al., ACP, 2014 parameterisation
-      ! NB : the integration on soil aggregate size distribution is made explicitely
-      ! using MB95. This differs from clm5 approach
-      do nt = 1 , nats
-        do j = jl1 , jl2
-          if ( ftex(j,nt) < 1.e-10_rkx ) cycle
-          if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
-          do ns = 1 , nsoil
+      if ( ichdustemd == 2 ) then
+        ! Kok et al., ACP, 2014 parameterisation
+        ! NB : the integration on soil aggregate size distribution is
+        ! made explicitely using MB95. This differs from clm5 approach
+        do nt = 1 , nats
+          do j = jl1 , jl2
+            if ( ftex(j,nt) < 1.e-10_rkx ) cycle
             if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
-              utheffc = utheff(j,ns)/ rc(j)
-              uth =  utheffc / ustar(j)
-              usst =  utheffc * (roarow(j)/roa0)**0.5
-              usst = usst / 100._rkx  ! usst in m.s-1
-              utheffc = utheffc / 100._rkx ! utheffc in m.s-1
-              ustark = ustar(j) / 100._rkx !
-              if ( uth <= d_one ) then
-                 k1 = calph * (usst - usst0) / usst0
-                 k2 = roarow(j) * (ustark**2 - utheffc**2)/ usst
-                 ! Cd is equivalent to erodibilty
-                 ! maybe output it in the future
-                 Cd = Cd0 * exp(-Ce * (usst - usst0)/ usst0)
-                 !
-                 ! finally integrate over nsoil
-                 ! note the clay fraction is used
-                 fsoil(j,nt) = fsoil(j,nt) +  &
-                               srel(j,ns,nt)* &
-                               fclay(nt) * Cd * &
-                               k1 * uth ** k2
-               end if
+              do ns = 1 , nsoil
+                if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
+                  utheffc = utheff(j,ns)/ rc(j)
+                  uth =  utheffc / ustar(j)
+                  usst =  utheffc * (roarow(j)/roa0)**0.5
+                  usst = usst / 100._rkx  ! usst in m.s-1
+                  utheffc = utheffc / 100._rkx ! utheffc in m.s-1
+                  ustark = ustar(j) / 100._rkx !
+                  if ( uth <= d_one ) then
+                    k1 = calph * (usst - usst0) / usst0
+                    k2 = roarow(j) * (ustark**2 - utheffc**2)/ usst
+                    ! Cd is equivalent to erodibilty
+                    ! maybe output it in the future
+                    Cd = Cd0 * exp(-Ce * (usst - usst0)/ usst0)
+                    !
+                    ! finally integrate over nsoil
+                    ! note the clay fraction is used
+                    fsoil(j,nt) = fsoil(j,nt) +  &
+                                  srel(j,ns,nt)* &
+                                  fclay(nt) * Cd * &
+                                  k1 * uth ** k2
+                  end if
+                end if
+              end do
             end if
-           end do
-           end if
           end do
         end do
 
