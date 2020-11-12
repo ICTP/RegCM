@@ -211,7 +211,7 @@ module mod_che_ncio
       integer(ik4) , dimension(3) :: istart3 , icount3
       character(len=256) :: dname
       real(rkx) , pointer , dimension(:,:) ::  rspace
-      real(rkx), pointer , dimension(:,:,:) ::  rspace3
+      real(rkx), pointer , dimension(:,:,:) :: rspace3
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DUSTPARAM.nc'
 

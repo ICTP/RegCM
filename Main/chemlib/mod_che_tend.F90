@@ -187,7 +187,7 @@
           vegfrac(j,i) = d_one - csfracb2d(j,i)
           ! csfracb2d points on clm dust emitting ground fraction
           ! it already accouts for snow and lake mask , and is calculated
-          ! as 1 - LAI/0.3 ( cf clm doc ). 
+          ! as 1 - LAI/0.3 ( cf clm doc ).
 #else
           vegfrac(j,i) = cvegfrac(j,i)
           snowfrac(j,i) = csfracs2d(j,i)
@@ -333,8 +333,8 @@
       !
       if ( nbin > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
-                call sfflux(lmonth,ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
-                      crho2d,dustbsiz)
+                call sfflux(lmonth,ivegcov,vegfrac,snowfrac,ustar,zeff, &
+                            soilw,wid10,crho2d,dustbsiz)
         else
           ! OPTION for using CLM45 dust emission scheme
           ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
