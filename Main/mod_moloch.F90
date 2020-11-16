@@ -872,10 +872,10 @@ module mod_moloch
                 end do
               end do
             end do
+            zcy = zdtrdy
             do k = 1 , kz
               do i = idi1 , idi2
                 do j = jci1 , jci2
-                  zcy = zdtrdy
                   zfz = 0.25_rkx * &
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
