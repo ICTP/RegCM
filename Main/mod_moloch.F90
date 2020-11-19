@@ -73,7 +73,7 @@ module mod_moloch
   real(rkx) , dimension(:) , pointer :: gzitak
   real(rkx) , dimension(:) , pointer :: gzitakh
   real(rkx) , dimension(:,:) , pointer :: p2d
-  real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriol
+  real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
   real(rkx) , dimension(:,:) , pointer :: mv , hy
   real(rkx) , dimension(:,:) , pointer :: ps , ht
@@ -131,6 +131,8 @@ module mod_moloch
     call getmem2d(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
     call getmem2d(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
     call getmem2d(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
+    call getmem2d(coru,jde1,jde2,ice1,ice2,'moloch:coru')
+    call getmem2d(corv,jce1,jce2,ide1,ide2,'moloch:corv')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -143,8 +145,8 @@ module mod_moloch
         call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
-    call getmem3d(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
-    call getmem3d(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
+    call getmem3d(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
+    call getmem3d(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
     if ( ifrayd == 1 ) then
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
@@ -173,7 +175,6 @@ module mod_moloch
     call assignpnt(mddom%hy,hy)
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(mddom%xlon,xlon)
-    call assignpnt(mddom%coriol,coriol)
     call assignpnt(mddom%ht,ht)
     call assignpnt(sfs%psa,ps)
     call assignpnt(mo_atm%fmz,fmz)
@@ -212,6 +213,8 @@ module mod_moloch
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
     end if
+    coru = eomeg2*sin(mddom%ulat(jde1:jde2,ice1:ice2)*degrad)
+    corv = eomeg2*sin(mddom%vlat(jce1:jce2,ide1:ide2)*degrad)
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
@@ -665,13 +668,13 @@ module mod_moloch
 
         do jsound = 1 , nsound
 
-          ud(jde1:jde2,ice1:ice2,1:kz) = u(jde1:jde2,ice1:ice2,1:kz)
-          vd(jce1:jce2,ide1:ide2,1:kz) = v(jce1:jce2,ide1:ide2,1:kz)
-
           ! partial definition of the generalized vertical velocity
 
-          call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
+          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+          ud(:,:,1:kz) = u(jde1ga:jde2ga,ice1ga:ice2ga,1:kz)
+          vd(:,:,1:kz) = v(jce1ga:jce2ga,ide1ga:ide2ga,1:kz)
 
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -864,7 +867,8 @@ module mod_moloch
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coriol(j,i) * vd(j,i,k) * dts
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j+1,i,k) + vd(j,i-1,k) + vd(j+1,i-1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -880,7 +884,8 @@ module mod_moloch
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = coriol(j,i) * ud(j,i,k) * dts
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j+1,i,k) + ud(j,i-1,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -899,7 +904,8 @@ module mod_moloch
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coriol(j,i) * vd(j,i,k) * dts
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j+1,i,k) + vd(j,i-1,k) + vd(j+1,i-1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -915,7 +921,8 @@ module mod_moloch
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = coriol(j,i) * ud(j,i,k) * dts
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j+1,i,k) + ud(j,i-1,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
