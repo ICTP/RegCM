@@ -2798,14 +2798,14 @@ module mod_params
         end do
         if ( iproj == 'ROTLLR' ) then
           do i = idi1 , idi2
-            do j = jci1 , jci2
+            do j = jce1 , jce2
               mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
                                rdx * regrav
             end do
           end do
         else
           do i = idi1 , idi2
-            do j = jci1 , jci2
+            do j = jce1 , jce2
               mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
                                mddom%msfv(j,i) * rdx * regrav
             end do

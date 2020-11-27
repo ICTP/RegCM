@@ -707,7 +707,6 @@ module mod_moloch
           ! Equation 16
 
           if ( iproj == 'ROTLLR' ) then
-
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
@@ -723,18 +722,7 @@ module mod_moloch
                 end do
               end do
             end do
-            call filt3d
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
-                         zdtrdz * (s(j,i,k) - s(j,i,k+1))
-                end do
-              end do
-            end do
-
           else
-
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
@@ -750,17 +738,16 @@ module mod_moloch
                 end do
               end do
             end do
-            call filt3d
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
-                         zdtrdz * (s(j,i,k) - s(j,i,k+1))
-                end do
+          end if
+          call filt3d
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
+                       zdtrdz * (s(j,i,k) - s(j,i,k+1))
               end do
             end do
-
-          end if
+          end do
 
           ! new w (implicit scheme) from Equation 19
 
