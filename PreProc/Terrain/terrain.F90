@@ -625,7 +625,7 @@ program terrain
   end do
   deallocate(tmptex)
 
-  where ( htgrid < 0.0_rkx )
+  where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx .and. htgrid < 0.0_rkx )
     htgrid = 0.0_rkx
   end where
   where ( lndout > 13.5_rkx .and. lndout < 15.5_rkx )
@@ -661,7 +661,9 @@ program terrain
   end do
 
   if ( .not. h2ohgt ) then
-    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
+    where ( lndout > 14.5_rkx .and. &
+            lndout < 15.5_rkx .and. &
+            htgrid > 0.0_rkx )
       htgrid = 0.0_rkx
     end where
   end if
@@ -717,7 +719,9 @@ program terrain
   write(stdout,*) 'Fudging data (if requested) succeeded'
 
   if ( nsg > 1 ) then
-    where ( htgrid_s < 0.0_rkx )
+    where ( lndout_s > 14.5_rkx .and. &
+            lndout_s < 15.5_rkx .and. &
+            htgrid_s < 0.0_rkx )
       htgrid_s = 0.0_rkx
     end where
     where ( lndout_s > 13.5_rkx .and. lndout_s < 15.5_rkx )
@@ -743,7 +747,9 @@ program terrain
     end do
 
     if ( .not. h2ohgt ) then
-      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
+      where ( lndout_s > 14.5_rkx .and. &
+              lndout_s < 15.5_rkx .and. &
+              htgrid_s > 0.0_rkx)
         htgrid_s = 0.0_rkx
       end where
     end if

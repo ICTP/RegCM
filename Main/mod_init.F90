@@ -307,8 +307,20 @@ module mod_init
           end do
         end do
 
-        mo_atm%w(:,:,:) = d_zero
-
+        call exchange_lr(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_bt(mo_atm%v,1,jce1,jce2,ide1,ide2,1,kz)
+        mo_atm%w(:,:,1) = d_zero
+        mo_atm%w(:,:,kzp1) = d_zero
+        do k = 2 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%w(j,i,k) = mo_atm%w(j,i,k-1) + &
+                 (mo_atm%zetaf(j,i,k-1)-mo_atm%zetaf(j,i,k)) * rdx * &
+                 ((mo_atm%u(j+1,i,k)-mo_atm%u(j,i,k)) + &
+                  (mo_atm%v(j,i+1,k)-mo_atm%v(j,i,k)))
+            end do
+          end do
+        end do
       end if
 
       do i = ici1 , ici2

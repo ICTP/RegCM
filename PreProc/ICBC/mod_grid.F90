@@ -129,6 +129,10 @@ module mod_grid
                        mask=mask,lndcat=landuse,msfx=msfx,msfd=msfd)
       call read_reference_surface_temp(incin,ts0)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
+      do k = 1 , kz
+        sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
+        dsigma(k) = (sigmaf(k+1)-sigmaf(k))
+      end do
     else if ( idynamic == 3 ) then
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
@@ -141,16 +145,18 @@ module mod_grid
             z0(j,i,k) = md_zeta_h(zita,topogm(j,i))
           end do
         end do
+        sigmah(k) = 1.0_rkx - zita/hzita
+        dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
                        mask=mask,lndcat=landuse)
+      do k = 1 , kz
+        sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
+        dsigma(k) = (sigmaf(k+1)-sigmaf(k))
+      end do
     end if
     call closefile(incin)
-    do k = 1 , kz
-      sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
-      dsigma(k) = (sigmaf(k+1)-sigmaf(k))
-    end do
     if ( idynamic == 2 ) then
       call nhbase(1,iy,1,jx,kz,sigmah,topogm,ps0,pr0,t0,rho0,z0)
     end if
