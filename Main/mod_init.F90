@@ -395,6 +395,10 @@ module mod_init
         end do
       end do
       !
+      ! Some output fields rely on atms structure.
+      !
+      call mkslice
+      !
       ! End of initial run case
       !
     else
