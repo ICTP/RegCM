@@ -103,7 +103,7 @@ module mod_mkurban
     character(len=*) , intent(in) :: urbanfile
     real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: urban
-    integer(ik4) :: i , j , n , nurban
+    integer(ik4) :: i , j , n , nurban , nmax(1)
     type(globalfile) :: gfile
     character(len=256) :: inpfile
     real(rkx) , dimension(:,:) , allocatable :: usum
@@ -139,6 +139,9 @@ module mod_mkurban
           if ( mask(j,i) > 0.5_rkx ) then
             if ( usum(j,i) < vcutoff ) then
               urban(j,i,n) = d_zero
+            else if ( usum(j,i) > 100.0_rkx ) then
+              nmax = maxloc(urban(j,i,:))
+              urban(j,i,nmax(1)) = urban(j,i,nmax(1))-(usum(j,i)-100.0_rkx)
             end if
           end if
         end do
