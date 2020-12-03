@@ -48,6 +48,7 @@ PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ_NEW
 RRTMSWLIBPTH = radlib/RRTMG_SW
 PLUMELIBPTH = $(REGCM_ROOT)/external
+BMILIBPTH = $(REGCM_ROOT)/external
 
 MPPLIB = $(MPPLIBPTH)/libmpp.a
 CLMLIB = $(CLMLIBPTH)/libclm.a
@@ -63,6 +64,7 @@ PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
 RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
 PLUMELIB = $(PLUMELIBPTH)/libaerosol.a
+BMILIB = $(BMILIBPTH)/libbmi.a
 
 LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
@@ -81,6 +83,7 @@ LPBLLIB = -L$(PBLLIBPTH) -lpbl
 LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
 LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 LPLUMELIB = -L$(PLUMELIBPTH) -laerosol
+LBMILIB = -L$(BMILIBPTH) -lbmi
 
 if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
@@ -97,7 +100,7 @@ endif
 LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
        $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
        $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB) \
-       $(LPLUMELIB)
+       $(LPLUMELIB) $(LBMILIB)
 
 if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = regcm clmsa
@@ -116,7 +119,7 @@ regcm_SOURCES = mod_regcm_interface.F90 mod_atm_interface.F90 \
   mod_init.F90 mod_vmodes.F90 mod_split.F90 mod_output.F90 \
   mod_tendency.F90 mod_params.F90 mod_slabocean.F90 mod_sldepparam.F90 \
   mod_sladvection.F90 mod_oasis.F90 abort.F90 mod_sound.F90 \
-  mod_timefilter.F90 mod_massck.F90 mod_moloch.F90 regcm.F90 
+  mod_timefilter.F90 mod_massck.F90 mod_moloch.F90 mod_bmiregcm.F90 regcm.F90 
 
 FCLD = $(MPIFC)
 
@@ -199,7 +202,7 @@ endif
 regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
 	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
-         $(RRTMSWLIB) $(PLUMELIB)
+         $(RRTMSWLIB) $(PLUMELIB) $(BMILIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o mod_stdatm.o

@@ -7,14 +7,15 @@ vpath %.c $(REGCM_ROOT)/external/mpi-serial
 vpath %.h $(REGCM_ROOT)/external/mpi-serial
 
 if REGCM_PARALLEL
-noinst_LIBRARIES = libaerosol.a
+noinst_LIBRARIES = libaerosol.a libbmi.a
 else
-noinst_LIBRARIES = libmpiser.a libaerosol.a
+noinst_LIBRARIES = libmpiser.a libaerosol.a libbmi.a
 endif
 libmpiser_a_SOURCES = mpi.c send.c recv.c collective.c req.c list.c \
                       handles.c comm.c group.c time.c pack.c fort.F90 \
                       mpistub.F90
 libaerosol_a_SOURCES = mo_simple_plumes.f90
+libbmi_a_SOURCES = bmi.f90
 
 MPIFH= mpif.$(FORT_SIZE).h
 

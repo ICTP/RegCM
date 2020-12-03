@@ -50,8 +50,14 @@ module mod_regcm_interface
   public :: RCM_initialize
   public :: RCM_run
   public :: RCM_finalize
+  public :: atm_model
 
   real(rk8) :: extime
+
+  type atm_model
+    character(len=5) :: model_name = 'RegCM'
+    character(len=31) :: model_longname = 'The ICTP Regional Climate Model'
+  end type atm_model
 
   data extime /0.0_rk8/
   contains
