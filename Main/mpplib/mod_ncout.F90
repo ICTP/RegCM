@@ -549,7 +549,7 @@ module mod_ncout
       nstream = nstream+1
       che_stream = nstream
     end if
-    if ( ifopt .and. ichem == 1 .and. iaerosol == 1 ) then
+    if ( ifopt .and. ((ichem == 1 .and. iaerosol == 1) .or. iclimaaer > 0) ) then
       nstream = nstream+1
       opt_stream = nstream
     end if
@@ -2220,7 +2220,6 @@ module mod_ncout
       end if
 
       if ( nstream == opt_stream ) then
-
         allocate(v2dvar_opt(nopt2dvars))
         allocate(v3dvar_opt(nopt3dvars))
         enable_opt2d_vars = enable_opt_vars(1:nopt2dvars)
@@ -2395,7 +2394,6 @@ module mod_ncout
         outstream(opt_stream)%jg2 = jout2
         outstream(opt_stream)%ig1 = iout1
         outstream(opt_stream)%ig2 = iout2
-
       end if
 
       if ( nstream == che_stream ) then

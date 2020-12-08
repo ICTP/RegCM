@@ -91,7 +91,7 @@ module mod_params
 
     namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
       iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
-      srffrq , subfrq , lakfrq , radfrq , chemfrq , dirout , uvrotate ,   &
+      srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout , uvrotate ,   &
       enable_atm_vars , enable_srf_vars , enable_rad_vars ,               &
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
@@ -222,6 +222,7 @@ module mod_params
     lakfrq  = 6.0_rkx ! time interval for disposing lake output (hrs)
     subfrq  = 6.0_rkx ! time interval for disposing lake output (hrs)
     chemfrq = 6.0_rkx ! time interval for disposing chem output (hrs)
+    optfrq =  6.0_rkx ! time interval for disposing opt output (hrs)
     enable_atm_vars(:) = .true.
     enable_srf_vars(:) = .true.
     enable_sts_vars(:) = .true.
@@ -925,11 +926,11 @@ module mod_params
       end if
 
       if ( ichem == 1 ) then
-        if ( iclimaaer == 1 ) then
-          write(stderr,*) 'Cannot define both ichem and iclimaaer'
-          call fatal(__FILE__,__LINE__, &
-                     'INPUT NAMELIST INCONSISTENT AEROSOLS')
-        end if
+        !if ( iclimaaer == 1 ) then
+        !  write(stderr,*) 'Cannot define both ichem and iclimaaer'
+        !  call fatal(__FILE__,__LINE__, &
+        !             'INPUT NAMELIST INCONSISTENT AEROSOLS')
+        !end if
         rewind(ipunit)
         read (ipunit, chemparam, iostat=iretval, err=118)
         if ( iretval /= 0 ) then
@@ -1098,6 +1099,7 @@ module mod_params
     call bcast(lakfrq)
     call bcast(subfrq)
     call bcast(chemfrq)
+    call bcast(optfrq)
     call bcast(enable_atm_vars)
     call bcast(enable_rad_vars)
     call bcast(enable_srf_vars)
@@ -1162,6 +1164,7 @@ module mod_params
     call bcast(iemiss)
     call bcast(lakemod)
     call bcast(ichem)
+    call bcast(iclimaaer)
 
     if ( idynamic == 3 ) then
       if ( isladvec == 1 ) then
@@ -1230,10 +1233,12 @@ module mod_params
     if ( nsg < 2 ) then
       ifsub = .false.
     end if
+
     if ( ichem /= 1 ) then
       ifchem = .false.
-      ifopt = .false.
+      if (iclimaaer == 0) ifopt = .false.
     end if
+    
     !
     ! Force the correct scenario from dattyp in CMIP5
     !
@@ -1284,7 +1289,6 @@ module mod_params
     call bcast(icldmstrat)
     call bcast(irrtm)
     call bcast(iclimao3)
-    call bcast(iclimaaer)
     call bcast(isolconst)
     call bcast(ifixsolar)
     call bcast(fixedsolarval)
@@ -1669,9 +1673,9 @@ module mod_params
     end if
     if ( ichem == 1 ) then
       alarm_out_che => rcm_alarm(rcmtimer,secph*chemfrq)
-      alarm_out_opt => alarm_out_che
     end if
-    if ( nsg > 1 ) then
+      alarm_out_opt => rcm_alarm(rcmtimer,secph*optfrq)
+      if ( nsg > 1 ) then
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
@@ -1702,11 +1706,9 @@ module mod_params
     rnsrf_for_day = syncro_srf/alarm_day
     rnrad_for_radfrq = syncro_rad/alarm_out_rad
     rnrad_for_srffrq = syncro_rad/alarm_out_srf
-    if ( ichem == 1 ) then
-      rnrad_for_chem = syncro_rad/alarm_out_che
-      if ( irrtm == 1 ) then
-        rnrad_for_chem = syncro_radfor/alarm_out_che
-      end if
+    rnrad_for_optfrq = syncro_rad/alarm_out_opt
+    if ( irrtm == 1 ) then
+        rnrad_for_optfrq = syncro_radfor/alarm_out_opt
     end if
     rsrffrq_sec = d_one/(srffrq*secph)
 
@@ -1889,7 +1891,7 @@ module mod_params
         write(stdout,'(a,f6.1)') &
           ' Frequency in hours to create CHE : ' , chemfrq
         write(stdout,'(a,f6.1)') &
-          ' Frequency in hours to create OPT : ' , chemfrq
+          ' Frequency in hours to create OPT : ' , optfrq
       end if
 
       write(stdout,*) 'Physical Parameterizations'

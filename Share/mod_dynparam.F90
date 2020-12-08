@@ -411,7 +411,7 @@ module mod_dynparam
   real(rkx) :: subfrq
   real(rkx) :: srffrq
   real(rkx) :: chemfrq
-
+  real(rkx) :: optfrq
   integer(ik4) :: ibdyfrq
 
   logical :: ensemble_run

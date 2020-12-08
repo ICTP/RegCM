@@ -1,4 +1,4 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !    This file is part of ICTP RegCM.
 !
@@ -72,7 +72,7 @@ module mod_output
 
   subroutine output
     implicit none
-    logical :: ldoatm , ldosrf , ldorad , ldoche
+    logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -147,6 +147,7 @@ module mod_output
     ldolak = .false.
     ldosub = .false.
     ldorad = .false.
+    ldoopt = .false.
     ldoche = .false.
     ldosav = .false.
     ldoslab = .false.
@@ -208,6 +209,9 @@ module mod_output
         if ( alarm_out_che%act( ) ) then
           ldoche = .true.
         end if
+      end if
+      if ( alarm_out_opt%act( ) ) then
+        ldoopt = .true.
       end if
       if ( rcmtimer%reached_endtime ) then
         ldoslab = .true.
@@ -1290,12 +1294,12 @@ module mod_output
     end if
 
     if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
-      if ( ldoche ) then
+      if ( ldoopt ) then
         if ( lfirstopt ) then
-          optfac = d_one/((d_one/rnrad_for_chem)+d_one)
+          optfac = d_one/((d_one/rnrad_for_optfrq)+d_one)
           lfirstopt = .false.
         else
-          optfac = rnrad_for_chem
+          optfac = rnrad_for_optfrq
         end if
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
@@ -1337,7 +1341,7 @@ module mod_output
         if ( associated(opt_aassrlrf_out) ) &
           opt_aassrlrf_out = opt_aassrlrf_out * optfac
 
-        call write_record_output_stream(opt_stream,alarm_out_che%idate)
+        call write_record_output_stream(opt_stream,alarm_out_opt%idate)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ' , rcmtimer%str( )
         if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
