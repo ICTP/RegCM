@@ -1781,7 +1781,7 @@ module mod_rad_radiation
 
     ! FAB calculation of TOA aerosol radiative forcing
     ! convert from cgs to MKS
-    if ( linteract .or. iclimaaer == 1 ) then
+    if ( linteract .or. iclimaaer > 0 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000
@@ -1994,7 +1994,7 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if ( (linteract .and. irad == 2) .or. iclimaaer == 1 ) then
+      if ( (linteract .and. irad == 2) .or. iclimaaer > 0 ) then
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -3319,7 +3319,7 @@ module mod_rad_radiation
         pinpl(n,4) = (p2+pint(n,k2+1))*d_half
 
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( linteract .or. iclimaaer == 1 ) then
+        if ( linteract .or. iclimaaer > 0 ) then
           do kn = 1 , 4
             xuinpl(n,k2,kn) = uinpl(n,kn)
           end do

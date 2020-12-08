@@ -1921,6 +1921,7 @@ module mod_rad_aerosol
       ! Rq extprof has been scaled for layer height before
       ! ( represents here the layer AOD )
       ! Directly force aerosol properties passed to radiation driver and exit
+
       if ( iclimaaer == 2 ) then
         if ( irrtm == 1 ) then
           visband = 9

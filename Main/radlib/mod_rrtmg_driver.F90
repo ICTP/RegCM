@@ -183,7 +183,7 @@ module mod_rrtmg_driver
     call getmem1d(totcl,1,npr,'rrtmg:totlf')
     call getmem1d(totci,1,npr,'rrtmg:totif')
 
-    if ( ichem == 1 .or. iclimaaer == 1 ) then
+    if ( ichem == 1 .or. iclimaaer > 0 ) then
       call getmem2d(pint,1,npr,1,kzp1,'rrtmg:pint')
       call getmem2d(rh,1,npr,1,kzp1,'rrtmg:rh')
     end if
@@ -812,7 +812,7 @@ module mod_rrtmg_driver
         end do
       end do
     end if
-    if ( ichem == 1 .or. iclimaaer == 1 ) then
+    if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
         n = 1
         do i = ici1 , ici2
