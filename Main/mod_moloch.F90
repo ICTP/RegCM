@@ -855,7 +855,7 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j+1,i,k) + vd(j,i-1,k) + vd(j+1,i-1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -872,7 +872,7 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j+1,i,k) + ud(j,i-1,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -892,7 +892,7 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j+1,i,k) + vd(j,i-1,k) + vd(j+1,i-1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -909,7 +909,7 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j+1,i,k) + ud(j,i-1,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
