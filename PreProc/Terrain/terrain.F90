@@ -175,13 +175,12 @@ program terrain
     call init_sigma(kz,dsmax,dsmin)
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
-    dz = hzita / real(kz,rkx)
+    dz = model_dz(kz)
     zita(kzp1) = 0.0_rkx
     do k = kz , 1 , -1
       zita(k) = zita(k+1) + dz
     end do
     sigma = 1.0_rkx - zita/hzita
-    sigma(1) = mo_b0*sigma(2)
     ak = -hzita * bzita(zita) * log(sigma)
     bk = gzita(zita)
   else

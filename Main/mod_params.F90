@@ -1174,7 +1174,7 @@ module mod_params
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
       ! Moloch paramters here
-      mo_dz = hzita / real(kz,rkx)
+      mo_dz = model_dz(kz)
       call bcast(mo_anu2)
       call bcast(mo_wmax)
       call bcast(mo_nzfilt)
@@ -2029,8 +2029,7 @@ module mod_params
         zita(k) = zita(k+1) + mo_dz
         zitah(k) = zita(k) - mo_dz*d_half
       end do
-      sigma(2:kzp1) = d_one - zita(2:kzp1)/hzita
-      sigma(1) = mo_b0 * sigma(2)
+      sigma = d_one - zita/hzita
       hsigma = d_one - zitah/hzita
       fak = -hzita * bzita(zita) * log(sigma)
       fbk = gzita(zita)

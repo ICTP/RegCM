@@ -121,7 +121,7 @@ module mod_clm_params
     gas_tweak_factors(:) = 1.0_rkx
 
     if ( idynamic == 3 ) then
-      mo_dz = hzita / real(kz,rkx)
+      mo_dz = model_dz(kz)
     end if
 
 #ifdef CLM

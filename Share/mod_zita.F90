@@ -36,11 +36,18 @@ module mod_zita
     module procedure zh4d
   end interface zita_interp
 
+  public :: model_dz
   public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , hzita
   public :: bzita , gzita
   public :: zita_interp
 
   contains
+
+  pure real(rkx) function model_dz(kz)
+    implicit none
+    integer(ik4) , intent(in) :: kz
+    model_dz = (hzita*0.95_rkx)/real(kz,rkx)
+  end function model_dz
 
   ! Decay function
   pure real(rkx) elemental function gzita(zita)
