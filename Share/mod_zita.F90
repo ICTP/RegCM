@@ -46,7 +46,7 @@ module mod_zita
   pure real(rkx) function model_dz(kz)
     implicit none
     integer(ik4) , intent(in) :: kz
-    model_dz = (hzita*0.95_rkx)/real(kz,rkx)
+    model_dz = (hzita*0.90_rkx)/real(kz,rkx)
   end function model_dz
 
   ! Decay function

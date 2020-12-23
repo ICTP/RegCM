@@ -915,9 +915,9 @@ program terrain
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'
-    do k = kz, 1, -1
-      sigf = 1.0_rkx - (((kz-k) * dz + 0.5_rkx * dz)/hzita)
-      zsig = 0.5*sum(zeta(:,:,k+1)+zeta(:,:,k))/real(jx*iy,rkx) + zsurf
+    do k = kzp1, 1, -1
+      sigf = 1.0_rkx - (((kzp1-k) * dz)/hzita)
+      zsig = sum(zeta(:,:,k))/real(jx*iy,rkx) + zsurf
       if ( zsig > 20000.0_rkx ) then
         tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
       else if ( zsig > 10000.0_rkx ) then
