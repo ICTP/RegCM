@@ -22,13 +22,13 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use mod_dynparam , only : mo_a0 , mo_b0
+  use mod_dynparam , only : mo_a0 , mo_b0 , mo_mfac
 
   implicit none
 
   private
 
-  real(rkx) , parameter :: t0 = 280.0_rkx
+  real(rkx) , parameter :: t0 = stdt
   real(rkx) , parameter :: hzita = rgas*t0*regrav
 
   interface zita_interp
@@ -46,7 +46,7 @@ module mod_zita
   pure real(rkx) function model_dz(kz)
     implicit none
     integer(ik4) , intent(in) :: kz
-    model_dz = (hzita*0.90_rkx)/real(kz,rkx)
+    model_dz = (hzita*mo_mfac)/real(kz,rkx)
   end function model_dz
 
   ! Decay function
