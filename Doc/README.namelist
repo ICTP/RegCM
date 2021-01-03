@@ -373,8 +373,9 @@
 ! MOLOCH control parameters
 ! 
  &molochparam
- mo_a0 = 0.0, ! Vertical stretching in model level equations
- mo_b0 = 0.5, ! Vertical stretching in model level equations
+ mo_a0 = 0.0,   ! Vertical stretching in model level equations
+ mo_b0 = 0.5,   ! Vertical stretching in model level equations
+ mo_mfac = 0.9, ! Atmosphere top lid
  /
 !
 ! Buffer Zone Control relaxation + diffusion term
