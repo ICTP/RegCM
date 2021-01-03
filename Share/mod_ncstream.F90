@@ -3393,6 +3393,9 @@ module mod_ncstream
         attr%aname = 'zita_factor_b0'
         attr%theval = mo_b0
         call add_attribute(stream,attr)
+        attr%aname = 'zita_mass_factor'
+        attr%theval = mo_mfac
+        call add_attribute(stream,attr)
       end if
     end subroutine add_common_global_params
 

@@ -175,13 +175,12 @@ program terrain
     call init_sigma(kz,dsmax,dsmin)
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
-    dz = hzita / real(kz,rkx)
+    dz = model_dz(kz)
     zita(kzp1) = 0.0_rkx
     do k = kz , 1 , -1
       zita(k) = zita(k+1) + dz
     end do
     sigma = 1.0_rkx - zita/hzita
-    sigma(1) = mo_b0*sigma(2)
     ak = -hzita * bzita(zita) * log(sigma)
     bk = gzita(zita)
   else
@@ -916,9 +915,9 @@ program terrain
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'
-    do k = kz, 1, -1
-      sigf = 1.0_rkx - (((kz-k) * dz + 0.5_rkx * dz)/hzita)
-      zsig = 0.5*sum(zeta(:,:,k+1)+zeta(:,:,k))/real(jx*iy,rkx) + zsurf
+    do k = kzp1, 1, -1
+      sigf = 1.0_rkx - (((kzp1-k) * dz)/hzita)
+      zsig = sum(zeta(:,:,k))/real(jx*iy,rkx) + zsurf
       if ( zsig > 20000.0_rkx ) then
         tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
       else if ( zsig > 10000.0_rkx ) then

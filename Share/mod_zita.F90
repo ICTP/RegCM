@@ -22,13 +22,13 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use mod_dynparam , only : mo_a0 , mo_b0
+  use mod_dynparam , only : mo_a0 , mo_b0 , mo_mfac
 
   implicit none
 
   private
 
-  real(rkx) , parameter :: t0 = 280.0_rkx
+  real(rkx) , parameter :: t0 = stdt
   real(rkx) , parameter :: hzita = rgas*t0*regrav
 
   interface zita_interp
@@ -36,11 +36,18 @@ module mod_zita
     module procedure zh4d
   end interface zita_interp
 
+  public :: model_dz
   public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , hzita
   public :: bzita , gzita
   public :: zita_interp
 
   contains
+
+  pure real(rkx) function model_dz(kz)
+    implicit none
+    integer(ik4) , intent(in) :: kz
+    model_dz = (hzita*mo_mfac)/real(kz,rkx)
+  end function model_dz
 
   ! Decay function
   pure real(rkx) elemental function gzita(zita)

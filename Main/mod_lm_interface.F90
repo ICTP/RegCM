@@ -336,7 +336,7 @@ module mod_lm_interface
 #endif
     call assignpnt(atms%rhox2d,lm%rhox)
     call assignpnt(atms%ps2d,lm%sfps)
-    call assignpnt(atms%tp3d,lm%sfta,kz)
+    call assignpnt(atms%tp2d,lm%sfta)
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)
     call assignpnt(sfs%uvdrag,lm%uvdrag)

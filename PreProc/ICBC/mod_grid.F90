@@ -137,7 +137,7 @@ module mod_grid
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse)
-      dz = hzita/real(kz,rkx)
+      dz = model_dz(kz)
       do k = 1 , kz
         zita = (kz - k) * dz + dz*0.5_rkx
         do i = 1 , iy

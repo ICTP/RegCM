@@ -307,7 +307,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: th3d
     real(rkx) , pointer , dimension(:,:) :: th700
     real(rkx) , pointer , dimension(:,:,:) :: tb3d
-    real(rkx) , pointer , dimension(:,:,:) :: tp3d
     real(rkx) , pointer , dimension(:,:,:) :: tv3d
     real(rkx) , pointer , dimension(:,:,:) :: pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pf3d
@@ -326,6 +325,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: za
     real(rkx) , pointer , dimension(:,:,:) :: dzq
     real(rkx) , pointer , dimension(:,:) :: rhox2d
+    real(rkx) , pointer , dimension(:,:) :: tp2d
     real(rkx) , pointer , dimension(:,:) :: ps2d
     real(rkx) , pointer , dimension(:,:,:,:) :: chib3d
     real(rkx) , pointer , dimension(:,:,:) :: tkepbl
@@ -689,7 +689,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
     real(rkx) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
     real(rkx) , pointer , dimension(:,:,:) :: thatm     ! atms%th3d
-    real(rkx) , pointer , dimension(:,:,:) :: tpatm     ! atms%tp3d
+    real(rkx) , pointer , dimension(:,:) :: tpatm       ! atms%tp2d
     real(rkx) , pointer , dimension(:,:,:) :: za        ! atms%za
     real(rkx) , pointer , dimension(:,:,:) :: zq        ! atms%zq
     real(rkx) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
