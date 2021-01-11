@@ -358,9 +358,9 @@
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 6,     ! Number of sound loops for advection loop
- mo_nzfilt = 3,     ! Number of top levels where W filter is active
- mo_anu2 = 0.8,     ! Moloch factor for divergence filtering
- mo_filterpai = .T.,! Filter on Exner function tendencies activated
+ mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
+ mo_nzfilt = 0,     ! Number of top levels where W filter is active
+ mo_filterpai = .F.,! Filter on Exner function tendencies activated
  /
 !
 ! Hydrostatic core option
@@ -373,9 +373,9 @@
 ! MOLOCH control parameters
 ! 
  &molochparam
- mo_a0 = 0.0,   ! Vertical stretching in model level equations
- mo_b0 = 0.5,   ! Vertical stretching in model level equations
- mo_mfac = 0.9, ! Atmosphere top lid
+ mo_a0 = 0.0,       ! Vertical stretching in model level equations
+ mo_b0 = 0.33,      ! Vertical stretching in model level equations
+ mo_ztop = 20000.0, ! Atmosphere top lid in meters
  /
 !
 ! Buffer Zone Control relaxation + diffusion term

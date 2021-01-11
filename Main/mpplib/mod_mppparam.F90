@@ -1453,7 +1453,7 @@ module mod_mppparam
     if ( idynamic == 3 ) then
       call bcast(mo_a0)
       call bcast(mo_b0)
-      call bcast(mo_mfac)
+      call bcast(mo_ztop)
     end if
 
     ! Setup all convenience dimensions

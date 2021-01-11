@@ -1012,9 +1012,9 @@ module mod_ncstream
         stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
         call outstream_writevar(ncout,stvar%ptop_var)
       else
-        zita = hzita * (d_one - sigma)
-        buffer%doublebuff(1:size(sigma)) = real( -hzita * &
-                  (bzita(zita) * log(max(sigma,tiny(d_one)))),rk8)
+        zita = mo_ztop * (d_one - sigma)
+        buffer%doublebuff(1:size(sigma)) = &
+                 real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk8)
         call outstream_writevar(ncout,stvar%ak_var,nocopy)
         buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
         call outstream_writevar(ncout,stvar%bk_var,nocopy)
@@ -3393,8 +3393,8 @@ module mod_ncstream
         attr%aname = 'zita_factor_b0'
         attr%theval = mo_b0
         call add_attribute(stream,attr)
-        attr%aname = 'zita_mass_factor'
-        attr%theval = mo_mfac
+        attr%aname = 'zita_height_top'
+        attr%theval = mo_ztop
         call add_attribute(stream,attr)
       end if
     end subroutine add_common_global_params

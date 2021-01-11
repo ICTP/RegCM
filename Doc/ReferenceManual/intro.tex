@@ -326,40 +326,34 @@ solid lines denote half-sigma levels.}
 \end{figure}
 
 The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
-$\zeta$ (Figure~\ref{moloch_levels}) which transform the semi-infinite z
-interval $[h, \infty)$ into the finite interval $[0,H]$ and is defined as:
-
-\begin{equation}
-\zeta = H \left( 1 - e^{-\frac{z - G(\zeta)h(x,y)}{B(\zeta) H}} \right)
-\end{equation}
-
-where $h(x,y)$ is the local topography and $G(\zeta)$ and $B(\zeta)$ have the
-following analythical formulation:
+$\zeta$ (Figure~\ref{moloch_levels}) which transform the $Z$
+interval $[h, Z_{top}]$ into the finite interval $[0,H]$:
 
 \begin{eqnarray}
-G(\zeta) &=& 1 - a_0 \frac{\zeta}{H} -
-       (3 - 2 a_0)\left( \frac{\zeta}{H} \right)^2 +
-       (2 - a_0) \left( \frac{\zeta}{H} \right)^3 \\
-B(\zeta) &=& b_0 + (1-b_0) \frac{\zeta}{H}
+  Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
+  Z &=& h(x,y) G(\zeta) + Z_f e^{\frac{\zeta}{H}-1}
 \end{eqnarray}
 
-where $H$ is the scale height of the atmosphere defined as function of
-reference climatological surface temperature $T_0$ as:
+where $h(x,y)$ is the local topography, $G(\zeta)$ have the
+following analythical formulation:
 
 \begin{equation}
-H = R_d T_0 / g
+G(\zeta) = 1 - a_0 \frac{\zeta}{H} -
+       (3 - 2 a_0)\left( \frac{\zeta}{H} \right)^2 +
+       (2 - a_0) \left( \frac{\zeta}{H} \right)^3
 \end{equation}
 
-and the $a_0$ and $b_0$ are configurable constant parameters with:
+and $H$ is proportional to the scale height of the atmosphere defined as
+function of reference climatological surface temperature $T_0$ as:
+
+\begin{equation}
+H = b_0 * R_d T_0 / g
+\end{equation}
+
+with $a_0$ and $b_0$ as configurable constant parameters with:
 
 \begin{equation}
 0 \le a_0 \le 1 \quad , \quad 0 \le b_0 \le 1
-\end{equation}
-
-The inverse transformation is thus:
-
-\begin{equation}
-  z = h(x,y) G(\zeta) - H B(\zeta) \log\left(1-\frac{\zeta}{H}\right)
 \end{equation}
 
 \section{Map Projections and Map-Scale Factors}

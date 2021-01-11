@@ -76,7 +76,7 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: ruvper = 0.3_rkx
 
   ! Maximum allowed cloud thickness for shallow cloud (Pa)
-  real(rkx) , parameter :: rdepths = 2.0e4_rkx
+  real(rkx) , parameter :: rdepths = 4.0e4_rkx
 
   ! Fractional massflux for downdrafts at lfs
   real(rkx) , parameter :: rmfdeps = 0.3_rkx

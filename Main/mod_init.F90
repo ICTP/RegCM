@@ -1014,7 +1014,7 @@ module mod_init
           if ( k > mo_nzfilt ) then
             ffilt(k) = d_zero
           else
-            zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
+            zzi = (mo_dz*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
             ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
           end if
         end do

@@ -154,8 +154,8 @@ program clm2rcm
     hptop = real(ptop*10.0_rkx)
     call write_vertical_coord(ncid,sigx,hptop,izvar)
   else
-    zita = d_one - sigx*hzita
-    ax = -hzita*(bzita(zita)*log(max(sigx,tiny(1.0))))
+    zita = d_one - sigx*mo_ztop
+    ax = real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk4)
     bx = gzita(zita)
     call write_vertical_coord_zita(ncid,sigx,ax,bx,izvar)
   end if

@@ -145,7 +145,7 @@ module mod_grid
             z0(j,i,k) = md_zeta_h(zita,topogm(j,i))
           end do
         end do
-        sigmah(k) = 1.0_rkx - zita/hzita
+        sigmah(k) = 1.0_rkx - zita/mo_ztop
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
     else

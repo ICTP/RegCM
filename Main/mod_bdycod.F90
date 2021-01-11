@@ -221,7 +221,7 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         ! The dxsq is simplified in below when dividing by dxsq
-        gnudge = d_one/(dt*50.0_rkx)
+        gnudge = 0.02_rkx/dt
         if ( idynamic == 3 ) then
           gnudge = gnudge * mo_nadv * mo_nsound
         end if

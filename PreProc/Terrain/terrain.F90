@@ -105,7 +105,7 @@ program terrain
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
   real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , sigf
-  real(rkx) :: ts0
+  real(rkx) :: ts0 , ptrop
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
   character(len=*) , parameter :: f99002 = '(a,a,a,a)'
@@ -177,11 +177,12 @@ program terrain
   else if ( idynamic == 3 ) then
     dz = model_dz(kz)
     zita(kzp1) = 0.0_rkx
-    do k = kz , 1 , -1
+    zita(1) = mo_ztop
+    do k = kz , 2 , -1
       zita(k) = zita(k+1) + dz
     end do
-    sigma = 1.0_rkx - zita/hzita
-    ak = -hzita * bzita(zita) * log(sigma)
+    sigma = 1.0_rkx - zita/mo_ztop
+    ak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
     bk = gzita(zita)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
@@ -818,24 +819,14 @@ program terrain
 
     if ( idynamic == 3 ) then
       ! Here we compute zeta on full model levels.
-      do k = 2 , kzp1
+      do k = 1 , kzp1
         do i = 1 , iysg
           do j = 1 , jxsg
-            zeta_s(j,i,k) = ak(k) + (bk(k) - d_one) * htgrid_s(j,i)
-          end do
-        end do
-      end do
-      ! Should be infinite, put it conventional for plot
-      zeta_s(:,:,1) = 1.5_rkx * zeta_s(:,:,2)
-      do k = 2 , kzp1
-        do i = 1 , iysg
-          do j = 1 , jxsg
+            zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i))
             fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i))
           end do
         end do
       end do
-      ! Filling.
-      fmz_s(:,:,1) = 0.0_rkx
     end if
 
     write (outname,'(a,i0.3,a)') &
@@ -888,48 +879,39 @@ program terrain
         sum(z0(:,:,k))/real(jx*iy,rkx), sum(t0(:,:,k))/real(jx*iy,rkx)
     end do
   else if ( idynamic == 3 ) then
-    ! Here we compute zeta on full model levels.
-    do k = 2 , kzp1
-      do i = 1 , iysg
-        do j = 1 , jxsg
-          zeta(j,i,k) = ak(k) + (bk(k) - d_one) * htgrid(j,i)
-        end do
-      end do
-    end do
-    ! Should be infinite, put it conventional for plot
-    zeta(:,:,1) = 1.5_rkx * zeta(:,:,2)
-    do k = 2 , kzp1
+    do k = 1 , kzp1
       do i = 1 , iy
         do j = 1 , jx
+          zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i))
           fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i))
         end do
       end do
     end do
-    ! Filling.
-    fmz(:,:,1) = 0.0_rkx
-    !zsurf = sum(htgrid)/real(jx*iy,rkx)
-    zsurf = 0.0_rkx
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
     write (stdout,*) ''
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'
+    ptrop = 17.0e3_rkx - 6.0e3_rkx*cos(sum(xlat)/real(jx*iy,rkx)*degrad)**2
     do k = kzp1, 1, -1
-      sigf = 1.0_rkx - (((kzp1-k) * dz)/hzita)
-      zsig = sum(zeta(:,:,k))/real(jx*iy,rkx) + zsurf
-      if ( zsig > 20000.0_rkx ) then
-        tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
-      else if ( zsig > 10000.0_rkx ) then
-        tsig = tzero - 56.5_rkx
+      sigf = 1.0_rkx - (((kzp1-k) * dz)/mo_ztop)
+      zsig = sum(zeta(:,:,k))/real(jx*iy,rkx)
+      if ( zsig > ptrop ) then
+        if ( zsig > ptrop + 1000.0_rkx ) then
+          tsig = (tzero - 56.5_rkx) + 0.00045_rkx * (zsig-ptrop+1000.0_rkx)
+        else
+          tsig = tzero - 56.5_rkx
+        end if
       else
         tsig = stdt - lrate * zsig
       end if
-      psig = stdp*exp(-zsig/hzita)
+      psig = stdp*(d_one - &
+          0.0065/stdt*zsig)**((egrav*0.0289644)/(8.31432*0.0065))
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigf, &
         psig * d_r100 , zsig , tsig
     end do
-    ptop = max(int(psig * d_r100),5) ! Approximation of top pressure. hPa
+    ptop = psig * d_r100 ! Approximation of top pressure. hPa
   end if
 
   write (outname,'(a,i0.3,a)') &

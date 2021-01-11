@@ -892,7 +892,6 @@ module mod_atm_stub
     real(rkx) :: p , tv , zz1 , zz2 , zlr
     integer(ik4) :: i , j
     ! Hydrostatic initialization of pai
-    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = zeta(j,i)

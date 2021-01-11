@@ -113,6 +113,10 @@ program mksurfdata
   character(len=4) :: cy
   character(len=32) :: p1 , p2
 #endif
+#ifdef LUCASPFT
+  integer(ik4) :: y1 , y2 , mon , day , hour
+  character(len=32) :: p1 , p2
+#endif
 
   integer(ik4) :: ngcells
 
@@ -271,7 +275,18 @@ program mksurfdata
     end if
     pftfile = trim(p1)//pthsep//trim(p2)//pthsep//'mksrf_landuse_'//cy//'.nc'
 #else
+#ifdef LUCAS_PFT
+    call split_idate(globidate1,y1,mon,day,hour)
+    if ( y1 < 2015 ) then
+      pftfile = 'alternative'//pthsep// &
+        'LUCAS_LUC_v09_ESACCI_LUH2_historical_1950_2015.nc'
+    else
+      pftfile = 'alternative'//pthsep// &
+        'LUCAS_LUC_v09_ESACCI_LUH2_rcp26_2015_2100.nc'
+    end if
+#else
     pftfile = 'mksrf_pft.nc'
+#endif
 #endif
     laifile = 'mksrf_lai.nc'
 #endif
@@ -815,9 +830,9 @@ program mksurfdata
     hptop = real(ptop*10.0_rkx)
     call write_vertical_coord(ncid,rsigx,hptop,izvar)
   else
-    zita = d_one - sigx*hzita
-    ax = real(-hzita*(bzita(zita)*log(max(sigx,tiny(d_one)))),rk4)
-    bx = real(gzita(zita),rk4)
+    zita = d_one - sigx*mo_ztop
+    ax = real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk4)
+    bx = gzita(zita)
     call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
   end if
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
