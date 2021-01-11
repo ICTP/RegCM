@@ -49,12 +49,12 @@ module mod_zita
     model_dz = mo_ztop/real(kz,rkx)
   end function model_dz
 
-  pure real(rkx) function md_hzita
+  pure real(rkx) function md_hzita( )
     implicit none
     md_hzita = hzita * (1.0_rkx - mo_b0)
   end function md_hzita
 
-  pure real(rkx) function md_zfz
+  pure real(rkx) function md_zfz( )
     implicit none
     md_zfz = mo_ztop/(exp(mo_ztop/md_hzita())-1.0_rkx)
   end function md_zfz
