@@ -327,7 +327,7 @@ solid lines denote half-sigma levels.}
 
 The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
 $\zeta$ (Figure~\ref{moloch_levels}) which transform the $Z$
-interval $[h, Z_{top}]$ into the finite interval $[0,H]$:
+interval $[h, Z_{top}]$ into the regularly spaced interval $[0,Z_{top}]$:
 
 \begin{eqnarray}
   Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
@@ -338,16 +338,16 @@ where $h(x,y)$ is the local topography, $G(\zeta)$ have the
 following analythical formulation:
 
 \begin{equation}
-G(\zeta) = 1 - a_0 \frac{\zeta}{H} -
-       (3 - 2 a_0)\left( \frac{\zeta}{H} \right)^2 +
-       (2 - a_0) \left( \frac{\zeta}{H} \right)^3
+G(\zeta) = 1 - a_0 \frac{\zeta}{Z_{top}} -
+       (3 - 2 a_0)\left( \frac{\zeta}{Z_{top}} \right)^2 +
+       (2 - a_0) \left( \frac{\zeta}{Z_{top}} \right)^3
 \end{equation}
 
 and $H$ is proportional to the scale height of the atmosphere defined as
 function of reference climatological surface temperature $T_0$ as:
 
 \begin{equation}
-H = b_0 * R_d T_0 / g
+H = (1 - b_0) * R_d T_0 / g
 \end{equation}
 
 with $a_0$ and $b_0$ as configurable constant parameters with:
