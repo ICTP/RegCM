@@ -1755,34 +1755,34 @@ module mod_moloch
     if ( lrotllr ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          do j = jdii1 , jdii2
+          do j = jdi1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j,i,k))
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
       do k = 1 , kz
-        do i = idii1 , idii2
+        do i = idi1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i,k))
+                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
     else
       do k = 1 , kz
         do i = ici1 , ici2
-          do j = jdii1 , jdii2
+          do j = jdi1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j,i,k))
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
       do k = 1 , kz
-        do i = idii1 , idii2
+        do i = idi1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i,k))
+                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
