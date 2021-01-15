@@ -1964,7 +1964,131 @@ module mod_bdycod
         end if
       end if
     end if
-    !
+
+    if ( present_qc ) then
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
+            end do
+          end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
+            end do
+          end do
+        end if
+      end if
+    end if
+
+    if ( present_qi ) then
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
+            end do
+          end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
+            end do
+          end do
+        end if
+      end if
+    end if
+
     ! set boundary values for p*qx
     ! *** note ***
     ! for large domain, we assume the boundary tendencies are not available.
@@ -1973,325 +2097,359 @@ module mod_bdycod
     ! determine boundary values depends on inflow/outflow:
     ! inflow  : set it equal to zero.
     ! outflow : get from interior point.
-    !
     ! west boundary:
-    !
-    if ( .not. present_qc ) then
-      if ( idynamic == 3 ) then
-        if ( bdyflow ) then
-          if ( ma%has_bdyleft ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ici1 , ici2
-                  qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
-                  windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
-                  if ( windavg >= d_zero ) then
-                    mo_atm%qx(jce1,i,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce1,i,k,n) = qxint
-                  end if
-                end do
+    if ( idynamic == 3 ) then
+      if ( bdyflow ) then
+        if ( ma%has_bdyleft ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ici1 , ici2
+                qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,i,k,n) = d_zero
+                else
+                  mo_atm%qx(jce1,i,k,n) = qxint
+                end if
               end do
             end do
-            if ( ma%has_bdybottom ) then
-              do n = iqfrst , iqlst
-                do k = 1 , kz
-                  qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
-                  windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
-                             mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
-                  if ( windavg >= d_zero ) then
-                    mo_atm%qx(jce1,ice1,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce1,ice1,k,n) = qxint
-                  end if
-                end do
-              end do
-            end if
-            if ( ma%has_bdytop ) then
-              do n = iqfrst , iqlst
-                do k = 1 , kz
-                  qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
-                  windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
-                             mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
-                  if ( windavg >= d_zero ) then
-                    mo_atm%qx(jce1,ice2,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce1,ice2,k,n) = qxint
-                  end if
-                end do
-              end do
-            end if
-          end if
-          !
-          ! east boundary:
-          !
-          if ( ma%has_bdyright ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ici1 , ici2
-                  qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
-                  windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
-                  if ( windavg <= d_zero ) then
-                    mo_atm%qx(jce2,i,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce2,i,k,n) = qxint
-                  end if
-                end do
-              end do
-            end do
-            if ( ma%has_bdybottom ) then
-              do n = iqfrst , iqlst
-                do k = 1 , kz
-                  qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
-                  windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
-                             mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
-                  if ( windavg <= d_zero ) then
-                    mo_atm%qx(jce2,ice1,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce2,ice1,k,n) = qxint
-                  end if
-                end do
-              end do
-            end if
-            if ( ma%has_bdytop ) then
-              do n = iqfrst , iqlst
-                do k = 1 , kz
-                  qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
-                  qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
-                  windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
-                             mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
-                  if ( windavg <= d_zero ) then
-                    mo_atm%qx(jce2,ice2,k,n) = d_zero
-                  else
-                    mo_atm%qx(jce2,ice2,k,n) = qxint
-                  end if
-                end do
-              end do
-            end if
-          end if
-          !
-          ! south boundary:
-          !
+          end do
           if ( ma%has_bdybottom ) then
             do n = iqfrst , iqlst
+              if ( present_qc .and. n == iqc ) cycle
+              if ( present_qi .and. n == iqi ) cycle
               do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
-                  qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
-                  windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
-                  if ( windavg >= d_zero ) then
-                    mo_atm%qx(j,ice1,k,n) = d_zero
-                  else
-                    mo_atm%qx(j,ice1,k,n) = qxint
-                  end if
-                end do
+                qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
+                           mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,ice1,k,n) = d_zero
+                else
+                  mo_atm%qx(jce1,ice1,k,n) = qxint
+                end if
               end do
             end do
           end if
-          !
-          ! north boundary:
-          !
           if ( ma%has_bdytop ) then
             do n = iqfrst , iqlst
+              if ( present_qc .and. n == iqc ) cycle
+              if ( present_qi .and. n == iqi ) cycle
               do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
-                  qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
-                  windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
-                  if ( windavg <= d_zero ) then
-                    mo_atm%qx(j,ice2,k,n) = d_zero
-                  else
-                    mo_atm%qx(j,ice2,k,n) = qxint
-                  end if
-                end do
-              end do
-            end do
-          end if
-        else
-          if ( ma%has_bdyleft ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = mo_atm%qx(jci1,i,k,n)
-                  qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
-                  mo_atm%qx(jce1,i,k,n) = qxint*qrat
-                end do
-              end do
-            end do
-          end if
-          !
-          ! east boundary:
-          !
-          if ( ma%has_bdyright ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = mo_atm%qx(jci2,i,k,n)
-                  qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
-                  mo_atm%qx(jce2,i,k,n) = qxint*qrat
-                end do
-              end do
-            end do
-          end if
-          !
-          ! south boundary:
-          !
-          if ( ma%has_bdybottom ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = mo_atm%qx(j,ici1,k,n)
-                  qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
-                  mo_atm%qx(j,ice1,k,n) = qxint*qrat
-                end do
-              end do
-            end do
-          end if
-          !
-          ! north boundary:
-          !
-          if ( ma%has_bdytop ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = mo_atm%qx(j,ici2,k,n)
-                  qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
-                  mo_atm%qx(j,ice2,k,n) = qxint*qrat
-                end do
+                qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
+                           mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,ice2,k,n) = d_zero
+                else
+                  mo_atm%qx(jce1,ice2,k,n) = qxint
+                end if
               end do
             end do
           end if
         end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ici1 , ici2
+                qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,i,k,n) = d_zero
+                else
+                  mo_atm%qx(jce2,i,k,n) = qxint
+                end if
+              end do
+            end do
+          end do
+          if ( ma%has_bdybottom ) then
+            do n = iqfrst , iqlst
+              if ( present_qc .and. n == iqc ) cycle
+              if ( present_qi .and. n == iqi ) cycle
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
+                           mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,ice1,k,n) = d_zero
+                else
+                  mo_atm%qx(jce2,ice1,k,n) = qxint
+                end if
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do n = iqfrst , iqlst
+              if ( present_qc .and. n == iqc ) cycle
+              if ( present_qi .and. n == iqi ) cycle
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
+                           mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,ice2,k,n) = d_zero
+                else
+                  mo_atm%qx(jce2,ice2,k,n) = qxint
+                end if
+              end do
+            end do
+          end if
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
+                windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(j,ice1,k,n) = d_zero
+                else
+                  mo_atm%qx(j,ice1,k,n) = qxint
+                end if
+              end do
+            end do
+          end do
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do n = iqfrst , iqlst
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
+                windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(j,ice2,k,n) = d_zero
+                else
+                  mo_atm%qx(j,ice2,k,n) = qxint
+                end if
+              end do
+            end do
+          end do
+        end if
       else
-        if ( bdyflow ) then
-          if ( ma%has_bdyleft ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = atm1%qx(jci1,i,k,n)
-                  windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-                  if ( windavg > d_zero ) then
-                    atm1%qx(jce1,i,k,n) = d_zero
-                  else
-                    atm1%qx(jce1,i,k,n) = qxint
-                  end if
-                end do
+        if ( ma%has_bdyleft ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = mo_atm%qx(jci1,i,k,n)
+                qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
+                mo_atm%qx(jce1,i,k,n) = qxint*qrat
               end do
             end do
-          end if
-          !
-          ! east boundary:
-          !
-          if ( ma%has_bdyright ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = atm1%qx(jci2,i,k,n)
-                  windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-                  if ( windavg < d_zero ) then
-                    atm1%qx(jce2,i,k,n) = d_zero
-                  else
-                    atm1%qx(jce2,i,k,n) = qxint
-                  end if
-                end do
+          end do
+        end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = mo_atm%qx(jci2,i,k,n)
+                qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
+                mo_atm%qx(jce2,i,k,n) = qxint*qrat
               end do
             end do
-          end if
-          !
-          ! south boundary:
-          !
-          if ( ma%has_bdybottom ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici1,k,n)
-                  windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-                  if ( windavg > d_zero ) then
-                    atm1%qx(j,ice1,k,n) = d_zero
-                  else
-                    atm1%qx(j,ice1,k,n) = qxint
-                  end if
-                end do
+          end do
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = mo_atm%qx(j,ici1,k,n)
+                qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
+                mo_atm%qx(j,ice1,k,n) = qxint*qrat
               end do
             end do
-          end if
-          !
-          ! north boundary:
-          !
-          if ( ma%has_bdytop ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici2,k,n)
-                  windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-                  if ( windavg < d_zero ) then
-                    atm1%qx(j,ice2,k,n) = d_zero
-                  else
-                    atm1%qx(j,ice2,k,n) = qxint
-                  end if
-                end do
+          end do
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = mo_atm%qx(j,ici2,k,n)
+                qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
+                mo_atm%qx(j,ice2,k,n) = qxint*qrat
               end do
             end do
-          end if
-        else
-          if ( ma%has_bdyleft ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
-                  qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
-                  atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
-                end do
+          end do
+        end if
+      end if
+    else
+      if ( bdyflow ) then
+        if ( ma%has_bdyleft ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = atm1%qx(jci1,i,k,n)
+                windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+                if ( windavg > d_zero ) then
+                  atm1%qx(jce1,i,k,n) = d_zero
+                else
+                  atm1%qx(jce1,i,k,n) = qxint
+                end if
               end do
             end do
-          end if
-          !
-          ! east boundary:
-          !
-          if ( ma%has_bdyright ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
-                  qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
-                  atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
-                end do
+          end do
+        end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = atm1%qx(jci2,i,k,n)
+                windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+                if ( windavg < d_zero ) then
+                  atm1%qx(jce2,i,k,n) = d_zero
+                else
+                  atm1%qx(jce2,i,k,n) = qxint
+                end if
               end do
             end do
-          end if
-          !
-          ! south boundary:
-          !
-          if ( ma%has_bdybottom ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
-                  qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
-                  atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
-                end do
+          end do
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = atm1%qx(j,ici1,k,n)
+                windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+                if ( windavg > d_zero ) then
+                  atm1%qx(j,ice1,k,n) = d_zero
+                else
+                  atm1%qx(j,ice1,k,n) = qxint
+                end if
               end do
             end do
-          end if
-          !
-          ! north boundary:
-          !
-          if ( ma%has_bdytop ) then
-            do n = iqfrst , iqlst
-              do k = 1 , kz
-                do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
-                  qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
-                  atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat
-                end do
+          end do
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = atm1%qx(j,ici2,k,n)
+                windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+                if ( windavg < d_zero ) then
+                  atm1%qx(j,ice2,k,n) = d_zero
+                else
+                  atm1%qx(j,ice2,k,n) = qxint
+                end if
               end do
             end do
-          end if
+          end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
+                qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
+                atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
+              end do
+            end do
+          end do
+        end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do i = ice1 , ice2
+                qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
+                qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
+                atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
+              end do
+            end do
+          end do
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
+                qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
+                atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
+              end do
+            end do
+          end do
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do n = iqfrst , iqlst
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
+            do k = 1 , kz
+              do j = jci1 , jci2
+                qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
+                qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
+                atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat
+              end do
+            end do
+          end do
         end if
       end if
     end if
