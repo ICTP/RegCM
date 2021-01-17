@@ -112,9 +112,16 @@ module mod_slice
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
-        atms%pf3d(j,i,k) = p00 * &
-                (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            w1 = (mo_atm%zeta(j,i,k-1)-mo_atm%zetaf(j,i,k)) / &
+                 (mo_atm%zeta(j,i,k-1)-mo_atm%zeta(j,i,k))
+            w2 = d_one - w1
+            atms%pf3d(j,i,k) = p00 * &
+                ((w1*mo_atm%pai(j,i,k)+w2*mo_atm%pai(j,i,k-1)))**cpovr
+          end do
+        end do
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - mo_atm%rho(j,i,1) * egrav * &
@@ -139,9 +146,15 @@ module mod_slice
         atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
         atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
-        atms%wpx3d(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
-                       (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            w1 = (mo_atm%zetaf(j,i,k)-mo_atm%zeta(j,i,k))/mo_atm%dz(j,i,k)
+            w2 = d_one - w1
+            atms%wpx3d(j,i,k) = -egrav*atms%rhob3d(j,i,k) * &
+                  (w1*mo_atm%w(j,i,k+1) + w2*mo_atm%w(j,i,k))
+          end do
+        end do
       end do
       !
       ! Find 700 mb theta
@@ -151,9 +164,12 @@ module mod_slice
           do j = jci1 , jci2
             atms%th700(j,i) = atms%th3d(j,i,kz)
             do k = 2 , kz-1
-              if ( atms%pb3d(j,i,k) > 70000.0 ) then
-                atms%th700(j,i) = d_half * (atms%th3d(j,i,k+1) + &
-                                            atms%th3d(j,i,k))
+              if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
+                w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
+                     (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
+                w2 = d_one - w1
+                atms%th700(j,i) = atms%th3d(j,i,k-1) * w1 + &
+                                  atms%th3d(j,i,k) * w2
                 exit
               end if
             end do
