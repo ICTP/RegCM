@@ -213,18 +213,12 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         fnudge = 0.1_rkx/dt
-        if ( idynamic == 3 ) then
-          fnudge = fnudge * mo_nadv * mo_nsound
-        end if
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
         ! The dxsq is simplified in below when dividing by dxsq
         gnudge = 0.02_rkx/dt
-        if ( idynamic == 3 ) then
-          gnudge = gnudge * mo_nadv * mo_nsound
-        end if
       end if
       if ( myid == italk ) then
         write(stdout, '(a,f12.6,a,f12.6)') &
@@ -2027,7 +2021,7 @@ module mod_bdycod
       end if
     end if
 
-    if ( present_qi ) then
+    if ( present_qi .and. ipptls > 1 ) then
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
