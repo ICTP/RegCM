@@ -1562,6 +1562,20 @@ module mod_bdycod
               mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
@@ -1571,6 +1585,20 @@ module mod_bdycod
               mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
@@ -1580,6 +1608,20 @@ module mod_bdycod
               mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
@@ -1589,6 +1631,20 @@ module mod_bdycod
               mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k)
+              end do
+            end do
+          end if
         end if
       else
         if ( ma%has_bdyleft ) then
@@ -1598,6 +1654,20 @@ module mod_bdycod
               atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce1,i,k,iqv) = xlb%b0(jce1,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce1,i,k,iqv) = xlb%b0(jce1,i,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do i = ici1 , ici2
@@ -1618,6 +1688,20 @@ module mod_bdycod
               atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do i = ici1 , ici2
@@ -1638,6 +1722,20 @@ module mod_bdycod
               atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do j = jce1 , jce2
@@ -1658,6 +1756,20 @@ module mod_bdycod
               atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do j = jce1 , jce2
@@ -1685,6 +1797,20 @@ module mod_bdycod
               mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
@@ -1694,6 +1820,20 @@ module mod_bdycod
               mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
@@ -1703,6 +1843,20 @@ module mod_bdycod
               mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
+              end do
+            end do
+          end if
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
@@ -1712,6 +1866,20 @@ module mod_bdycod
               mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
+              end do
+            end do
+          end if
         end if
       else
         if ( ma%has_bdyleft ) then
@@ -1721,6 +1889,20 @@ module mod_bdycod
               atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do i = ici1 , ici2
@@ -1744,6 +1926,20 @@ module mod_bdycod
               atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do i = ici1 , ici2
@@ -1767,6 +1963,20 @@ module mod_bdycod
               atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do j = jce1 , jce2
@@ -1790,6 +2000,20 @@ module mod_bdycod
               atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
             end do
           end do
+          if ( present_qc ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
+              end do
+            end do
+          end if
+          if ( present_qi .and. ipptls > 1 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
+              end do
+            end do
+          end if
           if ( idynamic == 2 ) then
             do k = 1 , kz
               do j = jce1 , jce2
@@ -1959,130 +2183,6 @@ module mod_bdycod
               else
                 atm1%qx(j,ice2,k,iqv) = qint*sfs%psa(j,ice2)
               end if
-            end do
-          end do
-        end if
-      end if
-    end if
-
-    if ( present_qc ) then
-      if ( idynamic == 3 ) then
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
-            end do
-          end do
-        end if
-      else
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              atm1%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              atm1%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm1%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm1%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
-            end do
-          end do
-        end if
-      end if
-    end if
-
-    if ( present_qi .and. ipptls > 1 ) then
-      if ( idynamic == 3 ) then
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
-            end do
-          end do
-        end if
-      else
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              atm1%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              atm1%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm1%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm1%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
             end do
           end do
         end if
