@@ -196,7 +196,7 @@ module mod_rad_outrad
 
     if ( ifopt .and. (iaerosol == 1 .or. iclimaaer > 0) ) then
       if ( irrtm == 1 ) then
-        visband = 9
+        visband = 10 
       else
         visband = 8
       endif

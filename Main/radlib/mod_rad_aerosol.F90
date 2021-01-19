@@ -1924,7 +1924,7 @@ module mod_rad_aerosol
 
       if ( iclimaaer == 2 ) then
         if ( irrtm == 1 ) then
-          visband = 9
+          visband = 10 
            ! FAB try only the visible RRTM  now
           ns = visband
           do k = 1 , kz
@@ -2335,7 +2335,8 @@ module mod_rad_aerosol
           end do
         else if ( irrtm == 1 ) then
           do n = 1 , nband
-            lambdaw(n) = (1.e6_rkx/wavnm1(n)+1.e6_rkx/wavnm2(n))*d_half
+            ! wavenumber is in cm-1 , convert to wavelenght in nm for mac-v2 
+            lambdaw(n) = (1.e7_rkx/wavnm1(n)+1.e7_rkx/wavnm2(n))*d_half 
           end do
         end if
         ibin = 1

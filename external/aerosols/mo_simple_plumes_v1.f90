@@ -257,6 +257,7 @@ CONTAINS
          lfactor                     !< factor to compute wavelength dependence of optical properties
     !
     ! ----------
+    
     !
     ! initialize input data (by calling setup at first instance)
     !
@@ -272,11 +273,15 @@ CONTAINS
       DO icol=1,ncol
         aod_prof(icol,k) = 0.0
         ssa_prof(icol,k) = 0.0
-        asy_prof(icol,k) = 0.0
-        z_beta(icol,k)   = MERGE(1.0, 0.0, z(icol,k) >= oro(icol))
+        asy_prof(icol,k) = 0.0        
+!        z_beta(icol,k)   = MERGE(1.0, 0.0, z(icol,k) >= oro(icol))
+!FAB in sigma-coordinates the first atm level altitude should always be above
+!topography !  
+        z_beta(icol,k) = 1.! 
         eta(icol,k)      = MAX(0.0,MIN(1.0,z(icol,k)/15000.))
       END DO
     END DO
+
     DO icol=1,ncol
       dNovrN(icol)   = 1.0
       caod_sp(icol)  = 0.0
@@ -349,6 +354,7 @@ CONTAINS
       ! wavelength using the angstrom parameter.
       !
       lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0))
+      !FAB TEST 
       DO k=1,nlevels
         DO icol = 1,ncol
           aod_550          = prof(icol,k)     * cw_an(icol)
