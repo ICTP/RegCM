@@ -42,11 +42,37 @@ module mod_capecin
                                      ! 3 = pseudoadiabatic, with ice
                                      ! 4 = reversible, with ice
 
+  public :: getcape
   public :: getcape_hy
   public :: getcape_nhy
   public :: getcape_moloch
 
   contains
+
+  subroutine getcape(im,jm,km,p,t,rh,cape,cin)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(4) , intent(in) , dimension(km,jm,im) :: p , t , rh
+    real(4) , intent(out) , dimension(jm,im) :: cape , cin
+    real(4) , dimension(km) :: pa , ta , rha
+    integer :: i , j , k , kk , iloop , icount
+    real(4) :: z1
+    icount = im * jm
+!$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
+    do iloop = 1 , icount
+      i = iloop/jm + 1
+      j = iloop - (i-1)*jm
+      do k = 1 , km
+        kk = km - k + 1
+        pa(kk) = p(k,j,i)
+        ta(kk) = t(k,j,i)
+        rha(kk) = rh(k,j,i) * 0.01
+      end do
+      z1 = 40.0 ! Arbitrary here: Assume lower model level to be at z1 in meters
+      call capecin(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+    end do
+!$OMP END PARALLEL DO
+  end subroutine getcape
 
   subroutine getcape_moloch(im,jm,km,ps,t,rh,pai,cape,cin)
     implicit none
@@ -69,7 +95,7 @@ module mod_capecin
         rha(kk) = rh(k,j,i) * 0.01
       end do
       z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
-      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+      call capecin(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
     end do
 !$OMP END PARALLEL DO
   end subroutine getcape_moloch
@@ -98,7 +124,7 @@ module mod_capecin
         rha(kk) = rh(k,j,i) * 0.01
       end do
       z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
-      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+      call capecin(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
     end do
 !$OMP END PARALLEL DO
   end subroutine getcape_hy
@@ -129,13 +155,13 @@ module mod_capecin
         rha(kk) = rh(k,j,i) * 0.01
       end do
       z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
-      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+      call capecin(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
     end do
 !$OMP END PARALLEL DO
   end subroutine getcape_nhy
   !
   !
-  !  getcape - a fortran90 subroutine to calculate Convective Available
+  !  capecin - a fortran90 subroutine to calculate Convective Available
   !            Potential Energy (CAPE) from a sounding.
   !
   !  Version 1.02                           Last modified:  10 October 2008
@@ -163,7 +189,7 @@ module mod_capecin
   !
   !            cin - Convective Inhibition (J/kg) (real)
   !
-  subroutine getcape(nk,z1,p,t,rh,cape,cin)
+  subroutine capecin(nk,z1,p,t,rh,cape,cin)
     implicit none
 
     integer , intent(in) :: nk
@@ -486,7 +512,7 @@ module mod_capecin
                exp( ((3376.0/tlcl)-2.54)*q*(1.0+0.81*q) )
     end function getthe
 
-    end subroutine getcape
+    end subroutine capecin
 
 end module mod_capecin
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1177,7 +1177,7 @@ module mod_params
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
       ! Moloch paramters here
-      mo_dz = hzita / real(kz,rkx)
+      mo_dz = model_dz(kz)
       call bcast(mo_anu2)
       call bcast(mo_wmax)
       call bcast(mo_nzfilt)
@@ -2031,12 +2031,11 @@ module mod_params
         zita(k) = zita(k+1) + mo_dz
         zitah(k) = zita(k) - mo_dz*d_half
       end do
-      sigma(2:kzp1) = d_one - zita(2:kzp1)/hzita
-      sigma(1) = mo_b0 * sigma(2)
-      hsigma = d_one - zitah/hzita
-      fak = -hzita * bzita(zita) * log(sigma)
+      sigma = d_one - zita/mo_ztop
+      hsigma = d_one - zitah/mo_ztop
+      fak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
       fbk = gzita(zita)
-      ak = -hzita * bzita(zitah) * log(hsigma)
+      ak = md_zfz()*(exp(zitah/md_hzita())-1.0_rkx)
       bk = gzita(zitah)
       do k = 1 , kz
         dsigma(k) = (sigma(k+1) - sigma(k))
@@ -2789,7 +2788,6 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer(ik4) :: i , j
-        real(rkx) :: ztop
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
@@ -2818,8 +2816,7 @@ module mod_params
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              mo_atm%zeta(j,i,k) = ak(k) + (bk(k) - d_one) * &
-                                         mddom%ht(j,i)*regrav
+              mo_atm%zeta(j,i,k) = md_zeta(zitah(k),mddom%ht(j,i))
               mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
             end do
           end do
@@ -2830,18 +2827,16 @@ module mod_params
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
-              mo_atm%zetaf(j,i,k) = fak(k) + (fbk(k) - d_one) * &
-                                           mddom%ht(j,i)*regrav
+              mo_atm%zetaf(j,i,k) = md_zeta(zita(k),mddom%ht(j,i))
             end do
           end do
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
-        ztop = maxval(mo_atm%zeta)
-        call maxall(ztop,rayzd)
+        rayzd = mo_ztop
         if ( myid == italk ) then
-          write(stdout,*) 'Model top at ',rayzd,' m'
+          write(stdout,*) 'Model top at ',mo_ztop,' m'
         end if
       end subroutine compute_moloch_static
 

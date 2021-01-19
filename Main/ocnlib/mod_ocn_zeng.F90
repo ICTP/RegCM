@@ -390,7 +390,7 @@ module mod_ocn_zeng
       v10m(i) = vsw(i)*uv10/uv995
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
-      t2m(i)  = t995 + tzero - dth*facttq
+      t2m(i)  = t995 + tzero - (dth * (sfps(i)/p00)**rovcp) * facttq
       q2m(i)  = q995 - dqh*facttq
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))

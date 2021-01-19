@@ -754,6 +754,11 @@ conditions and the base state vertical profile curve shape.
  base_state_pressure = 101325.0, ! Base state reference pressure
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
  /
+ &molochparam
+ mo_a0 = 0.0,       ! Vertical stretching in model level equations
+ mo_b0 = 0.33,      ! Vertical stretching in model level equations
+ mo_ztop = 20000.0, ! Atmosphere top lid in meters
+ /
  &nonhydroparam
  ifupr = 0,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
@@ -771,9 +776,9 @@ conditions and the base state vertical profile curve shape.
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 6,     ! Number of sound loops for advection loop
- mo_nzfilt = 3,     ! Number of top levels where W filter is active
- mo_anu2 = 0.8,     ! Moloch factor for divergence filtering
- mo_filterpai = .T.,! Filter on Exner function tendencies activated
+ mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
+ mo_nzfilt = 0,     ! Number of top levels where W filter is active
+ mo_filterpai = .F.,! Filter on Exner function tendencies activated
  /
 \end{Verbatim}
 }

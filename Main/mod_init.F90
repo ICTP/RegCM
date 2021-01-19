@@ -924,7 +924,8 @@ module mod_init
       ! Top pressure should be zero.
       do i = ice1 , ice2
         do j = jce1 , jce2
-          mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
+          mo_atm%pf(j,i,1) = (mo_atm%pf(j,i,2) - mo_atm%rho(j,i,1) * egrav * &
+              (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2)))
         end do
       end do
     end if
@@ -1013,7 +1014,7 @@ module mod_init
           if ( k > mo_nzfilt ) then
             ffilt(k) = d_zero
           else
-            zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
+            zzi = (mo_dz*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
             ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
           end if
         end do

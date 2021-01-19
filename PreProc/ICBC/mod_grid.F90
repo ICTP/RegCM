@@ -137,7 +137,7 @@ module mod_grid
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse)
-      dz = hzita/real(kz,rkx)
+      dz = model_dz(kz)
       do k = 1 , kz
         zita = (kz - k) * dz + dz*0.5_rkx
         do i = 1 , iy
@@ -145,7 +145,7 @@ module mod_grid
             z0(j,i,k) = md_zeta_h(zita,topogm(j,i))
           end do
         end do
-        sigmah(k) = 1.0_rkx - zita/hzita
+        sigmah(k) = 1.0_rkx - zita/mo_ztop
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
     else

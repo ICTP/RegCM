@@ -121,7 +121,7 @@ module mod_clm_params
     gas_tweak_factors(:) = 1.0_rkx
 
     if ( idynamic == 3 ) then
-      mo_dz = hzita / real(kz,rkx)
+      mo_dz = model_dz(kz)
     end if
 
 #ifdef CLM
@@ -601,12 +601,11 @@ module mod_clm_params
           zita(k) = zita(k+1) + mo_dz
           zitah(k) = zita(k) - mo_dz*d_half
         end do
-        sigma(1) = d_zero
-        sigma = d_one - zita/hzita
-        hsigma = d_one - zitah/hzita
-        fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+        sigma = d_one - zita/mo_ztop
+        hsigma = d_one - zitah/mo_ztop
+        fak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
         fbk = gzita(zita)
-        ak = -hzita * bzita(zitah) * log(hsigma)
+        ak = md_zfz()*(exp(zitah/md_hzita())-1.0_rkx)
         bk = gzita(zitah)
         do k = 1 , kz
           dsigma(k) = (sigma(k+1) - sigma(k))

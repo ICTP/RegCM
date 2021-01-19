@@ -103,9 +103,10 @@ module mod_moloch
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
+  logical :: lrotllr
 
   integer :: nadv , nsound
-  real(rkx) :: dz , nupait
+  real(rkx) :: dz , nupait , ddamp
 
   contains
 
@@ -226,6 +227,8 @@ module mod_moloch
     nupait = 0.05_rkx
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
+    lrotllr = (iproj == 'ROTLLR')
+    ddamp = 0.2_rkx
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -581,8 +584,6 @@ module mod_moloch
         implicit none
         integer(ik4) :: j , i , k
 
-        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -706,7 +707,7 @@ module mod_moloch
           ! Part of divergence (except w contribution) put in zdiv2
           ! Equation 16
 
-          if ( iproj == 'ROTLLR' ) then
+          if ( lrotllr ) then
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
@@ -739,6 +740,8 @@ module mod_moloch
               end do
             end do
           end if
+          call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+          call divdamp(dtsound)
           call filt3d
           do k = 1 , kz
             do i = ici1 , ici2
@@ -844,7 +847,7 @@ module mod_moloch
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
-          if ( iproj == 'ROTLLR' ) then
+          if ( lrotllr ) then
 
             do k = 1 , kz
               do i = ici1 , ici2
@@ -1084,8 +1087,7 @@ module mod_moloch
 
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
-
-        if ( iproj == 'ROTLLR' ) then
+        if ( lrotllr ) then
 
           ! Meridional advection
 
@@ -1742,6 +1744,50 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
+
+  subroutine divdamp(dts)
+    implicit none
+    real(rkx) , intent(in) :: dts
+    integer(ik4) :: i , j , k
+    real(rkx) :: ddamp1
+
+    ddamp1 = ddamp*0.125_rkx*dx**2/dts
+    if ( lrotllr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    end if
+  end subroutine divdamp
 
 end module mod_moloch
 

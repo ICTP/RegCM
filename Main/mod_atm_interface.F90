@@ -928,11 +928,9 @@ module mod_atm_interface
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
         call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
         call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
-        call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
         if ( icldmstrat == 1 ) then
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
-        call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
         if ( ibltyp == 4 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
@@ -960,7 +958,6 @@ module mod_atm_interface
         if ( ichem == 1 ) then
           call getmem4d(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
         end if
-        call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
         if ( idynamic == 1 ) then
           call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
           call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
@@ -972,12 +969,13 @@ module mod_atm_interface
           call assignpnt(a0%zf,atms%zq)
           call assignpnt(a0%dzf,atms%dzq)
         end if
-        call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
         call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
         if ( ibltyp == 4 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       end if
+      call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
+      call getmem2d(ax%tp2d,jci1,jci2,ici1,ici2,'slice:tp2d')
     end subroutine allocate_slice
 
     subroutine allocate_nhbh(nhbh)

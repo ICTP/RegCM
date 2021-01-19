@@ -715,10 +715,11 @@ Given the definition of the $\zeta$ hybrid vertical coordinate in
 the new coordinate system is thus:
 
 \begin{eqnarray}
-\sigma &=& 1 - \frac{\zeta}{H} \\
+\sigma &=& 1 - \frac{\zeta}{Z_{top}} \\
+Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
 F_z &=& \frac{\partial \zeta}{\partial z} =
-  \frac{\sigma}{B + h \frac{dG}{d\zeta}\sigma - H\sigma ln(\sigma)
-  \frac{dB}{d\zeta}}
+     \frac{1}{G(\zeta) h(x,y) + \frac{1}{H}
+     Z_f e^{\frac{\zeta}{H}}}
 \end{eqnarray}
 
 which allows for the generalized vertical velocity to be expressed as:
