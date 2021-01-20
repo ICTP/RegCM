@@ -1190,17 +1190,9 @@ module mod_che_bdyco
     if ( bdy_dm > d_zero ) then
       gnudge = bdy_dm
     else
-      gnudge = d_one/(50.0_rkx*dt2)
+      gnudge = 0.02_rkx/dt2
     end if
-    do k = 1 , kz
-      if ( hsigma(k) < 0.4_rkx ) then
-        anudgh(k) = high_nudge
-      else if ( hsigma(k) < 0.8_rkx ) then
-        anudgh(k) = medium_nudge
-      else
-        anudgh(k) = low_nudge
-      end if
-    end do
+    call exponential_nudging(anudgh)
     do k = 1 , kz
       do n = 2 , nspgx-1
         cefc(n,k) = fnudge*xfune(n,anudgh(k))

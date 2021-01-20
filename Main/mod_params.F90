@@ -1716,9 +1716,13 @@ module mod_params
         dtau(ns) = dtsplit(ns)
       end do
     end if
-    dt2 = d_two*dt
     dtsq = dt*dt
     dtcb = dt*dt*dt
+    if ( idynamic < 3 ) then
+      dt2 = d_two*dt
+    else
+      dt2 = dt
+    end if
 
     intbdy = rcm_time_interval(ibdyfrq,uhrs)
     intsom = rcm_time_interval(1,umnt)

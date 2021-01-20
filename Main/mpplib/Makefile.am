@@ -27,7 +27,7 @@ mod_mppparam.o : mod_mppparam.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod_m
 mod_ncout.o : mod_ncout.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_ncstream.o mod_ncstream_types.o mod_outvars.o mod_realkinds.o mod_runparams.o mod_service.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_outvars.o : mod_outvars.F90 mod_realkinds.o
-mod_runparams.o : mod_runparams.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_timer.o
+mod_runparams.o : mod_runparams.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_timer.o mod_spline.o mod_mpmessage.o
 mod_service.o : mod_service.F90 mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_regcm_types.o : mod_regcm_types.F90 mod_intkinds.o mod_realkinds.o
