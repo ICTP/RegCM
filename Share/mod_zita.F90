@@ -22,7 +22,7 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
-  use mod_dynparam , only : mo_a0 , mo_b0 , mo_ztop
+  use mod_dynparam , only : mo_a0 , mo_b0 , mo_ztop , mo_mfac
 
   implicit none
 
@@ -46,7 +46,7 @@ module mod_zita
   pure real(rkx) function model_dz(kz)
     implicit none
     integer(ik4) , intent(in) :: kz
-    model_dz = mo_ztop/real(kz,rkx)
+    model_dz = mo_mfac*mo_ztop/real(kz,rkx)
   end function model_dz
 
   pure real(rkx) function md_hzita( )

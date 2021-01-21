@@ -3396,6 +3396,9 @@ module mod_ncstream
         attr%aname = 'zita_height_top'
         attr%theval = mo_ztop
         call add_attribute(stream,attr)
+        attr%aname = 'zita_mfac'
+        attr%theval = mo_mfac
+        call add_attribute(stream,attr)
       end if
     end subroutine add_common_global_params
 
