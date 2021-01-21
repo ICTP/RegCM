@@ -2233,7 +2233,7 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( idirect > 0 ) then
+        if ( idirect > 0 .or. iclimaaer > 0) then
           if ( irrtm == 1 ) then
             if ( enable_opt2d_vars(opt_aastoarf) ) then
               call setup_var(v2dvar_opt,opt_aastoarf,vsize,'aastoarf','W m-2', &

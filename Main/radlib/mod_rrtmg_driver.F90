@@ -285,7 +285,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld
+    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld ,ldirect
     logical :: lradfor
     real(rkx) :: adjes
 
@@ -315,6 +315,16 @@ module mod_rrtmg_driver
     asaeradfo(:) = d_zero
     asaeradfos(:) = d_zero
 
+
+! hanlde aerosol direct effect in function of ichem or iclimaaer    
+
+    if (ichem == 1 .and. iaerosol ==1) then 
+     ldirect =idirect
+    elseif ( iclimaaer > 0 ) then
+     ldirect = 2
+    end if
+ 
+
     if ( maxval(m2r%coszrs) > 1.0e-3_rkx ) then
       n = 1
       do i = ici1 , ici2
@@ -336,7 +346,7 @@ module mod_rrtmg_driver
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                              cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                              taucmcl,ssacmcl,asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,lradfor,idirect,play,plev,tlay,tlev, &
+        call rrtmg_sw(npr,kth,icld,lradfor,ldirect,play,plev,tlay,tlev, &
                       tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
                       o2vmr,asdir,asdif,aldir,aldif,czen,adjes, &
                       0,solcon,inflgsw,iceflgsw,liqflgsw,       &
@@ -347,7 +357,7 @@ module mod_rrtmg_driver
                       swddifuviflx,swddirpirflx,swddifpirflx,   &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,idirect,play,plev,tlay,tlev, &
+        call rrtmg_sw_nomcica(npr,kth,icld,ldirect,play,plev,tlay,tlev, &
                               tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,   &
                               n2ovmr,o2vmr,asdir,asdif,aldir,    &
                               aldif,czen,adjes,0,solcon,inflgsw, &
@@ -371,7 +381,7 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor,idirect,play,plev,tlay,tlev, &
+      call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
                     tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,       &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
