@@ -407,8 +407,12 @@ module mod_params
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
     !
-    minsig = 0.950_rkx  ! Lowest sigma level from which convection can originate
-    elcrit_ocn = 1.1e-4_rkx ! Autoconversion threshold water content (gm/gm)
+    if ( idynamic == 3 ) then
+      minsig = 0.85_rkx ! THIS IS TRICKY.....
+    else
+      minsig = 0.95_rkx ! Lowest sigma level from which convection can start
+    end if
+    elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
     entp = 0.06_rkx       ! Coefficient of mixing in the entrainment formulation

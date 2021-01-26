@@ -579,12 +579,14 @@ module mod_runparams
     ncin(1) = high_nudge
     ncin(2) = medium_nudge
     ncin(3) = low_nudge
-    zcin(1) = 0.0_rkx
-    zcin(3) = 1.0_rkx
     if ( idynamic == 3 ) then
+      zcin(1) = 0.0_rkx
       zcin(2) = 0.5_rkx
+      zcin(3) = 1.0_rkx
     else
-      zcin(2) = 0.33_rkx
+      zcin(1) = sigma(1)
+      zcin(2) = (sigma(kzp1)-sigma(1))*0.5_rkx
+      zcin(3) = sigma(kzp1)
     end if
     call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
     if ( myid == 0 ) then
