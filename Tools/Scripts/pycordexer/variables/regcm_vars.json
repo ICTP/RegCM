@@ -17,6 +17,7 @@
   "t2min": ["t2min"],
   "w10max": ["w10max"],
   "sfcWind": ["sfcWind"],
+  "mrsol" : [ "mrso" , "mrsos" ],
   "ua": ["ua", "u"],
   "va": ["va", "v"],
   "ta": ["ta", "t"],

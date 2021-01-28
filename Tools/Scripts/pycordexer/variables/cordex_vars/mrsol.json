@@ -1,0 +1,59 @@
+{
+  "mrsol": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "mrsol",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "ExtractLevel",
+        {
+          "dimension": "soil_layer",
+          "level": 0
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "mrsol",
+          "fill_value": "0.0",
+          "new_attributes": {
+            "long_name": "Total water content of soil layer",
+            "standard_name": "moisture_content_of_soil_layer",
+            "units": "kg m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "mrsol",
+          "fill_value": "0.0",
+          "new_attributes": {
+            "long_name": "Total water content of soil layer",
+            "standard_name": "moisture_content_of_soil_layer",
+            "units": "kg m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}
+
