@@ -1971,6 +1971,9 @@ module mod_rad_aerosol
             end do
           end do
         else if ( irrtm == 0 ) then
+          tauxar(:,:) = d_zero
+          tauasc(:,:) = d_zero
+          ftota(:,:)  = d_zero
           do n = 1 , nband
             do k = 1 , kz
               do i = 1 , npoints
@@ -1982,6 +1985,11 @@ module mod_rad_aerosol
                        ssaprofr4(i,k,n) * tauxar3d(i,k,n)
                 ftota3d(i,k,n)  = asyprofr4(i,k,n)**2 * &
                        ssaprofr4(i,k,n) * tauxar3d(i,k,n)
+
+                ! define also tauxar for std scheme clear sky diagnostics 
+                tauxar(i,n) = tauxar(i,n) + tauxar3d(i,k,n)
+                tauasc(i,n) = tauasc(i,n) + tauasc3d(i,k,n)
+                ftota(i,n) =  ftota(i,n)  + ftota3d(i,k,n)
               end do
             end do
           end do

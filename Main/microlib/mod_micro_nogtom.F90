@@ -1849,6 +1849,19 @@ module mod_micro_nogtom
         end do
       end do
     end if
+     !
+     !calculate the rain out kin constat remrat (s-1) for chemical scavenging  
+     !here taken as rain water tendency divided by cloud liquid water mixing
+     !ratio 
+    if (ichem == 1)  then 
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+             mc2mo%remrat(j,i,k) = qxtendc(iqqr,j,i,k) / qx(iqql,j,i,k)
+          end do
+        end do
+      end do
+    end if 
 
     !-------------------------------------
     ! Final enthalpy and total water diagnostics

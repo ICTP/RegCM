@@ -2738,6 +2738,7 @@ module mod_rad_radiation
             ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
                     wci(n,k)*tauxci(n,k,ns))/wt
           else
+
             tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
                      taugab(n) + tauxar3d(n,k,ns)
             taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
