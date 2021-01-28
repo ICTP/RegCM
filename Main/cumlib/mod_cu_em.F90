@@ -27,7 +27,7 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &
     damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs ,   &
-    tlcrit , iqv , ichem , clfrcv , rdt , ichcumtra , icup , dt
+    tlcrit , iqv , ichem , clfrcv , ichcumtra , icup , dtcum
   use mod_runparams , only : k2_const , kfac_shal , kfac_deep
   use mod_cu_common
   use mod_service
@@ -692,7 +692,7 @@ module mod_cu_em
       !
       cbmfold = cbmf(n)
       delt0 = 300.0_rkx
-      damps = damp*dt/delt0
+      damps = damp*dtcum/delt0
       cbmf(n) = (d_one-damps)*cbmf(n) + 0.1_rkx*alphae*dtma
       cbmf(n) = max(cbmf(n),d_zero)
       !
@@ -979,7 +979,7 @@ module mod_cu_em
           am = am + m(k)
         end do
       end if
-      if ( (d_two*egrav*dpinv*am) >= rdt ) iflag = 4
+      if ( (d_two*egrav*dpinv*am) >= d_one/dtcum ) iflag = 4
       ft(n,1) = ft(n,1) + egrav*dpinv*am*(t(n,2)-t(n,1)+(gz(2)-gz(1))/cpn(1))
       ft(n,1) = ft(n,1) - lvcp(1)*sigd*evap(1)
       ft(n,1) = ft(n,1) + sigd*wt(2)*(cpw-cpd)*water(2)* &
@@ -1026,7 +1026,7 @@ module mod_cu_em
             amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
+        if ( (d_two*egrav*dpinv*amp1) >= d_one/dtcum ) iflag = 4
         do k = 1 , i - 1
           do j = i , ict
             ad = ad + ment(j,k)

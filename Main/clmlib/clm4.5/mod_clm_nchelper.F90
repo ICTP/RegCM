@@ -4938,6 +4938,15 @@ module mod_clm_nchelper
         rval = d_zero
       end where
 #endif
+      where ( abs(rval) > huge(0.0) )
+        rval = huge(0.0)
+      end where
+      where ( is_inf(rval) )
+        rval = huge(0.0)
+      end where
+      where ( is_nan(rval) )
+        rval = 1.0e20
+      end where
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1

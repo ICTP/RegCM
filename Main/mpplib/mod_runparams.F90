@@ -23,8 +23,10 @@ module mod_runparams
   use mod_realkinds
   use mod_date
   use mod_dynparam
+  use mod_mpmessage
   use mod_memutil
   use mod_timer
+  use mod_spline
 
   implicit none
 
@@ -522,7 +524,9 @@ module mod_runparams
 
   data doing_restart /.false./
 
-  public :: allocate_mod_runparams , iswater , isocean , islake
+  public :: allocate_mod_runparams
+  public :: iswater , isocean , islake
+  public :: exponential_nudging
 
   contains
 
@@ -564,6 +568,31 @@ module mod_runparams
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.
   end function
+
+  subroutine exponential_nudging(nudge)
+    implicit none
+    real(rkx) , dimension(kz) , intent(out) :: nudge
+    real(rkx) , dimension(3) :: ncin
+    real(rkx) , dimension(3) :: zcin
+    real(rkx) , dimension(3) :: ycin
+    data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
+    ncin(1) = high_nudge
+    ncin(2) = medium_nudge
+    ncin(3) = low_nudge
+    if ( idynamic == 3 ) then
+      zcin(1) = 0.0_rkx
+      zcin(2) = 0.5_rkx
+      zcin(3) = 1.0_rkx
+    else
+      zcin(1) = sigma(1)
+      zcin(2) = (sigma(kzp1)-sigma(1))*0.5_rkx
+      zcin(3) = sigma(kzp1)
+    end if
+    call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
+    if ( myid == 0 ) then
+      call vprntv(nudge,kz,'Nudging coefficient profile')
+    end if
+  end subroutine exponential_nudging
 
 end module mod_runparams
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

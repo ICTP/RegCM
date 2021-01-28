@@ -39,7 +39,6 @@ module mod_bdycod
   use mod_zita
   use mod_stdatm
   use mod_slabocean
-  use mod_spline
 
   implicit none
 
@@ -186,14 +185,10 @@ module mod_bdycod
     real(rkx) , dimension(kz) :: anudge
     real(rkx) :: xfun
     integer(ik4) :: n , k
-    real(rkx) , dimension(3) :: ncin
-    real(rkx) , dimension(3) :: zcin
-    real(rkx) , dimension(3) :: ycin
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
 #endif
-    data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
 #endif
@@ -212,7 +207,7 @@ module mod_bdycod
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        fnudge = 0.1_rkx/dt
+        fnudge = 0.1_rkx/dt2
         if ( idynamic == 3 ) then
           fnudge = fnudge * mo_nadv * mo_nsound
         end if
@@ -221,7 +216,7 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         ! The dxsq is simplified in below when dividing by dxsq
-        gnudge = 0.02_rkx/dt
+        gnudge = 0.02_rkx/dt2
         if ( idynamic == 3 ) then
           gnudge = gnudge * mo_nadv * mo_nsound
         end if
@@ -259,20 +254,7 @@ module mod_bdycod
       end do
     end if
     if ( iboudy == 5 ) then
-      ncin(1) = high_nudge
-      ncin(2) = medium_nudge
-      ncin(3) = low_nudge
-      zcin(1) = 0.0_rkx
-      zcin(3) = 1.0_rkx
-      if ( idynamic == 3 ) then
-        zcin(2) = 0.5_rkx
-      else
-        zcin(2) = 0.6_rkx
-      end if
-      call spline1d(3,zcin,ncin,ycin,kz,hsigma,anudge)
-      if ( myid == italk ) then
-        call vprntv(anudge,kz,'Nudging coefficient profile')
-      end if
+      call exponential_nudging(anudge)
       do k = 1 , kz
         do n = 2 , nspgx-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
@@ -1125,7 +1107,7 @@ module mod_bdycod
   !
   subroutine bdyval
     implicit none
-    real(rkx) :: qxint , qxext , qrat , tkeint , qext , qint
+    real(rkx) :: qxint , qrat , tkeint , qext , qint
     integer(ik4) :: i , j , k , n
     real(rkx) :: windavg
     real(rkx) :: xt
@@ -2207,9 +2189,8 @@ module mod_bdycod
             do k = 1 , kz
               do i = ici1 , ici2
                 qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
                 windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
-                if ( windavg >= d_zero ) then
+                if ( windavg > d_zero ) then
                   mo_atm%qx(jce1,i,k,n) = d_zero
                 else
                   mo_atm%qx(jce1,i,k,n) = qxint
@@ -2217,40 +2198,6 @@ module mod_bdycod
               end do
             end do
           end do
-          if ( ma%has_bdybottom ) then
-            do n = iqfrst , iqlst
-              if ( present_qc .and. n == iqc ) cycle
-              if ( present_qi .and. n == iqi ) cycle
-              do k = 1 , kz
-                qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
-                windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
-                           mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(jce1,ice1,k,n) = d_zero
-                else
-                  mo_atm%qx(jce1,ice1,k,n) = qxint
-                end if
-              end do
-            end do
-          end if
-          if ( ma%has_bdytop ) then
-            do n = iqfrst , iqlst
-              if ( present_qc .and. n == iqc ) cycle
-              if ( present_qi .and. n == iqi ) cycle
-              do k = 1 , kz
-                qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
-                windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
-                           mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
-                if ( windavg >= d_zero ) then
-                  mo_atm%qx(jce1,ice2,k,n) = d_zero
-                else
-                  mo_atm%qx(jce1,ice2,k,n) = qxint
-                end if
-              end do
-            end do
-          end if
         end if
         !
         ! east boundary:
@@ -2262,9 +2209,8 @@ module mod_bdycod
             do k = 1 , kz
               do i = ici1 , ici2
                 qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
                 windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
-                if ( windavg <= d_zero ) then
+                if ( windavg < d_zero ) then
                   mo_atm%qx(jce2,i,k,n) = d_zero
                 else
                   mo_atm%qx(jce2,i,k,n) = qxint
@@ -2272,40 +2218,6 @@ module mod_bdycod
               end do
             end do
           end do
-          if ( ma%has_bdybottom ) then
-            do n = iqfrst , iqlst
-              if ( present_qc .and. n == iqc ) cycle
-              if ( present_qi .and. n == iqi ) cycle
-              do k = 1 , kz
-                qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
-                windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
-                           mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(jce2,ice1,k,n) = d_zero
-                else
-                  mo_atm%qx(jce2,ice1,k,n) = qxint
-                end if
-              end do
-            end do
-          end if
-          if ( ma%has_bdytop ) then
-            do n = iqfrst , iqlst
-              if ( present_qc .and. n == iqc ) cycle
-              if ( present_qi .and. n == iqi ) cycle
-              do k = 1 , kz
-                qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
-                windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
-                           mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
-                if ( windavg <= d_zero ) then
-                  mo_atm%qx(jce2,ice2,k,n) = d_zero
-                else
-                  mo_atm%qx(jce2,ice2,k,n) = qxint
-                end if
-              end do
-            end do
-          end if
         end if
         !
         ! south boundary:
@@ -2315,11 +2227,10 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
-                qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
                 windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
-                if ( windavg >= d_zero ) then
+                if ( windavg > d_zero ) then
                   mo_atm%qx(j,ice1,k,n) = d_zero
                 else
                   mo_atm%qx(j,ice1,k,n) = qxint
@@ -2334,11 +2245,10 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do n = iqfrst , iqlst
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
-                qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
                 windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
-                if ( windavg <= d_zero ) then
+                if ( windavg < d_zero ) then
                   mo_atm%qx(j,ice2,k,n) = d_zero
                 else
                   mo_atm%qx(j,ice2,k,n) = qxint
@@ -2353,7 +2263,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = mo_atm%qx(jci1,i,k,n)
                 qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
                 mo_atm%qx(jce1,i,k,n) = qxint*qrat
@@ -2369,7 +2279,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = mo_atm%qx(jci2,i,k,n)
                 qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
                 mo_atm%qx(jce2,i,k,n) = qxint*qrat
@@ -2385,7 +2295,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = mo_atm%qx(j,ici1,k,n)
                 qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
                 mo_atm%qx(j,ice1,k,n) = qxint*qrat
@@ -2401,7 +2311,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = mo_atm%qx(j,ici2,k,n)
                 qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
                 mo_atm%qx(j,ice2,k,n) = qxint*qrat
@@ -2417,7 +2327,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = atm1%qx(jci1,i,k,n)
                 windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
                 if ( windavg > d_zero ) then
@@ -2437,7 +2347,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = atm1%qx(jci2,i,k,n)
                 windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
                 if ( windavg < d_zero ) then
@@ -2457,7 +2367,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = atm1%qx(j,ici1,k,n)
                 windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
                 if ( windavg > d_zero ) then
@@ -2477,7 +2387,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = atm1%qx(j,ici2,k,n)
                 windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
                 if ( windavg < d_zero ) then
@@ -2495,7 +2405,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
                 qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
                 atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
@@ -2511,7 +2421,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do i = ice1 , ice2
+              do i = ici1 , ici2
                 qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
                 qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
                 atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
@@ -2527,7 +2437,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
                 qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
                 atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
@@ -2543,7 +2453,7 @@ module mod_bdycod
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
             do k = 1 , kz
-              do j = jci1 , jci2
+              do j = jce1 , jce2
                 qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
                 qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
                 atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat

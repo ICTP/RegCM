@@ -177,8 +177,7 @@ program terrain
   else if ( idynamic == 3 ) then
     dz = model_dz(kz)
     zita(kzp1) = 0.0_rkx
-    zita(1) = mo_ztop
-    do k = kz , 2 , -1
+    do k = kz , 1 , -1
       zita(k) = zita(k+1) + dz
     end do
     sigma = 1.0_rkx - zita/mo_ztop

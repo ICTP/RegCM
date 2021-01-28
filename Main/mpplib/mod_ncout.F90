@@ -1495,7 +1495,7 @@ module mod_ncout
         vsize%k2 = num_soil_layers
         v3dvar_srf(srf_smw)%axis = 'xys'
         if ( enable_srf3d_vars(srf_smw) ) then
-          call setup_var(v3dvar_srf,srf_smw,vsize,'mrso','kg m-2', &
+          call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
             'Moisture Content of the Soil Layers', &
             'moisture_content_of_soil_layer',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
@@ -1791,9 +1791,9 @@ module mod_ncout
         vsize%k2 = num_soil_layers
         v3dvar_sub(sub_smw)%axis = 'xys'
         if ( enable_sub3d_vars(sub_smw) ) then
-          call setup_var(v3dvar_sub,sub_smw,vsize,'mrso','kg m-2', &
-            'Soil moisture content','moisture_content_of_soil_layer', &
-            .true.,l_fill=.true.)
+          call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
+            'Moisture Content of the Soil Layers', &
+            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
           sub_smw_out => v3dvar_sub(sub_smw)%rval
         end if
 
