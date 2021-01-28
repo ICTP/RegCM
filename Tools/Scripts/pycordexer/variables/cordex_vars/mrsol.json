@@ -27,7 +27,7 @@
         "SaveVariableToDisk",
         {
           "var_name": "mrsol",
-          "fill_value": "0.0",
+          "fill_value": "1.0e20",
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "moisture_content_of_soil_layer",
@@ -46,7 +46,7 @@
         "SaveVariableToDisk",
         {
           "var_name": "mrsol",
-          "fill_value": "0.0",
+          "fill_value": "1.0e20",
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "moisture_content_of_soil_layer",
