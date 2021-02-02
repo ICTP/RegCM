@@ -1896,7 +1896,7 @@ module mod_tendency
       ! compute weighted p*t (td) for use in ssi:
       !
       if ( ipgf == 1 ) then
-        do k = - 1 , kz
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
