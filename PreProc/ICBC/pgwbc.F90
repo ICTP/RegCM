@@ -56,7 +56,6 @@ program pgwbc
 
   integer(ik4) :: nnn
   type(rcm_time_and_date) :: idate , iodate
-  type(rcm_time_interval) :: tdiff , tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname, infilename
@@ -123,9 +122,7 @@ program pgwbc
     call pjd%initialize(pjpara)
   end if
 
-  tdiff = globidate2-globidate1
-  tbdy = rcm_time_interval(ibdyfrq,uhrs)
-  nsteps = nint(tohours(tdiff))/ibdyfrq + 1
+  nsteps = imondiff(monfirst(globidate2),monfirst(globidate1)) + 1
 
   write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
   write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
@@ -135,16 +132,13 @@ program pgwbc
   iodate = idate
 
   call init_pgw(infilename)
-  call newfile(idate)
 
   do nnn = 1 , nsteps
-    if (.not. lsamemonth(idate, iodate) ) then
-      call newfile(monfirst(idate))
-    end if
+    call newfile(monfirst(idate),'PGWBC')
     call get_pgw(idate)
     call writef(idate)
     iodate = idate
-    idate = idate + tbdy
+    idate = nextmon(idate)
   end do
 
   call close_output

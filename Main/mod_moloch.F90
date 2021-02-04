@@ -1338,7 +1338,7 @@ module mod_moloch
 
       subroutine physical_parametrizations
         implicit none
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , n
         logical :: loutrad , labsem
 
         if ( any(icup > 0) ) then
@@ -1495,29 +1495,34 @@ module mod_moloch
         !
         ! Update status
         !
-        t(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:) + dtsec * &
-                       mo_atm%tten(jci1:jci2,ici1:ici2,:)
-        u(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:) + dtsec * &
-                       mo_atm%uten(jdi1:jdi2,ici1:ici2,:)
-        v(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:) + dtsec * &
-                       mo_atm%vten(jci1:jci2,idi1:idi2,:)
-        qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
-                       mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
-        qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst) = &
-                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),d_zero)
-        qx(jci1:jci2,ici1:ici2,:,iqv) = &
-                       max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
+        end do
+        do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          u(j,i,k) = u(j,i,k) + dtsec * mo_atm%uten(j,i,k)
+        end do
+        do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
+        end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          qx(j,i,k,iqv) = qx(j,i,k,iqv) + dtsec * mo_atm%qxten(j,i,k,iqv)
+          qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
+        end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
+                        k = 1:kz , n = iqfrst:iqlst )
+          qx(j,i,k,n) = qx(j,i,k,n) + dtsec * mo_atm%qxten(j,i,k,n)
+          qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+        end do
         if ( ibltyp == 2 ) then
-          tke(jci1:jci2,ici1:ici2,:) = tke(jci1:jci2,ici1:ici2,:) + dtsec * &
-                       mo_atm%tketen(jci1:jci2,ici1:ici2,:)
-          tke(jci1:jci2,ici1:ici2,:) = max(tke(jci1:jci2,ici1:ici2,:),tkemin)
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+            tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
+          end do
         end if
         if ( ichem == 1 ) then
-          trac(jci1:jci2,ici1:ici2,:,:) = &
-                     trac(jci1:jci2,ici1:ici2,:,:) + dtsec * &
-                     mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
-          trac(jci1:jci2,ici1:ici2,:,:) = &
-                       max(trac(jci1:jci2,ici1:ici2,:,:),d_zero)
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+            trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
+            trac(j,i,k,n) = max(trac(j,i,k,n),d_zero)
+          end do
         end if
       end subroutine physical_parametrizations
 

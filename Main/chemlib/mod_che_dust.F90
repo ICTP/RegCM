@@ -232,11 +232,10 @@ module mod_che_dust
     !
     subroutine inidust
       implicit none
-      real(rkx) , dimension(nats) :: bcly , bsnd
+      real(rkx) , dimension(nats) :: bcly
       ! real(rkx) , dimension(nats) :: bslt
       real(rkx) :: deldp , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr , ndi
-      real(rkx) , dimension(mode,nats) :: mmdd , pcentd , sigmad
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rkx) , dimension(nsoil) :: ss
       real(rkx) , dimension(:) , allocatable :: di
@@ -702,9 +701,8 @@ module mod_che_dust
       real(rkx) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
 
-      real(rkx) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(rkx) :: arc1 , arc2 , cly1 , cly2 , tempd , &
-          ustarns , uth , utmin , ustarfw
+      real(rkx) , dimension(ilg) :: hc , rc , srl , wprim
+      real(rkx) :: cly1 , cly2 , tempd , ustarns , uth , utmin
       integer(ik4) :: j,n
       real(rkx) , dimension(ilg) :: ustar
       real(rkx) , dimension(ilg,nsoil) :: utheff

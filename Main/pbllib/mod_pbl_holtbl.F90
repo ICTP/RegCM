@@ -131,7 +131,7 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rkx) :: drgdot , kzmax , oblen , ri , sf , sh10 , &
+    real(rkx) :: drgdot , kzmax , oblen , ri , sh10 , &
                  ss , uflxsf , uflxsfx , vflxsf , vflxsfx
     integer(ik4) :: i , j , k , nn , itr , iter
 #ifdef DEBUG

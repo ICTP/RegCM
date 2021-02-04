@@ -255,6 +255,10 @@ module mod_write
       v2dvar_icbc(8)%long_name = 'Latitude on Dot Points'
       v2dvar_icbc(8)%standard_name = 'latitude'
     end if
+    if ( idynamic == 2 ) then
+      call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
+      call crs2dot(topod,topogm,jx,iy,i_band,i_crm)
+    end if
   end subroutine init_output
 
   subroutine close_output
@@ -302,69 +306,77 @@ module mod_write
     end do
   end subroutine newhfile
 
-  subroutine newfile(idate1)
+  subroutine newfile(idate1,ftype)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
+    character(len=*) :: ftype
 
     type(ncoutstream_params) :: opar
     integer(ik4) :: ivar , i3i
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
-    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
-      trim(domname), '_ICBC.', trim(tochar10(idate1)), '.nc'
+    write (ofname,'(a,a,a,a,a,a,a,a)') trim(dirglob), pthsep, &
+      trim(domname), '_', ftype, '.', trim(tochar10(idate1)), '.nc'
+
+    if ( ftype == 'PGWBC' ) then
+      opar%pname = 'PGWBC'
+    else
+      opar%pname = 'icbc'
+    end if
+
     opar%fname = ofname
-    opar%pname = 'icbc'
     opar%zero_date = idate1
     opar%l_bound = .true.
     call outstream_setup(ncout,opar)
-    call outstream_addatt(ncout,ncattribute_string('global_atm_source',dattyp))
-    v2dvar_icbc(1)%rval => xlon
-    v2dvar_icbc(2)%rval => xlat
-    v2dvar_icbc(3)%rval => mask
-    v2dvar_icbc(4)%rval => topogm
-    v2dvar_icbc(5)%rval => ps4
-    v2dvar_icbc(6)%rval => ts4
-    v3dvar_icbc(1)%rval => t4
-    v3dvar_icbc(2)%rval => q4
-    v3dvar_icbc(3)%rval => u4
-    v3dvar_icbc(4)%rval => v4
-    if ( dattyp == 'FNEST' ) then
-      v3dvar_icbc(5)%rval => qc4
-      v3dvar_icbc(6)%rval => qi4
-      i3i = 7
+
+    if ( ftype == 'PGWBC' ) then
     else
-      i3i = 5
-    end if
-    if ( idynamic == 2 ) then
-      v2dvar_icbc(9)%rval => wtop4
-      v3dvar_icbc(i3i)%rval => ww4
-      v3dvar_icbc(i3i+1)%rval => pp4
-    end if
-    if ( idynamic == 3 ) then
-      v2dvar_icbc(7)%rval => ulon
-      v2dvar_icbc(8)%rval => ulat
-      v2dvar_icbc(9)%rval => vlon
-      v2dvar_icbc(10)%rval => vlat
-    else
-      v2dvar_icbc(7)%rval => dlon
-      v2dvar_icbc(8)%rval => dlat
-    end if
-    do ivar = 1 , nvar2d
-      call outstream_addvar(ncout,v2dvar_icbc(ivar))
-    end do
-    do ivar = 1 , nvar3d
-      call outstream_addvar(ncout,v3dvar_icbc(ivar))
-    end do
-    call outstream_enable(ncout,sigmah)
-    do ivar = 1 , nvar2d
-      if ( .not. v2dvar_icbc(ivar)%lrecords ) then
-        call outstream_writevar(ncout,v2dvar_icbc(ivar))
+      call outstream_addatt(ncout, &
+                   ncattribute_string('global_atm_source',dattyp))
+      v2dvar_icbc(1)%rval => xlon
+      v2dvar_icbc(2)%rval => xlat
+      v2dvar_icbc(3)%rval => mask
+      v2dvar_icbc(4)%rval => topogm
+      v2dvar_icbc(5)%rval => ps4
+      v2dvar_icbc(6)%rval => ts4
+      v3dvar_icbc(1)%rval => t4
+      v3dvar_icbc(2)%rval => q4
+      v3dvar_icbc(3)%rval => u4
+      v3dvar_icbc(4)%rval => v4
+      if ( dattyp == 'FNEST' ) then
+        v3dvar_icbc(5)%rval => qc4
+        v3dvar_icbc(6)%rval => qi4
+        i3i = 7
+      else
+        i3i = 5
       end if
-    end do
-    if ( idynamic == 2 ) then
-      call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
-      call crs2dot(topod,topogm,jx,iy,i_band,i_crm)
+      if ( idynamic == 2 ) then
+        v2dvar_icbc(9)%rval => wtop4
+        v3dvar_icbc(i3i)%rval => ww4
+        v3dvar_icbc(i3i+1)%rval => pp4
+      end if
+      if ( idynamic == 3 ) then
+        v2dvar_icbc(7)%rval => ulon
+        v2dvar_icbc(8)%rval => ulat
+        v2dvar_icbc(9)%rval => vlon
+        v2dvar_icbc(10)%rval => vlat
+      else
+        v2dvar_icbc(7)%rval => dlon
+        v2dvar_icbc(8)%rval => dlat
+      end if
+      do ivar = 1 , nvar2d
+        call outstream_addvar(ncout,v2dvar_icbc(ivar))
+      end do
+      do ivar = 1 , nvar3d
+        call outstream_addvar(ncout,v3dvar_icbc(ivar))
+      end do
+      call outstream_enable(ncout,sigmah)
+      do ivar = 1 , nvar2d
+        if ( .not. v2dvar_icbc(ivar)%lrecords ) then
+          call outstream_writevar(ncout,v2dvar_icbc(ivar))
+        end if
+      end do
     end if
   end subroutine newfile
 
