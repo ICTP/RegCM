@@ -1441,7 +1441,8 @@ module mod_vertint
             tvb = tp(i,j,1)
             dz = zb - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rkx
             psrcm(i,j) = pb * exp(govr*dz/tlayer)
@@ -1482,7 +1483,8 @@ module mod_vertint
             tvb = tp(i,j,nz)
             dz = za - zrcm(i,j)
             lrt = (tva-tvb)/(za-zb)
-            lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             tlayer = tvb - dz*lrt
             tlayer = (tvb + tlayer) * 0.5_rkx
             psrcm(i,j) = pb * exp(govr*dz/tlayer)
@@ -1550,7 +1552,8 @@ module mod_vertint
             za = zp(i,j,1)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
-            lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
           end if
           psrcm(i,j) = pa * exp(-govr*dz/tlayer)
@@ -1581,7 +1584,8 @@ module mod_vertint
             za = zp(i,j,nz)
             dz = zrcm(i,j)-za
             lrt = (tp(i,j,nz-1)-tp(i,j,nz))/(zp(i,j,nz-1)-zp(i,j,nz))
-            lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
+            lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
             tlayer = tp(i,j,nz) - 0.5_rkx*dz*lrt
           end if
           psrcm(i,j) = pa * exp(-govr*dz/tlayer)

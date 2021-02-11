@@ -188,8 +188,8 @@ module mod_dynparam
 
   real(rkx) :: mo_ztop = 30000.0_rkx
   real(rkx) :: mo_a0 = 0.0_rkx
-  real(rkx) :: mo_b0 = 0.1_rkx
-  real(rkx) :: mo_mfac = 0.80_rkx
+  real(rkx) :: mo_b0 = 0.0_rkx
+  real(rkx) :: mo_mfac = 1.0_rkx
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
