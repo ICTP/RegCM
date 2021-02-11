@@ -616,7 +616,7 @@ module mod_clm_cninitimevar
     ! to set this properly (e.g., pft-level displacement height and roughness
     ! length). So leave at 30m.
     do p = begp, endp
-      forc_hgt_u_pft(p) = 30._rk8
+      forc_hgt_u_pft(p) = 35._rk8
     end do
 
     ! initialize column-level variables

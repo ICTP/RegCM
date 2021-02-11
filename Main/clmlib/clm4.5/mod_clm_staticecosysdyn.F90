@@ -213,20 +213,30 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: kmo   ! month (1, ..., 12)
     integer(ik4) :: kda   ! day of month (1, ..., 31)
     integer(ik4) :: ksec  ! seconds into current date for nstep+1
-    real(rk8) :: t        ! a fraction: kda/ndaypm
-    integer(ik4) , dimension(2) :: it     ! month 1 and month 2 (step 1)
+    integer(ik4) :: yr1 , yr2
+    real(rk8) :: t , rs , f1 , f2
     integer(ik4) , dimension(2) :: months ! months to be interpolated (1 to 12)
 
     call curr_date(nextdate,kyr,kmo,kda,ksec)
-    t = (kda-0.5_rk8) / ndaypm(kyr,kmo,nextdate%calendar)
-    it(1) = int(t + 0.5_rk8)
-    it(2) = it(1) + 1
-    months(1) = kmo + it(1) - 1
-    months(2) = kmo + it(2) - 1
-    if (months(1) <  1) months(1) = 12
-    if (months(2) > 12) months(2) = 1
-    timwt(1) = (it(1)+0.5_rk8) - t
-    timwt(2) = 1._rk8-timwt(1)
+    t = real((kda-1)*86400+ksec,rk8) / &
+                real(86400*ndaypm(kyr,kmo,nextdate%calendar),rk8)
+    if ( t > 0.5_rk8 ) then
+      months(1) = kmo
+      months(2) = kmo + 1
+    else
+      months(1) = kmo - 1
+      months(2) = kmo
+    end if
+    yr1 = kyr
+    yr2 = kyr
+    if ( months(1) < 1 ) then
+      months(1) = 12
+      yr1 = yr1 - 1
+    end if
+    if ( months(2) > 12 ) then
+      months(2) = 1
+      yr2 = yr2 + 1
+    end if
     if ( InterpMonths1 /= months(1) ) then
       if (myid == italk) then
         write(stdout,*) 'Attempting to read monthly vegetation data .....'
@@ -237,6 +247,15 @@ module mod_clm_staticecosysdyn
       call readMonthlyVegetation (fsurdat, months)
       InterpMonths1 = months(1)
     end if
+    f1 = (ndaypm(yr1,months(1),nextdate%calendar)*0.5_rk8)*86400.0_rk8
+    f2 = (ndaypm(yr2,months(2),nextdate%calendar)*0.5_rk8)*86400.0_rk8
+    rs = (f1+f2)
+    if ( t > 0.5_rk8 ) then
+      timwt(2) = (real((kda-1)*86400+ksec,rk8) - f2)/rs
+    else
+      timwt(2) = (real((kda-1)*86400+ksec,rk8) + f1)/rs
+    end if
+    timwt(1) = 1._rk8-timwt(2)
   end subroutine interpMonthlyVeg
   !
   !-----------------------------------------------------------------------

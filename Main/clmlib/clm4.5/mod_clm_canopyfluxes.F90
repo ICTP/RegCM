@@ -965,7 +965,7 @@ module mod_clm_canopyfluxes
      zldis(p) = forc_hgt_u_pft(p) - displa(p)
 
      ! Check to see if the forcing height is below the canopy height
-     if (zldis(p) < 0._rk8) then
+     if (zldis(p) < 0.0_rk8) then
        found = .true.
        index = p
        write(stderr,*) 'At pft index ', p

@@ -80,11 +80,6 @@ module mod_lm_interface
   public :: t_finalizef
 #endif
 
-#ifdef CLM45
-  real(rkx) , pointer , dimension(:,:) :: patm , tatm , uatm , vatm , &
-    thatm , qvatm , zatm
-#endif
-
   real(rkx) , pointer , dimension(:,:) :: slp , sfp , slp1
 
   type(lm_exchange) :: lm
@@ -156,13 +151,6 @@ module mod_lm_interface
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
-    call getmem2d(patm,jce1,jce2,ice1,ice2,'lm:patm')
-    call getmem2d(tatm,jce1,jce2,ice1,ice2,'lm:tatm')
-    call getmem2d(uatm,jce1,jce2,ice1,ice2,'lm:uatm')
-    call getmem2d(vatm,jce1,jce2,ice1,ice2,'lm:vatm')
-    call getmem2d(thatm,jce1,jce2,ice1,ice2,'lm:thatm')
-    call getmem2d(qvatm,jce1,jce2,ice1,ice2,'lm:qvatm')
-    call getmem2d(zatm,jce1,jce2,ice1,ice2,'lm:zatm')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
@@ -317,15 +305,6 @@ module mod_lm_interface
     call assignpnt(mdsub%itex,lm%itex1)
     call assignpnt(mdsub%dhlake,lm%dhlake1)
     call assignpnt(cplmsk,lm%icplmsk)
-#ifdef CLM45
-    call assignpnt(uatm,lm%uatm)
-    call assignpnt(vatm,lm%vatm)
-    call assignpnt(thatm,lm%thatm)
-    call assignpnt(tatm,lm%tatm)
-    call assignpnt(patm,lm%patm)
-    call assignpnt(qvatm,lm%qvatm)
-    call assignpnt(zatm,lm%hgt)
-#else
     call assignpnt(atms%ubx3d,lm%uatm,kz)
     call assignpnt(atms%vbx3d,lm%vatm,kz)
     call assignpnt(atms%th3d,lm%thatm,kz)
@@ -333,7 +312,6 @@ module mod_lm_interface
     call assignpnt(atms%pb3d,lm%patm,kz)
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
     call assignpnt(atms%za,lm%hgt,kz)
-#endif
     call assignpnt(atms%rhox2d,lm%rhox)
     call assignpnt(atms%ps2d,lm%sfps)
     call assignpnt(atms%tp2d,lm%sfta)
@@ -462,33 +440,6 @@ module mod_lm_interface
     call mtrxclm(lm,lms)
 #else
 #ifdef CLM45
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        zatm(j,i) = atms%za(j,i,kz)
-        patm(j,i) = atms%pb3d(j,i,kz)
-        tatm(j,i) = atms%tb3d(j,i,kz)
-        thatm(j,i) = atms%th3d(j,i,kz)
-        uatm(j,i) = atms%ubx3d(j,i,kz)
-        vatm(j,i) = atms%vbx3d(j,i,kz)
-        qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)
-        if ( zatm(j,i) < 35.0 ) then
-          zatm(j,i) = 35.0_rkx
-          dz = zatm(j,i) - atms%za(j,i,kz)
-          tm = d_half*(atms%tb3d(j,i,kz)+atms%tb3d(j,i,kzm1))
-          dlnp = ((egrav*dz)/(rgas*tm))
-          z1 = atms%za(j,i,kz)
-          z2 = atms%za(j,i,kzm1)
-          w1 = (z2-35.0_rkx)/(z2-z1)
-          w2 = d_one - w1
-          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kzm1)*w2
-          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kzm1)*w2
-          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kzm1)*w2
-          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kzm1)*w2
-          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kzm1,iqv)*w2
-          patm(j,i) = atms%pb3d(j,i,kz)*exp(-dlnp)
-        end if
-      end do
-    end do
     call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then

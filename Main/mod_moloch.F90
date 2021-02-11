@@ -416,7 +416,8 @@ module mod_moloch
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
+        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         tv = tvirt(j,i,kz) - d_half*zeta(j,i,kz)*lrt
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
