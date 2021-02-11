@@ -22,6 +22,7 @@
           "new_attributes": {
             "long_name": "TOA Outgoing Shortwave Radiation",
             "standard_name": "toa_outgoing_shortwave_flux",
+            "cell_methods" : "time: mean",
             "units": "W m-2"
           }
         }
