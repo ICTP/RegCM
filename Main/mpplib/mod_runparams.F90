@@ -115,6 +115,8 @@ module mod_runparams
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !
+  ! Run with idealized conditions
+  integer(ik4) , public :: irceideal
   ! Cumulus scheme index
   integer(ik4) , public :: icup_lnd
   integer(ik4) , public :: icup_ocn

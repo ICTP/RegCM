@@ -55,4 +55,4 @@ mod_cu_kf.o : mod_cu_kf.F90 mod_constants.o mod_cu_common.o mod_intkinds.o mod_m
 mod_cu_kuo.o : mod_cu_kuo.F90 mod_cu_common.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_constants.o
 mod_cu_shallow.o : mod_cu_shallow.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_dynparam.o mod_cu_common.o mod_dynparam.o mod_runparams.o mod_regcm_types.o
 mod_cu_tables.o : mod_cu_tables.F90 mod_constants.o mod_intkinds.o mod_realkinds.o
-mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_constants.o mod_cu_common.o mod_cu_tables.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
+mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_constants.o mod_cu_common.o mod_cu_tables.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_mppparam.o

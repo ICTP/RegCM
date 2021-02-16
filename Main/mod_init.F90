@@ -88,6 +88,9 @@ module mod_init
     ! For an initial run -- not a restart
     !
     if ( .not. ifrest ) then
+      if ( irceideal == 1 ) then
+        call initideal( )
+      end if
       !
       ! Initialize model atmospheric status variables
       ! Data are from the ICBC input at first timestep.

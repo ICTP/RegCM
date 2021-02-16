@@ -91,8 +91,8 @@ module mod_params
 
     namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
       iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
-      srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout , uvrotate ,   &
-      enable_atm_vars , enable_srf_vars , enable_rad_vars ,               &
+      srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout ,       &
+      uvrotate , enable_atm_vars , enable_srf_vars , enable_rad_vars ,    &
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
       lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
@@ -105,7 +105,7 @@ module mod_params
       idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
       iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
       temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , year_offset
+      fixedsolarval , irceideal , year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -279,6 +279,7 @@ module mod_params
     year_offset = 0
     ifixsolar = 0
     fixedsolarval = 343.0_rkx
+    irceideal = 0
     icumcloud = 1
     temp_tend_maxval = 5.0_rkx*(dt/secpm)
     wind_tend_maxval = 5.0_rkx*(dt/secpm)
@@ -484,7 +485,7 @@ module mod_params
     ! Original settings from Travis O'Brian
     !
     iuwvadv = 0
-    atwo  = 15.0_rkx
+    atwo  = 10.0_rkx
     rstbl = 1.5_rkx
     czero = 5.869_rkx
     nuk   = 5.0_rkx
@@ -1242,7 +1243,7 @@ module mod_params
       ifchem = .false.
       if (iclimaaer == 0) ifopt = .false.
     end if
-    
+
     !
     ! Force the correct scenario from dattyp in CMIP5
     !
@@ -1296,6 +1297,17 @@ module mod_params
     call bcast(isolconst)
     call bcast(ifixsolar)
     call bcast(fixedsolarval)
+    call bcast(irceideal)
+    if ( irceideal == 1 ) then
+      if ( i_band /= 1 ) then
+        call fatal(__FILE__,__LINE__, &
+          'irceideal can run only if i_band has been set to 1')
+      end if
+      if ( i_crm /= 1 ) then
+        call fatal(__FILE__,__LINE__, &
+          'irceideal can run only if i_crm has been set to 1')
+      end if
+    end if
     call bcast(year_offset)
     call bcast(icumcloud)
     call bcast(islab_ocean)
@@ -1403,7 +1415,6 @@ module mod_params
         inflgsw = 0
       end if
     end if
-
 
     if ( any(icup == 2) ) then
       call bcast(igcc)
@@ -1751,12 +1762,50 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
-                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
-                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
-                          mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
-                          mddom%coriol,mddom%snowam,mddom%smoist,        &
-                          mddom%rmoist,mddom%dhlake,base_state_ts0)
+    if ( irceideal == 1 ) then
+      mddom%ht = 0.0_rkx
+      mddom%lndcat = 15.0_rkx
+      mddom%lndtex = 14.0_rkx
+      mddom%mask = 0.0_rkx
+      mddom%msfx = 1.0_rkx
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          mddom%xlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i)
+          mddom%xlon(j,i) = clon - ds * (real(jx,rkx)*d_half - j)
+          mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
+        end do
+      end do
+      if ( idynamic == 3 ) then
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            mddom%ulat(j,i) = mddom%xlat(j,i)
+            mddom%ulon(j,i) = clon - ds * (real(jx,rkx)*d_half - j + 1)
+            mddom%vlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i + 1)
+            mddom%vlon(j,i) = mddom%xlon(j,i)
+          end do
+        end do
+        mddom%msfu = 1.0_rkx
+        mddom%msfv = 1.0_rkx
+      else
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            mddom%dlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i + 1)
+            mddom%dlon(j,i) = clon - ds * (real(jx,rkx)*d_half - j + 1)
+          end do
+        end do
+        mddom%msfd = 1.0_rkx
+      end if
+      if ( idynamic == 2 ) then
+        base_state_ts0 = 288.15_rkx
+      end if
+    else
+      call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
+                            mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
+                            mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
+                            mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
+                            mddom%coriol,mddom%snowam,mddom%smoist,        &
+                            mddom%rmoist,mddom%dhlake,base_state_ts0)
+    end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
       mo_filterpai = .false.
@@ -1969,6 +2018,10 @@ module mod_params
     end if
 
     if ( nsg > 1 ) then
+      if ( irceideal == 1 ) then
+        call fatal(__FILE__,__LINE__, &
+          'The idealized cases can run only with nsg == 1')
+      end if
       call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
                mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav

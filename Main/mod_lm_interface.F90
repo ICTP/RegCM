@@ -627,7 +627,7 @@ module mod_lm_interface
           end if
         end do
       end do
-      runoffcount = d_zero
+      runoffcount = d_one
       lm%dailyrnf(:,:,:) = d_zero
     end if
 

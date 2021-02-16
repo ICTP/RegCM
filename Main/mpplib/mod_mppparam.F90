@@ -76,7 +76,7 @@ module mod_mppparam
     character(len=64) :: varname
     integer(ik4) :: irec = -1
     integer(ik4) :: ncid = -1
-    integer(ik4) :: varid = 1
+    integer(ik4) :: varid = -1
     integer(ik4) :: nx = 0
     integer(ik4) :: ny = 0
     integer(ik4) :: mynx1 = 0
@@ -91,7 +91,7 @@ module mod_mppparam
     character(len=64) :: varname
     integer(ik4) :: irec = -1
     integer(ik4) :: ncid = -1
-    integer(ik4) :: varid = 1
+    integer(ik4) :: varid = -1
     integer(ik4) :: nx = 0
     integer(ik4) :: ny = 0
     integer(ik4) :: mynx1 = 0
@@ -107,7 +107,7 @@ module mod_mppparam
     character(len=64) :: varname
     integer(ik4) :: irec = -1
     integer(ik4) :: ncid = -1
-    integer(ik4) :: varid = 1
+    integer(ik4) :: varid = -1
     integer(ik4) :: nx = 0
     integer(ik4) :: ny = 0
     integer(ik4) :: mynx1 = 0
@@ -492,11 +492,13 @@ module mod_mppparam
   interface maxall
     module procedure maxall_real8
     module procedure maxall_real4
+    module procedure maxall_integer4
   end interface maxall
 
   interface minall
     module procedure minall_real8
     module procedure minall_real4
+    module procedure minall_integer4
   end interface minall
 
   interface meanall
@@ -829,6 +831,16 @@ module mod_mppparam
     end if
   end subroutine maxall_real4
 
+  subroutine maxall_integer4(rlval,rtval)
+    implicit none
+    integer(ik4) , intent(in) :: rlval
+    integer(ik4) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_max,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine maxall_integer4
+
   subroutine meanall_real8(rlval,rtval)
     implicit none
     real(rk8) , intent(in) :: rlval
@@ -870,6 +882,16 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine minall_real4
+
+  subroutine minall_integer4(rlval,rtval)
+    implicit none
+    integer(ik4) , intent(in) :: rlval
+    integer(ik4) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_min,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine minall_integer4
 
   subroutine sumall_int4(ilval,itval)
     implicit none
@@ -13574,14 +13596,16 @@ module mod_mppparam
     if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+          u(jdi2,i,k) = 1.03125_rkx * ux(jci2,i,k) - &
+                        0.03125_rkx * ux(jcii2,i,k)
         end do
       end do
     end if
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
+          u(jdi1,i,k) = 1.03125_rkx * ux(jci1,i,k) - &
+                        0.03125_rkx * ux(jcii1,i,k)
         end do
       end do
     end if
@@ -13598,19 +13622,20 @@ module mod_mppparam
     if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+          v(j,idi2,k) = 1.03125_rkx * vx(j,ici2,k) - &
+                        0.03125_rkx * vx(j,icii2,k)
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
+          v(j,idi1,k) = 1.03125_rkx * vx(j,ici1,k) - &
+                        0.03125_rkx * vx(j,icii1,k)
         end do
       end do
     end if
   end subroutine tenxtouvten
-
   !
   ! Takes u and v tendencies on the cross grid (as t, qv, qc, etc.)
   ! and interpolates the u and v to the dot grid.

@@ -44,6 +44,7 @@ module mod_bdycod
 
   private
 
+  public :: initideal
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
   public :: sponge , nudge , setup_bdycon , raydamp
   public :: is_present_qc , is_present_qi
@@ -120,6 +121,78 @@ module mod_bdycod
   logical :: present_qi = .false.
 
   contains
+
+  subroutine initideal
+    implicit none
+    integer(ik4) :: iunit , ierr
+    integer(ik4) :: k , nlev
+    real(rkx) :: ps , ts
+    real(rkx) , allocatable , dimension(:) :: z , p , t , u , v , q
+
+    namelist /dimensions/ nlev
+    namelist /surface/ ps , ts
+    namelist /profile/ z , p , t , u , v , q
+
+    open(newunit=iunit, file='profile.in', status='old', &
+         action='read', iostat=ierr, err=100)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Open error for profile.in')
+    end if
+
+    read(iunit, nml=dimensions, iostat=ierr, err=200)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Read error for namelist dimensions in profile.in')
+    end if
+    rewind(iunit)
+
+    allocate(z(nlev),p(nlev),t(nlev),u(nlev),v(nlev),q(nlev))
+
+    read(iunit, nml=surface, iostat=ierr, err=300)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Read error for namelist surface in profile.in')
+    end if
+    rewind(iunit)
+
+    read(iunit, nml=profile, iostat=ierr, err=400)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Read error for namelist profile in profile.in')
+    end if
+
+    close(iunit)
+
+    if ( myid == italk ) then
+      write(stdout,*) 'Successfully read in initial profile.'
+    end if
+
+    xpsb%b0 = ps
+    xtsb%b0 = ts
+    if ( idynamic == 1 ) then
+      ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+    else if ( idynamic == 2 ) then
+      ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+      xppb%b0 = 0.0_rkx
+      xwwb%b0 = 0.0_rkx
+    else if ( idynamic == 3 ) then
+      ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+    else
+      call fatal(__FILE__,__LINE__, &
+        'Should beve get here....')
+    end if
+
+    deallocate(z,p,t,u,v,q)
+    return
+
+100 call fatal(__FILE__,__LINE__, 'Error opening namelist file  profile.in')
+200 call fatal(__FILE__,__LINE__, 'Error reading namelist dimensions')
+300 call fatal(__FILE__,__LINE__, 'Error reading namelist surface')
+400 call fatal(__FILE__,__LINE__, 'Error reading namelist profile')
+
+  end subroutine initideal
 
   logical function is_present_qc( )
     implicit none

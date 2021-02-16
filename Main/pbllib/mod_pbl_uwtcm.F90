@@ -147,12 +147,11 @@ module mod_pbl_uwtcm
     ! real(rkx) :: kh0
     real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
-    integer(ik4) :: ktr      ! Tropopause
     real(rkx) , dimension(kzp2) :: zqx
-    real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rrhoxfl , tke , &
-               tkes , bbls , nsquar , presfl , exnerfl , rexnerfl ,     &
-               rcldb ! , richnum , epop
-    real(rkx) , dimension(kz) :: shear , buoyan , rdza ! , svs
+    real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
+               tkes , bbls , nsquar , presfl , exnerfl , rexnerfl
+               ! , richnum , epop
+    real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
     real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , kethl , &
                thlx , thlxs , thxs , tx , tvx , rttenx , preshl , qcx ,     &
                qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
@@ -188,16 +187,7 @@ module mod_pbl_uwtcm
         tskx = m2p%tg(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
-        ktr = max(2,m2p%ktrop(j,i))
         uvdragx = m2p%uvdrag(j,i)
-
-        ktr = 2
-        do k = 3 , kz
-          if ( m2p%patmf(j,i,k) > 60000.0_rkx ) then
-            ktr = k
-            exit
-          end if
-        end do
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -290,13 +280,14 @@ module mod_pbl_uwtcm
 
         rdza(1) = d_zero
         rhoxfl(1) = rhoxhl(1)
-        rrhoxfl(1) = d_one/rhoxfl(1)
         do k = 2 , kz
           ! Level spacing
           rdza(k) = d_one/(zax(k-1)-zax(k))
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
           rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
+        end do
+        do k = 1 , kz
           rrhoxfl(k) = d_one/rhoxfl(k)
         end do
 
@@ -623,6 +614,7 @@ module mod_pbl_uwtcm
         end do radib
         ! tke at top is fixed
         tke(1) = d_zero
+        bbls(1)= d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
         tke(kzp1) = max(tkefac*ustxsq,uwtkemin) ! normal
 
@@ -897,14 +889,12 @@ module mod_pbl_uwtcm
             ! kthmax = 1.0e4_rkx
             kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
                      max(bbls(k),bbls(k+1)))
-            kth(k) = min(kth(k),kthmax)
             ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
             ! Smoothly limit kth to a maximum value
             ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
             ! prandtl number from layer below
             ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
             kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
-            kzm(k) = min(kzm(k),kzmmax)
           end if
         end if
       end do conv
@@ -940,12 +930,12 @@ module mod_pbl_uwtcm
           if ( istabl == 1 ) then
             kpbconv = kpbconv + 1
             ktop(kpbconv) = k
-            istabl = 0
           end if
+          istabl = 0
           kbot(kpbconv) = k
         else
-          bbls(k) = min(rstbl*sqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
           istabl = 1
+          bbls(k) = min(rstbl*sqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
         end if
       end do
 
@@ -1028,7 +1018,7 @@ module mod_pbl_uwtcm
               kbot(ilay) = k
               if ( ilay < kpbconv .and. kbot(ilay) == ktop(ilay+1) ) then
                 ! did we merge with layer below?
-                ktop(ilay) = ktop(ilay)+1
+                ktop(ilay) = ktop_save(ilay)
                 kbot(ilay) = kbot(ilay+1)
                 kpbconv = kpbconv - 1
                 shiftarray2: &
@@ -1055,13 +1045,37 @@ module mod_pbl_uwtcm
             bbls(k) = min(blinf,vonkar*zqx(k))
           end do convkloop
         end do setbbls
-        ! we should now have tops and bottoms for kpbconv layers
-        kmix2dx = max(minval(ktop(1:kpbconv)),ktr)
+      end if
+      ! we should now have tops and bottoms for kpbconv layers
+      if ( kpbconv > 0 ) then
+        if ( kbot(kpbconv) == kzp1 ) then
+          kmix2dx = ktop(kpbconv)
+          if ( kpbl2dx >= 0 ) then
+            if ( kpbconv > 1 ) then
+              kpbl2dx = ktop(kpbconv-1)
+            else
+              kpbl2dx = kmix2dx
+            end if
+          else
+            kpbl2dx=-kpbl2dx
+          end if
+        else
+          kmix2dx = kz
+          if ( kpbl2dx >= 0 ) then
+            kpbl2dx = ktop(kpbconv)
+          else
+            kpbl2dx = -kpbl2dx
+          end if
+        end if
       else
         ! Lowermost layer
         kmix2dx = kz
+        if ( kpbl2dx >= 0 ) then
+          kpbl2dx = kpbl2dx
+        else
+          kpbl2dx = -kpbl2dx
+        end if
       end if
-      kpbl2dx = kmix2dx
       pblx = zqx(kmix2dx)
     end subroutine pblhgt
 

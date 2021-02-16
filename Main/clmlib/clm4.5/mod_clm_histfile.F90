@@ -2620,7 +2620,7 @@ module mod_clm_histfile
             long_name     =  tape(t)%hlist(f)%field%long_name(1:max_namlen)
             units         =  tape(t)%hlist(f)%field%units
             name_acc      =  trim(name) // "_acc"
-            units_acc     =  "unitless positive integer(ik4)"
+            units_acc     =  "unitless positive integer"
             long_name_acc =  trim(long_name) // " accumulator number of samples"
             type1d_out    =  tape(t)%hlist(f)%field%type1d_out
             type2d        =  tape(t)%hlist(f)%field%type2d

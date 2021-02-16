@@ -39,6 +39,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
   use mod_runparams , only : lmfpen , lmfmid , lmfdd , lepcld , lmfdudv , &
           lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
+  use mod_mppparam , only : meanall , minall , maxall
   use mod_regcm_types
 
   implicit none
@@ -96,7 +97,7 @@ module mod_cu_tiedtke
         pxlte , pverv , pmfu , xpg , xpgh
   real(rkx) , pointer , dimension(:) :: pmean
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
-  integer(ik4) :: nipoi , nmctop
+  integer(ik4) :: nipoi , nmctop , mintop , maxtop
   integer(ik4) , pointer , dimension(:) :: imap , jmap
 
   integer(ik4) :: nskmax
@@ -200,6 +201,7 @@ module mod_cu_tiedtke
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: uxten
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: vxten
     integer(ik4) :: i , j , k , n , ii , iplmlc
+    real(rkx) :: mymean
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -323,6 +325,7 @@ module mod_cu_tiedtke
             i = imap(ii)
             j = jmap(ii)
             pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+            pxite(ii,k) = m2c%qxten(j,i,k,iqi)
           end do
         end do
       else
@@ -330,6 +333,7 @@ module mod_cu_tiedtke
           do ii = 1 , nipoi
             i = imap(ii)
             j = jmap(ii)
+            pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
             pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
           end do
         end do
@@ -346,7 +350,8 @@ module mod_cu_tiedtke
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
       do k = 1 , kz
-        pmean(k) = hsigma(k) * (stdp-ptop*d_1000) + ptop*d_1000
+        mymean = sum(papp1(:,k))/real(nipoi,rkx)
+        call meanall(mymean,pmean(k))
       end do
       call setup(nskmax,pmean)
     else
@@ -378,7 +383,10 @@ module mod_cu_tiedtke
       end do
       nmctop = nmctop + iplmlc
     end do
-    nmctop = nmctop / nipoi
+    iplmlc = nmctop / nipoi
+    call minall(iplmlc,mintop)
+    call maxall(iplmlc,maxtop)
+    nmctop = (mintop+maxtop)/2
 
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux

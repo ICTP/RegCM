@@ -153,7 +153,7 @@ module mod_regcm_interface
     !
     ! Setup valid BC's
     !
-    call bdyval
+    if ( irceideal /= 1 ) call bdyval
     !
     ! Clean up and logging
     !
@@ -206,12 +206,12 @@ module mod_regcm_interface
           !
           ! Read in new boundary conditions
           !
-          call bdyin
+          if ( irceideal /= 1 ) call bdyin
         end if
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
-        call bdyval
+        if ( irceideal /= 1 ) call bdyval
       end if
       !
       ! Send information to the driver
