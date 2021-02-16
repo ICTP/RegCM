@@ -593,7 +593,7 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
+      FCFLAGS="-ftz -ip -O2 -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     NOOPTFC="$FCFLAGS"
