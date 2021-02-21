@@ -39,6 +39,7 @@ module mod_bdycod
   use mod_zita
   use mod_stdatm
   use mod_slabocean
+  use mod_vertint , only : intz1
 
   implicit none
 
@@ -128,6 +129,9 @@ module mod_bdycod
     integer(ik4) :: k , nlev
     real(rkx) :: ps , ts
     real(rkx) , allocatable , dimension(:) :: z , p , t , u , v , q
+    real(rkx) , allocatable , dimension(:) :: zi , pi , ti , ui , vi , qi
+    real(rkx) , dimension(1) :: ht
+    real(rkx) , dimension(jce1:jce2,ice1:ice2) :: tr
 
     namelist /dimensions/ nlev
     namelist /surface/ ps , ts
@@ -148,6 +152,7 @@ module mod_bdycod
     rewind(iunit)
 
     allocate(z(nlev),p(nlev),t(nlev),u(nlev),v(nlev),q(nlev))
+    allocate(zi(kz),pi(kz),ti(kz),ui(kz),vi(kz),qi(kz))
 
     read(iunit, nml=surface, iostat=ierr, err=300)
     if ( ierr /= 0 ) then
@@ -168,16 +173,57 @@ module mod_bdycod
       write(stdout,*) 'Successfully read in initial profile.'
     end if
 
-    xpsb%b0 = ps
-    xtsb%b0 = ts
+    call random_number(tr)
+    xtsb%b0(jce1:jce2,ice1:ice2) = tr + ts
     if ( idynamic == 1 ) then
+      xpsb%b0 = ps * 0.1_rkx
+      ht = 0.0
       ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+      pi = sigma*(ps-ptop*10.0_rkx) + (ptop*10.0_rkx)
+      call intz1(ui,u,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,q,pi,p,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      do k = 1 , kz
+        xub%b0(:,:,k) = ui(k)
+        xvb%b0(:,:,k) = vi(k)
+        xtb%b0(:,:,k) = ti(k)
+        xqb%b0(:,:,k) = qi(k)
+      end do
     else if ( idynamic == 2 ) then
       ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+      xpsb%b0 = ps * 0.1_rkx
+      ht = 0.0
+      zi = atm0%z(jci1,ici1,1:kz)
+      z = z * 1000.0_rkx
+      call intz1(ui,u,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,q,zi,z,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      do k = 1 , kz
+        xub%b0(:,:,k) = ui(k)
+        xvb%b0(:,:,k) = vi(k)
+        xtb%b0(:,:,k) = ti(k)
+        xqb%b0(:,:,k) = qi(k)
+      end do
       xppb%b0 = 0.0_rkx
       xwwb%b0 = 0.0_rkx
     else if ( idynamic == 3 ) then
       ! vertical interpolation for xub%b0,xvb%b0,xtb%b0,xqb%b0
+      xpsb%b0 = ps * 100.0_rkx
+      ht = 0.0
+      zi = mo_atm%zeta(jci1,ici1,1:kz)
+      z = z * 1000.0_rkx
+      call intz1(ui,u,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,q,zi,z,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      do k = 1 , kz
+        xub%b0(:,:,k) = ui(k)
+        xvb%b0(:,:,k) = vi(k)
+        xtb%b0(:,:,k) = ti(k)
+        xqb%b0(:,:,k) = qi(k)
+      end do
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     else
       call fatal(__FILE__,__LINE__, &
@@ -185,6 +231,7 @@ module mod_bdycod
     end if
 
     deallocate(z,p,t,u,v,q)
+    deallocate(zi,pi,ti,ui,vi,qi)
     return
 
 100 call fatal(__FILE__,__LINE__, 'Error opening namelist file  profile.in')

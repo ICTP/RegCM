@@ -105,7 +105,7 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
-      uv995 = sqrt(usw(i)**2+vsw(i)**2)
+      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       tsurf = tgrd(i) - tzero
       t995 = tatm(i) - tzero
       q995 = qv(i)
@@ -139,7 +139,7 @@ module mod_ocn_zeng
       ustar = 0.06_rkx
       wc = d_half
       if ( dthv >= d_zero ) then
-        um = max(uv995,minw)
+        um = uv995
       else
         um = sqrt(uv995*uv995+wc*wc)
       end if
@@ -248,7 +248,7 @@ module mod_ocn_zeng
         thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
-          um = max(uv995,minw)
+          um = uv995
           zeta = min(d_two,max(zeta,minz))
         else                   !unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet

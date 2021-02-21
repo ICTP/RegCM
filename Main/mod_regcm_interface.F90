@@ -136,7 +136,11 @@ module mod_regcm_interface
     !
     ! Read IC and BC data.
     !
-    if ( .not. ifrest ) call init_bdy
+    if ( .not. ifrest ) then
+      if ( irceideal /= 1 ) then
+        call init_bdy
+      end if
+    end if
     !
     ! Initialize data (from IC or restart)
     !

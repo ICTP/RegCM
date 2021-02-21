@@ -455,7 +455,7 @@ module mod_moloch
     !
     ! Lateral/damping boundary condition
     !
-    if ( do_bdy .and. moloch_realcase ) then
+    if ( do_bdy .and. moloch_realcase .and. irceideal == 0 ) then
       call boundary
       if ( i_crm /= 1 ) then
         if ( ifrayd == 1 ) then
@@ -467,7 +467,7 @@ module mod_moloch
       end if
     else
       if ( debug_level > 1 ) then
-        if ( myid == italk ) then
+        if ( myid == italk .and. irceideal == 0 ) then
           write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
         end if
       end if
