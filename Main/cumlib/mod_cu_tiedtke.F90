@@ -374,19 +374,21 @@ module mod_cu_tiedtke
 
     ! Calculate average elevation of cmcptop level
 
-    nmctop = 0
-    do ii = 1 , nipoi
-      iplmlc = 1
-      do k = 1 , kzp1
-        iplmlc = k
-        if ( paphp1(ii,k) >= cmcptop ) exit
+    if ( iconv == 1 ) then
+      nmctop = 0
+      do ii = 1 , nipoi
+        iplmlc = 1
+        do k = 1 , kzp1
+          iplmlc = k
+          if ( paphp1(ii,k) >= cmcptop ) exit
+        end do
+        nmctop = nmctop + iplmlc
       end do
-      nmctop = nmctop + iplmlc
-    end do
-    iplmlc = nmctop / nipoi
-    call minall(iplmlc,mintop)
-    call maxall(iplmlc,maxtop)
-    nmctop = (mintop+maxtop)/2
+      iplmlc = nmctop / nipoi
+      call minall(iplmlc,mintop)
+      call maxall(iplmlc,maxtop)
+      nmctop = (mintop+maxtop)/2
+    end if
 
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
