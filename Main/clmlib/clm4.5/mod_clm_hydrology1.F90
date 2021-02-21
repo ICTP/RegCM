@@ -549,6 +549,7 @@ module mod_clm_hydrology1
             smr = min(1._rk8,(h2osno(c))/(int_snow(c)))
             frac_sno(c) = 1.0_rk8 - &
                     (acos(min(1._rk8,(2.*smr - 1._rk8)))/rpi)**(n_melt(c))
+            frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
           end if
 
           ! update fsca by new snow event, add to previous fsca
@@ -556,6 +557,7 @@ module mod_clm_hydrology1
             fsno_new = 1._rk8 - &
                     (1._rk8 - tanh(accum_factor*newsnow(c)))*(1._rk8 - frac_sno(c))
             frac_sno(c) = fsno_new
+            frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
 
             ! reset int_snow after accumulation events
             temp_intsnow = (h2osno(c) + newsnow(c)) / &
@@ -589,6 +591,7 @@ module mod_clm_hydrology1
             if ( h2osno(c) < 1.0_rk8 ) then
               frac_sno(c) = min(frac_sno(c),h2osno(c))
             end if
+            frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
           end if
         else ! h2osno == 0
           ! initialize frac_sno and snow_depth when no snow present initially
@@ -596,6 +599,7 @@ module mod_clm_hydrology1
             z_avg = newsnow(c)/bifall
             fmelt = newsnow(c)
             frac_sno(c) = tanh(accum_factor*newsnow(c))
+            frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
 
             ! make int_snow consistent w/ new fsno, h2osno
             int_snow(c) = 0.0_rk8 !reset prior to adding newsnow below
@@ -617,6 +621,7 @@ module mod_clm_hydrology1
                 frac_sno(c) = tanh(snow_depth(c)/(2.5_rk8*zlnd* &
                   (min(800._rk8,newsnow(c)/snow_depth(c))/100._rk8)**1._rk8) )
               end if
+            frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
             end if
           else
             z_avg = 0._rk8

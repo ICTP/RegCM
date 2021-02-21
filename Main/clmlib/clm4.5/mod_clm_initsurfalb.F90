@@ -218,7 +218,8 @@ contains
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! From Bonan 1996 (LSM technical note)
-        frac_sno(c) = min( snow_depth(c)/0.05_rk8, 1._rk8)
+        frac_sno(c) = snow_depth(c)/0.05_rk8
+        frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
       else
         frac_sno(c) = 0._rk8
         ! snow cover fraction as in Niu and Yang 2007
@@ -230,6 +231,7 @@ contains
           !   1 is a melting factor that could be reconsidered
           ! optimal value of 1.5 in Niu et al., 2007
           frac_sno(c) = tanh( snow_depth(c) /(2.5 * zlnd * fmelt) )
+          frac_sno(c) = max(0.0_rk8,min(1.0_rk8,frac_sno(c)))
         end if
       end if
     end do

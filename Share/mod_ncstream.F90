@@ -880,10 +880,21 @@ module mod_ncstream
         stvar%levsoil_var%vname = 'soil_layer'
         stvar%levsoil_var%vunit = 'm'
         stvar%levsoil_var%axis = 's'
-        stvar%levsoil_var%long_name = 'Soil layer levels'
-        stvar%levsoil_var%standard_name = 'root_depth'
+        stvar%levsoil_var%long_name = 'Soil layer level'
+        stvar%levsoil_var%standard_name = 'depth'
         stvar%levsoil_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%levsoil_var)
+        attc%aname = 'bounds'
+        attc%theval = 'soil_bounds'
+        call add_attribute(stream,attc,stvar%levsoil_var%id, &
+                           stvar%levsoil_var%vname)
+        stvar%levsoilbound_var%vname = 'soil_bounds'
+        stvar%levsoilbound_var%vunit = 'm'
+        stvar%levsoilbound_var%axis = 'bs'
+        stvar%levsoilbound_var%long_name = 'Soil layer level bounds'
+        stvar%levsoilbound_var%standard_name = 'depth'
+        stvar%levsoilbound_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%levsoilbound_var)
       end if
       if ( stream%l_hasspectral ) then
         stvar%spectral_var%vname = 'wavelen'
@@ -1034,17 +1045,43 @@ module mod_ncstream
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
         do nl = 1 , num_soil_layers
-        buffer%doublebuff(nl) = real(scalez*(exp(0.5_rkx * &
+          buffer%doublebuff(nl) = real(scalez*(exp(0.5_rkx * &
             (real(nl,rkx)-0.5_rkx))-1._rkx),rk8)
         end do
 #else
         ! Here is not precise, as the depth of levels is function of the
         ! landuse class.
-        buffer%doublebuff(1) = 0.10_rk8
-        buffer%doublebuff(2) = 1.00_rk8
+        buffer%doublebuff(1) = 0.05_rk8
+        buffer%doublebuff(2) = 0.95_rk8
         buffer%doublebuff(3) = 3.00_rk8
 #endif
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
+#ifdef CLM45
+        buffer%doublebuff(1) = 0.0_rk8
+        do nl = 2 , num_soil_layers
+          buffer%doublebuff(2*nl-1) = 0.5_rk8 * &
+            (real(scalez*(exp(0.5_rkx * &
+                         (real(nl-1,rkx)-0.5_rkx))-1.0_rkx),rk8) + &
+             real(scalez*(exp(0.5_rkx * &
+                         (real(nl,rkx)-0.5_rkx))-1.0_rkx),rk8))
+        end do
+        do nl = 1 , num_soil_layers
+          buffer%doublebuff(2*nl) = buffer%doublebuff(2*nl+1)
+        end do
+        buffer%doublebuff(2*num_soil_layers) = 0.5_rk8 * &
+          (real(scalez*(exp(0.5_rkx * &
+                 (real(num_soil_layers,rkx)-0.5_rkx))-1.0_rkx),rk8) + &
+           real(scalez*(exp(0.5_rkx * &
+                 (real(num_soil_layers+1,rkx)-0.5_rkx))-1.0_rkx),rk8))
+#else
+        buffer%doublebuff(1) = 0.0_rk8
+        buffer%doublebuff(3) = 0.1_rk8
+        buffer%doublebuff(5) = 2.0_rk8
+        buffer%doublebuff(2) = 0.1_rk8
+        buffer%doublebuff(4) = 2.0_rk8
+        buffer%doublebuff(6) = 4.0_rk8
+#endif
+        call outstream_writevar(ncout,stvar%levsoilbound_var,nocopy)
       end if
       if ( stream%l_hasspectral ) then
         buffer%doublebuff(1) = 0.00000025_rk8
@@ -1419,6 +1456,7 @@ module mod_ncstream
       type(ncoutstream) , pointer , intent(inout) :: stream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
+      character(len=16) :: coords_depth = 'depth xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'
       character(len=16) :: coords_udot  = 'ulat ulon'
       character(len=16) :: coords_vdot  = 'vlat vlon'
@@ -1463,8 +1501,13 @@ module mod_ncstream
               end if
             end if
           else
-            call add_attribute(stream, &
-              ncattribute_string('coordinates',coords_cross),var%id,var%vname)
+            if ( var%vname == 'mrsos' ) then
+              call add_attribute(stream, &
+                ncattribute_string('coordinates',coords_depth),var%id,var%vname)
+            else
+              call add_attribute(stream, &
+                ncattribute_string('coordinates',coords_cross),var%id,var%vname)
+            end if
           end if
           call add_attribute(stream, &
             ncattribute_string('grid_mapping','crs'),var%id,var%vname)

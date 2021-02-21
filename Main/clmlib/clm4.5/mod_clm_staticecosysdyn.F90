@@ -251,11 +251,15 @@ module mod_clm_staticecosysdyn
     f2 = (ndaypm(yr2,months(2),nextdate%calendar)*0.5_rk8)*86400.0_rk8
     rs = (f1+f2)
     if ( t > 0.5_rk8 ) then
-      timwt(2) = (real((kda-1)*86400+ksec,rk8) - f2)/rs
+      timwt(2) = (real((kda-1)*86400+ksec,rk8) - f1)/rs
     else
       timwt(2) = (real((kda-1)*86400+ksec,rk8) + f1)/rs
     end if
-    timwt(1) = 1._rk8-timwt(2)
+    timwt(1) = 1.0_rk8-timwt(2)
+    if ( any(timwt < 0.0_rk8) .or. any(timwt > 1.0_rk8) ) then
+      call fatal(__FILE__,__LINE__, &
+        'Incorrect interpolation weights!')
+    end if
   end subroutine interpMonthlyVeg
   !
   !-----------------------------------------------------------------------

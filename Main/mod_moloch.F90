@@ -656,6 +656,9 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+#ifdef DEBUG
+        integer(ik4) :: n
+#endif
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
@@ -839,6 +842,23 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+#ifdef DEBUG
+                if ( pai(j,i,k) > 1.1_rkx .or. &
+                     pai(j,i,k) < 0.0_rkx ) then
+                  write(100+myid,*) 'On : ', myid
+                  write(100+myid,*) 'At : ', i,j,k
+                  write(100+myid,*) 'pai : ', pai(j,i,k)
+                  write(100+myid,*) 'zdiv2 : ', zdiv2(j,i,k)
+                  write(100+myid,*) 'Pai u v w qv qc t tetav'
+                  do n = 1 , kz
+                    write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
+                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
+                            t(j,i,n) , tetav(j,i,n)
+                  end do
+                  flush(100+myid)
+                  call fatal(__FILE__,__LINE__, 'error')
+                end if
+#endif
               end do
             end do
           end do
@@ -1342,6 +1362,26 @@ module mod_moloch
         integer(ik4) :: i , j , k , n
         logical :: loutrad , labsem
 
+#ifdef DEBUG
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
+                write(100+myid,*) 'Before Phys On : ', myid
+                write(100+myid,*) 'At : ', i,j,k
+                write(100+myid,*) 'k pai u v w qv qc t tetav'
+                do n = 1 , kz
+                  write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
+                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
+                            t(j,i,n) , tetav(j,i,n) , tke(j,i,n)
+                end do
+                flush(100+myid)
+                call fatal(__FILE__,__LINE__, 'error')
+              end if
+            end do
+          end do
+        end do
+#endif
         if ( any(icup > 0) ) then
           if ( idiag > 0 ) then
             ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
@@ -1477,7 +1517,6 @@ module mod_moloch
             ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
           end if
         end if
-
         if ( ipptls == 1 ) then
           if ( idiag > 0 ) then
             ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
@@ -1525,6 +1564,26 @@ module mod_moloch
             trac(j,i,k,n) = max(trac(j,i,k,n),d_zero)
           end do
         end if
+#ifdef DEBUG
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
+                write(100+myid,*) 'On : ', myid
+                write(100+myid,*) 'After Phys At : ', i,j,k
+                write(100+myid,*) 'k pai u v w qv qc t tetav'
+                do n = 1 , kz
+                  write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
+                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
+                            t(j,i,n) , tetav(j,i,n) , tke(j,i,n)
+                end do
+                flush(100+myid)
+                call fatal(__FILE__,__LINE__, 'error')
+              end if
+            end do
+          end do
+        end do
+#endif
       end subroutine physical_parametrizations
 
   end subroutine moloch

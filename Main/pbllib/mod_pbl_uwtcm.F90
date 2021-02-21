@@ -150,7 +150,7 @@ module mod_pbl_uwtcm
     real(rkx) , dimension(kzp2) :: zqx
     real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
                tkes , bbls , nsquar , presfl , exnerfl , rexnerfl
-               ! , richnum , epop
+               ! epop , richnum
     real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
     real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , kethl , &
                thlx , thlxs , thxs , tx , tvx , rttenx , preshl , qcx ,     &
@@ -193,7 +193,7 @@ module mod_pbl_uwtcm
         ! Set variables that are on full levels
         do k = 1 , kzp1
           presfl(k) = m2p%patmf(j,i,k)
-          ! epop(k) = ep2/m2p%patmf(j,i,k)
+          !epop(k) = ep2/m2p%patmf(j,i,k)
           zqx(k) = m2p%zq(j,i,k)
           tke(k) = max(m2p%tkests(j,i,k),uwtkemin)
         end do
@@ -287,22 +287,22 @@ module mod_pbl_uwtcm
           fracz = (zqx(k)-zax(k))*rdza(k)
           rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
         end do
+        rhoxfl(kzp1) = presfl(kzp1)/(rgas*tvx(kz))
         do k = 1 , kz
           rrhoxfl(k) = d_one/rhoxfl(k)
         end do
 
-        do k = 1 , kz
-          ! Exner function
+        ! Exner function
+        do k = 1 , kzp1
           exnerfl(k) = (presfl(k)/p00)**rovcp
           rexnerfl(k) = d_one/exnerfl(k)
-          ! Wind gradient and shear
-          !dudz = (ux(k-1) - ux(k)) * rdza(k)
-          !dvdz = (vx(k-1) - vx(k)) * rdza(k)
-          !svs(k) = dudz*dudz + dvdz*dvdz
         end do
-        ! Surface exner function
-        exnerfl(kzp1) = (presfl(kzp1)/p00)**rovcp
-        rexnerfl(kzp1) = d_one/exnerfl(kzp1)
+        ! Wind gradient and shear
+        !do k = 1 , kz
+        !  dudz = (ux(k-1) - ux(k)) * rdza(k)
+        !  dvdz = (vx(k-1) - vx(k)) * rdza(k)
+        !  svs(k) = dudz*dudz + dvdz*dvdz
+        !end do
 
 !*******************************************************************************
 !*******************************************************************************
@@ -316,11 +316,11 @@ module mod_pbl_uwtcm
         if ( m2p%ldmsk(j,i) == 1 ) then
           tvfac = d_one + ep1*m2p%q2m(j,i)
         else
+          !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
+          !         exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
           q0s = pfwsat(tskx,presfl(kzp1))
           tvfac = d_one + ep1*q0s
         end if
-        !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
-        !           exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -769,12 +769,12 @@ module mod_pbl_uwtcm
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
-        rvls = pfwsat(templ,presfl(k))
         !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
+        rvls = pfwsat(templ,presfl(k))
         temps = templ + (qwxin(k)-rvls)/(cpowlhv + &
                       ep2*wlhv*rvls/(rgas*templ*templ))
+        !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rvls = pfwsat(temps,presfl(k))
-        ! rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) * &
                 (d_one + ep1*(qwx(k)-rcldb(k))-rcldb(k))
@@ -783,12 +783,12 @@ module mod_pbl_uwtcm
         tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
+        !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
         rvls = pfwsat(templ,presfl(k))
-        ! rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
         temps = templ + (qwxin(k-1)-rvls)/(cpowlhv + &
                 ep2*wlhv*rvls/(rgas*templ*templ))
+        !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rvls = pfwsat(temps,presfl(k))
-        ! rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rcld = max(qwxin(k-1)-rvls,d_zero)
         !tempv = (templ + wlhvocp*rcld) *    &
         !        (d_one + ep1*(qwxin(k-1)-rcld) - rcld)

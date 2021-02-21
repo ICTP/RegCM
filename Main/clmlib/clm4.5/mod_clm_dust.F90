@@ -220,8 +220,14 @@ module mod_clm_dust
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
       if (lnd_frc_mbl(p)>1.0_rk8 .or. lnd_frc_mbl(p)<0.0_rk8) then
+        c = pcolumn(p)
+        l = plandunit(p)
         write(stderr,*) &
                 'Error dstmbl: pft= ',p,' lnd_frc_mbl(p)= ',lnd_frc_mbl(p)
+        write(stderr,*) 'frac_sno(c) = ',frac_sno(c)
+        write(stderr,*) 'tlai_lu(l) = ',tlai_lu(l)
+        write(stderr,*) 'wtlunit(p) = ',wtlunit(p)
+        write(stderr,*) 'sumwt(l) = ',sumwt(l)
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
     end do

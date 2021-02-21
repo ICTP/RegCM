@@ -443,6 +443,7 @@ module mod_ncstream_types
     type(ncvariable1d_double) :: lev10m_var
     type(ncvariable1d_double) :: lev100m_var
     type(ncvariable1d_double) :: levsoil_var
+    type(ncvariable2d_double) :: levsoilbound_var
     type(ncvariable2d_double) :: spectral_var
   end type basic_variables
 

@@ -43,26 +43,12 @@ module mod_realkinds
 
 #ifdef SINGLE_PRECISION_REAL
   integer , parameter :: rkx = rk4
-#ifdef __PGI
-  ! quiet nan for portland group compilers
   real(rk4), parameter :: inf = O'07760000000'
   real(rk4), parameter :: nan = O'07770000000'
 #else
-  ! signaling nan otherwise
-  real(rk4), parameter :: inf = O'07760000000'
-  real(rk4), parameter :: nan = O'07761000000'
-#endif
-#else
   integer , parameter :: rkx = rk8
-#ifdef __PGI
-  ! quiet nan for portland group compilers
   real(rk8), parameter :: inf = O'0777600000000000000000'
   real(rk8), parameter :: nan = O'0777700000000000000000'
-#else
-  ! signaling nan otherwise
-  real(rk8), parameter :: inf = O'0777600000000000000000'
-  real(rk8), parameter :: nan = O'0777610000000000000000'
-#endif
 #endif
 
   interface is_nan
