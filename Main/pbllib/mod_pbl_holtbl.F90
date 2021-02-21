@@ -213,7 +213,7 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                          m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.5_rkx)
+                          m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.1_rkx)
           ss = ((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &
                 (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))+   &
                 (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))*   &
@@ -258,7 +258,7 @@ module mod_pbl_holtbl
         uflxsfx = m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)
         vflxsfx = m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)
         ustr(j,i) = sqrt(sqrt(max(uflxsfx*uflxsfx+ &
-                          vflxsfx*vflxsfx,0.5_rkx))/m2p%rhox2d(j,i))
+                          vflxsfx*vflxsfx,0.1_rkx))/m2p%rhox2d(j,i))
         ! convert surface fluxes to kinematic units
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
