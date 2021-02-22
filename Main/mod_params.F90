@@ -68,7 +68,7 @@ module mod_params
     implicit none
     real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
                qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
-               xtop , xx , yy , mo_c1 , mo_c2
+               xtop , xx , yy , mo_c1 , mo_c2 , dl
     real(rkx) , dimension(kzp1) :: fak , fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
@@ -1768,10 +1768,11 @@ module mod_params
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
       mddom%msfx = 1.0_rkx
+      dl = raddeg * ds*1000.0_rkx / earthrad
       do i = ide1 , ide2
         do j = jde1 , jde2
-          mddom%xlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i)
-          mddom%xlon(j,i) = clon - ds * (real(jx,rkx)*d_half - j)
+          mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
+          mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
           mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
         end do
       end do
@@ -1779,8 +1780,8 @@ module mod_params
         do i = ide1 , ide2
           do j = jde1 , jde2
             mddom%ulat(j,i) = mddom%xlat(j,i)
-            mddom%ulon(j,i) = clon - ds * (real(jx,rkx)*d_half - j + 1)
-            mddom%vlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i + 1)
+            mddom%ulon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
+            mddom%vlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
             mddom%vlon(j,i) = mddom%xlon(j,i)
           end do
         end do
@@ -1789,8 +1790,8 @@ module mod_params
       else
         do i = ide1 , ide2
           do j = jde1 , jde2
-            mddom%dlat(j,i) = clat - ds * (real(iy,rkx)*d_half - i + 1)
-            mddom%dlon(j,i) = clon - ds * (real(jx,rkx)*d_half - j + 1)
+            mddom%dlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
+            mddom%dlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
           end do
         end do
         mddom%msfd = 1.0_rkx
