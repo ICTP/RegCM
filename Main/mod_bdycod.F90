@@ -131,7 +131,6 @@ module mod_bdycod
     real(rkx) , allocatable , dimension(:) :: z , p , t , u , v , q
     real(rkx) , allocatable , dimension(:) :: zi , pi , ti , ui , vi , qi
     real(rkx) , dimension(1) :: ht
-    real(rkx) , dimension(jce1:jce2,ice1:ice2) :: tr
 
     namelist /dimensions/ nlev
     namelist /surface/ ps , ts
@@ -173,8 +172,7 @@ module mod_bdycod
       write(stdout,*) 'Successfully read in initial profile.'
     end if
 
-    call random_number(tr)
-    xtsb%b0(jce1:jce2,ice1:ice2) = tr + ts
+    xtsb%b0(jce1:jce2,ice1:ice2) = ts
     if ( idynamic == 1 ) then
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0

@@ -115,12 +115,12 @@ module mod_pbl_holtbl
     call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
-    call getmem2d(uvdrage,jci1-ma%jbl1,jci2, &
-                          ici1-ma%ibb1,ici2,'mod_holtbl:uvdrage')
-    call getmem3d(akzz1,jci1-ma%jbl1,jci2, &
-                        ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz1')
-    call getmem3d(akzz2,jci1-ma%jbl1,jci2, &
-                        ici1-ma%ibb1,ici2,1,kz,'mod_holtbl:akzz2')
+    call getmem2d(uvdrage,jci1ga,jci2, &
+                          ici1ga,ici2,'mod_holtbl:uvdrage')
+    call getmem3d(akzz1,jci1ga,jci2, &
+                        ici1ga,ici2,1,kz,'mod_holtbl:akzz1')
+    call getmem3d(akzz2,jci1ga,jci2, &
+                        ici1ga,ici2,1,kz,'mod_holtbl:akzz2')
 
     if ( ichem == 1 ) then
       call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')

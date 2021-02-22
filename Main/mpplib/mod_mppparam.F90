@@ -922,6 +922,7 @@ module mod_mppparam
     call mpi_isend(lval,isize,mpi_logical,icpu,itag, &
                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_logical
@@ -934,6 +935,7 @@ module mod_mppparam
     call mpi_isend(ival,isize,mpi_integer4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_int4
@@ -946,6 +948,7 @@ module mod_mppparam
     call mpi_isend(rval,isize,mpi_real4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_real4
@@ -958,6 +961,7 @@ module mod_mppparam
     call mpi_isend(rval,isize,mpi_real8,icpu,itag, &
                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_real8
@@ -970,6 +974,7 @@ module mod_mppparam
     call mpi_irecv(lval,isize,mpi_logical,icpu,itag, &
                    cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_logical
@@ -982,6 +987,7 @@ module mod_mppparam
     call mpi_irecv(ival,isize,mpi_integer4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_int4
@@ -994,6 +1000,7 @@ module mod_mppparam
     call mpi_irecv(rval,isize,mpi_real4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_real4
@@ -1006,6 +1013,7 @@ module mod_mppparam
     call mpi_irecv(rval,isize,mpi_real8,icpu,itag, &
                    cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_real8
@@ -1055,6 +1063,7 @@ module mod_mppparam
                       rv2,isize,mpi_real8,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
     end if
   end subroutine cyclic_exchange_array_r8
@@ -1068,6 +1077,7 @@ module mod_mppparam
                       rv2,isize,mpi_real4,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
     if ( mpierr /= mpi_success ) then
+      write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
     end if
   end subroutine cyclic_exchange_array_r4
@@ -10358,6 +10368,7 @@ module mod_mppparam
         ! (2) Send top-right boundary to bottom-left side of top-right
         ! neighbor: loop over the exchange block and unravel it into
         ! a vector
+        ssize = nex*nex
         ib = 1
         do i = 1 , nex
           do j = 1 , nex
@@ -10573,6 +10584,7 @@ module mod_mppparam
         ! (2) Send top-right boundary to bottom-left side of top-right
         ! neighbor: loop over the exchange block and unravel it into
         ! a vector
+        ssize = nex*nex
         ib = 1
         do i = 1 , nex
           do j = 1 , nex
@@ -10797,6 +10809,7 @@ module mod_mppparam
         ! (2) Send top-right boundary to bottom-left side of
         ! top-right neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize
         ib = 1
 
         do k = k1, k2
@@ -11039,6 +11052,7 @@ module mod_mppparam
         ! (2) Send top-right boundary to bottom-left side of
         ! top-right neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize
         ib = 1
 
         do k = k1, k2
@@ -11283,6 +11297,7 @@ module mod_mppparam
 
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize*nsize
         ib = 1
         do n = n1, n2
           do k = k1, k2
@@ -11541,6 +11556,7 @@ module mod_mppparam
 
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize*nsize
         ib = 1
         do n = n1, n2
           do k = k1, k2
@@ -11782,6 +11798,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side of
         ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex
         ib = 1
 
         do i = 1 , nex
@@ -11995,6 +12012,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side of
         ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex
         ib = 1
 
         do i = 1 , nex
@@ -12215,6 +12233,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side of
         ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize
         ib = 1
         do k = k1, k2
           do i = 1 , nex
@@ -12450,6 +12469,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side of
         ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize
         ib = 1
         do k = k1, k2
           do i = 1 , nex
@@ -12693,6 +12713,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side
         !     of bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize*nsize
         ib = 1
         do n = n1, n2
           do k = k1, k2
@@ -12951,6 +12972,7 @@ module mod_mppparam
         ! (2) Send bottom-left boundary to top-right side
         !     of bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
+        ssize = nex*nex*ksize*nsize
         ib = 1
         do n = n1, n2
           do k = k1, k2
