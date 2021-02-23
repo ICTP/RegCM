@@ -967,11 +967,15 @@ module mod_init
     !
     ! pressure of tropopause
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
+    if ( irceideal == 1 ) then
+      ptrop = 10000_rkx
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
+        end do
       end do
-    end do
+    end if
 
     if ( .not. ifrest ) then
       if ( any(icup == 6) ) then

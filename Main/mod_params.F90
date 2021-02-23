@@ -2217,7 +2217,15 @@ module mod_params
           write(stdout,*) 'Sixth order diffusion with flux limiter'
         end if
       end if
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 1 ) then
+        write(stdout,*) 'Holtslag PBL Scheme'
+        write(stdout,'(a,f11.6)') '  ricr_ocn     = ', ricr_ocn
+        write(stdout,'(a,f11.6)') '  ricr_lnd     = ', ricr_lnd
+        write(stdout,'(a,f11.6)') '  zhnew_fac    = ', zhnew_fac
+        write(stdout,'(a,i2)') '  ifaholt      = ', ifaholt
+        write(stdout,'(a,i2)') '  ifaholtth10  = ', ifaholtth10
+        write(stdout,'(a,i4)') '  holtth10iter = ', holtth10iter
+      else if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
         write(stdout,'(a,f11.6)') '  atwo      = ', atwo

@@ -2046,12 +2046,13 @@ module mod_ncstream
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
+            nd = 1
 #ifdef PNETCDF
             ncstat = nf90mpi_put_var_all(stream%id,var%id,var%rval, &
-              stream%istart(1:1),stream%icount(1:1))
+              stream%istart(1:nd),stream%icount(1:nd))
 #else
             ncstat = nf90_put_var(stream%id,var%id,var%rval, &
-              stream%istart(1:1),stream%icount(1:1))
+              stream%istart(1:nd),stream%icount(1:nd))
 #endif
           else
 #ifdef PNETCDF
@@ -3233,6 +3234,9 @@ module mod_ncstream
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call printerror
+        write(stderr,*) 'In file ',trim(stream%filename)
+        write(stderr,*) 'Cannot write variable '//trim(var%vname)
+        write(stderr,*) 'Bounds :',stream%istart(1:nd),stream%icount(1:nd)
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if

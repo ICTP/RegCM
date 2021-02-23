@@ -2642,10 +2642,22 @@ module mod_ncout
         ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
         ! subtract 1 line/column to rebase on pixel (2,2) of the internal model
         ! cross points grid to point (1,1).
-        outstream(nstream)%opar%global_jstart = vsize%j1 - 1
-        outstream(nstream)%opar%global_jend   = vsize%j2 - 1
-        outstream(nstream)%opar%global_istart = vsize%i1 - 1
-        outstream(nstream)%opar%global_iend   = vsize%i2 - 1
+        if ( ma%bandflag ) then
+          outstream(nstream)%opar%global_jstart = vsize%j1
+          outstream(nstream)%opar%global_jend   = vsize%j2
+          if ( ma%crmflag ) then
+            outstream(nstream)%opar%global_istart = vsize%i1
+            outstream(nstream)%opar%global_iend   = vsize%i2
+          else
+            outstream(nstream)%opar%global_istart = vsize%i1 - 1
+            outstream(nstream)%opar%global_iend   = vsize%i2 - 1
+          end if
+        else
+          outstream(nstream)%opar%global_jstart = vsize%j1 - 1
+          outstream(nstream)%opar%global_jend   = vsize%j2 - 1
+          outstream(nstream)%opar%global_istart = vsize%i1 - 1
+          outstream(nstream)%opar%global_iend   = vsize%i2 - 1
+        end if
         if ( nstream == sub_stream ) then
           outstream(nstream)%opar%global_jstart = &
             (outstream(nstream)%opar%global_jstart-1)*nsg+1
