@@ -1455,11 +1455,11 @@ module mod_ncstream
       implicit none
       type(ncoutstream) , pointer , intent(inout) :: stream
       class(ncvariable_standard) , intent(in) :: var
-      character(len=16) :: coords_cross = 'xlat xlon'
-      character(len=16) :: coords_depth = 'soil_layer xlat xlon'
-      character(len=16) :: coords_dot   = 'dlat dlon'
-      character(len=16) :: coords_udot  = 'ulat ulon'
-      character(len=16) :: coords_vdot  = 'vlat vlon'
+      character(len=*) , parameter :: coords_cross = 'xlat xlon'
+      character(len=*) , parameter :: coords_depth = 'soil_layer xlat xlon'
+      character(len=*) , parameter :: coords_dot   = 'dlat dlon'
+      character(len=*) , parameter :: coords_udot  = 'ulat ulon'
+      character(len=*) , parameter :: coords_vdot  = 'vlat vlon'
       if ( len_trim(var%long_name) > 0 ) &
         call add_attribute(stream, &
           ncattribute_string('long_name',var%long_name),var%id,var%vname)
