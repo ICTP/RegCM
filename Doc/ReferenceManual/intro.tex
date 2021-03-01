@@ -327,9 +327,11 @@ solid lines denote half-sigma levels.}
 
 The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
 $\zeta$ (Figure~\ref{moloch_levels}) which transform the $Z$
-interval $[h, Z_{top}]$ into the regularly spaced interval $[0,Z_{top}]$:
+interval $[h, Z_{top}]$ into the regularly spaced interval $\zeta_i
+\in [0,m_f Z_{top}]$:
 
 \begin{eqnarray}
+  \Delta \zeta &=& \frac{m_f Z_{top}}{kz} \\
   Z_f &=& \frac{Z_{top}}{e^{\frac{Z_{top}}{H}-1}} \\
   Z &=& h(x,y) G(\zeta) + Z_f e^{\frac{\zeta}{H}-1}
 \end{eqnarray}
@@ -350,11 +352,13 @@ function of reference climatological surface temperature $T_0$ as:
 H = (1 - b_0) * R_d T_0 / g
 \end{equation}
 
-with $a_0$ and $b_0$ as configurable constant parameters with:
+with $Z_{top}$, $a_0$ and $b_0$ and $m_f$ as configurable constant parameters:
 
-\begin{equation}
-0 \le a_0 \le 1 \quad , \quad 0 \le b_0 \le 1
-\end{equation}
+\begin{eqnarray}
+0 \le a_0 \le 1 \\
+0 \le b_0 \le 1 \\
+0 \le m_{f} \le 1
+\end{eqnarray}
 
 \section{Map Projections and Map-Scale Factors}
 The modeling system has a
