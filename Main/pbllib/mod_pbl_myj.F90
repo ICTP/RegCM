@@ -69,16 +69,10 @@ module mod_pbl_myj
   real(rkx) , parameter :: gam1 = 0.2222222222222222222_rkx
   real(rkx) , parameter :: prt = 1.0_rkx
   real(rkx) , parameter :: a1 = 0.659888514560862645_rkx
-  real(rkx) , parameter :: a2 = 17.2693882_rkx
-  real(rkx) , parameter :: a3 = 273.16_rkx
-  real(rkx) , parameter :: a4 = 35.86_rkx
   real(rkx) , parameter :: axx = 0.6574209922667784586_rkx
   real(rkx) , parameter :: b1 = 11.87799326209552761_rkx
   real(rkx) , parameter :: b2 = 7.226971804046074028_rkx
   real(rkx) , parameter :: c1 = 0.000830955950095854396_rkx
-  real(rkx) , parameter :: a2s = 17.2693882_rkx
-  real(rkx) , parameter :: a3s = 273.16_rkx
-  real(rkx) , parameter :: a4s = 35.86_rkx
   real(rkx) , parameter :: elz0 = 0.0_rkx
   real(rkx) , parameter :: esq = 5.0_rkx
   real(rkx) , parameter :: glkbr = 10.0_rkx
@@ -238,11 +232,6 @@ module mod_pbl_myj
     do i = ici1 , ici2
       do j = jci1 , jci2
         !
-        ! Transfer
-        !
-        akms = d_one/m2p%ram1(j,i)
-        akhs = d_one/m2p%rah1(j,i)
-        !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
         !
@@ -307,10 +296,6 @@ module mod_pbl_myj
         ! Fill 1-d vertical arrays: myj scheme counts downward
         ! from the domain's top
         !
-
-        akms = d_one/m2p%ram1(j,i)
-        akhs = d_one/m2p%rah1(j,i)
-
         do k = 1 , kz
           zhk(k) = zint(j,i,k)
           thek(k) = the(j,i,k)
@@ -346,74 +331,63 @@ module mod_pbl_myj
           akhk(k) = akh(j,i,k)*d_half*(rhok(k)+rhok(k+1))
         end do
 
-        akhs_dens = akhs*rhok(kz)
-
         psfc = m2p%patmf(j,i,kzp1)
         rexnsfc = (p00/psfc)**rovcp
         ustar = m2p%ustar(j,i)
         tg = m2p%tg(j,i)
         thsk = tg*rexnsfc
+        akms = d_one/m2p%ram1(j,i)
+        akhs = d_one/m2p%rah1(j,i)
+        akhs_dens = akhs*rhok(kz)
 
-        ! Convert surface sensible temperature to potential temperature.
-        if ( m2p%ldmsk(j,i) == 1 ) then
-          ratiomx = m2p%q2m(j,i)
-          qsfc = ratiomx / (d_one + ratiomx)
-          tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
+        if ( m2p%ldmsk(j,i) == 0 ) then
+          qsfc = seafc*pfqsat(tg,psfc)
+        else
+          qsfc = m2p%q2m(j,i)
+        end if
+        tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
+        ratiomx = m2p%qxatm(j,i,kz,iqv)
+        qha = ratiomx/(d_one+ratiomx)
+        if ( ustar < 0.0225_rkx ) then
+          zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          wght = akms*zu*rvisc
+          wght = wght/(d_one+wght)
+          m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)*wght)+m2p%uz0(j,i))
+          m2p%vz0(j,i) = d_half*((m2p%vxatm(j,i,kz)*wght)+m2p%vz0(j,i))
+          zt = fzt1*zu
+          zq = fzq1*zt
+          wghtt = akhs*zt*rtvisc
+          wghtq = akhs*zq*rqvisc
           if ( rcmtimer%lcount < 1 ) then
-            m2p%thz0(j,i) = tha
-            m2p%qz0(j,i) = qsfc
+            m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
+            m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
           else
-            m2p%thz0(j,i) = d_half*(m2p%thz0(j,i)+tha)
-            m2p%qz0(j,i) = d_half*(m2p%qz0(j,i)+qsfc)
+            m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
+                                    (wghtt+d_one)+m2p%thz0(j,i))
+            m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
+                                   (wghtq+d_one)+m2p%qz0(j,i))
           end if
+        else if ( ustar > 0.0225_rkx .and. ustar < 0.7_rkx ) then
           m2p%uz0(j,i) = d_zero
           m2p%vz0(j,i) = d_zero
-        else
-          qsfc = seafc*pfqsat(tg,psfc)
-          tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
-          ratiomx = m2p%qxatm(j,i,kz,iqv)
-          qha = ratiomx/(d_one+ratiomx)
-          if ( ustar < 0.0225_rkx ) then
-            zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
-            wght = akms*zu*rvisc
-            wght = wght/(d_one+wght)
-            m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)*wght)+m2p%uz0(j,i))
-            m2p%vz0(j,i) = d_half*((m2p%vxatm(j,i,kz)*wght)+m2p%vz0(j,i))
-            zt = fzt1*zu
-            zq = fzq1*zt
-            wghtt = akhs*zt*rtvisc
-            wghtq = akhs*zq*rqvisc
-            if ( rcmtimer%lcount < 1 ) then
-              m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
-              m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
-            else
-              m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
-                                      (wghtt+d_one)+m2p%thz0(j,i))
-              m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
-                                     (wghtq+d_one)+m2p%qz0(j,i))
-            end if
-          else if ( ustar > 0.0225_rkx .and. ustar < 0.7_rkx ) then
-            m2p%uz0(j,i) = d_zero
-            m2p%vz0(j,i) = d_zero
-            zt = fzt2*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
-            zq = fzq2*zt
-            wghtt = akhs*zt*rtvisc
-            wghtq = akhs*zq*rqvisc
-            if ( rcmtimer%lcount < 1 ) then
-              m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
-              m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
-            else
-              m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
-                                      (wghtt+d_one)+m2p%thz0(j,i))
-              m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
-                                     (wghtq+d_one)+m2p%qz0(j,i))
-            end if
+          zt = fzt2*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          zq = fzq2*zt
+          wghtt = akhs*zt*rtvisc
+          wghtq = akhs*zq*rqvisc
+          if ( rcmtimer%lcount < 1 ) then
+            m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
+            m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
           else
-            m2p%uz0(j,i) = d_zero
-            m2p%vz0(j,i) = d_zero
-            m2p%thz0(j,i) = thsk
-            m2p%qz0(j,i) = qsfc
+            m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
+                                    (wghtt+d_one)+m2p%thz0(j,i))
+            m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
+                                   (wghtq+d_one)+m2p%qz0(j,i))
           end if
+        else
+          m2p%uz0(j,i) = d_zero
+          m2p%vz0(j,i) = d_zero
+          m2p%thz0(j,i) = thsk
+          m2p%qz0(j,i) = qsfc
         end if
 
         sz0(1) = m2p%thz0(j,i)
