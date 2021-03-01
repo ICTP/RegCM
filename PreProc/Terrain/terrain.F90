@@ -100,7 +100,7 @@ program terrain
   integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
-  real(rkx) :: clong , dsnsg , zsurf
+  real(rkx) :: clong , dsnsg
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values

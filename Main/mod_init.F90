@@ -972,7 +972,7 @@ module mod_init
     else
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
+          ptrop(j,i) = 17.0e3_rkx - 6.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
         end do
       end do
     end if

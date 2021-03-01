@@ -1839,7 +1839,7 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
-#ifdef PNETCDF
+#ifndef PNETCDF
 #ifdef NETCDF_CDF5
     imode = ior(nf90_clobber, nf90_cdf5)
 #else

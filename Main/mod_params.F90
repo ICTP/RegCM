@@ -1768,7 +1768,7 @@ module mod_params
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
       mddom%msfx = 1.0_rkx
-      dl = raddeg * ds*1000.0_rkx / earthrad
+      dl = raddeg * (ds*d_1000)/earthrad
       do i = ide1 , ide2
         do j = jde1 , jde2
           mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
