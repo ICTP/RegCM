@@ -1373,7 +1373,7 @@ module mod_moloch
                 do n = 1 , kz
                   write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
                             w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                            t(j,i,n) , tetav(j,i,n) , tke(j,i,n)
+                            t(j,i,n) , tetav(j,i,n)
                 end do
                 flush(100+myid)
                 call fatal(__FILE__,__LINE__, 'error')
@@ -1575,7 +1575,7 @@ module mod_moloch
                 do n = 1 , kz
                   write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
                             w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                            t(j,i,n) , tetav(j,i,n) , tke(j,i,n)
+                            t(j,i,n) , tetav(j,i,n)
                 end do
                 flush(100+myid)
                 call fatal(__FILE__,__LINE__, 'error')
