@@ -417,14 +417,10 @@ module mod_lm_interface
 
   subroutine surface_model
 #ifdef CLM45
-    use mod_atm_interface , only : atms
     use mod_atm_interface , only : voc_em_clm , dustflx_clm
 #endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr
-#ifdef CLM45
-    real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
-#endif
 #ifdef CLM
     if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.

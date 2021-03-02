@@ -341,14 +341,14 @@ module mod_pbl_myj
         akhs_dens = akhs*rhok(kz)
 
         if ( m2p%ldmsk(j,i) == 0 ) then
-          qsfc = seafc*pfqsat(tg,psfc)
+          qsfc = seafc*pfqsat(m2p%tatm(j,i,kz),psfc)
         else
           qsfc = m2p%q2m(j,i)
         end if
         tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
         ratiomx = m2p%qxatm(j,i,kz,iqv)
         qha = ratiomx/(d_one+ratiomx)
-        if ( ustar < 0.0225_rkx ) then
+        if ( ustar < ustr ) then
           zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
           wght = akms*zu*rvisc
           wght = wght/(d_one+wght)
@@ -359,15 +359,15 @@ module mod_pbl_myj
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
           if ( rcmtimer%lcount < 1 ) then
-            m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
-            m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
+            m2p%thz0(j,i) = ((wghtt*tha)+thsk)/(wghtt+d_one)
+            m2p%qz0(j,i) = ((wghtq*qha)+qsfc)/(wghtq+d_one)
           else
-            m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
-                                    (wghtt+d_one)+m2p%thz0(j,i))
-            m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
-                                   (wghtq+d_one)+m2p%qz0(j,i))
+            m2p%thz0(j,i) = d_half*(((wghtt*tha)+thsk) / &
+                                   (wghtt+d_one)+m2p%thz0(j,i))
+            m2p%qz0(j,i) = d_half*(((wghtq*qha)+qsfc) /  &
+                                  (wghtq+d_one)+m2p%qz0(j,i))
           end if
-        else if ( ustar > 0.0225_rkx .and. ustar < 0.7_rkx ) then
+        else if ( ustar > ustr .and. ustar < ustc ) then
           m2p%uz0(j,i) = d_zero
           m2p%vz0(j,i) = d_zero
           zt = fzt2*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
@@ -375,13 +375,13 @@ module mod_pbl_myj
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
           if ( rcmtimer%lcount < 1 ) then
-            m2p%thz0(j,i) = (wghtt*(tha+thsk))/(wghtt+d_one)
-            m2p%qz0(j,i) = (wghtq*(qha+qsfc))/(wghtq+d_one)
+            m2p%thz0(j,i) = (((wghtt*tha)+thsk))/(wghtt+d_one)
+            m2p%qz0(j,i) = (((wghtq*qha)+qsfc))/(wghtq+d_one)
           else
-            m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
-                                    (wghtt+d_one)+m2p%thz0(j,i))
-            m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
-                                   (wghtq+d_one)+m2p%qz0(j,i))
+            m2p%thz0(j,i) = d_half*(((wghtt*tha)+thsk) / &
+                                   (wghtt+d_one)+m2p%thz0(j,i))
+            m2p%qz0(j,i) = d_half*(((wghtq*qha)+qsfc) /  &
+                                  (wghtq+d_one)+m2p%qz0(j,i))
           end if
         else
           m2p%uz0(j,i) = d_zero
