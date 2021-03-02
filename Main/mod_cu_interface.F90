@@ -29,13 +29,15 @@ module mod_cu_interface
   use mod_regcm_types
   use mod_mppparam , only : exchange_lrbt , uvcross2dot , uvdot2cross , italk
   use mod_mppparam , only : tenxtouvten , uvtentotenx
+  use mod_mppparam , only : meanall , minall , maxall
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
   use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
       cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
       cu_convpr , cu_chiten , avg_ww
-  use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
+  use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv , &
+      pmean , nmctop
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , cldefi
   use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d ,        &
@@ -88,6 +90,9 @@ module mod_cu_interface
 
   real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
   real(rkx) , pointer , dimension(:,:,:) :: utend , vtend
+
+  ! Midlevel convection top pressure for Tiedtke iconv = 1
+  real(rkx) , parameter :: cmcptop = 30000.0_rkx
 
   contains
 
@@ -243,7 +248,8 @@ module mod_cu_interface
     use mod_atm_interface
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: w1
+    integer(ik4) :: iplmlc , mintop , maxtop
+    real(rkx) :: mymean , w1
 
     if ( any(icup == 6) ) then
       w1 = d_one/real(max(int(max(dtcum,600.0_rkx)/dtsec),1),rkx)
@@ -260,6 +266,30 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
+      if ( iconv == 1 ) then
+        ! Calculate average elevation of cmcptop level
+        nmctop = 0
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            iplmlc = 1
+            do k = 1 , kzp1
+              iplmlc = k
+              if ( m2c%pasf(j,i,k) >= cmcptop ) exit
+            end do
+            nmctop = nmctop + iplmlc
+          end do
+        end do
+        iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
+        call minall(iplmlc,mintop)
+        call maxall(iplmlc,maxtop)
+        nmctop = (mintop+maxtop)/2
+      else if ( iconv == 4 ) then
+        do k = 1 , kz
+          mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
+          call meanall(mymean,pmean(k))
+        end do
+      end if
+
       w1 = d_one/real(max(int(max(dtcum,3600.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2

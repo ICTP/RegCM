@@ -39,7 +39,6 @@ module mod_cu_tiedtke
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
   use mod_runparams , only : lmfpen , lmfmid , lmfdd , lepcld , lmfdudv , &
           lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
-  use mod_mppparam , only : meanall , minall , maxall
   use mod_regcm_types
 
   implicit none
@@ -95,12 +94,13 @@ module mod_cu_tiedtke
         ptopmax , xphfx , xpqfx
   real(rkx) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , pmfu , xpg , xpgh
-  real(rkx) , pointer , dimension(:) :: pmean
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
-  integer(ik4) :: nipoi , nmctop , mintop , maxtop
+  integer(ik4) :: nipoi
   integer(ik4) , pointer , dimension(:) :: imap , jmap
-
   integer(ik4) :: nskmax
+
+  integer(ik4) , public :: nmctop
+  real(rkx) , pointer , public , dimension(:) :: pmean
 
   ! Max massflux value
   real(rkx) , parameter :: cmfcmax = 1.0_rkx
@@ -108,8 +108,6 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: cmfcmin = 1.0e-10_rkx
   ! Rainfall max elevation
   real(rkx) , parameter :: zdlev   = 1.5e4_rkx
-  ! Midlevel convection top pressure
-  real(rkx) , parameter :: cmcptop = 30000.0_rkx
   ! Relat. cloud massflux at level above nonbuoyancy
   real(rkx) , parameter :: cmfctop = 0.35_rkx
 
@@ -129,6 +127,7 @@ module mod_cu_tiedtke
     implicit none
     integer(ik4) :: i , j , ii
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
+    call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
     nipoi = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -189,7 +188,6 @@ module mod_cu_tiedtke
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem1d(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
     call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
-    call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
 
   end subroutine allocate_mod_cu_tiedtke
   !
@@ -200,8 +198,7 @@ module mod_cu_tiedtke
     type(mod_2_cum) , intent(in) :: m2c
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: uxten
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: vxten
-    integer(ik4) :: i , j , k , n , ii , iplmlc
-    real(rkx) :: mymean
+    integer(ik4) :: i , j , k , n , ii
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -349,10 +346,6 @@ module mod_cu_tiedtke
 
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
-      do k = 1 , kz
-        mymean = sum(papp1(:,k))/real(nipoi,rkx)
-        call meanall(mymean,pmean(k))
-      end do
       call setup(nskmax,pmean)
     else
       do ii = 1 , nipoi
@@ -371,24 +364,6 @@ module mod_cu_tiedtke
         xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
       end do
     end do
-
-    ! Calculate average elevation of cmcptop level
-
-    if ( iconv == 1 ) then
-      nmctop = 0
-      do ii = 1 , nipoi
-        iplmlc = 1
-        do k = 1 , kzp1
-          iplmlc = k
-          if ( paphp1(ii,k) >= cmcptop ) exit
-        end do
-        nmctop = nmctop + iplmlc
-      end do
-      iplmlc = nmctop / nipoi
-      call minall(iplmlc,mintop)
-      call maxall(iplmlc,maxtop)
-      nmctop = (mintop+maxtop)/2
-    end if
 
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
