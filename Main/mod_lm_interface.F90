@@ -382,34 +382,38 @@ module mod_lm_interface
 #ifdef CLM
     integer(ik4) :: i , j , n
 #endif
+    if ( irceideal == 0 ) then
 #ifndef CLM45
-    call initbats(lm,lms)
+      call initbats(lm,lms)
 #else
-    call initclm45(lm,lms)
+      call initclm45(lm,lms)
 #endif
+    end if
     call initocn(lm,lms)
 #ifdef CLM
-    call initclm(lm,lms)
-    if ( rcmtimer%start( ) .and. imask == 2 ) then
-      ! CLM may have changed the landuse again !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          lm%iveg(j,i) = nint(lm%lndcat(j,i))
-        end do
-      end do
-      ! Correct land/water misalign : set to short grass
-      where ( (lm%iveg == 14 .or. lm%iveg == 15) .and. lm%ldmsk == 1 )
-        lm%iveg = 2
-        lm%lndcat = d_two
-      end where
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
-            lm%iveg1(n,j,i) = lm%iveg(j,i)
-            lm%lndcat1(n,j,i) = lm%lndcat(j,i)
+    if ( irceideal == 0 ) then
+      call initclm(lm,lms)
+      if ( rcmtimer%start( ) .and. imask == 2 ) then
+        ! CLM may have changed the landuse again !
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            lm%iveg(j,i) = nint(lm%lndcat(j,i))
           end do
         end do
-      end do
+        ! Correct land/water misalign : set to short grass
+        where ( (lm%iveg == 14 .or. lm%iveg == 15) .and. lm%ldmsk == 1 )
+          lm%iveg = 2
+          lm%lndcat = d_two
+        end where
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              lm%iveg1(n,j,i) = lm%iveg(j,i)
+              lm%lndcat1(n,j,i) = lm%lndcat(j,i)
+            end do
+          end do
+        end do
+      end if
     end if
 #endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
@@ -433,10 +437,10 @@ module mod_lm_interface
     else
       r2cnstep = syncro_srf%lcount + 1
     end if
-    call mtrxclm(lm,lms)
+    if ( irceideal == 0 ) call mtrxclm(lm,lms)
 #else
 #ifdef CLM45
-    call runclm45(lm,lms)
+    if ( irceideal == 0 ) call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then
       do n = 1 , ntr
@@ -455,7 +459,7 @@ module mod_lm_interface
       end do
     end if
 #else
-    call vecbats(lm,lms)
+    if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
 #endif
     call vecocn(lm,lms)
@@ -554,15 +558,15 @@ module mod_lm_interface
 #ifdef CLM
     logical :: do_call_albedo_bats_for_clm = .false.
     if ( do_call_albedo_bats_for_clm ) then
-      call albedobats(lm,lms)
+      if ( irceideal == 0 ) call albedobats(lm,lms)
     else
-      call albedoclm(lm,lms)
+      if ( irceideal == 0 ) call albedoclm(lm,lms)
     end if
 #else
 #ifdef CLM45
-    call albedoclm45(lm,lms)
+    if ( irceideal == 0 ) call albedoclm45(lm,lms)
 #else
-    call albedobats(lm,lms)
+    if ( irceideal == 0 ) call albedobats(lm,lms)
 #endif
 #endif
     call albedoocn(lm,lms)

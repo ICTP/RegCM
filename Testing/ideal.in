@@ -1,0 +1,93 @@
+! smaller domain
+ &dimparam
+ iy     = 100,
+ jx     = 500,
+ kz     = 60,
+ /
+ &coreparam
+ idynamic = 3,  ! Choice of dynamical core
+ /
+ &molochparam
+ mo_ztop = 30000.0
+ mo_a0 = 0.0,
+ mo_b0 = 0.1,
+ mo_mfac = 0.8,
+ /
+ &nonhydroparam
+ /
+ &geoparam
+ iproj = 'NORMER',
+ ds = -0.018,
+ ptop = 5.0,
+ clat = 0.0,
+ clon = 90.0,
+ plat = 0.0,
+ plon = 90.0,
+ i_band = 1,
+ i_crm = 1,
+ /
+ &terrainparam
+ domname = 'IDEAL',
+ /
+ &debugparam
+ debug_level = 0,
+ dbgfrq = 3,
+ /
+ &boundaryparam
+ nspgx = 10,
+ nspgd = 10,
+ /
+ &globdatparam
+ gdate1 = 1900010100,
+ gdate2 = 1900030100,
+ /
+ &restartparam
+ ifrest  = .false. ,
+ mdate0  = 1900010100,
+ mdate1  = 1900010100,
+ mdate2  = 1900030100,
+ /
+ &timeparam
+ dt      =    30.,
+ /
+ &outparam
+ ifsave  = .true. ,
+   savfrq  =    0.,
+ ifatm  = .true. ,
+   atmfrq  =     3.,
+ ifrad   = .true. ,
+   radfrq  =     3.,
+ ifsrf   = .true. ,
+ ifsub   = .true. ,
+   srffrq  =     3.,
+ ifchem  = .false.,
+   chemfrq =     12.,
+ dirout='output'
+ do_parallel_netcdf_in = .true.,
+ do_parallel_netcdf_out = .false.,
+ /
+ &physicsparam
+ iboudy  =          0,
+ ibltyp  =          1,
+ icup_lnd =         0,
+ icup_ocn =         0,
+ ipptls  =          2,
+ iocnflx =          2,
+ idcsst = 0,
+ iconvlwp = 0,
+ irceideal = 1,
+ scenario = 'CONST',
+ ghg_year_const = 1900,
+ ifixsolar = 1,
+ fixedsolarval = 340.,
+ /
+ &subexparam
+ /
+ &cldparam
+ /
+ &grellparam
+ /
+ &emanparam
+ / 
+ &holtslagparam
+ /

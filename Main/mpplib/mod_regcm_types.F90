@@ -697,7 +697,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: chib    ! atms%chib3d
     real(rkx) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rkx) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
-    integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
     real(rkx) , pointer , dimension(:,:,:) :: heatrt    ! radiation heat rate
     real(rkx) , pointer , dimension(:,:) :: uz0         ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: vz0         ! MYJ SF layer

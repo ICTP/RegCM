@@ -146,7 +146,6 @@ module mod_pbl_interface
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
     call assignpnt(heatrt,m2p%heatrt)
-    call assignpnt(ktrop,m2p%ktrop)
 
     ! OUTPUT FROM PBL
     if ( idynamic == 3 ) then

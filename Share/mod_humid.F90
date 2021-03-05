@@ -43,6 +43,7 @@ module mod_humid
   interface rh2mxr
     module procedure rh2mxr_p3d
     module procedure rh2mxr_p1d
+    module procedure rh2mxr_p1
   end interface rh2mxr
 
   public :: mxr2rh , ecmwf_rh2mxr , rh2mxr
@@ -246,6 +247,30 @@ module mod_humid
 #include <pfwsat.inc>
 
   end subroutine mxr2rh_o_single_nonhydro
+
+  subroutine rh2mxr_p1(t,q,p,nk)
+    implicit none
+    integer(ik4) , intent(in) :: nk
+    real(rkx) , intent(in) , dimension(nk) :: p ! Pa
+    real(rkx) , intent(in) , dimension(nk) :: t ! K
+    real(rkx) , intent(inout) , dimension(nk) :: q ! 0-1
+
+    real(rkx) :: qs
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
+    !
+    do k = 1 , nk
+      qs = pfwsat(t(k),p(k))
+      q(k) = max(q(k)*qs,d_zero)
+    end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
+  end subroutine rh2mxr_p1
 
   subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
     implicit none

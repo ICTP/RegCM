@@ -40,6 +40,7 @@ module mod_bdycod
   use mod_stdatm
   use mod_slabocean
   use mod_vertint , only : intz1
+  use mod_humid , only : rh2mxr
 
   implicit none
 
@@ -128,13 +129,13 @@ module mod_bdycod
     integer(ik4) :: iunit , ierr
     integer(ik4) :: k , nlev
     real(rkx) :: ps , ts
-    real(rkx) , allocatable , dimension(:) :: z , p , t , u , v , q
+    real(rkx) , allocatable , dimension(:) :: g , p , t , u , v , r
     real(rkx) , allocatable , dimension(:) :: zi , pi , ti , ui , vi , qi
     real(rkx) , dimension(1) :: ht
 
     namelist /dimensions/ nlev
     namelist /surface/ ps , ts
-    namelist /profile/ z , p , t , u , v , q
+    namelist /profile/ g , p , t , u , v , r
 
     open(newunit=iunit, file='profile.in', status='old', &
          action='read', iostat=ierr, err=100)
@@ -150,7 +151,7 @@ module mod_bdycod
     end if
     rewind(iunit)
 
-    allocate(z(nlev),p(nlev),t(nlev),u(nlev),v(nlev),q(nlev))
+    allocate(g(nlev),p(nlev),t(nlev),u(nlev),v(nlev),r(nlev))
     allocate(zi(kz),pi(kz),ti(kz),ui(kz),vi(kz),qi(kz))
 
     read(iunit, nml=surface, iostat=ierr, err=300)
@@ -172,6 +173,17 @@ module mod_bdycod
       write(stdout,*) 'Successfully read in initial profile.'
     end if
 
+    g = g * regrav
+    r = r*d_r100
+    p = p * d_100
+    call rh2mxr(t,r,p,nlev)
+    p = p * d_r100
+    call invert_top_bottom(t)
+    call invert_top_bottom(p)
+    call invert_top_bottom(g)
+    call invert_top_bottom(u)
+    call invert_top_bottom(v)
+    call invert_top_bottom(r)
     xtsb%b0(jce1:jce2,ice1:ice2) = ts
     if ( idynamic == 1 ) then
       xpsb%b0 = ps * 0.1_rkx
@@ -181,7 +193,7 @@ module mod_bdycod
       call intz1(ui,u,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
       call intz1(vi,v,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
       call intz1(ti,t,pi,p,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,q,pi,p,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(qi,r,pi,p,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1 , kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
@@ -193,11 +205,10 @@ module mod_bdycod
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0
       zi = atm0%z(jci1,ici1,1:kz)
-      z = z * 1000.0_rkx
-      call intz1(ui,u,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(vi,v,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(ti,t,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,q,zi,z,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(ui,u,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1 , kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
@@ -211,11 +222,10 @@ module mod_bdycod
       xpsb%b0 = ps * 100.0_rkx
       ht = 0.0
       zi = mo_atm%zeta(jci1,ici1,1:kz)
-      z = z * 1000.0_rkx
-      call intz1(ui,u,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(vi,v,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
-      call intz1(ti,t,zi,z,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
-      call intz1(qi,q,zi,z,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(ui,u,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(vi,v,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(ti,t,zi,g,ht,1,1,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(qi,r,zi,g,ht,1,1,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
       do k = 1 , kz
         xub%b0(:,:,k) = ui(k)
         xvb%b0(:,:,k) = vi(k)
@@ -228,7 +238,7 @@ module mod_bdycod
         'Should beve get here....')
     end if
 
-    deallocate(z,p,t,u,v,q)
+    deallocate(g,p,t,u,v,r)
     deallocate(zi,pi,ti,ui,vi,qi)
     return
 
@@ -5551,6 +5561,19 @@ module mod_bdycod
     !  Remark: this alpha corresponds to the leapfrog scheme,
     !  whereas kdt2 is independent of the integration scheme
   end subroutine relax
+
+  subroutine invert_top_bottom(v)
+    implicit none
+    real(rkx) , dimension(:) , intent(inout) :: v
+    real, dimension(size(v)) :: swap
+    integer :: nk , k , kk
+    swap = v
+    nk = size(v)
+    do k = 1 , nk
+      kk = nk-k+1
+      v(k) = swap(kk)
+    end do
+  end subroutine invert_top_bottom
 
 end module mod_bdycod
 

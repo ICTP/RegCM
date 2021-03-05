@@ -119,6 +119,7 @@ module mod_pbl_myj
   real(rkx) , parameter :: fzt2 = cziv*grrs*tvisc*sqpr
   real(rkx) , parameter :: fzu1 = cziv*visc
   real(rkx) , parameter :: rqvisc = d_one/qvisc
+  real(rkx) , parameter :: ustfc = 0.018_rkx/egrav
   !
   ! Free term in the equilibrium equation for (L/Q)**2
   !
@@ -181,7 +182,7 @@ module mod_pbl_myj
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
           thsk , ct , qha , ustar
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
-    real(rkx) :: akhs , akms , pfac
+    real(rkx) :: akhs , akms , pfac , zo
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
             tk , uk , vk , qcwk , qcik
@@ -231,6 +232,7 @@ module mod_pbl_myj
     setup_integration: &
     do i = ici1 , ici2
       do j = jci1 , jci2
+        ustar = m2p%ustar(j,i)
         !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
@@ -249,9 +251,6 @@ module mod_pbl_myj
           ! TKE = 0.5*(q**2) ==> q**2 = 2.0*TKE
           !
           q2k(k) = d_two*m2p%tkests(j,i,k)
-          !
-          ! Compute the heights of the layer interfaces
-          !
         end do
         zhk(kzp1) = zint(j,i,kzp1)
         !
@@ -262,7 +261,7 @@ module mod_pbl_myj
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(dtturbl,m2p%ustar(j,i),gm,gh,el,q2k)
+        call prodq2(dtturbl,ustar,gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
@@ -341,15 +340,16 @@ module mod_pbl_myj
         akhs_dens = akhs*rhok(kz)
 
         if ( m2p%ldmsk(j,i) == 0 ) then
-          qsfc = seafc*pfqsat(m2p%tatm(j,i,kz),psfc)
+          qsfc = seafc*pfqsat(tg,psfc)
         else
           qsfc = m2p%q2m(j,i)
         end if
         tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
         ratiomx = m2p%qxatm(j,i,kz,iqv)
         qha = ratiomx/(d_one+ratiomx)
+        zo = max(ustfc*ustar*ustar,1.59e-5_rkx)
         if ( ustar < ustr ) then
-          zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          zu = fzu1*sqrt(sqrt(zo*ustar*rvisc))/ustar
           wght = akms*zu*rvisc
           wght = wght/(d_one+wght)
           m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)*wght)+m2p%uz0(j,i))
@@ -370,7 +370,7 @@ module mod_pbl_myj
         else if ( ustar > ustr .and. ustar < ustc ) then
           m2p%uz0(j,i) = d_zero
           m2p%vz0(j,i) = d_zero
-          zt = fzt2*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          zt = fzt2*sqrt(sqrt(zo*ustar*rvisc))/ustar
           zq = fzq2*zt
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
@@ -503,7 +503,7 @@ module mod_pbl_myj
     real(rkx) , intent(inout) :: ct
     integer(ik4) :: k , lpblm
     real(rkx) :: a , aden , b , bden , aubr , bubr , blmx , el0 , &
-      eloq2x , ghl , gml , qol2st , qol2un , qdzl , rdz , sq ,    &
+      eloq2 , ghl , gml , qol2st , qol2un , qdzl , rdz , sq ,    &
       srel , szq , tem , thm , vkrmz
     real(rkx) , dimension(kz) :: q1
     real(rkx) , dimension(kzm1) :: dth , elm , rel
@@ -569,15 +569,15 @@ module mod_pbl_myj
           aubr   = (aubm*gml+aubh*ghl)*ghl
           bubr   = bubm*gml+bubh*ghl
           qol2st = (-d_half*bubr+sqrt(bubr*bubr*0.25_rkx-aubr*cubr))*rcubr
-          eloq2x = d_one/qol2st
-          elm(k) = max(sqrt(eloq2x*q2(k)),epsl)
+          eloq2  = d_one/qol2st
+          elm(k) = max(sqrt(eloq2*q2(k)),epsl)
         endif
       else
         aden   = (adnm*gml+adnh*ghl)*ghl
         bden   = bdnm*gml+bdnh*ghl
         qol2un = -d_half*bden+sqrt(bden*bden*0.25_rkx-aden)
-        eloq2x = d_one/(qol2un+epsru)
-        elm(k) = max(sqrt(eloq2x*q2(k)),epsl)
+        eloq2  = d_one/(qol2un+epsru)
+        elm(k) = max(sqrt(eloq2*q2(k)),epsl)
       end if
     end do
     if ( elm(kzm1) == epsl ) lmxl = kz
