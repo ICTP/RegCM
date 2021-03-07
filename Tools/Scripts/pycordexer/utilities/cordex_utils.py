@@ -788,6 +788,7 @@ class CordexDataset(Dataset):
         the CORDEX files (for example, jx becomes x).
         """
         LOGGER.debug('Saving variable %s', var_name)
+        LOGGER.debug('dimensions %s', dims)
 
         if replace_dims is None:
             replace_dims = {}

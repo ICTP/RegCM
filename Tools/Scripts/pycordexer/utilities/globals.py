@@ -53,7 +53,7 @@ for json_file in os.listdir(CORDEX_VARS_DIR):
         continue
 
     with open(os.path.join(CORDEX_VARS_DIR, json_file), 'r') as f:
-        for var_name, var_description in  json.load(f).items():
+        for var_name, var_description in json.load(f).items():
             CORDEX_VARS[var_name.lower()] = var_description
 
 

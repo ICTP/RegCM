@@ -17,11 +17,8 @@
         }
       ],
       [
-        "ExtractLevel",
-        {
-          "dimension": "soil_layer",
-          "level": 0
-        }
+        "AddDephtVariable",
+        {}
       ],
       [
         "SaveVariableToDisk",
@@ -31,8 +28,7 @@
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "moisture_content_of_soil_layer",
-            "units": "kg m-2",
-	    "comment": "first layer depth: 0.0175 m"
+            "units": "kg m-2"
           }
         }
       ],
@@ -50,8 +46,7 @@
           "new_attributes": {
             "long_name": "Total water content of soil layer",
             "standard_name": "moisture_content_of_soil_layer",
-            "units": "kg m-2",
-	    "comment": "first layer depth: 0.0175 m"
+            "units": "kg m-2"
           }
         }
       ]

@@ -371,6 +371,94 @@ class CorrectTime(Filter):
         return correct_var
 
 
+class AddDephtVariable(Filter):
+    """Add the ground depth, discarding empty data."""
+
+    def __init__(self):
+        pass
+
+    def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
+                 corrflag, cordex_dir):
+
+        with Dataset(regcm_file_path, 'r') as f:
+            soil_names = get_regcm_variable_names('soil_layer')
+            bound_names = get_regcm_variable_names('soil_bounds')
+            LOGGER.debug('Reading soil_layer variable from regcm file')
+            try:
+                soil_layer = get_var_with_name(soil_names, f)
+                LOGGER.debug('soil_layer variable found in regcm file')
+                depth_var = Variable(
+                        name=soil_layer.name,
+                        data=MemoryData(soil_layer.data),
+                        dimensions=(('soil_layer',size(soil_layer.data)),),
+                        attributes=soil_layer.attributes,)
+            except:
+                soil_layer = np.array([0.00710063541719354, 0.0279250004153169,
+                 0.062258573936546, 0.118865066900143, 0.212193395908963,
+                 0.366065797104704, 0.619758497929827, 1.03802705000157,
+                 1.7276353086672, 2.86460711317969])
+                depth_var = Variable(
+                    name='soil_layer',
+                    data=MemoryData(soil_layer),
+                    dimensions=(('soil_layer',10),),
+                    attributes={
+                        'standard_name': 'depth',
+                        'long_name': 'Soil layer depth',
+                        'positive': 'down',
+                        'bounds': 'soil_bounds',
+                        'units': 'm',
+                        'axis': 'Z'
+                    }
+                )
+            LOGGER.debug('Reading soil_bounds variable from regcm file')
+            try:
+                soil_bounds = get_var_with_name(bound_names, f)
+                LOGGER.debug('soil_bounds variable found in regcm file')
+                bounds_var = Variable(
+                        name=soil_bounds.name,
+                        data=MemoryData(soil_bounds.data),
+                        dimensions=soil_bounds.dimensions,
+                        attributes=soil_bounds.attributes,)
+            except:
+                soil_bounds = np.array([[0, 0.0175128179162552],
+                      [0.0175128179162552, 0.0450917871759315],
+                      [0.0450917871759315, 0.0905618204183447],
+                      [0.0905618204183447, 0.165529231404553],
+                      [0.165529231404553, 0.289129596506834],
+                      [0.289129596506834, 0.492912147517265],
+                      [0.492912147517265, 0.828892773965698],
+                      [0.828892773965698, 1.38283117933438],
+                      [1.38283117933438, 2.29612121092344],
+                      [2.29612121092344, 3.80188191232272]])
+                bounds_var = Variable(
+                    name='soil_bounds',
+                    data=MemoryData(soil_bounds),
+                    dimensions=(('soil_layer',10),('bnds', 2)),
+                    attributes={
+                        'standard_name': 'depth',
+                        'long_name': 'Soil layer depth',
+                        'units': 'm',
+                    }
+                )
+
+        attributes = prev_result.attributes
+        attributes['coordinates'] = 'soil_layer lat lon'
+
+        depth_added_var = Variable(
+            name=prev_result.name,
+            data=prev_result.data,
+            dimensions=prev_result.dimensions,
+            attributes=attributes,
+            times=prev_result.times,
+            needs_time_bounds=prev_result.needs_time_bounds,
+            times_attributes=prev_result.times_attributes,
+            auxiliary_vars = (prev_result.auxiliary_variables +
+                   [depth_var, bounds_var, ]),
+        )
+
+        return depth_added_var
+
+
 class ExtractGroundHeight(Filter):
     """Extract the height from the ground, discarding empty data."""
 
