@@ -127,15 +127,24 @@ module mod_bdycod
   subroutine initideal
     implicit none
     integer(ik4) :: iunit , ierr
-    integer(ik4) :: k , nlev
+    integer(ik4) :: i , k , nlev , nseed
     real(rkx) :: ps , ts
     real(rkx) , allocatable , dimension(:) :: g , p , t , u , v , r
     real(rkx) , allocatable , dimension(:) :: zi , pi , ti , ui , vi , qi
+    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
+    integer(ik4) , allocatable , dimension(:) :: seed
+    integer(ik8) :: sclock
     real(rkx) , dimension(1) :: ht
 
     namelist /dimensions/ nlev
     namelist /surface/ ps , ts
     namelist /profile/ g , p , t , u , v , r
+
+    call random_seed(size=nseed)
+    call system_clock(sclock)
+    seed = myid + int(sclock) + 37*[(i-1,i=1,nseed)]
+    call random_seed(put = seed)
+    call random_number(noise)
 
     open(newunit=iunit, file='profile.in', status='old', &
          action='read', iostat=ierr, err=100)
@@ -184,7 +193,9 @@ module mod_bdycod
     call invert_top_bottom(u)
     call invert_top_bottom(v)
     call invert_top_bottom(r)
-    xtsb%b0(jce1:jce2,ice1:ice2) = ts
+    call random_number(noise)
+    xtsb%b0 = noise
+    xtsb%b0 = xtsb%b0 + ts - 0.5_rkx
     if ( idynamic == 1 ) then
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0
@@ -238,6 +249,7 @@ module mod_bdycod
         'Should beve get here....')
     end if
 
+    deallocate(seed)
     deallocate(g,p,t,u,v,r)
     deallocate(zi,pi,ti,ui,vi,qi)
     return
