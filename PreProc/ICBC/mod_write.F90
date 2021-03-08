@@ -60,8 +60,8 @@ module mod_write
     implicit none
     real(rkx) , pointer , dimension(:) , intent(in) :: plevs
     integer :: nplevs , ierr
-    nplevs = size(plevs)
 
+    nplevs = size(plevs)
     call getmem1d(pcoord,1,nplevs,'mod_write:pcoord')
     pcoord = plevs
     call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
@@ -128,11 +128,11 @@ module mod_write
     v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
     v3dvar_icbc(4)%standard_name = 'grid_northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
-    v3dvar_icbc(4)%vname = 'z'
-    v3dvar_icbc(4)%vunit = 'm'
-    v3dvar_icbc(4)%long_name = 'Geopotential Height'
-    v3dvar_icbc(4)%standard_name = 'geopotential_height'
-    v3dvar_icbc(4)%lrecords = .true.
+    v3dvar_icbc(5)%vname = 'z'
+    v3dvar_icbc(5)%vunit = 'm'
+    v3dvar_icbc(5)%long_name = 'Geopotential Height'
+    v3dvar_icbc(5)%standard_name = 'geopotential_height'
+    v3dvar_icbc(5)%lrecords = .true.
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%vname = 'ulon'
       v2dvar_icbc(7)%vunit = 'degrees_east'

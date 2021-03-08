@@ -1020,16 +1020,18 @@ module mod_ncstream
       end if
       buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
-      if ( idynamic < 3 ) then
-        stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
-        call outstream_writevar(ncout,stvar%ptop_var)
-      else
-        zita = mo_ztop * (d_one - sigma)
-        buffer%doublebuff(1:size(sigma)) = &
-                 real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk8)
-        call outstream_writevar(ncout,stvar%ak_var,nocopy)
-        buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
-        call outstream_writevar(ncout,stvar%bk_var,nocopy)
+      if ( .not. stream%l_plev ) then
+        if ( idynamic < 3 ) then
+          stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
+          call outstream_writevar(ncout,stvar%ptop_var)
+        else
+          zita = mo_ztop * (d_one - sigma)
+          buffer%doublebuff(1:size(sigma)) = &
+                   real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk8)
+          call outstream_writevar(ncout,stvar%ak_var,nocopy)
+          buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
+          call outstream_writevar(ncout,stvar%bk_var,nocopy)
+        end if
       end if
       if ( stream%l_has2mlev ) then
         buffer%doublebuff(1) = 2.0_rk8
