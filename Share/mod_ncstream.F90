@@ -400,6 +400,7 @@ module mod_ncstream
       stream%l_sync        = params%l_sync
       stream%l_subgrid     = params%l_subgrid
       stream%l_full_sigma  = params%l_full_sigma
+      stream%l_plev        = params%l_plev
       stream%l_hasspectral = params%l_specint
       stream%id_dims(:)   = -1
       stream%len_dims(:)  = 0
@@ -1206,12 +1207,16 @@ module mod_ncstream
           the_name = 'iy'
           pdim = iy_dim
         case ('KZ','kz')
-          if ( stream%l_full_sigma ) then
-            ! this is the number of FULL sigma levels
-            num = kz + 1
+          if ( stream%l_plev ) then
+            num = 17
           else
-            ! this is the number of HALF sigma levels
-            num = kz
+            if ( stream%l_full_sigma ) then
+              ! this is the number of FULL sigma levels
+              num = kz + 1
+            else
+              ! this is the number of HALF sigma levels
+              num = kz
+            end if
           end if
           the_name = 'kz'
           pdim = kz_dim
@@ -3365,40 +3370,46 @@ module mod_ncstream
         stvar%iy_var%standard_name = 'grid_latitude'
         stvar%iy_var%axis = 'y'
       end if
-      stvar%sigma_var%vname = 'kz'
-      stvar%sigma_var%vunit = '1'
-      if ( stream%l_full_sigma ) then
-        stvar%sigma_var%long_name = "sigma at layer interfaces"
+      if ( stream%l_plev ) then
+        stvar%sigma_var%vname = 'plev'
+        stvar%sigma_var%vunit = 'Pa'
+        stvar%sigma_var%long_name = "Pressure"
+        stvar%sigma_var%standard_name = 'atmosphere_pressure_coordinate'
+        stvar%sigma_var%axis = 'z'
       else
-        stvar%sigma_var%long_name = "sigma at layer midpoints"
-      end if
-      if ( idynamic < 3 ) then
-        stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
-      else
-        stvar%sigma_var%standard_name = 'atmosphere_hybrid_height_coordinate'
-      end if
-      stvar%sigma_var%axis = 'z'
-      if ( idynamic < 3 ) then
-        stvar%ptop_var%vname = 'ptop'
-        stvar%ptop_var%vunit = 'hPa'
-        stvar%ptop_var%long_name = "Pressure at model top"
-        stvar%ptop_var%standard_name = 'air_pressure'
-        call outstream_addvar(ncout,stvar%ptop_var)
-      else
-        stvar%ak_var%vname = 'kz'
-        stvar%ak_var%vname = 'a'
-        stvar%ak_var%vunit = 'm'
-        stvar%ak_var%axis = 'z'
-        stvar%ak_var%standard_name = "atmosphere_hybrid_height_coordinate"
-        stvar%ak_var%long_name = "vertical coordinate formula term a(k)"
-        call outstream_addvar(ncout,stvar%ak_var)
-        stvar%bk_var%vname = 'kz'
-        stvar%bk_var%vname = 'b'
-        stvar%bk_var%vunit = '1'
-        stvar%bk_var%axis = 'z'
-        stvar%bk_var%standard_name = "atmosphere_hybrid_height_coordinate"
-        stvar%bk_var%long_name = "vertical coordinate formula term b(k)"
-        call outstream_addvar(ncout,stvar%bk_var)
+        stvar%sigma_var%vname = 'kz'
+        stvar%sigma_var%vunit = '1'
+        if ( stream%l_full_sigma ) then
+          stvar%sigma_var%long_name = "sigma at layer interfaces"
+        else
+          stvar%sigma_var%long_name = "sigma at layer midpoints"
+        end if
+        if ( idynamic < 3 ) then
+          stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
+        else
+          stvar%sigma_var%standard_name = 'atmosphere_hybrid_height_coordinate'
+        end if
+        stvar%sigma_var%axis = 'z'
+        if ( idynamic < 3 ) then
+          stvar%ptop_var%vname = 'ptop'
+          stvar%ptop_var%vunit = 'hPa'
+          stvar%ptop_var%long_name = "Pressure at model top"
+          stvar%ptop_var%standard_name = 'air_pressure'
+          call outstream_addvar(ncout,stvar%ptop_var)
+        else
+          stvar%ak_var%vname = 'a'
+          stvar%ak_var%vunit = 'm'
+          stvar%ak_var%axis = 'z'
+          stvar%ak_var%standard_name = "atmosphere_hybrid_height_coordinate"
+          stvar%ak_var%long_name = "vertical coordinate formula term a(k)"
+          call outstream_addvar(ncout,stvar%ak_var)
+          stvar%bk_var%vname = 'b'
+          stvar%bk_var%vunit = '1'
+          stvar%bk_var%axis = 'z'
+          stvar%bk_var%standard_name = "atmosphere_hybrid_height_coordinate"
+          stvar%bk_var%long_name = "vertical coordinate formula term b(k)"
+          call outstream_addvar(ncout,stvar%bk_var)
+        end if
       end if
       call outstream_addvar(ncout,stvar%jx_var)
       call outstream_addvar(ncout,stvar%iy_var)
@@ -3419,17 +3430,19 @@ module mod_ncstream
       attc%aname = 'positive'
       attc%theval = 'down'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
-      if ( idynamic == 3 ) then
-        attc%aname = 'formula'
-        attc%theval = 'z(k,j,i) = a(k) + topo(j,i) * b(k)'
-      else if ( idynamic == 2 ) then
-        attc%aname = 'formula'
-        attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
-      else
-        attc%aname = 'formula'
-        attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(ps(n,j,i)-ptop)'
+      if ( .not. stream%l_plev ) then
+        if ( idynamic == 3 ) then
+          attc%aname = 'formula'
+          attc%theval = 'z(k,j,i) = a(k) + topo(j,i) * b(k)'
+        else if ( idynamic == 2 ) then
+          attc%aname = 'formula'
+          attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
+        else
+          attc%aname = 'formula'
+          attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(ps(n,j,i)-ptop)'
+        end if
+        call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       end if
-      call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       attc%aname = 'CoordinateAxisType'
       attc%theval = 'GeoZ'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)

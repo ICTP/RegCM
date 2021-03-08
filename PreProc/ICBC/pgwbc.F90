@@ -95,7 +95,6 @@ program pgwbc
   call memory_init
 
   call init_grid(jx,iy,kz)
-  call init_output
 
   pjpara%pcode = iproj
   pjpara%ds = ds*1000.0_rk8
@@ -132,11 +131,12 @@ program pgwbc
   iodate = idate
 
   call init_pgw(infilename)
+  call init_outpgw(plevs)
 
   do nnn = 1 , nsteps
-    call newfile(monfirst(idate),'PGWBC')
+    call newpgwfile(monfirst(idate))
     call get_pgw(idate)
-    call writef(idate)
+    call writepwgf(idate)
     iodate = idate
     idate = nextmon(idate)
   end do

@@ -241,12 +241,12 @@ program icbc
     call init_gn6hnc
   end if
 
-  call newfile(idate, 'ICBC')
+  call newfile(idate)
 
   do nnn = 1 , nsteps
 
     if (.not. lsamemonth(idate, iodate) ) then
-      call newfile(monfirst(idate), 'ICBC')
+      call newfile(monfirst(idate))
     end if
 
     if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then

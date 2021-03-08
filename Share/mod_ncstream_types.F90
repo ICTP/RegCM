@@ -90,6 +90,8 @@ module mod_ncstream_types
     logical :: l_subgrid = .false.
     ! If the vertical coordinate is on full sigma levels
     logical :: l_full_sigma = .false.
+    ! If the vertical coordinate is pressure levels
+    logical :: l_plev = .false.
     ! Sync the output each timestep
     logical :: l_sync = .false.
     ! Has spectral intervals dimensions (radfile)
@@ -193,6 +195,7 @@ module mod_ncstream_types
     logical :: l_crm   = .false.
     logical :: l_subgrid = .false.
     logical :: l_full_sigma = .false.
+    logical :: l_plev = .false.
     real(rk8) :: zero_time = 0.0D0
     !
     ! Work flags

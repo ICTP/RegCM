@@ -246,7 +246,7 @@ module mod_bdycod
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
     else
       call fatal(__FILE__,__LINE__, &
-        'Should beve get here....')
+        'Should never get here....')
     end if
 
     deallocate(seed)

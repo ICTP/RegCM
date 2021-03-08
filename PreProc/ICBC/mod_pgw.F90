@@ -46,20 +46,14 @@ module mod_pgw
 
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigmar
+  real(rkx) , pointer , public , dimension(:) :: plevs
 
   real(rkx) , pointer , dimension(:,:,:) :: u2 , v2 , q2 , z2 , t2
   real(rkx) , pointer , dimension(:,:) :: ps2 , ts2
 
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , q3 , z3 , t3
   real(rkx) , pointer , dimension(:,:,:) :: d3u , d3v , h3u , h3v
-  real(rkx) , pointer , dimension(:,:) :: ps3 , ts3
-  real(rkx) , pointer , dimension(:,:) :: topou , topov
 
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
-
-  real(rkx) :: pss , pst
 
   character(len=256) :: pgwfile
 
@@ -103,7 +97,6 @@ module mod_pgw
           'Error reading plev dimelen in file '//trim(pgwfile))
 
     call getmem1d(plevs,1,klev,'pgw:plevs')
-    call getmem1d(sigmar,1,klev,'pgw:sigmar')
     call getmem1d(glat,1,jlat,'pgw:glat')
     call getmem1d(glon,1,ilon,'pgw:glon')
 
@@ -126,12 +119,6 @@ module mod_pgw
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading plev variable in file '//trim(pgwfile))
 
-    do k = 1 , klev
-      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
-    end do
-    pss = (plevs(klev)-plevs(1))/1000.0_rkx ! Pa -> cb
-    pst = plevs(1)/1000.0_rkx ! Pa -> cb
-
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then
       call h_interpolator_create(udot_hint,glat,glon,ulat,ulon)
@@ -148,24 +135,11 @@ module mod_pgw
     call getmem2d(ps2,1,ilon,1,jlat,'pgw:ps2')
     call getmem2d(ts2,1,ilon,1,jlat,'pgw:ts2')
 
-    call getmem3d(u3,1,jx,1,iy,1,klev,'pgw:u3')
-    call getmem3d(v3,1,jx,1,iy,1,klev,'pgw:v3')
-    call getmem3d(t3,1,jx,1,iy,1,klev,'pgw:t3')
-    call getmem3d(q3,1,jx,1,iy,1,klev,'pgw:q3')
-    call getmem3d(z3,1,jx,1,iy,1,klev,'pgw:z3')
     call getmem3d(h3u,1,jx,1,iy,1,klev,'pgw:h3u')
     call getmem3d(h3v,1,jx,1,iy,1,klev,'pgw:h3v')
-    call getmem2d(ps3,1,jx,1,iy,'pgw:ps3')
-    call getmem2d(ts3,1,jx,1,iy,'pgw:ts3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev,'pgw:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev,'pgw:d3v')
-      call getmem2d(topou,1,jx,1,iy,'pgw:topou')
-      call getmem2d(topov,1,jx,1,iy,'pgw:topov')
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call ucrs2dot(topou,topogm,jx,iy,i_band)
-      call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
 
     do kkrec = 1 , ndelta
@@ -219,34 +193,34 @@ module mod_pgw
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(7))
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
-    call h_interpolate_cont(cross_hint,t2,t3)
-    call h_interpolate_cont(cross_hint,q2,q3)
-    call h_interpolate_cont(cross_hint,z2,z3)
+    call h_interpolate_cont(cross_hint,t2,t4)
+    call h_interpolate_cont(cross_hint,q2,q4)
+    call h_interpolate_cont(cross_hint,z2,z4)
     if ( idynamic == 3 ) then
-      call h_interpolate_cont(udot_hint,u2,u3)
+      call h_interpolate_cont(udot_hint,u2,u4)
       call h_interpolate_cont(udot_hint,v2,d3v)
       call h_interpolate_cont(vdot_hint,u2,d3u)
-      call h_interpolate_cont(vdot_hint,v2,v3)
-      call pju%wind_rotate(u3,d3v)
-      call pjv%wind_rotate(d3u,v3)
+      call h_interpolate_cont(vdot_hint,v2,v4)
+      call pju%wind_rotate(u4,d3v)
+      call pjv%wind_rotate(d3u,v4)
     else
-      call h_interpolate_cont(udot_hint,u2,u3)
-      call h_interpolate_cont(udot_hint,v2,v3)
-      call pjd%wind_rotate(u3,v3)
+      call h_interpolate_cont(udot_hint,u2,u4)
+      call h_interpolate_cont(udot_hint,v2,v4)
+      call pjd%wind_rotate(u4,v4)
     end if
-    call h_interpolate_cont(cross_hint,ts2,ts3)
-    call h_interpolate_cont(cross_hint,ps2,ps3)
+    call h_interpolate_cont(cross_hint,ts2,ts4)
+    call h_interpolate_cont(cross_hint,ps2,ps4)
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3)
+    call top2btm(t4)
 !$OMP SECTION
-    call top2btm(q3)
+    call top2btm(q4)
 !$OMP SECTION
-    call top2btm(z3)
+    call top2btm(z4)
 !$OMP SECTION
-    call top2btm(u3)
+    call top2btm(u4)
 !$OMP SECTION
-    call top2btm(v3)
+    call top2btm(v4)
 !$OMP END SECTIONS
 
   end subroutine get_pgw
