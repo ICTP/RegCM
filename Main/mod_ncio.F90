@@ -37,9 +37,10 @@ module mod_ncio
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som
   public :: open_clmbc , clmbc_search , close_clmbc , read_clmbc
+  public :: open_pgw , close_pgw , read_pgw
   public :: fixqcqi , we_have_qc , we_have_qi
 
-  integer(ik4) :: ibcin , somin , clmbcin
+  integer(ik4) :: ibcin , somin , clmbcin , pgwin
   integer(ik4) :: istatus
   integer(ik4) :: ibcrec , ibcnrec , clmbcrec , clmbcnrec
   integer(ik4) :: somrec
@@ -48,6 +49,7 @@ module mod_ncio
   integer(ik4) , dimension(16) :: icbc_ivar
   integer(ik4) , dimension(4) :: clmbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
+  integer(ik4) , dimension(7) :: pgw_ivar
   logical :: has_qc = .false.
   logical :: has_qi = .false.
 
@@ -59,6 +61,7 @@ module mod_ncio
   data clmbcnrec / 0/
   data somin   /-1/
   data somrec  / 1/
+  data pgwin /-1/
 
   real(rkx) , dimension(:,:) , pointer :: rspacesom => null()
   real(rkx) , dimension(:,:) , pointer :: rspace2 => null()
@@ -66,6 +69,11 @@ module mod_ncio
 
   real(rkx) , dimension(:,:,:) , pointer :: tempw => null()
   real(rkx) , dimension(:,:) , pointer :: tempwtop => null()
+
+  real(rkx) , dimension(:,:,:) , pointer :: rspacepgw3 => null()
+  real(rkx) , dimension(:,:) , pointer :: rspacepgw2 => null()
+
+  integer , public , parameter :: pgwlevs = 17
 
   contains
 
@@ -686,6 +694,45 @@ module mod_ncio
     end if
   end subroutine open_icbc
 
+  subroutine open_pgw(idate)
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=11) :: ctime
+    integer(ik4) :: idimid , itvar , i , chkdiff
+    real(rkx) , dimension(:) , allocatable :: icbc_nctime
+    character(len=64) :: icbc_timeunits , icbc_timecal
+    character(len=256) :: pgwname
+    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+      return
+    end if
+    call close_pgw
+    write (ctime, '(a)') tochar10(monfirst(idate))
+    pgwname = trim(dirglob)//pthsep//trim(domname)// &
+               '_PGWBC.'//trim(ctime)//'.nc'
+    call openfile_withname(pgwname,pgwin)
+    call check_domain(pgwin,.true.)
+    istatus = nf90_inq_varid(pgwin, 'ps', pgw_ivar(1))
+    call check_ok(__FILE__,__LINE__,'variable ps miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 'ts', pgw_ivar(2))
+    call check_ok(__FILE__,__LINE__,'variable ts miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 'u', pgw_ivar(3))
+    call check_ok(__FILE__,__LINE__,'variable u miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 'v', pgw_ivar(4))
+    call check_ok(__FILE__,__LINE__,'variable v miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 't', pgw_ivar(5))
+    call check_ok(__FILE__,__LINE__,'variable t miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 'qv', pgw_ivar(6))
+    call check_ok(__FILE__,__LINE__,'variable qv miss', 'PGWBC FILE')
+    istatus = nf90_inq_varid(pgwin, 'z', pgw_ivar(7))
+    call check_ok(__FILE__,__LINE__,'variable z miss', 'PGWBC FILE')
+    if ( do_parallel_netcdf_in ) then
+      allocate(rspacepgw2(jde1:jde2,ide1:ide2))
+      allocate(rspacepgw3(jde1:jde2,ide1:ide2,pgwlevs))
+    else
+      allocate(rspacepgw2(jx,iy))
+      allocate(rspacepgw3(jx,iy,pgwlevs))
+    end if
+  end subroutine open_pgw
+
   subroutine open_clmbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=11) :: ctime
@@ -831,6 +878,112 @@ module mod_ncio
     end if
     clmbcrec = clmbcrec + 1
   end subroutine read_clmbc
+
+  subroutine read_pgw(irec,ps,ts,u,v,t,q,z)
+    implicit none
+    integer(ik4) , intent(in) :: irec
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: z
+
+    integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4) :: i , j , k
+
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = jde1
+      istart(2) = ide1
+      istart(3) = irec
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
+      icount(3) = 1
+      istatus = nf90_get_var(pgwin,pgw_ivar(1),rspacepgw2, &
+                             istart(1:3),icount(1:3))
+      call check_ok(__FILE__,__LINE__,'variable ps read error', 'PGWBC FILE')
+      ps(jce1:jce2,ice1:ice2) = rspacepgw2(jce1:jce2,ice1:ice2)
+      istatus = nf90_get_var(pgwin,pgw_ivar(2),rspacepgw2, &
+                             istart(1:3),icount(1:3))
+      call check_ok(__FILE__,__LINE__,'variable ts read error', 'PGWBC FILE')
+      ts(jce1:jce2,ice1:ice2) = rspacepgw2(jce1:jce2,ice1:ice2)
+      istart(1) = jde1
+      istart(2) = ide1
+      istart(3) = 1
+      istart(4) = irec
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
+      icount(3) = pgwlevs
+      icount(4) = 1
+      istatus = nf90_get_var(pgwin,pgw_ivar(3),rspacepgw3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable u read error', 'PGWBC FILE')
+      u(jde1:jde2,ide1:ide2,1:pgwlevs) = rspacepgw3
+      istatus = nf90_get_var(pgwin,pgw_ivar(4),rspacepgw3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable v read error', 'PGWBC FILE')
+      v(jde1:jde2,ide1:ide2,1:pgwlevs) = rspacepgw3
+      istatus = nf90_get_var(pgwin,pgw_ivar(5),rspacepgw3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable t read error', 'PGBC FILE')
+      t(jce1:jce2,ice1:ice2,1:pgwlevs) = &
+                 rspacepgw3(jce1:jce2,ice1:ice2,1:pgwlevs)
+      istatus = nf90_get_var(pgwin,pgw_ivar(6),rspacepgw3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable q read error', 'PGWBC FILE')
+      q(jce1:jce2,ice1:ice2,1:pgwlevs) = &
+                 rspacepgw3(jce1:jce2,ice1:ice2,1:pgwlevs)
+      istatus = nf90_get_var(pgwin,pgw_ivar(7),rspacepgw3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable z read error', 'PGWBC FILE')
+      z(jce1:jce2,ice1:ice2,1:pgwlevs) = &
+                 rspacepgw3(jce1:jce2,ice1:ice2,1:pgwlevs)
+    else
+      if ( myid == iocpu ) then
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = irec
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = 1
+        istatus = nf90_get_var(pgwin,pgw_ivar(1), &
+                rspacepgw2,istart(1:3),icount(1:3))
+        call check_ok(__FILE__,__LINE__,'variable ps read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw2,ps,jce1,jce2,ice1,ice2)
+        istatus = nf90_get_var(pgwin,pgw_ivar(2), &
+                rspacepgw2,istart(1:3),icount(1:3))
+        call check_ok(__FILE__,__LINE__,'variable ts read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw2,ts,jce1,jce2,ice1,ice2)
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = 1
+        istart(4) = irec
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = pgwlevs
+        icount(4) = 1
+        istatus = nf90_get_var(pgwin,pgw_ivar(3),rspacepgw3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable u read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw3,u,jde1,jde2,ide1,ide2,1,pgwlevs)
+        istatus = nf90_get_var(pgwin,pgw_ivar(4),rspacepgw3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable v read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw3,v,jde1,jde2,ide1,ide2,1,pgwlevs)
+        istatus = nf90_get_var(pgwin,pgw_ivar(5),rspacepgw3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable t read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw3,t,jce1,jce2,ice1,ice2,1,pgwlevs)
+        istatus = nf90_get_var(pgwin,pgw_ivar(6),rspacepgw3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable q read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw3,q,jce1,jce2,ice1,ice2,1,pgwlevs)
+        istatus = nf90_get_var(pgwin,pgw_ivar(7),rspacepgw3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable z read error', 'PGWBC FILE')
+        call grid_distribute(rspacepgw3,z,jce1,jce2,ice1,ice2,1,pgwlevs)
+      else
+        call grid_distribute(rspacepgw2,ps,jce1,jce2,ice1,ice2)
+        call grid_distribute(rspacepgw2,ts,jce1,jce2,ice1,ice2)
+        call grid_distribute(rspacepgw3,u,jde1,jde2,ide1,ide2,1,pgwlevs)
+        call grid_distribute(rspacepgw3,v,jde1,jde2,ide1,ide2,1,pgwlevs)
+        call grid_distribute(rspacepgw3,t,jce1,jce2,ice1,ice2,1,pgwlevs)
+        call grid_distribute(rspacepgw3,q,jce1,jce2,ice1,ice2,1,pgwlevs)
+        call grid_distribute(rspacepgw3,z,jce1,jce2,ice1,ice2,1,pgwlevs)
+      end if
+    end if
+  end subroutine read_pgw
 
   subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,qc,qi,pp,ww)
     implicit none
@@ -1179,6 +1332,17 @@ module mod_ncio
     if ( associated(rspace2) ) deallocate(rspace2)
     if ( associated(rspace3) ) deallocate(rspace3)
   end subroutine close_icbc
+
+  subroutine close_pgw
+    implicit none
+    if (pgwin >= 0) then
+      istatus = nf90_close(pgwin)
+      call check_ok(__FILE__,__LINE__,'Error Close PGWBC file','PGWBC FILE')
+      pgwin = -1
+    end if
+    if ( associated(rspacepgw2) ) deallocate(rspacepgw2)
+    if ( associated(rspacepgw3) ) deallocate(rspacepgw3)
+  end subroutine close_pgw
 
   subroutine close_clmbc
     implicit none
