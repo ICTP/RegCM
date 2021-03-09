@@ -12,7 +12,7 @@
         }
       ],
       [
-        "ComputeAverageOfEachVariable",
+        "ComputeMaximumOfEachVariable",
         {
           "new_time_step": 24
         }

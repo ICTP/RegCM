@@ -1201,13 +1201,13 @@ class ComputeMaximum(Filter):
         )
 
         shape_template = [slice(None) for _ in prev_result.dimensions]
-        LOGGER.debug('Computing means')
+        LOGGER.debug('Computing maximums')
         with prev_result.data:
             for i in range(maximums_num):
                 start = starting_point + maximum_step * i
                 end = start + maximum_step
                 LOGGER.debug(
-                    'Performing mean of timesteps from %s to %s',
+                    'Performing maximum of timesteps from %s to %s',
                     start,
                     end
                 )
@@ -1246,11 +1246,14 @@ class ComputeMaximum(Filter):
 
         LOGGER.debug('Going to save the variable with name %s', prev_result.name)
 
+        attributes = copy(prev_result.attributes)
+        attributes['cell_methods'] = 'time: maximum'
+
         return Variable(
             name=prev_result.name,
             data=var_data,
             dimensions=new_dimensions,
-            attributes=prev_result.attributes,
+            attributes=attributes,
             times=new_times,
             times_attributes=prev_result.times_attributes,
             auxiliary_vars=prev_result.auxiliary_variables,
@@ -1287,7 +1290,7 @@ class IfNeededMaximumAndSave(Filter):
 
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
-        LOGGER.debug('Performing average')
+        LOGGER.debug('Performing maximum')
         averaged_var = self.__maximum(
             prev_result,
             regcm_file,
@@ -1614,13 +1617,14 @@ class ComputeAverage(Filter):
 
         LOGGER.debug('Going to save the variable with name %s', prev_result.name)
 
-        prev_result.attributes['cell_methods'] = 'time: mean'
+        attributes = copy(prev_result.attributes)
+        attributes['cell_methods'] = 'time: mean'
 
         return Variable(
             name=prev_result.name,
             data=var_data,
             dimensions=new_dimensions,
-            attributes=prev_result.attributes,
+            attributes=attributes,
             times=new_times,
             times_attributes=prev_result.times_attributes,
             auxiliary_vars=prev_result.auxiliary_variables,
@@ -1950,6 +1954,45 @@ class ComputeAverageOfEachVariable(Filter):
             mean_variables.append(new_mean)
 
         return mean_variables
+
+
+class ComputeMaximumOfEachVariable(Filter):
+    """Compute the maximum of each variable, given a certain time-step.
+
+    Note that if the timestep is the same as the actual one (compared with an
+    epsilon to avoid floating-point comparison), the same input ``Variable`` is
+    returned.
+
+    Parameters:
+
+        new_time_step (float): the new time-step to apply to the variable.
+
+    Returns:
+
+        list of ``Variable``: list of ``Variable`` objects.
+    """
+
+    def __init__(self, new_time_step):
+        self.__compute_maximum = ComputeMaximum(new_time_step=new_time_step)
+
+    def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
+                 corrflag, cordex_dir):
+
+        max_variables = []
+        for cordex_var in prev_result:
+            LOGGER.debug('Computing maximum of variable %s', cordex_var.name)
+            new_max = self.__compute_maximum(
+                cordex_var,
+                regcm_file,
+                regcm_file_path,
+                simulation,
+                corrflag,
+                cordex_dir
+            )
+
+            max_variables.append(new_max)
+
+        return max_variables
 
 
 class ComputeGeopotentialHeight(ActionStarter):
@@ -2319,7 +2362,7 @@ class ComputeCapeCin(ActionStarter):
 
         attributes = copy(reference_var.attributes)
         attributes['standard_name'] = 'atmosphere_convective_available_potential_energy_wrt_surface'
-        attributes['long_name'] = '2-D Maximum available convective potential energy'
+        attributes['long_name'] = 'Convective Available Potential Energy'
         attributes['units'] = 'J kg-1'
 
         v1 = Variable(
@@ -2333,7 +2376,7 @@ class ComputeCapeCin(ActionStarter):
         )
         attributes = copy(reference_var.attributes)
         attributes['standard_name'] = 'atmosphere_convective_inhibition_wrt_surface'
-        attributes['long_name'] = '2-D Maximum convective inhibition'
+        attributes['long_name'] = 'Convective INhibition'
         attributes['units'] = 'J kg-1'
         v2 = Variable(
             name="CIN",
