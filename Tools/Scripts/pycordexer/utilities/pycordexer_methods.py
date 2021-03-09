@@ -441,7 +441,7 @@ class AddDephtVariable(Filter):
                     }
                 )
 
-        attributes = prev_result.attributes
+        attributes = copy(prev_result.attributes)
         attributes['coordinates'] = 'soil_layer lat lon'
 
         depth_added_var = Variable(
@@ -2331,6 +2331,7 @@ class ComputeCapeCin(ActionStarter):
             times_attributes=reference_var.times_attributes,
             needs_time_bounds=False,
         )
+        attributes = copy(reference_var.attributes)
         attributes['standard_name'] = 'atmosphere_convective_inhibition_wrt_surface'
         attributes['long_name'] = '2-D Maximum convective inhibition'
         attributes['units'] = 'J kg-1'
