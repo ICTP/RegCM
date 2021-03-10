@@ -207,6 +207,7 @@ module mod_pgw
     end if
     call h_interpolate_cont(cross_hint,ts2,ts4)
     call h_interpolate_cont(cross_hint,ps2,ps4)
+    q4 = q4/(d_one-q4)
   end subroutine get_pgw
 
   subroutine conclude_pgw
