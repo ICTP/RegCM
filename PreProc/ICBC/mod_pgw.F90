@@ -149,14 +149,11 @@ module mod_pgw
     end do
   end subroutine init_pgw
 
-  subroutine get_pgw(idate)
+  subroutine get_pgw(month)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    integer :: year , month , day , hour
-    integer :: istatus , it
+    integer(ik4) , intent(in) :: month
+    integer(ik4) :: istatus , it
     integer(ik4) , dimension(4) :: icount , istart
-
-    call split_idate(idate,year,month,day,hour)
 
     it = month
     istart(1) = 1
@@ -192,7 +189,7 @@ module mod_pgw
     istatus = nf90_get_var(ncid,ivardelta(7),ts2,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(7))
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields for month:' , month
     call h_interpolate_cont(cross_hint,t2,t4)
     call h_interpolate_cont(cross_hint,q2,q4)
     call h_interpolate_cont(cross_hint,z2,z4)
@@ -210,19 +207,6 @@ module mod_pgw
     end if
     call h_interpolate_cont(cross_hint,ts2,ts4)
     call h_interpolate_cont(cross_hint,ps2,ps4)
-!$OMP SECTIONS
-!$OMP SECTION
-    call top2btm(t4)
-!$OMP SECTION
-    call top2btm(q4)
-!$OMP SECTION
-    call top2btm(z4)
-!$OMP SECTION
-    call top2btm(u4)
-!$OMP SECTION
-    call top2btm(v4)
-!$OMP END SECTIONS
-
   end subroutine get_pgw
 
   subroutine conclude_pgw

@@ -105,7 +105,7 @@ module mod_params
       idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
       iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
       temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset
+      fixedsolarval , irceideal , year_offset , ipgwrun
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -506,6 +506,10 @@ module mod_params
     sst_restore_timescale = 5.0_rkx !days
     do_restore_sst = .true.
     do_qflux_adj = .false.
+    !
+    ! PGW deltas in PGW file
+    !
+    ipgwrun = 0
     !
     ! tweakparam ;
     !
@@ -1311,6 +1315,7 @@ module mod_params
     call bcast(year_offset)
     call bcast(icumcloud)
     call bcast(islab_ocean)
+    call bcast(ipgwrun)
     call bcast(itweak)
     if ( idcsst == 1 .and. iocnflx /= 2 ) then
       if ( myid == italk ) then
@@ -2656,7 +2661,14 @@ module mod_params
       end if
     end if
 
-    if (itweak == 1 ) then
+    if ( ipgwrun == 1 ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'PGW DELTA ARE ADDED TO THE ICBC FIELDS!'
+        write(stdout,*) 'THIS RUN IS A NON STANDARD SCENARIO!'
+      end if
+    end if
+
+    if ( itweak == 1 ) then
       if ( myid == italk ) then
         write(stdout,*) 'TWEAKING OF DATA ENABLED!'
         write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'

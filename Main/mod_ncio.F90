@@ -694,20 +694,13 @@ module mod_ncio
     end if
   end subroutine open_icbc
 
-  subroutine open_pgw(idate)
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=11) :: ctime
-    integer(ik4) :: idimid , itvar , i , chkdiff
-    real(rkx) , dimension(:) , allocatable :: icbc_nctime
-    character(len=64) :: icbc_timeunits , icbc_timecal
+  subroutine open_pgw( )
     character(len=256) :: pgwname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
       return
     end if
-    call close_pgw
-    write (ctime, '(a)') tochar10(monfirst(idate))
-    pgwname = trim(dirglob)//pthsep//trim(domname)// &
-               '_PGWBC.'//trim(ctime)//'.nc'
+    call close_pgw( )
+    pgwname = trim(dirglob)//pthsep//trim(domname)//'_PGWBC.nc'
     call openfile_withname(pgwname,pgwin)
     call check_domain(pgwin,.true.)
     istatus = nf90_inq_varid(pgwin, 'ps', pgw_ivar(1))
@@ -795,7 +788,7 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable clt miss', 'SFBC FILE')
   end subroutine open_clmbc
 
-  subroutine open_som
+  subroutine open_som( )
     character(len=10) :: ctime
     character(len=256) :: somname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then

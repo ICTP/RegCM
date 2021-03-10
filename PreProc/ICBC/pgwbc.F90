@@ -55,7 +55,7 @@ program pgwbc
   implicit none
 
   integer(ik4) :: nnn
-  type(rcm_time_and_date) :: idate , iodate
+  type(rcm_time_and_date) :: idate
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname, infilename
@@ -121,23 +121,16 @@ program pgwbc
     call pjd%initialize(pjpara)
   end if
 
-  nsteps = imondiff(monfirst(globidate2),monfirst(globidate1)) + 1
-
-  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
-  write (stdout,*) 'NSTEPS     : ' , nsteps
-
-  idate = globidate1
-  iodate = idate
+  nsteps = 12
+  idate = 2000010100
 
   call init_pgw(infilename)
   call init_outpgw(plevs)
+  call newpgwfile(idate)
 
   do nnn = 1 , nsteps
-    call newpgwfile(monfirst(idate))
-    call get_pgw(idate)
+    call get_pgw(nnn)
     call writepwgf(idate)
-    iodate = idate
     idate = nextmon(idate)
   end do
 

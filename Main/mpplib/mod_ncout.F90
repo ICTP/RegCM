@@ -3431,6 +3431,11 @@ module mod_ncout
               mixed_layer_depth))
         end if
 
+        if ( ipgwrun == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+             ncattribute_string('PGW_delta_added','Yes'))
+        end if
+
         if ( itweak == 1 ) then
           if ( itweak_sst == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &

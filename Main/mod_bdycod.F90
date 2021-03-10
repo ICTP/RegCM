@@ -439,6 +439,9 @@ module mod_bdycod
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
     end if
+    if ( ipgwrun == 1 ) then
+      call open_pgw( )
+    end if
     call fixqcqi( )
 
     if ( we_have_qc( ) ) then

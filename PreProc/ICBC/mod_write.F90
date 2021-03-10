@@ -422,8 +422,8 @@ module mod_write
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
-    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
-      trim(domname), '_PGWBC.', trim(tochar10(idate1)), '.nc'
+    write (ofname,'(a,a,a,a)') trim(dirglob), pthsep, &
+      trim(domname), '_PGWBC.nc'
 
     opar%pname = 'PGWBC'
     opar%fname = ofname
