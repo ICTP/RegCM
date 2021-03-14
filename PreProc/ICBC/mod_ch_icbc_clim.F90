@@ -180,7 +180,7 @@ module mod_ch_icbc_clim
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: nyear , month , nday , nhour
-    logical :: doread
+    logical :: doread , lfuture
     character(len=256) :: icbcfilename
     integer(ik4) , dimension(3) :: istart , icount
     type(rcm_time_and_date) :: imonmidd
@@ -205,6 +205,11 @@ module mod_ch_icbc_clim
     if ( ism /= im1 ) then
       ism = im1
       doread = .true.
+    end if
+    if ( nyear > 2020 ) then
+      lfuture = .true.
+    else
+      lfuture = .false.
     end if
 
     if (.not. lsamemonth(idate, iodate) ) then
@@ -235,7 +240,7 @@ module mod_ch_icbc_clim
                     'Error read var ps')
     irec = irec + 1
 
-    call read2m(im1,im2,doread)
+    call read2m(im1,im2,doread,lfuture)
 
     tdif = idate-iref1
     xfac1 = tohours(tdif)
@@ -293,19 +298,25 @@ module mod_ch_icbc_clim
 
   end subroutine get_ch_icbc_clim
 
-  subroutine read2m(im1,im2,doread)
+  subroutine read2m(im1,im2,doread,lfuture)
     implicit none
     integer(ik4) , intent(in) :: im1 , im2
-    logical , intent(in) :: doread
+    logical , intent(in) :: doread , lfuture
     integer(ik4) :: i , is , j , k , l , k0
     character(len=256) :: chfilename
     real(rkx) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
 
     if ( doread ) then
-      write(chfilename,'(a,i0.2,a)') &
-         trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
-         'mz4_avg_1999-2009_',im1,'.nc'
+      if ( lfuture ) then
+        write(chfilename,'(a,i0.2,a)') &
+           trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+           'mz4-EMAC_avg_2040-2050_',im1,'.nc'
+      else
+        write(chfilename,'(a,i0.2,a)') &
+           trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+           'mz4_avg_1999-2009_',im1,'.nc'
+      end if
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open file chemical')
@@ -362,9 +373,15 @@ module mod_ch_icbc_clim
       end do
     end do
     if ( doread ) then
-      write(chfilename,'(a,i0.2,a)') &
-         trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
-         'mz4_avg_1999-2009_',im2,'.nc'
+      if ( lfuture ) then
+        write(chfilename,'(a,i0.2,a)') &
+           trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+           'mz4-EMAC_avg_2040-2050_',im2,'.nc'
+      else
+        write(chfilename,'(a,i0.2,a)') &
+           trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+           'mz4_avg_1999-2009_',im2,'.nc'
+      end if
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open file chemical')
