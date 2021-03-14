@@ -958,7 +958,7 @@ module mod_micro_nogtom
               qxfg(iqql) = qxfg(iqql) + supsat
 #ifdef DEBUG
               if ( stats ) then
-                ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + evapl
+                ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + supsat
               end if
 #endif
             else
