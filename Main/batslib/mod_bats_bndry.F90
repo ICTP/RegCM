@@ -156,11 +156,7 @@ module mod_bats_bndry
     !=======================================================================
 
     do i = ilndbeg , ilndend
-      if ( tgrd(i) < tzero .or. sncv(i) > d_zero ) then
-        htvp(i) = wlhs
-      else
-        htvp(i) = wlhv
-      end if
+      htvp(i) = wlh(tgrd(i))
       flnet(i) = d_zero
       fevpg(i) = d_zero
       fseng(i) = d_zero
@@ -268,7 +264,7 @@ module mod_bats_bndry
       ! 6.2  parameters for temperature difference at anemometer level
       ! zdelt(i) = zdelt(i)*delt(i)
       ! 6.4  evaporative flux, accounting for sublimation
-      ! evprr(i) = wlhv*(evpr(i)-fevpg) + htvp(i)*fevpg
+      ! evprr(i) = htvp(i)*(evpr(i)-fevpg) + htvp(i)*fevpg
       ! 6.5  nondimensional equivalent bucket capacity for comparisons
       !      with bucket models; usually 1 or less, except where
       !      saturated (then around 2)
@@ -279,6 +275,7 @@ module mod_bats_bndry
 #endif
     contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pqderiv.inc>
 

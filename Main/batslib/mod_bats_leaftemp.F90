@@ -198,7 +198,7 @@ module mod_bats_leaftemp
             rpp(i) = rppdry + fwet(i)
             rpp(i) = min(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
           end if
-          rppq(i) = wlhv*rpp(i)
+          rppq(i) = htvp(i)*rpp(i)
           efe(i) = rppq(i)*efpot
           if ( efe(i)*efeb < d_zero ) efe(i) = 0.1_rkx*efe(i)
         else
@@ -250,7 +250,7 @@ module mod_bats_leaftemp
         !=========================================
         ! 4.   update dew accumulation (kg/m**2/s)
         !=========================================
-        ldew(i) = ldew(i) + (etr(i) - efe(i)*rwlhv)*dtbat
+        ldew(i) = ldew(i) + (etr(i) - efe(i)/htvp(i))*dtbat
         !===========================================
         ! 5.   collect parameters needed to evaluate
         !      sensible and latent fluxes

@@ -846,9 +846,9 @@ module mod_micro_nogtom
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
           ltkgthomo = ( tk > thomo )
-          lcloud    = ( ccover >= zerocf )
+          lcloud    = ( ccover > zerocf )
           lnocloud  = ( .not. lcloud )
-          locast    = ( ccover >= onecf )
+          locast    = ( ccover > onecf )
           lnocast   = ( .not. locast )
           lliq      = ( qlifg > activqx )
 
@@ -1043,9 +1043,9 @@ module mod_micro_nogtom
           ccover = d_one-sqrt(max(d_zero,d_one-qx0(iqqv)/sqmix)/0.4_rkx)
           ccover = min(max(ccover,d_zero),onecf)
 
-          lcloud    = ( ccover >= zerocf )
+          lcloud    = ( ccover > zerocf )
           lnocloud  = ( .not. lcloud )
-          locast    = ( ccover >= onecf )
+          locast    = ( ccover > onecf )
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
@@ -1849,11 +1849,11 @@ module mod_micro_nogtom
         end do
       end do
     end if
-     !
-     !calculate the rain out kin constat remrat (s-1) for chemical scavenging  
-     !here taken as rain water tendency divided by cloud liquid water mixing
-     !ratio 
-    if (ichem == 1)  then 
+    !
+    ! calculate the rain out kin constat remrat (s-1) for chemical scavenging
+    ! here taken as rain water tendency divided by cloud liquid water mixing
+    ! ratio
+    if ( ichem == 1 )  then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -1861,7 +1861,7 @@ module mod_micro_nogtom
           end do
         end do
       end do
-    end if 
+    end if
 
     !-------------------------------------
     ! Final enthalpy and total water diagnostics

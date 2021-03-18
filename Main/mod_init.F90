@@ -287,7 +287,7 @@ module mod_init
               mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
               ! Remove excessive supersaturation
               mo_atm%qx(j,i,k,iqv) = &
-                  min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k)*1.001_rkx)
+                  min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k))
             end do
           end do
         end do

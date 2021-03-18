@@ -309,7 +309,7 @@ module mod_pbl_gfs
       real(rkx) :: prnum , qtend , rbint , rdt , rdz , ri , rl2
       real(rkx) :: sflux , shr2 , spdk2 , sri , tem , ti
       real(rkx) :: ttend , utend , vtend , zfac , vpert , zk
-      real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2
+      real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2 , rlv
 
       real(rkx) , parameter :: gocp = egrav*rcpd
       real(rkx) , parameter :: rlam = 30.0_rkx
@@ -428,10 +428,11 @@ module mod_pbl_gfs
           qlx(i,k)   = max(q1(i,k,2),qlmin)
           qtx(i,k)   = max(q1(i,k,1),qmin)+qlx(i,k)
           ptem       = qlx(i,k)
-          ptem1      = wlhv*max(q1(i,k,1),qmin)/(cpd*t1(i,k))
+          rlv        = wlh(t1(i,k))
+          ptem1      = rlv*max(q1(i,k,1),qmin)/(cpd*t1(i,k))
           thetae(i,k)= theta(i,k)*(d_one+ptem1)
           thvx(i,k)  = theta(i,k)*(d_one+ep1*max(q1(i,k,1),qmin)-ptem)
-          ptem2      = theta(i,k)-(wlhv/cpd)*ptem
+          ptem2      = theta(i,k)-(rlv/cpd)*ptem
           thlvx(i,k) = ptem2*(d_one+ep1*qtx(i,k))
         end do
       end do
@@ -746,7 +747,8 @@ module mod_pbl_gfs
           tem = thetae(i,k) - thetae(i,k+1)
           tem1 = qtx(i,k) - qtx(i,k+1)
           if ( tem > d_zero .and. tem1 > d_zero ) then
-            cteit(i)= cpd*tem/(wlhv*tem1)
+            rlv = wlh(t1(i,k))
+            cteit(i)= cpd*tem/(rlv*tem1)
             if ( cteit(i) > actei ) rent(i) = rentf2
           end if
         end if
@@ -900,6 +902,11 @@ module mod_pbl_gfs
         hpbl(i) = hpblx(i)
         kpbl(i) = kpblx(i)
       end do
+
+      contains
+
+#include <wlh.inc>
+
     end subroutine moninq
 
     subroutine tridi2(l,n,cl,cm,cu,r1,r2,au,a1,a2)

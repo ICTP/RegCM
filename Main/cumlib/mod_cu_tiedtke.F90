@@ -565,7 +565,7 @@ module mod_cu_tiedtke
         rmfcfl = 5.0_rkx
       end if
       nk350 = kz
-      nk060 = kz
+      nk060 = 1
       nk950 = kz
       do klev = kz , 2 , -1
         if ( pmean(klev)/pmean(kz)*stdp > 350.e2_rkx ) nk350 = klev

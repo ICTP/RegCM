@@ -39,7 +39,6 @@ module mod_cu_em
 
   public :: allocate_mod_cu_em , cupemandrv
 
-  real(rkx) , parameter :: cpvmcl = cpw - cpv
   real(rkx) , parameter :: mincbmf = 1.0e-30_rkx
 
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
@@ -464,7 +463,7 @@ module mod_cu_em
       gz(1) = d_zero
       cpn(1) = cpd*(d_one-q(n,1)) + q(n,1)*cpv
       h(1) = t(n,1)*cpn(1)
-      lv(1) = wlhv - cpvmcl*(t(n,1)-tzero)
+      lv(1) = wlhv-cpvmcl*(t(n,1)-tzero)
       hm(1) = lv(1)*q(n,1)
       tv(1) = t(n,1)*(d_one+q(n,1)*rgowi-q(n,1))
       ahmin = 1.0e12_rkx
@@ -1221,7 +1220,7 @@ module mod_cu_em
         do i = nsb , nst
           tg = t(n,i)
           qg = qs(n,i)
-          alv = wlhv - cpvmcl*(t(n,i)-tzero)
+          alv = wlhv-cpvmcl*(tg-tzero)
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
             ahg = cpd*tg + (cpw-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)

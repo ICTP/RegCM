@@ -478,8 +478,10 @@ module mod_micro_wsm5
     !
     loops = max(nint(delt/dtcldcr),1)
     dtcld = delt/real(loops,rkx)
-    if ( delt <= dtcldcr ) dtcld = delt
-    rdtcld = d_one/dtcld
+    if ( delt <= dtcldcr ) then
+      dtcld = delt
+      loops = 1
+    end if
 
     bigloop: &
     do loop = 1 , loops
@@ -1079,18 +1081,18 @@ module mod_micro_wsm5
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
-    pure real(rkx) function cpmcal(x)
+    pure real(rkx) function cpmcal(q)
       implicit none
-      real(rkx) , intent(in) :: x
-      cpmcal = cpd*(d_one-x) + cpv*x
+      real(rkx) , intent(in) :: q
+      cpmcal = cpd*(d_one-max(q,minqq)) + cpv*max(q,minqq)
     end function cpmcal
 
-    pure real(rkx) function xlcal(x)
+    pure real(rkx) function xlcal(t)
       implicit none
-      real(rkx) , intent(in) :: x
+      real(rkx) , intent(in) :: t
       real(rkx) , parameter :: xlv0 = 3.15e6_rkx
       real(rkx) , parameter :: xlv1 = 2370.0_rkx
-      xlcal = xlv0 - xlv1*x
+      xlcal = xlv0-xlv1*(t-tzero)
     end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor

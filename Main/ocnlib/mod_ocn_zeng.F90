@@ -59,7 +59,7 @@ module mod_ocn_zeng
 
   real(rkx) , parameter :: zetat = 0.465_rkx
   real(rkx) , parameter :: zetam = 1.574_rkx
-  real(rkx) , parameter :: minw = 0.5_rkx
+  real(rkx) , parameter :: minw = 0.1_rkx
 
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
@@ -77,7 +77,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
                  wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
-                 pcpcool , tha , nobu
+                 pcpcool , tha , nobu , rlv
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -107,6 +107,7 @@ module mod_ocn_zeng
 
       uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       tsurf = tgrd(i) - tzero
+      rlv = wlhv - cpvmcl*tsurf
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
@@ -273,8 +274,9 @@ module mod_ocn_zeng
       else
         pcpcool = d_zero
       end if
+      rlv = wlhv - cpvmcl*tstar
       tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*wlh(tatm(i))*qstar*ustar
+      lh = -xdens*rlv*qstar*ustar
       sh = -xdens*cpd*tstar*ustar - pcpcool
       !
       ! x and y components of tau:
@@ -379,7 +381,7 @@ module mod_ocn_zeng
 
       tgbrd(i) = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
       sent(i) = sh
-      evpr(i) = lh/wlh(tatm(i))
+      evpr(i) = lh/rlv
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
@@ -404,7 +406,6 @@ module mod_ocn_zeng
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
-#include <wlh.inc>
     !
     ! stability function for rb < 0
     !

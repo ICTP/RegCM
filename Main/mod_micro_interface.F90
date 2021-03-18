@@ -387,7 +387,7 @@ module mod_micro_interface
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rhc
+               r1 , rhc , rlv , cpm
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -438,7 +438,9 @@ module mod_micro_interface
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           qvs = pfwsat(tmp3,pres)
-          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
+          rlv = wlhv-cpvmcl*(tmp3-tzero)
+          cpm = cpd*(d_one-qvcs) + cpv*qvcs
+          r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
           rhc = min(max(qvcs/qvs,d_zero),d_one)
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
@@ -469,14 +471,14 @@ module mod_micro_interface
             if ( idynamic == 3 ) then
               mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
               mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
-              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*wlhv*rcpd
+              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*rlv/cpm
             else
               aten%qx(j,i,k,iqv,pc_physic) = &
                   aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
               aten%qx(j,i,k,iqc,pc_physic) = &
                   aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
               aten%t(j,i,k,pc_physic) = &
-                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wlhv*rcpd
+                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
             end if
           end if
         end do
@@ -487,7 +489,6 @@ module mod_micro_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
-#include <wlh.inc>
 
   end subroutine condtq
 

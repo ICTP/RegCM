@@ -102,7 +102,7 @@ module mod_micro_subex
     type(micro_2_mod) , intent(out) :: mc2mo
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rhcs , prainx , qcth , dqv
+                rhcs , prainx , qcth , dqv , rlv , ocpm
     real(rkx) :: tcel
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
@@ -278,6 +278,9 @@ module mod_micro_subex
               !       evaporation [kg/m2/s]
               if ( rdevap > dlowval ) then
                 pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
+                rlv = wlhv-cpvmcl*(mo2mc%t(j,i,k)-tzero)
+                ocpm = d_one/(cpd*(d_one-mo2mc%qxx(j,i,k,iqv)) + &
+                              cpv*mo2mc%qxx(j,i,k,iqv))
                 pptkm1 = pptkm1 - rdevap
                 if ( idynamic == 3 ) then
                   ! 2bcf. Compute the water vapor tendency [kg/kg/s]
@@ -285,7 +288,7 @@ module mod_micro_subex
                   mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + rdevap
                   ! 2bcf. Compute the temperature tendency [K/s]
                   ![K/s][avg]
-                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - wlhv*rcpd*rdevap
+                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - rlv*ocpm*rdevap
                 else
                   ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
                   ![kg/kg/s*cb][avg]
@@ -294,7 +297,7 @@ module mod_micro_subex
                   ! 2bcf. Compute the temperature tendency [K/s*cb]
                   ![k/s*cb][avg]
                   mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                                   wlhv*rcpd*rdevap*mo2mc%psb(j,i)
+                                   rlv*ocpm*rdevap*mo2mc%psb(j,i)
                 end if
               end if
             end if

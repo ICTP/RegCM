@@ -239,7 +239,7 @@ module mod_moloch
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
     real(rkx) :: tv , lrt
-    real(rk8) :: jday
+    !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -411,7 +411,7 @@ module mod_moloch
       end do
     end do
 
-    jday = yeardayfrac(rcmtimer%idate)
+    !jday = yeardayfrac(rcmtimer%idate)
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
@@ -1544,14 +1544,23 @@ module mod_moloch
         do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
           v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          qx(j,i,k,iqv) = qx(j,i,k,iqv) + dtsec * mo_atm%qxten(j,i,k,iqv)
-          qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
+              qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
+            end do
+          end do
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                        k = 1:kz , n = iqfrst:iqlst )
-          qx(j,i,k,n) = qx(j,i,k,n) + dtsec * mo_atm%qxten(j,i,k,n)
-          qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
+                qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+              end do
+            end do
+          end do
         end do
         if ( ibltyp == 2 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
