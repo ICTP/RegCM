@@ -94,7 +94,7 @@ module mod_ch_icbc_clim
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var ps in icbc file '//trim(icbcfilename))
     tdif = (idate-iodate)
-    irec = int(tohours(tdif)/6.0_rkx)+1
+    irec = int(tohours(tdif)/ibdyfrq)+1
 
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'mz4_19990401.nc'
@@ -212,7 +212,7 @@ module mod_ch_icbc_clim
       lfuture = .false.
     end if
 
-    if (.not. lsamemonth(idate, iodate) ) then
+    if ( .not. lsamemonth(idate, iodate) ) then
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close ICBC file')
