@@ -482,6 +482,7 @@ module mod_micro_wsm5
       dtcld = delt
       loops = 1
     end if
+    rdtcld = d_one/dtcld
 
     bigloop: &
     do loop = 1 , loops
