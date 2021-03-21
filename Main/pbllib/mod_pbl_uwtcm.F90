@@ -341,7 +341,7 @@ module mod_pbl_uwtcm
         vflxp = -uvdragx*vx(kz)/rhoxsf
         ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-9_rkx))
         ! Estimate of the surface virtual heat flux
-        thvflx = hfxx/rhoxsf*orcp(k)*tvfac + ep1/thgb*qfxx*rhoxsf
+        thvflx = hfxx/rhoxsf*orcp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
         ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
@@ -405,7 +405,7 @@ module mod_pbl_uwtcm
           end do
           ! include surface sensible heat flux
           rimp1(kz) = rimp1(kz) + &
-                   dt*hfxx*rrhoxhl(kz)*orcp(k)*rdzq(kz)*rexnerhl(kz)
+                   dt*hfxx*rrhoxhl(kz)*orcp(kz)*rdzq(kz)*rexnerhl(kz)
           ! include surface latent heat flux
           rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
           ! Solve total water
@@ -416,7 +416,7 @@ module mod_pbl_uwtcm
           ! temperature profile (this is for the semi-implicit integration)
           uimp2 = max(uimp2,minqq)
           call n2(uimp1,uimp2)
-          thx_t = uimp1(kz) + orcp(k)*rlv(k)*qcx(kz)*rexnerhl(kz)
+          thx_t = uimp1(kz) + orcp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
           tvcon = d_one + ep1*qx(kz)-qcx(kz)
           thvx_t = thx_t*tvcon
           dthv_t = (thvx_t-thv0)
