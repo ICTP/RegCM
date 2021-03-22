@@ -254,9 +254,8 @@ module mod_humid
     real(rkx) , intent(in) , dimension(nk) :: p ! Pa
     real(rkx) , intent(in) , dimension(nk) :: t ! K
     real(rkx) , intent(inout) , dimension(nk) :: q ! 0-1
-
     real(rkx) :: qs
-    integer(ik4) :: i , j , k
+    integer(ik4) :: k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !

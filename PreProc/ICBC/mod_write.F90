@@ -418,7 +418,7 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
     type(ncoutstream_params) :: opar
-    integer(ik4) :: ivar , i3i
+    integer(ik4) :: ivar
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
