@@ -200,9 +200,12 @@ module mod_pbl_uwtcm
         zqx(kzp2) = d_zero
 
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)/rpfac
+          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv)/rpfac
+          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc)/rpfac
+        end do
+
+        do k = 1 , kz
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
@@ -216,7 +219,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi)
+            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi)/rpfac
           end do
         end if
 
@@ -680,16 +683,11 @@ module mod_pbl_uwtcm
         ! Calculate the TCM tendencies for the model's prognostic variables
         ! For everything but TKE, couple the tendency (multiply by pstar)
         do k = 1 , kz
-          ! Zonal wind tendency
-          p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
-          ! Meridional wind tendency
-          p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
-          ! Temperature tendency
           p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*((thx(k)-thxs(k))*exnerhl(k))
-          ! Water vapor tendency
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
-          ! Cloud water tendency
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc)+rpfac*(qcx(k)-qcxs(k))
+          p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
+          p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
           ! Momentum diffusivity
           uwstate%kzm(j,i,k) = kzm(k)
           ! Scalar diffusivity
