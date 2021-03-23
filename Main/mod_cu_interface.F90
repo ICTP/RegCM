@@ -517,7 +517,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%q_detr(j,i,k) = cu_qdetr(j,i,k)
+              c2m%q_detr(j,i,k) = cu_qdetr(j,i,k)*rdt
               c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
             end do
           end do

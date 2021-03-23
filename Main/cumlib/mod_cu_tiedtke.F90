@@ -27,9 +27,9 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
-         entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
-         entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
+  use mod_runparams , only : iqc , dt , iqv , iqi , entrmax ,      &
+         entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,   &
+         entrscv , iconv , ichem , iaerosol , iindirect , ipptls , &
          hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
@@ -429,7 +429,8 @@ module mod_cu_tiedtke
           j = jmap(ii)
           cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
           cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-          cu_qdetr(j,i,k) = zlude(ii,k)*dt*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
+          cu_qdetr(j,i,k) = dtcum*zlude(ii,k)*egrav / &
+                            (paphp1(ii,k+1)-paphp1(ii,k))
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
       end do
@@ -630,12 +631,12 @@ module mod_cu_tiedtke
     if ( iconv /= 4 ) then
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -658,12 +659,12 @@ module mod_cu_tiedtke
     else
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         end do
       end do
@@ -672,7 +673,7 @@ module mod_cu_tiedtke
     do jt = 1 , ktrac
       do jk = 1 , klev
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum)
         end do
       end do
     end do
@@ -6716,9 +6717,9 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))*rdt
-              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))*rdt
-              penth(n,k) = (r1(n,k)-t(n,k))*rdt
+              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtcum
+              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtcum
+              penth(n,k) = (r1(n,k)-t(n,k))/dtcum
             end if
           end do
         end do
@@ -6866,8 +6867,8 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))*rdt
-              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))*rdt
+              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtcum
+              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtcum
             end if
           end do
         end do
@@ -7733,9 +7734,9 @@ module mod_cu_tiedtke
           do k = 2 , nk
             do n = n1 , n2
               !  for implicit solution including tendency source term
-              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))*rdt
+              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtcum
               if ( llcumbas(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))*rdt
+                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtcum
               end if
             end do
           end do
