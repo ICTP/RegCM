@@ -264,7 +264,7 @@ module mod_clm_cnnitrifdenitrif
             o2_decomp_depth_unsat(c,j)**(-rij_kro_beta) *          &
             conc_o2_unsat(c,j)**rij_kro_gamma * (h2osoi_vol(c,j) + &
             ratio_diffusivity_water_gas(c,j) * watsat(c,j))**rij_kro_delta
-          if ( arg > -25._rk8 ) then
+          if ( arg < 25._rk8 ) then
             anaerobic_frac(c,j) = exp(-arg)
           else
             anaerobic_frac(c,j) = 0._rk8

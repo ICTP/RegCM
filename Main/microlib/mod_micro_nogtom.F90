@@ -482,7 +482,8 @@ module mod_micro_nogtom
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
-            qx(n,j,i,k) = max(mo2mc%qxx(j,i,k,n),1.0e-12_rkx)
+            qx(n,j,i,k) = max(mo2mc%qxx(j,i,k,n) + &
+                       dt*qxtendc(n,j,i,k),1.0e-12_rkx)
           end do
         end do
       end do
@@ -492,7 +493,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tx(j,i,k) = mo2mc%t(j,i,k)
+          tx(j,i,k) = mo2mc%t(j,i,k) + dt * ttendc(j,i,k)
         end do
       end do
     end do

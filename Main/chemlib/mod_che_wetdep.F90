@@ -959,12 +959,12 @@ module mod_che_wetdep
               wetdep(j,k,n) = bcsnow*totppt(j,k)*1.0e-3_rkx*colef(j,k,n)/dm
             end if
             ! . . . . steller snow scavenging
-            if ( tl < -8. .and. tl >= -25.0_rkx ) then
+            if ( tl < -8.0_rkx .and. tl >= -25.0_rkx ) then
               dm = 2.7e-5_rkx
               wetdep(j,k,n) = bcsnow*totppt(j,k)*1.0e-3_rkx*colef(j,k,n)/dm
             end if
             ! . . . . graupel scavenging
-            if ( tl > -25.0_rkx ) then
+            if ( tl < -25.0_rkx ) then
               dm = 1.4e-4_rkx
               wetdep(j,k,n) = bcsnow*totppt(j,k)*1.0e-3_rkx*colef(j,k,n)/dm
             endif
