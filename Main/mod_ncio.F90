@@ -73,7 +73,7 @@ module mod_ncio
   real(rkx) , dimension(:,:,:) , pointer :: rspacepgw3 => null()
   real(rkx) , dimension(:,:) , pointer :: rspacepgw2 => null()
 
-  integer , public , parameter :: pgwlevs = 17
+  integer , public , parameter :: pgwlevs = npgwlev
 
   contains
 

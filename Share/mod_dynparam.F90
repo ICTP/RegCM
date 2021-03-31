@@ -357,6 +357,10 @@ module mod_dynparam
 
   integer(ik4) , parameter :: nspi = 19
 
+  ! Number of PGW pressure levels
+
+  integer(ik4) , parameter :: npgwlev = 17
+
 #ifdef CLM45
   ! Soil layer thickness discretization (m)
   real(rkx) , parameter :: scalez = 0.025_rkx

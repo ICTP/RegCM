@@ -1210,7 +1210,7 @@ module mod_ncstream
           pdim = iy_dim
         case ('KZ','kz')
           if ( stream%l_plev ) then
-            num = 17
+            num = npgwlev
           else
             if ( stream%l_full_sigma ) then
               ! this is the number of FULL sigma levels

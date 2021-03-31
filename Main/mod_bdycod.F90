@@ -79,6 +79,7 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
   real(rk8) :: jday
+  real(rk8) :: rdtpgw
   integer(ik4) :: som_month
 
   interface timeint
@@ -416,6 +417,7 @@ module mod_bdycod
   subroutine init_bdy
     implicit none
     integer(ik4) :: datefound , i , j , k , n
+    integer(ik4) :: im1 , im2
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
@@ -528,6 +530,16 @@ module mod_bdycod
       else
         write(stdout,*) 'READY BC DATA for ', appdat
       end if
+    end if
+
+    if ( ipgwrun == 1 ) then
+      call read_pgw(im1,ppsb%b0,ptsb%b0,pub%b0,pvb%b0,ptb%b0,pqb%b0,pzb%b0)
+      call read_pgw(im2,ppsb%b1,ptsb%b1,pub%b1,pvb%b1,ptb%b1,pqb%b1,pzb%b1)
+      call timeint(pub%b1,pub%b0,pub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtpgw)
+      call timeint(pvb%b1,pvb%b0,pvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtpgw)
+      call timeint(ptb%b1,ptb%b0,ptb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
+      call timeint(pqb%b1,pqb%b0,pqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
+      call timeint(pzb%b1,pzb%b0,pzb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
     end if
 
     if ( idynamic == 1 ) then
@@ -762,27 +774,30 @@ module mod_bdycod
     !
     ! Calculate time varying component
     !
-    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
-    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
-    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
-    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtbdy)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtbdy)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     if ( present_qc ) then
-      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     if ( present_qi ) then
-      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
-    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
+    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2,rdtbdy)
     if ( idynamic == 1 ) then
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
     else if ( idynamic == 2 ) then
-      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
-      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
+      call timeint(xppb%b1,xppb%b0,xppb%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       jday = yeardayfrac(rcmtimer%idate)
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
-      call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
 
 #ifdef DEBUG
@@ -952,25 +967,28 @@ module mod_bdycod
     end if
 
     ! Linear time interpolation
-    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
-    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
-    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
-    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtbdy)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtbdy)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     if ( present_qc ) then
-      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xlb%b1,xlb%b0,xlb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     if ( present_qi ) then
-      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xib%b1,xib%b0,xib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     if ( idynamic == 1 ) then
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
     else if ( idynamic == 2 ) then
-      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
-      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
+      call timeint(xppb%b1,xppb%b0,xppb%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       jday = yeardayfrac(rcmtimer%idate)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
-      call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
+                   jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
     !
     ! Update ground temperature on Ocean/Lakes
@@ -1012,7 +1030,7 @@ module mod_bdycod
       end if
     end if
 
-    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
+    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2,rdtbdy)
 
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
@@ -5399,29 +5417,31 @@ module mod_bdycod
     end do
   end subroutine raydampqv
 
-  subroutine timeint2(a,b,c,j1,j2,i1,i2)
+  subroutine timeint2(a,b,c,j1,j2,i1,i2,rdtb)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
+    real(rkx) , intent(in) :: rdtb
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j
     do i = i1 , i2
       do j = j1 , j2
-        c(j,i) = (a(j,i)-b(j,i))*rdtbdy
+        c(j,i) = (a(j,i)-b(j,i))*rdtb
       end do
     end do
   end subroutine timeint2
 
-  subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
+  subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2,rdtb)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
+    real(rkx) , intent(in) :: rdtb
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: i , j , k
     do k = k1 , k2
       do i = i1 , i2
         do j = j1 , j2
-          c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtbdy
+          c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtb
         end do
       end do
     end do

@@ -1891,6 +1891,15 @@ module mod_params
       call allocate_v3dbound(xpaib,kz,cross)
       call allocate_v3dbound(xwwb,kzp1,cross)
     end if
+    if ( ipgwrun == 1 ) then
+      call allocate_v2dbound(ppsb,cross)
+      call allocate_v2dbound(ptsb,cross)
+      call allocate_v3dbound(ptb,npgwlev,cross)
+      call allocate_v3dbound(pqb,npgwlev,cross)
+      call allocate_v3dbound(pzb,npgwlev,cross)
+      call allocate_v3dbound(pub,npgwlev,dot)
+      call allocate_v3dbound(pvb,npgwlev,dot)
+    end if
 
     if ( myid == italk ) then
       write(stdout,*) 'Setting IPCC scenario to ', scenario
