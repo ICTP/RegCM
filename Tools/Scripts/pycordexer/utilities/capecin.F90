@@ -512,7 +512,7 @@ module mod_capecin
                exp( ((3376.0/tlcl)-2.54)*q*(1.0+0.81*q) )
     end function getthe
 
-    end subroutine capecin
+  end subroutine capecin
 
 end module mod_capecin
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -2304,7 +2304,10 @@ class ComputeCapeCin(ActionStarter):
             needed_vars = []
             for v in needed_var_names:
                 v_names = get_regcm_variable_names(v)
-                v_pointer = get_var_with_name(v_names, f)
+                try:
+                    v_pointer = get_var_with_name(v_names, f)
+                except:
+                    v_pointer = fake_var((100.0,))
                 needed_vars.append(v_pointer)
 
             # This is the name of the variable that will be used to copy the
