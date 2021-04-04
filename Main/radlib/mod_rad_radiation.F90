@@ -830,9 +830,9 @@ module mod_rad_radiation
     call time_end(subroutine_name,indx)
 #endif
     lzero = .true.
-    linteract = ((ichem == 1 .and. idirect > 0).or. iclimaaer > 0)
+    linteract = ( (ichem == 1 .and. idirect > 0) .or. iclimaaer > 0 )
     if ( ichem == 1 ) then
-      if ( idirect == 2 ) lzero = .false.      
+      if ( idirect == 2 ) lzero = .false.
     end if
     if ( iclimaaer > 0 ) then
       lzero = .false.
@@ -1992,7 +1992,7 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if  (linteract .and. irad == 2) then
+      if  ( linteract .and. irad == 2 ) then
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -2117,8 +2117,8 @@ module mod_rad_radiation
       aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
       aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
                     (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
-      ! return to no aerosol LW effect situation if idirect ==1
-      if ( idirect == 1 ) then
+      ! return to no aerosol LW effect situation if idirect == 1
+      if ( lzero ) then
         fsul(:,:) = fsul0(:,:)
         fsdl(:,:) = fsdl0(:,:)
         ful(:,:) = ful0(:,:)
@@ -2738,7 +2738,6 @@ module mod_rad_radiation
             ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
                     wci(n,k)*tauxci(n,k,ns))/wt
           else
-
             tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
                      taugab(n) + tauxar3d(n,k,ns)
             taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &

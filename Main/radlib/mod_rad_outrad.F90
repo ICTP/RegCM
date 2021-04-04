@@ -196,7 +196,7 @@ module mod_rad_outrad
 
     if ( ifopt .and. (iaerosol == 1 .or. iclimaaer > 0) ) then
       if ( irrtm == 1 ) then
-        visband = 10 
+        visband = 10
       else
         visband = 8
       endif
@@ -206,10 +206,9 @@ module mod_rad_outrad
       call copy4d(tauasc3d,opt_assa8_out,visband)
       call copy4d(gtota3d,opt_agfu8_out,visband)
 
-
       call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband)
       call copy4d2(deltaz,opt_deltaz_out)
-      if ( idirect > 0 .or. iclimaaer >0 ) then
+      if ( idirect > 0 .or. iclimaaer > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
         if (associated(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)

@@ -1543,7 +1543,7 @@ module mod_rad_aerosol
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) :: im1 , iy1 , im2 , iy2
+      integer(ik4) :: k , im1 , iy1 , im2 , iy2
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -1707,11 +1707,17 @@ module mod_rad_aerosol
          max(extprof(jci1:jci2,ici1:ici2,1:kz) * &
               m2r%deltaz(jci1:jci2,ici1:ici2,1:kz),d_zero)
       if ( myid == italk .and. dointerp ) then
-        opprnt(1:kz) = extprof(3,3,:)
+        do k = 1 , kz
+          opprnt(k) = extprof(3,3,kzp1-k)
+        end do
         call vprntv(opprnt,kz,'Updated ext profile at (3,3)')
-        opprnt(1:kz) = ssaprof(3,3,:)
+        do k = 1 , kz
+          opprnt(k) = ssaprof(3,3,kzp1-k)
+        end do
         call vprntv(opprnt,kz,'Updated ssa profile at (3,3)')
-        opprnt(1:kz) = asyprof(3,3,:)
+        do k = 1 , kz
+          opprnt(k) = asyprof(3,3,kzp1-k)
+        end do
         call vprntv(opprnt,kz,'Updated asy profile at (3,3)')
       end if
     end subroutine read_aeroppdata
@@ -1911,8 +1917,8 @@ module mod_rad_aerosol
       real(rkx) , intent(in) , pointer , dimension(:,:) :: pint
       real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
 
-      integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns
-      integer(ik4) :: j , i , visband
+      integer(ik4) :: n , l , ibin , jbin , itr , k1 , k2 , ns
+      integer(ik4) :: j , i , k , kk , visband
       real(rkx) :: uaerdust , qabslw , rh0
 
       !-
@@ -1923,17 +1929,19 @@ module mod_rad_aerosol
       ! Directly force aerosol properties passed to radiation driver and exit
 
       if ( iclimaaer == 2 ) then
+        aertrlw(:,:,:) = d_one
         if ( irrtm == 1 ) then
-          visband = 10 
+          visband = 10
            ! FAB try only the visible RRTM  now
           ns = visband
           do k = 1 , kz
             n = 1
+            kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                tauxar3d(n,k,ns) =  extprof(j,i,k)  !already scaled
-                tauasc3d(n,k,ns) =  ssaprof(j,i,k)
-                gtota3d(n,k,ns)  =  asyprof(j,i,k)
+                tauxar3d(n,k,ns) = extprof(j,i,kk)  !already scaled
+                tauasc3d(n,k,ns) = ssaprof(j,i,kk)
+                gtota3d(n,k,ns)  = asyprof(j,i,kk)
                 n = n + 1
               end do
             end do
@@ -1941,18 +1949,25 @@ module mod_rad_aerosol
         else if ( irrtm == 0 ) then
           visband = 8
           ns = visband
+          tauxar(:,ns) = d_zero
+          tauasc(:,ns) = d_zero
+          gtota(:,ns) = d_zero
+          ftota(:,ns) = d_zero
           do k = 1 , kz
             n = 1
+            kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ! already scaled for layer height
-                tauxar3d(n,k,ns) = extprof(j,i,k)
+                tauxar3d(n,k,ns) = extprof(j,i,kk)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(n,k,ns) = ssaprof(j,i,k) * tauxar3d(n,k,ns)
-                gtota3d(n,k,ns)  = asyprof(j,i,k) * &
-                       ssaprof(j,i,k) * tauxar3d(n,k,ns)
-                ftota3d(n,k,ns)  = asyprof(j,i,k)**2 * &
-                       ssaprof(j,i,k) * tauxar3d(n,k,ns)
+                tauasc3d(n,k,ns) = ssaprof(j,i,kk) * tauxar3d(n,k,ns)
+                gtota3d(n,k,ns)  = asyprof(j,i,kk) * tauasc3d(n,k,ns)
+                ftota3d(n,k,ns)  = asyprof(j,i,kk)**2 * tauasc3d(n,k,ns)
+                tauxar(n,ns) = tauxar(n,ns) + tauxar3d(n,k,ns)
+                tauasc(n,ns) = tauasc(n,ns) + tauasc3d(n,k,ns)
+                gtota(n,ns) =  gtota(n,ns)  + gtota3d(n,k,ns)
+                ftota(n,ns) =  ftota(n,ns)  + ftota3d(n,k,ns)
                 n = n + 1
               end do
             end do
@@ -1960,6 +1975,8 @@ module mod_rad_aerosol
         end if
         return  ! important
       else if ( iclimaaer == 3 ) then
+        ! Limit only to SW (?)
+        aertrlw(:,:,:) = d_one
         if ( irrtm == 1 ) then
           do n = 1 , nband
             do k = 1 , kz
@@ -1971,9 +1988,6 @@ module mod_rad_aerosol
             end do
           end do
         else if ( irrtm == 0 ) then
-          tauxar(:,:) = d_zero
-          tauasc(:,:) = d_zero
-          ftota(:,:)  = d_zero
           do n = 1 , nband
             do k = 1 , kz
               do i = 1 , npoints
@@ -1986,10 +2000,11 @@ module mod_rad_aerosol
                 ftota3d(i,k,n)  = asyprofr4(i,k,n)**2 * &
                        ssaprofr4(i,k,n) * tauxar3d(i,k,n)
 
-                ! define also tauxar for std scheme clear sky diagnostics 
+                ! define also tauxar for std scheme clear sky diagnostics
                 tauxar(i,n) = tauxar(i,n) + tauxar3d(i,k,n)
                 tauasc(i,n) = tauasc(i,n) + tauasc3d(i,k,n)
                 ftota(i,n) =  ftota(i,n)  + ftota3d(i,k,n)
+                gtota(i,n) =  gtota(i,n)  + gtota3d(i,k,n)
               end do
             end do
           end do
@@ -2343,8 +2358,8 @@ module mod_rad_aerosol
           end do
         else if ( irrtm == 1 ) then
           do n = 1 , nband
-            ! wavenumber is in cm-1 , convert to wavelenght in nm for mac-v2 
-            lambdaw(n) = (1.e7_rkx/wavnm1(n)+1.e7_rkx/wavnm2(n))*d_half 
+            ! wavenumber is in cm-1 , convert to wavelenght in nm for mac-v2
+            lambdaw(n) = (1.e7_rkx/wavnm1(n)+1.e7_rkx/wavnm2(n))*d_half
           end do
         end if
         ibin = 1
