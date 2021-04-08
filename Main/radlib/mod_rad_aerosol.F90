@@ -1800,8 +1800,8 @@ module mod_rad_aerosol
       icount(3) = clnlev
       icount(4) = 1
 
-      irec = ((iyear-cliyear)*12+imon-12)+1
-      ! irec = ((iyear-cliyear)*12+imon)-1
+      ! irec = ((iyear-cliyear)*12+imon-12)+1
+      irec = ((iyear-cliyear)*12+imon)-1
       if ( ncid /= ilastncid ) then
         iret = nf90_inq_varid(ncid,vname,icvar)
         if ( iret /= nf90_noerr ) then
