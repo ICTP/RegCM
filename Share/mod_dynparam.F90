@@ -187,9 +187,8 @@ module mod_dynparam
   ! Moloch dynamical vertical profile
 
   real(rkx) :: mo_ztop = 30000.0_rkx
+  real(rkx) :: mo_h = 8000.0_rkx
   real(rkx) :: mo_a0 = 0.0_rkx
-  real(rkx) :: mo_b0 = 0.0_rkx
-  real(rkx) :: mo_mfac = 1.0_rkx
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
@@ -458,7 +457,7 @@ module mod_dynparam
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
-    namelist /molochparam/ mo_a0 , mo_b0 , mo_ztop , mo_mfac
+    namelist /molochparam/ mo_a0 , mo_ztop , mo_h
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , cntri , cntrj , truelatl , truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &

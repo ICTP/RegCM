@@ -135,7 +135,7 @@ module mod_ocn_bats
       end if
       tgbrd(i) = icetriggert
 
-      uv995 = sqrt(usw(i)**2+vsw(i)**2)
+      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),wtur)
 
       ! Update Snow Cover
       delt = tatm(i) - tgrd(i)
@@ -235,7 +235,6 @@ module mod_ocn_bats
           sfice(i) = d_zero
           mask(i) = 1
         end if
-        qgrd = pfqsat(tgrd(i),sfps(i))
         delq = qs - qgrd
         evpr(i) = max(-drag(i)*delq,d_zero)
         sent(i) = -drag(i)*cpd*delt

@@ -3452,14 +3452,11 @@ module mod_ncstream
         attr%aname = 'zita_factor_a0'
         attr%theval = mo_a0
         call add_attribute(stream,attr)
-        attr%aname = 'zita_factor_b0'
-        attr%theval = mo_b0
-        call add_attribute(stream,attr)
         attr%aname = 'zita_height_top'
         attr%theval = mo_ztop
         call add_attribute(stream,attr)
-        attr%aname = 'zita_mfac'
-        attr%theval = mo_mfac
+        attr%aname = 'zita_atmosphere_h'
+        attr%theval = mo_h
         call add_attribute(stream,attr)
       end if
     end subroutine add_common_global_params

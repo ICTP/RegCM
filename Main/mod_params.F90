@@ -2925,9 +2925,9 @@ module mod_params
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
-        rayzd = mo_mfac*mo_ztop
+        rayzd = mo_ztop
         if ( myid == italk ) then
-          write(stdout,*) 'Model top at ',mo_mfac*mo_ztop,' m'
+          write(stdout,*) 'Model top at ',mo_ztop,' m'
         end if
       end subroutine compute_moloch_static
 
