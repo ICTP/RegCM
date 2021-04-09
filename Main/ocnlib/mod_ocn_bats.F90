@@ -209,7 +209,6 @@ module mod_ocn_bats
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
-      qgrd = pfqsat(icetriggert,sfps(i))
       if ( sncv(i) > d_zero ) then
         ! include snow heat capacity
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
@@ -227,6 +226,7 @@ module mod_ocn_bats
       end if
       ! set sea ice parameter for melting if seaice less than 2 cm
       if ( sfice(i) <= iceminh ) then
+        qgrd = pfqsat(271.36_rkx,sfps(i))
         sncv(i) = d_zero
         snag(i) = d_zero
         if ( icpl(i) == 0 ) then
@@ -241,11 +241,12 @@ module mod_ocn_bats
       else
         ! assume lead ocean temp is icetriggert
         ! flux of heat and moisture through leads
+        fact = -drag(i)
+        qgrd = pfqsat(fact*tatm(i),sfps(i))
         qice = pfqsat(icetriggert,sfps(i))
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*icetriggert)/cdrx
-        fact = -drag(i)
         delt = tatm(i) - tgrnd
         delq = qs - qgrnd
         ! output fluxes, averaged over leads and ice
