@@ -1048,12 +1048,12 @@ module mod_init
     if ( idynamic == 3 ) then
       if ( mo_nzfilt > 0 ) then
         ! Sponge layer at the top of the atmosphere
-        zfilt = (kzp1-mo_nzfilt)*mo_dz
+        zfilt = (kzp1-mo_nzfilt)*mo_dzita
         do k = 1 , kz
           if ( k > mo_nzfilt ) then
             ffilt(k) = d_zero
           else
-            zzi = (mo_dz*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
+            zzi = (mo_dzita*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
             ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
           end if
         end do

@@ -120,10 +120,6 @@ module mod_clm_params
     solar_tweak = 0.0_rkx
     gas_tweak_factors(:) = 1.0_rkx
 
-    if ( idynamic == 3 ) then
-      mo_dz = model_dz(kz)
-    end if
-
 #ifdef CLM
     if ( myid == italk ) then
       if (nsg /= 1 ) then
@@ -596,24 +592,21 @@ module mod_clm_params
         implicit none
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
-        zita(kzp1) = d_zero
-        do k = kz , 1 , -1
-          zita(k) = zita(k+1) + mo_dz
-          zitah(k) = zita(k) - mo_dz*d_half
-        end do
+        call model_zitaf(zita)
+        call model_zitah(zitah)
+        mo_dzita = zita(kz)
         sigma = d_one - zita/mo_ztop
         hsigma = d_one - zitah/mo_ztop
-        fak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
-        fbk = gzita(zita)
-        ak = md_zfz()*(exp(zitah/md_hzita())-1.0_rkx)
-        bk = gzita(zitah)
+        fak = md_ak(zita)
+        fbk = md_bk(zita)
+        ak = md_ak(zitah)
+        bk = md_bk(zitah)
         do k = 1 , kz
-          dsigma(k) = (sigma(k+1) - sigma(k))
+          dsigma(k) = (sigma(k+1)-sigma(k))
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            zeta(j,i) = ak(kz) + (bk(kz) - d_one) * &
-                                       mddom%ht(j,i)*regrav
+            zeta(j,i) = ak(kz) + (bk(kz) - d_one) * mddom%ht(j,i)*regrav
             fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i))
           end do
         end do

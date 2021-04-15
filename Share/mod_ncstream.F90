@@ -1026,10 +1026,9 @@ module mod_ncstream
           call outstream_writevar(ncout,stvar%ptop_var)
         else
           zita = mo_ztop * (d_one - sigma)
-          buffer%doublebuff(1:size(sigma)) = &
-                   real(md_zfz()*(exp(zita/md_hzita())-1.0_rkx),rk8)
+          buffer%doublebuff(1:size(sigma)) = md_ak(zita)
           call outstream_writevar(ncout,stvar%ak_var,nocopy)
-          buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
+          buffer%doublebuff(1:size(sigma)) = md_bk(zita)
           call outstream_writevar(ncout,stvar%bk_var,nocopy)
         end if
       end if

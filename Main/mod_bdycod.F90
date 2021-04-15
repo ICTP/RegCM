@@ -5484,7 +5484,7 @@ module mod_bdycod
         do j = jce1 , jce2
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
+          zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
         end do

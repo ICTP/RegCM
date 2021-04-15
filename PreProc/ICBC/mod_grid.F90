@@ -29,6 +29,7 @@ module mod_grid
   use mod_nhinterp
   use mod_zita
   use mod_dynparam , only : idynamic , base_state_pressure , logp_lrate
+  use mod_dynparam , only : mo_ztop
   use mod_projections
 
   private
@@ -121,7 +122,7 @@ module mod_grid
     integer(ik4) :: incin
     character(len=256) :: fname
     integer(ik4) :: i , j , k
-    real(rkx) :: dz , zita
+    real(rkx) , dimension(kz) :: zitah
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
@@ -137,15 +138,14 @@ module mod_grid
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse)
-      dz = model_dz(kz)
+      call model_zitah(zitah)
       do k = 1 , kz
-        zita = (kz - k) * dz + dz*0.5_rkx
         do i = 1 , iy
           do j = 1 , jx
-            z0(j,i,k) = md_zeta_h(zita,topogm(j,i))
+            z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i))
           end do
         end do
-        sigmah(k) = 1.0_rkx - zita/mo_ztop
+        sigmah(k) = 1.0_rkx - zitah(k)/mo_ztop
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
     else

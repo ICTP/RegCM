@@ -106,7 +106,7 @@ module mod_moloch
   logical :: lrotllr
 
   integer :: nadv , nsound
-  real(rkx) :: dz , nupait , ddamp
+  real(rkx) :: nupait , ddamp , dzita
 
   contains
 
@@ -223,7 +223,7 @@ module mod_moloch
     gzitakh = gzita(zitah)
     nadv = mo_nadv
     nsound = mo_nsound
-    dz = mo_dz
+    dzita = mo_dzita
     nupait = 0.05_rkx
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
@@ -662,8 +662,8 @@ module mod_moloch
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
-        zdtrdz = dts/dz
-        zcs2   = zdtrdz**2*rdrcv
+        zdtrdz = dts/dzita
+        zcs2 = zdtrdz**2*rdrcv
 
         !  sound waves
 
@@ -1037,7 +1037,7 @@ module mod_moloch
 
         zdtrdx = dta/dx
         zdtrdy = dta/dx
-        zdtrdz = dta/dz
+        zdtrdz = dta/dzita
 
         ! Vertical advection
 

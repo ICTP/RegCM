@@ -104,7 +104,7 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , sigf
+  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig
   real(rkx) :: ts0 , ptrop
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
@@ -175,14 +175,10 @@ program terrain
     call init_sigma(kz,dsmax,dsmin)
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
-    dz = model_dz(kz)
-    zita(kzp1) = 0.0_rkx
-    do k = kz , 1 , -1
-      zita(k) = zita(k+1) + dz
-    end do
-    sigma = 1.0_rkx - zita/mo_ztop
-    ak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
-    bk = gzita(zita)
+    call model_zitaf(zita)
+    sigma = d_one - zita/mo_ztop
+    ak = md_ak(zita)
+    bk = md_bk(zita)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
   end if
@@ -894,7 +890,6 @@ program terrain
     write (stdout,*) '--------------------------------------------------'
     ptrop = 17.0e3_rkx - 6.0e3_rkx*cos(sum(xlat)/real(jx*iy,rkx)*degrad)**2
     do k = kzp1, 1, -1
-      sigf = 1.0_rkx - (((kzp1-k) * dz)/mo_ztop)
       zsig = sum(zeta(:,:,k))/real(jx*iy,rkx)
       if ( zsig > ptrop ) then
         if ( zsig > ptrop + 1000.0_rkx ) then
@@ -907,7 +902,7 @@ program terrain
       end if
       psig = stdp*(d_one - &
           0.0065/stdt*zsig)**((egrav*0.0289644)/(8.31432*0.0065))
-      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigf, &
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigma(k), &
         psig * d_r100 , zsig , tsig
     end do
     ptop = psig * d_r100 ! Approximation of top pressure. hPa

@@ -33,18 +33,38 @@ module mod_zita
     module procedure zh4d
   end interface zita_interp
 
-  public :: model_dz
-  public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , md_hzita , md_zfz
-  public :: gzita
+  public :: model_zitaf , model_zitah
+  public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , gzita
+  public :: md_ak , md_bk
   public :: zita_interp
 
   contains
 
-  pure real(rkx) function model_dz(kz)
+  subroutine model_zitaf(zitaf)
     implicit none
-    integer(ik4) , intent(in) :: kz
-    model_dz = mo_ztop/real(kz,rkx)
-  end function model_dz
+    real(rkx) , intent(out) , dimension(:) :: zitaf
+    real(rkx) :: dz
+    integer :: kzp1 , kz , k
+    kzp1 = size(zitaf)
+    kz = kzp1-1
+    dz = mo_ztop/real(kz,rkx)
+    zitaf(kzp1) = 0.0_rkx
+    do k = kz , 1 , -1
+      zitaf(k) = zitaf(k+1) + dz
+    end do
+  end subroutine model_zitaf
+
+  subroutine model_zitah(zitah)
+    real(rkx) , intent(out) , dimension(:) :: zitah
+    real(rkx) :: dz
+    integer :: kz , k
+    kz = size(zitah)
+    dz = mo_ztop/real(kz,rkx)
+    zitah(kz) = dz*0.5_rkx
+    do k = kz-1 , 1 , -1
+      zitah(k) = zitah(k+1) + dz
+    end do
+  end subroutine model_zitah
 
   pure real(rkx) function md_hzita( )
     implicit none
@@ -53,7 +73,9 @@ module mod_zita
 
   pure real(rkx) function md_zfz( )
     implicit none
-    md_zfz = mo_ztop/(exp(mo_ztop/md_hzita())-1.0_rkx)
+    real(rkx) :: ratio
+    ratio = mo_ztop/md_hzita()
+    md_zfz = mo_ztop/(exp(ratio)-1.0_rkx)
   end function md_zfz
 
   ! Decay function
@@ -61,10 +83,13 @@ module mod_zita
     implicit none
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
+    !real(rkx) :: hstar
     ratio = zita/mo_ztop
     gzita = 1.0_rkx - mo_a0 * ratio - &
             (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
             (2.0_rkx - mo_a0) * ratio**3
+    !hstar = md_hzita( )
+    !gzita = sinh((mo_ztop-zita)/hstar)/sinh(mo_ztop/hstar)
   end function gzita
 
   ! Derivative of decay function
@@ -72,9 +97,12 @@ module mod_zita
     implicit none
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
+    !real(rkx) :: hstar
     ratio = zita/mo_ztop
     gzitap = (-mo_a0 - (6.0_rkx - 4.0_rkx * mo_a0) * ratio + &
                        (6.0_rkx - 3.0_rkx * mo_a0) * ratio**2)/mo_ztop
+    !hstar = md_hzita( )
+    !gzitap = -(1.0_rkx/hstar)*cosh((mo_ztop-zita)/hstar)/sinh(mo_ztop/hstar)
   end function gzitap
 
   pure real(rkx) function md_fmz(zita,geopot)
@@ -87,9 +115,12 @@ module mod_zita
   pure real(rkx) function md_fmz_h(zita,orog)
     implicit none
     real(rkx) , intent(in) :: zita , orog
+    real(rkx) :: ratio
+    ratio = zita/md_hzita()
     ! Equation 9
-    md_fmz_h = 1.0_rkx/(gzitap(zita)*orog + &
-                md_zfz()/md_hzita()*exp(zita/md_hzita()))
+    md_fmz_h = 1.0_rkx / (gzitap(zita)*orog + md_zfz()/md_hzita()*exp(ratio))
+    !md_fmz_h = mo_ztop / (mo_ztop-orog)
+    !md_fmz_h = 1.0_rkx / (1.0_rkx + gzitap(zita)*orog)
   end function md_fmz_h
 
   ! Elevation above orography as function of zita
@@ -99,13 +130,30 @@ module mod_zita
     md_zeta = md_zeta_h(zita,geopot*regrav)
   end function md_zeta
 
+  pure real(rkx) elemental function md_ak(zita)
+    implicit none
+    real(rkx) , intent(in) :: zita
+    md_ak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
+    ! md_ak = zita
+  end function md_ak
+
+  pure real(rkx) elemental function md_bk(zita)
+    implicit none
+    real(rkx) , intent(in) :: zita
+    md_bk = gzita(zita)
+    ! md_bk = gzita(zita)
+  end function md_bk
+
   ! Elevation above orography as function of zita
   pure real(rkx) function md_zeta_h(zita,orog)
     implicit none
     real(rkx) , intent(in) :: zita , orog
-    ! Equation 7 with removal of orography and check for negatives
-    md_zeta_h = max((orog*gzita(zita) + &
-                    md_zfz()*(exp(zita/md_hzita())-1.0_rkx))-orog, 0.0_rkx)
+    real(rkx) :: ratio
+    ratio = zita/md_hzita()
+    ! Equation 7 with removal of orography
+    md_zeta_h = orog*(gzita(zita)-1.0_rkx) + md_zfz()*(exp(ratio)-1.0_rkx)
+    !md_zeta_h = ratio * (mo_ztop-orog)
+    !md_zeta_h = zita + orog * (gzita(zita) - 1.0_rkx)
   end function md_zeta_h
 
   subroutine zh3d(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)

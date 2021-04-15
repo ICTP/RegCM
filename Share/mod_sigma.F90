@@ -69,17 +69,25 @@ module mod_sigma
     !
     ! For the RegCM the sigma coordinate is terrain following
     !
-    subroutine init_sigma(nk,dmax,dmin)
+    subroutine init_sigma(nk,dmax,dmin,lzeta)
       implicit none
       integer(ik4) , intent(in) :: nk
       real(rkx) , intent(in) , optional :: dmax , dmin
+      logical , intent(in) , optional :: lzeta
       real(rkx) , allocatable , dimension(:) :: alph
       real(rkx) :: dsmax , dsmin
       real(rkx) :: jumpsize , apara , bpara , func , funcprev
       integer(ik4) :: k , icount , ierr
       integer(ik4) , parameter :: maxiter = 1000000
       real(rkx) , parameter :: conv_crit = 0.00001_rkx
+      logical :: lpress , lcompute
 
+      lpress = .true.
+      if ( present(lzeta) ) then
+        lpress = .not. lzeta
+      end if
+      lcompute = .not. lpress .or. ( lpress .and. &
+              (nk == 14 .or. nk == 18 .or. nk == 23 .or. nk == 41) )
       call getmem1d(sigma_coordinate,1,nk+1, &
         'init_sigma:sigma_coordinate')
       call getmem1d(sigma_delta,1,nk, &
@@ -89,118 +97,126 @@ module mod_sigma
       !
       ! Setup hardcoded sigma levels
       !
-      if ( nk == 14 ) then      ! RegCM2
-        sigma_coordinate(1) = 0.0_rkx
-        sigma_coordinate(2) = 0.04_rkx
-        sigma_coordinate(3) = 0.10_rkx
-        sigma_coordinate(4) = 0.17_rkx
-        sigma_coordinate(5) = 0.25_rkx
-        sigma_coordinate(6) = 0.35_rkx
-        sigma_coordinate(7) = 0.46_rkx
-        sigma_coordinate(8) = 0.56_rkx
-        sigma_coordinate(9) = 0.67_rkx
-        sigma_coordinate(10) = 0.77_rkx
-        sigma_coordinate(11) = 0.86_rkx
-        sigma_coordinate(12) = 0.93_rkx
-        sigma_coordinate(13) = 0.97_rkx
-        sigma_coordinate(14) = 0.99_rkx
-        sigma_coordinate(15) = 1.0_rkx
-      else if ( nk == 18 ) then ! RegCM3, default
-        sigma_coordinate(1) = 0.0_rkx
-        sigma_coordinate(2) = 0.05_rkx
-        sigma_coordinate(3) = 0.10_rkx
-        sigma_coordinate(4) = 0.16_rkx
-        sigma_coordinate(5) = 0.23_rkx
-        sigma_coordinate(6) = 0.31_rkx
-        sigma_coordinate(7) = 0.39_rkx
-        sigma_coordinate(8) = 0.47_rkx
-        sigma_coordinate(9) = 0.55_rkx
-        sigma_coordinate(10) = 0.63_rkx
-        sigma_coordinate(11) = 0.71_rkx
-        sigma_coordinate(12) = 0.78_rkx
-        sigma_coordinate(13) = 0.84_rkx
-        sigma_coordinate(14) = 0.89_rkx
-        sigma_coordinate(15) = 0.93_rkx
-        sigma_coordinate(16) = 0.96_rkx
-        sigma_coordinate(17) = 0.98_rkx
-        sigma_coordinate(18) = 0.99_rkx
-        sigma_coordinate(19) = 1.0_rkx
-      else if ( nk == 23 ) then ! MM5V3
-        sigma_coordinate(1) = 0.0_rkx
-        sigma_coordinate(2) = 0.05_rkx
-        sigma_coordinate(3) = 0.1_rkx
-        sigma_coordinate(4) = 0.15_rkx
-        sigma_coordinate(5) = 0.2_rkx
-        sigma_coordinate(6) = 0.25_rkx
-        sigma_coordinate(7) = 0.3_rkx
-        sigma_coordinate(8) = 0.35_rkx
-        sigma_coordinate(9) = 0.4_rkx
-        sigma_coordinate(10) = 0.45_rkx
-        sigma_coordinate(11) = 0.5_rkx
-        sigma_coordinate(12) = 0.55_rkx
-        sigma_coordinate(13) = 0.6_rkx
-        sigma_coordinate(14) = 0.65_rkx
-        sigma_coordinate(15) = 0.7_rkx
-        sigma_coordinate(16) = 0.75_rkx
-        sigma_coordinate(17) = 0.8_rkx
-        sigma_coordinate(18) = 0.85_rkx
-        sigma_coordinate(19) = 0.89_rkx
-        sigma_coordinate(20) = 0.93_rkx
-        sigma_coordinate(21) = 0.96_rkx
-        sigma_coordinate(22) = 0.98_rkx
-        sigma_coordinate(23) = 0.99_rkx
-        sigma_coordinate(24) = 1.0_rkx
-      else if ( nk == 41 ) then ! RegCM VHR
-        sigma_coordinate(1) = 0.0000_rkx
-        sigma_coordinate(2) = 0.0500_rkx
-        sigma_coordinate(3) = 0.0978_rkx
-        sigma_coordinate(4) = 0.1436_rkx
-        sigma_coordinate(5) = 0.1875_rkx
-        sigma_coordinate(6) = 0.2295_rkx
-        sigma_coordinate(7) = 0.2697_rkx
-        sigma_coordinate(8) = 0.3082_rkx
-        sigma_coordinate(9) = 0.3451_rkx
-        sigma_coordinate(10) = 0.3804_rkx
-        sigma_coordinate(11) = 0.4143_rkx
-        sigma_coordinate(12) = 0.4468_rkx
-        sigma_coordinate(13) = 0.4779_rkx
-        sigma_coordinate(14) = 0.5078_rkx
-        sigma_coordinate(15) = 0.5364_rkx
-        sigma_coordinate(16) = 0.5639_rkx
-        sigma_coordinate(17) = 0.5903_rkx
-        sigma_coordinate(18) = 0.6156_rkx
-        sigma_coordinate(19) = 0.6399_rkx
-        sigma_coordinate(20) = 0.6632_rkx
-        sigma_coordinate(21) = 0.6856_rkx
-        sigma_coordinate(22) = 0.7071_rkx
-        sigma_coordinate(23) = 0.7277_rkx
-        sigma_coordinate(24) = 0.7476_rkx
-        sigma_coordinate(25) = 0.7667_rkx
-        sigma_coordinate(26) = 0.7850_rkx
-        sigma_coordinate(27) = 0.8027_rkx
-        sigma_coordinate(28) = 0.8196_rkx
-        sigma_coordinate(29) = 0.8359_rkx
-        sigma_coordinate(30) = 0.8516_rkx
-        sigma_coordinate(31) = 0.8667_rkx
-        sigma_coordinate(32) = 0.8812_rkx
-        sigma_coordinate(33) = 0.8952_rkx
-        sigma_coordinate(34) = 0.9087_rkx
-        sigma_coordinate(35) = 0.9216_rkx
-        sigma_coordinate(36) = 0.9341_rkx
-        sigma_coordinate(37) = 0.9461_rkx
-        sigma_coordinate(38) = 0.9577_rkx
-        sigma_coordinate(39) = 0.9689_rkx
-        sigma_coordinate(40) = 0.9796_rkx
-        sigma_coordinate(41) = 0.9900_rkx
-        sigma_coordinate(42) = 1.0000_rkx
+      if ( .not. lcompute ) then
+        write (stdout,*) 'Using pre-defined set of sigma levels.'
+        if ( nk == 14 ) then      ! RegCM2
+          sigma_coordinate(1) = 0.0_rkx
+          sigma_coordinate(2) = 0.04_rkx
+          sigma_coordinate(3) = 0.10_rkx
+          sigma_coordinate(4) = 0.17_rkx
+          sigma_coordinate(5) = 0.25_rkx
+          sigma_coordinate(6) = 0.35_rkx
+          sigma_coordinate(7) = 0.46_rkx
+          sigma_coordinate(8) = 0.56_rkx
+          sigma_coordinate(9) = 0.67_rkx
+          sigma_coordinate(10) = 0.77_rkx
+          sigma_coordinate(11) = 0.86_rkx
+          sigma_coordinate(12) = 0.93_rkx
+          sigma_coordinate(13) = 0.97_rkx
+          sigma_coordinate(14) = 0.99_rkx
+          sigma_coordinate(15) = 1.0_rkx
+        else if ( nk == 18 ) then ! RegCM3, default
+          sigma_coordinate(1) = 0.0_rkx
+          sigma_coordinate(2) = 0.05_rkx
+          sigma_coordinate(3) = 0.10_rkx
+          sigma_coordinate(4) = 0.16_rkx
+          sigma_coordinate(5) = 0.23_rkx
+          sigma_coordinate(6) = 0.31_rkx
+          sigma_coordinate(7) = 0.39_rkx
+          sigma_coordinate(8) = 0.47_rkx
+          sigma_coordinate(9) = 0.55_rkx
+          sigma_coordinate(10) = 0.63_rkx
+          sigma_coordinate(11) = 0.71_rkx
+          sigma_coordinate(12) = 0.78_rkx
+          sigma_coordinate(13) = 0.84_rkx
+          sigma_coordinate(14) = 0.89_rkx
+          sigma_coordinate(15) = 0.93_rkx
+          sigma_coordinate(16) = 0.96_rkx
+          sigma_coordinate(17) = 0.98_rkx
+          sigma_coordinate(18) = 0.99_rkx
+          sigma_coordinate(19) = 1.0_rkx
+        else if ( nk == 23 ) then ! MM5V3
+          sigma_coordinate(1) = 0.0_rkx
+          sigma_coordinate(2) = 0.05_rkx
+          sigma_coordinate(3) = 0.1_rkx
+          sigma_coordinate(4) = 0.15_rkx
+          sigma_coordinate(5) = 0.2_rkx
+          sigma_coordinate(6) = 0.25_rkx
+          sigma_coordinate(7) = 0.3_rkx
+          sigma_coordinate(8) = 0.35_rkx
+          sigma_coordinate(9) = 0.4_rkx
+          sigma_coordinate(10) = 0.45_rkx
+          sigma_coordinate(11) = 0.5_rkx
+          sigma_coordinate(12) = 0.55_rkx
+          sigma_coordinate(13) = 0.6_rkx
+          sigma_coordinate(14) = 0.65_rkx
+          sigma_coordinate(15) = 0.7_rkx
+          sigma_coordinate(16) = 0.75_rkx
+          sigma_coordinate(17) = 0.8_rkx
+          sigma_coordinate(18) = 0.85_rkx
+          sigma_coordinate(19) = 0.89_rkx
+          sigma_coordinate(20) = 0.93_rkx
+          sigma_coordinate(21) = 0.96_rkx
+          sigma_coordinate(22) = 0.98_rkx
+          sigma_coordinate(23) = 0.99_rkx
+          sigma_coordinate(24) = 1.0_rkx
+        else if ( nk == 41 ) then ! RegCM VHR
+          sigma_coordinate(1) = 0.0000_rkx
+          sigma_coordinate(2) = 0.0500_rkx
+          sigma_coordinate(3) = 0.0978_rkx
+          sigma_coordinate(4) = 0.1436_rkx
+          sigma_coordinate(5) = 0.1875_rkx
+          sigma_coordinate(6) = 0.2295_rkx
+          sigma_coordinate(7) = 0.2697_rkx
+          sigma_coordinate(8) = 0.3082_rkx
+          sigma_coordinate(9) = 0.3451_rkx
+          sigma_coordinate(10) = 0.3804_rkx
+          sigma_coordinate(11) = 0.4143_rkx
+          sigma_coordinate(12) = 0.4468_rkx
+          sigma_coordinate(13) = 0.4779_rkx
+          sigma_coordinate(14) = 0.5078_rkx
+          sigma_coordinate(15) = 0.5364_rkx
+          sigma_coordinate(16) = 0.5639_rkx
+          sigma_coordinate(17) = 0.5903_rkx
+          sigma_coordinate(18) = 0.6156_rkx
+          sigma_coordinate(19) = 0.6399_rkx
+          sigma_coordinate(20) = 0.6632_rkx
+          sigma_coordinate(21) = 0.6856_rkx
+          sigma_coordinate(22) = 0.7071_rkx
+          sigma_coordinate(23) = 0.7277_rkx
+          sigma_coordinate(24) = 0.7476_rkx
+          sigma_coordinate(25) = 0.7667_rkx
+          sigma_coordinate(26) = 0.7850_rkx
+          sigma_coordinate(27) = 0.8027_rkx
+          sigma_coordinate(28) = 0.8196_rkx
+          sigma_coordinate(29) = 0.8359_rkx
+          sigma_coordinate(30) = 0.8516_rkx
+          sigma_coordinate(31) = 0.8667_rkx
+          sigma_coordinate(32) = 0.8812_rkx
+          sigma_coordinate(33) = 0.8952_rkx
+          sigma_coordinate(34) = 0.9087_rkx
+          sigma_coordinate(35) = 0.9216_rkx
+          sigma_coordinate(36) = 0.9341_rkx
+          sigma_coordinate(37) = 0.9461_rkx
+          sigma_coordinate(38) = 0.9577_rkx
+          sigma_coordinate(39) = 0.9689_rkx
+          sigma_coordinate(40) = 0.9796_rkx
+          sigma_coordinate(41) = 0.9900_rkx
+          sigma_coordinate(42) = 1.0000_rkx
+        end if
       else ! Compute (or try to do so)
-        dsmax = 0.05_rkx
-        dsmin = 0.01_rkx
+        if ( lpress ) then
+          dsmax = 0.05_rkx
+          dsmin = 0.01_rkx
+        else
+          dsmax = 0.005_rkx
+          dsmin = 0.01_rkx
+        end if
         if ( present(dmax) ) dsmax = dmax
         if ( present(dmin) ) dsmin = dmin
         allocate(alph(nk), stat=ierr)
         call checkalloc(ierr,__FILE__,__LINE__,'init_sigma:alph')
-        write (stdout,*) 'Creating a custom set of sigma levels : '
+        write (stdout,*) 'Creating a set of sigma levels... '
         if ( (dsmax*real(nk,rkx)) < d_one ) then
           write (stderr,*) 'dsmax must be greater than ', d_one/real(nk,rkx)
           write (stderr,*) 'or kz must be less than ', d_one/dsmax

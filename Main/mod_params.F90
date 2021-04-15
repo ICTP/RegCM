@@ -1186,7 +1186,6 @@ module mod_params
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
       ! Moloch paramters here
-      mo_dz = model_dz(kz)
       call bcast(mo_anu2)
       call bcast(mo_wmax)
       call bcast(mo_nzfilt)
@@ -2102,17 +2101,15 @@ module mod_params
     !-----compute half sigma levels.
     !
     if ( idynamic == 3 ) then
-      zita(kzp1) = d_zero
-      do k = kz , 1 , -1
-        zita(k) = zita(k+1) + mo_dz
-        zitah(k) = zita(k) - mo_dz*d_half
-      end do
+      call model_zitaf(zita)
+      call model_zitah(zitah)
+      mo_dzita = zita(kz)
       sigma = d_one - zita/mo_ztop
       hsigma = d_one - zitah/mo_ztop
-      fak = md_zfz()*(exp(zita/md_hzita())-1.0_rkx)
-      fbk = gzita(zita)
-      ak = md_zfz()*(exp(zitah/md_hzita())-1.0_rkx)
-      bk = gzita(zitah)
+      fak = md_ak(zita)
+      fbk = md_bk(zita)
+      ak = md_ak(zitah)
+      bk = md_bk(zitah)
       do k = 1 , kz
         dsigma(k) = (sigma(k+1) - sigma(k))
       end do
