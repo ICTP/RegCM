@@ -359,7 +359,6 @@ module mod_runparams
 
   ! Tweak Global data
 
-  integer(ik4) , public :: ipgwrun
   integer(ik4) , public :: itweak
   integer(ik4) , public :: itweak_sst
   integer(ik4) , public :: itweak_temperature

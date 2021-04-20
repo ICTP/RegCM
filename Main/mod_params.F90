@@ -105,7 +105,7 @@ module mod_params
       idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
       iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
       temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset , ipgwrun
+      fixedsolarval , irceideal , year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -506,10 +506,6 @@ module mod_params
     sst_restore_timescale = 5.0_rkx !days
     do_restore_sst = .true.
     do_qflux_adj = .false.
-    !
-    ! PGW deltas in PGW file
-    !
-    ipgwrun = 0
     !
     ! tweakparam ;
     !
@@ -1314,7 +1310,6 @@ module mod_params
     call bcast(year_offset)
     call bcast(icumcloud)
     call bcast(islab_ocean)
-    call bcast(ipgwrun)
     call bcast(itweak)
     if ( idcsst == 1 .and. iocnflx /= 2 ) then
       if ( myid == italk ) then
@@ -1889,15 +1884,6 @@ module mod_params
     else if ( idynamic == 3 ) then
       call allocate_v3dbound(xpaib,kz,cross)
       call allocate_v3dbound(xwwb,kzp1,cross)
-    end if
-    if ( ipgwrun == 1 ) then
-      call allocate_v2dbound(ppsb,cross)
-      call allocate_v2dbound(ptsb,cross)
-      call allocate_v3dbound(ptb,npgwlev,cross)
-      call allocate_v3dbound(pqb,npgwlev,cross)
-      call allocate_v3dbound(pzb,npgwlev,cross)
-      call allocate_v3dbound(pub,npgwlev,dot)
-      call allocate_v3dbound(pvb,npgwlev,dot)
     end if
 
     if ( myid == italk ) then
@@ -2664,13 +2650,6 @@ module mod_params
             k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
         end do
         write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
-      end if
-    end if
-
-    if ( ipgwrun == 1 ) then
-      if ( myid == italk ) then
-        write(stdout,*) 'PGW DELTA ARE ADDED TO THE ICBC FIELDS!'
-        write(stdout,*) 'THIS RUN IS A NON STANDARD SCENARIO!'
       end if
     end if
 

@@ -4,9 +4,9 @@ include $(REGCM_ROOT)/makeinc
 vpath %.o $(REGCM_ROOT)/Share:.
 
 if DO_COMPILE_LIBCLM45
-bin_PROGRAMS = sst icbc chem_icbc clmbc pgwbc
+bin_PROGRAMS = sst icbc chem_icbc clmbc pgwbc pgw_icbc
 else
-bin_PROGRAMS = sst icbc chem_icbc pgwbc
+bin_PROGRAMS = sst icbc chem_icbc pgwbc pgw_icbc
 endif
 
 FCLD = $(MPIFC)
@@ -34,6 +34,7 @@ chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
                     mod_ch_fnest.F90 mod_grid.F90 mod_header.F90 chem_icbc.F90
 pgwbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
                 mod_pgw.F90 pgwbc.F90
+pgw_icbc_SOURCES = mod_header.F90 pgw_icbc.F90 mod_vectutil.F90
 
 LDADD = $(OMPFLAGS)
 
@@ -49,6 +50,8 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
+pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_vertint.o mod_date.o mod_vectutil.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 pgwbc.o : pgwbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_pgw.o mod_write.o mod_projections.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<

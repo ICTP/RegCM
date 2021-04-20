@@ -253,7 +253,6 @@ module mod_regcm_interface
 
     call close_icbc
     if ( ichem == 1 ) call close_chbc( )
-    if ( ipgwrun == 1 ) call close_pgw( )
     call dispose_output_streams
     call checktime(myid,trim(dirout)//pthsep//trim(prestr)//trim(domname)// &
                        '.'//tochar10(lastout))

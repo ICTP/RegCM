@@ -79,7 +79,6 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
   real(rk8) :: jday
-  real(rk8) :: rdtpgw
   integer(ik4) :: som_month
 
   interface timeint
@@ -319,6 +318,7 @@ module mod_bdycod
     end if
     call getmem3d(fg1,jde1ga,jde2ga,ide1ga,ide2ga,1,kzp1,'bdycon:fg1')
     call getmem3d(fg2,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'bdycon:fg2')
+
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
@@ -441,9 +441,6 @@ module mod_bdycod
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
     end if
-    if ( ipgwrun == 1 ) then
-      call open_pgw( )
-    end if
     call fixqcqi( )
 
     if ( we_have_qc( ) ) then
@@ -467,6 +464,7 @@ module mod_bdycod
     if ( idynamic == 2 ) then
       call read_icbc(nhbh0%ps,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
                      xtb%b0,xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
+
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -530,16 +528,6 @@ module mod_bdycod
       else
         write(stdout,*) 'READY BC DATA for ', appdat
       end if
-    end if
-
-    if ( ipgwrun == 1 ) then
-      call read_pgw(im1,ppsb%b0,ptsb%b0,pub%b0,pvb%b0,ptb%b0,pqb%b0,pzb%b0)
-      call read_pgw(im2,ppsb%b1,ptsb%b1,pub%b1,pvb%b1,ptb%b1,pqb%b1,pzb%b1)
-      call timeint(pub%b1,pub%b0,pub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtpgw)
-      call timeint(pvb%b1,pvb%b0,pvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,rdtpgw)
-      call timeint(ptb%b1,ptb%b0,ptb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
-      call timeint(pqb%b1,pqb%b0,pqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
-      call timeint(pzb%b1,pzb%b0,pzb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtpgw)
     end if
 
     if ( idynamic == 1 ) then
