@@ -231,8 +231,8 @@ module mod_write
       nvar3d = 4
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
     else if ( idynamic == 2 ) then
-      nvar2d = 9
-      nvar3d = 6
+      nvar2d = 10
+      nvar3d = 7
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
@@ -324,17 +324,27 @@ module mod_write
       v2dvar_icbc(9)%long_name = 'Model top vertical velocity'
       v2dvar_icbc(9)%standard_name = 'upward_air_velocity'
       v2dvar_icbc(9)%lrecords = .true.
-      v3dvar_icbc(i3i)%vname = 'w'
-      v3dvar_icbc(i3i)%vunit = 'm s-1'
-      v3dvar_icbc(i3i)%long_name = 'Vertical wind'
-      v3dvar_icbc(i3i)%standard_name = 'upward_air_velocity'
-      v3dvar_icbc(i3i)%lrecords = .true.
-      v3dvar_icbc(i3i+1)%vname = 'pp'
-      v3dvar_icbc(i3i+1)%vunit = 'Pa'
-      v3dvar_icbc(i3i+1)%long_name = 'Pressure perturbation'
-      v3dvar_icbc(i3i+1)%standard_name = &
-        'difference_of_air_pressure_from_model_reference'
+      v2dvar_icbc(10)%vname = 'xmap'
+      v2dvar_icbc(10)%vunit = '1'
+      v2dvar_icbc(10)%long_name = 'Map Factor on Cross Points'
+      v2dvar_icbc(10)%standard_name = 'map_factor'
+      v2dvar_icbc(10)%lrecords = .false.
+      v3dvar_icbc(i3i)%vname = 'p'
+      v3dvar_icbc(i3i)%vunit = 'Pa'
+      v3dvar_icbc(i3i)%long_name = 'Reference atmospheric pressure'
+      v3dvar_icbc(i3i)%standard_name = 'air_pressure'
+      v3dvar_icbc(i3i)%lrecords = .false.
+      v3dvar_icbc(i3i+1)%vname = 'w'
+      v3dvar_icbc(i3i+1)%vunit = 'm s-1'
+      v3dvar_icbc(i3i+1)%long_name = 'Vertical wind'
+      v3dvar_icbc(i3i+1)%standard_name = 'upward_air_velocity'
       v3dvar_icbc(i3i+1)%lrecords = .true.
+      v3dvar_icbc(i3i+2)%vname = 'pp'
+      v3dvar_icbc(i3i+2)%vunit = 'Pa'
+      v3dvar_icbc(i3i+2)%long_name = 'Pressure perturbation'
+      v3dvar_icbc(i3i+2)%standard_name = &
+        'difference_of_air_pressure_from_model_reference'
+      v3dvar_icbc(i3i+2)%lrecords = .true.
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%vname = 'ulon'
@@ -505,8 +515,10 @@ module mod_write
     end if
     if ( idynamic == 2 ) then
       v2dvar_icbc(9)%rval => wtop4
-      v3dvar_icbc(i3i)%rval => ww4
-      v3dvar_icbc(i3i+1)%rval => pp4
+      v2dvar_icbc(10)%rval => msfx
+      v3dvar_icbc(i3i)%rval => pr0
+      v3dvar_icbc(i3i+1)%rval => ww4
+      v3dvar_icbc(i3i+2)%rval => pp4
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%rval => ulon
@@ -529,6 +541,13 @@ module mod_write
         call outstream_writevar(ncout,v2dvar_icbc(ivar))
       end if
     end do
+    if ( idynamic == 2 ) then
+      do ivar = 1 , nvar3d
+        if ( .not. v3dvar_icbc(ivar)%lrecords ) then
+          call outstream_writevar(ncout,v3dvar_icbc(ivar))
+        end if
+      end do
+    end if
   end subroutine newfile
 
   subroutine writehf(idate)

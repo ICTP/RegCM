@@ -47,6 +47,7 @@ program pgw_icbc
   use netcdf
   use mod_vertint
   use mod_vectutil
+  use mod_constants
 #ifdef PNETCDF
   use mpi
 #endif
@@ -58,12 +59,13 @@ program pgw_icbc
   integer(ik4) :: pgwin , icbcin
   integer(ik4) :: idimid , ivarid
   integer(ik4) , dimension(7) :: pgw_ivar
-  integer(ik4) , dimension(8) :: icbc_ivar
+  integer(ik4) , dimension(9) :: icbc_ivar
   character(len=256) :: prgname , icbcfile , pgwfile
   real(rkx) , pointer , dimension(:) :: plev , sigma , ak , bk
   real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo
-  real(rkx) , pointer , dimension(:,:,:) :: z0
+  real(rkx) , pointer , dimension(:) :: dsigma , sigmaf
+  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo , xmap
+  real(rkx) , pointer , dimension(:,:,:) :: z0 , p0 , p
   real(rkx) , pointer , dimension(:,:,:) :: u , v , t , q , pp , ww
   real(rkx) , pointer , dimension(:,:) :: bps , ps1 , ps2 , ps3
   real(rkx) , pointer , dimension(:,:) :: bts , ts1 , ts2 , ts3
@@ -77,7 +79,7 @@ program pgw_icbc
   integer(ik4) :: i , j , k
   type(rcm_time_and_date) :: idate
   character(len=64) :: timeunit , timecal
-  real(rkx) :: pss , pst , ptop
+  real(rkx) :: ds , pss , pst , ptop
   real(rkx) , dimension(1) :: nctime
   real(rkx) :: w1 , w2 , w3 , fm , hm
   integer(ik4) :: year , im2 , day , hour , im1 , im3
@@ -150,6 +152,8 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable pp miss', 'ICBC FILE')
     ierr = nf90_inq_varid(icbcin, 'w', icbc_ivar(8))
     call check_ok(__FILE__,__LINE__,'variable w miss', 'ICBC FILE')
+    ierr = nf90_inq_varid(icbcin, 'p', icbc_ivar(9))
+    call check_ok(__FILE__,__LINE__,'variable p miss', 'ICBC FILE')
   end if
 
   ierr = nf90_inq_dimid(icbcin, 'iy', idimid)
@@ -232,6 +236,9 @@ program pgw_icbc
     call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
   end if
   if ( idynamic == 2 ) then
+    call getmem1d(sigmaf,1,kz+1,'pgw_icbc:sigmaf')
+    call getmem1d(dsigma,1,kz,'pgw_icbc:dsigma')
+    call getmem2d(xmap,1,jx,1,iy,'pgw_icbc:xmap')
     call getmem3d(pp,1,jx,1,iy,1,kz,'pgw_icbc:pp')
     call getmem3d(ww,1,jx,1,iy,1,kz+1,'pgw_icbc:ww')
   end if
@@ -264,17 +271,37 @@ program pgw_icbc
         end do
       end do
     end do
+  else if ( idynamic == 2 ) then
+    ierr = nf90_get_att(icbcin, nf90_global, 'grid_size_in_meters', ds)
+    call check_ok(__FILE__,__LINE__,'attribute grid_size_in_meters miss', &
+                  'ICBC FILE')
+    ds = ds * 1000.0_rkx
+    ierr = nf90_inq_varid(icbcin, 'xmap', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable xmap miss', 'ICBC FILE')
+    ierr = nf90_get_var(icbcin,ivarid,xmap)
+    call check_ok(__FILE__,__LINE__,'variable xmap read error', 'ICBC FILE')
+    ierr = nf90_inq_varid(icbcin, 'p', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable p miss', 'ICBC FILE')
+    ierr = nf90_get_var(icbcin,ivarid,p0)
+    call check_ok(__FILE__,__LINE__,'variable p read error', 'ICBC FILE')
+    sigmaf(1) = 0.0_rkx
+    sigmaf(kz+1) = 1.0_rkx
+    do k = 2 , kz
+      sigmaf(k) = (sigma(k-1)+sigma(k))*0.5_rkx
+    end do
+    do k = 1 , kz
+      dsigma(k) = sigmaf(k+1)-sigmaf(k)
+    end do
   else
     ierr = nf90_inq_varid(icbcin, 'ptop', ivarid)
     call check_ok(__FILE__,__LINE__,'variable ptop miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,ptop)
     call check_ok(__FILE__,__LINE__,'variable ptop read error', 'ICBC FILE')
-    ptop = ptop/1000.0
   end if
-  pss = (plev(npgwlev)-plev(1))/1000.0_rkx
-  pst = plev(1)/1000.0_rkx
+  pss = (plev(1)-plev(npgwlev))/100.0_rkx
+  pst = plev(npgwlev)/100.0_rkx
   do k = 1 , npgwlev
-    sigmar(k) = (plev(npgwlev-k+1)-plev(1))/(plev(npgwlev)-plev(1))
+    sigmar(k) = (plev(k)-plev(npgwlev))/(plev(1)-plev(npgwlev))
   end do
 
   ierr = nf90_inq_varid(icbcin, 'time', ivarid)
@@ -299,7 +326,12 @@ program pgw_icbc
   fm = real(nsteps,rkx)
   hm = fm/2.0_rkx
 
+  write(stdout,* ) 'Initial time is ', tochar(idate)
+
   do n = 1 , nsteps
+
+    write(stdout,* ) 'Processing time record ', n
+
     if ( n < int(hm) ) then
       w1 = (hm-n)/fm
       w2 = (hm+n)/fm
@@ -318,11 +350,12 @@ program pgw_icbc
 
     call read_icbc(n,ps,ts,u,v,t,q,pp,ww)
 
-    ps = ps + bps
+    ps = (ps + bps)
     ts = ts + bts
 
     ! interpolate to model levels
     if ( idynamic == 1 ) then
+      ps = ps - ptop
       !!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!
       !!!!!!!!!!!! ASSUME NON BAND RUN !!!!!!!!!!!
       !!!!!!!!!!!!!!!!! ATTENTION !!!!!!!!!!!!!!!!
@@ -335,6 +368,23 @@ program pgw_icbc
       t = t + bias
       call intv1(bias,bq,ps,sigma,pss,sigmar,ptop,pst,jx,iy,kz,npgwlev,1)
       q = q + bias
+      ps = ps + ptop
+    else if ( idynamic == 2 ) then
+      p = (p0 + pp)/100.0_rkx
+      call intlinreg(bias,bu,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      u = u + bias
+      call intlinreg(bias,bv,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      v = v + bias
+      call intlinreg(bias,bt,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      t = t + bias
+      call intlinreg(bias,bq,ps,plev,1,jx,1,iy,npgwlev,p,kz)
+      q = q + bias
+      ps = (ps - ptop)/10.0_rkx
+      call crs2dot(pd,ps,jx,iy,0,0)
+      call compute_w(ds,pd,ps,xmap,p,u,v,t,ww)
+      ps = ps * 10.0_rkx + ptop
+    else ! if ( idynamic == 3 ) then
+
     end if
 
     call write_icbc(n,ps,ts,u,v,t,q,pp,ww)
@@ -510,6 +560,126 @@ program pgw_icbc
       call check_ok(__FILE__,__LINE__,'variable ww read error', 'ICBC FILE')
     end if
   end subroutine write_icbc
+
+  subroutine compute_w(ds,pd,ps,xm,p,u,v,t,w)
+    implicit none
+    real(rkx) , intent(in) :: ds
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps , pd , xm
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: p , u , v , t
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: w
+    integer(ik4) :: i , j , k , jp , ip , jm , im , km1 , kp1
+    real(rkx) :: ua , ub , va , vb , ubar , vbar , rho , dx , dx2
+    real(rkx) , dimension(jx,iy) :: dummy , dummy1
+    real(rkx) , dimension(kz) :: mdv
+    real(rkx) , dimension(kz+1) :: qdt
+    real(rkx) , dimension(jx,iy,kz+1) :: omega
+
+    dx = ds * 1000.0_rkx
+    dx2 = d_two * dx
+    dummy = (xm * xm) / dx2
+    dummy1 = xm / dx2
+    qdt(kz+1) = 0.0_rkx
+
+    do i = 1 , iy
+      ip = min(i+1,iy)
+      im = max(i-1,1)
+      do j = 1 , jx
+        jp = min(j+1,jx)
+        jm = min(j-1,1)
+        do k = 1 , kz
+          ua = u(j ,i ,k) * pd(j,i)  + &
+               u(j ,ip,k) * pd(j,ip)
+          ub = u(jp, i,k) * pd(jp,i) + &
+               u(jp,ip,k) * pd(jp,ip)
+          va = v(j ,i ,k) * pd(j,i) + &
+               v(jp,i ,k) * pd(jp,i)
+          vb = v(j ,ip,k) * pd(j,ip) + &
+               v(jp,ip,k) * pd(jp,ip)
+          mdv(k) = (ub-ua + vb-va) * dummy(j,i) / ps(j,i)
+        end do
+        do k = kz , 1 , -1
+          qdt(k) = qdt(k+1) + mdv(k) * dsigma(k)
+        end do
+        do k = kz+1 , 1 , -1
+          km1 = max(k-1,1)
+          kp1 = max(k+1,kz)
+          ubar = 0.125_rkx * (u(j ,i ,km1) + u(j ,ip,km1) + &
+                              u(jp,i ,km1) + u(jp,ip,km1) + &
+                              u(j ,i ,kp1) + u(j ,ip,kp1) + &
+                              u(jp,i ,kp1) + u(jp,ip,kp1))
+          vbar = 0.125_rkx * (v(j ,i ,km1) + v(j ,ip,km1) + &
+                              v(jp,i ,km1) + v(jp,ip,km1) + &
+                              v(j ,i ,kp1) + v(j ,ip,kp1) + &
+                              v(jp,i ,kp1) + v(jp,ip,kp1))
+          omega(j,i,k) = ps(j,i) * qdt(k) + sigma(k) * &
+                       ((ps(jp,i) - ps(jm,i)) * ubar + &
+                        (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
+        end do
+      end do
+    end do
+    call smtdsmt(omega,1,iy,1,jx,1,kz+1)
+
+    do k = 2 , kz + 1
+      do i = 1 , iy
+        do j = 1 , jx
+          rho = p(j,i,k) / rgas / t(j,i,k)
+          w(j,i,k) = -d_1000 * omega(j,i,k)/rho * regrav
+        end do
+      end do
+    end do
+  end subroutine compute_w
+
+  subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
+    implicit none
+    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , k1 , k2
+    real(rkx) , intent(inout) , dimension(j1:j2,i1:i2,k1:k2) :: slab
+    real(rkx) :: aplus , asv , cell
+    integer(ik4) :: i , is , ie , j , js , je , k , kp , np
+    real(rkx) , dimension(2) :: xnu
+    integer(ik4) , parameter :: npass = 16
+    !
+    ! purpose: spatially smooth data in slab to dampen short
+    ! wavelength components
+    !
+    ie = i2-1
+    je = j2-1
+    is = i1+1
+    js = j1+1
+    xnu(1) =  0.50_rkx
+    xnu(2) = -0.52_rkx
+    do k = k1 , k2
+      do np = 1 , npass
+        do kp = 1 , 2
+          ! first smooth in the ni direction
+          do i = i1 , i2
+            asv = slab(j1,i,k)
+            do j = js , je
+              cell = slab(j,i,k)
+              aplus = slab(j+1,i,k)
+              slab(j,i,k) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+              asv = cell
+            end do
+          end do
+          ! smooth in the nj direction
+          do j = j1 , j2
+            asv = slab(j,i1,k)
+            do i = is , ie
+              cell = slab(j,i,k)
+              aplus = slab(j,i+1,k)
+              slab(j,i,k) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+              asv = cell
+            end do
+          end do
+        end do
+        slab(j1,:,k) = slab(j1+1,:,k)
+        slab(:,i1,k) = slab(:,i1+1,k)
+        slab(j2-1,:,k) = slab(j2-2,:,k)
+        slab(:,i2-1,k) = slab(:,i2-2,k)
+        slab(j2,:,k) = slab(j2-1,:,k)
+        slab(:,i2,k) = slab(:,i2-1,k)
+      end do
+    end do
+  end subroutine smtdsmt
 
 end program pgw_icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
