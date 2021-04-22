@@ -73,7 +73,6 @@ program pgw_icbc
   real(rkx) , pointer , dimension(:,:,:) :: bv , v1 , v2 , v3
   real(rkx) , pointer , dimension(:,:,:) :: bt , t1 , t2 , t3
   real(rkx) , pointer , dimension(:,:,:) :: bq , q1 , q2 , q3
-  real(rkx) , pointer , dimension(:,:,:) :: bz , z1 , z2 , z3
   real(rkx) , pointer , dimension(:,:,:) :: bias
   integer(ik4) :: n , nsteps
   integer(ik4) :: i , j , k
@@ -189,7 +188,6 @@ program pgw_icbc
   end if
 
   call getmem1d(plev,1,npgwlev,'pgw_icbc:plev')
-  call getmem1d(sigmar,1,npgwlev,'pgw_icbc:sigmar')
   call getmem2d(bps,1,jx,1,iy,'pgw_icbc:bps')
   call getmem2d(ps1,1,jx,1,iy,'pgw_icbc:ps1')
   call getmem2d(ps2,1,jx,1,iy,'pgw_icbc:ps2')
@@ -214,17 +212,9 @@ program pgw_icbc
   call getmem3d(q1,1,jx,1,iy,1,npgwlev,'pgw_icbc:q1')
   call getmem3d(q2,1,jx,1,iy,1,npgwlev,'pgw_icbc:q2')
   call getmem3d(q3,1,jx,1,iy,1,npgwlev,'pgw_icbc:q3')
-  call getmem3d(bz,1,jx,1,iy,1,npgwlev,'pgw_icbc:bz')
-  call getmem3d(z1,1,jx,1,iy,1,npgwlev,'pgw_icbc:z1')
-  call getmem3d(z2,1,jx,1,iy,1,npgwlev,'pgw_icbc:z2')
-  call getmem3d(z3,1,jx,1,iy,1,npgwlev,'pgw_icbc:z3')
   call getmem3d(bias,1,jx,1,iy,1,kz,'pgw_icbc:bias')
 
   call getmem1d(sigma,1,kz,'pgw_icbc:sigma')
-  if ( idynamic == 3 ) then
-    call getmem1d(ak,1,kz,'pgw_icbc:ak')
-    call getmem1d(bk,1,kz,'pgw_icbc:bk')
-  end if
   call getmem2d(topo,1,jx,1,iy,'pgw_icbc:topo')
   call getmem2d(ps,1,jx,1,iy,'pgw_icbc:ps')
   call getmem2d(ts,1,jx,1,iy,'pgw_icbc:ts')
@@ -233,14 +223,22 @@ program pgw_icbc
   call getmem3d(t,1,jx,1,iy,1,kz,'pgw_icbc:t')
   call getmem3d(q,1,jx,1,iy,1,kz,'pgw_icbc:q')
   if ( idynamic == 1 ) then
+    call getmem1d(sigmar,1,npgwlev,'pgw_icbc:sigmar')
     call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
   end if
   if ( idynamic == 2 ) then
     call getmem1d(sigmaf,1,kz+1,'pgw_icbc:sigmaf')
     call getmem1d(dsigma,1,kz,'pgw_icbc:dsigma')
     call getmem2d(xmap,1,jx,1,iy,'pgw_icbc:xmap')
+    call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
+    call getmem3d(p,1,jx,1,iy,1,kz,'pgw_icbc:p')
+    call getmem3d(p0,1,jx,1,iy,1,kz,'pgw_icbc:p0')
     call getmem3d(pp,1,jx,1,iy,1,kz,'pgw_icbc:pp')
-    call getmem3d(ww,1,jx,1,iy,1,kz+1,'pgw_icbc:ww')
+    call getmem3d(ww,1,jx,1,iy,1,kz,'pgw_icbc:ww')
+  end if
+  if ( idynamic == 3 ) then
+    call getmem1d(ak,1,kz,'pgw_icbc:ak')
+    call getmem1d(bk,1,kz,'pgw_icbc:bk')
   end if
 
   ierr = nf90_inq_varid(pgwin, 'plev', ivarid)
@@ -275,7 +273,6 @@ program pgw_icbc
     ierr = nf90_get_att(icbcin, nf90_global, 'grid_size_in_meters', ds)
     call check_ok(__FILE__,__LINE__,'attribute grid_size_in_meters miss', &
                   'ICBC FILE')
-    ds = ds * 1000.0_rkx
     ierr = nf90_inq_varid(icbcin, 'xmap', ivarid)
     call check_ok(__FILE__,__LINE__,'variable xmap miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,xmap)
@@ -292,17 +289,25 @@ program pgw_icbc
     do k = 1 , kz
       dsigma(k) = sigmaf(k+1)-sigmaf(k)
     end do
+    ierr = nf90_inq_varid(icbcin, 'ptop', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable ptop miss', 'ICBC FILE')
+    ierr = nf90_get_var(icbcin,ivarid,ptop)
+    call check_ok(__FILE__,__LINE__,'variable ptop read error', 'ICBC FILE')
   else
     ierr = nf90_inq_varid(icbcin, 'ptop', ivarid)
     call check_ok(__FILE__,__LINE__,'variable ptop miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,ptop)
     call check_ok(__FILE__,__LINE__,'variable ptop read error', 'ICBC FILE')
   end if
-  pss = (plev(1)-plev(npgwlev))/100.0_rkx
-  pst = plev(npgwlev)/100.0_rkx
-  do k = 1 , npgwlev
-    sigmar(k) = (plev(k)-plev(npgwlev))/(plev(1)-plev(npgwlev))
-  end do
+  if ( idynamic == 1 ) then
+    pss = (plev(1)-plev(npgwlev))/100.0_rkx
+    pst = plev(npgwlev)/100.0_rkx
+    do k = 1 , npgwlev
+      sigmar(k) = (plev(k)-plev(npgwlev))/(plev(1)-plev(npgwlev))
+    end do
+  else if ( idynamic == 2 ) then
+    plev = plev/100.0_rkx
+  end if
 
   ierr = nf90_inq_varid(icbcin, 'time', ivarid)
   call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
@@ -319,9 +324,9 @@ program pgw_icbc
   im3 = im2 + 1
   if ( im3 == 13 ) im3 = 1
 
-  call read_pgw(im1,ps1,ts1,u1,v1,t1,q1,z1)
-  call read_pgw(im2,ps2,ts2,u2,v2,t2,q2,z2)
-  call read_pgw(im3,ps3,ts3,u3,v3,t3,q3,z3)
+  call read_pgw(im1,ps1,ts1,u1,v1,t1,q1)
+  call read_pgw(im2,ps2,ts2,u2,v2,t2,q2)
+  call read_pgw(im3,ps3,ts3,u3,v3,t3,q3)
 
   fm = real(nsteps,rkx)
   hm = fm/2.0_rkx
@@ -381,6 +386,7 @@ program pgw_icbc
       q = q + bias
       ps = (ps - ptop)/10.0_rkx
       call crs2dot(pd,ps,jx,iy,0,0)
+      p = p * 100.0_rkx
       call compute_w(ds,pd,ps,xmap,p,u,v,t,ww)
       ps = ps * 10.0_rkx + ptop
     else ! if ( idynamic == 3 ) then
@@ -425,7 +431,7 @@ program pgw_icbc
     end if
   end subroutine check_ok
 
-  subroutine read_pgw(irec,ps,ts,u,v,t,q,z)
+  subroutine read_pgw(irec,ps,ts,u,v,t,q)
     implicit none
     integer(ik4) , intent(in) :: irec
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
@@ -434,7 +440,7 @@ program pgw_icbc
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: q
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: z
+    !real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: z
     integer(ik4) , dimension(4) :: istart , icount
 
     istart(1) = 1
@@ -463,8 +469,8 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable t read error', 'PGWBC FILE')
     ierr = nf90_get_var(pgwin,pgw_ivar(6),q,istart,icount)
     call check_ok(__FILE__,__LINE__,'variable q read error', 'PGWBC FILE')
-    ierr = nf90_get_var(pgwin,pgw_ivar(7),z,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable z read error', 'PGWBC FILE')
+    !ierr = nf90_get_var(pgwin,pgw_ivar(7),z,istart,icount)
+    !call check_ok(__FILE__,__LINE__,'variable z read error', 'PGWBC FILE')
   end subroutine read_pgw
 
   subroutine read_icbc(irec,ps,ts,u,v,t,q,pp,ww)
@@ -561,20 +567,19 @@ program pgw_icbc
     end if
   end subroutine write_icbc
 
-  subroutine compute_w(ds,pd,ps,xm,p,u,v,t,w)
+  subroutine compute_w(dx,pd,ps,xm,p,u,v,t,w)
     implicit none
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) :: dx
     real(rkx) , dimension(:,:) , pointer , intent(in) :: ps , pd , xm
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: p , u , v , t
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: w
     integer(ik4) :: i , j , k , jp , ip , jm , im , km1 , kp1
-    real(rkx) :: ua , ub , va , vb , ubar , vbar , rho , dx , dx2
+    real(rkx) :: ua , ub , va , vb , ubar , vbar , rho , dx2
     real(rkx) , dimension(jx,iy) :: dummy , dummy1
     real(rkx) , dimension(kz) :: mdv
     real(rkx) , dimension(kz+1) :: qdt
     real(rkx) , dimension(jx,iy,kz+1) :: omega
 
-    dx = ds * 1000.0_rkx
     dx2 = d_two * dx
     dummy = (xm * xm) / dx2
     dummy1 = xm / dx2
@@ -585,7 +590,7 @@ program pgw_icbc
       im = max(i-1,1)
       do j = 1 , jx
         jp = min(j+1,jx)
-        jm = min(j-1,1)
+        jm = max(j-1,1)
         do k = 1 , kz
           ua = u(j ,i ,k) * pd(j,i)  + &
                u(j ,ip,k) * pd(j,ip)
@@ -602,7 +607,7 @@ program pgw_icbc
         end do
         do k = kz+1 , 1 , -1
           km1 = max(k-1,1)
-          kp1 = max(k+1,kz)
+          kp1 = min(k+1,kz)
           ubar = 0.125_rkx * (u(j ,i ,km1) + u(j ,ip,km1) + &
                               u(jp,i ,km1) + u(jp,ip,km1) + &
                               u(j ,i ,kp1) + u(j ,ip,kp1) + &
@@ -611,19 +616,18 @@ program pgw_icbc
                               v(jp,i ,km1) + v(jp,ip,km1) + &
                               v(j ,i ,kp1) + v(j ,ip,kp1) + &
                               v(jp,i ,kp1) + v(jp,ip,kp1))
-          omega(j,i,k) = ps(j,i) * qdt(k) + sigma(k) * &
+          omega(j,i,k) = ps(j,i) * qdt(k) + sigmaf(k) * &
                        ((ps(jp,i) - ps(jm,i)) * ubar + &
                         (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
         end do
       end do
     end do
     call smtdsmt(omega,1,iy,1,jx,1,kz+1)
-
-    do k = 2 , kz + 1
+    do k = 2 , kz+1
       do i = 1 , iy
         do j = 1 , jx
-          rho = p(j,i,k) / rgas / t(j,i,k)
-          w(j,i,k) = -d_1000 * omega(j,i,k)/rho * regrav
+          rho = p(j,i,k-1) / rgas / t(j,i,k-1)
+          w(j,i,k-1) = - 1000.0_rkx * omega(j,i,k)/rho * regrav
         end do
       end do
     end do
