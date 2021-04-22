@@ -231,8 +231,8 @@ module mod_write
       nvar3d = 4
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
     else if ( idynamic == 2 ) then
-      nvar2d = 10
-      nvar3d = 7
+      nvar2d = 11
+      nvar3d = 8
       call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
@@ -329,22 +329,32 @@ module mod_write
       v2dvar_icbc(10)%long_name = 'Map Factor on Cross Points'
       v2dvar_icbc(10)%standard_name = 'map_factor'
       v2dvar_icbc(10)%lrecords = .false.
-      v3dvar_icbc(i3i)%vname = 'p'
+      v2dvar_icbc(11)%vname = 'ps0'
+      v2dvar_icbc(11)%vunit = 'Pa'
+      v2dvar_icbc(11)%long_name = 'Surface Reference pressure'
+      v2dvar_icbc(11)%standard_name = 'air_presure'
+      v2dvar_icbc(11)%lrecords = .false.
+      v3dvar_icbc(i3i)%vname = 'p0'
       v3dvar_icbc(i3i)%vunit = 'Pa'
       v3dvar_icbc(i3i)%long_name = 'Reference atmospheric pressure'
       v3dvar_icbc(i3i)%standard_name = 'air_pressure'
       v3dvar_icbc(i3i)%lrecords = .false.
-      v3dvar_icbc(i3i+1)%vname = 'w'
-      v3dvar_icbc(i3i+1)%vunit = 'm s-1'
-      v3dvar_icbc(i3i+1)%long_name = 'Vertical wind'
-      v3dvar_icbc(i3i+1)%standard_name = 'upward_air_velocity'
-      v3dvar_icbc(i3i+1)%lrecords = .true.
-      v3dvar_icbc(i3i+2)%vname = 'pp'
-      v3dvar_icbc(i3i+2)%vunit = 'Pa'
-      v3dvar_icbc(i3i+2)%long_name = 'Pressure perturbation'
-      v3dvar_icbc(i3i+2)%standard_name = &
-        'difference_of_air_pressure_from_model_reference'
+      v3dvar_icbc(i3i+1)%vname = 't0'
+      v3dvar_icbc(i3i+1)%vunit = 'K'
+      v3dvar_icbc(i3i+1)%long_name = 'Reference atmospheric temperature'
+      v3dvar_icbc(i3i+1)%standard_name = 'air_temperature'
+      v3dvar_icbc(i3i+1)%lrecords = .false.
+      v3dvar_icbc(i3i+2)%vname = 'w'
+      v3dvar_icbc(i3i+2)%vunit = 'm s-1'
+      v3dvar_icbc(i3i+2)%long_name = 'Vertical wind'
+      v3dvar_icbc(i3i+2)%standard_name = 'upward_air_velocity'
       v3dvar_icbc(i3i+2)%lrecords = .true.
+      v3dvar_icbc(i3i+3)%vname = 'pp'
+      v3dvar_icbc(i3i+3)%vunit = 'Pa'
+      v3dvar_icbc(i3i+3)%long_name = 'Pressure perturbation'
+      v3dvar_icbc(i3i+3)%standard_name = &
+        'difference_of_air_pressure_from_model_reference'
+      v3dvar_icbc(i3i+3)%lrecords = .true.
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%vname = 'ulon'
@@ -516,9 +526,11 @@ module mod_write
     if ( idynamic == 2 ) then
       v2dvar_icbc(9)%rval => wtop4
       v2dvar_icbc(10)%rval => msfx
+      v2dvar_icbc(11)%rval => ps0
       v3dvar_icbc(i3i)%rval => pr0
-      v3dvar_icbc(i3i+1)%rval => ww4
-      v3dvar_icbc(i3i+2)%rval => pp4
+      v3dvar_icbc(i3i+1)%rval => t0
+      v3dvar_icbc(i3i+2)%rval => ww4
+      v3dvar_icbc(i3i+3)%rval => pp4
     end if
     if ( idynamic == 3 ) then
       v2dvar_icbc(7)%rval => ulon

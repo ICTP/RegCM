@@ -59,13 +59,13 @@ program pgw_icbc
   integer(ik4) :: pgwin , icbcin
   integer(ik4) :: idimid , ivarid
   integer(ik4) , dimension(7) :: pgw_ivar
-  integer(ik4) , dimension(9) :: icbc_ivar
+  integer(ik4) , dimension(8) :: icbc_ivar
   character(len=256) :: prgname , icbcfile , pgwfile
   real(rkx) , pointer , dimension(:) :: plev , sigma , ak , bk
   real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) , pointer , dimension(:) :: dsigma , sigmaf
-  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo , xmap
-  real(rkx) , pointer , dimension(:,:,:) :: z0 , p0 , p
+  real(rkx) , pointer , dimension(:,:) :: ps , pd , ts , topo , xmap , ps0
+  real(rkx) , pointer , dimension(:,:,:) :: z0 , p0 , t0 , p
   real(rkx) , pointer , dimension(:,:,:) :: u , v , t , q , pp , ww
   real(rkx) , pointer , dimension(:,:) :: bps , ps1 , ps2 , ps3
   real(rkx) , pointer , dimension(:,:) :: bts , ts1 , ts2 , ts3
@@ -151,8 +151,6 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable pp miss', 'ICBC FILE')
     ierr = nf90_inq_varid(icbcin, 'w', icbc_ivar(8))
     call check_ok(__FILE__,__LINE__,'variable w miss', 'ICBC FILE')
-    ierr = nf90_inq_varid(icbcin, 'p', icbc_ivar(9))
-    call check_ok(__FILE__,__LINE__,'variable p miss', 'ICBC FILE')
   end if
 
   ierr = nf90_inq_dimid(icbcin, 'iy', idimid)
@@ -230,9 +228,11 @@ program pgw_icbc
     call getmem1d(sigmaf,1,kz+1,'pgw_icbc:sigmaf')
     call getmem1d(dsigma,1,kz,'pgw_icbc:dsigma')
     call getmem2d(xmap,1,jx,1,iy,'pgw_icbc:xmap')
+    call getmem2d(ps0,1,jx,1,iy,'pgw_icbc:ps0')
     call getmem2d(pd,1,jx,1,iy,'pgw_icbc:pd')
     call getmem3d(p,1,jx,1,iy,1,kz,'pgw_icbc:p')
     call getmem3d(p0,1,jx,1,iy,1,kz,'pgw_icbc:p0')
+    call getmem3d(t0,1,jx,1,iy,1,kz,'pgw_icbc:t0')
     call getmem3d(pp,1,jx,1,iy,1,kz,'pgw_icbc:pp')
     call getmem3d(ww,1,jx,1,iy,1,kz,'pgw_icbc:ww')
   end if
@@ -277,10 +277,18 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable xmap miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,xmap)
     call check_ok(__FILE__,__LINE__,'variable xmap read error', 'ICBC FILE')
-    ierr = nf90_inq_varid(icbcin, 'p', ivarid)
-    call check_ok(__FILE__,__LINE__,'variable p miss', 'ICBC FILE')
+    ierr = nf90_inq_varid(icbcin, 'ps0', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable ps0 miss', 'ICBC FILE')
+    ierr = nf90_get_var(icbcin,ivarid,ps0)
+    call check_ok(__FILE__,__LINE__,'variable ps0 read error', 'ICBC FILE')
+    ierr = nf90_inq_varid(icbcin, 'p0', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable p0 miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,p0)
-    call check_ok(__FILE__,__LINE__,'variable p read error', 'ICBC FILE')
+    call check_ok(__FILE__,__LINE__,'variable p0 read error', 'ICBC FILE')
+    ierr = nf90_inq_varid(icbcin, 't0', ivarid)
+    call check_ok(__FILE__,__LINE__,'variable t0 miss', 'ICBC FILE')
+    ierr = nf90_get_var(icbcin,ivarid,t0)
+    call check_ok(__FILE__,__LINE__,'variable t0 read error', 'ICBC FILE')
     sigmaf(1) = 0.0_rkx
     sigmaf(kz+1) = 1.0_rkx
     do k = 2 , kz
@@ -293,6 +301,7 @@ program pgw_icbc
     call check_ok(__FILE__,__LINE__,'variable ptop miss', 'ICBC FILE')
     ierr = nf90_get_var(icbcin,ivarid,ptop)
     call check_ok(__FILE__,__LINE__,'variable ptop read error', 'ICBC FILE')
+    ps0 = ps0 + ptop*100.0_rkx
   else
     ierr = nf90_inq_varid(icbcin, 'ptop', ivarid)
     call check_ok(__FILE__,__LINE__,'variable ptop miss', 'ICBC FILE')
@@ -388,7 +397,9 @@ program pgw_icbc
       call crs2dot(pd,ps,jx,iy,0,0)
       p = p * 100.0_rkx
       call compute_w(ds,pd,ps,xmap,p,u,v,t,ww)
-      ps = ps * 10.0_rkx + ptop
+      ps = (ps * 10.0_rkx + ptop) * 100.0_rkx
+      call compute_pp(sigmaf,t,q,ps,ps0,p0,t0,pp)
+      ps = ps / 100.0_rkx
     else ! if ( idynamic == 3 ) then
 
     end if
@@ -684,6 +695,42 @@ program pgw_icbc
       end do
     end do
   end subroutine smtdsmt
+
+  subroutine compute_pp(sigma,t,q,ps,ps0,p0,t0,pp)
+    implicit none
+    real(rkx) , pointer , intent(in) , dimension(:) :: sigma
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: p0 , t0
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: t , q
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pp
+    real(rkx) :: aa , bb , cc , delp0
+    real(rkx) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
+    integer :: i , j , k
+    do i = 1 , iy
+      do j = 1 , jx
+        psp = ps(j,i) - ps0(j,i)
+        delp0 = ps0(j,i) - p0(j,i,kz)
+        tvk = t(j,i,kz) * (1.0_rkx + ep1*q(j,i,kz))
+        tk = t(j,i,kz)
+        tvpot = (tvk - t0(j,i,kz)) / tk
+        pp(j,i,kz) = (tvpot*delp0 + psp) / (d_one + delp0/p0(j,i,kz))
+        do k = kz-1 , 1 , -1
+          tvkp1 = t(j,i,k+1) * (1.0_rkx + ep1*q(j,i,k+1))
+          tvk = t(j,i,k) * (1.0_rkx + ep1*q(j,i,k))
+          tkp1 = t(j,i,k+1)
+          tk = t(j,i,k)
+          wtl = (sigma(k+1) - sigma(k)) / (sigma(k+2) - sigma(k))
+          wtu = d_one - wtl
+          aa = egrav / (p0(j,i,k+1) - p0(j,i,k))
+          bb = egrav * wtl / p0(j,i,k+1) * t0(j,i,k+1) / tkp1
+          cc = egrav * wtu / p0(j,i,k  ) * t0(j,i,k  ) / tk
+          tvpot = wtl * ((tvkp1 - t0(j,i,k+1)) / tkp1) + &
+                  wtu * ((tvk   - t0(j,i,k  )) / tk  )
+          pp(j,i,k) = (egrav * tvpot + pp(j,i,k+1) * (aa - bb)) / (aa + cc)
+        end do
+      end do
+    end do
+  end subroutine compute_pp
 
 end program pgw_icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
