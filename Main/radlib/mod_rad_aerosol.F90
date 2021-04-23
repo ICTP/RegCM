@@ -1537,7 +1537,7 @@ module mod_rad_aerosol
       type (rcm_time_and_date) , intent(in) :: idatex
       type(mod_2_rad) , intent(in) :: m2r
       character(len=64) :: infile
-      logical , save :: ifirst
+      logical , save :: lfirst
       logical :: dointerp
       real(rkx) , dimension(kz) :: opprnt
       real(rkx) :: xfac1 , xfac2 , odist
@@ -1547,7 +1547,9 @@ module mod_rad_aerosol
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
-      data ifirst /.true./
+      data lfirst /.true./
+      data ism /-1/
+      data isy /-1/
 
       call split_idate(idatex,iyear,imon,iday,ihour)
       imonmidd = monmiddle(idatex)
@@ -1558,12 +1560,6 @@ module mod_rad_aerosol
         return
       end if
 
-      if ( ifirst ) then
-        call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
-        call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
-        ifirst = .false.
-      end if
-
       if ( myid == iocpu ) then
         if ( 1==0 ) then
           infile = 'clim_aer_trendso4_nab4_lonlat.nc'
@@ -1571,9 +1567,7 @@ module mod_rad_aerosol
           clnlon = 211
           clnlat = 89
           cliyear = 1979
-
         else if ( 1==1 ) then
-
           if (iyear < 1901) then
             infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
             cliyear = 1850
@@ -1590,7 +1584,6 @@ module mod_rad_aerosol
             infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
             cliyear = 2051
           endif
-
           clnlev = 20
           clnlon = 360
           clnlat = 180
@@ -1598,31 +1591,13 @@ module mod_rad_aerosol
           call fatal(__FILE__,__LINE__,' XXXXX ')
         end if
       end if
-      im1 = imon
-      iy1 = iyear
-      im2 = imon
-      iy2 = iyear
-      if ( idatex > imonmidd ) then
-        call inextmon(iy2,im2)
-        ism = im1
-        isy = iy1
-        iref1 = imonmidd
-        iref2 = monmiddle(nextmon(idatex))
-      else
-        call iprevmon(iy1,im1)
-        ism = im1
-        isy = iy1
-        iref1 = monmiddle(prevmon(idatex))
-        iref2 = imonmidd
-      end if
-      dointerp = .false.
-      if ( ncid < 0 ) then
+      if ( lfirst ) then
+        call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
+        call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
-          ! FAB CARE HERE 30 level HARDCODED FOR CLIM NABAT
           call getmem1d(lat,1,clnlat,'aeropp:lat')
           call getmem1d(lon,1,clnlon,'aeropp:lon')
           call getmem1d(alt,1,clnlev,'aeropp:alt')
-
           call getmem3d(xext1,1,clnlon, &
                               1,clnlat,1,clnlev, 'aerosol:xext1')
           call getmem3d(xext2,1,clnlon, &
@@ -1635,57 +1610,79 @@ module mod_rad_aerosol
                               1,clnlat,1,clnlev, 'aerosol:xasy1')
           call getmem3d(xasy2,1,clnlon, &
                               1,clnlat,1,clnlev, 'aerosol:xasy2')
-
           call getmem3d(yext,1,njcross,1,nicross,1,clnlev,':yext')
           call getmem3d(yssa,1,njcross,1,nicross,1,clnlev,':yssa')
           call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
-
           call init_aeroppdata(infile,ncid,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
-        else
-          ncid = 0
         end if
+      end if
+
+      im1 = imon
+      iy1 = iyear
+      im2 = imon
+      iy2 = iyear
+      if ( idatex > imonmidd ) then
+        call inextmon(iy2,im2)
+        iref1 = imonmidd
+        iref2 = monmiddle(nextmon(idatex))
+      else
+        call iprevmon(iy1,im1)
+        iref1 = monmiddle(prevmon(idatex))
+        iref2 = imonmidd
+      end if
+      dointerp = .false.
+      if ( ism /= im1 .or. isy /= iy1 ) then
         ism = im1
         isy = iy1
         dointerp = .true.
-      else
-        if ( ism /= im1 .or. isy /= iy1 ) then
-          ism = im1
-          isy = iy1
-          dointerp = .true.
-        end if
       end if
       if ( dointerp ) then
-
         call grid_collect(m2r%zq,zq3d,jci1,jci2,ici1,ici2,1,kz)
-
         if ( myid == iocpu ) then
           write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
-          call readvar3d(ncid,iy1,im1,'ext',xext1)
-          call readvar3d(ncid,iy2,im2,'ext',xext2)
-          call readvar3d(ncid,iy1,im1,'ssa',xssa1)
-          call readvar3d(ncid,iy2,im2,'ssa',xssa2)
-          call readvar3d(ncid,iy1,im1,'asy',xasy1)
-          call readvar3d(ncid,iy2,im2,'asy',xasy2)
-          xext1 = max(xext1,d_zero)
-          xext2 = max(xext2,d_zero)
-          xssa1 = max(xssa1,d_zero)
-          xssa2 = max(xssa2,d_zero)
-          xasy1 = max(xasy1,d_zero)
-          xasy2 = max(xasy2,d_zero)
-
-          call h_interpolate_cont(hint,xext1,yext)
-          call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          call h_interpolate_cont(hint,xext2,yext)
-          call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          call h_interpolate_cont(hint,xssa1,yssa)
-          call intlinreg(ssa1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          call h_interpolate_cont(hint,xssa2,yssa)
-          call intlinreg(ssa2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          call h_interpolate_cont(hint,xasy1,yasy)
-          call intlinreg(asy1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          call h_interpolate_cont(hint,xasy2,yasy)
-          call intlinreg(asy2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+          if ( lfirst ) then
+            call readvar3d(ncid,iy1,im1,'ext',xext1)
+            call readvar3d(ncid,iy2,im2,'ext',xext2)
+            call readvar3d(ncid,iy1,im1,'ssa',xssa1)
+            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
+            call readvar3d(ncid,iy1,im1,'asy',xasy1)
+            call readvar3d(ncid,iy2,im2,'asy',xasy2)
+            xext1 = max(xext1,d_zero)
+            xext2 = max(xext2,d_zero)
+            xssa1 = max(xssa1,d_zero)
+            xssa2 = max(xssa2,d_zero)
+            xasy1 = max(xasy1,d_zero)
+            xasy2 = max(xasy2,d_zero)
+            call h_interpolate_cont(hint,xext1,yext)
+            call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xext2,yext)
+            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xssa1,yssa)
+            call intlinreg(ssa1,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xssa2,yssa)
+            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xasy1,yasy)
+            call intlinreg(asy1,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xasy2,yasy)
+            call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+          else
+            ext1 = ext2
+            ssa1 = ssa2
+            asy1 = asy2
+            call readvar3d(ncid,iy2,im2,'ext',xext2)
+            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
+            call readvar3d(ncid,iy2,im2,'asy',xasy2)
+            xext2 = max(xext2,d_zero)
+            xssa2 = max(xssa2,d_zero)
+            xasy2 = max(xasy2,d_zero)
+            call h_interpolate_cont(hint,xext2,yext)
+            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xssa2,yssa)
+            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xasy2,yasy)
+            call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+          end if
         end if
       end if
       if ( myid == iocpu ) then
@@ -1710,6 +1707,7 @@ module mod_rad_aerosol
       extprof(jci1:jci2,ici1:ici2,1:kz) = &
          max(extprof(jci1:jci2,ici1:ici2,1:kz) * &
               m2r%deltaz(jci1:jci2,ici1:ici2,1:kz),d_zero)
+
       if ( myid == italk .and. dointerp ) then
         do k = 1 , kz
           opprnt(k) = extprof(3,3,kzp1-k)
@@ -1724,6 +1722,7 @@ module mod_rad_aerosol
         end do
         call vprntv(opprnt,kz,'Updated asy profile at (3,3)')
       end if
+      lfirst = .false.
     end subroutine read_aeroppdata
 
     subroutine inextmon(iyear,imon)
@@ -1760,7 +1759,6 @@ module mod_rad_aerosol
       call readvar1d(ncid,'lat',lat)
       call readvar1d(ncid,'lon',lon)
       call readvar1d(ncid,'alt',alt)
-
     end subroutine init_aeroppdata
 
     subroutine readvar1d(ncid,vname,val)
@@ -1786,21 +1784,18 @@ module mod_rad_aerosol
       integer(ik4) , intent(in) :: ncid , iyear , imon
       character(len=*) , intent(in) :: vname
       real(rkx) , intent(out) , dimension(:,:,:) :: val
-      real(rkx)  :: frstp
-      integer(ik4) , save :: ilastncid , icvar , itvar
+      integer(ik4) , save :: ilastncid , icvar
       integer(ik4) , save , dimension(4) :: istart , icount
       integer(ik4) :: iret , irec
       data ilastncid /-1/
       data icvar /-1/
       data istart  /  1 ,  1 ,  1 ,  1/
-  !    data icount  / clnlon , clnlat , clnlev ,  1/
-  !
+
       icount(1) = clnlon
       icount(2) = clnlat
       icount(3) = clnlev
       icount(4) = 1
-
-      irec = ((iyear-cliyear)*12+imon-12)+1
+      irec = ((iyear-cliyear)*12+imon)
       ! irec = ((iyear-cliyear)*12+imon)-1
       if ( ncid /= ilastncid ) then
         iret = nf90_inq_varid(ncid,vname,icvar)
@@ -1808,24 +1803,14 @@ module mod_rad_aerosol
           write (stderr, *) nf90_strerror(iret)
           call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
         end if
-        iret = nf90_inq_varid(ncid,'time',itvar)
-        if ( iret /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(iret)
-          call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
-        end if
+        ilastncid = ncid
       end if
-      iret = nf90_get_var(ncid,itvar,frstp)
-      if ( iret /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(iret)
-        call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
-      end if
-      istart(4) = irec - int(frstp)
+      istart(4) = irec
       iret = nf90_get_var(ncid,icvar,val,istart,icount)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
-
     end subroutine readvar3d
     !
     !-----------------------------------------------------------------------
