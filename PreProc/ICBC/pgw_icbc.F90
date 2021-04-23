@@ -364,7 +364,7 @@ program pgw_icbc
 
     call read_icbc(n,ps,ts,u,v,t,q,pp,ww)
 
-    ps = (ps + bps)
+    ps = (ps + bps/100.0_rkx)
     ts = ts + bts
 
     ! interpolate to model levels
