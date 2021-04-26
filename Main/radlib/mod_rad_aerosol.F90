@@ -1634,22 +1634,22 @@ module mod_rad_aerosol
             call readvar3d(ncid,iy2,im2,'ssa',xssa2)
             call readvar3d(ncid,iy2,im2,'asy',xasy2)
             xext1 = max(xext1,d_zero)
-            xext2 = max(xext2,d_zero)
             xssa1 = max(xssa1,d_zero)
-            xssa2 = max(xssa2,d_zero)
             xasy1 = max(xasy1,d_zero)
+            xext2 = max(xext2,d_zero)
+            xssa2 = max(xssa2,d_zero)
             xasy2 = max(xasy2,d_zero)
             call h_interpolate_cont(hint,xext1,yext)
-            call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call h_interpolate_cont(hint,xext2,yext)
-            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call h_interpolate_cont(hint,xssa1,yssa)
-            call intlinreg(ssa1,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call h_interpolate_cont(hint,xssa2,yssa)
-            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call h_interpolate_cont(hint,xasy1,yasy)
+            call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call intlinreg(ssa1,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call intlinreg(asy1,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xext2,yext)
+            call h_interpolate_cont(hint,xssa2,yssa)
             call h_interpolate_cont(hint,xasy2,yasy)
+            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           else
             ext1 = ext2
@@ -1663,10 +1663,10 @@ module mod_rad_aerosol
             xssa2 = max(xssa2,d_zero)
             xasy2 = max(xasy2,d_zero)
             call h_interpolate_cont(hint,xext2,yext)
-            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call h_interpolate_cont(hint,xssa2,yssa)
-            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call h_interpolate_cont(hint,xasy2,yasy)
+            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
             call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           end if
         end if
@@ -1758,7 +1758,7 @@ module mod_rad_aerosol
       end if
     end subroutine readvar1d
 
-    subroutine readvar3d(ncid,iyear,imon, vname,val)
+    subroutine readvar3d(ncid,iyear,imon,vname,val)
       implicit none
       integer(ik4) , intent(in) :: ncid , iyear , imon
       character(len=*) , intent(in) :: vname
@@ -1766,7 +1766,6 @@ module mod_rad_aerosol
       integer(ik4) , save :: ilastncid , icvar
       integer(ik4) , save , dimension(4) :: istart , icount
       integer(ik4) :: iret , irec
-      data ilastncid /-1/
       data icvar /-1/
       data istart  /  1 ,  1 ,  1 ,  1/
 
@@ -1776,13 +1775,10 @@ module mod_rad_aerosol
       icount(4) = 1
       irec = ((iyear-cliyear)*12+imon)
       ! irec = ((iyear-cliyear)*12+imon)-1
-      if ( ncid /= ilastncid ) then
-        iret = nf90_inq_varid(ncid,vname,icvar)
-        if ( iret /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(iret)
-          call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
-        end if
-        ilastncid = ncid
+      iret = nf90_inq_varid(ncid,vname,icvar)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
       istart(4) = irec
       iret = nf90_get_var(ncid,icvar,val,istart,icount)

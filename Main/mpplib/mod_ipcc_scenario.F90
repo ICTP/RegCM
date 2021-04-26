@@ -27,11 +27,18 @@ module mod_ipcc_scenario
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
+  use mod_memutil
   use mod_runparams
 
   implicit none
 
   private
+
+  type ghg_mf
+    integer(ik4) :: year
+    integer(ik4) :: month
+    real(rkx) , dimension(:,:) , pointer :: gmf
+  end type ghg_mf
 
   public :: set_scenario , cgas
 
@@ -53,9 +60,7 @@ module mod_ipcc_scenario
 
   data scenarios /'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
                   'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  '/
-!
-!-----------------------------------------------------------------------
-!
+
   data ((cgas(i,j),i=1,6),j=1850,1899) / &
     1850.0_rkx , 284.70_rkx , 791.60_rkx , 275.70_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.90_rkx , 792.90_rkx , 275.80_rkx , 0.00_rkx , 0.00_rkx , &
@@ -1787,7 +1792,126 @@ module mod_ipcc_scenario
       end if
     end if
   end subroutine set_scenario
-!
+
+  subroutine load_scenario(sname,year,month,ghgmf)
+    implicit none
+    character(len=*) , intent(in) :: sname
+    integer(ik4) , intent(in) :: year , month
+    type(ghg_mf) :: ghgmf
+    integer(ik4) , parameter :: ico2 = 1
+    integer(ik4) , parameter :: in2o = 2
+    integer(ik4) , parameter :: ich4 = 3
+    integer(ik4) , parameter :: ic11 = 4
+    integer(ik4) , parameter :: ic12 = 5
+    integer(ik4) , parameter :: imax = ic12
+    integer(ik4) , parameter :: smax = 9
+
+    character(len=1024) :: filename
+    integer(ik4) :: imod , ires , itim , ityp
+    integer(ik4) :: i , ierr
+    integer(ik4) :: ncid , varid , dimid , irec
+    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4) , save :: nlat
+
+    character(len=*) , parameter , dimension(1) :: resolution = &
+     ['0p5x360deg']
+    character(len=*) , parameter , dimension(1) :: inptype = &
+     ['_input4MIPs_GHGConcentrations_']
+    character(len=*) , parameter , dimension(2) :: timeperiod = &
+     ['000001-201412','201501-250012']
+    character(len=*) , dimension(imax) , parameter :: varname = &
+     ['mole-fraction-of-carbon-dioxide-in-air', &
+      'mole-fraction-of-nitrous-oxide-in-air ', &
+      'mole-fraction-of-methane-in-air       ', &
+      'mole-fraction-of-cfc11-in-air         ', &
+      'mole-fraction-of-cfc12-in-air         ' ]
+    character(len=*) , dimension(smax) , parameter :: modelname = &
+     ['CMIP_UoM-CMIP-1-2-0_gr-                            ', &
+      'ScenarioMIP_UoM-IMAGE-ssp119-1-2-1_gr-             ', &
+      'ScenarioMIP_UoM-IMAGE-ssp126-1-2-1_gr-             ', &
+      'ScenarioMIP_UoM-MESSAGE-GLOBIOM-ssp245-1-2-1_gr-   ', &
+      'ScenarioMIP_UoM-AIM-ssp370-1-2-1_gr-               ', &
+      'ScenarioMIP_UoM-GCAM4-ssp434-1-2-1_gr-             ', &
+      'ScenarioMIP_UoM-GCAM4-ssp460-1-2-1_gr-             ', &
+      'ScenarioMIP_UoM-REMIND-MAGPIE-ssp534-over-1-2-1_gr-', &
+      'ScenarioMIP_UoM-REMIND-MAGPIE-ssp585-1-2-1_gr-     ' ]
+
+    ires = 1
+    ityp = 1
+    if ( year < 2015 ) then
+      imod = 1
+      itim = 1
+      irec = 24180 - (2015-year)*12 + month
+    else
+      itim = 2
+      select case (sname)
+        case ('SSP119', 'ssp119')
+          imod = 2
+        case ('SSP126', 'ssp126')
+          imod = 3
+        case ('SSP245', 'ssp245')
+          imod = 4
+        case ('SSP370', 'ssp370')
+          imod = 5
+        case ('SSP434', 'ssp434')
+          imod = 6
+        case ('SSP460', 'ssp460')
+          imod = 7
+        case ('SSP534', 'ssp534')
+          imod = 8
+        case ('SSP585', 'ssp585')
+          imod = 9
+      end select
+      irec = (year-2015)*12 + month
+    end if
+    do i = 1 , imax
+      ghgmf%year = year
+      ghgmf%month = month
+      filename = trim(inpglob) // pthsep // trim('CMIP6') // &
+        trim('GHG') // pthsep // trim(varname(i)) // trim(inptype(ityp)) // &
+        trim(varname(imod)) // trim(resolution(ires)) // &
+        trim(timeperiod(itim)) // '.nc'
+      ierr = nf90_open(filename, nf90_nowrite, ncid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr) , filename
+        call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+      end if
+      if ( .not. associated(ghgmf%gmf) ) then
+        ierr = nf90_inq_dimid(ncid,'lat',dimid)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr) , filename
+          call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
+        end if
+        ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr) , filename
+          call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
+        end if
+        call getmem2d(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
+      end if
+      ierr = nf90_inq_varid(ncid,varname(imod),varid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr) , filename
+        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//varname(imod)//' ERROR')
+      end if
+      istart(1) = 1
+      istart(2) = irec
+      icount(1) = nlat
+      icount(2) = 1
+      ierr = nf90_get_var(ncid,varid,ghgmf%gmf,istart,icount)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr) , filename
+        call fatal(__FILE__,__LINE__,'READ VARIABLE '//varname(imod)//' ERROR')
+      end if
+      ierr = nf90_close(ncid)
+      if ( ierr /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(ierr) , filename
+        call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
+      end if
+    end do
+
+  end subroutine load_scenario
+
 end module mod_ipcc_scenario
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
