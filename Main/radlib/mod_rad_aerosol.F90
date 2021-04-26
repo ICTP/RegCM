@@ -1562,34 +1562,17 @@ module mod_rad_aerosol
 
       if ( myid == iocpu ) then
         if ( 1==0 ) then
-          infile = 'clim_aer_trendso4_nab4_lonlat.nc'
           clnlev = 30
           clnlon = 211
           clnlat = 89
-          cliyear = 1979
         else if ( 1==1 ) then
-          if (iyear < 1901) then
-            infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
-            cliyear = 1850
-           elseif (iyear > 1900 .and. iyear < 1951) then
-            infile = 'MACV2_gt_t_00550nm_1901_1950.nc'
-            cliyear = 1901
-           elseif (iyear > 1950 .and. iyear < 2001) then
-            infile = 'MACV2_gt_t_00550nm_1951_2000.nc'
-            cliyear = 1951
-           elseif (iyear > 2000 .and. iyear < 2051) then
-            infile = 'MACV2_gt_t_00550nm_2001_2050.nc'
-            cliyear = 2001
-           elseif (iyear > 2050 .and. iyear <= 2101) then
-            infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
-            cliyear = 2051
-          endif
           clnlev = 20
           clnlon = 360
           clnlat = 180
         else
           call fatal(__FILE__,__LINE__,' XXXXX ')
         end if
+        call getfile(iyear,cliyear,ncid)
       end if
       if ( lfirst ) then
         call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
@@ -1613,7 +1596,7 @@ module mod_rad_aerosol
           call getmem3d(yext,1,njcross,1,nicross,1,clnlev,':yext')
           call getmem3d(yssa,1,njcross,1,nicross,1,clnlev,':yssa')
           call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
-          call init_aeroppdata(infile,ncid,lat,lon)
+          call init_aeroppdata(ncid,lat,lon,alt)
           call h_interpolator_create(hint,lat,lon,alat,alon)
         end if
       end if
@@ -1642,11 +1625,13 @@ module mod_rad_aerosol
         if ( myid == iocpu ) then
           write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
           if ( lfirst ) then
+            call getfile(iy1,cliyear,ncid)
             call readvar3d(ncid,iy1,im1,'ext',xext1)
-            call readvar3d(ncid,iy2,im2,'ext',xext2)
             call readvar3d(ncid,iy1,im1,'ssa',xssa1)
-            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
             call readvar3d(ncid,iy1,im1,'asy',xasy1)
+            call getfile(iy2,cliyear,ncid)
+            call readvar3d(ncid,iy2,im2,'ext',xext2)
+            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
             call readvar3d(ncid,iy2,im2,'asy',xasy2)
             xext1 = max(xext1,d_zero)
             xext2 = max(xext2,d_zero)
@@ -1670,6 +1655,7 @@ module mod_rad_aerosol
             ext1 = ext2
             ssa1 = ssa2
             asy1 = asy2
+            call getfile(iy2,cliyear,ncid)
             call readvar3d(ncid,iy2,im2,'ext',xext2)
             call readvar3d(ncid,iy2,im2,'ssa',xssa2)
             call readvar3d(ncid,iy2,im2,'asy',xasy2)
@@ -1745,17 +1731,10 @@ module mod_rad_aerosol
       end if
     end subroutine iprevmon
 
-    subroutine init_aeroppdata(aeroppfile,ncid,lat,lon)
+    subroutine init_aeroppdata(ncid,lat,lon,alt)
       implicit none
-      character(len=*) , intent(in) :: aeroppfile
-      integer(ik4) , intent(out) :: ncid
-      real(rkx) , intent(out) , dimension(:) :: lat , lon
-      integer(ik4) :: iret
-      iret = nf90_open(aeroppfile,nf90_nowrite,ncid)
-      if ( iret /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(iret) , aeroppfile
-        call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
-      end if
+      integer(ik4) , intent(in) :: ncid
+      real(rkx) , intent(inout) , dimension(:) :: lat , lon , alt
       call readvar1d(ncid,'lat',lat)
       call readvar1d(ncid,'lon',lon)
       call readvar1d(ncid,'alt',alt)
@@ -2387,6 +2366,59 @@ module mod_rad_aerosol
         idlast = id
       end if
     end subroutine cmip6_plume_profile
+
+    subroutine getfile(year,cliyear,ncid)
+      implicit none
+      integer(ik4) , intent(in) :: year
+      integer(ik4) , intent(inout) :: cliyear , ncid
+      character(len=32) :: infile
+      integer(ik4) :: iret
+      integer(ik4) , save :: lastcliyear
+      if ( .false. ) then
+        infile = 'clim_aer_trendso4_nab4_lonlat.nc'
+        cliyear = 1979
+      else
+        if ( year < 1901) then
+          infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
+          cliyear = 1850
+        else if (year > 1900 .and. year < 1951) then
+          infile = 'MACV2_gt_t_00550nm_1901_1950.nc'
+          cliyear = 1901
+        else if (year > 1950 .and. year < 2001) then
+          infile = 'MACV2_gt_t_00550nm_1951_2000.nc'
+          cliyear = 1951
+        else if (year > 2000 .and. year < 2051) then
+          infile = 'MACV2_gt_t_00550nm_2001_2050.nc'
+          cliyear = 2001
+        else if (year > 2050 .and. year <= 2101) then
+          infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
+          cliyear = 2051
+        endif
+      end if
+      if ( ncid < 0 ) then
+        iret = nf90_open(infile,nf90_nowrite,ncid)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret) , infile
+          call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
+        end if
+        lastcliyear = cliyear
+      else
+        if ( lastcliyear /= cliyear ) then
+          iret = nf90_close(ncid)
+          if ( iret /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(iret) , infile
+            call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
+          end if
+          iret = nf90_open(infile,nf90_nowrite,ncid)
+          if ( iret /= nf90_noerr ) then
+            write (stderr, *) nf90_strerror(iret) , infile
+            call fatal(__FILE__,__LINE__, &
+                       'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
+          end if
+          lastcliyear = cliyear
+        end if
+      end if
+    end subroutine getfile
 
 end module mod_rad_aerosol
 
