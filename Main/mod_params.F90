@@ -1893,7 +1893,7 @@ module mod_params
       end if
     end if
 
-    call set_scenario(scenario)
+    call set_scenario(scenario,rcmtimer%year,rcmtimer%month)
 
     if ( myid == italk ) then
       if ( ifrest .and. idate0 == idate1 ) then

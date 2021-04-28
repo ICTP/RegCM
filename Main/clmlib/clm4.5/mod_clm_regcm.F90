@@ -5,7 +5,7 @@ module mod_clm_regcm
   use mod_dynparam
   use mod_kdinterp
   use mod_runparams
-  use mod_ipcc_scenario , only : cgas , igh_co2 , igh_ch4
+  use mod_ipcc_scenario , only : ghgval , igh_co2 , igh_ch4
   use mod_memutil
   use mod_mppparam
   use mod_ensemble
@@ -439,8 +439,8 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i , iyear , n
-    real(rkx) :: satq , satp
+    integer(ik4) :: begg , endg , i , n
+    real(rkx) :: satq , satp , lat
 
     call get_proc_bounds(begg,endg)
 
@@ -498,13 +498,18 @@ module mod_clm_regcm
 
     ! interface chemistry / surface
 
-    iyear = max(1850,min(2100,rcmtimer%year))
-
     if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = cgas(igh_co2,iyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      do i = begg , endg
+        lat = real(adomain%xlat(i),rkx)
+        clm_a2l%forc_pco2(i) = &
+          ghgval(igh_co2,rcmtimer%year,rcmtimer%month,lat) * &
+          clm_a2l%forc_psrf(i)
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,iyear)*1.e-9_rk8*clm_a2l%forc_psrf
+        clm_a2l%forc_pch4(i) = &
+          ghgval(igh_ch4,rcmtimer%year,rcmtimer%month,lat) * &
+          clm_a2l%forc_psrf(i)
 #endif
+      end do
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
@@ -516,10 +521,17 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = cgas(igh_co2,iyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      do i = begg , endg
+        lat = real(adomain%xlat(i),rkx)
+        clm_a2l%forc_pco2(i) = &
+          ghgval(igh_co2,rcmtimer%year,rcmtimer%month,lat) * &
+          clm_a2l%forc_psrf(i)
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,iyear)*1.e-9_rk8*clm_a2l%forc_psrf
+        clm_a2l%forc_pch4(i) = &
+          ghgval(igh_ch4,rcmtimer%year,rcmtimer%month,lat) * &
+          clm_a2l%forc_psrf(i)
 #endif
+      end do
       if ( use_c13 ) then
         ! C13O2 partial pressure (Pa)
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2

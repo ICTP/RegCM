@@ -1473,7 +1473,7 @@ module mod_moloch
           if ( debug_level > 3 .and. labsem .and. myid == italk ) then
             write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
           end if
-          call radiation(rcmtimer%year,loutrad,labsem)
+          call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
         end if
         !
         ! Add radiative transfer package-calculated heating rates to

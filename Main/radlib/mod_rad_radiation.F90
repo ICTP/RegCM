@@ -312,7 +312,6 @@ module mod_rad_radiation
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
              c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,    &
              c28 , c29 , c30 , c31 , c8 , c9 , cfa1
-  real(rkx) :: co2vmr
   real(rkx) , dimension(3,4) :: coefa , coefc , coefe
   real(rkx) , dimension(4,4) :: coefb , coefd
   real(rkx) , dimension(6,2) :: coeff , coefi
@@ -730,6 +729,8 @@ module mod_rad_radiation
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
     call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
 
+    call allocate_tracers(1,npoints)
+
   end subroutine allocate_mod_rad_radiation
   !
   !-----------------------------------------------------------------------
@@ -739,14 +740,15 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radini(iyear)
+  subroutine radini(n1,n2,iyear,imonth,lat)
 
     implicit none
-    integer(ik4) , intent(in) :: iyear
+    integer(ik4) , intent(in) :: n1 , n2 , iyear , imonth
+    real(rkx) , dimension(:) , intent(in) , pointer :: lat
     !
     ! iband  - H2O band index
     !
-    integer(ik4) :: iband
+    integer(ik4) :: i , iband
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radini'
@@ -757,38 +759,14 @@ module mod_rad_radiation
     ! Set general radiation consts; convert to cgs units where
     ! appropriate:
     !
-    if ( iyear < 1850 ) then
-      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
-           .and. myid == italk ) then
-        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-        write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
-      end if
-      co2vmr = cgas(igh_co2,1850)*1.0e-6_rkx
-      co2mmr = co2vmr*(amco2/amd)
-      ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,1850)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,1850)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,1850)*1.0e-12_rkx*(amcfc12/amd)
-    else if ( iyear >= 1850 .and. iyear <= 2100 ) then
-      co2vmr = cgas(igh_co2,iyear)*1.0e-6_rkx
-      co2mmr = co2vmr*(amco2/amd)
-      ch40 = cgas(igh_ch4,iyear)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,iyear)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
-    else
-      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
-           .and. myid == italk ) then
-        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-        write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
-      end if
-      co2vmr = cgas(igh_co2,2100)*1.0e-6_rkx
-      co2mmr = co2vmr*(amco2/amd)
-      ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
-    end if
+    do i = n1 , n2
+      co2vmr(i) = ghgval(igh_co2,iyear,imonth,lat(i))
+      co2mmr(i) = co2vmr(i)*(amco2/amd)
+      ch40(i) = ghgval(igh_ch4,iyear,imonth,lat(i))*(amch4/amd)
+      n2o0(i) = ghgval(igh_n2o,iyear,imonth,lat(i))*(amn2o/amd)
+      cfc110(i) = ghgval(igh_cfc11,iyear,imonth,lat(i))*(amcfc11/amd)
+      cfc120(i) = ghgval(igh_cfc12,iyear,imonth,lat(i))*(amcfc12/amd)
+    end do
     !
     ! Coefficients for h2o emissivity and absorptivity.
     !
@@ -1300,9 +1278,9 @@ module mod_rad_radiation
     tmp1 = d_half/(egravgts*sslp)
     ! co2mmr = co2vmr*(mmwco2/mmwair)
 
-    sqrco2 = sqrt(co2mmr)
     do n = n1 , n2
       if ( czengt0(n) ) then
+        sqrco2 = sqrt(co2mmr(n))
         xptop = pflx(n,1)
         ptho2 = o2mmr*xptop*regravgts
         ptho3 = o3mmr(n,1)*xptop*regravgts
@@ -1321,6 +1299,7 @@ module mod_rad_radiation
     do k = 1 , kz
       do n = n1 , n2
         if ( czengt0(n) ) then
+          sqrco2 = sqrt(co2mmr(n))
           pdel = pflx(n,k+1) - pflx(n,k)
           path = pdel*regravgts
           ptho2 = o2mmr*path
@@ -3203,7 +3182,7 @@ module mod_rad_radiation
             oneme = d_one - et2
             alphat = oneme**3*rsqti
             pi = abs(dpnm)
-            wco2 = 2.5221_rkx*co2vmr*pi*regravgts
+            wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
             u7 = 4.9411e4_rkx*alphat*et2*wco2
             u8 = 3.9744e4_rkx*alphat*et4*wco2
             u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
@@ -3460,7 +3439,7 @@ module mod_rad_radiation
           oneme = d_one - et2
           alphat = oneme**3*rsqti
           pi = abs(dpnm)*winpl(n,kn)
-          wco2 = 2.5221_rkx*co2vmr*pi*regravgts
+          wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
           u7 = 4.9411e4_rkx*alphat*et2*wco2
           u8 = 3.9744e4_rkx*alphat*et4*wco2
           u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
@@ -3853,7 +3832,7 @@ module mod_rad_radiation
         t1co2 = d_one/(d_one+245.18_rkx*omet*sqwp*rsqti)
         oneme = d_one - et2
         alphat = oneme**3*rsqti
-        wco2 = 2.5221_rkx*co2vmr*pint(n,k)*regravgts
+        wco2 = 2.5221_rkx*co2vmr(n)*pint(n,k)*regravgts
         u7 = 4.9411e4_rkx*alphat*et2*wco2
         u8 = 3.9744e4_rkx*alphat*et4*wco2
         u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
@@ -4145,14 +4124,14 @@ module mod_rad_radiation
     cpwpl = vmmr*d_half/(egravgts*sslp)
     do n = n1 , n2
       plh2o(n,1) = rgsslp*h2ommr(n,1)*pintrd(n,1)*pintrd(n,1)
-      plco2(n,1) = co2vmr*cpwpl*pintrd(n,1)*pintrd(n,1)
+      plco2(n,1) = co2vmr(n)*cpwpl*pintrd(n,1)*pintrd(n,1)
       tclrsf(n,1) = d_one
     end do
     do k = 1 , kz
       do n = n1 , n2
         plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
                        pintrd(n,k)**2) * h2ommr(n,k)
-        plco2(n,k+1) = co2vmr*cpwpl*pintrd(n,k+1)**2
+        plco2(n,k+1) = co2vmr(n)*cpwpl*pintrd(n,k+1)**2
         tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
       end do
     end do

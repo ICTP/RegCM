@@ -1769,7 +1769,7 @@ module mod_tendency
         if ( debug_level > 3 .and. labsem .and. myid == italk ) then
           write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
         end if
-        call radiation(rcmtimer%year,loutrad,labsem)
+        call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
 #ifdef DEBUG
         call check_temperature_tendency('HEAT',pc_physic)
 #endif

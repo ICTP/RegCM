@@ -204,11 +204,11 @@ module mod_rad_colmod3
   !
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine colmod3(iyear,lout,labsem,m2r,r2m)
+  subroutine colmod3(iyear,imonth,lout,labsem,m2r,r2m)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
-    integer(ik4) , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout , labsem
 
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
@@ -330,10 +330,6 @@ module mod_rad_colmod3
     rt%qrl(:,:) = 0.0_rkx
     rt%qrs(:,:) = 0.0_rkx
     !
-    ! radini sets many radiation parameters
-    !
-    call radini(iyear)
-    !
     ! NB: orography types are specified in the following
     !
     n = 1
@@ -357,6 +353,10 @@ module mod_rad_colmod3
         n = n + 1
       end do
     end do
+    !
+    ! radini sets many radiation parameters
+    !
+    call radini(rt%n1,rt%n2,iyear,imonth,rt%dlat)
     !
     ! Albedoes and surface emissivity
     !

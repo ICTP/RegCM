@@ -35,31 +35,40 @@ module mod_ipcc_scenario
   private
 
   type ghg_mf
+    character(len=8) :: sname
     integer(ik4) :: year
     integer(ik4) :: month
     real(rkx) , dimension(:,:) , pointer :: gmf
   end type ghg_mf
 
-  public :: set_scenario , cgas
+  public :: set_scenario , ghgval
 
-  integer(ik4) , parameter :: nsc = 10
+  integer(ik4) , parameter :: nsc = 18
   integer(ik4) , parameter :: n_greenhouse_gases = 5
   character(len=8) , dimension(nsc) :: scenarios
 
+  real(rkx) , dimension(n_greenhouse_gases) , parameter :: cgunit = &
+    [ 1.0e-6, 1.0e-9, 1.0e-9, 1.0e-12, 1.0e-12 ]
   real(rkx) , dimension(1+n_greenhouse_gases,1850:2100) :: cgas
+
+  type(ghg_mf) :: local_ghgc
+
+  logical :: lcmip6 = .false.
 
   integer(ik4) :: i , j
 
-  integer(ik4) , public :: igh_co2 = 2
-  integer(ik4) , public :: igh_ch4 = 3
-  integer(ik4) , public :: igh_n2o = 4
-  integer(ik4) , public :: igh_cfc11 = 5
-  integer(ik4) , public :: igh_cfc12 = 6
+  integer(ik4) , public :: igh_co2 = 1
+  integer(ik4) , public :: igh_ch4 = 2
+  integer(ik4) , public :: igh_n2o = 3
+  integer(ik4) , public :: igh_cfc11 = 4
+  integer(ik4) , public :: igh_cfc12 = 5
 
   ! SRES and RCP Scenarios
 
   data scenarios /'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
-                  'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  '/
+                  'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  ', &
+                  'SSP119  ','SSP126  ','SSP245  ','SSP370  ','SSP434  ', &
+                  'SSP460  ','SSP534  ','SSP585  '/
 
   data ((cgas(i,j),i=1,6),j=1850,1899) / &
     1850.0_rkx , 284.70_rkx , 791.60_rkx , 275.70_rkx , 0.00_rkx , 0.00_rkx , &
@@ -218,9 +227,10 @@ module mod_ipcc_scenario
 !
   contains
 !
-  subroutine set_scenario(csc)
+  subroutine set_scenario(csc,year,month)
     implicit none
     character(len=8) , intent(in) :: csc
+    integer(ik4) :: year , month
     integer(ik4) :: ii , jj
     real(rkx) , dimension(1+n_greenhouse_gases) :: ctemp
 
@@ -1777,27 +1787,15 @@ module mod_ipcc_scenario
           cgas(6,jj) = ctemp(6)
         end do
       case default
-        write (stderr,*) 'Unsupported emission scenario: ', csc
-        write (stderr,*) 'Use one in SRES/RCP ', scenarios
-        call fatal(__FILE__,__LINE__, &
-                   'UNSUPPORTED EMISSION SCENARIO')
+        call load_scenario(csc,year,month,local_ghgc)
     end select
-    if ( itweak == 1 ) then
-      if ( itweak_greenhouse_gases == 1 ) then
-        do ii = 1 , n_greenhouse_gases
-          do jj = 1850 , 2100
-            cgas(ii+1,jj) = cgas(ii+1,jj) * gas_tweak_factors(ii)
-          end do
-        end do
-      end if
-    end if
   end subroutine set_scenario
 
   subroutine load_scenario(sname,year,month,ghgmf)
     implicit none
     character(len=*) , intent(in) :: sname
     integer(ik4) , intent(in) :: year , month
-    type(ghg_mf) :: ghgmf
+    type(ghg_mf) , intent(inout) :: ghgmf
     integer(ik4) , parameter :: ico2 = 1
     integer(ik4) , parameter :: in2o = 2
     integer(ik4) , parameter :: ich4 = 3
@@ -1814,11 +1812,17 @@ module mod_ipcc_scenario
     integer(ik4) , save :: nlat
 
     character(len=*) , parameter , dimension(1) :: resolution = &
-     ['0p5x360deg']
+     ['0p5x360deg_']
     character(len=*) , parameter , dimension(1) :: inptype = &
      ['_input4MIPs_GHGConcentrations_']
     character(len=*) , parameter , dimension(2) :: timeperiod = &
      ['000001-201412','201501-250012']
+    character(len=*) , dimension(imax) , parameter :: var_name = &
+     ['mole_fraction_of_carbon_dioxide_in_air', &
+      'mole_fraction_of_nitrous_oxide_in_air ', &
+      'mole_fraction_of_methane_in_air       ', &
+      'mole_fraction_of_cfc11_in_air         ', &
+      'mole_fraction_of_cfc12_in_air         ' ]
     character(len=*) , dimension(imax) , parameter :: varname = &
      ['mole-fraction-of-carbon-dioxide-in-air', &
       'mole-fraction-of-nitrous-oxide-in-air ', &
@@ -1841,7 +1845,7 @@ module mod_ipcc_scenario
     if ( year < 2015 ) then
       imod = 1
       itim = 1
-      irec = 24180 - (2015-year)*12 + month
+      irec = max(year*12 + month,1)
     else
       itim = 2
       select case (sname)
@@ -1861,38 +1865,45 @@ module mod_ipcc_scenario
           imod = 8
         case ('SSP585', 'ssp585')
           imod = 9
+        case default
+          write (stderr,*) 'Unsupported emission scenario: ', sname
+          write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
+          write (stderr,*) scenarios
+          call fatal(__FILE__,__LINE__, &
+                     'UNSUPPORTED EMISSION SCENARIO')
       end select
-      irec = (year-2015)*12 + month
+      irec = min((year-2015)*12 + month,5832)
     end if
+    ghgmf%sname = sname
+    ghgmf%year = year
+    ghgmf%month = month
     do i = 1 , imax
-      ghgmf%year = year
-      ghgmf%month = month
-      filename = trim(inpglob) // pthsep // trim('CMIP6') // &
+      filename = trim(inpglob) // pthsep // trim('CMIP6') // pthsep // &
         trim('GHG') // pthsep // trim(varname(i)) // trim(inptype(ityp)) // &
-        trim(varname(imod)) // trim(resolution(ires)) // &
+        trim(modelname(imod)) // trim(resolution(ires)) // &
         trim(timeperiod(itim)) // '.nc'
       ierr = nf90_open(filename, nf90_nowrite, ncid)
       if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr) , filename
+        write (stderr, *) nf90_strerror(ierr) , trim(filename)
         call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
       end if
       if ( .not. associated(ghgmf%gmf) ) then
         ierr = nf90_inq_dimid(ncid,'lat',dimid)
         if ( ierr /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(ierr) , filename
+          write (stderr, *) nf90_strerror(ierr) , trim(filename)
           call fatal(__FILE__,__LINE__,'DIMENSION LAT SEARCH ERROR')
         end if
         ierr = nf90_inquire_dimension(ncid,dimid,len=nlat)
         if ( ierr /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(ierr) , filename
+          write (stderr, *) nf90_strerror(ierr) , trim(filename)
           call fatal(__FILE__,__LINE__,'DIMENSION LAT READ ERROR')
         end if
         call getmem2d(ghgmf%gmf,1,nlat,1,imax,'ipcc_scenario:gmf')
       end if
-      ierr = nf90_inq_varid(ncid,varname(imod),varid)
+      ierr = nf90_inq_varid(ncid,var_name(i),varid)
       if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr) , filename
-        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//varname(imod)//' ERROR')
+        write (stderr, *) nf90_strerror(ierr) , trim(filename)
+        call fatal(__FILE__,__LINE__,'FIND VARIABLE '//var_name(i)//' ERROR')
       end if
       istart(1) = 1
       istart(2) = irec
@@ -1900,17 +1911,44 @@ module mod_ipcc_scenario
       icount(2) = 1
       ierr = nf90_get_var(ncid,varid,ghgmf%gmf,istart,icount)
       if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr) , filename
-        call fatal(__FILE__,__LINE__,'READ VARIABLE '//varname(imod)//' ERROR')
+        write (stderr, *) nf90_strerror(ierr) , trim(filename)
+        call fatal(__FILE__,__LINE__,'READ VARIABLE '//var_name(i)//' ERROR')
       end if
       ierr = nf90_close(ncid)
       if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr) , filename
+        write (stderr, *) nf90_strerror(ierr) , trim(filename)
         call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
       end if
+      lcmip6 = .true.
     end do
-
   end subroutine load_scenario
+
+  real(rkx) function ghgval(igas,year,month,lat)
+    implicit none
+    integer(ik4) , intent(in) :: igas , year , month
+    real(rkx) , intent(in) :: lat
+    integer(ik4) :: ilat
+    if ( lcmip6 ) then
+      if ( local_ghgc%year /= year .or. local_ghgc%month /= month ) then
+        call load_scenario(local_ghgc%sname,year,month,local_ghgc)
+      end if
+      ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
+      ghgval = local_ghgc%gmf(igas,ilat) * cgunit(igas)
+    else
+      if ( year < 1850 ) then
+        ghgval = cgas(igas+1,1850) * cgunit(igas)
+      else if ( year > 2100 ) then
+        ghgval = cgas(igas+1,2100) * cgunit(igas)
+      else
+        ghgval = cgas(igas+1,year) * cgunit(igas)
+      end if
+    end if
+    if ( itweak == 1 ) then
+      if ( itweak_greenhouse_gases == 1 ) then
+        ghgval = ghgval * gas_tweak_factors(igas)
+      end if
+    end if
+  end function ghgval
 
 end module mod_ipcc_scenario
 

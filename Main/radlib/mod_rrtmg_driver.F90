@@ -59,7 +59,7 @@ module mod_rrtmg_driver
          totwv, totcl , totci
 
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
-    rh , cld_int , tlay , h2ovmr , o3vmr , co2vmr , play , ch4vmr ,    &
+    rh , cld_int , tlay , h2ovmr , o3vmr , co2vmrk , play , ch4vmr ,   &
     n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr ,        &
     reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,  &
     lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
@@ -195,7 +195,7 @@ module mod_rrtmg_driver
     end if
     call getmem2d(h2ovmr,1,npr,1,kth,'rrtmg:h2ovmr')
     call getmem2d(o3vmr,1,npr,1,kth,'rrtmg:o3vmr')
-    call getmem2d(co2vmr,1,npr,1,kth,'rrtmg:co2vmr')
+    call getmem2d(co2vmrk,1,npr,1,kth,'rrtmg:co2vmrk')
     call getmem2d(ch4vmr,1,npr,1,kth,'rrtmg:ch4vmr')
     call getmem2d(n2ovmr,1,npr,1,kth,'rrtmg:n2ovmr')
     call getmem2d(o2vmr,1,npr,1,kth,'rrtmg:o2vmr')
@@ -272,6 +272,8 @@ module mod_rrtmg_driver
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
+    call allocate_tracers(1,npr)
+
 #if defined ( IBM )
     mypid = getpid_()
 #else
@@ -279,11 +281,11 @@ module mod_rrtmg_driver
 #endif
   end subroutine allocate_mod_rad_rrtmg
 
-  subroutine rrtmg_driver(iyear,lout,m2r,r2m)
+  subroutine rrtmg_driver(iyear,imonth,lout,m2r,r2m)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
-    integer(ik4) , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout
     integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld ,ldirect
     logical :: lradfor
@@ -291,7 +293,7 @@ module mod_rrtmg_driver
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = dlowval
-    call prep_dat_rrtm(m2r,iyear)
+    call prep_dat_rrtm(m2r,iyear,imonth)
     adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
@@ -315,15 +317,13 @@ module mod_rrtmg_driver
     asaeradfo(:) = d_zero
     asaeradfos(:) = d_zero
 
+    ! hanlde aerosol direct effect in function of ichem or iclimaaer
 
-! hanlde aerosol direct effect in function of ichem or iclimaaer    
-
-    if (ichem == 1 .and. iaerosol ==1) then 
+    if (ichem == 1 .and. iaerosol ==1) then
      ldirect =idirect
     elseif ( iclimaaer > 0 ) then
      ldirect = 2
     end if
- 
 
     if ( maxval(m2r%coszrs) > 1.0e-3_rkx ) then
       n = 1
@@ -347,7 +347,7 @@ module mod_rrtmg_driver
                              cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                              taucmcl,ssacmcl,asmcmcl,fsfcmcl)
         call rrtmg_sw(npr,kth,icld,lradfor,ldirect,play,plev,tlay,tlev, &
-                      tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
+                      tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,  &
                       o2vmr,asdir,asdif,aldir,aldif,czen,adjes, &
                       0,solcon,inflgsw,iceflgsw,liqflgsw,       &
                       cldfmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl,  &
@@ -358,7 +358,7 @@ module mod_rrtmg_driver
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
         call rrtmg_sw_nomcica(npr,kth,icld,ldirect,play,plev,tlay,tlev, &
-                              tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,   &
+                              tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
                               n2ovmr,o2vmr,asdir,asdif,aldir,    &
                               aldif,czen,adjes,0,solcon,inflgsw, &
                               iceflgsw,liqflgsw,cldf,tauc,       &
@@ -382,7 +382,7 @@ module mod_rrtmg_driver
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)
       call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,       &
+                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
                     taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,           &
@@ -391,7 +391,7 @@ module mod_rrtmg_driver
                     aerlwfos,asaerlwfo,asaerlwfos)
     else
       call rrtmg_lw_nomcica(npr,kth,icld,0,play,plev,tlay,tlev,tsfc,       &
-                            h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,       &
+                            h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
                             cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
                             inflglw,iceflglw,liqflglw,cldf,tauc,ciwp,clwp, &
                             rei,rel,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,  &
@@ -502,10 +502,10 @@ module mod_rrtmg_driver
 
   end subroutine rrtmg_driver
 
-  subroutine prep_dat_rrtm(m2r,iyear)
+  subroutine prep_dat_rrtm(m2r,iyear,imonth)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
-    integer(ik4) , intent(in) :: iyear
+    integer(ik4) , intent(in) :: iyear , imonth
     integer(ik4) :: i , j , k , kj , ns , n , itr
     real(rkx) , parameter :: verynearone = 0.999999_rkx
     real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
@@ -755,35 +755,18 @@ module mod_rrtmg_driver
     !
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
-    if ( iyear < 1850 ) then
-      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
-           .and. myid == italk ) then
-        write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-        write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
-      end if
-      co2vmr(:,:)   = cgas(2,1850) * 1.0e-6_rkx
-      ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,1850)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,1850)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,1850)*1.0e-12_rkx*(amcfc12/amd)
-    else if ( iyear >= 1850 .and. iyear <= 2100 ) then
-      co2vmr(:,:)   = cgas(2,iyear) * 1.0e-6_rkx
-      ch40 = cgas(igh_ch4,iyear)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,iyear)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
-    else
-      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
-           .and. myid == italk ) then
-        write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-        write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
-      end if
-      co2vmr(:,:)   = cgas(2,2100) * 1.0e-6_rkx
-      ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
-      n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
-    end if
+    do n = 1 , npr
+      co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
+      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      ch40(n) = ghgval(igh_ch4,iyear,imonth,dlat(n))*(amch4/amd)
+      n2o0(n) = ghgval(igh_n2o,iyear,imonth,dlat(n))*(amn2o/amd)
+      cfc110(n) = ghgval(igh_cfc11,iyear,imonth,dlat(n))*(amcfc11/amd)
+      cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
+    end do
+
+    do k = 1 , kz
+      co2vmrk(:,k) = co2vmr(n)
+    end do
 
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 

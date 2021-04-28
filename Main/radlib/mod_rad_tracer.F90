@@ -22,17 +22,33 @@ module mod_rad_tracer
   use mod_intkinds
   use mod_realkinds
   use mod_constants
+  use mod_memutil
   use mod_dynparam
 
   implicit none
 
   private
 
+  public :: allocate_tracers
   public :: trcmix , trcpth , trcab , trcabn , trcems , trcplk
 
-  real(rkx) , public :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
+  real(rkx) , dimension(:) , pointer :: cfc110 , cfc120 , ch40
+  real(rkx) , dimension(:) , pointer :: co2mmr , co2vmr , n2o0
+
+  public :: cfc110 , cfc120 , ch40 , co2mmr , co2vmr , n2o0
 
   contains
+
+  subroutine allocate_tracers(n1,n2)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    call getmem1d(co2mmr,n1,n2,'tracers:co2mmr')
+    call getmem1d(co2vmr,n1,n2,'tracers:co2vmr')
+    call getmem1d(n2o0,n1,n2,'tracers:n2o0')
+    call getmem1d(ch40,n1,n2,'tracers:ch40')
+    call getmem1d(cfc110,n1,n2,'tracers:cfc110')
+    call getmem1d(cfc120,n1,n2,'tracers:cfc120')
+  end subroutine allocate_tracers
   !
   !-----------------------------------------------------------------------
   !
@@ -96,16 +112,16 @@ module mod_rad_tracer
       !  set stratospheric scale height factor for gases
       do k = 1 , kz
         if ( pmid(j,k) >= xptrop(j) ) then
-          ch4(j,k) = ch40
-          n2o(j,k) = n2o0
-          cfc11(j,k) = cfc110
-          cfc12(j,k) = cfc120
+          ch4(j,k) = ch40(j)
+          n2o(j,k) = n2o0(j)
+          cfc11(j,k) = cfc110(j)
+          cfc12(j,k) = cfc120(j)
         else
           pratio = pmid(j,k)/xptrop(j)
-          ch4(j,k) = ch40*(pratio**xch4)
-          n2o(j,k) = n2o0*(pratio**xn2o)
-          cfc11(j,k) = cfc110*(pratio**xcfc11)
-          cfc12(j,k) = cfc120*(pratio**xcfc12)
+          ch4(j,k) = ch40(j)*(pratio**xch4)
+          n2o(j,k) = n2o0(j)*(pratio**xn2o)
+          cfc11(j,k) = cfc110(j)*(pratio**xcfc11)
+          cfc12(j,k) = cfc120(j)*(pratio**xcfc12)
         end if
       end do
     end do
@@ -188,7 +204,7 @@ module mod_rad_tracer
       un2o1(j,1) = diff*2.01909_rkx*un2o0(j,1)*exp(-847.36_rkx/tnm(j,1))
       uch4(j,1) = diff*8.60957e4_rkx*ch4(j,1)*pnm(j,1)* &
                   regravgts/sqrt(tnm(j,1))
-      co2fac = diff*co2mmr*pnm(j,1)*regravgts
+      co2fac = diff*co2mmr(j)*pnm(j,1)*regravgts
       alpha1 = (d_one-exp(-1540.0_rkx/tnm(j,1)))**3/sqrt(tnm(j,1))
       alpha2 = (d_one-exp(-1360.0_rkx/tnm(j,1)))**3/sqrt(tnm(j,1))
       uco211(j,1) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(j,1))
@@ -220,17 +236,17 @@ module mod_rad_tracer
                        rsqrt*exp(-847.36_rkx/tnm(j,k))*dpnm
         uch4(j,k+1) = uch4(j,k) + diff*8.60957e4_rkx*ch4(j,k)*rsqrt*dpnm
         uco211(j,k+1) = uco211(j,k) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
-                        co2mmr*exp(-1849.7_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-1849.7_rkx/tnm(j,k))*dpnm
         uco212(j,k+1) = uco212(j,k) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
-                        co2mmr*exp(-2782.1_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-2782.1_rkx/tnm(j,k))*dpnm
         uco213(j,k+1) = uco213(j,k) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
-                        co2mmr*exp(-3723.2_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-3723.2_rkx/tnm(j,k))*dpnm
         uco221(j,k+1) = uco221(j,k) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
-                        co2mmr*exp(-1997.6_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-1997.6_rkx/tnm(j,k))*dpnm
         uco222(j,k+1) = uco222(j,k) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
-                        co2mmr*exp(-3843.8_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-3843.8_rkx/tnm(j,k))*dpnm
         uco223(j,k+1) = uco223(j,k) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
-                        co2mmr*exp(-2989.7_rkx/tnm(j,k))*dpnm
+                        co2mmr(j)*exp(-2989.7_rkx/tnm(j,k))*dpnm
         bn2o0(j,k+1) = bn2o0(j,k) + diff*19.399_rkx*pbar*rt * &
                        1.02346e5_rkx*n2o(j,k)*dpnm
         bn2o1(j,k+1) = bn2o1(j,k) + diff*19.399_rkx*pbar*rt * &

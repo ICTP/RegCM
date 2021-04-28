@@ -1466,6 +1466,7 @@ module mod_mppparam
 
     call bcast(debug_level)
     call bcast(dbgfrq)
+    call bcast(inpglob,256)
 
     call bcast(nspgx)
     call bcast(nspgd)
