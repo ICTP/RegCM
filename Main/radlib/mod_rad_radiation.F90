@@ -741,7 +741,6 @@ module mod_rad_radiation
   !-----------------------------------------------------------------------
   !
   subroutine radini(n1,n2,iyear,imonth,lat)
-
     implicit none
     integer(ik4) , intent(in) :: n1 , n2 , iyear , imonth
     real(rkx) , dimension(:) , intent(in) , pointer :: lat

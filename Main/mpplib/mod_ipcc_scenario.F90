@@ -1909,7 +1909,7 @@ module mod_ipcc_scenario
       istart(2) = irec
       icount(1) = nlat
       icount(2) = 1
-      ierr = nf90_get_var(ncid,varid,ghgmf%gmf,istart,icount)
+      ierr = nf90_get_var(ncid,varid,ghgmf%gmf(:,i),istart,icount)
       if ( ierr /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(ierr) , trim(filename)
         call fatal(__FILE__,__LINE__,'READ VARIABLE '//var_name(i)//' ERROR')
@@ -1933,7 +1933,7 @@ module mod_ipcc_scenario
         call load_scenario(local_ghgc%sname,year,month,local_ghgc)
       end if
       ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
-      ghgval = local_ghgc%gmf(igas,ilat) * cgunit(igas)
+      ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)
     else
       if ( year < 1850 ) then
         ghgval = cgas(igas+1,1850) * cgunit(igas)
