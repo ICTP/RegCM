@@ -158,6 +158,9 @@ module mod_dynparam
   !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 
   character(len=5) :: dattyp
+  character(len=6) :: ssp_code
+  character(len=12) :: ssp_variant = 'r1i1p1f1'
+  character(len=12) :: ssp_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
   !      MZ6HR is for MOZART 6 hourly boundary conditions
@@ -469,6 +472,7 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
+    namelist /cmip6param/ ssp_code , ssp_variant , ssp_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
@@ -697,8 +701,17 @@ module mod_dynparam
     read(ipunit, nml=globdatparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading globdatparam namelist in ',trim(filename)
-      ierr = 6
+      ierr = 5
       return
+    end if
+    if ( dattyp == 'CMIP6' ) then
+      rewind(ipunit)
+      read(ipunit, nml=cmip6param, iostat=iresult)
+      if ( iresult /= 0 ) then
+        write (stderr,*) 'Error reading cmip6param namelist in ',trim(filename)
+        ierr = 6
+        return
+      end if
     end if
     if (calendar == 'gregorian') then
       dayspy = 365.2422_rkx
@@ -743,7 +756,7 @@ module mod_dynparam
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading perturbparam namelist in ' , &
           trim(filename)
-        ierr = 6
+        ierr = 7
         return
       end if
     end if

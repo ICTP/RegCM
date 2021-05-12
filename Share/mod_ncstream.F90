@@ -334,6 +334,7 @@ module mod_ncstream
 #ifdef NETCDF4_HDF5
         if ( params%mpi_comm /= -1 ) then
           imode = ior(params%mpi_iotype,iomode)
+          if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90_create(stream%filename,imode, &
                     comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
@@ -344,12 +345,14 @@ module mod_ncstream
         if ( params%mpi_comm /= -1 ) then
 #ifdef PNETCDF
           imode = ior(nf90_clobber, nf90_64bit_offset)
+          if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90mpi_create(params%mpi_comm,stream%filename, &
                                   imode,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
 #ifdef PNETCDF_IN_NETCDF
           imode = ior(params%mpi_iotype,iomode)
+          if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90_create_par(stream%filename,imode, &
                     params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
@@ -360,6 +363,7 @@ module mod_ncstream
         else
 #ifdef PNETCDF
           imode = ior(nf90_clobber, nf90_64bit_offset)
+          if ( params%l_sync ) imode = ior(imode,nf90_share)
           ncstat = nf90mpi_create(mpi_comm_self,stream%filename, &
                                   imode,mpi_info_null,stream%id)
 #else

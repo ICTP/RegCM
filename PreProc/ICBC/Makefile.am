@@ -26,7 +26,7 @@ icbc_SOURCES = mod_vectutil.F90 mod_ein.F90 mod_grid.F90  \
                mod_canesm_helper.F90 mod_miroc_helper.F90 mod_ipsl_helper.F90 \
                mod_gfdl_helper.F90 mod_cnrm_helper.F90 mod_mpiesm_helper.F90 \
                mod_ecearth_helper.F90 mod_noresm_helper.F90 mod_era5.F90 \
-               mod_lgm_helper.F90 mod_ccsm4_helper.F90 icbc.F90
+               mod_lgm_helper.F90 mod_ccsm4_helper.F90 mod_cmip6.F90 icbc.F90
 clmbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
                mod_mksst.F90 mod_era5.F90 clmbc.F90
 chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
