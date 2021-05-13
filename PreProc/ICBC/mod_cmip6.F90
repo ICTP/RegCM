@@ -29,30 +29,71 @@ module mod_cmip6
 
   implicit none
 
-  integer(ik4) , parameter :: nmodels = 1
+  public :: cmip6_read_record
 
-  character(len=*) , parameter , dimension(nmodels) :: supported_models = &
-    [ 'MPI-ESM1-2-HR' ]
+  type cmip6_horizontal_coordinates
+    real(rkx) , pointer , dimension(:) :: lon1d => null( )
+    real(rkx) , pointer , dimension(:) :: lat1d => null( )
+    real(rkx) , pointer , dimension(:,:) :: lon2d => null( )
+    real(rkx) , pointer , dimension(:,:) :: lat2d => null( )
+  end type cmip6_horizontal_coordinates
 
-  interface read_coord
-    module procedure read_coord_mpihr
-  end interface read_coord
+  type cmip6_vertical_coordinate
+    real(rkx) , pointer , dimension(:) :: plev => null( )
+    real(rkx) , pointer , dimension(:) :: ak => null( )
+    real(rkx) , pointer , dimension(:) :: bk => null( )
+    real(rkx) , pointer , dimension(:,:) :: topo => null( )
+  end type cmip6_vertical_coordinate
 
-  public :: cmip6_readrecord
+  type cmip6_file
+    character(len=1024) :: filename
+    integer(ik4) :: ncid = -1
+    integer(ik4) :: ivar = -1
+    integer(ik4) :: nrec = -1
+    real(rk8) :: freq
+    type(rcm_time_and_date) , dimension(2) :: dates
+  end type cmip6_file
+
+  type, extends(cmip6_file) :: cmip6_2d_var
+    real(rkx) , pointer , dimension(:,:) :: var
+    type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
+  end type cmip6_2d_var
+
+  type, extends(cmip6_file) :: cmip6_3d_var
+    real(rkx) , pointer , dimension(:,:,:) :: var
+    type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
+    type(cmip6_vertical_coordinate) , pointer :: vcoord => null( )
+  end type cmip6_3d_var
+
+  type(cmip6_2d_var) , pointer :: sst => null( )
+  type(cmip6_2d_var) , pointer :: ps => null( )
+  type(cmip6_3d_var) , pointer :: ta => null( )
+  type(cmip6_3d_var) , pointer :: qa => null( )
+  type(cmip6_3d_var) , pointer :: ua => null( )
+  type(cmip6_3d_var) , pointer :: va => null( )
+  type(cmip6_3d_var) , pointer :: zg => null( )
+
+  real(rkx) , pointer , dimension(:,:,:) :: pa
 
   contains
 
-    subroutine cmip6_readrecord(idate)
+    subroutine cmip6_read_record(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-    end subroutine cmip6_readrecord
+      select case (cmip6_model)
+        case ('MPI-ESM1-2-HR')
+          call read_ps_mpihr(idate)
+        case default
+          call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
+      end select
+    end subroutine cmip6_read_record
 
-    subroutine read_coord_mpihr(ncid,lon,lat,ap,b)
+    subroutine read_hcoord_mpihr(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat , ap , b
+      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
       integer(ik4) :: istatus , idimid , ivarid
-      integer(ik4) :: nlon , nlat , nlev
+      integer(ik4) :: nlon , nlat
       istatus = nf90_inq_dimid(ncid,'lon',idimid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
@@ -61,15 +102,9 @@ module mod_cmip6
       call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      istatus = nf90_inq_dimid(ncid,'lev',idimid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev dim')
-      istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev dim')
       call getmem1d(lon,1,nlon,'cmip6_mpi:lon')
       call getmem1d(lat,1,nlat,'cmip6_mpi:lat')
-      call getmem1d(ap,1,nlev,'cmip6_mpi:ap')
-      call getmem1d(b,1,nlev,'cmip6_mpi:b')
-      istatus = nf90_inq_varid(ncid,'lat',ivarid)
+      istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
       istatus = nf90_get_var(ncid,ivarid,lon)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
@@ -77,6 +112,20 @@ module mod_cmip6
       call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+    end subroutine read_hcoord_mpihr
+
+    subroutine read_vcoord_mpihr(ncid,ap,b)
+      implicit none
+      integer(ik4) , intent(in) :: ncid
+      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
+      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4) :: nlev
+      istatus = nf90_inq_dimid(ncid,'lev',idimid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev dim')
+      call getmem1d(ap,1,nlev,'cmip6_mpi:ap')
+      call getmem1d(b,1,nlev,'cmip6_mpi:b')
       istatus = nf90_inq_varid(ncid,'ap',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
       istatus = nf90_get_var(ncid,ivarid,ap)
@@ -85,20 +134,12 @@ module mod_cmip6
       call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(ncid,ivarid,b)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
-    end subroutine read_coord_mpihr
+    end subroutine read_vcoord_mpihr
 
-    recursive subroutine read_ps_mpihr(idate,ps)
+    recursive subroutine read_ps_mpihr(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-      real(rkx) , pointer , dimension(:,:) :: ps
-      integer(ik4) , save :: ncid = -1
-      integer(ik4) , save :: ivar = -1
-      integer(ik4) , save :: irec = -1
-      integer(ik4) , save :: nrec = -1
-      character(len=1024) , save :: psfilename
-      real(rk8) , save :: freq
-      type(rcm_time_and_date) , dimension(2) , save :: dates
-      integer(ik4) :: istatus , idimid , it
+      integer(ik4) :: istatus , idimid , it , irec
       integer(ik4) :: year , month , day , hour , y
       character(len=6) :: sspname
       character(len=32) :: timecal , timeunit
@@ -106,84 +147,94 @@ module mod_cmip6
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
 
-      if ( ncid == -1 ) then
+      if ( .not. associated(ps) ) then
+        allocate(ps)
+      end if
+      if ( ps%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
         y = (year / 5) * 5
         if ( month == 1 .and. day == 1 .and. hour == 0 ) then
           y = y - 5
         end if
         if ( year >= 2015 ) then
-          write(psfilename,'(a,i4,a,i4,a)') &
-            trim(inpglob)//pthsep//'CMIP6'//pthsep//'MPI-ESM1-2-HR'// &
-            pthsep//'ssp'//pthsep//'ps'//pthsep// &
-            'ps_6hrLev_MPI-ESM1-2-HR_historical_'// &
+          write(ps%filename,'(a,i4,a,i4,a)') &
+            trim(inpglob)//pthsep//'CMIP6'//pthsep//trim(cmip6_model)// &
+            pthsep//'historical'//pthsep//'ps'//pthsep// &
+            'ps_6hrLev_'//trim(cmip6_model)//'_historical_'// &
              trim(ssp_variant)//'_'//trim(ssp_grid)//'_', &
              y, '01010600-', y+5, '01010000.nc'
         else
-          write(psfilename,'(a,i4,a,i4,a)') &
-            trim(inpglob)//pthsep//'CMIP6'//pthsep//'MPI-ESM1-2-HR'// &
+          write(ps%filename,'(a,i4,a,i4,a)') &
+            trim(inpglob)//pthsep//'CMIP6'//pthsep//trim(cmip6_model)// &
             pthsep//trim(ssp_code)//pthsep//'ps'//pthsep// &
-            'ps_6hrLev_MPI-ESM1-2-HR_'//trim(ssp_code)//'_'// &
+            'ps_6hrLev_'//trim(cmip6_model)//'_'//trim(ssp_code)//'_'// &
             trim(ssp_variant)//'_'//trim(ssp_grid)//'_', &
             y, '01010600-', y+5, '01010000.nc'
         end if
-        istatus = nf90_open(psfilename,nf90_nowrite,ncid)
+        istatus = nf90_open(ps%filename,nf90_nowrite,ps%ncid)
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error opening file '//trim(psfilename)//'.')
+          'Error opening file '//trim(ps%filename)//'.')
       end if
-      if ( ivar == -1 ) then
-        istatus = nf90_inq_varid(ncid,'ps',ivar)
+      if ( .not. associated(ps%hcoord) ) then
+        allocate(ps%hcoord)
+        call read_hcoord_mpihr(ps%ncid,ps%hcoord%lon1d,ps%hcoord%lat1d)
+        call getmem2d(ps%var,1,size(ps%hcoord%lon1d), &
+                             1,size(ps%hcoord%lat1d),'cmip6_mpi:ps')
+      end if
+      if ( ps%ivar == -1 ) then
+        istatus = nf90_inq_varid(ps%ncid,'ps',ps%ivar)
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error searchong ps var in file '//trim(psfilename)//'.')
+          'Error searchong ps var in file '//trim(ps%filename)//'.')
       end if
-      if ( nrec == -1 ) then
-        istatus = nf90_inq_dimid(ncid,'time',idimid)
+      if ( ps%nrec == -1 ) then
+        istatus = nf90_inq_dimid(ps%ncid,'time',idimid)
         call checkncerr(istatus,__FILE__,__LINE__,'Error find time dim')
-        istatus = nf90_inquire_dimension(ncid,idimid,len=nrec)
+        istatus = nf90_inquire_dimension(ps%ncid,idimid,len=ps%nrec)
         call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time dim')
-        istatus = nf90_inq_varid(ncid,'time',it)
+        istatus = nf90_inq_varid(ps%ncid,'time',it)
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error searching time var in file '//trim(psfilename)//'.')
-        istatus = nf90_get_att(ncid,it,"calendar",timecal)
+          'Error searching time var in file '//trim(ps%filename)//'.')
+        istatus = nf90_get_att(ps%ncid,it,"calendar",timecal)
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading time attribute calendar in file '//&
-          trim(psfilename)//'.')
-        istatus = nf90_get_att(ncid,it,"units",timeunit)
+          trim(ps%filename)//'.')
+        istatus = nf90_get_att(ps%ncid,it,"units",timeunit)
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading time attribute units in file '//trim(psfilename)//'.')
+          'Error reading time attribute units in file '//trim(ps%filename)//'.')
         istart(1) = 1
         icount(1) = 2
-        istatus = nf90_get_var(ncid,it,times,istart(1:1),icount(1:1))
+        istatus = nf90_get_var(ps%ncid,it,times,istart(1:1),icount(1:1))
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading time from file '//trim(psfilename)//'.')
-        dates(1) = timeval2date(times(1),timeunit,timecal)
-        dates(2) = timeval2date(times(2),timeunit,timecal)
-        tdif = dates(2) - dates(1)
-        freq = tohours(tdif)
+          'Error reading time from file '//trim(ps%filename)//'.')
+        ps%dates(1) = timeval2date(times(1),timeunit,timecal)
+        ps%dates(2) = timeval2date(times(2),timeunit,timecal)
+        tdif = ps%dates(2) - ps%dates(1)
+        ps%freq = tohours(tdif)
       end if
 
-      tdif = idate - dates(1)
-      irec = nint(tohours(tdif)/freq) + 1
+      tdif = idate - ps%dates(1)
+      irec = nint(tohours(tdif)/ps%freq) + 1
 
-      if ( irec > nrec ) then
-        istatus = nf90_close(ncid)
+      if ( irec > ps%nrec ) then
+        istatus = nf90_close(ps%ncid)
         call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error close file '//trim(psfilename)//'.')
-        ncid = -1
-        ivar = -1
-        nrec = -1
+          'Error close file '//trim(ps%filename)//'.')
+        ps%ncid = -1
+        ps%ivar = -1
+        ps%nrec = -1
+        ps%freq = -1
         irec = 1
-        call read_ps_mpihr(idate,ps)
+        call read_ps_mpihr(idate)
       end if
       istart(1) = 1
       istart(2) = 1
       istart(3) = irec
-      icount(1) = size(ps,1)
-      icount(2) = size(ps,2)
+      icount(1) = size(ps%var,1)
+      icount(2) = size(ps%var,2)
       icount(3) = 1
-      istatus = nf90_get_var(ncid,ivar,ps,istart,icount)
+      istatus = nf90_get_var(ps%ncid,ps%ivar,ps%var,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error read variable ps from '//trim(psfilename)//'.')
+          'Error read variable ps from '//trim(ps%filename)//'.')
     end subroutine read_ps_mpihr
 
     subroutine checkncerr(ival,filename,line,arg)

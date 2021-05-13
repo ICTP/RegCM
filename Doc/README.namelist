@@ -108,8 +108,9 @@
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
                              !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
-                             !          IP_XX, GF_XX, CN_XX, MP_XX
+                             !          IP_XX, GF_XX, CN_XX, MP_XX, CMIP6
                              ! with XX for CMIP5 datasets in 26, 45, 85
+                             ! For CMIP6, fill the cmip6param namelist
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -121,6 +122,15 @@
  ensemble_run = .false.,     ! If this is a member of a perturbed ensemble
                              ! run. Activate random noise added to input
                              ! ICBC controlled by the perturbparam stanza
+ /
+!
+! CMIP6 model selection
+!
+ &cmip6param
+ cmip6_model = 'MPI-ESM1-2-HR',
+ ssp_code = 'ssp585',
+ ssp_variant = 'r1i1p1f1',
+ ssp_grid = 'gn',
  /
 !
 ! Nesting control
