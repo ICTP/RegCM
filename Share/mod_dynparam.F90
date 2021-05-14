@@ -159,9 +159,10 @@ module mod_dynparam
 
   character(len=5) :: dattyp
   character(len=16) :: cmip6_model = 'MPI-ESM1-2-HR'
-  character(len=6) :: ssp_code = 'ssp585'
-  character(len=12) :: ssp_variant = 'r1i1p1f1'
-  character(len=12) :: ssp_grid = 'gn'
+  character(len=12) :: cmip6_variant = 'r1i1p1f1'
+  character(len=16) :: cmip6_version = 'v20190815'
+  character(len=6) :: cmip6_ssp = 'ssp585'
+  character(len=12) :: cmip6_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
   !      MZ6HR is for MOZART 6 hourly boundary conditions
@@ -473,7 +474,8 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /cmip6param/ cmip6_model , ssp_code , ssp_variant , ssp_grid
+    namelist /cmip6param/ cmip6_model , cmip6_version , cmip6_ssp , &
+      cmip6_variant , cmip6_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
