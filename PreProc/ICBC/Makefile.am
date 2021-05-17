@@ -63,8 +63,8 @@ mod_ch_icbc_clim.o : mod_ch_icbc_clim.F90 mod_intkinds.o mod_realkinds.o mod_std
 mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o
 mod_ae_icbc.o : mod_ae_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o
 mod_cmip6.o : mod_cmip6.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_kdinterp.o
-mod_sst_cmip6.o : mod_sst_cmip6.F90 mod_cmip6.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o
-mod_cmip6_helper.o : mod_cmip6_helper.F90 mod_cmip6.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o
+mod_sst_cmip6.o : mod_sst_cmip6.F90 mod_cmip6.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_kdinterp.o
+mod_cmip6_helper.o : mod_cmip6_helper.F90 mod_cmip6.o mod_intkinds.o mod_realkinds.o mod_date.o mod_message.o mod_dynparam.o mod_memutil.o mod_grid.o mod_kdinterp.o
 mod_ccsm_helper.o : mod_ccsm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o
 mod_hadgem_helper.o : mod_hadgem_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_csiro_helper.o : mod_csiro_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
