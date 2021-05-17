@@ -48,6 +48,7 @@ program sst
   use mod_sst_gnmnc
   use mod_sst_gndnc
   use mod_sst_gnhnc
+  use mod_sst_cmip6
 #ifdef PNETCDF
   use mpi
 #endif
@@ -85,7 +86,9 @@ program sst
   call read_domain_info(terfile)
   call setup_outvars
 
-  if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.       &
+  if ( ssttyp == 'CMIP6' ) then
+    call cmip6_sst
+  else if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.  &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
        ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
     call sst_1deg
@@ -205,9 +208,6 @@ program sst
   call close_sstfile
 
   call memory_destroy
-
-  if (debug_level > 2) then
-  end if
 
   call finaltime(0)
   write (stdout,*) 'Successfully generated SST'

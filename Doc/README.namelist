@@ -128,9 +128,11 @@
 !
  &cmip6param
  cmip6_model = 'MPI-ESM1-2-HR',
- ssp_code = 'ssp585',
- ssp_variant = 'r1i1p1f1',
- ssp_grid = 'gn',
+ cmip6_sst_version = 'v20190710',
+ cmip6_version = 'v20190815',
+ cmip6_ssp = 'ssp585',
+ cmip6_variant = 'r1i1p1f1',
+ cmip6_grid = 'gn',
  /
 !
 ! Nesting control
