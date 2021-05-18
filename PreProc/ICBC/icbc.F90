@@ -105,6 +105,7 @@ program icbc
   use mod_ncep
   use mod_nest
   use mod_gn6hnc
+  use mod_cmip6_helper
   use mod_write
   use mod_ifs
   use mod_projections
@@ -222,7 +223,9 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
+  if ( dattyp == 'CMIP6' ) then
+    call init_cmip6(globidate1)
+  else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call init_ncep
   else if ( dattyp(1:4) == 'ERA5' ) then
     call init_era5
@@ -249,7 +252,9 @@ program icbc
       call newfile(monfirst(idate))
     end if
 
-    if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
+    if ( dattyp == 'CMIP6' ) then
+      call get_cmip6(idate)
+    else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call get_ncep(idate)
     else if ( dattyp(1:4) == 'ERA5' ) then
       call get_era5(idate)
@@ -273,7 +278,9 @@ program icbc
   call close_output
   call closesst
 
-  if ( dattyp(1:4) == 'ERA5' ) then
+  if ( dattyp == 'CMIP6' ) then
+    call conclude_cmip6
+  else if ( dattyp(1:4) == 'ERA5' ) then
     call conclude_era5
   else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
     call conclude_ein

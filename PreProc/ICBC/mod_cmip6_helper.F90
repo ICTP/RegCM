@@ -33,7 +33,7 @@ module mod_cmip6_helper
 
   private
 
-  public :: cmip6_read_record
+  public :: init_cmip6 , get_cmip6 , conclude_cmip6
 
   type(cmip6_2d_var) , pointer :: ps => null( )
   type(cmip6_3d_var) , pointer :: ta => null( )
@@ -44,16 +44,64 @@ module mod_cmip6_helper
 
   contains
 
-    subroutine cmip6_read_record(idate)
+    subroutine init_cmip6(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       select case (cmip6_model)
         case ('MPI-ESM1-2-HR')
-          allocate(ta,va,ua,qa,zg)
+          allocate(ua,va,ta,qa,zg)
+          call read_3d_mpihr(idate,ua)
+          if ( idynamic == 3 ) then
+            allocate(ua%hint(3))
+            call h_interpolator_create(ua%hint(1),ua%hcoord%lat1d, &
+              ua%hcoord%lon1d, xlat, xlon)
+            call h_interpolator_create(ua%hint(2),ua%hcoord%lat1d, &
+              ua%hcoord%lon1d, ulat, ulon)
+            call h_interpolator_create(ua%hint(3),ua%hcoord%lat1d, &
+              ua%hcoord%lon1d, vlat, vlon)
+          else
+            allocate(ua%hint(2))
+            call h_interpolator_create(ua%hint(1),ua%hcoord%lat1d, &
+              ua%hcoord%lon1d, xlat, xlon)
+            call h_interpolator_create(ua%hint(2),ua%hcoord%lat1d, &
+              ua%hcoord%lon1d, dlat, dlon)
+          end if
+          va%hint => ua%hint
+          ta%hint => ua%hint
+          qa%hint => ua%hint
+          zg%hint => ua%hint
         case default
           call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
       end select
-    end subroutine cmip6_read_record
+    end subroutine init_cmip6
+
+    subroutine get_cmip6(idate)
+      implicit none
+      type(rcm_time_and_date) , intent(in) :: idate
+      select case (cmip6_model)
+        case ('MPI-ESM1-2-HR')
+          call read_3d_mpihr(idate,ua)
+          call read_3d_mpihr(idate,va)
+          call read_3d_mpihr(idate,ta)
+          call read_3d_mpihr(idate,qa)
+          call read_3d_mpihr(idate,zg)
+        case default
+          call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
+      end select
+    end subroutine get_cmip6
+
+    subroutine conclude_cmip6( )
+      implicit none
+      if ( idynamic == 3 ) then
+        call h_interpolator_destroy(ua%hint(1))
+        call h_interpolator_destroy(ua%hint(2))
+        call h_interpolator_destroy(ua%hint(3))
+      else
+        call h_interpolator_destroy(ua%hint(1))
+        call h_interpolator_destroy(ua%hint(2))
+      end if
+      deallocate(ua%hint)
+    end subroutine conclude_cmip6
 
     subroutine read_hcoord_mpihr(ncid,lon,lat)
       implicit none
@@ -81,26 +129,21 @@ module mod_cmip6_helper
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
     end subroutine read_hcoord_mpihr
 
-    subroutine read_vcoord_mpihr(ncid,ap,b)
+    subroutine read_vcoord_mpihr(ncid,plev)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
+      real(rkx) , pointer , dimension(:) , intent(inout) :: plev
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlev
-      istatus = nf90_inq_dimid(ncid,'lev',idimid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
+      istatus = nf90_inq_dimid(ncid,'plev',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find plev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(ap,1,nlev,'cmip6_mpi:ap')
-      call getmem1d(b,1,nlev,'cmip6_mpi:b')
-      istatus = nf90_inq_varid(ncid,'ap',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find ap var')
-      istatus = nf90_get_var(ncid,ivarid,ap)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read ap var')
-      istatus = nf90_inq_varid(ncid,'b',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
-      istatus = nf90_get_var(ncid,ivarid,b)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire plev dim')
+      call getmem1d(plev,1,nlev,'cmip6_mpi:plev')
+      istatus = nf90_inq_varid(ncid,'plev',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find plev var')
+      istatus = nf90_get_var(ncid,ivarid,plev)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read plev var')
     end subroutine read_vcoord_mpihr
 
     recursive subroutine read_3d_mpihr(idate,v)
@@ -129,14 +172,12 @@ module mod_cmip6_helper
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_mpihr(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
         allocate(v%vcoord)
-        call read_vcoord_mpihr(v%ncid,v%vcoord%ak,v%vcoord%bk)
-        call h_interpolator_create(v%hint, &
-                                   v%hcoord%lat1d,v%hcoord%lon1d,xlat,xlon)
+        call read_hcoord_mpihr(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_vcoord_mpihr(v%ncid,v%vcoord%plev)
         call getmem3d(v%var,1,size(v%hcoord%lon1d), &
                             1,size(v%hcoord%lat1d), &
-                            1,size(v%vcoord%ak), &
+                            1,size(v%vcoord%plev), &
                             'cmip6_mpi:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then

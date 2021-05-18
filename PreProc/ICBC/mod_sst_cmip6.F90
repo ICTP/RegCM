@@ -73,17 +73,19 @@ module mod_sst_cmip6
 
       call open_sstfile(idateo)
 
+      allocate(sst%hint(1))
+
       idate = idateo
       do n = 1 , nsteps
         call read_func(idate,sst)
-        call h_interpolate_cont(sst%hint,sst%var,sstmm)
+        call h_interpolate_cont(sst%hint(1),sst%var,sstmm)
         call writerec(idate)
         write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
         idate = idate + step
       end do
 
-      call h_interpolator_destroy(sst%hint)
-
+      call h_interpolator_destroy(sst%hint(1))
+      deallocate(sst%hint)
     end subroutine cmip6_sst
 
     subroutine read_hcoord_sst_mpihr(ncid,lon,lat)
@@ -136,7 +138,7 @@ module mod_sst_cmip6
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
         call read_hcoord_sst_mpihr(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
-        call h_interpolator_create(v%hint, &
+        call h_interpolator_create(v%hint(1), &
                                    v%hcoord%lat2d,v%hcoord%lon2d,xlat,xlon)
         call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
                             1,size(v%hcoord%lat2d,2), &

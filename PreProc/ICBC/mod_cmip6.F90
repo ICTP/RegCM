@@ -51,7 +51,7 @@ module mod_cmip6
     integer(ik4) :: ivar = -1
     integer(ik4) :: nrec = -1
     type(rcm_time_and_date) :: first_date
-    type(h_interpolator) :: hint
+    type(h_interpolator) , pointer , dimension(:) :: hint
   end type cmip6_file
 
   type, extends(cmip6_file) :: cmip6_2d_var
