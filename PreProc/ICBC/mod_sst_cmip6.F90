@@ -31,6 +31,8 @@ module mod_sst_cmip6
 
   implicit none
 
+  private
+
   public :: cmip6_sst
 
   type(cmip6_2d_var) :: sst

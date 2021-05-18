@@ -31,6 +31,8 @@ module mod_cmip6_helper
 
   implicit none
 
+  private
+
   public :: cmip6_read_record
 
   type(cmip6_2d_var) , pointer :: ps => null( )
