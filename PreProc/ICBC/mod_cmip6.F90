@@ -29,6 +29,8 @@ module mod_cmip6
 
   implicit none
 
+  private
+
   type cmip6_horizontal_coordinates
     real(rkx) , pointer , dimension(:) :: lon1d => null( )
     real(rkx) , pointer , dimension(:) :: lat1d => null( )
