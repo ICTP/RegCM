@@ -105,7 +105,7 @@ program icbc
   use mod_ncep
   use mod_nest
   use mod_gn6hnc
-  use mod_cmip6_helper
+  use mod_cmip6
   use mod_write
   use mod_ifs
   use mod_projections

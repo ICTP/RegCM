@@ -21,7 +21,7 @@ module mod_sst_cmip6
 
   use mod_intkinds
   use mod_realkinds
-  use mod_cmip6
+  use mod_cmip6_helper
   use mod_message
   use mod_dynparam
   use mod_memutil
@@ -129,8 +129,11 @@ module mod_sst_cmip6
         call split_idate(idate, year, month, day, hour)
         y = (year / 5) * 5
         write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'Oday',cmip6_sst_version,v%vname)), &
+          trim(cmip6_path(y,'Oday',mpihr_version,v%vname)), &
           y, '0101-', y+4, '1231.nc'
+#ifdef DEBUG
+        write(stderr,*) 'Opening ',trim(v%filename)
+#endif
         istatus = nf90_open(v%filename,nf90_nowrite,v%ncid)
         call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error opening file '//trim(v%filename)//'.')
