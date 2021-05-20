@@ -87,7 +87,7 @@ module mod_sigma
         lpress = .not. lzeta
       end if
       lcompute = .not. lpress .or. ( lpress .and. &
-              (nk == 14 .or. nk == 18 .or. nk == 23 .or. nk == 41) )
+              .not. (nk == 14 .or. nk == 18 .or. nk == 23 .or. nk == 41) )
       call getmem1d(sigma_coordinate,1,nk+1, &
         'init_sigma:sigma_coordinate')
       call getmem1d(sigma_delta,1,nk, &
