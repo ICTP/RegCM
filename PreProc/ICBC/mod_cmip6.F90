@@ -39,6 +39,9 @@ module mod_cmip6
 
   private
 
+  character(len=*) , parameter , public :: mpihr_version = 'v20190710'
+  character(len=*) , parameter , public :: mpihr_version1 = 'v20190815'
+
   public :: init_cmip6 , get_cmip6 , conclude_cmip6
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
@@ -134,20 +137,20 @@ module mod_cmip6
           va%hcoord => orog%hcoord
           qa%hcoord => orog%hcoord
           call read_2d_mpihr(idate,ps,only_coord)
-          call read_3d_mpihr(idate,ta,mpihr_version,only_coord)
+          call read_3d_mpihr(idate,ta,only_coord)
           ua%vcoord => ta%vcoord
           va%vcoord => ta%vcoord
           qa%vcoord => qa%vcoord
-          call read_3d_mpihr(idate,ua,mpihr_version1,only_coord)
-          call read_3d_mpihr(idate,va,mpihr_version1,only_coord)
-          call read_3d_mpihr(idate,qa,mpihr_version,only_coord)
+          call read_3d_mpihr(idate,ua,only_coord)
+          call read_3d_mpihr(idate,va,only_coord)
+          call read_3d_mpihr(idate,qa,only_coord)
           nkin = nipl
           call getmem1d(sigmar,1,nkin,'cmip6:mpihr:sigmar')
           do k = 1 , nkin
             sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
           end do
           pss = (fplev(1)-fplev(nkin))/10.0_rkx
-          pst = fplev(1)/10.0_rkx
+          pst = fplev(nkin)/10.0_rkx
           call getmem3d(pa_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:mpihr:pa_in')
           call getmem3d(zp_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:mpihr:zp_in')
           call getmem3d(tvar,1,ta%ni,1,ta%nj,1,nkin,'cmip6:mpihr:tvar')
@@ -164,7 +167,7 @@ module mod_cmip6
       end select
 
       if ( idynamic == 3 ) then
-        call getmem3d(zgh,1,jx,1,iy,1,ta%nk,'cmip6:zgh')
+        call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:zgh')
         call getmem2d(topou,1,jx,1,iy,'cmip6:topou')
         call getmem2d(topov,1,jx,1,iy,'cmip6:topov')
         call getmem3d(du,1,jx,1,iy,1,nkin,'cmip6:du')
@@ -187,11 +190,18 @@ module mod_cmip6
 
       select case (cmip6_model)
         case ('MPI-ESM1-2-HR')
+!$OMP SECTIONS
+!$OMP SECTION
           call read_2d_mpihr(idate,ps)
-          call read_3d_mpihr(idate,ua,mpihr_version1)
-          call read_3d_mpihr(idate,va,mpihr_version1)
-          call read_3d_mpihr(idate,ta,mpihr_version)
-          call read_3d_mpihr(idate,qa,mpihr_version)
+!$OMP SECTION
+          call read_3d_mpihr(idate,ua)
+!$OMP SECTION
+          call read_3d_mpihr(idate,va)
+!$OMP SECTION
+          call read_3d_mpihr(idate,ta)
+!$OMP SECTION
+          call read_3d_mpihr(idate,qa)
+!$OMP END SECTIONS
           call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
           do k = 1 , ta%nk
             do j = 1 , ta%nj
@@ -199,38 +209,57 @@ module mod_cmip6
                 pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
               end do
             end do
-            if ( idynamic == 3 ) then
-              print *, ta%var(1,1,1), ta%var(1,1,ta%nk)
-              print *, pa_in(1,1,1), pa_in(1,1,ta%nk)
-              print *, ps%var(1,1)
-              print *, orog%var(1,1)
-              call htsig(ta%var,zp_in,pa_in,ps%var,orog%var,ta%ni,ta%nj,ta%nk)
-            end if
-            call intlin(uvar,ua%var,pa_in,ua%ni,ua%nj,ua%nk,fplev,nkin)
-            call intlin(vvar,va%var,pa_in,va%ni,va%nj,va%nk,fplev,nkin)
-            call intlog(tvar,ta%var,pa_in,ta%ni,ta%nj,ta%nk,fplev,nkin)
-            call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
-            call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var,&
-              ta%ni,ta%nj,ta%nk,fplev,nkin)
           end do
+          pa_in = pa_in * 0.01_rkx
+!$OMP SECTIONS
+!$OMP SECTION
+          call intlin(uvar,ua%var,pa_in,ua%ni,ua%nj,ua%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(vvar,va%var,pa_in,va%ni,va%nj,va%nk,fplev,nkin)
+!$OMP SECTION
+          call intlog(tvar,ta%var,pa_in,ta%ni,ta%nj,ta%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
+!$OMP END SECTIONS
+          ps%var = ps%var * 0.01_rkx
+          if ( idynamic == 3 ) then
+            call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
+            call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
+                          ta%ni,ta%nj,ta%nk,fplev,nkin)
+          end if
         case default
           call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
       end select
 
+      write (stdout,*) 'Read in fields at Date: ', tochar(idate)
+
+!$OMP SECTIONS
+!$OMP SECTION
       call h_interpolate_cont(ta%hint(1),tvar,tah)
+!$OMP SECTION
       call h_interpolate_cont(qa%hint(1),qvar,qah)
+!$OMP END SECTIONS
       if ( idynamic == 3 ) then
+!$OMP SECTIONS
         call h_interpolate_cont(ta%hint(1),zvar,zgh)
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),uvar,uah)
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),vvar,dv)
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(3),uvar,du)
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(3),vvar,vah)
         call pju%wind_rotate(uah,dv)
         call pjv%wind_rotate(du,vah)
+!$OMP END SECTIONS
       else
+!$OMP SECTIONS
         call h_interpolate_cont(ua%hint(2),uvar,uah)
+!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),vvar,vah)
         call pjd%wind_rotate(uah,vah)
+!$OMP END SECTIONS
       end if
 
       if ( idynamic == 3 ) then
@@ -334,11 +363,10 @@ module mod_cmip6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
     end subroutine read_vcoord_mpihr
 
-    recursive subroutine read_3d_mpihr(idate,v,ver,lonlyc)
+    recursive subroutine read_3d_mpihr(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_3d_var) , pointer , intent(inout) :: v
-      character(len=*) , intent(in) :: ver
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
       integer(ik4) :: year , month , day , hour , y
@@ -346,12 +374,18 @@ module mod_cmip6
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = (year / 5) * 5
+        y = year
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-          y = y - 5
+          y = y - 1
+        end if
+        if ( y < 2015 .and. ( v%vname == 'ua' .or. v%vname == 'va' ) ) then
+          ver = mpihr_version1
+        else
+          ver = mpihr_version
         end if
         write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
@@ -411,17 +445,11 @@ module mod_cmip6
         call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error reading time from file '//trim(v%filename)//'.')
         v%first_date = timeval2date(times(1),timeunit,timecal)
-#ifdef DEBUG
-        write(stderr, *) 'FIRST DATE = ', tochar(v%first_date)
-#endif
       end if
 
       tdif = idate - v%first_date
       irec = nint(tohours(tdif)/6.0) + 1
 
-#ifdef DEBUG
-      write(stderr, *) 'Reading record ',irec,' out of ',v%nrec
-#endif
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
         call cmip6_error(istatus,__FILE__,__LINE__, &
@@ -433,7 +461,7 @@ module mod_cmip6
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_3d_mpihr(idate,v,ver)
+        call read_3d_mpihr(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -518,17 +546,11 @@ module mod_cmip6
         call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error reading time from file '//trim(v%filename)//'.')
         v%first_date = timeval2date(times(1),timeunit,timecal)
-#ifdef DEBUG
-        write(stderr, *) 'FIRST DATE = ', tochar(v%first_date)
-#endif
       end if
 
       tdif = idate - v%first_date
       irec = nint(tohours(tdif)/6.0) + 1
 
-#ifdef DEBUG
-      write(stderr, *) 'Reading record ',irec,' out of ',v%nrec
-#endif
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
         call cmip6_error(istatus,__FILE__,__LINE__, &

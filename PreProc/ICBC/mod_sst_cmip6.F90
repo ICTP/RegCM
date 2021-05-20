@@ -37,6 +37,8 @@ module mod_sst_cmip6
 
   type(cmip6_2d_var) :: sst
 
+  character(len=*) , parameter , public :: mpihr_version = 'v20190710'
+
   abstract interface
     subroutine read_cmip6_sst(id,var)
       import

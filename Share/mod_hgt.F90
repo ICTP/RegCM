@@ -56,6 +56,7 @@ module mod_hgt
   interface htsig
     module procedure htsig_1
     module procedure htsig_2
+    module procedure htsig_3
   end interface htsig
 
   public :: hydrost , nonhydrost , mslp2ps
@@ -521,9 +522,7 @@ module mod_hgt
       end do
     end do
   end subroutine height_o_single_nonhy
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine htsig_1(t,h,p3d,ps,ht,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
@@ -534,27 +533,51 @@ module mod_hgt
     real(rkx) :: tbar
     integer(ik4) :: i , j , k
 
-    do j = 1 , jm
-      do i = 1 , im
-        if ( ps(i,j) > -9995.0_rkx ) then
-          h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
-        else
-          h(i,j,km) = -9999.0_rkx
-        end if
-      end do
-    end do
-    do k = km - 1 , 1 , -1
+    if ( p3d(1,1,km) > p3d(1,1,1) ) then
       do j = 1 , jm
         do i = 1 , im
-          if ( h(i,j,k+1) > -9995.0_rkx ) then
-            tbar = d_half*(t(i,j,k)+t(i,j,k+1))
-            h(i,j,k) = h(i,j,k+1)+rovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
+          if ( ps(i,j) > -9995.0_rkx ) then
+            h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
           else
-            h(i,j,k) = -9999.0_rkx
+            h(i,j,km) = -9999.0_rkx
           end if
         end do
       end do
-    end do
+      do k = km - 1 , 1 , -1
+        do j = 1 , jm
+          do i = 1 , im
+            if ( h(i,j,k+1) > -9995.0_rkx ) then
+              tbar = d_half*(t(i,j,k)+t(i,j,k+1))
+              h(i,j,k) = h(i,j,k+1)+rovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
+            else
+              h(i,j,k) = -9999.0_rkx
+            end if
+          end do
+        end do
+      end do
+    else
+      do j = 1 , jm
+        do i = 1 , im
+          if ( ps(i,j) > -9995.0_rkx ) then
+            h(i,j,1) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,1))
+          else
+            h(i,j,1) = -9999.0_rkx
+          end if
+        end do
+      end do
+      do k = 2 , km
+        do j = 1 , jm
+          do i = 1 , im
+            if ( h(i,j,k-1) > -9995.0_rkx ) then
+              tbar = d_half*(t(i,j,k)+t(i,j,k-1))
+              h(i,j,k) = h(i,j,k-1)+rovg*tbar*log(p3d(i,j,k-1)/p3d(i,j,k))
+            else
+              h(i,j,k) = -9999.0_rkx
+            end if
+          end do
+        end do
+      end do
+    end if
   end subroutine htsig_1
 
   subroutine htsig_2(t,h,pstar,ht,sig,ptop,i1,i2,j1,j2,km)
@@ -584,6 +607,54 @@ module mod_hgt
       end do
     end do
   end subroutine htsig_2
+
+  subroutine htsig_3(z,t,p,q,ps,ht)
+    implicit none
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t , p , q
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps , ht
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: z
+    integer(ik4) :: ni , nj , nk
+    integer(ik4) :: i , j , k
+    real(rkx) :: tv0 , tv1
+    ni = size(z,1)
+    nj = size(z,2)
+    nk = size(z,3)
+    if ( p(1,1,1) > p(1,1,nk) ) then
+      do j = 1 , nj
+        do i = 1 , ni
+          tv0 = t(i,j,1) * (1.0_rkx + ep1 * q(i,j,1))
+          z(i,j,1) = ht(i,j) + rovg * tv0 * log(ps(i,j)/p(i,j,1))
+        end do
+      end do
+      do k = 2 , nk
+        do j = 1 , nj
+          do i = 1 , ni
+            tv0 = t(i,j,k-1) * (1.0_rkx + ep1 * q(i,j,k-1))
+            tv1 = t(i,j,k) * (1.0_rkx + ep1 * q(i,j,k))
+            z(i,j,k) = z(i,j,k-1) + &
+              rovg * 0.5_rkx * (tv0+tv1) * log(p(i,j,k-1)/p(i,j,k))
+          end do
+        end do
+      end do
+    else
+      do j = 1 , nj
+        do i = 1 , ni
+          tv0 = t(i,j,nk) * (1.0_rkx + ep1 * q(i,j,nk))
+          z(i,j,nk) = ht(i,j) + rovg * tv0 * log(ps(i,j)/p(i,j,nk))
+        end do
+      end do
+      do k = nk-1 , 1 , -1
+        do j = 1 , nj
+          do i = 1 , ni
+            tv0 = t(i,j,k+1) * (1.0_rkx + ep1 * q(i,j,k+1))
+            tv1 = t(i,j,k) * (1.0_rkx + ep1 * q(i,j,k))
+            z(i,j,k) = z(i,j,k+1) + &
+              rovg * 0.5_rkx * (tv0+tv1) * log(p(i,j,k+1)/p(i,j,k))
+          end do
+        end do
+      end do
+    end if
+  end subroutine htsig_3
 
   subroutine htsig_o_double(t,h,pstar,ht,sig,ptop,im,jm,km)
     implicit none

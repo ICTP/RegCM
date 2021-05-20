@@ -31,9 +31,6 @@ module mod_cmip6_helper
 
   private
 
-  character(len=*) , parameter , public :: mpihr_version = 'v20190710'
-  character(len=*) , parameter , public :: mpihr_version1 = 'v20190815'
-
   type cmip6_horizontal_coordinates
     real(rkx) , pointer , dimension(:) :: lon1d => null( )
     real(rkx) , pointer , dimension(:) :: lat1d => null( )
