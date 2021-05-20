@@ -120,10 +120,10 @@ module mod_cmip6
             call h_interpolator_create(orog%hint(3),orog%hcoord%lat1d, &
               orog%hcoord%lon1d, vlat, vlon)
           else
-            allocate(ta%hint(2))
-            call h_interpolator_create(ta%hint(1),orog%hcoord%lat1d, &
+            allocate(orog%hint(2))
+            call h_interpolator_create(orog%hint(1),orog%hcoord%lat1d, &
               orog%hcoord%lon1d, xlat, xlon)
-            call h_interpolator_create(ta%hint(2),orog%hcoord%lat1d, &
+            call h_interpolator_create(orog%hint(2),orog%hcoord%lat1d, &
               orog%hcoord%lon1d, dlat, dlon)
           end if
           ps%hint => orog%hint
@@ -162,12 +162,12 @@ module mod_cmip6
           call getmem3d(qah,1,jx,1,iy,1,nkin,'cmip6:mpihr:qah')
           call getmem3d(uah,1,jx,1,iy,1,nkin,'cmip6:mpihr:uah')
           call getmem3d(vah,1,jx,1,iy,1,nkin,'cmip6:mpihr:vah')
+          call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:mpihr:zgh')
         case default
           call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
       end select
 
       if ( idynamic == 3 ) then
-        call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:zgh')
         call getmem2d(topou,1,jx,1,iy,'cmip6:topou')
         call getmem2d(topov,1,jx,1,iy,'cmip6:topov')
         call getmem3d(du,1,jx,1,iy,1,nkin,'cmip6:du')
@@ -222,11 +222,9 @@ module mod_cmip6
           call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
 !$OMP END SECTIONS
           ps%var = ps%var * 0.01_rkx
-          if ( idynamic == 3 ) then
-            call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
-            call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
-                          ta%ni,ta%nj,ta%nk,fplev,nkin)
-          end if
+          call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
+          call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
+                      ta%ni,ta%nj,ta%nk,fplev,nkin)
         case default
           call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
       end select
@@ -238,11 +236,11 @@ module mod_cmip6
       call h_interpolate_cont(ta%hint(1),tvar,tah)
 !$OMP SECTION
       call h_interpolate_cont(qa%hint(1),qvar,qah)
+!$OMP SECTION
+      call h_interpolate_cont(ta%hint(1),zvar,zgh)
 !$OMP END SECTIONS
       if ( idynamic == 3 ) then
 !$OMP SECTIONS
-        call h_interpolate_cont(ta%hint(1),zvar,zgh)
-!$OMP SECTION
         call h_interpolate_cont(ua%hint(2),uvar,uah)
 !$OMP SECTION
         call h_interpolate_cont(ua%hint(2),vvar,dv)
