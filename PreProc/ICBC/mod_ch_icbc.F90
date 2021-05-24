@@ -390,6 +390,7 @@ module mod_ch_icbc
     integer(ik4) :: year , month , day , hour
     integer(ik4) :: year1 , month1 , day1 , hour1
     integer(ik4) :: it
+    real(rkx) , parameter :: rglrog = rgas*lrate*regrav
     type(rcm_time_interval) :: tdif
 
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
@@ -460,13 +461,15 @@ module mod_ch_icbc
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == chilev) then
+          if ( prcm < pmpi ) then
+            chv4_1(j,i,l,is) = chv3(j,i,1,is)
+          else if (k0 == chilev) then
             pmpj = cht42hyam(chilev-1)*p0+xps3(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps3(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
-              chv4_1(j,i,l,is) = max(chv3(j,i,chilev,is) + &
-                 (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj),d_zero)
+              chv4_1(j,i,l,is) = 0.5_rkx * &
+                (chv3(j,i,chilev,is) + chv3(j,i,chilev-1,is)) * &
+                  exp(rglrog*log(prcm/pmpi))
             end do
           else if (k0 >= 1) then
             pmpj = cht42hyam(k0  )*p0+xps3(j,i)*cht42hybm(k0  )

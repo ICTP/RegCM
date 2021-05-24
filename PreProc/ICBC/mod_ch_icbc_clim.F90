@@ -306,6 +306,7 @@ module mod_ch_icbc_clim
     character(len=256) :: chfilename
     real(rkx) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
+    real(rkx) , parameter :: rglrog = rgas*lrate*regrav
 
     if ( doread ) then
       if ( lfuture ) then
@@ -352,18 +353,18 @@ module mod_ch_icbc_clim
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == chilev) then
-            pmpj = cht42hyam(chilev-1)*p0+xps31(j,i)*cht42hybm(chilev-1)
-            pmpi = cht42hyam(chilev  )*p0+xps31(j,i)*cht42hybm(chilev  )
+          if ( prcm < pmpi ) then
+            chv4_1(j,i,l,is) = chv31(j,i,1,is)
+          else if (k0 == chilev) then
             do is = 1 , nchsp
-              chv4_1(j,i,l,is) = chv31(j,i,chilev,is) + &
-                 (chv31(j,i,chilev-1,is) - chv31(j,i,chilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj)
+              chv4_1(j,i,l,is) = 0.5_rkx * &
+                (chv31(j,i,chilev,is) + chv31(j,i,chilev-1,is)) * &
+                  exp(rglrog*log(prcm/pmpi))
             end do
           else if (k0 >= 1) then
             pmpj = cht42hyam(k0  )*p0+xps31(j,i)*cht42hybm(k0  )
             pmpi = cht42hyam(k0+1)*p0+xps31(j,i)*cht42hybm(k0+1)
-            wt1 = (prcm-pmpj)/(pmpi-pmpj)
+            wt1 = log(prcm/pmpj)/log(pmpi/pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , nchsp
               chv4_1(j,i,l,is) = chv31(j,i,k0+1,is)*wt1 + chv31(j,i,k0,is)*wt2
@@ -417,18 +418,20 @@ module mod_ch_icbc_clim
             k0 = k
             if (prcm > pmpi) exit
           end do
-          if (k0 == chilev) then
+          if ( prcm < pmpi ) then
+            chv4_2(j,i,l,is) = chv32(j,i,1,is)
+          else if (k0 == chilev) then
             pmpj = cht42hyam(chilev-1)*p0+xps32(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps32(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
-              chv4_2(j,i,l,is) = chv32(j,i,chilev,is) + &
-                 (chv32(j,i,chilev-1,is) - chv32(j,i,chilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj)
+              chv4_2(j,i,l,is) = 0.5_rkx * &
+                (chv32(j,i,chilev,is) + chv32(j,i,chilev-1,is)) * &
+                  exp(rglrog*log(prcm/pmpi))
             end do
           else if (k0 >= 1) then
             pmpj = cht42hyam(k0  )*p0+xps32(j,i)*cht42hybm(k0  )
             pmpi = cht42hyam(k0+1)*p0+xps32(j,i)*cht42hybm(k0+1)
-            wt1 = (prcm-pmpj)/(pmpi-pmpj)
+            wt1 = log(prcm/pmpj)/log(pmpi/pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , nchsp
               chv4_2(j,i,l,is) = chv32(j,i,k0+1,is)*wt1 + chv32(j,i,k0,is)*wt2
