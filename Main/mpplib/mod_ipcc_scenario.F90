@@ -1878,14 +1878,18 @@ module mod_ipcc_scenario
     ghgmf%year = year
     ghgmf%month = month
     do i = 1 , imax
-      filename = trim(inpglob) // pthsep // trim('CMIP6') // pthsep // &
-        trim('GHG') // pthsep // trim(varname(i)) // trim(inptype(ityp)) // &
+      filename = trim(varname(i)) // trim(inptype(ityp)) // &
         trim(modelname(imod)) // trim(resolution(ires)) // &
         trim(timeperiod(itim)) // '.nc'
       ierr = nf90_open(filename, nf90_nowrite, ncid)
       if ( ierr /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(ierr) , trim(filename)
-        call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+        filename = trim(inpglob) // pthsep // trim('CMIP6') // pthsep // &
+          trim('GHG') // pthsep // filename
+        ierr = nf90_open(filename, nf90_nowrite, ncid)
+        if ( ierr /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(ierr) , trim(filename)
+          call fatal(__FILE__,__LINE__,'CANNOT OPEN FILE')
+        end if
       end if
       if ( .not. associated(ghgmf%gmf) ) then
         ierr = nf90_inq_dimid(ncid,'lat',dimid)
