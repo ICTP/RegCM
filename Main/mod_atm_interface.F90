@@ -974,6 +974,7 @@ module mod_atm_interface
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       end if
+      call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
       call getmem2d(ax%tp2d,jci1,jci2,ici1,ici2,'slice:tp2d')
     end subroutine allocate_slice

@@ -320,14 +320,14 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        if ( m2p%ldmsk(j,i) == 1 ) then
-          tvfac = d_one + ep1*m2p%q2m(j,i)
-        else
+        !if ( m2p%ldmsk(j,i) == 1 ) then
+        !  tvfac = d_one + ep1*m2p%q2m(j,i)
+        !else
           !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
           !         exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
           q0s = pfwsat(tskx,presfl(kzp1))
           tvfac = d_one + ep1*q0s
-        end if
+        !end if
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -924,8 +924,9 @@ module mod_pbl_uwtcm
 
       ktop(:) = 0
       kbot(:) = 0
-      kpbconv = 0
       kpbl2dx = 0
+
+      kpbconv = 0
       istabl = 1
       do k = 1 , kzp1
         bbls(k) = d_zero
@@ -948,100 +949,96 @@ module mod_pbl_uwtcm
       ktop_save(:) = ktop(:)
       if ( kpbconv >= 1 ) then
         ibeg = 1
-        bigloop: &
-        do
-          convlayerloop: &
-          do ilay = ibeg , kpbconv
-            blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
-            ! find average n*n*l*l for layer
-            rnnll = d_zero
-            tkeavg = d_zero
-            nlev = kbot(ilay)-ktop(ilay)+1
-            ! Average layer
-            do k = ktop(ilay) , kbot(ilay)
-              bbls(k) = min(blinf,vonkar*zqx(k))
-              rnnll = rnnll + nsquar(k)*bbls(k)*bbls(k)
-              tkeavg = tkeavg + tke(k) / real(nlev,rkx)
-            end do
-            ! first extend up
-            kstart = ktop(ilay) - 1
-            searchup1: &
-            do k = kstart , 2 , -1
-              ! we always go up at least one, for the entrainment interface
-              ktop(ilay) = k
-              bbls(k) = min(blinf,vonkar*zqx(k))
-              trnnll = nsquar(k)*bbls(k)*bbls(k)
-              ! If this is the top of the layer, stop searching upward
-              if ( trnnll*real(nlev,rkx) >= -d_half*rnnll ) exit searchup1
-              if ( ilay > 1 ) then
-                ! did we merge with layer above?
-                if ( ktop(ilay) == kbot(ilay-1) ) then
-                  ibeg = ilay - 1
-                  ktop(ibeg) = ktop_save(ibeg)+1
-                  kbot(ibeg) = kbot(ibeg+1)
-                  kpbconv = kpbconv - 1
-                  do itemp = ibeg+1 , kpbconv
-                    ktop(itemp) = ktop(itemp+1)
-                    kbot(itemp) = kbot(itemp+1)
-                    ktop_save(itemp) = ktop_save(itemp+1)
-                  end do
-                  cycle bigloop ! recompute for the new, deeper layer
-                                ! (restart the do loop)
-                end if
-              end if
-              rnnll = rnnll + trnnll
-              nlev = nlev + 1
-            end do searchup1
-            ! add radiative/entrainment contribution to total
-            k = ktop(ilay)
-            if ( qcx(k) > 1.0e-4_rkx ) then
-              radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
-                        (rhoxfl(k)*uthvx(k)*exnerfl(k))
-            else
-              radnnll = d_zero
-            end if
-            entnnll = d_zero
-            if ( k >= 3 ) then
-              delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2))   &
-                      - (thlxin(k) + thx(k)*ep1*qwxin(k))
-              elambda = orcp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
-              bige = 0.8_rkx * elambda
-              biga = aone * (d_one + atwo * bige)
-              entnnll = biga * sqrt(tkeavg**3) / bbls(k)
-            end if
-            if ( tkeavg > d_zero ) then
-              rnnll = rnnll + min(d_zero,bbls(k)/sqrt(tkeavg)*(radnnll+entnnll))
-            end if
-            ! now extend down
-            searchdown1: &
-            do k = kbot(ilay)+1 , kzp1
-              tbbls = min(blinf,vonkar*zqx(k))
-              trnnll = nsquar(k)*tbbls*tbbls
-              ! is it the bottom?
-              if ( trnnll*real(nlev,rkx) >= -d_half*rnnll ) cycle convlayerloop
-              ! (skip the rest of this iteration of the do loop)
-              kbot(ilay) = k
-              if ( ilay < kpbconv .and. kbot(ilay) == ktop(ilay+1) ) then
-                ! did we merge with layer below?
-                ktop(ilay) = ktop_save(ilay)
-                kbot(ilay) = kbot(ilay+1)
+        convlayerloop: &
+        do ilay = ibeg , kpbconv
+          blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
+          ! find average n*n*l*l for layer
+          rnnll = d_zero
+          tkeavg = d_zero
+          nlev = kbot(ilay)-ktop(ilay)+1
+          ! Average layer
+          do k = ktop(ilay) , kbot(ilay)
+            bbls(k) = min(blinf,vonkar*zqx(k))
+            rnnll = rnnll + nsquar(k)*bbls(k)*bbls(k)
+            tkeavg = tkeavg + tke(k) / real(nlev,rkx)
+          end do
+          ! first extend up
+          kstart = ktop(ilay) - 1
+          searchup1: &
+          do k = kstart , 2 , -1
+            ! we always go up at least one, for the entrainment interface
+            ktop(ilay) = k
+            bbls(k) = min(blinf,vonkar*zqx(k))
+            trnnll = nsquar(k)*bbls(k)*bbls(k)
+            ! If this is the top of the layer, stop searching upward
+            if ( trnnll*real(nlev,rkx) >= -d_half*rnnll ) exit searchup1
+            if ( ilay > 1 ) then
+              ! did we merge with layer above?
+              if ( ktop(ilay) == kbot(ilay-1) ) then
+                ibeg = ilay - 1
+                ktop(ibeg) = ktop_save(ibeg)+1
+                kbot(ibeg) = kbot(ibeg+1)
                 kpbconv = kpbconv - 1
-                shiftarray2: &
-                do itemp = ilay+1 , kpbconv
+                do itemp = ibeg+1 , kpbconv
                   ktop(itemp) = ktop(itemp+1)
                   kbot(itemp) = kbot(itemp+1)
                   ktop_save(itemp) = ktop_save(itemp+1)
-                end do shiftarray2
-                cycle bigloop ! recompute for the new, deeper layer
-                              ! (restart the do loop)
+                end do
+                cycle convlayerloop ! recompute for the new, deeper layer
+                                    ! (restart the do loop)
               end if
-              rnnll = rnnll + trnnll
-              bbls(k) = tbbls
-              nlev = nlev + 1
-            end do searchdown1
-          end do convlayerloop
-          exit bigloop
-        end do bigloop
+            end if
+            rnnll = rnnll + trnnll
+            nlev = nlev + 1
+          end do searchup1
+          ! add radiative/entrainment contribution to total
+          k = ktop(ilay)
+          if ( qcx(k) > 1.0e-4_rkx ) then
+            radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
+                      (rhoxfl(k)*uthvx(k)*exnerfl(k))
+          else
+            radnnll = d_zero
+          end if
+          entnnll = d_zero
+          if ( k >= 3 ) then
+            delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2))   &
+                    - (thlxin(k) + thx(k)*ep1*qwxin(k))
+            elambda = orcp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            bige = 0.8_rkx * elambda
+            biga = aone * (d_one + atwo * bige)
+            entnnll = biga * sqrt(tkeavg**3) / bbls(k)
+          end if
+          if ( tkeavg > d_zero ) then
+            rnnll = rnnll + min(d_zero,bbls(k)/sqrt(tkeavg)*(radnnll+entnnll))
+          end if
+          ! now extend down
+          searchdown1: &
+          do k = kbot(ilay)+1 , kzp1
+            tbbls = min(blinf,vonkar*zqx(k))
+            trnnll = nsquar(k)*tbbls*tbbls
+            ! is it the bottom?
+            if ( trnnll*real(nlev,rkx) >= -d_half*rnnll ) exit searchdown1
+            ! (skip the rest of this iteration of the do loop)
+            kbot(ilay) = k
+            if ( ilay < kpbconv .and. kbot(ilay) == ktop(ilay+1) ) then
+              ! did we merge with layer below?
+              ktop(ilay) = ktop_save(ilay)
+              kbot(ilay) = kbot(ilay+1)
+              kpbconv = kpbconv - 1
+              shiftarray2: &
+              do itemp = ilay+1 , kpbconv
+                ktop(itemp) = ktop(itemp+1)
+                kbot(itemp) = kbot(itemp+1)
+                ktop_save(itemp) = ktop_save(itemp+1)
+              end do shiftarray2
+              cycle convlayerloop ! recompute for the new, deeper layer
+                                  ! (restart the do loop)
+            end if
+            rnnll = rnnll + trnnll
+            bbls(k) = tbbls
+            nlev = nlev + 1
+          end do searchdown1
+        end do convlayerloop
         setbbls: &
         do ilay = 1 , kpbconv
           blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
