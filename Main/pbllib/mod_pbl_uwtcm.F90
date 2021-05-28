@@ -143,7 +143,7 @@ module mod_pbl_uwtcm
     real(rkx) :: temps , templ , deltat , rvls , rpfac , tbbls
     real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
                  dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
-                 thvflx , q0s , tvfac , svs , rocp
+                 thvflx , q0s , tvfac , svs , cpoxlv
     ! real(rkx) :: kh0
     real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
@@ -156,7 +156,7 @@ module mod_pbl_uwtcm
                thlx , thlxs , thxs , tx , tvx , rttenx , preshl , qcx ,     &
                qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
                rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
-               rimp1 , uimp2 , rimp2 , rlv , orlv , rcp , orcp
+               rimp1 , uimp2 , rimp2 , rlv , orlv , cp , ocp
     real(rkx) , dimension(kz) :: qix , qixs
     real(rkx) , dimension(kz,ntr) :: chix , chixs
     real(rkx) , dimension(ntr) :: chifxx
@@ -212,9 +212,9 @@ module mod_pbl_uwtcm
           rttenx(k) = m2p%heatrt(j,i,k)
           preshl(k) = m2p%patm(j,i,k)
           rlv(k) = wlhv - cpvmcl*(tx(k)-tzero)
-          rcp(k) = cpd*(d_one-qx(k)) + cpw*qx(k)
+          cp(k) = cpd*(d_one-qx(k)) + cpw*qx(k)
           orlv(k) = d_one/rlv(k)
-          orcp(k) = d_one/rcp(k)
+          ocp(k) = d_one/cp(k)
         end do
 
         if ( implicit_ice .and. ipptls > 1 ) then
@@ -248,7 +248,7 @@ module mod_pbl_uwtcm
           tvx(k) = tx(k)*tvcon ! virtual temperature
           uthvx(k) = thx(k)*tvcon
           ! Liquid water potential temperature (accounting for ice)
-          thlx(k) = thx(k) - rlv(k)*qcx(k)*orcp(k)*rexnerhl(k)
+          thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
         end do
 
         ! save initial values
@@ -342,9 +342,9 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-9_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-10_rkx))
         ! Estimate of the surface virtual heat flux
-        thvflx = hfxx/rhoxsf*orcp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
+        thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
         ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
@@ -408,7 +408,7 @@ module mod_pbl_uwtcm
           end do
           ! include surface sensible heat flux
           rimp1(kz) = rimp1(kz) + &
-                   dt*hfxx*rrhoxhl(kz)*orcp(kz)*rdzq(kz)*rexnerhl(kz)
+                   dt*hfxx*rrhoxhl(kz)*ocp(kz)*rdzq(kz)*rexnerhl(kz)
           ! include surface latent heat flux
           rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
           ! Solve total water
@@ -419,7 +419,7 @@ module mod_pbl_uwtcm
           ! temperature profile (this is for the semi-implicit integration)
           uimp2 = max(uimp2,minqq)
           call n2(uimp1,uimp2)
-          thx_t = uimp1(kz) + orcp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
+          thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
           tvcon = d_one + ep1*qx(kz)-qcx(kz)
           thvx_t = thx_t*tvcon
           dthv_t = (thvx_t-thv0)
@@ -456,10 +456,10 @@ module mod_pbl_uwtcm
             !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
             !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
             rvls = pfwsat(temps,preshl(k))
-            rocp = rcp(k)*orlv(k)
+            cpoxlv = cp(k)*orlv(k)
             do iteration = 1 , 3
-              deltat = ((templ-temps)*rocp + qwx(k)-rvls) / &
-                (rocp + ep2*rlv(k)*rvls/rgas/templ/templ)
+              deltat = ((templ-temps)*cpoxlv + qwx(k)-rvls) / &
+                (cpoxlv + ep2*rlv(k)*rvls/rgas/templ/templ)
               if ( abs(deltat) < 0.01_rkx ) exit
               temps = temps + deltat
               !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
@@ -468,7 +468,7 @@ module mod_pbl_uwtcm
             end do
             qcx(k) = max(qwx(k)-rvls, d_zero)
             qx(k) = qwx(k)-qcx(k)
-            thx(k) = (templ + orcp(k)*rlv(k)*qcx(k))*rexnerhl(k)
+            thx(k) = (templ + ocp(k)*rlv(k)*qcx(k))*rexnerhl(k)
             uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           end do
         end if
@@ -574,7 +574,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-9_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-10_rkx))
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
@@ -766,7 +766,7 @@ module mod_pbl_uwtcm
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin
       ! local variables
       real(rkx) :: tvbl , rcld , tvab , thvxfl , dtvdz
-      real(rkx) :: temps , templ , tempv , rvls , rocp
+      real(rkx) :: temps , templ , tempv , rvls , cpoxlv
       integer(ik4) :: k
 
       do k = 2 , kz
@@ -775,13 +775,13 @@ module mod_pbl_uwtcm
         templ = thlxin(k)*exnerfl(k)
         !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
         rvls = pfwsat(templ,presfl(k))
-        rocp = rcp(k)*orlv(k)
-        temps = templ + (qwxin(k)-rvls)/(rocp + &
+        cpoxlv = cp(k)*orlv(k)
+        temps = templ + (qwxin(k)-rvls)/(cpoxlv + &
                       ep2*rlv(k)*rvls/(rgas*templ*templ))
         !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rvls = pfwsat(temps,presfl(k))
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
-        tempv = (templ + orcp(k)*rlv(k)*rcldb(k)) * &
+        tempv = (templ + ocp(k)*rlv(k)*rcldb(k)) * &
                 (d_one + ep1*(qwx(k)-rcldb(k))-rcldb(k))
         ! tempv = (templ + wlhvocp*rcldb(k)) * &
         !   (d_one + ep1*(qwx(k)-rcldb(k))-rcldb(k))
@@ -790,14 +790,14 @@ module mod_pbl_uwtcm
         templ = thlxin(k-1)*exnerfl(k)
         !rvls = d_100*svp1pa*exp(svp2*(templ-tzero)/(templ-svp3))*epop(k)
         rvls = pfwsat(templ,presfl(k))
-        temps = templ + (qwxin(k-1)-rvls)/(rocp + &
+        temps = templ + (qwxin(k-1)-rvls)/(cpoxlv + &
                 ep2*rlv(k)*rvls/(rgas*templ*templ))
         !rvls = d_100*svp1pa*exp(svp2*(temps-tzero)/(temps-svp3))*epop(k)
         rvls = pfwsat(temps,presfl(k))
         rcld = max(qwxin(k-1)-rvls,d_zero)
         !tempv = (templ + wlhvocp*rcld) *    &
         !        (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
-        tempv = (templ + orcp(k)*rlv(k)*rcld) * &
+        tempv = (templ + ocp(k)*rlv(k)*rcld) * &
                 (d_one + ep1*(qwx(k-1)-rcld) - rcld)
         tvab = tempv*rexnerfl(k)
 
@@ -880,7 +880,7 @@ module mod_pbl_uwtcm
             kethl(k-1) = 0.0_rkx
             delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
                       (thlxin(k) + thx(k)  *ep1*qwxin(k))
-            elambda = orcp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
             bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
 
@@ -976,7 +976,7 @@ module mod_pbl_uwtcm
               ! did we merge with layer above?
               if ( ktop(ilay) == kbot(ilay-1) ) then
                 ibeg = ilay - 1
-                ktop(ibeg) = ktop_save(ibeg)+1
+                ktop(ibeg) = ktop_save(ibeg)
                 kbot(ibeg) = kbot(ibeg+1)
                 kpbconv = kpbconv - 1
                 do itemp = ibeg+1 , kpbconv
@@ -993,7 +993,7 @@ module mod_pbl_uwtcm
           end do searchup1
           ! add radiative/entrainment contribution to total
           k = ktop(ilay)
-          if ( qcx(k) > 1.0e-4_rkx ) then
+          if ( qcx(k) > 1.0e-8_rkx ) then
             radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
                       (rhoxfl(k)*uthvx(k)*exnerfl(k))
           else
@@ -1001,9 +1001,9 @@ module mod_pbl_uwtcm
           end if
           entnnll = d_zero
           if ( k >= 3 ) then
-            delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2))   &
-                    - (thlxin(k) + thx(k)*ep1*qwxin(k))
-            elambda = orcp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) - &
+                      (thlxin(k)  +thx(k)  *ep1*qwxin(k))
+            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
             bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
             entnnll = biga * sqrt(tkeavg**3) / bbls(k)

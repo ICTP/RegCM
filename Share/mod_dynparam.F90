@@ -513,6 +513,13 @@ module mod_dynparam
     rewind(ipunit)
     read(ipunit, nml=coreparam, iostat=iresult)
 
+    if ( idynamic < 1 .or. idynamic > 3 ) then
+      write (stderr,*) 'Error reading coreparam namelist in ',trim(filename)
+      write (stderr,*) 'Unknown dynamical core: ', idynamic
+      ierr = 3
+      return
+    end if
+
     if ( idynamic == 2 ) then
       base_state_pressure = 101325.0_rkx ! Base state reference pressure
       logp_lrate = 47.70_rkx  ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
@@ -534,7 +541,7 @@ module mod_dynparam
     read(ipunit, nml=geoparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading geoparam namelist in ',trim(filename)
-      ierr = 3
+      ierr = 4
       return
     end if
     if ( ds < 0.0_rkx ) then
@@ -665,7 +672,7 @@ module mod_dynparam
     read(ipunit, nml=terrainparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading terrainparam namelist in ',trim(filename)
-      ierr = 4
+      ierr = 5
       return
     end if
 
@@ -702,7 +709,7 @@ module mod_dynparam
     read(ipunit, nml=globdatparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading globdatparam namelist in ',trim(filename)
-      ierr = 5
+      ierr = 6
       return
     end if
     if ( dattyp == 'CMIP6' ) then
@@ -710,7 +717,7 @@ module mod_dynparam
       read(ipunit, nml=cmip6param, iostat=iresult)
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading cmip6param namelist in ',trim(filename)
-        ierr = 6
+        ierr = 7
         return
       end if
     end if
@@ -757,7 +764,7 @@ module mod_dynparam
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading perturbparam namelist in ' , &
           trim(filename)
-        ierr = 7
+        ierr = 8
         return
       end if
     end if

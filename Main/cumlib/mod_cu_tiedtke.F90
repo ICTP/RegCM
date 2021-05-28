@@ -27,7 +27,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , dt , iqv , iqi , entrmax ,      &
+  use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , dx , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,   &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls , &
          hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum
@@ -344,7 +344,7 @@ module mod_cu_tiedtke
     pqm1(:,:) = pqm1(:,:)/(d_one + pqm1(:,:))
     pqte(:,:) = pqte(:,:)/(d_one + pqm1(:,:))**2
 
-    nskmax = nint(17747.5/ds)
+    nskmax = nint(17747.5/(dx*d_r1000))
     if ( iconv == 4 ) then
       call setup(nskmax,pmean)
     else
@@ -396,43 +396,37 @@ module mod_cu_tiedtke
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do ii = 1 , nipoi
-          if (ktype(ii) > 0) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)
-            cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
-          end if
+          i = imap(ii)
+          j = jmap(ii)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
         end do
       end do
     else
       do k = 1 , kz
         do ii = 1 , nipoi
-          if (ktype(ii) > 0) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
-            cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-          end if
+          i = imap(ii)
+          j = jmap(ii)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
         end do
       end do
     end if
     do k = 1 , kz
       do ii = 1 , nipoi
-        if (ktype(ii) > 0) then
-          i = imap(ii)
-          j = jmap(ii)
-          cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
-          cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-          cu_qdetr(j,i,k) = dtcum*zlude(ii,k)*egrav / &
-                            (paphp1(ii,k+1)-paphp1(ii,k))
-          cu_raincc(j,i,k) = pmflxr(ii,k)
-        end if
+        i = imap(ii)
+        j = jmap(ii)
+        cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
+        cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
+        cu_qdetr(j,i,k) = dtcum*zlude(ii,k)*egrav / &
+                          (paphp1(ii,k+1)-paphp1(ii,k))
+        cu_raincc(j,i,k) = pmflxr(ii,k)
       end do
     end do
 
@@ -440,33 +434,26 @@ module mod_cu_tiedtke
       if ( idynamic == 3 ) then
         do k = 1 , kz
           do ii = 1 , nipoi
-            if (ktype(ii) > 0) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
           end do
         end do
       else
         do k = 1 , kz
           do ii = 1 , nipoi
-            if (ktype(ii) > 0) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - &
-                         m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
           end do
         end do
       end if
     else
       do k = 1 , kz
         do ii = 1 , nipoi
-          if (ktype(ii) > 0) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
-          end if
+          i = imap(ii)
+          j = jmap(ii)
+          cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
         end do
       end do
     end if
@@ -558,7 +545,8 @@ module mod_cu_tiedtke
       integer(ik4) , intent(in) :: smax
       real(rkx) , dimension(kz) , intent(in) :: pmean
       integer(ik4) :: klev
-      rtau = d_one+264.0_rkx/real(smax,rkx)
+      !rtau = d_one+264.0_rkx/real(smax,rkx)
+      rtau = d_one+528.0_rkx/real(smax,rkx)
       rtau = min(3.0_rkx,rtau)
       if ( smax >= 511 ) then
         rmfcfl = 3.0_rkx
