@@ -44,8 +44,16 @@ module mod_rad_o3blk
   real(rkx) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
                               ppsum , ppwin
 
-  real(rkx) , pointer , dimension(:) :: plev
   real(rkx) , pointer , dimension(:,:) :: alon , alat , aps
+  real(rkx) , pointer , dimension(:,:,:) :: xozone1 , xozone2
+  character(len=16) , parameter :: ozname_rcp = 'ozone'
+  character(len=16) , parameter :: ozname_ssp = 'vmro3'
+  character(len=16) :: ozname
+  integer(ik4) :: ystart , yend , moffset
+  real(rkx) :: mulfac
+  real(rkx) , pointer , dimension(:) :: olat
+  real(rkx) , pointer , dimension(:) :: olon
+  real(rkx) , pointer , dimension(:) :: oplev
   real(rkx) , pointer , dimension(:,:,:) :: ozone1 , ozone2
   real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
   real(rkx) , pointer , dimension(:,:,:) :: yozone
@@ -85,6 +93,107 @@ module mod_rad_o3blk
          0.938_rkx ,   0.469_rkx/
 
   contains
+
+  character(len=256) function o3filename(year)
+    implicit none
+    integer(ik4) , intent(in) :: year
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+      ozname = ozname_rcp
+      mulfac = 1.0e-6_rkx
+      moffset = 1
+      if ( year < 1850 ) then
+        call fatal(__FILE__,__LINE__,'O3 : year < RCP min date (1850)')
+      else if ( year > 2100 ) then
+        call fatal(__FILE__,__LINE__,'O3 : year > RCP max date (2100)')
+      else if ( year < 2010 ) then
+        ystart = 1850
+        yend = 2010
+        o3filename = 'Ozone_CMIP5_ACC_SPARC_RF.nc'
+      else
+        ystart = 2010
+        yend = 2100
+        if ( scenario(4:6) == '2.6' ) then
+          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP2.6.nc'
+        else if ( scenario(4:6) == '4.5' ) then
+          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP4.5.nc'
+        else if ( scenario(4:6) == '8.5' ) then
+          o3filename = 'Ozone_CMIP5_ACC_SPARC_RCP8.5.nc'
+        else
+          call fatal(__FILE__,__LINE__,'UNKNOWN RCP SCENARIO for O3')
+        end if
+      end if
+    else if ( scenario(1:3) == 'SSP' .or. scenario(1:3) == 'ssp' ) then
+      ozname = ozname_ssp
+      mulfac = 1.0_rkx
+      moffset = 0
+      if ( year < 1850 ) then
+        call fatal(__FILE__,__LINE__,'O3 : year < SPP min date (1850)')
+      else if ( year < 2015 ) then
+        if ( year < 1900 ) then
+          ystart = 1850
+          yend = 1900
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_185001-189912.nc'
+        else if ( year < 1950 ) then
+          ystart = 1900
+          yend = 1950
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_190001-194912.nc'
+        else if ( year < 2000 ) then
+          ystart = 1950
+          yend = 2000
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_195001-199912.nc'
+        else
+          ystart = 2000
+          yend = 2015
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_CMIP_UReading-CCMI-1-0_gn_200001-201412.nc'
+        end if
+      else if ( year < 2101 ) then
+        if ( scenario(4:6) == '119' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp119-1-1_gn_'
+        else if ( scenario(4:6) == '126' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp126-1-0_gn_'
+        else if ( scenario(4:6) == '245' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp245-1-0_gn_'
+        else if ( scenario(4:6) == '370' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp370-1-0_gn_'
+        else if ( scenario(4:6) == '434' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp434-1-1_gn_'
+        else if ( scenario(4:6) == '460' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp460-1-1_gn_'
+        else if ( scenario(4:6) == '534' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp534os-1-1_gn_'
+        else if ( scenario(4:6) == '585' ) then
+          o3filename = trim(inpglob)//pthsep//'CMIP6'//pthsep//'O3'//pthsep// &
+            'vmro3_input4MIPs_ozone_ScenarioMIP_UReading-CCMI-ssp585-1-0_gn_'
+        else
+          call fatal(__FILE__,__LINE__,'UNKNOWN SSP SCENARIO for O3')
+        end if
+        if ( year < 2050 ) then
+          ystart = 2015
+          yend = 2050
+          o3filename = trim(o3filename) // '201501-204912.nc'
+        else
+          ystart = 2050
+          yend = 2100
+          o3filename = trim(o3filename) // '205001-210012.nc'
+        end if
+      else
+        call fatal(__FILE__,__LINE__,'O3 : year < SPP max date (2101)')
+      end if
+    else
+      call fatal(__FILE__,__LINE__,'UNKNOWN SCENARIO for O3')
+    end if
+  end function o3filename
 
   subroutine allocate_mod_rad_o3blk
     implicit none
@@ -137,18 +246,14 @@ module mod_rad_o3blk
     deallocate(o3wrk,ppwrk)
   end subroutine o3data
 
-  subroutine read_o3data(idatex,scenario,m2r)
+  subroutine read_o3data(idatex,m2r)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
     type(mod_2_rad) , intent(in) :: m2r
-    character(len=8) , intent(in) :: scenario
-    character(len=64) :: infile
+    character(len=256) :: infile
     logical , save :: ifirst
     logical :: dointerp
     real(rkx) , dimension(kzp1) :: ozprnt
-    real(rkx) , dimension(72,37,24) :: xozone1 , xozone2
-    real(rkx) , save , dimension(37) :: lat
-    real(rkx) , save , dimension(72) :: lon
     real(rkx) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
@@ -161,31 +266,16 @@ module mod_rad_o3blk
     call split_idate(idatex,iyear,imon,iday,ihour)
     imonmidd = monmiddle(idatex)
 
-    if ( (iyear < 1850 .and. iyear > 2099) .or. &
-         (iyear == 2100 .and. imon /= 1 ) ) then
-      write (stderr,*) 'NO CLIMATIC O3 DATA AVAILABLE FOR ',iyear*100+imon
-      write (stderr,*) 'WILL USE TABULATED VALUES.'
-      return
+    if ( iyear < 1850 ) then
+      iyear = 1850
+    else if ( iyear > 2100 ) then
+      iyear = 2100
     end if
 
     if ( ifirst ) then
       call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
       call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
       ifirst = .false.
-    end if
-
-    if ( myid == iocpu ) then
-      if ( iyear < 2010 ) then
-        infile = 'Ozone_CMIP5_ACC_SPARC_RF.nc'
-      else if ( scenario(4:6) == '2.6' ) then
-        infile = 'Ozone_CMIP5_ACC_SPARC_RCP2.6.nc'
-      else if ( scenario(4:6) == '4.5' ) then
-        infile = 'Ozone_CMIP5_ACC_SPARC_RCP4.5.nc'
-      else if ( scenario(4:6) == '8.5' ) then
-        infile = 'Ozone_CMIP5_ACC_SPARC_RCP8.5.nc'
-      else
-        call fatal(__FILE__,__LINE__,'ONLY ACCEPTED RCP SCENARIOS')
-      end if
     end if
 
     im1 = imon
@@ -206,12 +296,20 @@ module mod_rad_o3blk
       iref2 = imonmidd
     end if
     dointerp = .false.
+
+    if ( myid == iocpu ) then
+      infile = o3filename(isy)
+    end if
+
     if ( ncid < 0 ) then
       if ( myid == iocpu ) then
-        call getmem1d(plev,1,24,'ozone:plev')
-        call getmem3d(yozone,1,njcross,1,nicross,1,24,'ozone:yozone')
-        call init_o3data(infile,ncid,lat,lon)
-        call h_interpolator_create(hint,lat,lon,alat,alon)
+        call init_o3data(infile,ncid,olat,olon,oplev)
+        call getmem3d(yozone,1,njcross,1,nicross,1,size(oplev),'ozone:yozone')
+        call getmem3d(xozone1,1,size(olon),1,size(olat),1,size(oplev), &
+          'ozone:xozone1')
+        call getmem3d(xozone2,1,size(olon),1,size(olat),1,size(oplev), &
+          'ozone:xozone2')
+        call h_interpolator_create(hint,olat,olon,alat,alon)
       else
         ncid = 0
       end if
@@ -232,12 +330,14 @@ module mod_rad_o3blk
       call grid_collect(m2r%pfatms,pp3d,jci1,jci2,ici1,ici2,1,kzp1)
       if ( myid == iocpu ) then
         write (stdout,*) 'Reading Ozone Data...'
-        call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
-        call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
+        call readvar3d_pack(ncid,iy1,im1,ozname,xozone1)
+        call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
         call h_interpolate_cont(hint,xozone1,yozone)
-        call intlinreg(ozone1,yozone,aps,plev,1,njcross,1,nicross,24,pp3d,kzp1)
+        call intlinreg(ozone1,yozone,aps,oplev, &
+                       1,njcross,1,nicross,size(oplev),pp3d,kzp1)
         call h_interpolate_cont(hint,xozone2,yozone)
-        call intlinreg(ozone2,yozone,aps,plev,1,njcross,1,nicross,24,pp3d,kzp1)
+        call intlinreg(ozone2,yozone,aps,oplev, &
+                       1,njcross,1,nicross,size(oplev),pp3d,kzp1)
       end if
     end if
 
@@ -249,7 +349,7 @@ module mod_rad_o3blk
       odist = xfac1 - xfac2
       xfac1 = xfac1/odist
       xfac2 = d_one-xfac1
-      ozone = (ozone1*xfac2+ozone2*xfac1)*1.0e-6_rkx
+      ozone = (ozone1*xfac2+ozone2*xfac1)*mulfac
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
     if ( myid == italk .and. dointerp ) then
@@ -278,26 +378,51 @@ module mod_rad_o3blk
     end if
   end subroutine iprevmon
 
-  subroutine init_o3data(o3file,ncid,lat,lon)
+  subroutine init_o3data(o3file,ncid,lat,lon,lev)
     implicit none
     character(len=*) , intent(in) :: o3file
     integer(ik4) , intent(out) :: ncid
-    real(rkx) , intent(out) , dimension(:) :: lat , lon
-    integer(ik4) :: iret
+    real(rkx) , intent(inout) , dimension(:) , pointer :: lat , lon , lev
+    integer(ik4) :: iret , idimid , nlon , nlat , nlev
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret) , o3file
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
-    call readvar1d(ncid,'latitude',lat)
-    call readvar1d(ncid,'longitude',lon)
-    call readvar1d(ncid,'level',plev)
-    plev(:) = plev(:) * d_100 ! Put it in Pa
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+      iret = nf90_inq_dimid(ncid,'longitude',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlon)
+      iret = nf90_inq_dimid(ncid,'latitude',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlat)
+      iret = nf90_inq_dimid(ncid,'level',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlev)
+      call getmem1d(lat,1,nlat,'init_o3data:lat')
+      call getmem1d(lon,1,nlon,'init_o3data:lon')
+      call getmem1d(lev,1,nlev,'init_o3data:lev')
+      call readvar1d(ncid,'latitude',lat)
+      call readvar1d(ncid,'longitude',lon)
+      call readvar1d(ncid,'level',lev)
+    else
+      iret = nf90_inq_dimid(ncid,'lon',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlon)
+      iret = nf90_inq_dimid(ncid,'lat',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlat)
+      iret = nf90_inq_dimid(ncid,'plev',idimid)
+      iret = nf90_inquire_dimension(ncid,idimid,len=nlev)
+      call getmem1d(lat,1,nlat,'init_o3data:lat')
+      call getmem1d(lon,1,nlon,'init_o3data:lon')
+      call getmem1d(lev,1,nlev,'init_o3data:lev')
+      call readvar1d(ncid,'lat',lat)
+      call readvar1d(ncid,'lon',lon)
+      call readvar1d(ncid,'plev',lev)
+    end if
+    lev(:) = lev(:) * d_100 ! Put it in Pa
   end subroutine init_o3data
 
   subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
     implicit none
-    integer(ik4) , intent(in) :: ncid , iyear , imon
+    integer(ik4) , intent(inout) :: ncid
+    integer(ik4) , intent(in) :: iyear , imon
     character(len=*) , intent(in) :: vname
     real(rkx) , intent(out) , dimension(:,:,:) :: val
     real(rkx) , save :: xscale , xfact
@@ -305,14 +430,30 @@ module mod_rad_o3blk
     integer(ik4) , save :: ilastncid , icvar , itvar
     integer(ik4) , save , dimension(4) :: istart , icount
     integer(ik4) :: iret , irec
+    character(len=256) :: infile
     data ilastncid /-1/
     data icvar /-1/
     data xscale /1.0_rkx/
     data xfact /0.0_rkx/
-    data istart  /  1 ,  1 ,  1 ,  1/
-    data icount  / 72 , 37 , 24 ,  1/
+    data istart  / 1 , 1 , 1 , 1 /
 
-    irec = ((iyear-1849)*12+imon-12)+1
+    if ( iyear == yend ) then
+      iret = nf90_close(ncid)
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT CLOSE OZONE FILE')
+      infile = o3filename(iyear)
+      iret = nf90_open(infile,nf90_nowrite,ncid)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret) , infile
+        call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
+      end if
+    end if
+
+    icount(1) = size(olon)
+    icount(2) = size(olat)
+    icount(3) = size(oplev)
+    icount(4) = 1
+    istart(4) = ((iyear-ystart)*12+imon)+moffset
     if ( ncid /= ilastncid ) then
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
@@ -321,13 +462,11 @@ module mod_rad_o3blk
       end if
       iret = nf90_get_att(ncid,icvar,'scale_factor',xscale)
       if ( iret /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(iret)
-        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+        xscale = 1.0_rkx
       end if
       iret = nf90_get_att(ncid,icvar,'add_offset',xfact)
       if ( iret /= nf90_noerr ) then
-        write (stderr, *) nf90_strerror(iret)
-        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+        xfact = 0.0_rkx
       end if
       iret = nf90_inq_varid(ncid,'time',itvar)
       if ( iret /= nf90_noerr ) then
@@ -335,12 +474,6 @@ module mod_rad_o3blk
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
       end if
     end if
-    iret = nf90_get_var(ncid,itvar,frstp)
-    if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
-    end if
-    istart(4) = irec - int(frstp)
     iret = nf90_get_var(ncid,icvar,val,istart,icount)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret)

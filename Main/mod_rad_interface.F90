@@ -185,7 +185,7 @@ module mod_rad_interface
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
     character(len=8) , intent(in) :: scenario
-    call read_o3data(idatex,scenario,m2r)
+    call read_o3data(idatex,m2r)
   end subroutine updateo3
 
   subroutine updateaeropp(idatex)

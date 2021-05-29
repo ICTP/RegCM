@@ -79,7 +79,7 @@ module mod_cmip6_helper
     character(len=1024) function cmip6_fxpath(ver,var) result(fpath)
       implicit none
       character(len=*) , intent(in) :: var , ver
-      fpath = trim(inpglob)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
+      fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
       select case ( cmip6_model )
         case ( 'MPI-ESM1-2-HR' )
           fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
@@ -97,7 +97,7 @@ module mod_cmip6_helper
       implicit none
       character(len=*) , intent(in) :: var , freq , ver
       integer(ik4) , intent(in) :: year
-      fpath = trim(inpglob)//pthsep//'cmip6'//pthsep
+      fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
       if ( year < 2015 ) then
         fpath = trim(fpath)//'CMIP'//pthsep
       else

@@ -158,6 +158,7 @@ module mod_dynparam
   !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 
   character(len=5) :: dattyp
+  character(len=256) :: cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC'
   character(len=16) :: cmip6_model = 'MPI-ESM1-2-HR'
   character(len=12) :: cmip6_variant = 'r1i1p1f1'
   character(len=6) :: cmip6_ssp = 'ssp585'
@@ -473,7 +474,8 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /cmip6param/ cmip6_model , cmip6_ssp , cmip6_variant , cmip6_grid
+    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_ssp , &
+      cmip6_variant , cmip6_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
