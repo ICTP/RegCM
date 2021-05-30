@@ -23,6 +23,7 @@ module mod_sun
 !
    use mod_intkinds
    use mod_realkinds
+   use mod_memutil
    use mod_constants
    use mod_dynparam
    use mod_runparams
@@ -31,11 +32,13 @@ module mod_sun
    use mod_service
    use mod_date
    use mod_sunorbit
+   use netcdf
 
    implicit none
 
    private
 
+   real(rkx) , dimension(:) , pointer :: heppatsi
    real(rkx) , dimension(3,1610:2008) :: tsi
    real(rkx) , parameter :: tsifac = 0.9965_rkx
    integer(ik4) :: ii , jj
@@ -355,23 +358,36 @@ module mod_sun
     if ( isolconst == 1 ) then
       solar_irradiance = 1367.0_rkx
     else
-      if ( calday > dayspy/2.0_rkx ) then
-        w2 = calday/dayspy-0.5_rkx
-        w1 = 1.0_rkx-w2
-        iyear = rcmtimer%year
+      if ( scenario(1:3) == 'SSP' ) then
+        if ( .not. associated(heppatsi) ) then
+          call read_solarforcing( )
+        end if
+        iidate = (rcmtimer%year-1850)*12 + rcmtimer%month
+        if ( iidate < 1 ) then
+          iidate = mod(iidate,132)+1
+        else if ( iidate > 5400) then
+          iidate = 5400 - 132 + mod(iidate,132)
+        end if
+        solar_irradiance = tsifac*heppatsi(iidate)
       else
-        w1 = 0.5_rkx-calday/dayspy
-        w2 = 1.0_rkx-w1
-        iyear = rcmtimer%year-1
+        if ( calday > dayspy/2.0_rkx ) then
+          w2 = calday/dayspy-0.5_rkx
+          w1 = 1.0_rkx-w2
+          iyear = rcmtimer%year
+        else
+          w1 = 0.5_rkx-calday/dayspy
+          w2 = 1.0_rkx-w1
+          iyear = rcmtimer%year-1
+        end if
+        iidate = rcmtimer%year*10000+rcmtimer%month*100+rcmtimer%day
+        if ( iidate > 20080630 ) then
+          iyear = mod(rcmtimer%year,12)+1996
+        end if
+        if ( iidate < 16100101 ) then
+          iyear = 1610 + mod(rcmtimer%year,12)
+        end if
+        solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
       end if
-      iidate = rcmtimer%year*10000+rcmtimer%month*100+rcmtimer%day
-      if ( iidate > 20080630 ) then
-        iyear = mod(rcmtimer%year,12)+1996
-      end if
-      if ( iidate < 16100101 ) then
-        iyear = 1610 + mod(rcmtimer%year,12)
-      end if
-      solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
     end if
     if ( itweak == 1 ) then
       if ( itweak_solar_irradiance == 1 ) then
@@ -382,6 +398,50 @@ module mod_sun
     call time_end(subroutine_name,idindx)
 #endif
   end function solar_irradiance
+
+  subroutine read_solarforcing( )
+    implicit none
+    character(len=256) :: heppafile
+    integer(ik4) :: iret , ncid , idimid , ntime , ivar
+
+    if ( myid == italk ) then
+      write(stdout,*) 'Read solar forcing total irradiance data...'
+    end if
+    heppafile = trim(inpglob)//pthsep//'CMIP6'//pthsep//'SOLAR'//pthsep// &
+      'solarforcing-ref-mon_input4MIPs_solar_CMIP_SOLARIS-HEPPA'// &
+      '-3-2_gn_185001-229912.nc'
+    iret = nf90_open(heppafile,nf90_nowrite,ncid)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT OPEN SOLARFORCING FILE')
+    end if
+    iret = nf90_inq_dimid(ncid,'time',idimid)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT FIND TIME DIMENSION')
+    end if
+    iret = nf90_inquire_dimension(ncid,idimid,len=ntime)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ TIME DIMENSION LENGHT')
+    end if
+    iret = nf90_inq_varid(ncid,'tsi',ivar)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'VARIABLE TSI NOT FOUND')
+    end if
+    call getmem1d(heppatsi,1,ntime,'sun: heppatsi')
+    iret = nf90_get_var(ncid,ivar,heppatsi)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ VARIABLE TSI')
+    end if
+    iret = nf90_close(ncid)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) trim(heppafile) , ': ', nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT CLOSE SOLARFORCING FILE')
+    end if
+  end subroutine read_solarforcing
 
 end module mod_sun
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
