@@ -386,7 +386,7 @@ module mod_rad_o3blk
     integer(ik4) :: iret , idimid , nlon , nlat , nlev
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret) , o3file
+      write (stderr, *) trim(o3file) , ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
     if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
