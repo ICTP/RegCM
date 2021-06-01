@@ -65,7 +65,9 @@ CONTAINS
   ! SP_SETUP:  This subroutine should be called at initialization to read the netcdf data that describes the simple plume
   ! climatology.  The information needs to be either read by each processor or distributed to processors.
   !
-  SUBROUTINE sp_setup
+  SUBROUTINE sp_setup(history,scenario)
+    IMPLICIT NONE
+    CHARACTER(LEN=*) , INTENT(IN) :: history , scenario
     !
     ! ----------
     !
@@ -73,9 +75,9 @@ CONTAINS
     !
     ! ----------
     !
-    iret = nf90_open("MACv2.0-SP_v1.nc", NF90_NOWRITE, ncid)
+    iret = nf90_open(history, NF90_NOWRITE, ncid)
     IF (iret /= NF90_NOERR) THEN
-      write (0,*) 'Cannot find file MACv2.0-SP_v1.nc in current directory.'
+      write (0,*) 'Cannot find file '//trim(history)
       STOP 'NetCDF File not opened'
     END IF
     !
@@ -146,7 +148,7 @@ CONTAINS
     iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/1,1/),count=(/nyears,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/1,1/),count=(/164,nplumes   /))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     iret = nf90_inq_varid(ncid, "ann_cycle"     , VarId)
     iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:)  , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
@@ -154,6 +156,18 @@ CONTAINS
 
     iret = nf90_close(ncid)
 
+    iret = nf90_open(scenario, NF90_NOWRITE, ncid)
+    IF (iret /= NF90_NOERR) THEN
+      write (0,*) 'Cannot find file '//trim(scenario)
+      STOP 'NetCDF File not opened'
+    END IF
+    iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
+    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/165,1/),count=(/nyears,nplumes   /))
+    IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+
+    iret = nf90_close(ncid)
+
+    !
     sp_initialized = .TRUE.
 
     RETURN
@@ -199,12 +213,15 @@ CONTAINS
   ! optical properties on a host models vertical grid.
   !
   SUBROUTINE sp_aop_profile                                                                           ( &
-       nlevels        ,ncol           ,lambda         ,oro            ,lon            ,lat            , &
-       year_fr        ,z              ,dz             ,dNovrN         ,aod_prof       ,ssa_prof       , &
-       asy_prof       )
+       historic       ,scenario       ,nlevels        ,ncol           , &
+       lambda         ,oro            ,lon            ,lat            , &
+       year_fr        ,z              ,dz             ,dNovrN         , &
+       aod_prof       ,ssa_prof       ,asy_prof       )
+    IMPLICIT NONE
     !
     ! ----------
     !
+    CHARACTER(LEN=*), INTENT(IN) :: historic, scenario
     INTEGER, INTENT(IN)        :: &
          nlevels,                 & !< number of levels
          ncol                       !< number of columns
@@ -257,11 +274,11 @@ CONTAINS
          lfactor                     !< factor to compute wavelength dependence of optical properties
     !
     ! ----------
-    
+
     !
     ! initialize input data (by calling setup at first instance)
     !
-    IF (.NOT.sp_initialized) CALL sp_setup
+    IF (.NOT.sp_initialized) CALL sp_setup(historic,scenario)
     !
     ! get time weights
     !
@@ -273,11 +290,11 @@ CONTAINS
       DO icol=1,ncol
         aod_prof(icol,k) = 0.0
         ssa_prof(icol,k) = 0.0
-        asy_prof(icol,k) = 0.0        
+        asy_prof(icol,k) = 0.0
 !        z_beta(icol,k)   = MERGE(1.0, 0.0, z(icol,k) >= oro(icol))
 !FAB in sigma-coordinates the first atm level altitude should always be above
-!topography !  
-        z_beta(icol,k) = 1.! 
+!topography !
+        z_beta(icol,k) = 1.!
         eta(icol,k)      = MAX(0.0,MIN(1.0,z(icol,k)/15000.))
       END DO
     END DO
@@ -354,7 +371,7 @@ CONTAINS
       ! wavelength using the angstrom parameter.
       !
       lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0))
-      !FAB TEST 
+      !FAB TEST
       DO k=1,nlevels
         DO icol = 1,ncol
           aod_550          = prof(icol,k)     * cw_an(icol)

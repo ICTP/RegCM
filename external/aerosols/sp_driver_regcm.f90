@@ -159,11 +159,10 @@ PROGRAM MACv2SP
       ! here we process ncolumns = nlon in one call to sp_aop_profile, output is written to 2D arrays and then
       ! transfered to 4D output arrays to avoid striding through memory in call to sp_aop_profile
       !
-      CALL sp_aop_profile                                                               ( &
-           nlev         ,nlon*nlat  ,lambda     ,col_oro      ,col_lon      ,col_lat    , &
-           year_fr      ,z          ,dz         ,dNovrN_prof  ,aod_prof     ,ssa_prof   , &
-           asy_prof     )
-
+      CALL sp_aop_profile ( &
+           'MACv2.0-SP_v1.nc','MACv2.0-SP_v1.nc',nlev,nlon*nlat,lambda, &
+           col_oro,col_lon,col_lat,year_fr,z,dz,dNovrN_prof,aod_prof,   &
+           ssa_prof,asy_prof )
       DO k=1,nlev
         n = 1
         DO i = 1,nlat

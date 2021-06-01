@@ -49,6 +49,7 @@ module mod_rad_aerosol
   public :: init_aeroppdata , read_aeroppdata
   public :: cmip6_plume_profile
   !
+  character(len=256) :: macv2sp_hist , macv2sp_scen
   real(rk4) , pointer , dimension(:) :: lambdaw
   real(rk4) , pointer , dimension(:) :: latr4 , lonr4 , altr4
   real(rk4) , pointer , dimension(:,:) :: z , dz
@@ -1186,6 +1187,36 @@ module mod_rad_aerosol
         call getmem3d(asyprof,jci1,jci2,ici1,ici2,1,kz,'rad:asyprof')
         call getmem3d(ssaprof,jci1,jci2,ici1,ici2,1,kz,'rad:ssaprof')
       else if ( iclimaaer == 3 ) then
+        macv2sp_hist = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_v1.nc'
+        select case (scenario)
+          case ('ssp119', 'SSP119')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-19-SPA1.nc'
+          case ('ssp126', 'SSP126')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_IMAGE-SSP1-26-SPA1.nc'
+          case ('ssp245', 'SSP245')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_MESSAGE-GLOBIOM-SSP2-45-SPA2.nc'
+          case ('ssp370', 'SSP370')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_AIM-SSP3-Ref-SPA0.nc'
+          case ('ssp434', 'SSP434')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-34-SPA4.nc'
+          case ('ssp460', 'SSP460')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_GCAM4-SSP4-60-SPA4.nc'
+          case ('ssp534', 'SSP534')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-34-OS.nc'
+          case ('ssp585', 'SSP585')
+            macv2sp_scen = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
+              'AEROSOL'//pthsep//'MACv2.0-SP_REMIND-MAGPIE-SSP5-Ref.nc'
+          case default
+            macv2sp_scen = macv2sp_hist
+        end select
         call getmem1d(dnovrnr4,1,npoints,'rad:dnovrnr4')
         call getmem3d(extprofr4,1,npoints,1,kz,1,nband,'rad:extprofr4')
         call getmem3d(asyprofr4,1,npoints,1,kz,1,nband,'rad:asyprofr4')
@@ -2351,7 +2382,8 @@ module mod_rad_aerosol
         end do
         year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
         do n = 1 , nband
-          call sp_aop_profile(kz,npoints,lambdaw(n), &
+          call sp_aop_profile(macv2sp_hist,macv2sp_scen, &
+                              kz,npoints,lambdaw(n), &
                               altr4,lonr4,latr4,year_fr,z,dz, &
                               dnovrnr4,extprofr4(:,:,n), &
                               ssaprofr4(:,:,n),asyprofr4(:,:,n))

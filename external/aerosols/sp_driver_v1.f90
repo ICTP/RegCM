@@ -17,7 +17,7 @@
 !!
 !!
 !! @par Copyright
-!! 
+!!
 !
 PROGRAM MACv2SP
 
@@ -132,7 +132,7 @@ PROGRAM MACv2SP
   !
   ! loop over annual cycle for given year, or year rangeand calculate aerosol optical properties at each lat and
   ! lon point
-  ! 
+  !
   DO iyear = 2005,2005
     DO m = 1,nmon
       year_fr = iyear + (m-0.5) / nmon
@@ -144,10 +144,10 @@ PROGRAM MACv2SP
         !
         col_lat(:) = lat(i)
         col_lon(:) = lon(:)
-        CALL sp_aop_profile                                                               ( &
-             nlev         ,nlon       ,lambda     ,oro(:,i)     ,col_lon      ,col_lat    , &
-             year_fr      ,z(:,:)     ,dz(:,:)    ,dNovrN(:,i,m),aod_prof     ,ssa_prof   , &
-             asy_prof     )
+        CALL sp_aop_profile( &
+           'MACv2.0-SP_v1.nc','MACv2.0-SP_v1.nc',nlev,nlon,lambda, &
+           oro(:,i),col_lon,col_lat,year_fr,z(:,:),dz(:,:),dNovrN(:,i,m), &
+           aod_prof,ssa_prof,asy_prof )
         DO j = 1,nlon
           DO k=1,nlev
             aod(j,i,k,m) = aod_prof(j,k)
@@ -157,7 +157,7 @@ PROGRAM MACv2SP
         END DO
         !
         ! 2D vertically integrated values
-        !     
+        !
         DO j = 1,nlon
           aod_int(j,i,m) = SUM(aod(j,i,:,m))
           ssa_int(j,i,m) = SUM(aod(j,i,:,m)*ssa(j,i,:,m))/aod_int(j,i,m)
@@ -235,7 +235,7 @@ PROGRAM MACv2SP
       iret = iret + nf90_enddef(ncid)
       IF (iret /= 26*NF90_NOERR) STOP 'Error in creating file variables'
       !
-      iret = NF90_NOERR  
+      iret = NF90_NOERR
       iret = iret + nf90_put_var(ncid, var_t_ID       , values=mons)
       iret = iret + nf90_put_var(ncid, var_lat_ID     , values=lat)
       iret = iret + nf90_put_var(ncid, var_lon_ID     , values=lon)
