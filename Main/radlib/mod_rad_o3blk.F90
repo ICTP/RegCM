@@ -439,8 +439,10 @@ module mod_rad_o3blk
 
     if ( iyear == yend ) then
       iret = nf90_close(ncid)
-      write (stderr, *) nf90_strerror(iret)
-      call fatal(__FILE__,__LINE__,'CANNOT CLOSE OZONE FILE')
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT CLOSE OZONE FILE')
+      end if
       infile = o3filename(iyear)
       iret = nf90_open(infile,nf90_nowrite,ncid)
       if ( iret /= nf90_noerr ) then
