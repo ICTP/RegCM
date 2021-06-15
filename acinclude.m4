@@ -417,3 +417,27 @@ AC_DEFUN([RR_PATH_PNETCDF],[
   AC_SUBST([AM_CPPFLAGS])
   AC_SUBST([AM_LDFLAGS])
 ])
+
+AC_DEFUN([RCM_FC_CHECK_IEEE_ARITHMETIC],[
+  # Init
+  fc_has_ieee_arithmetic="no"
+  AC_MSG_CHECKING([whether the Fortran compiler supports IEEE_ARITHMETIC])
+  # Try to compile a piece of code that uses the module.
+  AC_LANG_PUSH([Fortran])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+    [[
+      use, intrinsic :: ieee_arithmetic
+      real :: val
+      if (ieee_is_nan(val)) then  ! NaN
+        write(*,*)"Hello NAN"
+      end if
+    ]])], [fc_has_ieee_arithmetic="yes"])
+  AC_LANG_POP([Fortran])
+  if test "${fc_has_ieee_arithmetic}" = "yes"; then
+    AC_DEFINE([HAVE_FC_IEEE_ARITHMETIC],1, 
+      [Define to 1 if your Fortran compiler supports IEEE_ARITHMETIC module.])
+    FCFLAGS="-DF2008 $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  AC_MSG_RESULT([${fc_has_ieee_arithmetic}])
+]) # RCM_FC_CHECK_IEEE_ARITHMETIC

@@ -24,6 +24,10 @@ module mod_projections
   use mod_constants
   use mod_memutil
 
+#ifdef F2008
+  use , intrinsic :: iso_fortran_env
+#endif
+
   implicit none
 
   private

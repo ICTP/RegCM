@@ -631,6 +631,8 @@ else
   fi
 fi
 
+RCM_FC_CHECK_IEEE_ARITHMETIC
+
 MCTPATH="${PWD}/external"
 if test -z "$COMPILER_SUN_TRUE"; then
   MCTFLAGS="-M$MCTPATH"

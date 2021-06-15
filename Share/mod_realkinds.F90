@@ -19,19 +19,55 @@
 
 module mod_realkinds
 
+!program test
+!  use, intrinsic :: iso_fortran_env
+!  use, intrinsic :: ieee_arithmetic
+!  integer(int32) i
+!  real(real32) x
+!  integer(int64) ii
+!  real(real64) xx
+!
+!  x = ieee_value(x, ieee_quiet_nan)
+!  i = transfer(x,i)
+!  write(*,'(a,i20,a)') '#define __SYSTEM_NAN_32__', i,'_int32'
+!  x = ieee_value(x, ieee_positive_inf)
+!  i = transfer(x,i)
+!  write(*,'(a,i20,a)') '#define __SYSTEM_INF_32__', i,'_int32'
+!  xx = ieee_value(xx, ieee_quiet_nan)
+!  ii = transfer(xx,ii)
+!  write(*,'(a,i20,a)') '#define __SYSTEM_NAN_64__', ii,'_int64'
+!  xx = ieee_value(xx, ieee_positive_inf)
+!  ii = transfer(xx,ii)
+!  write(*,'(a,i20,a)') '#define __SYSTEM_INF_64__', ii,'_int64'
+!end program test
+
 #ifdef F2008
   use , intrinsic :: iso_fortran_env
   use , intrinsic :: ieee_arithmetic
 #endif
+
+#define __SYSTEM_NAN_32__            -4194304_int32
+#define __SYSTEM_INF_32__          2139095040_int32
+#define __SYSTEM_NAN_64__   -2251799813685248_int64
+#define __SYSTEM_INF_64__ 9218868437227405312_int64
 
   implicit none
 
   public
 
 #ifdef F2008
-  integer , parameter :: rk4  = REAL32
-  integer , parameter :: rk8  = REAL64
-  integer , parameter :: rk16 = REAL128
+  integer , parameter :: rk4  = real32
+  integer , parameter :: rk8  = real64
+  integer , parameter :: rk16 = real128
+#ifdef SINGLE_PRECISION_REAL
+  integer , parameter :: rkx = rk4
+  real(rk4) , parameter :: nan = transfer(__SYSTEM_NAN_32__, 1._real32)
+  real(rk4) , parameter :: inf = transfer(__SYSTEM_INF_32__, 1._real32)
+#else
+  integer , parameter :: rkx = rk8
+  real(rk8) , parameter :: nan = transfer(__SYSTEM_NAN_64__, 1._real64)
+  real(rk8) , parameter :: inf = transfer(__SYSTEM_INF_64__, 1._real64)
+#endif
 #else
   ! Kind helpers as suggested by
   !   Metcalf, M., J. Reid, and M. Cohen
@@ -39,8 +75,6 @@ module mod_realkinds
   integer , parameter :: rk4  = kind(1.0)
   integer , parameter :: rk8  = selected_real_kind(2*precision(1.0_rk4))
   integer , parameter :: rk16 = selected_real_kind(2*precision(1.0_rk8))
-#endif
-
 #ifdef SINGLE_PRECISION_REAL
   integer , parameter :: rkx = rk4
   real(rk4), parameter :: inf = O'07760000000'
@@ -49,6 +83,7 @@ module mod_realkinds
   integer , parameter :: rkx = rk8
   real(rk8), parameter :: inf = O'0777600000000000000000'
   real(rk8), parameter :: nan = O'0777700000000000000000'
+#endif
 #endif
 
   interface is_nan
