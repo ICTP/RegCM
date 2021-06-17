@@ -195,6 +195,62 @@ the virtual temperature $T_v$,
 where $T_v = T(1 + 0.608q_v)$, $q_v$, is the water vapor mixing ratio, and
 $q_x$ are the mixing ratios of all condensed water species.
 
+\subsubsection{Horizontal advection equation discretization}
+
+\begin{figure}
+\begin{center}
+\resizebox{4.0in}{!}{\includegraphics{advection.eps}}
+\caption{Schematic representation showing the horizontal advection
+scheme staggering. Circles are U,V points. X are scalar variable points.}
+\label{advection_grid}
+\end{center}
+\end{figure}
+
+The advection equation for the generic scalar variable contributes to the total
+timestep tendency for the variable with a term :
+
+\begin{eqnarray}
+\label{advection_equation_1}
+\Delta_{adv} \left(p^* X\right)_{G} = -\frac{m^2|_G}{dx} \left[ 
+  \left( p^*X|_b \frac{u}{m}|_b - p^*X|_a \frac{u}{m}|_a \right) +
+  \left( p^*X|_d \frac{v}{m}|_d - p^*X|_c \frac{v}{m}|_c \right)\right]
+\end{eqnarray}
+
+With reference to figure \ref{advection_grid}, assuming the computation
+is to be performed for the gold cross point $G$, the averages are performed in
+points $a,b,c,d$.
+For the $u/m$ and $v/m$ terms, the average value is computed using respectively
+the values in points $AC,BD,CD,AB$.
+For the term $p^*X$, the model computes a weighted average value of the field
+using the value in gold+cyan and gold+green values with weights increasing the
+relative contribution of the upstream point up to a maximum configurable factor
+function of the local courant number:
+
+\begin{eqnarray}
+\label{advection_equation_2}
+p^*X|_a = 0.5 ( (1-f_1) p^*X|_{G} + (1+f_1) p^*X|_{c_1} ) \\
+p^*X|_b = 0.5 ( (1-f_1) p^*X|_{c_2} + (1+f_1) p^*X|_{G} ) \\
+p^*X|_c = 0.5 ( (1-f_2) p^*X|_{G} + (1+f_2) p^*X|_{g_1} ) \\
+p^*X|_d = 0.5 ( (1-f_2) p^*X|_{g_2} + (1+f_2) p^*X|_{G} )
+\end{eqnarray}
+
+where $f_1,f_2$ are defined as the local Courant number for the 1D advection
+equations multiplied for a control factor:
+
+\begin{eqnarray}
+\label{advection_equation_3}
+f_1 = \mu_{fc} dt \frac{(u|_a + u|_b)}{2dx} \\
+f_2 = \mu_{fc} dt \frac{(v|_c + v|_d)}{2dx}
+\end{eqnarray}
+
+being $dt, dx$ the model timestep in seconds and grid size in meters and
+$\mu_{fc}$ a namelist configurable parameter. The $f_1,f_2$ can be set
+to zero by disabling in the namelist the horizontal advection upstream mode.
+
+The wind components horizontal advection term requires triple averaging in
+the horizontal momentum advection terms, and it is described in
+\cite{Anthes_72}.
+
 \subsubsection{Split-explicit timestep for fast waves removal}
 
 The vertical modes initialization is  described in \cite{Errico_88}.
