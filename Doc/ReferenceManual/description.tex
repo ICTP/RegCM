@@ -211,9 +211,9 @@ timestep tendency for the variable with a term :
 
 \begin{eqnarray}
 \label{advection_equation_1}
-\Delta_{adv} \left(p^* X\right)_{G} = -\frac{m^2|_G}{dx} \left[ 
-  \left( p^*X|_b \frac{u}{m}|_b - p^*X|_a \frac{u}{m}|_a \right) +
-  \left( p^*X|_d \frac{v}{m}|_d - p^*X|_c \frac{v}{m}|_c \right)\right]
+\Delta_{adv} \left(p^* X\right)_{G} = -m^2|_G \left[ 
+  \frac{\left( p^*X|_b \frac{u}{m}|_b-p^*X|_a \frac{u}{m}|_a \right)}{dx} +
+  \frac{\left( p^*X|_d \frac{v}{m}|_d-p^*X|_c \frac{v}{m}|_c \right)}{dy}\right]
 \end{eqnarray}
 
 With reference to figure \ref{advection_grid}, assuming the computation
@@ -240,10 +240,10 @@ equations multiplied for a control factor:
 \begin{eqnarray}
 \label{advection_equation_3}
 f_1 = \mu_{fc} dt \frac{(u|_a + u|_b)}{2dx} \\
-f_2 = \mu_{fc} dt \frac{(v|_c + v|_d)}{2dx}
+f_2 = \mu_{fc} dt \frac{(v|_c + v|_d)}{2dy}
 \end{eqnarray}
 
-being $dt, dx$ the model timestep in seconds and grid size in meters and
+being $dt$ the model timestep in seconds, $dx,dy$ the grid sizes in meters and
 $\mu_{fc}$ a namelist configurable parameter. The $f_1,f_2$ can be set
 to zero by disabling in the namelist the horizontal advection upstream mode.
 
