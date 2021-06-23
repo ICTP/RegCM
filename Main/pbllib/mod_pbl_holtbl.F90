@@ -49,7 +49,7 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2 , exner
-  real(rkx) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
+  real(rkx) , pointer , dimension(:,:,:) :: kzm , ttnp
   real(rkx) , pointer , dimension(:,:) :: govrth , uvdrage
   real(rkx) , pointer , dimension(:,:,:) :: hydf
 
@@ -58,10 +58,9 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: rhohf
 
   real(rkx) , pointer , dimension(:,:,:) :: ri
-  real(rkx) , pointer , dimension(:,:) :: therm
 
-  ! minimum eddy diffusivity
-  real(rkx) , parameter :: kzo = d_one
+  ! minimum eddy diffusivity ( background value )
+  real(rkx) , parameter :: kzo = d_one ! m^2s-1
   real(rkx) , parameter :: szkm = 1600.0_rkx
   ! coef. of proportionality and lower % of bl in sfc layer
   real(rkx) , parameter :: fak = 8.5_rkx
@@ -97,11 +96,9 @@ module mod_pbl_holtbl
     call getmem3d(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
     call getmem3d(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
     call getmem3d(kzm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kzm')
-    call getmem3d(rc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rc')
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem2d(govrth,jci1,jci2,ici1,ici2,'mod_holtbl:govrth')
     call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
-    call getmem2d(therm,jci1,jci2,ici1,ici2,'mod_holtbl:therm')
     call getmem3d(vv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:vv')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
     call getmem3d(kvh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvh')
@@ -132,7 +129,7 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rkx) :: drgdot , kzmax , oblen , ri , sh10 , &
+    real(rkx) :: drgdot , kzmax , oblen , rin , rc , sh10 , &
                  ss , uflxsf , uflxsfx , vflxsf , vflxsfx
     integer(ik4) :: i , j , k , itr , iter
 #ifdef DEBUG
@@ -182,28 +179,16 @@ module mod_pbl_holtbl
     end do
     do i = ici1 , ici2
       do j = jci1 , jci2
-        govrth(j,i) = egrav/m2p%tpatm(j,i,kz)
+        govrth(j,i) = egrav/m2p%thatm(j,i,kz)
       end do
     end do
     !
-    !   compute the exner function
+    !   compute the exner function and velocity squared
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          exner(j,i,k) = (m2p%patm(j,i,k)/p00)**rovcp
-        end do
-      end do
-    end do
-    !
-    !   compute the vertical diffusion term:
-    !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          rc(j,i,k) = 0.257_rkx*m2p%dzq(j,i,k)**0.175_rkx
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      exner(j,i,k) = (m2p%patm(j,i,k)/p00)**rovcp
+      vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
+                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.1_rkx)
     end do
     !
     !   compute the diffusion coefficient:
@@ -212,21 +197,23 @@ module mod_pbl_holtbl
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
-          vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                          m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.1_rkx)
+          ! Critical Richardson number : Zhang and Anthes (1982)
+          rc = 0.257_rkx*m2p%dzq(j,i,k)**0.175_rkx
+          ! Vertical wind shear (square)
           ss = ((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &
                 (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))+   &
                 (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))*   &
                 (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k)))/  &
                 (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0e-9_rkx
-          ri = govrth(j,i) * &
+          ! Compute Richardson number
+          rin = govrth(j,i) * &
             (m2p%thatm(j,i,k-1)-m2p%thatm(j,i,k))/(ss*dza(j,i,k-1))
-          if ( (ri-rc(j,i,k)) >= d_zero ) then
+          if ( (rin-rc) >= d_zero ) then
             kzm(j,i,k) = kzo
           else
-            kzm(j,i,k) = kzo + sqrt(ss)*(rc(j,i,k)-ri)*szkm/rc(j,i,k)
+            kzm(j,i,k) = kzo + szkm*sqrt(ss)*(rc-rin)/rc
           end if
+          kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           kzm(j,i,k) = min(kzm(j,i,k),kzmax)
         end do
       end do
@@ -263,8 +250,8 @@ module mod_pbl_holtbl
         ! convert surface fluxes to kinematic units
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
-        ! Compute virtual heat flux at surface. Make it never exactly zero.
-        hfxv(j,i) = xhfx(j,i) + 0.61_rkx*m2p%tpatm(j,i,kz)*xqfx(j,i)
+        ! Compute virtual heat flux at surface.
+        hfxv(j,i) = xhfx(j,i) + 0.61_rkx*m2p%thatm(j,i,kz)*xqfx(j,i)
       end do
     end do
     do i = ici1 , ici2
@@ -283,34 +270,39 @@ module mod_pbl_holtbl
       do j = jci1 , jci2
         ! "virtual" potential temperature
         if ( hfxv(j,i) > d_zero ) then
-          th10(j,i) = m2p%thatm(j,i,kz)
+          th10(j,i) = m2p%tvatm(j,i,kz)
         else
           ! Compute specific humidity
-          sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
+          if ( m2p%ldmsk(j,i) == 0 ) then
+            sh10 = pfqsat(m2p%tg(j,i),m2p%patmf(j,i,kzp1))
+          else
+            sh10 = m2p%q2m(j,i)
+          end if
+          ! sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
           ! first approximation for obhukov length
           if ( ifaholtth10 == 1 ) then
-            th10(j,i) = 0.25_rkx*m2p%thatm(j,i,kz) + &
+            th10(j,i) = 0.25_rkx*m2p%tvatm(j,i,kz) + &
                         0.75_rkx*m2p%tg(j,i)*(d_one+ep1*sh10)
           else if ( ifaholtth10 == 2 ) then
-            th10(j,i) = m2p%thatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+            th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                         log(m2p%za(j,i,kz)*d_r10))
           else
-            th10(j,i) = d_half*(m2p%thatm(j,i,kz) + m2p%tg(j,i) * &
-                         (d_one + ep1*sh10))
+            th10(j,i) = d_half*(m2p%tvatm(j,i,kz) + m2p%tg(j,i) * &
+                         (d_one + 0.61_rkx*sh10))
           end if
           do iter = 1 , holtth10iter
             oblen = -(th10(j,i)*ustr(j,i)**3) / &
               (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
             if ( oblen >= m2p%za(j,i,kz) ) then
-              th10(j,i) = m2p%thatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+              th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                  (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
             else
-              if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
-                th10(j,i) = m2p%thatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
+              if ( oblen > d_10 ) then
+                th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
                     (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
                     6.0_rkx*log(m2p%za(j,i,kz)/oblen))
               else
-                th10(j,i) = m2p%thatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
+                th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
                             6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
               end if
             end if
@@ -330,7 +322,7 @@ module mod_pbl_holtbl
     !
     ! compute diffusivities and counter gradient terms
     !
-    call blhnew(m2p,p2m)
+    call blhnew( )
 
     do k = 2 , kz
       do i = ici1 , ici2
@@ -1191,267 +1183,229 @@ module mod_pbl_holtbl
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine holtbl
-!
-! ------------------------------------------------------------
-! this routine computes the boundary layer eddy diffusivities
-! for momentum, heat and moisture and the counter-gradient
-! terms for heat and moisture.
-!
-! reference : holtslag, de bruijn and pan - mwr - 8/90
-!
-! input arguments :  j       longitudinal position index
-!                    ubx3d   u wind component
-!                    vbx3d   v wind component
-!                    thatm   potential temperature
-!                    thvx    virtual potential temperature
-!                    za      height of half sigma levels
-!                    f       coriolis parameter
-!                    shum    specific humidity
-!                    xhfx    sensible heat flux
-!                    xqfx    sfc kinematic moisture flux
-!                    th10    virt. pot. temp. at 10m
-!                    hfxv    surface virtual heat flux
-!                    obklen  monin obukov length
-!                    ustr    friction velocity
-!
-! input/output
-! arguments :        therm   thermal temperature excess
-!
-! output arguments : cgh     counter-gradient term for heat
-!                    cgq     counter-gradient term for moisture
-!                    kvm     eddy diffusivity for momentum
-!                    kvh     eddy diffusivity for heat
-!                    kvq     eddy diffusivity for moisture
-!                   zpbl     boundary layer height
-! ------------------------------------------------------------
-!
-  subroutine blhnew(m2p,p2m)
-  implicit none
-  type(mod_2_pbl) , intent(in) :: m2p
-  type(pbl_2_mod) , intent(inout) :: p2m
-  real(rkx) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
-             phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
-             zl , zm , zp , zzh , zzhnew , zzhnew2
-  integer(ik4) :: i , j , k , k2
-#ifdef DEBUG
-  character(len=dbgslen) :: subroutine_name = 'blhnew'
-  integer(ik4) , save :: idindx = 0
-  call time_begin(subroutine_name,idindx)
-#endif
-  ! note: kmxpbl, max no. of pbl levels
-  ! compute richardson number
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kz , kmxpbl(j,i) , -1
-        ri(k,j,i) = egrav*(m2p%thatm(j,i,k)-th10(j,i))*m2p%za(j,i,k) / &
-                          (th10(j,i)*vv(j,i,k))
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
+    !
+    ! ------------------------------------------------------------
+    ! this routine computes the boundary layer eddy diffusivities
+    ! for momentum, heat and moisture and the counter-gradient
+    ! terms for heat and moisture.
+    !
+    ! reference : holtslag, de bruijn and pan - mwr - 8/90
+    !
+    ! input arguments :  j       longitudinal position index
+    !                    ubx3d   u wind component
+    !                    vbx3d   v wind component
+    !                    thatm   potential temperature
+    !                    thvx    virtual potential temperature
+    !                    za      height of half sigma levels
+    !                    f       coriolis parameter
+    !                    shum    specific humidity
+    !                    xhfx    sensible heat flux
+    !                    xqfx    sfc kinematic moisture flux
+    !                    th10    virt. pot. temp. at 10m
+    !                    hfxv    surface virtual heat flux
+    !                    obklen  monin obukov length
+    !                    ustr    friction velocity
+    !
+    ! input/output
+    ! arguments :        therm   thermal temperature excess
+    !
+    ! output arguments : cgh     counter-gradient term for heat
+    !                    cgq     counter-gradient term for moisture
+    !                    kvm     eddy diffusivity for momentum
+    !                    kvh     eddy diffusivity for heat
+    !                    kvq     eddy diffusivity for moisture
+    !                   zpbl     boundary layer height
+    ! ------------------------------------------------------------
+    !
+    subroutine blhnew
+      implicit none
+      real(rkx) :: fak1 , fak2 , xfht , xfmt , pblk , pblk1 , pblk2 , &
+                 phpblm , pr , therm , therm2 , tkv , tlv , wsc , z , &
+                 zh , zl , zm , zp , zzh , zzhnew , zzhnew2
+      integer(ik4) :: i , j , k
+      ! note: kmxpbl, max no. of pbl levels
+      ! compute Bulk Richardson Number (BRN)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tlv = th10(j,i)/(m2p%patmf(j,i,kzp1)/p00)**rovcp
+          do k = kz , kmxpbl(j,i) , -1
+            tkv = m2p%thatm(j,i,k)
+            ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
+                              (th10(j,i)*vv(j,i,k))
+          end do
+        end do
       end do
-    end do
-  end do
-  ! first, set bl height to height of lowest model level
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      p2m%zpbl(j,i) = m2p%za(j,i,kz)
-      p2m%kpbl(j,i) = kz
-    end do
-  end do
-  ! looking for bl top
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kz , kmxpbl(j,i) + 1 , -1
-        k2 = k - 1
-        ! bl height lies between this level and the last
-        ! use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(k,j,i) < ricr(j,i)) .and. &
-             (ri(k2,j,i) >= ricr(j,i)) ) then
-          p2m%zpbl(j,i) = m2p%za(j,i,k) + (m2p%za(j,i,k2)-m2p%za(j,i,k)) &
-              *((ricr(j,i)-ri(k,j,i))/(ri(k2,j,i)-ri(k,j,i)))
-          p2m%kpbl(j,i) = k
-        end if
-      end do
-    end do
-  end do
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      ! set bl top to highest allowable model layer
-      if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
-        p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
-        p2m%kpbl(j,i) = kmxpbl(j,i)
-      end if
-    end do
-  end do
-  ! recompute richardson no. at lowest model level
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      if ( hfxv(j,i) > d_zero ) then
-        ! estimate of convective velocity scale
-        xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-        wsc = ustr(j,i)*xfmt
-        ! thermal temperature excess
-        therm(j,i) = (xhfx(j,i)+0.61_rkx*m2p%tpatm(j,i,kz)*xqfx(j,i))*fak/wsc
-        ri(kz,j,i) = -egrav*therm(j,i)*m2p%za(j,i,kz)/(th10(j,i)*vv(j,i,kz))
-      else
-        therm(j,i) = d_zero
-      end if
-    end do
-  end do
-  ! recompute richardson no. at other model levels
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kz - 1 , kmxpbl(j,i) , -1
-        if ( hfxv(j,i) > d_zero ) then
-          tlv = th10(j,i) + therm(j,i)
-          tkv = m2p%tpatm(j,i,k)*(d_one + &
-            0.61_rkx*(m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))))
-          ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k)/(th10(j,i)*vv(j,i,k))
-        end if
-      end do
-    end do
-  end do
-  ! improve estimate of bl height under convective conditions
-  ! using convective temperature excess (therm)
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kz , kmxpbl(j,i) + 1 , -1
-        k2 = k - 1
-        if ( hfxv(j,i) > d_zero ) then
-          ! bl height lies between this level and the last
-          ! use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(k,j,i) < ricr(j,i)) .and. (ri(k2,j,i) >= ricr(j,i)) ) then
-            p2m%zpbl(j,i) = m2p%za(j,i,k) + (m2p%za(j,i,k2)-m2p%za(j,i,k)) * &
-                       ((ricr(j,i)-ri(k,j,i))/(ri(k2,j,i)-ri(k,j,i)))
+      ! looking for bl top
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ! BL height is at least the mechanocal mixing depth
+          phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
+          phpblm = max(phpblm,m2p%za(j,i,kz))
+          p2m%zpbl(j,i) = phpblm
+          do k = kz , 2 , -1
             p2m%kpbl(j,i) = k
+            if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
+          end do
+          do k = kz , kmxpbl(j,i) + 1 , -1
+            ! bl height lies between this level and the last
+            ! use linear interp. of rich. no. to height of ri=ricr
+            if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
+                 (ri(k-1,j,i) >= ricr(j,i)) ) then
+              p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
+                  ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+              p2m%kpbl(j,i) = k
+            end if
+          end do
+          ! set bl top to highest allowable model layer
+          if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
+            p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
+            p2m%kpbl(j,i) = kmxpbl(j,i)
           end if
-        end if
+        end do
       end do
-    end do
-  end do
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      if ( hfxv(j,i) > d_zero ) then
-        ! set bl top to highest allowable model layer
-        if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
-          p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
-        end if
-      end if
-    end do
-  end do
-  ! limit bl height to be at least mech. mixing depth
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      ! compute mechanical mixing depth, set to lowest model level if lower
-      phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
-      phpblm = max(phpblm,m2p%za(j,i,kz))
-      p2m%zpbl(j,i) = max(p2m%zpbl(j,i),phpblm)
-    end do
-  end do
-
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do k = kz , kmxpbl(j,i) + 1 , -1
-        k2 = k - 1
-        zm = m2p%za(j,i,k)
-        zp = m2p%za(j,i,k2)
-        if ( zm < p2m%zpbl(j,i) ) then
-          zp = min(zp,p2m%zpbl(j,i))
-          z = (zm+zp)*d_half
-          zh = z/p2m%zpbl(j,i)
-          zl = z/obklen(j,i)
-          if ( zh <= d_one ) then
-            zzh = d_one - zh
-            zzh = zzh ** pink
-!xexp4      zzhnew = p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
-!xexp5      zzhnew = 0.5*p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
-!xexp6      zzhnew = d_one - zh
-!xexp7      zzhnew = 0.50 * (d_one - zh)
-!Sara
-!           zzhnew = 0.25 * (d_one - zh)
-!           zzhnew = 0.75 * (d_one - zh)
-!Sara_
-!xexp10     zzhnew =zh * (d_one - zh)**2
-            zzhnew = (d_one-zh) * zhnew_fac
-            zzhnew2 = zzhnew**2
-          else
-            zzh = d_zero
-            zzhnew = d_zero
-            zzhnew2 = d_zero
+      ! recompute richardson no. at lowest model level
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( hfxv(j,i) > d_zero ) then
+            ! estimate of convective velocity scale
+            xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
+            wsc = ustr(j,i)*xfmt
+            ! thermal temperature excess
+            therm = (xhfx(j,i) + &
+              0.61_rkx*m2p%thatm(j,i,kz)*xqfx(j,i))*fak/wsc
+            ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz) / &
+                          (th10(j,i)*vv(j,i,kz))
+            ! recompute richardson no. at other model levels
+            tlv = th10(j,i)/(m2p%patmf(j,i,kzp1)/p00)**rovcp + therm
+            do k = kz - 1 , kmxpbl(j,i) , -1
+              tkv = m2p%thatm(j,i,k)
+              ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k)/(th10(j,i)*vv(j,i,k))
+            end do
+            ! improve estimate of bl height under convective conditions
+            ! using convective temperature excess (therm)
+            do k = kz , kmxpbl(j,i) + 1 , -1
+              ! bl height lies between this level and the last
+              ! use linear interp. of rich. no. to height of ri=ricr
+              if ( (ri(k,j,i) < ricr(j,i)) .and. &
+                   (ri(k-1,j,i) >= ricr(j,i)) ) then
+                p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
+                  ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+                p2m%kpbl(j,i) = k
+              end if
+            end do
+            ! set bl top to highest allowable model layer
+            if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
+              p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
+            end if
           end if
+        end do
+      end do
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
-          if ( hfxv(j,i) < d_zero ) then
-            ! stable and neutral conditions
-            ! igroup = 1
-            ! prevent pblk from becoming too small in very stable
-            ! conditions
-            if ( zl <= d_one ) then
-              pblk = fak1*zh*zzh/(d_one+betas*zl)
-!xexp5        pblk1 = vonkar * ustr(j,i) / (d_one+betas*zl) * zzhnew
-              pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
-              pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
-            else
-              pblk = fak1*zh*zzh/(betas+zl)
-!xexp5        pblk1 = vonkar * ustr(j,i) / (betas+zl) * zzhnew
-              pblk1 = fak1*zh*zzhnew/(betas+zl)
-              pblk2 = fak1*zh*zzhnew2/(betas+zl)
+          xfmt = (d_one-binm*p2m%zpbl(j,i)/obklen(j,i))**onet
+          xfht = sqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
+          wsc = ustr(j,i)*xfmt
+          pr = (xfmt/xfht) + ccon
+          fak2 = wsc*p2m%zpbl(j,i)*vonkar
+          therm2 = fak/(p2m%zpbl(j,i)*wsc)
+          do k = kz , kmxpbl(j,i) + 1 , -1
+            zm = m2p%za(j,i,k)
+            zp = m2p%za(j,i,k-1)
+            if ( zm < p2m%zpbl(j,i) ) then
+              zp = min(zp,p2m%zpbl(j,i))
+              z = (zm+zp)*d_half
+              zh = z/p2m%zpbl(j,i)
+              zl = z/obklen(j,i)
+              if ( zh <= d_one ) then
+                zzh = d_one - zh
+                zzh = zzh ** pink
+!xexp4          zzhnew = p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
+!xexp5          zzhnew = 0.5*p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
+!xexp6          zzhnew = d_one - zh
+!xexp7          zzhnew = 0.50 * (d_one - zh)
+!Sara
+!               zzhnew = 0.25 * (d_one - zh)
+!               zzhnew = 0.75 * (d_one - zh)
+!Sara_
+!xexp10         zzhnew = zh * (d_one - zh)**2
+                zzhnew = (d_one-zh) * zhnew_fac
+                zzhnew2 = zzhnew**2
+              else
+                zzh = d_zero
+                zzhnew = d_zero
+                zzhnew2 = d_zero
+              end if
+              if ( hfxv(j,i) < d_zero ) then
+                ! stable and neutral conditions
+                ! igroup = 1
+                ! prevent pblk too small in very stable conditions
+                if ( zl <= d_one ) then
+                  pblk = fak1*zh*zzh/(d_one+betas*zl)
+!xexp5            pblk1 = vonkar * ustr(j,i) / (d_one+betas*zl) * zzhnew
+                  pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
+                  pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
+                else
+                  pblk = fak1*zh*zzh/(betas+zl)
+!xexp5            pblk1 = vonkar * ustr(j,i) / (betas+zl) * zzhnew
+                  pblk1 = fak1*zh*zzhnew/(betas+zl)
+                  pblk2 = fak1*zh*zzhnew2/(betas+zl)
+                end if
+                ! compute eddy diffusivities
+                kvm(j,i,k) = max(pblk,kzo)
+                kvh(j,i,k) = kvm(j,i,k)
+                kvq(j,i,k) = max(pblk1,kzo)
+                ! Erika put k=0 in very stable conditions
+                if ( zl <= sffrac ) then
+                  kvm(j,i,k) = d_zero
+                  kvh(j,i,k) = d_zero
+                  kvq(j,i,k) = d_zero
+                end if
+                ! Erika put k=0 in very stable conditions
+                if ( ichem == 1 ) then
+                  kvc(j,i,k) = max(pblk2,kzo)
+                end if
+                ! compute counter-gradient term
+                cgh(j,i,k) = d_zero
+              else
+                ! unstable conditions
+                if ( zh >= sffrac ) then
+                  pblk = fak2*zh*zzh
+!xexp5            pblk1 = vonkar * wsc * zzhnew
+                  pblk1 = fak2*zh*zzhnew
+                  pblk2 = fak2*zh*zzhnew2
+                  ! compute counter gradient term
+                  cgh(j,i,k) = hfxv(j,i)*therm2
+                else
+                  ! igroup = 3
+                  pblk = fak1*zh*zzh*(d_one-betam*zl)**onet
+!xexp5            pblk1 = vonkar * ustr(j,i) * zzhnew * (d_one-betam*zl)**onet
+                  pblk1 = fak1*zh*zzhnew*(d_one-betam*zl)**onet
+                  pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
+                  pr = ((d_one-betam*zl)**onet)/sqrt(d_one-betah*zl)
+                  cgh(j,i,k) = d_zero
+                end if
+                ! compute eddy diffusivities
+                kvm(j,i,k) = max(pblk,kzo)
+                kvh(j,i,k) = max((pblk/pr),kzo)
+                kvq(j,i,k) = max(pblk1,kzo)
+                if ( ichem == 1 ) then
+                  kvc(j,i,k) = max(pblk2,kzo)
+                end if
+              end if
             end if
-            ! compute eddy diffusivities
-            kvm(j,i,k) = max(pblk,kzo)
-            kvh(j,i,k) = kvm(j,i,k)
-            kvq(j,i,k) = max(pblk1,kzo)
-            ! Erika put k=0 in very stable conditions
-            if ( zl <= 0.1_rkx ) then
-              kvm(j,i,k) = d_zero
-              kvh(j,i,k) = d_zero
-              kvq(j,i,k) = d_zero
-            end if
-            ! Erika put k=0 in very stable conditions
-            if ( ichem == 1 ) then
-              kvc(j,i,k) = max(pblk2,kzo)
-            end if
-            ! compute counter-gradient term
-            cgh(j,i,k) = d_zero
-          else
-            ! unstable conditions
-            ! compute counter gradient term
-            if ( zh >= sffrac ) then
-              ! igroup = 2
-              xfmt = (d_one-binm*p2m%zpbl(j,i)/obklen(j,i))**onet
-              fht = sqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
-              wsc = ustr(j,i)*xfmt
-              pr = (xfmt/fht) + ccon
-              fak2 = wsc*p2m%zpbl(j,i)*vonkar
-              pblk = fak2*zh*zzh
-!xexp5        pblk1 = vonkar * wsc * zzhnew
-              pblk1 = fak2*zh*zzhnew
-              pblk2 = fak2*zh*zzhnew2
-              therm2 = fak/(p2m%zpbl(j,i)*wsc)
-              cgh(j,i,k) = hfxv(j,i)*therm2
-            else
-              ! igroup = 3
-              pblk = fak1*zh*zzh*(d_one-betam*zl)**onet
-!xexp5        pblk1 = vonkar * ustr(j,i) * zzhnew * (d_one-betam*zl)**onet
-              pblk1 = fak1*zh*zzhnew*(d_one-betam*zl)**onet
-              pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
-              pr = ((d_one-betam*zl)**onet)/sqrt(d_one-betah*zl)
-              cgh(j,i,k) = d_zero
-            end if
-            ! compute eddy diffusivities
-            kvm(j,i,k) = max(pblk,kzo)
-            kvh(j,i,k) = max((pblk/pr),kzo)
-            kvq(j,i,k) = max(pblk1,kzo)
-            if ( ichem == 1 ) then
-              kvc(j,i,k) = max(pblk2,kzo)
-            end if
-          end if
-        end if
+          end do
+        end do
       end do
-    end do
-  end do
+    end subroutine blhnew
 
-#ifdef DEBUG
-  call time_end(subroutine_name,idindx)
-#endif
-  end subroutine blhnew
-!
+  end subroutine holtbl
+
 end module mod_pbl_holtbl
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
