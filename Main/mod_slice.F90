@@ -350,11 +350,11 @@ module mod_slice
       end do
     end do
     if ( ibltyp == 1 ) then
-      kmxpbl(:,:) = kz - 1
+      kmxpbl(:,:) = kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do k = 1 , kz-1
-            if ( atms%pb3d(j,i,k) > 60000.0 ) exit
+          do k = kz-1 , 1 , -1
+            if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
         end do
