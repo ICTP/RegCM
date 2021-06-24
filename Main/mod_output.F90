@@ -1039,8 +1039,8 @@ module mod_output
               do j = jci1 , jci2
                 zz = mo_atm%zeta(j,i,kz)
                 if ( zz > 100.0_rkx ) then
-                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,1)
-                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,1)
+                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,kz)
+                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,kz)
                 else
                   vloop1: &
                   do k = kz-1 , 1 , -1
