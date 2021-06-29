@@ -402,13 +402,13 @@ module mod_micro_interface
             qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
             pres = mo_atm%p(j,i,k)
             qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
+                       dt * mc2mo%qxten(j,i,k,iqv)),minqq)
           else
             tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
             qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
             qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
             qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
+                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),minqq)
             if ( idynamic == 1 ) then
               pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
             else
