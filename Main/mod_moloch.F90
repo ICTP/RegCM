@@ -766,7 +766,7 @@ module mod_moloch
                 !    it must be consistent with the initialization of pai
                 zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
-                zrom1w = zrom1w + cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
+                zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( do_fulleq ) then
