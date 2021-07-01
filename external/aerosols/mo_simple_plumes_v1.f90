@@ -72,6 +72,7 @@ CONTAINS
     ! ----------
     !
     INTEGER :: iret, ncid, DimID, VarID, xdmy
+    REAL :: temp(nyears-164,nplumes)
     !
     ! ----------
     !
@@ -162,8 +163,9 @@ CONTAINS
       STOP 'NetCDF File not opened'
     END IF
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/165,1/),count=(/nyears,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, temp, start=(/165,1/),count=(/nyears-164,nplumes   /))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
+    year_weight(165:,:) = temp
 
     iret = nf90_close(ncid)
 
