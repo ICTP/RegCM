@@ -94,12 +94,13 @@ module mod_moloch
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , xtouvstag , wstagtox
 
-  real(rkx) , parameter :: minden = 1.0e-15_rkx
+  real(rkx) , parameter :: minden = 1.0e-30_rkx
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
   logical , parameter :: do_fulleq = .false.
   logical :: do_filterpai = .false.
+  logical , parameter :: do_filterdiv = .true.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -112,7 +113,6 @@ module mod_moloch
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
-#include <cpmf.inc>
 
   subroutine allocate_moloch
     implicit none
@@ -656,6 +656,7 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+        real(rkx) :: rlv
 #ifdef DEBUG
         integer(ik4) :: n
 #endif
@@ -746,7 +747,7 @@ module mod_moloch
           end if
           call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
           call divdamp(dtsound)
-          call filt3d
+          if ( do_filterdiv ) call filt3d
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -766,17 +767,17 @@ module mod_moloch
                 !    it must be consistent with the initialization of pai
                 zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
-                zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
+                zrom1w = zrom1w - cpd * w(j,i,k) * &
+                         fmzf(j,i,k)*fmzf(j,i,k) * &
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
-                if ( do_fulleq ) then
-                  if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-                       w(j,i,k) > 0.1_rkx ) then
-                    zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                    zdth = egrav*w(j,i,k)*(jsound-1)*dts*wlhv*wlhv* &
-                      zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)**2)
-                    zrom1w = zrom1w + zdth*fmzf(j,i,k)
-                  end if
+                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                     w(j,i,k) > 0.1_rkx ) then
+                  rlv = wlhv - cpvmcl*(t(j,i,k-1)-tzero)
+                  zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
+                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*rlv*rlv* &
+                    zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
@@ -838,32 +839,15 @@ module mod_moloch
             end if
           end if
 
+          ! horizontal momentum equations
+
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
-#ifdef DEBUG
-                if ( pai(j,i,k) > 1.1_rkx .or. &
-                     pai(j,i,k) < 0.0_rkx ) then
-                  write(100+myid,*) 'On : ', myid
-                  write(100+myid,*) 'At : ', i,j,k
-                  write(100+myid,*) 'pai : ', pai(j,i,k)
-                  write(100+myid,*) 'zdiv2 : ', zdiv2(j,i,k)
-                  write(100+myid,*) 'Pai u v w qv qc t tetav'
-                  do n = 1 , kz
-                    write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
-                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                            t(j,i,n) , tetav(j,i,n)
-                  end do
-                  flush(100+myid)
-                  call fatal(__FILE__,__LINE__, 'error')
-                end if
-#endif
               end do
             end do
           end do
-
-          ! horizontal momentum equations
 
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
@@ -1035,6 +1019,9 @@ module mod_moloch
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
 
+        real(rkx) , parameter :: wlow = 0.0_rkx
+        real(rkx) , parameter :: whigh = 2.0_rkx
+
         zdtrdx = dta/dx
         zdtrdy = dta/dx
         zdtrdz = dta/dzita
@@ -1062,7 +1049,7 @@ module mod_moloch
                 if ( k1 < 1 ) k1 = 1
               end if
               r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
-              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
               wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
                                                   (d_one-zphi)*pp(j,i,k))
@@ -1126,7 +1113,7 @@ module mod_moloch
                 ihm1 = max(ih-1,icross1)
                 ih = min(ih,icross2)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
-                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
                 zpby(j,i) = d_half * v(j,i,k) * &
                   ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
@@ -1189,7 +1176,7 @@ module mod_moloch
                 jhm1 = max(jh-1,jcross1)
                 jh = min(jh,jcross2)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
-                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
                 zpbw(j,i) = d_half * u(j,i,k) * &
                      ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
@@ -1234,7 +1221,7 @@ module mod_moloch
                 end if
                 ihm1 = max(ih-1,icross1)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
-                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
                 zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
                   ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
@@ -1296,7 +1283,7 @@ module mod_moloch
                 end if
                 jhm1 = max(jh-1,jcross1)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
-                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
                 zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
                      ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))

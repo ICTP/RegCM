@@ -663,8 +663,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fccfg(j,i,k) = d_one-sqrt(max(d_zero,d_one - &
-                         qx(iqqv,j,i,k)/qsmix(j,i,k)))
+          fccfg(j,i,k) = mo2mc%cldf(j,i,k)
           fccfg(j,i,k) = min(max(fccfg(j,i,k),zerocf),onecf)
         end do
       end do

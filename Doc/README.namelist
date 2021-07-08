@@ -365,7 +365,7 @@
  nhxkd = 0.1,       ! Time weighting for weighting old/new pp
  ifrayd = 1,        ! Upper levels Rayleigh damper to BCs
  rayndamp = 5,      ! Number of top levels to apply
- rayalpha0 = 0.0003,! Rate alpha0
+ rayalpha0 = .0000115740, ! Rate alpha0 (1/86400)
  rayhd = 10000.0,   ! Damping scale depth
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop

@@ -741,6 +741,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: qin    ! qxx(:,:,:,iqi)
     real(rkx) , pointer , dimension(:,:,:) :: qsn    ! qxx(:,:,:,iqs)
     real(rkx) , pointer , dimension(:,:,:) :: qrn    ! qxx(:,:,:,iqr)
+    real(rkx) , pointer , dimension(:,:,:) :: cldf   ! cloud fraction
     integer(ik4) , pointer , dimension(:,:) :: ldmsk ! mddom
     integer(ik4) , pointer , dimension(:,:) :: iveg  ! mddom
   end type mod_2_micro

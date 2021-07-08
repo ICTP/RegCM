@@ -106,6 +106,8 @@ module mod_tendency
     module procedure extracttenchi
   end interface ten2diag
 
+  logical , parameter :: do_phys = .true.
+
   contains
 
 #include <cpmf.inc>
@@ -268,7 +270,9 @@ module mod_tendency
     !
     ! Physical parametrizations
     !
-    call physical_parametrizations
+    if ( do_phys ) then
+      call physical_parametrizations
+    end if
     !
     ! Compute chemistry tendencies (other than transport)
     !

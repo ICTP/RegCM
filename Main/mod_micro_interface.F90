@@ -142,6 +142,7 @@ module mod_micro_interface
     call assignpnt(atms%ps2d,mo2mc%ps2)
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
+    call assignpnt(cldfra,mo2mc%cldf)
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)

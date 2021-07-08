@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , dx , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,   &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls , &
-         hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum
+         hsigma , sigma , ichcumtra , rcmtimer , icup
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
@@ -381,6 +381,10 @@ module mod_cu_tiedtke
     !
     ! postprocess some fields including precipitation fluxes
     !
+    !   KTYPE = 1 => DEEP CONVECTION
+    !   KTYPE = 2 => SHALLOW CONVECTION
+    !   KTYPE = 3 => MIDLEVEL CONVECTION
+    !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
@@ -424,8 +428,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
         cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-        cu_qdetr(j,i,k) = dtcum*zlude(ii,k)*egrav / &
-                          (paphp1(ii,k+1)-paphp1(ii,k))
+        cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
         cu_raincc(j,i,k) = pmflxr(ii,k)
       end do
     end do
@@ -505,10 +508,6 @@ module mod_cu_tiedtke
     ! Xu, K.-M., and S. K. Krueger:
     !   Evaluation of cloudiness parameterizations using a cumulus
     !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
-    !
-    !   KTYPE = 1 => DEEP CONVECTION
-    !   KTYPE = 2 => SHALLOW CONVECTION
-    !   KTYPE = 3 => MIDLEVEL CONVECTION
     !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
@@ -619,12 +618,12 @@ module mod_cu_tiedtke
     if ( iconv /= 4 ) then
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -647,12 +646,12 @@ module mod_cu_tiedtke
     else
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         end do
       end do
@@ -661,7 +660,7 @@ module mod_cu_tiedtke
     do jt = 1 , ktrac
       do jk = 1 , klev
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
         end do
       end do
     end do
@@ -910,7 +909,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1387,7 +1386,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1814,7 +1813,7 @@ module mod_cu_tiedtke
     ! -----------------------------------
     !
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2332,7 +2331,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
@@ -2819,7 +2818,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -4083,8 +4082,8 @@ module mod_cu_tiedtke
     !
     ! SPECIFY CONSTANTS
     !
-    zcons1 = cpd/(wlhf*egrav*dtcum)
-    zcons2 = d_one/(egrav*dtcum)
+    zcons1 = cpd/(wlhf*egrav*dt)
+    zcons2 = d_one/(egrav*dt)
     zcucov = 0.050_rkx
     ztmelp2 = tzero + 2.0_rkx
     !
@@ -4571,9 +4570,9 @@ module mod_cu_tiedtke
     ! ::::::::::: Input atmospheric condition ::::::::::::
     !-----------------------------------------------------
     ! Temperature K
-    real(rkx) , dimension(np,nk) , intent(inout) :: t
+    real(rkx) , dimension(np,nk) , intent(in) :: t
     ! Water Vapor Specific Humidity kg/kg
-    real(rkx) , dimension(np,nk) , intent(inout) :: q
+    real(rkx) , dimension(np,nk) , intent(in) :: q
     ! U wind m/s
     real(rkx) , dimension(np,nk) , intent(in) :: u
     ! V wind m/s
@@ -4596,6 +4595,8 @@ module mod_cu_tiedtke
     real(rkx) , dimension(np,nk+1) , intent(in) :: geof
     ! Tracer Mixing ratio kg/kg
     real(rkx) , dimension(np,nk,ntrac) , intent(in) :: qtrac
+    ! Cloud condensation nuclei #
+    real(rkx) , dimension(np,nk) , intent(in) :: ccn
     !-----------------------------------------------------
     ! ::::::::::::::: Output Tendencies ::::::::::::::::::
     !-----------------------------------------------------
@@ -4615,40 +4616,38 @@ module mod_cu_tiedtke
     real(rkx) , dimension(np,nk,ntrac) , intent(inout) :: tenc
     ! Detrained liquid water kg/(m^2*s)
     real(rkx) , dimension(np,nk) , intent(inout) :: lude
-    ! Cloud condensation nuclei #
-    real(rkx) , dimension(np,nk) , intent(in) :: ccn
     ! Cumulus activation flag
     logical , dimension(np) , intent(out) :: ldcum
     ! Type of cumulus convection
-    integer(ik4) , dimension(np) , intent(inout) :: ktype
+    integer(ik4) , dimension(np) , intent(out) :: ktype
     ! Bottom level of cumulus cloud
-    integer(ik4) , dimension(np) , intent(inout) :: kcbot
+    integer(ik4) , dimension(np) , intent(out) :: kcbot
     ! Top level of cumulus cloud
-    integer(ik4) , dimension(np) , intent(inout) :: kctop
+    integer(ik4) , dimension(np) , intent(out) :: kctop
     ! Bottom level of shallow cumulus cloud
     integer(ik4) , dimension(np) , intent(out) :: kbotsc
     ! Shallow cumulus flag
     logical , dimension(np) , intent(out) :: ldsc
     ! Updraft temperature K
-    real(rkx) , dimension(np,nk) , intent(inout) :: tu
+    real(rkx) , dimension(np,nk) , intent(out) :: tu
     ! Updraft Water Vapor specific humidity kg/kg
-    real(rkx) , dimension(np,nk) , intent(inout) :: qu
+    real(rkx) , dimension(np,nk) , intent(out) :: qu
     ! Updraft Cloud Liquid Water mixing ratio kg/kg
-    real(rkx) , dimension(np,nk) , intent(inout) :: lu
+    real(rkx) , dimension(np,nk) , intent(out) :: lu
     ! Rain Mass Flux kg/(m^2*s)
-    real(rkx) , dimension(np,nk+1) , intent(inout) :: mflxr
+    real(rkx) , dimension(np,nk+1) , intent(out) :: mflxr
     ! Snow Mass Flux kg/(m^2*s)
-    real(rkx) , dimension(np,nk+1) , intent(inout) :: mflxs
+    real(rkx) , dimension(np,nk+1) , intent(out) :: mflxs
     ! Total precipitation produced in convective updrafts
     real(rkx) , dimension(np) , intent(out) :: rain
     ! Massflux updrafts kg/(m^2*s)
-    real(rkx) , dimension(np,nk) , intent(inout) :: mfu
+    real(rkx) , dimension(np,nk) , intent(out) :: mfu
     ! Massflux downdrafts kg/(m^2*s)
-    real(rkx) , dimension(np,nk) , intent(inout) :: mfd
+    real(rkx) , dimension(np,nk) , intent(out) :: mfd
     ! Massflux updrafts rate kg/(m^3*s)
-    real(rkx) , dimension(np,nk) , intent(inout) :: mfude_rate
+    real(rkx) , dimension(np,nk) , intent(out) :: mfude_rate
     ! Massflux downdrafts rate kg/(m^3*s)
-    real(rkx) , dimension(np,nk) , intent(inout) :: mfdde_rate
+    real(rkx) , dimension(np,nk) , intent(out) :: mfdde_rate
     ! Convectve available potential energy J/kg
     real(rkx) , dimension(np) , intent(out) :: cape
     !-----------------------------------------------------
@@ -4743,8 +4742,8 @@ module mod_cu_tiedtke
     !------------------------------------
     ! 1. Specify constants and parameters
     ! -----------------------------------
-    cons2 = rmfcfl/(egrav*dtcum)
-    cons = d_one/(egrav*dtcum)
+    cons2 = rmfcfl/(egrav*dt)
+    cons = d_one/(egrav*dt)
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
@@ -5874,7 +5873,7 @@ module mod_cu_tiedtke
       !----------------------
       ! 1. Specify parameters
       ! ---------------------
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dt)
       facbuo = d_half/(d_one+d_half)
       cldmax = 5.e-3_rkx
       cwifrac = d_half
@@ -6705,9 +6704,9 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtcum
-              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtcum
-              penth(n,k) = (r1(n,k)-t(n,k))/dtcum
+              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dt
+              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dt
+              penth(n,k) = (r1(n,k)-t(n,k))/dt
             end if
           end do
         end do
@@ -6855,8 +6854,8 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtcum
-              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtcum
+              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dt
+              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dt
             end if
           end do
         end do
@@ -6886,7 +6885,7 @@ module mod_cu_tiedtke
       ! 0. Setup constants
       ! ------------------
       cons1a = cpd/(wlhf*egrav*rtaumel)
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dt)
       !-------------------------------------
       ! 1. Determine final convective fluxes
       ! ------------------------------------
@@ -7722,9 +7721,9 @@ module mod_cu_tiedtke
           do k = 2 , nk
             do n = n1 , n2
               !  for implicit solution including tendency source term
-              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtcum
+              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dt
               if ( llcumbas(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtcum
+                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dt
               end if
             end do
           end do

@@ -978,7 +978,7 @@ module mod_init
     end if
 
     if ( .not. ifrest ) then
-      if ( any(icup == 6) ) then
+      if ( any(icup == 6)  .or. any(icup == 5) ) then
         if ( idynamic == 2 ) then
           do k = 1 , kz
             do i = ici1 , ici2
@@ -1012,17 +1012,6 @@ module mod_init
         else
           avg_ww(:,:,:) = d_zero
         end if
-      end if
-      if ( any(icup == 5) ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( cuscheme(j,i) == 5 ) then
-                avg_ww(j,i,k) = d_zero
-              end if
-            end do
-          end do
-        end do
       end if
     end if
     !

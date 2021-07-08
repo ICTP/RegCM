@@ -297,7 +297,7 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = 5
-    rayalpha0 = 0.003_rkx
+    rayalpha0 = 1.0_rkx/86400.0_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
     mo_nadv = 3
