@@ -471,9 +471,9 @@ module mod_params
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
     !
-    kf_wthreshold = 0.02   ! Kain Fritsch vertical velocity threshold
-    kf_entrate = 0.03_rkx  ! Kain Fritsch entrainment rate
-    kf_convrate = 0.03_rkx ! Kain Fritsch condensate to rain conversion rate
+    kf_wthreshold = 0.02_rkx ! Kain Fritsch vertical velocity threshold
+    kf_entrate = 0.03_rkx    ! Kain Fritsch entrainment rate
+    kf_convrate = 0.03_rkx   ! Kain Fritsch condensate to rain conversion rate
     kf_min_pef = 0.2_rkx  ! Minimum precipitation efficiency
     kf_max_pef = 0.9_rkx  ! Maximum precipitation efficiency
     kf_dpp = 150.0_rkx    ! Starting height of downdraft above updraft (mb)
