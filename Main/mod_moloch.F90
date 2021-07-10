@@ -520,6 +520,7 @@ module mod_moloch
       subroutine boundary
         implicit none
 
+        call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -528,6 +529,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
+
         if ( idiag > 0 ) then
           ten0 = t(jci1:jci2,ici1:ici2,:)
           qen0 = qv(jci1:jci2,ici1:ici2,:)
@@ -540,9 +542,11 @@ module mod_moloch
 
         if ( iboudy == 1 .or. iboudy == 5 ) then
           call nudge(iboudy,pai,xpaib)
+          call nudge(iboudy,ps,xpsb)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
           call nudge(iboudy,u,v,xub,xvb)
+
           if ( idiag > 0 ) then
             tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
@@ -554,6 +558,7 @@ module mod_moloch
             call nudge(iboudy,qi,xib)
           end if
         else if ( iboudy == 4 ) then
+          call sponge(ps,xpsb)
           call sponge(pai,xpaib)
           call sponge(t,xtb)
           call sponge(qv,xqb)
@@ -579,6 +584,7 @@ module mod_moloch
             cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
           end if
         end if
+        call uvstagtox(u,v,ux,vx)
       end subroutine boundary
 
       subroutine filt3d
@@ -656,7 +662,7 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
-        real(rkx) :: rlv , cpm
+        real(rkx) :: rlv
 #ifdef DEBUG
         integer(ik4) :: n
 #endif
@@ -762,13 +768,12 @@ module mod_moloch
           do k = kz , 2 , -1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                cpm = cpd*(d_one-qv(j,i,k)) + cpv*qv(j,i,k)
                 deltaw(j,i,k) = -w(j,i,k)
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
-                zrom1w = d_half * cpm * fmzf(j,i,k) * &
+                zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
-                zrom1w = zrom1w - cpm * w(j,i,k) * &
+                zrom1w = zrom1w - cpd * w(j,i,k) * &
                          fmzf(j,i,k)*fmzf(j,i,k) * &
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
@@ -777,7 +782,7 @@ module mod_moloch
                   rlv = wlhv - cpvmcl*(t(j,i,k-1)-tzero)
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
                   zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*rlv*rlv* &
-                    zqs/(cpm*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                    zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
                   zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
@@ -858,12 +863,11 @@ module mod_moloch
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdi1 , jdi2
-                  cpm = cpd*(d_one-qv(j,i,k)) + cpv*qv(j,i,k)
                   zcx = zdtrdx * mu(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
-                  zrom1u = d_half * cpm * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
                        (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
@@ -877,11 +881,10 @@ module mod_moloch
             do k = 1 , kz
               do i = idi1 , idi2
                 do j = jci1 , jci2
-                  cpm = cpd*(d_one-qv(j,i,k)) + cpv*qv(j,i,k)
                   zfz = 0.25_rkx * &
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
-                  zrom1v = d_half * cpm * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
                        (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
@@ -897,12 +900,11 @@ module mod_moloch
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdi1 , jdi2
-                  cpm = cpd*(d_one-qv(j,i,k)) + cpv*qv(j,i,k)
                   zcx = zdtrdx * mu(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
-                  zrom1u = d_half * cpm * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
                        (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
@@ -915,12 +917,11 @@ module mod_moloch
             do k = 1 , kz
               do i = idi1 , idi2
                 do j = jci1 , jci2
-                  cpm = cpd*(d_one-qv(j,i,k)) + cpv*qv(j,i,k)
                   zcy = zdtrdy * mv(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
-                  zrom1v = d_half * cpm * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
                        (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18

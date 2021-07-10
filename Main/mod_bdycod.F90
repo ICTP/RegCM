@@ -244,6 +244,7 @@ module mod_bdycod
         xqb%b0(:,:,k) = qi(k)
       end do
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -540,6 +541,7 @@ module mod_bdycod
       xpsb%b1(:,:) = xpsb%b0(:,:)
     else
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     end if
     !
     ! Calculate P* on dot points
@@ -665,6 +667,7 @@ module mod_bdycod
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -782,6 +785,7 @@ module mod_bdycod
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
       jday = yeardayfrac(rcmtimer%idate)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
@@ -921,6 +925,7 @@ module mod_bdycod
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -973,6 +978,7 @@ module mod_bdycod
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,rdtbdy)
     else if ( idynamic == 3 ) then
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       jday = yeardayfrac(rcmtimer%idate)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
@@ -1466,7 +1472,7 @@ module mod_bdycod
       !
       ! fixed boundary conditions:
       !
-      if ( idynamic == 1 ) then
+      if ( idynamic == 1 .or. idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do i = ici1 , ici2
             sfs%psa(jce1,i) = xpsb%b0(jce1,i)
@@ -1575,7 +1581,7 @@ module mod_bdycod
       !
       ! time-dependent boundary conditions:
       !
-      if ( idynamic == 1 ) then
+      if ( idynamic == 1 .or. idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do i = ici1 , ici2
             sfs%psa(jce1,i) = xpsb%b0(jce1,i) + xt*xpsb%bt(jce1,i)
@@ -5450,7 +5456,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , lat
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt , cpm
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
     do i = ice1 , ice2
@@ -5472,8 +5478,7 @@ module mod_bdycod
         do j = jce1 , jce2
           tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
           tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
-          cpm = cpd*(1.0_rkx-q(j,i,k)) + cpv*q(j,i,k)
-          zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpm) + tv1 - tv2
+          zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
         end do

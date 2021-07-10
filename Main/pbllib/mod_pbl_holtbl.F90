@@ -1247,7 +1247,8 @@ module mod_pbl_holtbl
           phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
           phpblm = max(phpblm,m2p%za(j,i,kz))
           p2m%zpbl(j,i) = phpblm
-          do k = kz , 2 , -1
+          p2m%kpbl(j,i) = kz
+          do k = kz-1 , 2 , -1
             p2m%kpbl(j,i) = k
             if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
           end do
