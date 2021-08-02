@@ -177,7 +177,7 @@ module mod_ncio
       call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
       if ( ensemble_run ) then
         if ( myid == italk ) then
-          write(stdout,*) 'Appling perturbation to input dataset:'
+          write(stdout,*) 'Applying perturbation to input dataset:'
         end if
         if ( lperturb_topo ) then
           if ( myid == italk ) then
@@ -289,7 +289,7 @@ module mod_ncio
         end if
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
-          write(stdout,*) 'Appling perturbation to input dataset:'
+          write(stdout,*) 'Applying perturbation to input dataset:'
           if ( lperturb_topo ) then
             write(stdout,'(a,f7.2,a)') 'Topo with value ', &
               perturb_frac_topo*d_100,'%'
@@ -421,7 +421,7 @@ module mod_ncio
       call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
       if ( ensemble_run ) then
         if ( myid == italk ) then
-          write(stdout,*) 'Appling perturbation to input dataset:'
+          write(stdout,*) 'Applying perturbation to input dataset:'
         end if
         if ( lperturb_topo ) then
           if ( myid == italk ) then
@@ -462,7 +462,7 @@ module mod_ncio
         call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
-          write(stdout,*) 'Appling perturbation to input dataset:'
+          write(stdout,*) 'Applying perturbation to input dataset:'
           if ( lperturb_topo ) then
             write(stdout,'(a,f7.2,a)') 'Topo with value ', &
               perturb_frac_topo*d_100,'%'
@@ -872,7 +872,7 @@ module mod_ncio
       istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
       if ( ensemble_run ) then
-        write(stdout,*) 'Appling perturbation to input dataset:'
+        write(stdout,*) 'Applying perturbation to input dataset:'
         if ( lperturb_ts ) then
           if ( myid == italk ) then
             write(stdout,'(a,f7.2,a)') &
@@ -895,7 +895,7 @@ module mod_ncio
       if ( ensemble_run ) then
         if ( lperturb_u ) then
           if ( myid == italk ) then
-            write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'U with value ',perturb_frac_u*d_100,'%'
           end if
           call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
         end if
@@ -906,7 +906,7 @@ module mod_ncio
       if ( ensemble_run ) then
         if ( lperturb_v ) then
           if ( myid == italk ) then
-            write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'V with value ',perturb_frac_v*d_100,'%'
           end if
           call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
         end if
@@ -917,7 +917,7 @@ module mod_ncio
       if ( ensemble_run ) then
         if ( lperturb_t ) then
           if ( myid == italk ) then
-            write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'T with value ',perturb_frac_t*d_100,'%'
           end if
           call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
         end if
@@ -928,7 +928,7 @@ module mod_ncio
       if ( ensemble_run ) then
         if ( lperturb_q ) then
           if ( myid == italk ) then
-            write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'Q with value ',perturb_frac_q*d_100,'%'
           end if
           call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
         end if
@@ -986,7 +986,7 @@ module mod_ncio
                 rspace2,istart(1:3),icount(1:3))
         call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
         if ( ensemble_run ) then
-          write(stdout,*) 'Appling perturbation to input dataset:'
+          write(stdout,*) 'Applying perturbation to input dataset:'
           if ( lperturb_ts ) then
             write(stdout,'(a,f7.2,a)') &
                     'TS with value ',perturb_frac_ts*d_100,'%'
@@ -1006,7 +1006,7 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_u ) then
-            write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'U with value ',perturb_frac_u*d_100,'%'
             call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1015,7 +1015,7 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_v ) then
-            write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'V with value ',perturb_frac_v*d_100,'%'
             call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1024,7 +1024,7 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_t ) then
-            write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'T with value ',perturb_frac_t*d_100,'%'
             call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1033,7 +1033,7 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_q ) then
-            write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+            write(stdout,'(a,f7.2,a)') 'Q with value ',perturb_frac_q*d_100,'%'
             call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
           end if
         end if
