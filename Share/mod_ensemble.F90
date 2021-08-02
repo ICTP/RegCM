@@ -213,7 +213,7 @@ module mod_ensemble
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 
-      seed = int(cputime) + 37*[(i-1,i=1,nseed)]
+      seed = int(d_1000 * cputime) + 37*[(i-1,i=1,nseed)]
 
       ! Set the seed for the random number generator.  This makes it so that we
       ! get a pseudo-random sequence of numbers
@@ -275,7 +275,7 @@ module mod_ensemble
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
       ! understand why 37 is used as opposed to any other number.
 
-      seed = int(cputime) + 37*[(i-1,i=1,nseed)]
+      seed = int(d_1000 * cputime) + 37*[(i-1,i=1,nseed)]
 
       ! Set the seed for the random number generator.  This makes it so that we
       ! get a pseudo-random sequence of numbers
