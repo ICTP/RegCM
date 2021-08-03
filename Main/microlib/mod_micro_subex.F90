@@ -54,6 +54,7 @@ module mod_micro_subex
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: pptmin = 0.0_rkx
   real(rkx) , parameter :: actcld = 0.0_rkx
+  real(rkx) , parameter :: actliq = 1.0e-6_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
   contains
@@ -122,7 +123,8 @@ module mod_micro_subex
         do i = ici1 , ici2
           do j = jci1 , jci2
             afc = mc2mo%fcc(j,i,k)
-            if ( afc > actcld ) then
+            qcw = mo2mc%qcn(j,i,k)
+            if ( qcw > actliq .and. afc > actcld ) then
               ! include aerosol second indirect effect on threshold
               ! auto-conversion
               ! rcrit is a critical cloud radius for cloud
@@ -155,7 +157,7 @@ module mod_micro_subex
             !     theshhold for auto-conversion.
             afc = mc2mo%fcc(j,i,k)
             qcw = mo2mc%qcn(j,i,k)
-            if ( qcw > minqc .and. afc > actcld ) then
+            if ( qcw > actliq .and. afc > actcld ) then
               ! In cloud mixing ratio [kg/kg]
               qcincl = mo2mc%qcn(j,i,k)/afc
               tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
@@ -193,10 +195,10 @@ module mod_micro_subex
     !   maximum precipation rate (total cloud water/dt)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = mc2mo%fcc(j,i,1)     ![frac][avg]
         pptnew = d_zero
+        afc = mc2mo%fcc(j,i,1)     ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
-        if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
+        if ( qcw > actliq .and. afc > actcld ) then ! if there is a cloud
           pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -277,7 +279,12 @@ module mod_micro_subex
               ! 2bcc. Update the precipitation accounting for the raindrop
               !       evaporation [kg/m2/s]
               if ( rdevap > dlowval ) then
-                pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
+                if ( rdevap*dpovg > pptsum(j,i) ) then
+                  pptsum(j,i) = d_zero
+                  rdevap = pptsum(j,i)/dpovg
+                else
+                  pptsum(j,i) = pptsum(j,i) - rdevap*dpovg ![kg/m2/s][avg]
+                end if
                 rlv = wlhv-cpvmcl*(mo2mc%t(j,i,k)-tzero)
                 ocpm = d_one/(cpd*(d_one-mo2mc%qxx(j,i,k,iqv)) + &
                               cpv*mo2mc%qxx(j,i,k,iqv))
@@ -303,7 +310,7 @@ module mod_micro_subex
             end if
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
+          if ( qcw > actliq .and. afc > actcld ) then ! if there is a cloud
             pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]

@@ -439,7 +439,7 @@ module mod_cu_tiedtke
           do ii = 1 , nipoi
             i = imap(ii)
             j = jmap(ii)
-            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
+            cu_qten(j,i,k,iqi) = pxite(ii,k)-m2c%qxten(j,i,k,iqi)
           end do
         end do
       else
@@ -447,7 +447,7 @@ module mod_cu_tiedtke
           do ii = 1 , nipoi
             i = imap(ii)
             j = jmap(ii)
-            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+            cu_qten(j,i,k,iqi) = pxite(ii,k)-m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
           end do
         end do
       end if

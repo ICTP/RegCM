@@ -64,9 +64,12 @@ module mod_ein
   real(rkx) :: pss , pst
   integer(2) , pointer , dimension(:,:,:) :: work
 
-  integer(ik4) , dimension(5,4) :: inet5
-  integer(ik4) , dimension(5,4) :: ivar5
-  real(rkx) , dimension(5,4) :: xoff , xscl
+  integer , parameter :: numvars = 7
+  integer , parameter :: numruns = 4
+
+  integer(ik4) , dimension(numvars,numruns) :: ncfile
+  integer(ik4) , dimension(numvars,numruns) :: varid
+  real(rkx) , dimension(numvars,numruns) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
   logical :: lqas = .false.
@@ -329,12 +332,12 @@ module mod_ein
     implicit none
     character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , ifile , it , j , irun , inet , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=1) , dimension(6) :: varname
-    character(len=4) , dimension(6) :: fname
+    character(len=4) , dimension(7) :: varname
+    character(len=4) , dimension(7) :: fname
     character(len=4) , dimension(4) :: hname
     character(len=64) :: cunit , ccal
     real(rkx) :: xadd , xscale
@@ -351,50 +354,50 @@ module mod_ein
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    data varname /'t' , 'z' , 'r' , 'u' , 'v' , 'q'/
-    data fname   /'air','hgt','rhum','uwnd','vwnd', 'qas'/
+    data varname /'t' , 'z' , 'r' , 'u' , 'v' , 'q', 'clwc'/
+    data fname   /'air','hgt','rhum','uwnd','vwnd', 'qas', 'qcs'/
     data hname   /'.00.','.06.','.12.','.18.'/
 
-    k4 = 1
+    irun = 1
     call split_idate(idate,year,month,day,hour)
 
     if ( dattyp == 'EIXXX' ) then
       if ( idate == idate0 .or. month /= lastmonth ) then
         lastmonth = month
-        do kkrec = 1 , 5
+        do inet = 1 , 5
           monthp1 = month+1
           if ( monthp1 == 13 ) monthp1 = 1
           write(inname,'(a,i0.2,a,i0.2,a)') &
-             varname(kkrec)//'_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
+             varname(inet)//'_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
           pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
                         pthsep//'XXXX'//pthsep//inname
-          istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+          istatus = nf90_open(pathaddname,nf90_nowrite,ncfile(inet,1))
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error open file '//trim(pathaddname))
-          istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
-                                   ivar5(kkrec,1))
+          istatus = nf90_inq_varid(ncfile(inet,1),varname(inet), &
+                                   varid(inet,1))
           call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find var '//varname(kkrec))
-          istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
-                   'scale_factor',xscl(kkrec,1))
+            'Error find var '//varname(inet))
+          istatus = nf90_get_att(ncfile(inet,1),varid(inet,1), &
+                   'scale_factor',xscl(inet,1))
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att scale_factor')
-          istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
-                   'add_offset',xoff(kkrec,1))
+          istatus = nf90_get_att(ncfile(inet,1),varid(inet,1),  &
+                   'add_offset',xoff(inet,1))
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-          write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
-                           xscl(kkrec,1) , xoff(kkrec,1)
-          if ( kkrec == 1 ) then
-            istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          write (stdout,*) ncfile(inet,1) , trim(pathaddname) ,   &
+                           xscl(inet,1) , xoff(inet,1)
+          if ( inet == 1 ) then
+            istatus = nf90_inq_dimid(ncfile(1,1),'time',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error find dim time')
-            istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+            istatus = nf90_inquire_dimension(ncfile(1,1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error inquire time')
-            istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+            istatus = nf90_inq_varid(ncfile(1,1),'time',timid)
             if ( istatus /= nf90_noerr ) then
-              istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+              istatus = nf90_inq_varid(ncfile(1,1),'date',timid)
               call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find var time/date')
             end if
@@ -402,7 +405,7 @@ module mod_ein
             ccal = 'noleap'
             call getmem1d(itimes,1,timlen,'mod_ein:itimes')
             call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
-            istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+            istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
             do it = 1 , timlen
@@ -418,64 +421,64 @@ module mod_ein
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
-        do k4 = 1 , 4
-          do kkrec = 1 , 5
-            if ( kkrec == 3 ) then
+        do irun = 1 , 4
+          do inet = 1 , 5
+            if ( inet == 3 ) then
               write(inname,'(i4,a,a,i4,a)') &
-                year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+                year, pthsep, trim(fname(inet))//'.', year, hname(irun)//'nc'
               pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-              istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+              istatus = nf90_open(pathaddname,nf90_nowrite,ncfile(inet,irun))
               if ( istatus /= nf90_noerr ) then
                 write(inname,'(i4,a,a,i4,a)') &
-                  year, pthsep, trim(fname(6))//'.', year, hname(k4)//'nc'
+                  year, pthsep, trim(fname(6))//'.', year, hname(irun)//'nc'
                 pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-                istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+                istatus = nf90_open(pathaddname,nf90_nowrite,ncfile(inet,irun))
                 lqas = .true.
               end if
             else
               write(inname,'(i4,a,a,i4,a)') &
-                  year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+                  year, pthsep, trim(fname(inet))//'.', year, hname(irun)//'nc'
               pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-              istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+              istatus = nf90_open(pathaddname,nf90_nowrite,ncfile(inet,irun))
             end if
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open file '//trim(pathaddname))
-            if ( kkrec == 3 .and. lqas ) then
-              istatus = nf90_inq_varid(inet5(kkrec,k4),varname(6), &
-                                       ivar5(kkrec,k4))
+            if ( inet == 3 .and. lqas ) then
+              istatus = nf90_inq_varid(ncfile(inet,irun),varname(6), &
+                                       varid(inet,irun))
             else
-              istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec), &
-                                       ivar5(kkrec,k4))
+              istatus = nf90_inq_varid(ncfile(inet,irun),varname(inet), &
+                                       varid(inet,irun))
             end if
             call checkncerr(istatus,__FILE__,__LINE__, &
-              'Error find var '//varname(kkrec))
-            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4), &
-                     'scale_factor',xscl(kkrec,k4))
+              'Error find var '//varname(inet))
+            istatus = nf90_get_att(ncfile(inet,irun),varid(inet,irun), &
+                     'scale_factor',xscl(inet,irun))
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find att scale_factor')
-            istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4),  &
-                     'add_offset',xoff(kkrec,k4))
+            istatus = nf90_get_att(ncfile(inet,irun),varid(inet,irun),  &
+                     'add_offset',xoff(inet,irun))
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find att add_offset')
-            write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
-                             xscl(kkrec,k4) , xoff(kkrec,k4)
-            if ( k4 == 1 .and. kkrec == 1 ) then
-              istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+            write (stdout,*) ncfile(inet,irun) , trim(pathaddname) ,   &
+                             xscl(inet,irun) , xoff(inet,irun)
+            if ( irun == 1 .and. inet == 1 ) then
+              istatus = nf90_inq_dimid(ncfile(1,1),'time',timid)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error find dim time')
-              istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+              istatus = nf90_inquire_dimension(ncfile(1,1),timid,len=timlen)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error inquire time')
-              istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+              istatus = nf90_inq_varid(ncfile(1,1),'time',timid)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error find var time')
-              istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+              istatus = nf90_get_att(ncfile(1,1),timid,'units',cunit)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
               ccal = 'gregorian'
               call getmem1d(itimes,1,timlen,'mod_ein:itimes')
               call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
-              istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+              istatus = nf90_get_var(ncfile(1,1),timid,xtimes)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time')
               do it = 1 , timlen
@@ -485,7 +488,7 @@ module mod_ein
           end do
         end do
       end if
-      k4 = hour/6 + 1
+      irun = hour/6 + 1
       tdif = idate - itimes(1)
       it = nint(tohours(tdif))/24 + 1
     end if
@@ -495,26 +498,26 @@ module mod_ein
     istart(4) = it
     icount(4) = 1
 
-    do kkrec = 1 , 5
-      inet = inet5(kkrec,k4)
-      ivar = ivar5(kkrec,k4)
-      xscale = xscl(kkrec,k4)
-      xadd = xoff(kkrec,k4)
-      call getwork(kkrec)
-      if ( kkrec == 1 ) then
+    do inet = 1 , 5
+      ifile = ncfile(inet,irun)
+      ivar = varid(inet,irun)
+      xscale = xscl(inet,irun)
+      xadd = xoff(inet,irun)
+      call getwork(inet)
+      if ( inet == 1 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             tvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
-      else if ( kkrec == 2 ) then
+      else if ( inet == 2 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             hvar(i,j,:) = real(real(work(i,j,:),rkx) * &
                       xscale+xadd,rkx)/9.80616_rk4
           end do
         end do
-      else if ( kkrec == 3 ) then
+      else if ( inet == 3 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             qvar(i,j,:) = &
@@ -527,13 +530,13 @@ module mod_ein
         else
           qvar = qvar * 0.01_rkx
         end if
-      else if ( kkrec == 4 ) then
+      else if ( inet == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             uvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
-      else if ( kkrec == 5 ) then
+      else if ( inet == 5 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             vvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
@@ -556,7 +559,7 @@ module mod_ein
           istart(2) = gdomain%jgstart
           icount(2) = gdomain%nj
           itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(inet,ivar,work(iti:itf,:,:),istart,icount)
+          istatus = nf90_get_var(ifile,ivar,work(iti:itf,:,:),istart,icount)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read var '//varname(irec))
           iti = iti + gdomain%ni(itile)

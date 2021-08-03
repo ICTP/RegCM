@@ -342,7 +342,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-10_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
@@ -574,7 +574,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-10_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux

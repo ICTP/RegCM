@@ -59,7 +59,7 @@ module mod_cloud_xuran
               fcc(j,i,k) = d_one
             else
               botm = rhrng ** 0.25_rkx
-              rm = -(100.0_rkx*qcld)/(((d_one-rhrng)*qs(j,i,k))**0.49_rkx)
+              rm = -100.0_rkx * qcld/(qs(j,i,k)-qv(j,i,k))**0.49_rkx
               fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
             end if
             !botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))

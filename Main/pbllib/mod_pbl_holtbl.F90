@@ -60,7 +60,7 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: ri
 
   ! minimum eddy diffusivity ( background value )
-  real(rkx) , parameter :: kzo = d_one ! m^2s-1
+  real(rkx) , parameter :: kzo = 2.0_rkx ! m^2s-1
   real(rkx) , parameter :: szkm = 1600.0_rkx
   ! coef. of proportionality and lower % of bl in sfc layer
   real(rkx) , parameter :: fak = 8.5_rkx
@@ -188,7 +188,7 @@ module mod_pbl_holtbl
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       exner(j,i,k) = (m2p%patm(j,i,k)/p00)**rovcp
       vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.1_rkx)
+                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k), 0.2_rkx)
     end do
     !
     !   compute the diffusion coefficient:
@@ -200,18 +200,18 @@ module mod_pbl_holtbl
           ! Critical Richardson number : Zhang and Anthes (1982)
           rc = 0.257_rkx*m2p%dzq(j,i,k)**0.175_rkx
           ! Vertical wind shear (square)
-          ss = ((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &
-                (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))+   &
-                (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))*   &
-                (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k)))/  &
-                (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0e-9_rkx
+          ss = max(((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &
+                    (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))+   &
+                    (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))*   &
+                    (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))), 0.01_rkx) /  &
+               (dza(j,i,k-1)*dza(j,i,k-1))
           ! Compute Richardson number
           rin = govrth(j,i) * &
             (m2p%thatm(j,i,k-1)-m2p%thatm(j,i,k))/(ss*dza(j,i,k-1))
           if ( (rin-rc) >= d_zero ) then
             kzm(j,i,k) = kzo
           else
-            kzm(j,i,k) = kzo + szkm*sqrt(ss)*(rc-rin)/rc
+            kzm(j,i,k) = kzo - szkm*sqrt(ss)*(rin-rc)/rc
           end if
           kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           kzm(j,i,k) = min(kzm(j,i,k),kzmax)
@@ -243,10 +243,11 @@ module mod_pbl_holtbl
     do i = ici1 , ici2
       do j = jci1 , jci2
         ! compute friction velocity
-        uflxsfx = m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)
-        vflxsfx = m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)
+        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)/m2p%rhox2d(j,i)
+        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)/m2p%rhox2d(j,i)
         ustr(j,i) = sqrt(sqrt(max(uflxsfx*uflxsfx+ &
-                          vflxsfx*vflxsfx,1.0e-10_rkx))/m2p%rhox2d(j,i))
+                          vflxsfx*vflxsfx,1.0e-4_rkx)))
+        ustr(j,i) = max(ustr(j,i),0.01_rkx)
         ! convert surface fluxes to kinematic units
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
@@ -291,20 +292,27 @@ module mod_pbl_holtbl
                          (d_one + 0.61_rkx*sh10))
           end if
           do iter = 1 , holtth10iter
-            oblen = -(th10(j,i)*ustr(j,i)**3) / &
-              (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
-            if ( oblen >= m2p%za(j,i,kz) ) then
-              th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-                 (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
-            else
-              if ( oblen > d_10 ) then
-                th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
-                    (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                    6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+            if ( hfxv(j,i) < 1.0e-3 ) then
+              oblen = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
+              if ( oblen >= m2p%za(j,i,kz) ) then
+                th10(j,i) = m2p%tvatm(j,i,kz) + &
+                  hfxv(j,i)/(vonkar*ustr(j,i))*(log(m2p%za(j,i,kz)*d_r10) + &
+                   d_five/oblen*(m2p%za(j,i,kz)-d_10))
               else
-                th10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))* &
-                            6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+                if ( oblen > d_10 ) then
+                  th10(j,i) = m2p%tvatm(j,i,kz) + &
+                    hfxv(j,i)/(vonkar*ustr(j,i))* &
+                      (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+ &
+                      6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+                else
+                  th10(j,i) = m2p%tvatm(j,i,kz) + &
+                    hfxv(j,i)/(vonkar*ustr(j,i))* &
+                      6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+                end if
               end if
+            else
+              oblen = m2p%za(j,i,kz)
+              th10(j,i) = m2p%tvatm(j,i,kz)
             end if
           end do
         end if
@@ -314,8 +322,11 @@ module mod_pbl_holtbl
           th10(j,i) = min(th10(j,i),m2p%tg(j,i))  ! gtb add to minimize
         end if
         ! obklen compute obukhov length
-        obklen(j,i) = -(th10(j,i)*ustr(j,i)**3) / &
-          (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
+        if ( abs(hfxv(j,i)) > 1.0e-4 ) then
+          obklen(j,i) = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
+        else
+          obklen(j,i) = -sign(0.001_rkx,hfxv(j,i))
+        end if
       end do
     end do
 
@@ -1244,11 +1255,10 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! BL height is at least the mechanocal mixing depth
-          phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
-          phpblm = max(phpblm,m2p%za(j,i,kz))
+          phpblm = 0.07_rkx*(ustr(j,i)/pfcor(j,i))
           p2m%zpbl(j,i) = phpblm
           p2m%kpbl(j,i) = kz
-          do k = kz-1 , 2 , -1
+          do k = kz-1 , kmxpbl(j,i)-1 , -1
             p2m%kpbl(j,i) = k
             if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
           end do
@@ -1347,7 +1357,13 @@ module mod_pbl_holtbl
                 ! stable and neutral conditions
                 ! igroup = 1
                 ! prevent pblk too small in very stable conditions
-                if ( zl <= d_one ) then
+                if ( zl <= 0.1_rkx ) then
+                  ! Erika put k=0 in very stable conditions
+                  pblk = kzo
+                  pblk1 = kzo
+                  pblk2 = kzo
+                  ! Erika put k=0 in very stable conditions
+                else if ( zl <= d_one ) then
                   pblk = fak1*zh*zzh/(d_one+betas*zl)
 !xexp5            pblk1 = vonkar * ustr(j,i) / (d_one+betas*zl) * zzhnew
                   pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
@@ -1359,24 +1375,16 @@ module mod_pbl_holtbl
                   pblk2 = fak1*zh*zzhnew2/(betas+zl)
                 end if
                 ! compute eddy diffusivities
-                kvm(j,i,k) = max(pblk,kzo)
+                kvm(j,i,k) = pblk
                 kvh(j,i,k) = kvm(j,i,k)
-                kvq(j,i,k) = max(pblk1,kzo)
-                ! Erika put k=0 in very stable conditions
-                if ( zl <= sffrac ) then
-                  kvm(j,i,k) = d_zero
-                  kvh(j,i,k) = d_zero
-                  kvq(j,i,k) = d_zero
-                end if
-                ! Erika put k=0 in very stable conditions
+                kvq(j,i,k) = pblk1
                 if ( ichem == 1 ) then
-                  kvc(j,i,k) = max(pblk2,kzo)
+                  kvc(j,i,k) = pblk2
                 end if
-                ! compute counter-gradient term
                 cgh(j,i,k) = d_zero
               else
                 ! unstable conditions
-                if ( zh >= sffrac ) then
+                if ( zh >= 0.1_rkx ) then
                   pblk = fak2*zh*zzh
 !xexp5            pblk1 = vonkar * wsc * zzhnew
                   pblk1 = fak2*zh*zzhnew
@@ -1393,11 +1401,11 @@ module mod_pbl_holtbl
                   cgh(j,i,k) = d_zero
                 end if
                 ! compute eddy diffusivities
-                kvm(j,i,k) = max(pblk,kzo)
-                kvh(j,i,k) = max((pblk/pr),kzo)
-                kvq(j,i,k) = max(pblk1,kzo)
+                kvm(j,i,k) = max(pblk,kvm(j,i,k))
+                kvh(j,i,k) = max((pblk/pr),kvh(j,i,k))
+                kvq(j,i,k) = max(pblk1,kvq(j,i,k))
                 if ( ichem == 1 ) then
-                  kvc(j,i,k) = max(pblk2,kzo)
+                  kvc(j,i,k) = max(pblk2,kvc(j,i,k))
                 end if
               end if
             end if

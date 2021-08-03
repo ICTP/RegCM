@@ -213,6 +213,8 @@ module mod_ocn_zeng
                         (d_five*log(zeta)+zeta-d_one))
           end if
           ustar = vonkar*um/ram1(i)
+        else
+          ram1(i) = vonkar*um/ustar
         end if
         !
         ! temperature

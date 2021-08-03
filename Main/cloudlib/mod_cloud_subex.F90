@@ -61,7 +61,7 @@ module mod_cloud_subex
         do j = jci1 , jci2
           if ( qc(j,i,k) > 1.0e-7_rkx ) then
             ! Adjusted relative humidity threshold
-            rhrng = min(max(rh(j,i,k),rhmin),rhmax)
+            rhrng = min(max(rh(j,i,k),rhmin),1.0_rkx)
             if ( t(j,i,k) > tc0 ) then
               rh0adj = rh0(j,i)
             else ! high cloud (less subgrid variability)
