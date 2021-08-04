@@ -139,13 +139,13 @@ module mod_grid
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse)
       call model_zitah(zitah)
+      sigmah = sigmazita(zitah)
       do k = 1 , kz
         do i = 1 , iy
           do j = 1 , jx
             z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i))
           end do
         end do
-        sigmah(k) = 1.0_rkx - zitah(k)/mo_ztop
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))
       end do
     else

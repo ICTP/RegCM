@@ -60,7 +60,7 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: ri
 
   ! minimum eddy diffusivity ( background value )
-  real(rkx) , parameter :: kzo = 2.0_rkx ! m^2s-1
+  real(rkx) , parameter :: kzo = 1.0_rkx ! m^2s-1
   real(rkx) , parameter :: szkm = 1600.0_rkx
   ! coef. of proportionality and lower % of bl in sfc layer
   real(rkx) , parameter :: fak = 8.5_rkx

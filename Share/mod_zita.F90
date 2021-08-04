@@ -33,12 +33,24 @@ module mod_zita
     module procedure zh4d
   end interface zita_interp
 
-  public :: model_zitaf , model_zitah
+  public :: model_zitaf , model_zitah , zitasigma , sigmazita
   public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , gzita
   public :: md_ak , md_bk
   public :: zita_interp
 
   contains
+
+  pure real(rkx) elemental function sigmazita(zita)
+    implicit none
+    real(rkx) , intent(in) :: zita
+    sigmazita = 1.0_rkx - zita/mo_ztop
+  end function sigmazita
+
+  pure real(rkx) elemental function zitasigma(sigma)
+    implicit none
+    real(rkx) , intent(in) :: sigma
+    zitasigma = mo_ztop * (1.0_rkx - sigma)
+  end function zitasigma
 
   subroutine model_zitaf(zitaf)
     implicit none
@@ -68,20 +80,21 @@ module mod_zita
 
   ! Decay function
 
+  pure real(rkx) elemental function zfz( )
+    implicit none
+    zfz = mo_ztop/(exp(mo_ztop/mo_h)-1.0_rkx)
+  end function zfz
+
   pure real(rkx) elemental function bzita(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    real(rkx) :: zfz
-    zfz = mo_ztop/(exp(mo_ztop/mo_h)-1.0_rkx)
-    bzita = zfz*(exp(zita/mo_h)-1.0_rkx)
+    bzita = zfz( )*(exp(zita/mo_h)-1.0_rkx)
   end function bzita
 
   pure real(rkx) elemental function bzitap(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    real(rkx) :: zfz
-    zfz = mo_ztop/(exp(mo_ztop/mo_h)-1.0_rkx)
-    bzitap = zfz/mo_h*exp(zita/mo_h)
+    bzitap = zfz( )*exp(zita/mo_h)/mo_h
   end function bzitap
 
   pure real(rkx) elemental function gzita(zita)
@@ -89,9 +102,9 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
     ratio = zita/mo_ztop
-    gzita = 1.0_rkx - mo_a0 * ratio - &
-            (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
-            (2.0_rkx - mo_a0) * ratio**3
+    gzita = ((0.0_rkx - 1.0_rkx * mo_a0) * ratio**1 - &
+             (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
+             (2.0_rkx - 1.0_rkx * mo_a0) * ratio**3) + 1.0_rkx
     !gzita = sinh((mo_ztop-zita)/mo_h)/sinh(mo_ztop/mo_h)
   end function gzita
 
@@ -101,8 +114,9 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
     ratio = zita/mo_ztop
-    gzitap = (-mo_a0 - (6.0_rkx - 4.0_rkx * mo_a0) * ratio + &
-                       (6.0_rkx - 3.0_rkx * mo_a0) * ratio**2)/mo_ztop
+    gzitap = ((0.0_rkx - 1.0_rkx * mo_a0) * ratio**0 - &
+              (6.0_rkx - 4.0_rkx * mo_a0) * ratio**1 + &
+              (6.0_rkx - 3.0_rkx * mo_a0) * ratio**2) / mo_ztop
     !gzitap = -(1.0_rkx/mo_h)*cosh((mo_ztop-zita)/mo_h)/sinh(mo_ztop/mo_h)
   end function gzitap
 

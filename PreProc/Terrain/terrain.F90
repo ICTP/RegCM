@@ -176,7 +176,7 @@ program terrain
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
     call model_zitaf(zita)
-    sigma = d_one - zita/mo_ztop
+    sigma = sigmazita(zita)
     ak = md_ak(zita)
     bk = md_bk(zita)
   else
