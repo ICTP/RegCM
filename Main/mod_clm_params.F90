@@ -595,8 +595,8 @@ module mod_clm_params
         call model_zitaf(zita)
         call model_zitah(zitah)
         mo_dzita = zita(kz)
-        sigma = d_one - zita/mo_ztop
-        hsigma = d_one - zitah/mo_ztop
+        sigma = sigmazita(zita)
+        hsigma = sigmazita(zitah)
         fak = md_ak(zita)
         fbk = md_bk(zita)
         ak = md_ak(zitah)

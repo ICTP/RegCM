@@ -54,7 +54,7 @@ module mod_micro_subex
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: pptmin = 0.0_rkx
   real(rkx) , parameter :: actcld = 0.0_rkx
-  real(rkx) , parameter :: actliq = 1.0e-6_rkx
+  real(rkx) , parameter :: actliq = 1.0e-8_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
   contains

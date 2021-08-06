@@ -100,6 +100,7 @@ module mod_moloch
   logical , parameter :: do_bdy = .true.
   logical , parameter :: do_fulleq = .false.
   logical :: do_filterpai = .false.
+  logical , parameter :: do_vadvtwice = .true.
   logical , parameter :: do_filterdiv = .true.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
@@ -1025,12 +1026,15 @@ module mod_moloch
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
 
-        real(rkx) , parameter :: wlow = 0.0_rkx
+        real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
         zdtrdx = dta/dx
         zdtrdy = dta/dx
         zdtrdz = dta/dzita
+        if ( do_vadvtwice ) then
+          zdtrdz = 0.5_rkx * zdtrdz
+        end if
 
         ! Vertical advection
 
@@ -1083,6 +1087,53 @@ module mod_moloch
           !  end do
           !end do
         end do
+
+        if ( do_vadvtwice ) then
+          do i = ici1 , ici2
+            do k = 1 , kzm1
+              do j = jci1 , jci2
+                zamu = s(j,i,k+1) * zdtrdz
+                if ( zamu >= d_zero ) then
+                  is = d_one
+                  k1 = k + 1
+                  k1p1 = k1 + 1
+                  if ( k1p1 > kz ) k1p1 = kz
+                else
+                  is = -d_one
+                  k1 = k - 1
+                  k1p1 = k
+                  if ( k1 < 1 ) k1 = 1
+                end if
+                r = rdeno(wz(j,i,k1),wz(j,i,k1p1),wz(j,i,k),wz(j,i,k+1))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu * b - is * b
+                wfw(j,k+1) = d_half*s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
+                                                  (d_one-zphi)*wz(j,i,k))
+                !wfw(j,k+1) = d_half * zamu * ((d_one+zphi)*wz(j,i,k+1) + &
+                !                              (d_one-zphi)*wz(j,i,k))
+              end do
+            end do
+            do j = jci1 , jci2
+              zrfmd = zdtrdz * fmz(j,i,1)/fmzf(j,i,2)
+              zdv = -s(j,i,2) * zrfmd * wz(j,i,1)
+              wz(j,i,1) = wz(j,i,1) + wfw(j,2) * zrfmd + zdv
+            end do
+            do k = 2 , kz
+              do j = jci1 , jci2
+                zrfmu = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
+                zrfmd = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
+                zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
+                wz(j,i,k) = wz(j,i,k) - wfw(j,k)*zrfmu + wfw(j,k+1)*zrfmd + zdv
+              end do
+            end do
+            !do k = 1 , kz
+            !  do j = jci1 , jci2
+            !    zdv = (s(j,i,k) - s(j,i,k+1)) * zdtrdz * pp(j,i,k)
+            !    wz(j,i,k) = pp(j,i,k) - wfw(j,k) + wfw(j,k+1) + zdv
+            !  end do
+            !end do
+          end do
+        end if
 
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
