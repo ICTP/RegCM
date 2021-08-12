@@ -50,7 +50,7 @@ module mod_cloud_xuran
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) < 1.0e-7_rkx ) then
+          if ( qc(j,i,k) < minqc ) then
             fcc(j,i,k) = d_zero
           else
             qcld = qc(j,i,k)

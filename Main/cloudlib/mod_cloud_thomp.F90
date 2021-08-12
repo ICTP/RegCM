@@ -72,7 +72,7 @@ module mod_cloud_thomp
         do j = jci1 , jci2
           cldfra(j,i,k) = d_zero
           rhi_max = d_zero
-          if ( qc(j,i,k) + qi(j,i,k) > 1.e-4_rkx ) then
+          if ( qc(j,i,k) + qi(j,i,k) > 1.e-3_rkx ) then
             cldfra(j,i,k) = d_one
             qvsat(j,i,k) = qv(j,i,k)
           else

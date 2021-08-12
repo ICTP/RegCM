@@ -53,7 +53,7 @@ module mod_cloud_tompkins
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) < 1.0e-7_rkx ) then
+          if ( qc(j,i,k) < minqc ) then
             fcc(j,i,k) = d_zero
           else
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
