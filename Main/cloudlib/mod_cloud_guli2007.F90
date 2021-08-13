@@ -40,14 +40,13 @@ module mod_cloud_guli2007
   !   content and its variance using in-situ observations
   !   GRL vol 34, L07801, 2007
   !
-  subroutine gulisa_cldfrac(qv,qs,qt,fcc)
+  subroutine gulisa_cldfrac(qt,z,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qt
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qv
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
-    real(rkx) :: qgkg
+    real(rkx) :: qgkg , stddev
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
@@ -56,10 +55,18 @@ module mod_cloud_guli2007
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qgkg = (qt(j,i,k)+max(qv(j,i,k)-qs(j,i,k),d_zero))*1.0e3_rkx
-          fcc(j,i,k) = 1.0_rkx/90.0_rkx * &
-                      ((100_rkx-ds)  * 5.57_rkx * qgkg**0.78_rkx + &
-                       (ds-10.0_rkx) * 4.82_rkx * qgkg**0.94_rkx)
+          stddev = 1.0_rkx + (0.04_rkx/(z(j,i,k)/80000.0_rkx*0.625_rkx)) * &
+            exp(-log(0.0005_rkx*z(j,i,k))**2/0.625_rkx)
+          qgkg = qt(j,i,k)*1.0e3_rkx/stddev
+          if ( qgkg < 0.18_rkx ) then
+            fcc(j,i,k) = d_zero
+          else if ( qgkg > 2.0_rkx ) then
+            fcc(j,i,k) = d_one
+          else
+            fcc(j,i,k) = -0.1754_rkx + 0.9811_rkx*qgkg - &
+                                       0.2223_rkx*qgkg*qgkg - &
+                                       0.0104_rkx*qgkg*qgkg*qgkg
+          end if
         end do
       end do
     end do

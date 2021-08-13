@@ -727,6 +727,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pfs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: delz   ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: t      ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: z      ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: rho    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: pverv  ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: verv   ! from atms

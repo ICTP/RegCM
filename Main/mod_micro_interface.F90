@@ -132,6 +132,7 @@ module mod_micro_interface
     call assignpnt(atms%pb3d,mo2mc%phs)
     call assignpnt(atms%pf3d,mo2mc%pfs)
     call assignpnt(atms%tb3d,mo2mc%t)
+    call assignpnt(atms%za,mo2mc%z)
     call assignpnt(atms%dzq,mo2mc%delz)
     call assignpnt(atms%wpx3d,mo2mc%pverv)
     call assignpnt(atms%wb3d,mo2mc%verv)
@@ -244,13 +245,6 @@ module mod_micro_interface
         end do
       end do
     end if
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( totc(j,i,k) <= 1.0e-10_rkx ) totc(j,i,k) = d_zero
-        end do
-      end do
-    end do
 
     select case ( icldfrac )
       case (1)
@@ -261,7 +255,7 @@ module mod_micro_interface
                            totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
                            ds,mc2mo%fcc)
       case (3)
-        call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
+        call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)
       case (4)
         call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (5)
