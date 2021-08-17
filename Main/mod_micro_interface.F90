@@ -303,19 +303,43 @@ module mod_micro_interface
     !     to be passed into radiation.
     !-----------------------------------------------------------------
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          exlwc = d_zero
-          ! Cloud Water Volume
-          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          if ( mc2mo%fcc(j,i,k) > lowcld ) then
-            if ( iconvlwp == 1 ) then
+    if ( iconvlwp == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            exlwc = d_zero
+            ! Cloud Water Volume
+            if ( mc2mo%fcc(j,i,k) > lowcld ) then
               ! Apply the parameterisation based on temperature to the
               ! the large scale clouds.
               exlwc = clwfromt(mo2mc%t(j,i,k))
+            end if
+            if ( cldfra(j,i,k) > lowcld ) then
+              ! get maximum cloud fraction between cumulus and large scale
+              cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
+                              cldlwc(j,i,k) * cldfra(j,i,k)) / &
+                              (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
+              cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
             else
-              ! In g / m^3
+              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+              cldlwc(j,i,k) = exlwc
+            end if
+            if ( cldlwc(j,i,k) > d_zero ) then
+              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+            else
+              cldfra(j,i,k) = d_zero
+            end if
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            exlwc = d_zero
+            ! Cloud Water Volume
+            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+            if ( mc2mo%fcc(j,i,k) > lowcld ) then
               exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
               ! NOTE : IN CLOUD HERE IS NEEDED !!!
               exlwc = exlwc/mc2mo%fcc(j,i,k)
@@ -325,25 +349,25 @@ module mod_micro_interface
             ! doi: 10.1029/2004GL022301
             ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
             exlwc = exlwc * chis(ichi)
-          end if
-          if ( cldfra(j,i,k) > lowcld ) then
-            ! get maximum cloud fraction between cumulus and large scale
-            cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
-                            cldlwc(j,i,k) * cldfra(j,i,k)) / &
-                            (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
-            cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-          else
-            cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-            cldlwc(j,i,k) = exlwc
-          end if
-          if ( cldlwc(j,i,k) > d_zero ) then
-            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
-          else
-            cldfra(j,i,k) = d_zero
-          end if
+            if ( cldfra(j,i,k) > lowcld ) then
+              ! get maximum cloud fraction between cumulus and large scale
+              cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
+                              cldlwc(j,i,k) * cldfra(j,i,k)) / &
+                              (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
+              cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+            else
+              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+              cldlwc(j,i,k) = exlwc
+            end if
+            if ( cldlwc(j,i,k) > d_zero ) then
+              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+            else
+              cldfra(j,i,k) = d_zero
+            end if
+          end do
         end do
       end do
-    end do
+    end if
 
     if ( ipptls == 1 ) then
       rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
