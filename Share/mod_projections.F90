@@ -689,7 +689,7 @@ module mod_projections
       lon = real(pj%p%stdlon,rkx)
     else
       lon = real(pj%p%stdlon + &
-           raddeg * atan2(xx,pj%p%hemi*yy)*pj%p%rconefac,rkx)
+           raddeg * atan2(pj%p%hemi*xx,yy)*pj%p%rconefac,rkx)
       if ( pj%p%lamtan ) then
         chi = 2.0_rk8 * &
           atan(((r/pj%p%tchi1)**pj%p%rconefac)*pj%p%tanchi1h)
