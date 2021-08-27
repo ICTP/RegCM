@@ -38,9 +38,10 @@ module mod_cloud_texeira
   ! See Cloud Fraction and Relative Humidity in a Prognostic Cloud
   ! Fraction Scheme, João Teixeira,
   ! https://doi.org/10.1175/1520-0493(2001)129<1750:CFARHI>2.0.CO;2
-  subroutine texeira_cldfrac(qc,qs,rh,fcc)
+  subroutine texeira_cldfrac(qc,qs,rh,rh0,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs , qc , rh
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) :: rhrng
     integer(ik4) :: i , j , k
@@ -60,7 +61,7 @@ module mod_cloud_texeira
           rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
           liq = qc(j,i,k)
           spq = qs(j,i,k) / (d_one + qs(j,i,k))
-          if ( liq > minqc ) then
+          if ( liq > minqc .and. rhrng > rh0(j,i) ) then
             fcc(j,i,k) = d*liq / (d_two*spq*(d_one-rhrng)*kappa) * &
               ( -d_one + sqrt(d_one + &
                  (d_four*spq*((d_one-rhrng)*kappa))/(d*liq)) )

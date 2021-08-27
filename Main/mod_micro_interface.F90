@@ -257,7 +257,7 @@ module mod_micro_interface
       case (3)
         call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)
       case (4)
-        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0,mc2mo%fcc)
       case (5)
         call tompkins_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (6)

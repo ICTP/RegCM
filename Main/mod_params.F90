@@ -497,7 +497,7 @@ module mod_params
     ricr_lnd = 0.25_rkx
     zhnew_fac = 0.25_rkx
     ifaholt = 0
-    ifaholtth10 = 2
+    ifaholtth10 = 1
     holtth10iter = 1
     !
     ! slabocparam ;

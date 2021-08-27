@@ -353,7 +353,7 @@ module mod_slice
       kmxpbl(:,:) = kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do k = kz-1 , 1 , -1
+          do k = kzm1 , 2 , -1
             if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
