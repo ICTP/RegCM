@@ -43,8 +43,7 @@ module mod_pbl_holtbl
 
   real(rkx) , pointer , dimension(:,:,:) :: cgh , kvc , kvh , &
                                           kvm , kvq ! , cgq
-  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
-                                  ustr , xhfx , xqfx , pfcor
+  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , tv10 , ustr
 
   real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
@@ -102,12 +101,10 @@ module mod_pbl_holtbl
     call getmem3d(kvm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvm')
     call getmem3d(kvq,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvq')
     call getmem2d(hfxv,jci1,jci2,ici1,ici2,'mod_holtbl:hfxv')
-    call getmem2d(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
     call getmem2d(obklen,jci1,jci2,ici1,ici2,'mod_holtbl:obklen')
     call getmem2d(th10,jci1,jci2,ici1,ici2,'mod_holtbl:th10')
+    call getmem2d(tv10,jci1,jci2,ici1,ici2,'mod_holtbl:tv10')
     call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
-    call getmem2d(xhfx,jci1,jci2,ici1,ici2,'mod_holtbl:xhfx')
-    call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
     call getmem2d(uvdrage,jci1ga,jci2, &
@@ -127,7 +124,7 @@ module mod_pbl_holtbl
     type(pbl_2_mod) , intent(inout) :: p2m
     real(rkx) :: drgdot , kzmax , oblen , rin , rc , sh10 , uu , n2 , &
              ss , dudz , dvdz , uflxsf , uflxsfx , vflxsf , vflxsfx , &
-             tv10 , fofri , thnv
+             fofri , thnv , xhfx , xqfx , rrho
     integer(ik4) :: i , j , k , itr , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
@@ -147,6 +144,9 @@ module mod_pbl_holtbl
         end do
       end do
     end do
+    !
+    ! Compute the g/dp term
+    !
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -165,7 +165,7 @@ module mod_pbl_holtbl
       end do
     end if
     !
-    ! Compute the theta->temperature function and the velocity squared
+    ! Compute the theta->temperature function
     !
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       cfac(j,i,k) = (m2p%patm(j,i,k)/p00)**rovcp / &
@@ -219,7 +219,7 @@ module mod_pbl_holtbl
     ! Holtslag pbl
     !
     ! Initialize bl diffusion coefficients and counter-gradient terms
-    ! wi`th free atmosphere values and make specific humidity
+    ! with free atmosphere values
     !
     do k = 2 , kz
       do i = ici1 , ici2
@@ -242,20 +242,16 @@ module mod_pbl_holtbl
         ! compute friction velocity
         uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)/m2p%rhox2d(j,i)
         vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)/m2p%rhox2d(j,i)
+        ! Minimum allowed ustr = 0.025
         uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.000000390625_rkx)
         ustr(j,i) = sqrt(sqrt(uu))
-        ! convert surface fluxes to kinematic units
-        xhfx(j,i) = m2p%hfx(j,i)*m2p%rhox2d(j,i)/cpd
-        xqfx(j,i) = m2p%qfx(j,i)*m2p%rhox2d(j,i)
-        ! Compute virtual heat flux at surface.
         thnv = m2p%tatm(j,i,kz)/(m2p%patmf(j,i,kzp1)/p00)**rovcp
-        hfxv(j,i) = xhfx(j,i) + 0.61_rkx * thnv * xqfx(j,i)
-      end do
-    end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ! limit coriolis parameter to value at 20 deg. latitude
-        pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
+        rrho = 1.0_rkx/m2p%rhox2d(j,i)
+        ! convert surface fluxes to kinematic units
+        xhfx = m2p%hfx(j,i)*rrho/cpd
+        xqfx = m2p%qfx(j,i)*rrho
+        ! Compute virtual heat flux at surface.
+        hfxv(j,i) = xhfx + 0.61_rkx * thnv * xqfx
       end do
     end do
     !
@@ -268,7 +264,7 @@ module mod_pbl_holtbl
       do j = jci1 , jci2
         ! compute surface virtual temperature
         if ( hfxv(j,i) >= d_zero ) then
-          tv10 = m2p%tvatm(j,i,kz)
+          tv10(j,i) = m2p%tvatm(j,i,kz)
         else
           ! sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
           ! Compute specific humidity
@@ -279,48 +275,45 @@ module mod_pbl_holtbl
           end if
           ! first approximation for obhukov length
           if ( ifaholtth10 == 1 ) then
-            tv10 = 0.25_rkx*m2p%tvatm(j,i,kz) + &
+            tv10(j,i) = 0.25_rkx*m2p%tvatm(j,i,kz) + &
                    0.75_rkx*m2p%tg(j,i)*(d_one+0.61_rkx*sh10)
           else if ( ifaholtth10 == 2 ) then
-            tv10 = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+            tv10(j,i) = m2p%tvatm(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                         log(m2p%za(j,i,kz)*d_r10))
           else
-            tv10 = d_half*(m2p%tvatm(j,i,kz) + m2p%tg(j,i) * &
+            tv10(j,i) = d_half*(m2p%tvatm(j,i,kz) + m2p%tg(j,i) * &
                         (d_one + 0.61_rkx*sh10))
           end if
           do iter = 1 , holtth10iter
-            th10(j,i) = tv10/(m2p%patmf(j,i,kzp1)/p00)**rovcp
+            th10(j,i) = tv10(j,i)/(m2p%patmf(j,i,kzp1)/p00)**rovcp
             oblen = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
             if ( oblen >= m2p%za(j,i,kz) ) then
-              tv10 = m2p%tvatm(j,i,kz) + &
+              tv10(j,i) = m2p%tvatm(j,i,kz) + &
                 hfxv(j,i)/(vonkar*ustr(j,i))*(log(m2p%za(j,i,kz)*d_r10) + &
                  d_five/oblen*(m2p%za(j,i,kz)-d_10))
             else
               if ( oblen > d_10 ) then
-                tv10 = m2p%tvatm(j,i,kz) + &
+                tv10(j,i) = m2p%tvatm(j,i,kz) + &
                   hfxv(j,i)/(vonkar*ustr(j,i))* &
                     (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+ &
                     6.0_rkx*log(m2p%za(j,i,kz)/oblen))
               else
-                tv10 = m2p%tvatm(j,i,kz)+hfxv(j,i)/(vonkar*ustr(j,i))* &
+                tv10(j,i) = m2p%tvatm(j,i,kz)+hfxv(j,i)/(vonkar*ustr(j,i))* &
                     6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
               end if
             end if
           end do
         end if
         if ( ifaholt == 1 ) then
-          tv10 = max(tv10,m2p%tg(j,i))  ! gtb add to maximize
+          tv10(j,i) = max(tv10(j,i),m2p%tg(j,i))  ! gtb add to maximize
         else  if ( ifaholt  == 2 ) then
-          tv10 = min(tv10,m2p%tg(j,i))  ! gtb add to minimize
+          tv10(j,i) = min(tv10(j,i),m2p%tg(j,i))  ! gtb add to minimize
         end if
         ! virtual potential temperature
-        th10(j,i) = tv10/(m2p%patmf(j,i,kzp1)/p00)**rovcp
+        th10(j,i) = tv10(j,i)/(m2p%patmf(j,i,kzp1)/p00)**rovcp
         ! obklen compute obukhov length
-        if ( abs(hfxv(j,i)) > 1.0e-4 ) then
-          obklen(j,i) = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
-        else
-          obklen(j,i) = -sign(0.001_rkx,hfxv(j,i))
-        end if
+        obklen(j,i) = -(th10(j,i)*ustr(j,i)**3) / &
+          (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
       end do
     end do
 
@@ -1228,7 +1221,7 @@ module mod_pbl_holtbl
       ! compute Bulk Richardson Number (BRN)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zlv = obklen(j,i)
+          zlv = max(obklen(j,i),10.0_rkx)
           tlv = th10(j,i)
           ulv = m2p%uxatm(j,i,kz)
           vlv = m2p%vxatm(j,i,kz)
@@ -1236,21 +1229,13 @@ module mod_pbl_holtbl
             zkv = m2p%za(j,i,k)
             tkv = m2p%thatm(j,i,k)
             vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-            ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
+            ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tv10(j,i)*vvk)
           end do
         end do
       end do
       ! looking for bl top
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! BL height is at least the mechanocal mixing depth
-          phpblm = 0.07_rkx*(ustr(j,i)/pfcor(j,i))
-          p2m%zpbl(j,i) = phpblm
-          p2m%kpbl(j,i) = kz
-          do k = kzm1 , kmxpbl(j,i)-1 , -1
-            p2m%kpbl(j,i) = k
-            if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
-          end do
           do k = kz , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
@@ -1258,7 +1243,6 @@ module mod_pbl_holtbl
                  (ri(k-1,j,i) >= ricr(j,i)) ) then
               p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
                   ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
-              p2m%kpbl(j,i) = k
             end if
           end do
         end do
@@ -1268,7 +1252,7 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           if ( hfxv(j,i) > d_zero ) then
             ! estimate of convective velocity scale
-            zlv = obklen(j,i)
+            zlv = max(obklen(j,i),10.0_rkx)
             xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
             wsc = ustr(j,i)*xfmt
             ! thermal temperature excess
@@ -1283,7 +1267,7 @@ module mod_pbl_holtbl
               tkv = m2p%thatm(j,i,k)
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
               vvk = vvk + fak*ustr(j,i)**2
-              ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
+              ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tv10(j,i)*vvk)
             end do
             ! improve estimate of bl height under convective conditions
             ! using convective temperature excess (therm)
@@ -1295,10 +1279,35 @@ module mod_pbl_holtbl
                 p2m%zpbl(j,i) = m2p%za(j,i,k) + &
                   (m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
                   ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
-                p2m%kpbl(j,i) = k
               end if
             end do
           end if
+        end do
+      end do
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ! BL height is at least the mechanical mixing depth
+          ! PBL height must be greater than some minimum mechanical mixing depth
+          ! Several investigators have proposed minimum mechanical mixing depth
+          ! relationships as a function of the local friction velocity, u*.  We
+          ! make use of a linear relationship of the form h = c u* where c=700.
+          ! The scaling arguments that give rise to this relationship most often
+          ! represent the coefficient c as some constant over the local coriolis
+          ! parameter.  Here we make use of the experimental results of Koracin
+          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+          ! latitude value for f so that c = 0.07/f = 700.
+          phpblm = 700.0_rkx*ustr(j,i)
+          if ( p2m%zpbl(j,i) < phpblm ) then
+            p2m%zpbl(j,i) = phpblm
+          end if
+          ! Find the k of the level of the pbl
+          p2m%kpbl(j,i) = kz
+          do k = kzm1 , kmxpbl(j,i) , -1
+            if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
+            p2m%kpbl(j,i) = k
+          end do
         end do
       end do
 
