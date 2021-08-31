@@ -43,7 +43,8 @@ module mod_pbl_holtbl
 
   real(rkx) , pointer , dimension(:,:,:) :: cgh , kvc , kvh , &
                                           kvm , kvq ! , cgq
-  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , tv10 , ustr
+  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , tv10 , &
+                                         ustr , wstr
 
   real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
@@ -64,6 +65,7 @@ module mod_pbl_holtbl
   real(rkx) , parameter :: szkm = (turbulent_lenght_scale*vonkar)**2
   ! coef. of proportionality and lower % of bl in sfc layer
   real(rkx) , parameter :: fak = 8.5_rkx
+  real(rkx) , parameter :: fakn = 7.2_rkx
   real(rkx) , parameter :: sffrac = 0.1_rkx
   ! beta coefs. for momentum, stable conditions and heat
   real(rkx) , parameter :: betam = 15.0_rkx
@@ -105,6 +107,7 @@ module mod_pbl_holtbl
     call getmem2d(th10,jci1,jci2,ici1,ici2,'mod_holtbl:th10')
     call getmem2d(tv10,jci1,jci2,ici1,ici2,'mod_holtbl:tv10')
     call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
+    call getmem2d(wstr,jci1,jci2,ici1,ici2,'mod_holtbl:wstr')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
     call getmem2d(uvdrage,jci1ga,jci2, &
@@ -147,23 +150,13 @@ module mod_pbl_holtbl
     !
     ! Compute the g/dp term
     !
-    if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
-          end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
         end do
       end do
-    else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            hydf(j,i,k) = 0.001_rkx*egrav/(dsigma(k)*m2p%psb(j,i))
-          end do
-        end do
-      end do
-    end if
+    end do
     !
     ! Compute the theta->temperature function
     !
@@ -172,8 +165,8 @@ module mod_pbl_holtbl
                     (d_one+ep1*m2p%qxatm(j,i,k,iqv))
     end do
     !
-    ! Compute the diffusion coefficient:
-    ! Blackadar scheme above boundary layer top
+    ! Compute the diffusion coefficient using Blackadar scheme above boundary
+    ! layer top.
     ! The free atmosphere diffusivities are based on standard mixing length
     ! forms for the neutral diffusivity multiplied by functns of Richardson
     ! number. K = l^2 * |dV/dz| * f(Ri). The same functions are used for
@@ -250,7 +243,7 @@ module mod_pbl_holtbl
         ! convert surface fluxes to kinematic units
         xhfx = m2p%hfx(j,i)*rrho/cpd
         xqfx = m2p%qfx(j,i)*rrho
-        ! Compute virtual heat flux at surface.
+        ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
         hfxv(j,i) = xhfx + 0.61_rkx * thnv * xqfx
       end do
     end do
@@ -1215,14 +1208,16 @@ module mod_pbl_holtbl
       real(rkx) :: fak1 , fak2 , xfht , xfmt , pblk , pblk1 , pblk2 , &
                  phpblm , pr , therm , therm2 , tkv , tlv , wsc , z , &
                  zh , zl , zm , zp , zzh , zzhnew , zzhnew2 , ulv ,   &
-                 vlv , vvk , zlv , zkv
+                 vlv , vvk , zlv , zkv , term , fak3
       integer(ik4) :: i , j , k
-      ! note: kmxpbl, max no. of pbl levels
+      !
+      ! note: kmxpbl, max no. of pbl levels (set in slice)
       ! compute Bulk Richardson Number (BRN)
+      !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zlv = max(obklen(j,i),10.0_rkx)
-          tlv = th10(j,i)
+          zlv = m2p%za(j,i,kz)
+          tlv = m2p%thatm(j,i,kz)
           ulv = m2p%uxatm(j,i,kz)
           vlv = m2p%vxatm(j,i,kz)
           do k = kzm1 , kmxpbl(j,i) , -1
@@ -1236,7 +1231,8 @@ module mod_pbl_holtbl
       ! looking for bl top
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do k = kz , kmxpbl(j,i) + 1 , -1
+          p2m%zpbl(j,i) = m2p%za(j,i,kz)
+          do k = kzm1 , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
@@ -1252,16 +1248,16 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           if ( hfxv(j,i) > d_zero ) then
             ! estimate of convective velocity scale
-            zlv = max(obklen(j,i),10.0_rkx)
             xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
             wsc = ustr(j,i)*xfmt
             ! thermal temperature excess
             therm = fak * hfxv(j,i)/wsc
-            ri(kz,j,i) = -egrav*therm*zlv/(th10(j,i)*fak*ustr(j,i)**2)
             ! recompute richardson no. at other model levels
-            tlv = th10(j,i) + therm
+            zlv = m2p%za(j,i,kz)
+            tlv = m2p%thatm(j,i,kz) + therm
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
+            ri(kz,j,i) = -egrav*therm*zlv/(th10(j,i)*fak*ustr(j,i)**2)
             do k = kzm1 , kmxpbl(j,i) , -1
               zkv = m2p%za(j,i,k)
               tkv = m2p%thatm(j,i,k)
@@ -1271,7 +1267,7 @@ module mod_pbl_holtbl
             end do
             ! improve estimate of bl height under convective conditions
             ! using convective temperature excess (therm)
-            do k = kz , kmxpbl(j,i) + 1 , -1
+            do k = kzm1 , kmxpbl(j,i) + 1 , -1
               ! bl height lies between this level and the last
               ! use linear interp. of rich. no. to height of ri=ricr
               if ( (ri(k,j,i) < ricr(j,i)) .and. &
@@ -1302,6 +1298,12 @@ module mod_pbl_holtbl
           if ( p2m%zpbl(j,i) < phpblm ) then
             p2m%zpbl(j,i) = phpblm
           end if
+          ! Convective velocity scale
+          if ( hfxv(j,i) > 0.0_rkx ) then
+            wstr(j,i) = (hfxv(j,i)*egrav*p2m%zpbl(j,i)/th10(j,i))**onet
+          else
+            wstr(j,i) = d_zero
+          end if
           ! Find the k of the level of the pbl
           p2m%kpbl(j,i) = kz
           do k = kzm1 , kmxpbl(j,i) , -1
@@ -1313,14 +1315,14 @@ module mod_pbl_holtbl
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
           xfmt = (d_one-binm*p2m%zpbl(j,i)/obklen(j,i))**onet
           xfht = sqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
           wsc = ustr(j,i)*xfmt
-          pr = (xfmt/xfht) + ccon
+          fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
           fak2 = wsc*p2m%zpbl(j,i)*vonkar
-          therm2 = fak/(p2m%zpbl(j,i)*wsc)
-          do k = kz , kmxpbl(j,i) + 1 , -1
+          fak3 = wstr(j,i)/wsc
+          therm2 = fakn/(p2m%zpbl(j,i)*wsc)
+          do k = kz , p2m%kpbl(j,i) , -1
             zm = m2p%za(j,i,k)
             zp = m2p%za(j,i,k-1)
             if ( zm < p2m%zpbl(j,i) ) then
@@ -1328,77 +1330,43 @@ module mod_pbl_holtbl
               z = (zm+zp)*d_half
               zh = z/p2m%zpbl(j,i)
               zl = z/obklen(j,i)
-              if ( zh <= d_one ) then
-                zzh = d_one - zh
-                zzh = zzh ** pink
-!xexp4          zzhnew = p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
-!xexp5          zzhnew = 0.5*p2m%zpbl(j,i)*(d_one-zh)*zh**1.5
-!xexp6          zzhnew = d_one - zh
-!xexp7          zzhnew = 0.50 * (d_one - zh)
-!Sara
-!               zzhnew = 0.25 * (d_one - zh)
-!               zzhnew = 0.75 * (d_one - zh)
-!Sara_
-!xexp10         zzhnew = zh * (d_one - zh)**2
-                zzhnew = (d_one-zh) * zhnew_fac
-                zzhnew2 = zzhnew**2
-              else
-                zzh = d_zero
-                zzhnew = d_zero
-                zzhnew2 = d_zero
-              end if
-              if ( hfxv(j,i) <= d_zero ) then
-                ! stable and neutral conditions
-                ! igroup = 1
-                ! prevent pblk too small in very stable conditions
-                if ( zl <= sffrac ) then
-                  ! Erika put k=0 in very stable conditions
-                  pblk = kzo
-                  pblk1 = kzo
-                  pblk2 = kzo
-                  ! Erika put k=0 in very stable conditions
-                else if ( zl <= d_one ) then
-                  pblk = fak1*zh*zzh/(d_one+betas*zl)
-!xexp5            pblk1 = vonkar * ustr(j,i) / (d_one+betas*zl) * zzhnew
-                  pblk1 = fak1*zh*zzhnew/(d_one+betas*zl)
-                  pblk2 = fak1*zh*zzhnew2/(d_one+betas*zl)
+              term = max(d_one-zh,d_zero)
+              zzh = zh*term**pink
+              zzhnew = zh*zhnew_fac*term
+              zzhnew2 = zh*(zhnew_fac*term)**pink
+              if ( hfxv(j,i) > d_zero ) then
+                if ( zh < sffrac ) then
+                  term = (d_one-betam*zl)**onet
+                  pblk = fak1*zzh*term
+                  pblk1 = fak1*zzhnew*term
+                  pblk2 = fak1*zzhnew2*term
+                  pr = term/sqrt(d_one-betah*zl)
                 else
-                  pblk = fak1*zh*zzh/(betas+zl)
-!xexp5            pblk1 = vonkar * ustr(j,i) / (betas+zl) * zzhnew
-                  pblk1 = fak1*zh*zzhnew/(betas+zl)
-                  pblk2 = fak1*zh*zzhnew2/(betas+zl)
-                end if
-                ! compute eddy diffusivities
-                kvm(j,i,k) = max(pblk,kvm(j,i,k))
-                kvh(j,i,k) = kvm(j,i,k)
-                kvq(j,i,k) = max(pblk1,kvq(j,i,k))
-                if ( ichem == 1 ) then
-                  kvc(j,i,k) = max(pblk2,kvc(j,i,k))
-                end if
-              else
-                ! unstable conditions
-                if ( zh >= sffrac ) then
-                  pblk = fak2*zh*zzh
-!xexp5            pblk1 = vonkar * wsc * zzhnew
-                  pblk1 = fak2*zh*zzhnew
-                  pblk2 = fak2*zh*zzhnew2
+                  pblk = fak2*zzh
+                  pblk1 = fak2*zzhnew
+                  pblk2 = fak2*zzhnew2
                   ! compute counter gradient term
-                  cgh(j,i,k) = hfxv(j,i)*therm2
+                  pr = (xfmt/xfht) + ccon*fak3/fak
+                  cgh(j,i,k) = hfxv(j,i)*fak3*therm2
+                end if
+              else
+                if ( zl < d_one ) then
+                  pblk = fak1*zzh/(d_one+betas*zl)
+                  pblk1 = fak1*zzhnew/(d_one+betas*zl)
+                  pblk2 = fak1*zzhnew2/(d_one+betas*zl)
                 else
-                  ! igroup = 3
-                  pblk = fak1*zh*zzh*(d_one-betam*zl)**onet
-!xexp5            pblk1 = vonkar * ustr(j,i) * zzhnew * (d_one-betam*zl)**onet
-                  pblk1 = fak1*zh*zzhnew*(d_one-betam*zl)**onet
-                  pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
-                  pr = ((d_one-betam*zl)**onet)/sqrt(d_one-betah*zl)
+                  pblk = fak1*zzh/(betas+zl)
+                  pblk2 = fak1*zzhnew/(betas+zl)
+                  pblk2 = fak1*zzhnew2/(betas+zl)
                 end if
-                ! compute eddy diffusivities
-                kvm(j,i,k) = max(pblk,kvm(j,i,k))
-                kvh(j,i,k) = max((pblk/pr),kvh(j,i,k))
-                kvq(j,i,k) = max(pblk1,kvq(j,i,k))
-                if ( ichem == 1 ) then
-                  kvc(j,i,k) = max(pblk2,kvc(j,i,k))
-                end if
+                pr = 0.71_rkx
+              end if
+              ! compute eddy diffusivities
+              kvm(j,i,k) = max(pblk,kvm(j,i,k))
+              kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
+              kvq(j,i,k) = max(pblk1,kvq(j,i,k))
+              if ( ichem == 1 ) then
+                kvc(j,i,k) = max(pblk2,kvc(j,i,k))
               end if
             end if
           end do

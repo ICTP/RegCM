@@ -191,8 +191,8 @@ module mod_dynparam
 
   ! Moloch dynamical vertical profile
 
-  real(rkx) :: mo_ztop = 20000.0_rkx
-  real(rkx) :: mo_h = 6500.0_rkx
+  real(rkx) :: mo_ztop = 30000.0_rkx
+  real(rkx) :: mo_h = 8000.0_rkx
   real(rkx) :: mo_a0 = 0.0_rkx
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
