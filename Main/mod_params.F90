@@ -295,7 +295,7 @@ module mod_params
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
-    ifrayd = 1
+    ifrayd = 0
     rayndamp = 5
     rayalpha0 = 1.0_rkx/86400.0_rkx
     rayhd = 10000.0_rkx

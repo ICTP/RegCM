@@ -126,7 +126,8 @@ module mod_slice
                             (atms%ps2d(j,i)/atms%pb3d(j,i,kz))**rovcp
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-        atms%th3d(j,i,k) = mo_atm%tvirt(j,i,k) / mo_atm%pai(j,i,k)
+        atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
+                            (p00/atms%pb3d(j,i,k))**rovcp
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
         atms%qxb3d(j,i,k,iqv) = max(atms%qxb3d(j,i,k,iqv),minqq)
@@ -257,7 +258,7 @@ module mod_slice
       end do
 
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz)
-        atms%th3d(j,i,k) = atms%tv3d(j,i,k) * &
+        atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (p00/atms%pb3d(j,i,k))**rovcp
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)

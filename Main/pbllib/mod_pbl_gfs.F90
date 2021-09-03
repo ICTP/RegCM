@@ -104,28 +104,27 @@ module mod_pbl_gfs
       integer(ik4) :: iq , it , iit
       real(rkx) :: tvcon , xpfac
       real(rkx) :: ps , ta , qa , pa , ua , va
-      real(rkx) :: rrhox , hf , qf , cpm
+      real(rkx) :: rrhox , hf , qf
 
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ua = m2p%uxatm(j,i,kz)
-          va = m2p%vxatm(j,i,kz)
+          ua = m2p%u10m(j,i)
+          va = m2p%v10m(j,i)
           ta = m2p%tatm(j,i,kz)
           qa = m2p%qxatm(j,i,kz,iqv)
           ps = m2p%patmf(j,i,kzp1)
           pa = m2p%patm(j,i,kz)
+          tvcon = d_one + ep1*qa
+          rrhox = d_one/m2p%rhox2d(j,i)
           fm(n) = m2p%ram1(j,i)
           fh(n) = m2p%rah1(j,i)
           hf = m2p%hfx(j,i)
           qf = m2p%qfx(j,i)
           rbsoil(n) = m2p%br(j,i)
-          tvcon = d_one + ep1*qa
-          rrhox = (rgas*(ta*tvcon))/pa
           psk(n) = (ps/p00)**rovcp
           stress(n) = m2p%ustar(j,i)*m2p%ustar(j,i)
-          cpm = cpd * (d_one + 0.8_rkx * qa)
-          heat(n) = hf/cpm*rrhox
+          heat(n) = hf/cpd*rrhox
           evap(n) = qf*rrhox
           spd1(n) = sqrt(ua*ua + va*va)
           prsi(n,1) = ps*d_r1000

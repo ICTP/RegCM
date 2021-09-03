@@ -363,7 +363,7 @@
                     ! acoustic damping. In practice, values of
                     ! nhbet = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1)
  nhxkd = 0.1,       ! Time weighting for weighting old/new pp
- ifrayd = 1,        ! Upper levels Rayleigh damper to BCs
+ ifrayd = 0,        ! Upper levels Rayleigh damper to BCs
  rayndamp = 5,      ! Number of top levels to apply
  rayalpha0 = .0000115740, ! Rate alpha0 (1/86400)
  rayhd = 10000.0,   ! Damping scale depth
