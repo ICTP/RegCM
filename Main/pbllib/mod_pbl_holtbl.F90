@@ -41,8 +41,9 @@ module mod_pbl_holtbl
 
   public :: allocate_mod_pbl_holtbl , holtbl
 
-  real(rkx) , pointer , dimension(:,:,:) :: cgh , kvc , kvh , &
-                                          kvm , kvq ! , cgq
+  real(rkx) , pointer , dimension(:,:,:) :: cgh , cgs , kvc , kvh , &
+                                          kvm , kvq
+  real(rkx) , pointer, dimension(:,:) :: xhfx , xqfx
   real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , tv10 , ustr
 
   real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
@@ -98,10 +99,13 @@ module mod_pbl_holtbl
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
+    call getmem3d(cgs,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgs')
     call getmem3d(kvh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvh')
     call getmem3d(kvm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvm')
     call getmem3d(kvq,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvq')
     call getmem2d(hfxv,jci1,jci2,ici1,ici2,'mod_holtbl:hfxv')
+    call getmem2d(xhfx,jci1,jci2,ici1,ici2,'mod_holtbl:xhfx')
+    call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
     call getmem2d(obklen,jci1,jci2,ici1,ici2,'mod_holtbl:obklen')
     call getmem2d(th10,jci1,jci2,ici1,ici2,'mod_holtbl:th10')
     call getmem2d(tv10,jci1,jci2,ici1,ici2,'mod_holtbl:tv10')
@@ -126,7 +130,7 @@ module mod_pbl_holtbl
     type(pbl_2_mod) , intent(inout) :: p2m
     real(rkx) :: drgdot , kzmax , oblen , rin , rc , sh10 , uu , n2 , &
              ss , dudz , dvdz , uflxsf , uflxsfx , vflxsf , vflxsfx , &
-             fofri , xhfx , xqfx , rrho , tvg
+             fofri , rrho , tvg
     integer(ik4) :: i , j , k , itr , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
@@ -218,6 +222,7 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           ! counter gradient terms for heat and moisture
           cgh(j,i,k) = d_zero
+          cgs(j,i,k) = d_zero
           ! eddy diffusivities for momentum, heat and moisture
           kvm(j,i,k) = kzm(j,i,k)
           kvh(j,i,k) = kzm(j,i,k)
@@ -239,10 +244,10 @@ module mod_pbl_holtbl
         uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.000000390625_rkx)
         ustr(j,i) = sqrt(sqrt(uu))
         ! convert surface fluxes to kinematic units
-        xhfx = m2p%hfx(j,i)*rrho*rcpd
-        xqfx = m2p%qfx(j,i)*rrho
+        xhfx(j,i) = m2p%hfx(j,i)*rrho*rcpd
+        xqfx(j,i) = m2p%qfx(j,i)*rrho
         ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
-        hfxv(j,i) = xhfx + 0.61_rkx * m2p%thatm(j,i,k) * xqfx
+        hfxv(j,i) = xhfx(j,i) + 0.61_rkx * m2p%thatm(j,i,k) * xqfx(j,i)
       end do
     end do
     !
@@ -1037,6 +1042,45 @@ module mod_pbl_holtbl
         p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - ttnp(j,i,kz)
       end do
     end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ttnp(j,i,1) = d_zero
+      end do
+    end do
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ttnp(j,i,k) = hydf(j,i,k)*rhohf(j,i,k-1) * &
+                        kvh(j,i,k)*cgs(j,i,k)*xqfx(j,i)
+        end do
+      end do
+    end do
+    if ( idynamic /= 3 ) then
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
+          end do
+        end do
+      end do
+    end if
+    !
+    !   compute the tendencies:
+    !
+    do k = 1 , kzm1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
+            (ttnp(j,i,k+1)-ttnp(j,i,k))
+        end do
+      end do
+    end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        p2m%qxten(j,i,kz,iqv) = p2m%qxten(j,i,kz,iqv) - ttnp(j,i,kz)
+      end do
+    end do
+
 
     if ( ichem == 1 ) then
       !
@@ -1194,7 +1238,7 @@ module mod_pbl_holtbl
     ! arguments :        therm   thermal temperature excess
     !
     ! output arguments : cgh     counter-gradient term for heat
-    !                    cgq     counter-gradient term for moisture
+    !                    cgs     counter-gradient star term
     !                    kvm     eddy diffusivity for momentum
     !                    kvh     eddy diffusivity for heat
     !                    kvq     eddy diffusivity for moisture
@@ -1315,7 +1359,6 @@ module mod_pbl_holtbl
           wsc = ustr(j,i)*xfmt
           fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
           fak2 = wsc*p2m%zpbl(j,i)*vonkar
-          therm2 = fakn/(p2m%zpbl(j,i)*wsc)
           do k = kz , p2m%kpbl(j,i) , -1
             zm = m2p%za(j,i,k)
             zp = m2p%za(j,i,k-1)
@@ -1331,7 +1374,7 @@ module mod_pbl_holtbl
               if ( hfxv(j,i) > d_zero ) then
                 ! Convective velocity scale
                 wstr = (hfxv(j,i)*egrav*p2m%zpbl(j,i)/th10(j,i))**onet
-                fak3 = wstr/wsc
+                fak3 = fakn*wstr/wsc
                 if ( zh < sffrac ) then
                   term = (d_one-betam*zl)**onet
                   pblk = fak1*zzh*term
@@ -1344,7 +1387,8 @@ module mod_pbl_holtbl
                   pblk2 = fak2*zzhnew2
                   ! compute counter gradient term
                   pr = (xfmt/xfht) + ccon*fak3/fak
-                  cgh(j,i,k) = hfxv(j,i)*fak3*therm2
+                  cgs(j,i,k) = fak3/(p2m%zpbl(j,i)*wsc)
+                  cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
                 end if
               else
                 if ( zl < d_one ) then
