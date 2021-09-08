@@ -1331,7 +1331,6 @@ module mod_pbl_holtbl
               wsc = ustr(j,i)*xfmt
               ! thermal temperature excess
               therm = fak * hfxv(j,i)/wsc
-              ! recompute richardson no. at other model levels
               zlv = m2p%za(j,i,kz)
               tlv = thvx(j,i,kz) + therm
               ulv = m2p%uxatm(j,i,kz)
@@ -1340,12 +1339,13 @@ module mod_pbl_holtbl
               !tlv = thv10(j,i) + therm
               vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
               ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
+              ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 zkv = m2p%za(j,i,k)
                 tkv = thvx(j,i,k)
                 vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
                 vvk = vvk +  fak*ustr(j,i)**2 + 1.0e-10_rkx
-                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
+                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thvx(j,i,kz)*vvk)
               end do
             end if
           end do
@@ -1363,6 +1363,7 @@ module mod_pbl_holtbl
               therm = (xhfx(j,i)+ep1*m2p%thatm(j,i,kz)*xqfx(j,i))*fak/wsc
               tlv = thv10(j,i) + therm
               ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vvk)
+              ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 tkv = thvx(j,i,k)
                 vvk = m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
