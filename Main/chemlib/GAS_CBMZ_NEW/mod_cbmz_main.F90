@@ -47,6 +47,7 @@ module mod_cbmz_main1
     real(kind=dp) , intent(in) :: jday , dtche
     real(kind=dp) :: t
     real(kind=dp) :: rstate(20)
+    integer :: icntrl(20)
     integer :: i
 
     !------------------Declaration part for jval----------
@@ -177,12 +178,13 @@ module mod_cbmz_main1
     jval_CHOCHO   =  jval(jCHOCHO)
     c_jval(1,:)   = jval(:)
 
+    icntrl = 0
     call reset_integrate()
     kron: &
     do while (t < tend)
       call update_rconst()
-      call integrate( tin = t, tout = t+dt, rstatus_u = rstate, &
-               icntrl_u = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+      call integrate( tin = t, tout = t+dt, icntrl_u = icntrl, &
+               rstatus_u = rstate)
       t = rstate(1)
     end do kron
 
