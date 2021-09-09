@@ -616,9 +616,11 @@ module mod_pbl_uwtcm
         radib:&
         do ilay = 1 , kpbconv
           k = ktop(ilay)
-          if ( qcx(k) > 1.0e-4_rkx .and. k > 1 ) then
-            buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
-                        rrhoxfl(k) * rexnerfl(k) / uthvx(k)
+          if ( k > 1 .and. k <= kz ) then
+            if ( qcx(k) > 1.0e-4_rkx ) then
+              buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
+                          rrhoxfl(k) * rexnerfl(k) / uthvx(k)
+            end if
           end if
         end do radib
         ! tke at top is fixed
