@@ -131,9 +131,8 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rkx) :: drgdot , kzmax , rin , rc , sh10 , uu , n2 , &
-             ss , dudz , dvdz , uflxsf , uflxsfx , vflxsf , vflxsfx , &
-             fofri , rrho , tvg
+    real(rkx) :: drgdot , kzmax , rin , rc , uu , n2 , ss , dudz , dvdz , &
+      uflxsf , uflxsfx , vflxsf , vflxsfx , fofri , rrho , tvg
     integer(ik4) :: i , j , k , itr , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
@@ -1077,15 +1076,13 @@ module mod_pbl_holtbl
           end do
         end do
       end do
-      if ( idynamic /= 3 ) then
-        do k = 2 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
-            end do
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
           end do
         end do
-      end if
+      end do
       !
       !   compute the tendencies:
       !
