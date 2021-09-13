@@ -1076,13 +1076,6 @@ module mod_pbl_holtbl
           end do
         end do
       end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
-          end do
-        end do
-      end do
       !
       !   compute the tendencies:
       !
