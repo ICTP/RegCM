@@ -90,8 +90,8 @@ module mod_cu_kf
   real(rkx) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
 
   real(rkx) , parameter :: astrt = 1.0e-3_rkx
-  real(rkx) , parameter :: aincb = 0.0250_rkx
-  real(rkx) , parameter :: atoler = 0.00001_rkx
+  real(rkx) , parameter :: aincb = 0.0750_rkx
+  real(rkx) , parameter :: atoler = 0.001_rkx
 
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
@@ -101,6 +101,8 @@ module mod_cu_kf
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
   real(rkx) , parameter :: xlv0 = 3.15e6_rkx
   real(rkx) , parameter :: xlv1 = 2370.0_rkx
+
+  real(rkx) , parameter :: u00 = 0.75_rkx
 
   contains
 
@@ -210,7 +212,7 @@ module mod_cu_kf
         es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
         qes(k,np) = ep2 * es/(p0(k,np)-es)
         q0(k,np) = min(qes(k,np),q0(k,np))
-        q0(k,np) = max(0.000001_rkx,q0(k,np))
+        q0(k,np) = max(1.0e-6_rkx,q0(k,np))
       end do
     end do
 
@@ -223,8 +225,8 @@ module mod_cu_kf
           j = jmap(np)
           ql0(k,np) = m2c%qxas(j,i,kk,iqc)
           qi0(k,np) = m2c%qxas(j,i,kk,iqi)
-          qr0(k,np) = d_zero ! m2c%qxas(j,i,kk,iqr)
-          qs0(k,np) = d_zero ! m2c%qxas(j,i,kk,iqs)
+          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
+          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
         end do
       end do
     else
@@ -247,7 +249,8 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          tke(k,np) = d_half*(m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
+          tke(k,np) = min(d_half*(m2c%tkeas(j,i,kk) + &
+                                  m2c%tkeas(j,i,kk+1)),10.0_rkx)
         end do
       end do
     else
@@ -285,7 +288,7 @@ module mod_cu_kf
         j = jmap(np)
         cu_tten(j,i,kk) = dtdt(k,np)
         cu_qten(j,i,kk,iqv) = dqdt(k,np)
-        cu_cldfrc(j,i,k) = max(cldfra_sh_kf(k,np),cldfra_dp_kf(k,np))
+        cu_cldfrc(j,i,kk) = max(cldfra_sh_kf(k,np),cldfra_dp_kf(k,np))
       end do
     end do
 
@@ -307,7 +310,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          cu_qten(j,i,kk,iqc) = dqcdt(k,np)+dqidt(k,np)
+          cu_qten(j,i,kk,iqc) = dqcdt(k,np)+dqrdt(k,np)
         end do
       end do
     end if
@@ -374,7 +377,7 @@ module mod_cu_kf
             ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
             tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
             timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
-            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt , dtmp , t1rh , &
+            peff2 , tder , dpdd , rdd , a1 , dssdt , dtmp , t1rh ,          &
             qsrh , pptflx , cpr , cndtnf , updinc , ddinc , aincmx ,        &
             aincm1 , ainc , tder2 , pptfl2 , fabe , stab , dtt , dtt1 ,     &
             dtime , tma , tmb , tmm , bcoeff , acoeff , topomg , cpm , dq , &
@@ -613,7 +616,6 @@ module mod_cu_kf
           dtlcl = max(tpart_h(klcl,np) + tpart_v(klcl,np), d_zero)
         end if
 
-        dtrh = 0.0_rkx
         if ( kf_trigger == 3 ) then
           !
           ! for ETA model, give parcel an extra temperature perturbation based
@@ -623,11 +625,15 @@ module mod_cu_kf
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= 0.85_rkx .and. rhlcl <= 0.95_rkx ) then
-            dtrh = 0.25_rkx*(rhlcl-0.85_rkx)*qmix/dqssdt
+          if ( rhlcl >= u00 .and. rhlcl <= 0.95_rkx ) then
+            dtrh = (d_one-u00)*(rhlcl-u00)*qmix/dqssdt
           else if ( rhlcl > 0.95_rkx ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
+          else
+            dtrh = d_zero
           end if
+        else
+          dtrh = d_zero
         end if   ! kf_trigger 3
 
         triggering: &
@@ -1183,14 +1189,12 @@ module mod_cu_kf
       !
       vconv = d_half*(wspd(klcl)+wspd(l5))
       timec = dx/vconv
-      tadvec = timec
       ! kf_min_dtcape >= TIMEC <= kf_max_dtcape
       timec = max(kf_min_dtcape,timec)
       timec = min(kf_max_dtcape,timec)
       ! shallow convection TIMEC
       if ( ishall == 1 ) then
-        ! Narita and Ohmori, 2007
-        timec = 600.0_rkx
+        timec = 2400.0_rkx
       end if
       nic = max(nint(timec/dt),1)
       timec = real(nic,rkx)*dt
@@ -1529,7 +1533,7 @@ module mod_cu_kf
             end if
           end if
         end do
-        nstep = nint(timec/dtt)
+        nstep = nint(timec/dtt+1)
         dtime = timec/real(nstep,rkx)
         do nk = 1 , ltop
           thpa(nk) = thta0(nk)
@@ -1715,6 +1719,7 @@ module mod_cu_kf
         dabe = max(abe-abeg, 0.1_rkx*abe)
         fabe = abeg/abe
         if ( fabe > d_one .and. ishall == 0 ) then
+          ishall = 2
           cycle modelpoints
         end if
         if ( ncount /= 1 ) then
@@ -1768,6 +1773,7 @@ module mod_cu_kf
           ! If ainc becomes very small, effects of convection ! jsk mods
           ! will be minimal so just ignore it                 ! jsk mods
           if ( ainc < 0.05_rkx ) then
+            ishall = 2
             cycle modelpoints
           end if
           tder = tder2*ainc
@@ -1886,7 +1892,7 @@ module mod_cu_kf
       ! grid point
       !
       if ( iprnt ) then
-        write(stderr,1080) lfs,ldb,ldt,timec,tadvec,nstep,ncount,fabe,ainc
+        write(stderr,1080) lfs,ldb,ldt,timec,timec,nstep,ncount,fabe,ainc
       end if
       !
       ! Send final parameterized values to output files
@@ -1909,7 +1915,7 @@ module mod_cu_kf
         E12.3,' PLCL =',F6.1,' WLCL =',F6.3,' CLDHGT =',F8.1)
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vws
         write(stdout,*) 'PRECIP EFFICIENCY =' , peff
-        write(stdout,1080) lfs,ldb,ldt,timec,tadvec,nstep,ncount,fabe,ainc
+        write(stdout,1080) lfs,ldb,ldt,timec,timec,nstep,ncount,fabe,ainc
         write(stdout,'(16a8)') '  P  ','   DP ',' DT K/D ',' DR K/D ',   &
                 '   OMG  ', ' DOMGDP ','   UMF  ','   UER  ','   UDR  ', &
                 '   DMF  ','   DER  ','   DDR  ','   EMS  ','    W0  ',  &
@@ -2013,8 +2019,8 @@ module mod_cu_kf
       !
       ! Feedback to resolvable scale tendencies.
       !
-      ! If the advective time period (tadvec) is less than specified minimum
-      ! timec, allow feedback to occur only during tadvec.
+      ! If the advective time period (timec) is less than specified minimum
+      ! timec, allow feedback to occur only during timec.
       !
       do k = 1 , kx
         !
@@ -2276,12 +2282,12 @@ module mod_cu_kf
       ! the fraction of liquid water in the total amount of condensate involv
       ! in the precipitation process
       !
-      ratio3 = qnewlq / max(qnew,1.0e-8_rkx)
+      ratio3 = qnewlq / (qnew+1.0e-8_rkx)
       qtot = qtot + (d_one-convfac)*qnew
       oldq = qtot
-      ratio4 = ((d_one-convfac)*qnewlq + qliq) / max(qtot,1.0e-8_rkx)
+      ratio4 = ((d_one-convfac)*qnewlq + qliq) / (qtot+1.0e-8_rkx)
       if ( conv > 25.0_rkx ) then
-        qtot = 1.0e-8_rkx
+        qtot = 0.0_rkx
       else
         qtot = qtot * exp(-conv) ! KF90  Eq. 9
       end if
@@ -2450,9 +2456,10 @@ module mod_cu_kf
     real(rkx) , parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
     real(rkx) , parameter :: dth = 1.0_rkx
+    integer , parameter :: maxiter = 25
 
     ! top pressure (pascals)
-    plutop = max(ptop*d_1000,5000.0_rkx)
+    plutop = 5000.0 ! 50 mb
     ! pressure increment
     dpr = (pbot-plutop) / real(kfnp-1,rkx)
     !
@@ -2499,19 +2506,24 @@ module mod_cu_kf
         t1 = tgues - d_half*f0
         t0 = tgues
         iter1: &
-        do itcnt = 1 , 11
-          if ( abs(t1-t0) < atoler ) then
-            exit iter1
-          end if
+        do itcnt = 1 , maxiter
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
           qs = ep2*es/(p-es)
           pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
           thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c3*qs))
           f1 = thtgs - thes
+          if ( abs(f1) < atoler ) then
+            exit iter1
+          end if
           dtx = f1 * (t1-t0)/(f1-f0)
           t0 = t1
           f0 = f1
           t1 = t1 - dtx
+          if ( itcnt == maxiter ) then
+            write(stderr,*) 'CONVERGENCE NOT REACHED.'
+            call fatal(__FILE__,__LINE__, &
+              'CONVERGENCE NOT REACHED IN BUILDING LUTAB IN KF')
+          end if
         end do iter1
         ttab(it,kp) = t1
         qstab(it,kp) = qs
