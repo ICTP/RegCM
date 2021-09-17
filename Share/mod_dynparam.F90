@@ -30,7 +30,7 @@ module mod_dynparam
 
   implicit none
 
-  public
+  private
   !
   ! PARAMETER definitions
   !
@@ -39,27 +39,27 @@ module mod_dynparam
 
   ! Point in Y (latitude) direction
 
-  integer(ik4) :: iy
+  integer(ik4) , public :: iy
 
   ! Point in X (longitude) direction
 
-  integer(ik4) :: jx
+  integer(ik4) , public :: jx
 
   ! Point in vertical
 
-  integer(ik4) :: kz
+  integer(ik4) , public :: kz
 
   ! If not 14 , 18 or 23 (precalculated), hint for custom calculation
 
-  real(rkx) :: dsmax , dsmin
+  real(rkx) , public :: dsmax , dsmin
 
   ! Sub grid decomposition
 
-  integer(ik4) :: nsg
+  integer(ik4) , public :: nsg
 
   ! Dynamical core
 
-  integer(ik4) :: idynamic
+  integer(ik4) , public :: idynamic
 
   ! Projection
   !
@@ -68,72 +68,72 @@ module mod_dynparam
   !          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
   !          'ROTMER', Rotated Mercator
   !
-  character(len=6) :: iproj
+  character(len=6) , public :: iproj
 
   ! Control flag for tropical band option.
 
-  integer(ik4) :: i_band
-  integer(ik4) :: i_crm
+  integer(ik4) , public :: i_band
+  integer(ik4) , public :: i_crm
 
   ! Control flag for creating bathymetry for lake model
   !    (Hostetler, etal. 1991, 1993a,b, 1995)
 
-  logical :: lakedpth = .false.
+  logical , public :: lakedpth = .false.
 
   ! Control flag for crating initial soil moisture dataset
 
-  logical :: lsmoist = .false.
+  logical , public :: lsmoist = .false.
 
   ! Grid point horizontal resolution in km
 
-  real(rkx) :: ds
+  real(rkx) , public :: ds
 
   ! Pressure of model top in cbar
 
-  real(rkx) :: ptop
+  real(rkx) , public :: ptop
 
   ! Central latitude  of model projection in degrees, north hem. is positive
   ! Projection center location in I
 
-  real(rkx) :: clat
-  real(rkx) :: cntri
+  real(rkx) , public :: clat
+  real(rkx) , public :: cntri
 
   ! Central longitude of model projection in degrees, west is negative
   ! Projection center location in J
 
-  real(rkx) :: clon
-  real(rkx) :: cntrj
+  real(rkx) , public :: clon
+  real(rkx) , public :: cntrj
 
   ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-  real(rkx) :: plat
+  real(rkx) , public :: plat
 
   ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-  real(rkx) :: plon
+  real(rkx) , public :: plon
 
   ! Lambert / Polar Cone factor
 
-  real(rkx) :: xcone
+  real(rkx) , public :: xcone
 
   ! Lambert true latitude (low latitude side)
 
-  real(rkx) :: truelatl = 0.0_rkx
+  real(rkx) , public :: truelatl = 0.0_rkx
 
   ! Lambert true latitude (high latitude side)
 
-  real(rkx) :: truelath = 0.0_rkx
+  real(rkx) , public :: truelath = 0.0_rkx
 
   ! Smoothness level
 
-  integer(ik4) :: ismthlev
+  integer(ik4) , public :: ismthlev
 
   !###################### DEBUG I/O control flag #########################
 
   ! Set amount of printout (still unused, sorry)
 
-  integer(ik4) :: debug_level = 0
-  integer(ik4) :: dbgfrq = 24
+  integer(ik4) , public :: debug_level = 0
+  integer(ik4) , public :: dbgfrq = 24
 
   !###################### I/O control flag ###############################
 
@@ -141,116 +141,131 @@ module mod_dynparam
   ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
   ! on the boundary sponge or relaxation boundary conditions.
 
-  integer(ik4) :: nspgx = 12
-  integer(ik4) :: nspgd = 12
+  integer(ik4) , public :: nspgx = 12
+  integer(ik4) , public :: nspgd = 12
 
-  real(rkx) :: bdy_nm = -1.0_rkx ! 0.0033_rkx
-  real(rkx) :: bdy_dm = -1.0_rkx ! 0.0001_rkx
+  real(rkx) , public :: bdy_nm = -1.0_rkx ! 0.0033_rkx
+  real(rkx) , public :: bdy_dm = -1.0_rkx ! 0.0001_rkx
 
   ! Nudge control coefficients
 
-  real(rkx) :: high_nudge   = 3.0_rkx
-  real(rkx) :: medium_nudge = 2.0_rkx
-  real(rkx) :: low_nudge    = 1.0_rkx
+  real(rkx) , public :: high_nudge   = 3.0_rkx
+  real(rkx) , public :: medium_nudge = 2.0_rkx
+  real(rkx) , public :: low_nudge    = 1.0_rkx
 
   ! Type of global analysis datasets used in Pre processing
   ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
   !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 
-  character(len=5) :: dattyp
-  character(len=256) :: cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC'
-  character(len=16) :: cmip6_model = 'MPI-ESM1-2-HR'
-  character(len=12) :: cmip6_variant = 'r1i1p1f1'
-  character(len=6) :: cmip6_ssp = 'ssp585'
-  character(len=12) :: cmip6_grid = 'gn'
+  character(len=5) , public :: dattyp
+  character(len=256) , public :: cmip6_inp = &
+              'https://esgf3.dkrz.de/thredds/dodsC'
+  character(len=16) , public :: cmip6_model = 'MPI-ESM1-2-HR'
+  character(len=12) , public :: cmip6_variant = 'r1i1p1f1'
+  character(len=6) , public :: cmip6_ssp = 'ssp585'
+  character(len=12) , public :: cmip6_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
   !      MZ6HR is for MOZART 6 hourly boundary conditions
   !      MZCLM is for MOZART climatology
 
-  character(len=5) :: chemtyp
+  character(len=5) , public :: chemtyp
 
   ! Type of Sea Surface Temperature used
   ! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
   !         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
 
-  character(len=5) :: ssttyp
+  character(len=5) , public :: ssttyp
 
   ! Land Surface Legend number
 
-  integer(ik4) :: nveg
+  integer(ik4) , public :: nveg
 
   ! Tracer parameters: number of tracers
 
-  integer(ik4) :: ntr = 0  ! Total number of chemical tracers
+  integer(ik4) , public :: ntr = 0  ! Total number of chemical tracers
 
   ! Base state atmosphere for non-hydrostatic MM5
 
-  real(rkx) :: base_state_pressure ! Base state reference pressure
-  real(rkx) :: logp_lrate          ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+  real(rkx) , public :: base_state_pressure ! Base state reference pressure
+  real(rkx) , public :: logp_lrate  ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
 
   ! Moloch dynamical vertical profile
 
-  real(rkx) :: mo_ztop = 30000.0_rkx
-  real(rkx) :: mo_h = 8000.0_rkx
-  real(rkx) :: mo_a0 = 0.0_rkx
+  real(rkx) , public :: mo_ztop = 30000.0_rkx
+  real(rkx) , public :: mo_h = 8000.0_rkx
+  real(rkx) , public :: mo_a0 = 0.0_rkx
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
   !    calculated from above or should be considered as fixed
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  integer(ik4) :: iym1
-  integer(ik4) :: iym2
-  integer(ik4) :: iym3
-  integer(ik4) :: jxm1
-  integer(ik4) :: jxm2
-  integer(ik4) :: jxm3
-  integer(ik4) :: kzm1
-  integer(ik4) :: kzm2
-  integer(ik4) :: kzp1
-  integer(ik4) :: kzp2
-  integer(ik4) :: kzp3
-  integer(ik4) :: kzp4
-  integer(ik4) :: iysg
-  integer(ik4) :: jxsg
-  integer(ik4) :: iym1sg
-  integer(ik4) :: jxm1sg
-  integer(ik4) :: iym2sg
-  integer(ik4) :: jxm2sg
-  integer(ik4) :: iym3sg
-  integer(ik4) :: jxm3sg
-  integer(ik4) :: nnsg
+  integer(ik4) , public :: iym1
+  integer(ik4) , public :: iym2
+  integer(ik4) , public :: iym3
+  integer(ik4) , public :: jxm1
+  integer(ik4) , public :: jxm2
+  integer(ik4) , public :: jxm3
+  integer(ik4) , public :: kzm1
+  integer(ik4) , public :: kzm2
+  integer(ik4) , public :: kzp1
+  integer(ik4) , public :: kzp2
+  integer(ik4) , public :: kzp3
+  integer(ik4) , public :: kzp4
+  integer(ik4) , public :: iysg
+  integer(ik4) , public :: jxsg
+  integer(ik4) , public :: iym1sg
+  integer(ik4) , public :: jxm1sg
+  integer(ik4) , public :: iym2sg
+  integer(ik4) , public :: jxm2sg
+  integer(ik4) , public :: iym3sg
+  integer(ik4) , public :: jxm3sg
+  integer(ik4) , public :: nnsg
 
-  integer(ik4) :: njcross , njdot , njout , njoutsg
-  integer(ik4) :: nicross , nidot , niout , nioutsg
+  integer(ik4) , public :: njcross , njdot , njout , njoutsg
+  integer(ik4) , public :: nicross , nidot , niout , nioutsg
 
-  integer(ik4) :: jcross1 , icross1
-  integer(ik4) :: jcross2 , icross2
-  integer(ik4) :: jdot1 , idot1
-  integer(ik4) :: jdot2 , idot2
-  integer(ik4) :: jout1 , iout1
-  integer(ik4) :: jout2 , iout2
-  integer(ik4) :: joutsg1 , ioutsg1
-  integer(ik4) :: joutsg2 , ioutsg2
+  integer(ik4) , public :: jcross1 , icross1
+  integer(ik4) , public :: jcross2 , icross2
+  integer(ik4) , public :: jdot1 , idot1
+  integer(ik4) , public :: jdot2 , idot2
+  integer(ik4) , public :: jout1 , iout1
+  integer(ik4) , public :: jout2 , iout2
+  integer(ik4) , public :: joutsg1 , ioutsg1
+  integer(ik4) , public :: joutsg2 , ioutsg2
 
   ! D stands for DOT
-  integer(ik4) :: ide1 , ide2 ! External i (included bdy) (latitude)
-    integer(ik4) :: jde1 , jde2 ! External j (included bdy) (longitude)
-  integer(ik4) :: ide1sg , ide2sg ! External i SUB (included bdy) (latitude)
-  integer(ik4) :: jde1sg , jde2sg ! External j SUB (included bdy) (longitude)
-  integer(ik4) :: idi1 , idi2 ! Internal (excluded first and last line) i
-  integer(ik4) :: jdi1 , jdi2 ! Internal (excluded first and last column) j
-  integer(ik4) :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
-  integer(ik4) :: jdii1 , jdii2 ! Internal (excluded 2 lines and cols) j
+  ! External i (included bdy) (latitude)
+  integer(ik4) , public :: ide1 , ide2
+  ! External j (included bdy) (longitude)
+  integer(ik4) , public :: jde1 , jde2
+  ! External i SUB (included bdy) (latitude)
+  integer(ik4) , public :: ide1sg , ide2sg
+  ! External j SUB (included bdy) (longitude)
+  integer(ik4) , public :: jde1sg , jde2sg
+  ! Internal (excluded first and last line) i
+  integer(ik4) , public :: idi1 , idi2
+  ! Internal (excluded first and last column) j
+  integer(ik4) , public :: jdi1 , jdi2
+  ! Internal (excluded 2 lines and cols) i
+  integer(ik4) , public :: idii1 , idii2
+  ! Internal (excluded 2 lines and cols) j
+  integer(ik4) , public :: jdii1 , jdii2
 
   ! C stands for CROSS
-  integer(ik4) :: ice1 , ice2 ! External (included bdy) i (latitude)
-  integer(ik4) :: jce1 , jce2 ! External (included bdy) j (longitude)
-  integer(ik4) :: ici1 , ici2 ! Internal (excluded first and last line) i
-  integer(ik4) :: jci1 , jci2 ! Internal (excluded first and last column) j
-  integer(ik4) :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
-  integer(ik4) :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
+  ! External (included bdy) i (latitude)
+  integer(ik4) , public :: ice1 , ice2
+  ! External (included bdy) j (longitude)
+  integer(ik4) , public :: jce1 , jce2
+  ! Internal (excluded first and last line) i
+  integer(ik4) , public :: ici1 , ici2
+  ! Internal (excluded first and last column) j
+  integer(ik4) , public :: jci1 , jci2
+  ! Internal (excluded 2 lines and cols) i
+  integer(ik4) , public :: icii1 , icii2
+  ! Internal (excluded 2 lines and cols) j
+  integer(ik4) , public :: jcii1 , jcii2
 
   ! Ghost points A
 
@@ -285,170 +300,173 @@ module mod_dynparam
 
   !####################### MPI parameters ################################
 
-  integer(ik4) :: mycomm
-  integer(ik4) :: nproc , nprocshm
-  integer(ik4) :: myid , myidshm
-  integer(ik4) :: njxcpus , niycpus
-  integer(ik4) :: iyp , jxp
-  integer(ik4) :: iypsg , jxpsg
+  integer(ik4) , public :: mycomm
+  integer(ik4) , public :: nproc , nprocshm
+  integer(ik4) , public :: myid , myidshm
+  integer(ik4) , public :: njxcpus , niycpus
+  integer(ik4) , public :: iyp , jxp
+  integer(ik4) , public :: iypsg , jxpsg
 
   !####################### MPI parameters ################################
 
   ! Surface minimum H2O percent to be considered water
 
-  real(rkx) :: h2opct
+  real(rkx) , public :: h2opct
 
   ! Allow water pixels to have an elevation
 
-  logical :: h2ohgt
+  logical , public :: h2ohgt
 
   ! Do a first resampling befor final interpolation
 
-  logical :: lresamp
+  logical , public :: lresamp
 
   ! Interpolation radius in ds unit for topography
 
-  real(rkx) :: roidem
+  real(rkx) , public :: roidem
 
   ! Smoothing Control flag
   !     true  -> Perform extra smoothing in boundaries
 
-  logical :: smthbdy
+  logical , public :: smthbdy
 
   ! Fudging for landuse and texture for grid and subgrid
 
-  logical :: fudge_lnd
-  logical :: fudge_lnd_s
-  logical :: fudge_tex
-  logical :: fudge_tex_s
-  logical :: fudge_lak
-  logical :: fudge_lak_s
+  logical , public :: fudge_lnd
+  logical , public :: fudge_lnd_s
+  logical , public :: fudge_tex
+  logical , public :: fudge_tex_s
+  logical , public :: fudge_lak
+  logical , public :: fudge_lak_s
 
   ! Terrain output files
 
-  character(len=64) :: domname
-  character(len=64) :: prestr
+  character(len=64) , public :: domname
+  character(len=64) , public :: prestr
 
   ! Global Begin and End date for Input Pre processing
 
-  type(rcm_time_and_date) , save :: globidate1 ! BEGIN
-  type(rcm_time_and_date) , save :: globidate2 ! END
+  type(rcm_time_and_date) , save , public :: globidate1 ! BEGIN
+  type(rcm_time_and_date) , save , public :: globidate2 ! END
 
   ! Days per year and degrees per day
 
-  character(len=12) :: calendar
-  integer(ik4) :: ical
-  real(rkx) :: dayspy
-  real(rkx) :: vernal_equinox
-  real(rkx) :: half_dayspy
-  real(rkx) :: sixteenth_dayspy
-  real(rkx) :: dpd
+  character(len=12) , public :: calendar
+  integer(ik4) , public :: ical
+  real(rkx) , public :: dayspy
+  real(rkx) , public :: vernal_equinox
+  real(rkx) , public :: half_dayspy
+  real(rkx) , public :: sixteenth_dayspy
+  real(rkx) , public :: dpd
 
   ! Fixed dimensions
 
-  integer(ik4) , parameter :: mpy = 12         ! Months per Year
+  integer(ik4) , public , parameter :: mpy = 12         ! Months per Year
 
   ! Number of Soil texture categories, leave it to 17
 
-  integer(ik4) , parameter :: ntex = 17
-  integer(ik4) , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
+  integer(ik4) , public , parameter :: ntex = 17
+  ! Should be ntex-5. Soil classes.
+  integer(ik4) , public , parameter :: nats = 12
 
   ! Maximum number of depths in lake model
 
-  integer(ik4) , parameter :: ndpmax = 200
+  integer(ik4) , public , parameter :: ndpmax = 200
 
   ! Number of bins in solar spectra
 
-  integer(ik4) , parameter :: nspi = 19
+  integer(ik4) , public , parameter :: nspi = 19
 
   ! Number of PGW pressure levels
 
-  integer(ik4) , parameter :: npgwlev = 17
+  integer(ik4) , public , parameter :: npgwlev = 17
 
 #ifdef CLM45
   ! Soil layer thickness discretization (m)
-  real(rkx) , parameter :: scalez = 0.025_rkx
-  integer(ik4) , parameter :: num_soil_layers = 10
+  real(rkx) , public , parameter :: scalez = 0.025_rkx
+  integer(ik4) , public , parameter :: num_soil_layers = 10
 #else
-  integer(ik4) , parameter :: num_soil_layers = 3
+  integer(ik4) , public , parameter :: num_soil_layers = 3
 #endif
 
   ! Shall we use this to port?
 
-  character(len=1), parameter :: pthsep = '/'
+  character(len=1) , public , parameter :: pthsep = '/'
 
   ! Paths
 
-  character(len=256) :: dirter , inpter
-  character(len=256) :: dirglob , inpglob
-  character(len=256) :: dirout
-  character(len=256) :: moist_filename
-  character(len=8)   :: tersrc , smsrc
+  character(len=256) , public :: dirter , inpter
+  character(len=256) , public :: dirglob , inpglob
+  character(len=256) , public :: dirout
+  character(len=256) , public :: moist_filename
+  character(len=8)   , public :: tersrc , smsrc
 #ifdef NETCDF4_HDF5
-  integer(ik4) :: iomode = ior(nf90_clobber, nf90_netcdf4)
+  integer(ik4) , public :: iomode = ior(nf90_clobber, nf90_netcdf4)
 #else
 #ifndef PNETCDF
 #ifdef NETCDF_CDF5
-  integer(ik4) :: iomode = ior(nf90_clobber, nf90_cdf5)
+  integer(ik4) , public :: iomode = ior(nf90_clobber, nf90_cdf5)
 #else
-  integer(ik4) :: iomode = nf90_clobber
+  integer(ik4) , public :: iomode = nf90_clobber
 #endif
 #else
-  integer(ik4) :: iomode = 0
+  integer(ik4) , public :: iomode = 0
 #endif
 #endif
 
-  integer(ik4) :: deflate_level = 1
+  integer(ik4) , public :: deflate_level = 1
 
   ! Model output control parameters
 
-  logical :: ifsave
-  logical :: ifatm
-  logical :: ifshf
-  logical :: ifrad
-  logical :: ifsrf
-  logical :: ifsub
-  logical :: ifsts
-  logical :: iflak
-  logical :: ifopt
-  logical :: ifchem
+  logical , public :: ifsave
+  logical , public :: ifatm
+  logical , public :: ifshf
+  logical , public :: ifrad
+  logical , public :: ifsrf
+  logical , public :: ifsub
+  logical , public :: ifsts
+  logical , public :: iflak
+  logical , public :: ifopt
+  logical , public :: ifchem
 
-  real(rkx) :: outnwf
-  real(rkx) :: savfrq
-  real(rkx) :: atmfrq
-  real(rkx) :: radfrq
-  real(rkx) :: lakfrq
-  real(rkx) :: subfrq
-  real(rkx) :: srffrq
-  real(rkx) :: chemfrq
-  real(rkx) :: optfrq
-  integer(ik4) :: ibdyfrq
+  real(rkx) , public :: outnwf
+  real(rkx) , public :: savfrq
+  real(rkx) , public :: atmfrq
+  real(rkx) , public :: radfrq
+  real(rkx) , public :: lakfrq
+  real(rkx) , public :: subfrq
+  real(rkx) , public :: srffrq
+  real(rkx) , public :: chemfrq
+  real(rkx) , public :: optfrq
+  integer(ik4) , public :: ibdyfrq
 
-  logical :: ensemble_run
+  logical , public :: ensemble_run
 
-  logical :: lperturb_topo
-  logical :: lperturb_ts
-  logical :: lperturb_ps
-  logical :: lperturb_t
-  logical :: lperturb_q
-  logical :: lperturb_u
-  logical :: lperturb_v
+  logical , public :: lperturb_topo
+  logical , public :: lperturb_ts
+  logical , public :: lperturb_ps
+  logical , public :: lperturb_t
+  logical , public :: lperturb_q
+  logical , public :: lperturb_u
+  logical , public :: lperturb_v
 
-  real(rkx) :: perturb_frac_topo
-  real(rkx) :: perturb_frac_ts
-  real(rkx) :: perturb_frac_ps
-  real(rkx) :: perturb_frac_t
-  real(rkx) :: perturb_frac_q
-  real(rkx) :: perturb_frac_u
-  real(rkx) :: perturb_frac_v
+  real(rkx) , public :: perturb_frac_topo
+  real(rkx) , public :: perturb_frac_ts
+  real(rkx) , public :: perturb_frac_ps
+  real(rkx) , public :: perturb_frac_t
+  real(rkx) , public :: perturb_frac_q
+  real(rkx) , public :: perturb_frac_u
+  real(rkx) , public :: perturb_frac_v
 
 #ifdef CLM45
-  logical :: enable_megan_emission = .false.
-  logical :: enable_urban_landunit = .true.
-  logical :: enable_more_crop_pft = .false.
-  logical :: enable_dv_baresoil = .false.
-  logical :: enable_cru_precip = .false.
+  logical , public :: enable_megan_emission = .false.
+  logical , public :: enable_urban_landunit = .true.
+  logical , public :: enable_more_crop_pft = .false.
+  logical , public :: enable_dv_baresoil = .false.
+  logical , public :: enable_cru_precip = .false.
 #endif
+
+  public :: initparam , init_fnestparam , init_globwindow
 
   contains
 

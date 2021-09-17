@@ -29,6 +29,8 @@ module mod_ipcc_scenario
   use mod_mpmessage
   use mod_memutil
   use mod_runparams
+  use mod_stdio
+  use netcdf
 
   implicit none
 

@@ -21,6 +21,7 @@ module mod_mkvic
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
+  use mod_constants
   use mod_grid
   use mod_rdldtr
 

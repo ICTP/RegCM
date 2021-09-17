@@ -25,6 +25,8 @@ module mod_ncep
   use mod_stdio
   use mod_grid
   use mod_write
+  use mod_date
+  use mod_constants
   use mod_kdinterp
   use mod_vertint
   use mod_hgt

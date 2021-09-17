@@ -7,6 +7,7 @@ module mod_clm_histfile
   use mod_stdio
   use mod_mpmessage
   use mod_dynparam
+  use mod_constants
   use mod_runparams
   use mod_mppparam
   use mod_date

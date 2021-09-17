@@ -22,6 +22,7 @@ module mod_ccsm3_helper
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_stdio
   use mod_message
 
   private

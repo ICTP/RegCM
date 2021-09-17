@@ -20,6 +20,7 @@ module mod_mksoilph
 #if defined(CN) && defined(LCH4)
   use mod_realkinds
   use mod_intkinds
+  use mod_constants
   use mod_dynparam
   use mod_grid
   use mod_rdldtr

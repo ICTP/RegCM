@@ -22,6 +22,7 @@ module mod_mppparam
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_runparams , only : namelistfile , prgname
   use mod_mpmessage
   use mod_memutil

@@ -55,6 +55,7 @@
 module mod_micro_nogtom
   use mod_realkinds
   use mod_dynparam
+  use mod_stdio
   use mod_mpmessage
   use mod_memutil
   use mod_regcm_types

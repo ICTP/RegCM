@@ -24,6 +24,7 @@ module mod_che_cumtran
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_runparams
   use mod_che_common
 

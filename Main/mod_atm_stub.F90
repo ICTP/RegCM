@@ -21,6 +21,8 @@ module mod_atm_stub
 
   use mod_dynparam
   use mod_stdio
+  use mod_date
+  use mod_constants
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage

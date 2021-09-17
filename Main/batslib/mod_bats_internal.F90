@@ -21,6 +21,7 @@ module mod_bats_internal
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_memutil
   use mod_dynparam
   use mod_regcm_types

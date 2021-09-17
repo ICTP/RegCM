@@ -20,6 +20,7 @@
 module mod_che_ccn
 
   use mod_intkinds
+  use mod_constants
   use mod_realkinds
   use mod_che_common
   use mod_che_carbonaer

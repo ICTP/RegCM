@@ -1624,8 +1624,8 @@ module mod_clm_cnfire
       call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
     end if
     ndpy = yeardays(yr,nextdate%calendar)
-    w1 = d_one - (yeardayfrac(nextdate)/ndpy)
-    w2 = d_one - w1
+    w1 = 1.0_rk8 - (yeardayfrac(nextdate)/ndpy)
+    w2 = 1.0_rk8 - w1
     forc_hdm(:) = hdm_p1(:)*w1 + hdm_p2(:)*w2
   end subroutine hdm_interp
   !
@@ -1685,8 +1685,8 @@ module mod_clm_cnfire
         call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
       end if
     end if
-    w1 = d_one - ((yeardayfrac(nextdate)*8.0_rk8+1.0_rk8)-dble(ip))
-    w2 = d_one - w1
+    w1 = 1.0_rk8 - ((yeardayfrac(nextdate)*8.0_rk8+1.0_rk8)-dble(ip))
+    w2 = 1.0_rk8 - w1
     forc_lnfm(:) = lnfm_p1(:)*w1 + lnfm_p2(:)*w2
   end subroutine lnfm_interp
 #endif

@@ -43,7 +43,7 @@ program mksurfdata
 #endif
 
   use mod_intkinds
-  use mod_constants , only : raddeg
+  use mod_constants , only : raddeg , dlowval
   use mod_realkinds
   use mod_dynparam
   use mod_message
@@ -1469,9 +1469,9 @@ program mksurfdata
       hptop = real(ptop*10.0_rkx)
       call write_vertical_coord(ncid,rsigx,hptop,izvar)
     else
-      zita = d_one - sigx*hzita
-      ax = real(-hzita*(bzita(zita)*log(max(sigx,tiny(d_one))),rk4)
-      bx = real(gzita(zita),rk4)
+      call model_zitah(zita)
+      ax = md_ak(zita)
+      bx = md_bk(zita)
       call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
     end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)

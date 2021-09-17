@@ -24,6 +24,7 @@ module mod_init
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_stdio
   use mod_runparams
   use mod_mppparam
   use mod_lm_interface
@@ -994,23 +995,6 @@ module mod_init
               end do
             end do
           end do
-        else if ( idynamic == 3 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = 0.5_rkx * &
-                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
-                end if
-                if ( cuscheme(j,i) == 5 ) then
-                  avg_ww(j,i,k) = -0.5_rkx * egrav * mo_atm%rho(j,i,k) * &
-                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
-                end if
-              end do
-            end do
-          end do
-        else
-          avg_ww(:,:,:) = d_zero
         end if
       end if
     end if

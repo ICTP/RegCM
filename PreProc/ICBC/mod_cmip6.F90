@@ -23,6 +23,8 @@ module mod_cmip6
   use mod_realkinds
   use mod_cmip6_helper
   use mod_message
+  use mod_date
+  use mod_stdio
   use mod_dynparam
   use mod_memutil
   use mod_grid

@@ -24,6 +24,7 @@ module mod_mpiesm_helper
   use mod_dynparam
   use mod_message
   use mod_date
+  use mod_stdio
 
   private
 

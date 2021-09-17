@@ -25,6 +25,7 @@ module mod_cmip6_helper
   use mod_message
   use mod_dynparam
   use mod_kdinterp
+  use mod_stdio
   use netcdf
 
   implicit none

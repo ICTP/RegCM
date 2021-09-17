@@ -32,6 +32,8 @@ module mod_rad_aerosol
   use mod_nhinterp
   use mod_kdinterp
   use mod_zita
+  use mod_date
+  use mod_stdio
   use mod_vertint
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw

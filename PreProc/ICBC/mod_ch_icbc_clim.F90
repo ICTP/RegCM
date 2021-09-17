@@ -21,6 +21,7 @@ module mod_ch_icbc_clim
 
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_stdio
   use mod_dynparam
   use mod_grid

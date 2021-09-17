@@ -26,6 +26,7 @@ module mod_sst_gndnc
   use mod_memutil
   use mod_sst_grid
   use mod_earth
+  use mod_date
   use mod_kdinterp
   use mod_message
   use mod_nchelper

@@ -22,6 +22,7 @@ module mod_rad_radiation
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_mpmessage
   use mod_service
   use mod_runparams , only : idirect , ichem , iclimaaer , rcmtimer

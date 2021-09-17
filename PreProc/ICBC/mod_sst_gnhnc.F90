@@ -33,6 +33,7 @@ module mod_sst_gnhnc
   use mod_ecearth_helper
   use mod_mpiesm_helper
   use mod_lgm_helper
+  use mod_date
   use netcdf
 
   private

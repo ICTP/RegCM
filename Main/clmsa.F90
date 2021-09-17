@@ -22,6 +22,9 @@ program clmsa
 #ifdef CLM45
   use mod_realkinds
   use mod_intkinds
+  use mod_date
+  use mod_stdio
+  use mod_constants
   use mod_memutil
   use mod_service
   use mod_runparams

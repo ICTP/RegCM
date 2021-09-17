@@ -4,7 +4,9 @@ module mod_clm_cnrest
   !
   ! Read/Write to/from CN info to CLM restart file.
   !
+  use mod_intkinds
   use mod_realkinds
+  use mod_stdio
   use mod_dynparam
   use mod_mppparam
   use mod_mpmessage
@@ -3755,7 +3757,7 @@ module mod_clm_cnrest
         if ( exit_spinup ) then
           m = decomp_cascade_con%spinup_factor(k)
         else if ( enter_spinup ) then
-          m = d_one / decomp_cascade_con%spinup_factor(k)
+          m = 1.0_rk8 / decomp_cascade_con%spinup_factor(k)
         end if
         do c = begc , endc
           do j = 1 , nlevdecomp

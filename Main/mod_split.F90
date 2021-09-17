@@ -21,9 +21,13 @@ module mod_split
   !
   ! Split explicit time integration
   !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
   use mod_mppparam
   use mod_runparams
+  use mod_constants
+  use mod_stdio
   use mod_atm_interface
   use mod_vmodes
   use mod_bdycod

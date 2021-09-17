@@ -2851,7 +2851,7 @@ module mod_clm_pftdyn
           pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
           pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
           wtcol_old(p) = pptr%wtcol(p)
-          if ( pptr%wtcol(p) > d_zero ) then
+          if ( pptr%wtcol(p) > 0.0_rk8 ) then
             l = plandunit(p)
             if ( ityplun(l) == istsoil .or. ityplun(l) == istcrop ) then
               if ( ivt(p) == noveg ) then

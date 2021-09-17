@@ -28,6 +28,8 @@ module mod_che_bdyco
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
+  use mod_date
   use mod_memutil
   use mod_nhinterp
   use mod_mppparam

@@ -23,6 +23,8 @@ module mod_ae_icbc
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
+  use mod_stdio
+  use mod_constants
   use mod_grid
   use mod_wrtoxd
   use mod_kdinterp

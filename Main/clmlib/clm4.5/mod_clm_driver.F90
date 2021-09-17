@@ -72,6 +72,7 @@ module mod_clm_driver
   use mod_realkinds
   use mod_dynparam
   use mod_date
+  use mod_stdio
   use mod_mppparam , only : italk
   use mod_runparams
   use mod_clm_type

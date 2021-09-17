@@ -25,6 +25,7 @@ module mod_che_common
   use mod_mppparam
   use mod_runparams
   use mod_memutil
+  use mod_stdio
   use mod_mpmessage
   use mod_che_param
   use mod_che_species

@@ -23,6 +23,8 @@ module mod_mksst
   use mod_realkinds
   use mod_stdio
   use mod_grid
+  use mod_stdio
+  use mod_date
   use mod_memutil
   use mod_constants
   use mod_dynparam

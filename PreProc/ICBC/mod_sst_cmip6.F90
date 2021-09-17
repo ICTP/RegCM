@@ -27,6 +27,8 @@ module mod_sst_cmip6
   use mod_memutil
   use mod_sst_grid
   use mod_kdinterp
+  use mod_date
+  use mod_stdio
   use netcdf
 
   implicit none

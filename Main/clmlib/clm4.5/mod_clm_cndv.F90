@@ -11,6 +11,7 @@ module mod_clm_cndv
   use mod_dynparam
   use mod_runparams
   use mod_mpmessage
+  use mod_stdio
   use mod_date
   use mod_mppparam
   use mod_clm_type

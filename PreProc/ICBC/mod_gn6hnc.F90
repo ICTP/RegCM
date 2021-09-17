@@ -37,6 +37,7 @@ module mod_gn6hnc
   use mod_kdinterp
   use mod_vertint
   use mod_hgt
+  use mod_date
   use mod_humid
   use mod_mksst
   use mod_projections

@@ -24,6 +24,7 @@ module mod_ocn_zeng
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_service
   use mod_ocn_internal
   use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl , ipcpcool

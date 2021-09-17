@@ -72,6 +72,7 @@ program terrain
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_date
   use mod_constants
   use mod_maps
   use mod_smooth

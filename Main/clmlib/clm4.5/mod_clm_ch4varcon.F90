@@ -6,6 +6,7 @@ module mod_clm_ch4varcon
   ! read constants from CLM namelist.
   !
   use mod_stdio
+  use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
   use mod_dynparam

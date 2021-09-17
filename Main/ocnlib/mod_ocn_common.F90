@@ -23,6 +23,7 @@ module mod_ocn_common
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_regcm_types
   use mod_ocn_internal
   use mod_ocn_bats

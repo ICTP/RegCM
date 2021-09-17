@@ -23,6 +23,7 @@ module mod_ch_icbc
   use mod_realkinds
   use mod_stdio
   use mod_dynparam
+  use mod_constants
   use mod_grid
   use mod_wrtoxd
   use mod_kdinterp

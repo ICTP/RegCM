@@ -25,6 +25,7 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
         ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter , &
         ipptls , iqc , iqi , dsigma

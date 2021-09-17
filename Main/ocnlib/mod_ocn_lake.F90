@@ -21,6 +21,7 @@ module mod_ocn_lake
 
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_dynparam
   use mod_service
   use mod_runparams , only : rcmtimer , iocnrough

@@ -24,6 +24,7 @@ module mod_sladvection
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_stdio
   use mod_dynparam
   use mod_runparams
   use mod_atm_interface , only : atmx , mddom

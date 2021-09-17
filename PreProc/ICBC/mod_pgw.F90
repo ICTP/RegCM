@@ -22,6 +22,7 @@ module mod_pgw
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_stdio
   use mod_memutil
   use mod_grid

@@ -23,6 +23,7 @@ module mod_cu_em
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_dynparam
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &

@@ -23,6 +23,7 @@ module mod_cu_tiedtke
   use mod_dynparam
   use mod_mpmessage
   use mod_memutil
+  use mod_stdio
   use mod_constants
   use mod_cu_common
   use mod_cu_tables

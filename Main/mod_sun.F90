@@ -23,6 +23,7 @@ module mod_sun
 !
    use mod_intkinds
    use mod_realkinds
+   use mod_stdio
    use mod_memutil
    use mod_constants
    use mod_dynparam

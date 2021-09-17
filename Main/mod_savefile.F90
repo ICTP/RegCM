@@ -22,6 +22,8 @@ module mod_savefile
   use mod_nchelper , only : regcm_vartype
   use mod_intkinds
   use mod_realkinds
+  use mod_date
+  use mod_stdio
   use mod_dynparam
   use mod_runparams
   use mod_mpmessage
@@ -32,6 +34,7 @@ module mod_savefile
   use mod_che_interface
   use mod_che_mppio
   use mod_massck
+  use netcdf
 
   implicit none
 

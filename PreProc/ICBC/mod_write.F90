@@ -29,6 +29,7 @@ module mod_write
   use mod_ncstream
   use mod_nhinterp
   use mod_vectutil
+  use mod_stdio
   use mod_zita
 
   private

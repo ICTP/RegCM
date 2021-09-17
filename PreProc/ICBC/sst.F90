@@ -41,6 +41,7 @@ program sst
   use mod_dynparam
   use mod_memutil
   use mod_stdio
+  use mod_date
   use mod_message
   use mod_sst_grid
   use mod_sst_1deg

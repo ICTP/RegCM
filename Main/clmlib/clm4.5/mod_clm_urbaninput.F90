@@ -7,6 +7,7 @@ module mod_clm_urbaninput
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
+  use mod_stdio
   use mod_clm_nchelper
   use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
 

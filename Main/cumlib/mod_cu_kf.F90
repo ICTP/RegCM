@@ -20,7 +20,11 @@ module mod_cu_kf
 
   use mod_realkinds
   use mod_intkinds
-  use mod_constants
+  use mod_constants , only : egrav , regrav , rdry , gdry , tzero
+  use mod_constants , only : aliq , bliq , cliq , dliq
+  use mod_constants , only : cpd , rcpd , wlhf , p00
+  use mod_constants , only : d_zero , d_one , d_half , d_two
+  use mod_constants , only : d_10 , d_100 , d_1000 , dlowval
   use mod_memutil
   use mod_dynparam
   use mod_stdio
@@ -210,7 +214,7 @@ module mod_cu_kf
         ! If q0 is above saturation value, reduce it to saturation level.
         !
         es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
-        qes(k,np) = ep2 * es/(p0(k,np)-es)
+        qes(k,np) = 0.622_rkx * es/(p0(k,np)-es)
         q0(k,np) = min(qes(k,np),q0(k,np))
         q0(k,np) = max(1.0e-6_rkx,q0(k,np))
       end do
@@ -432,7 +436,7 @@ module mod_cu_kf
       do k = 1 , kx
         rh(k) = max(min(d_one,q0(k,np)/qes(k,np)),d_zero)
         dilfrc(k) = d_one
-        tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
+        tv0(k) = t0(k,np) * (d_one + 0.608_rkx*q0(k,np))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(k,np)*egrav*dzq(k,np)
         wspd(k) = sqrt(u0(k,np)*u0(k,np) + v0(k,np)*v0(k,np))
@@ -550,7 +554,7 @@ module mod_cu_kf
         qmix = qmix/dpthmx
         zmix = zmix/dpthmx
         pmix = pmix/dpthmx
-        emix = qmix*pmix/(ep2+qmix)
+        emix = qmix*pmix/(0.622_rkx+qmix)
         !
         ! Find the temperature of the mixture at its lcl.
         ! Calculate dewpoint using lookup table.
@@ -566,7 +570,7 @@ module mod_cu_kf
         tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-tzero) - &
                        4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
         tlcl = min(tlcl,tmix)
-        tvlcl = tlcl*(d_one + ep1*qmix)
+        tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl1: &
         do nk = lc , kl
@@ -583,7 +587,7 @@ module mod_cu_kf
         !
         tenv = t0(k,np) + (t0(klcl,np)-t0(k,np))*dlp
         qenv = q0(k,np) + (q0(klcl,np)-q0(k,np))*dlp
-        tven = tenv*(d_one + ep1*qenv)
+        tven = tenv*(d_one + 0.608_rkx*qenv)
         !
         ! Check to see if cloud is buoyant using fritsch-chappell trigger
         ! function described in kain and fritsch (1992). w0 is an
@@ -663,7 +667,7 @@ module mod_cu_kf
           end if
           plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
           wtw = wlcl*wlcl
-          tvlcl = tlcl*(d_one + ep1*qmix)
+          tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
           rholcl = plcl/(rdry*tvlcl)
           lcl = klcl
           let = lcl
@@ -770,7 +774,7 @@ module mod_cu_kf
               call dtfrznew(tu(nk1),p0(nk1,np),theteu(nk1), &
                             qu(nk1),qfrz,qice(nk1))
             end if
-            tvu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1))
+            tvu(nk1) = tu(nk1)*(d_one + 0.608_rkx*qu(nk1))
             !
             ! Calculate updraft vertical velocity and precipitation fallout.
             !
@@ -805,7 +809,7 @@ module mod_cu_kf
             !
             ! KF (1990) Eq. 1; Kain (2004) Eq. 5
             rei = vmflcl*dp(nk1)*kf_entrate/rad
-            tvqu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1)-qliq(nk1)-qice(nk1))
+            tvqu(nk1) = tu(nk1)*(d_one + 0.608_rkx*qu(nk1)-qliq(nk1)-qice(nk1))
             if ( nk == k ) then
               dilbe = ((tvlcl+tvqu(nk1))/(tven+tv0(nk1)) - d_one)*dzz
             else
@@ -835,7 +839,7 @@ module mod_cu_kf
               tmpice = f2*qice(nk1)
               call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
                           tmpliq,tmpice,qnewlq,qnewic)
-              tu95 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
+              tu95 = ttmp*(d_one + 0.608_rkx*qtmp-tmpliq-tmpice)
               if ( tu95 > tv0(nk1) ) then
                 ee2 = d_one
                 ud2 = d_zero
@@ -849,7 +853,7 @@ module mod_cu_kf
                 tmpice = f2*qice(nk1)
                 call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
                             tmpliq,tmpice,qnewlq,qnewic)
-                tu10 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
+                tu10 = ttmp*(d_one + 0.608_rkx*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
                 if ( tvdiff < 1.0e-3_rkx ) then
                   ee2 = d_one
@@ -1275,7 +1279,7 @@ module mod_cu_kf
           !
           ! Take a first guess at the initial downdraft mass flux
           !
-          tvd(lfs) = tz(lfs)*(d_one + ep1*qss)
+          tvd(lfs) = tz(lfs)*(d_one + 0.608_rkx*qss)
           rdd = p0(lfs,np)/(rdry*tvd(lfs))
           a1 = (d_one-peff)*au0
           dmf(lfs) = -a1*rdd
@@ -1316,7 +1320,7 @@ module mod_cu_kf
           call tpmix2dd(p0(kstart,np),theted(kstart),tz(kstart),qss)
           tz(kstart) = tz(kstart) - dtmelt
           es = aliq*exp((bliq*tz(kstart)-cliq)/(tz(kstart)-dliq))
-          qss = ep2*es/(p0(kstart,np)-es)
+          qss = 0.622_rkx*es/(p0(kstart,np)-es)
           theted(kstart) = tz(kstart) * &
                (p00/p0(kstart,np))**(0.2854_rkx*(d_one-0.28_rkx*qss))*    &
                 exp((c1/tz(kstart)-c2)*qss*(d_one+c3*qss))
@@ -1344,7 +1348,7 @@ module mod_cu_kf
               dtmp = rl*qss*(d_one-rhh)/(cpd+rl*rhh*qss*dssdt)
               t1rh = tz(nd) + dtmp
               es = rhh*aliq*exp((bliq*t1rh-cliq)/(t1rh-dliq))
-              qsrh = ep2*es/(p0(nd,np)-es)
+              qsrh = 0.622_rkx*es/(p0(nd,np)-es)
               !
               ! Check to see if mixing ratio at specified rh is less than actual
               ! mixing ratio. If so, adjust to give zero evaporation.
@@ -1357,7 +1361,7 @@ module mod_cu_kf
               qss = qsrh
               qsd(nd) = qss
             end if
-            tvd(nd) = tz(nd)*(d_one + ep1*qsd(nd))
+            tvd(nd) = tz(nd)*(d_one + 0.608_rkx*qsd(nd))
             if ( tvd(nd) > tv0(nd) .or. nd == 1 ) then
               ldb = nd
               exit findldb
@@ -1613,7 +1617,7 @@ module mod_cu_kf
         do nk = 1 , ltop
           exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
-          tvg(nk) = tg(nk)*(d_one + ep1*qg(nk))
+          tvg(nk) = tg(nk)*(d_one + 0.608_rkx*qg(nk))
         end do
         if ( ishall == 1 ) then
           exit iter
@@ -1637,7 +1641,7 @@ module mod_cu_kf
         tmix = tmix/dpthmx
         qmix = qmix/dpthmx
         es = aliq*exp((tmix*bliq-cliq)/(tmix-dliq))
-        qss = ep2*es/(pmix-es)
+        qss = 0.622_rkx*es/(pmix-es)
         !
         ! Remove supersaturation for diagnostic purposes, if necessary
         !
@@ -1651,7 +1655,7 @@ module mod_cu_kf
           tlcl = tmix
         else
           qmix = max(qmix,d_zero)
-          emix = qmix*pmix/(ep2+qmix)
+          emix = qmix*pmix/(0.622_rkx+qmix)
           binc = aincb
           a1 = emix/aliq
           tp = (a1-astrt)/binc
@@ -1664,7 +1668,7 @@ module mod_cu_kf
                          4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
           tlcl = min(tlcl,tmix)
         end if
-        tvlcl = tlcl*(d_one + ep1*qmix)
+        tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl2: &
         do nk = lc , kl
@@ -1681,7 +1685,7 @@ module mod_cu_kf
         !
         tenv = tg(k) + (tg(klcl)-tg(k))*dlp
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
-        tven = tenv*(d_one + ep1*qenv)
+        tven = tenv*(d_one + 0.608_rkx*qenv)
         plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
         theteu(k) = tmix*(p00/pmix)**(0.2854_rkx*(d_one-0.28_rkx*qmix))* &
                exp((c1/tlcl-c2)*qmix*(d_one+c3*qmix))
@@ -1693,7 +1697,7 @@ module mod_cu_kf
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
           call tpmix2dd(p0(nk1,np),theteu(nk1),tgu(nk1),qgu(nk1))
-          tvqu(nk1) = tgu(nk1)*(d_one + ep1*qgu(nk1)-qliq(nk1)-qice(nk1))
+          tvqu(nk1) = tgu(nk1)*(d_one + 0.608_rkx*qgu(nk1)-qliq(nk1)-qice(nk1))
           if ( nk == k ) then
             dzz = z0(klcl,np) - zlcl
             dilbe = ((tvlcl+tvqu(nk1))/(tven+tvg(nk1))-d_one)*dzz
@@ -1949,7 +1953,7 @@ module mod_cu_kf
           else
             es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
           end if
-          qgs = es*ep2/(p0(k,np)-es)
+          qgs = es*0.622_rkx/(p0(k,np)-es)
           rh0 = max(q0(k,np)/qes(k,np),d_one)
           rhg = max(qg(k)/qgs,d_one)
           write(stdout,1090) k,p0(k,np)/d_100,z0(k,np),t0(k,np)-tzero, &
@@ -2227,7 +2231,7 @@ module mod_cu_kf
       tu = tu + dtfrz
 
       es = aliq*exp((bliq*tu-cliq)/(tu-dliq))
-      qs = es*ep2/(p-es)
+      qs = es*0.622_rkx/(p-es)
       !
       ! Freezing warms the air and it becomes unsaturated
       ! Assume that some of the liquid water that is available for freezing
@@ -2421,7 +2425,7 @@ module mod_cu_kf
       ! NOTE: Calculations for mixed/ice phase no longer used. jsk 8/00
       !        For example, KF90 Eq. 10 no longer used
       !
-      ee = q1*p1 / (ep2+q1)
+      ee = q1*p1 / (0.622_rkx+q1)
       !
       ! Calculate log term using lookup table.
       !
@@ -2477,7 +2481,7 @@ module mod_cu_kf
     do kp = 1 , kfnp
       p = p + dpr
       es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
-      qs = ep2*es/(p-es)
+      qs = 0.622_rkx*es/(p-es)
       pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
       the0k(kp) = temp * pi * exp((c1/temp-c2)*qs*(d_one+c3*qs))
     end do
@@ -2499,7 +2503,7 @@ module mod_cu_kf
           tgues = ttab(it-1,kp)
         end if
         es = aliq*exp((bliq*tgues-cliq)/(tgues-dliq))
-        qs = ep2*es/(p-es)
+        qs = 0.622_rkx*es/(p-es)
         pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
         thgues = tgues * pi * exp((c1/tgues-c2)*qs*(d_one+c3*qs))
         f0 = thgues - thes
@@ -2508,7 +2512,7 @@ module mod_cu_kf
         iter1: &
         do itcnt = 1 , maxiter
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
-          qs = ep2*es/(p-es)
+          qs = 0.622_rkx*es/(p-es)
           pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
           thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c3*qs))
           f1 = thtgs - thes

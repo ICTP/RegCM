@@ -20,9 +20,11 @@
 module mod_domain
 
   use netcdf
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
+  use mod_constants
   use mod_nchelper
   use mod_stdio
   use mod_message

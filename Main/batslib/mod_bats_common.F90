@@ -31,6 +31,7 @@ module mod_bats_common
   use mod_mpmessage
   use mod_constants
   use mod_service
+  use mod_stdio
   use mod_bats_param
   use mod_bats_internal
   use mod_bats_bndry

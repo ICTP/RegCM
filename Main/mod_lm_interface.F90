@@ -26,6 +26,7 @@ module mod_lm_interface
   use mod_memutil
   use mod_regcm_types
   use mod_outvars
+  use mod_constants
   use mod_mppparam
   use mod_mpmessage
   use mod_service

@@ -21,6 +21,7 @@ module mod_mkharvest
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
+  use mod_constants
   use mod_grid
   use mod_message
   use mod_rdldtr
