@@ -21,6 +21,7 @@ module mod_micro_interface
 
   use mod_realkinds
   use mod_service
+  use mod_stdio
   use mod_constants
   use mod_dynparam
   use mod_memutil

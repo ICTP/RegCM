@@ -27,6 +27,7 @@ module mod_slabocean
   use mod_atm_interface , only : xtsb
   use mod_mppparam
   use mod_constants
+  use mod_stdio
   use mod_outvars
 
   implicit none

@@ -421,7 +421,6 @@ module mod_bdycod
   subroutine init_bdy
     implicit none
     integer(ik4) :: datefound , i , j , k , n
-    integer(ik4) :: im1 , im2
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif

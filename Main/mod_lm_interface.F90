@@ -32,6 +32,7 @@ module mod_lm_interface
   use mod_service
   use mod_bats_common
   use mod_ocn_common
+  use mod_stdio
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
