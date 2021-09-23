@@ -669,7 +669,7 @@ module mod_bdycod
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
-      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     end if
     !
     ! Couple pressure u,v,t,q
