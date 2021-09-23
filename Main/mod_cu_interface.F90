@@ -292,7 +292,7 @@ module mod_cu_interface
         end do
       end if
 
-      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,300.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -524,26 +524,6 @@ module mod_cu_interface
             end do
           end do
         end do
-        if ( ipptls /= 2 ) then
-          if ( idynamic == 3 ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + cu_qdetr(j,i,k)
-                end do
-              end do
-            end do
-          else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + &
-                                         cu_qdetr(j,i,k) * m2c%psb(j,i)
-                end do
-              end do
-            end do
-          end if
-        end if
       end if
     end if
   end subroutine cumulus
