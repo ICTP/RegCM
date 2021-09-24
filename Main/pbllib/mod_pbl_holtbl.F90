@@ -1253,7 +1253,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             zlv = m2p%za(j,i,kz)
-            tlv = thvx(j,i,kz)
+            tlv = tv10(j,i)
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
             do k = kzm1 , kmxpbl(j,i) , -1
@@ -1305,16 +1305,16 @@ module mod_pbl_holtbl
               ulv = m2p%uxatm(j,i,kz)
               vlv = m2p%vxatm(j,i,kz)
               !zlv = max(obklen(j,i),d_10)
-              !tlv = thv10(j,i) + therm
+              !tlv = tv10(j,i) + therm
               vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
-              ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
+              ri(kz,j,i) = -egrav*therm*zlv/(tv10(j,i)*vvk)
               ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 zkv = m2p%za(j,i,k)
                 tkv = thvx(j,i,k)
                 vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
                 vvk = vvk +  fak*ustr(j,i)**2 + 1.0e-10_rkx
-                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thvx(j,i,kz)*vvk)
+                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tv10(j,i)*vvk)
               end do
             end if
           end do

@@ -4927,7 +4927,7 @@ module mod_cu_tiedtke
         rheat(n) = max(1.e-4_rkx,rheat(n))
         tau(n) = (geof(n,ik)-geof(n,ikb)) / &
                    ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
-        tau(n) = max(dt,min(10800.0_rkx,tau(n)))
+        tau(n) = max(dtcum,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
         mfub1(n) = max(mfub1(n),0.001_rkx)
