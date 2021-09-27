@@ -369,6 +369,7 @@ module mod_cu_tiedtke
     prsfc(:) = d_zero ! CHECK - surface rain flux
     pssfc(:) = d_zero ! CHECK - surface snow flux
 
+    ktype(:) = 0
     kctop(:) = 0
     kcbot(:) = 0
     pmfu(:,:) = d_zero
@@ -400,52 +401,62 @@ module mod_cu_tiedtke
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do ii = 1 , nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
-          ! Tendency in specific humidity to mixing ratio tendency.
-          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                               m2c%qxten(j,i,k,iqv)
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
+            ! Tendency in specific humidity to mixing ratio tendency.
+            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                                 m2c%qxten(j,i,k,iqv)
+          end if
         end do
       end do
     else
       do k = 1 , kz
         do ii = 1 , nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-          ! Tendency in specific humidity to mixing ratio tendency.
-          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                               m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
+            ! Tendency in specific humidity to mixing ratio tendency.
+            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                                 m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+          end if
         end do
       end do
     end if
     do k = 1 , kz
       do ii = 1 , nipoi
-        i = imap(ii)
-        j = jmap(ii)
-        cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
-        cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-        cu_qten(j,i,k,iqc) = pxlte(ii,k)
-        cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
-        cu_raincc(j,i,k) = pmflxr(ii,k)
+        if ( ktype(ii) > 0 ) then
+          i = imap(ii)
+          j = jmap(ii)
+          cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
+          cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k)
+          cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
+          cu_raincc(j,i,k) = pmflxr(ii,k)
+        end if
       end do
     end do
 
     if ( ipptls > 1 ) then
       do k = 1 , kz
         do ii = 1 , nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          cu_qten(j,i,k,iqi) = pxite(ii,k)
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqi) = pxite(ii,k)
+          end if
         end do
       end do
     else
       do k = 1 , kz
         do ii = 1 , nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
+          if ( ktype(ii) > 0 ) then
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
+          end if
         end do
       end do
     end if
@@ -507,14 +518,14 @@ module mod_cu_tiedtke
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
             cu_cldfrc(j,i,k) = kfac_deep*log(d_one+k2_const*pmfu(ii,k))
-            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
+            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
           else if ( ktype(ii) == 2 ) then
             cu_cldfrc(j,i,k) = kfac_shal*log(d_one+k2_const*pmfu(ii,k))
-            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
+            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
           else
             cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
                            log(d_one+k2_const*pmfu(ii,k))
-            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.4_rkx)
+            cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),0.4_rkx)
           end if
         end do
       end if
