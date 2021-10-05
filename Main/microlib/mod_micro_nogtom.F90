@@ -68,7 +68,7 @@ module mod_micro_nogtom
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
   use mod_runparams , only : sigma
-  use mod_runparams , only : dt
+  use mod_runparams , only : dt , rdt
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
@@ -111,6 +111,8 @@ module mod_micro_nogtom
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
+  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
   !------------------------------------------------
   real(rkx) , parameter :: ciden13 = 8.87_rkx      ! ice density 700**0.333
   real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
@@ -170,8 +172,9 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:) :: pfsqif
   ! decoupled temperature tendency
   real(rkx) , pointer , dimension(:,:,:) :: ttendc
-  ! detrainment from tiedtke scheme
+  ! critical factors
   real(rkx) , pointer , dimension(:,:) :: xlcrit
+  real(rkx) , pointer , dimension(:,:) :: rhcrit
   ! Cloud coverage and clearsky portion
   real(rkx) , pointer , dimension(:,:) :: covptot , covpclr
   ! fall speeds of three categories
@@ -194,8 +197,6 @@ module mod_micro_nogtom
   real(rkx) , pointer, dimension(:) :: qxn
   ! first guess values including precip
   real(rkx) , pointer, dimension(:) :: qxfg
-  ! first guess value for cloud fraction
-  real(rkx) , pointer, dimension(:,:,:) :: fccfg
   ! saturation mixing ratio with respect to water
   real(rkx) , pointer, dimension(:,:,:) :: qsliq
   ! koop
@@ -225,10 +226,10 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-8_rkx
-  real(rkx) , parameter :: clfeps = 1.0e-6_rkx
-  real(rkx) , parameter :: zerocf = 0.01_rkx
-  real(rkx) , parameter :: onecf  = 0.99_rkx
+  real(rkx) , parameter :: activqx = 1.0e-10_rkx
+  real(rkx) , parameter :: clfeps = 1.0e-10_rkx
+  real(rkx) , parameter :: zerocf = 0.0001_rkx
+  real(rkx) , parameter :: onecf  = 0.9999_rkx
 
   abstract interface
     subroutine voidsub
@@ -268,10 +269,10 @@ module mod_micro_nogtom
     call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqlf')
     call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqif')
     call getmem1d(qxfg,1,nqx,'cmicro:qxfg')
-    call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'cmicro:fccfg')
     call getmem1d(lind1,1,nqx,'cmicro:lind1')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
+    call getmem2d(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
     call getmem2d(covptot,jci1,jci2,ici1,ici2,'cmicro:covptot')
     call getmem2d(covpclr,jci1,jci2,ici1,ici2,'cmicro:covpclr')
     call getmem3d(eeliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliq')
@@ -342,8 +343,10 @@ module mod_micro_nogtom
       do j = jci1 , jci2
         if ( ldmsk(j,i) == 1 ) then ! landmask =1 land
           xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
+          rhcrit(j,i) = rhcrit_lnd
         else
           xlcrit(j,i) = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+          rhcrit(j,i) = rhcrit_sea
         end if
       end do
     end do
@@ -361,7 +364,6 @@ module mod_micro_nogtom
     real(rkx) :: facl , faci , facw , corr , gdp
     real(rkx) :: alfaw , phases , zdelta , tmpl , &
                  tmpi , tnew , qe , rain , preclr , arg
-    real(rkx) :: oneodt                                 ! 1/dt
     real(rkx) :: sink ! sink term for sedimentation conservation
     real(rkx) :: totcond ! total condensate liquid+ice
     ! total rain frac: fractional occurence of precipitation (%)
@@ -397,6 +399,7 @@ module mod_micro_nogtom
     real(rkx) :: critauto
     real(rkx) :: qliqfrac
     real(rkx) :: qicefrac
+    real(rkx) :: rlv , ocpm
     ! real(rkx) :: gdph_r
     ! constants for deposition process
     real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
@@ -439,8 +442,6 @@ module mod_micro_nogtom
     end select
 #endif
 
-    oneodt = d_one/dt
-
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -482,9 +483,20 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do n = 1 , nqx
+          qx(iqqv,j,i,k) = max(mo2mc%qxx(j,i,k,iqqv) + &
+                     dt*qxtendc(iqqv,j,i,k),minqq)
+          qxtendc(iqqv,j,i,k) = (qx(iqqv,j,i,k)-mo2mc%qxx(j,i,k,iqqv))*rdt
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 2 , nqx
             qx(n,j,i,k) = max(mo2mc%qxx(j,i,k,n) + &
-                       dt*qxtendc(n,j,i,k),1.0e-12_rkx)
+                       dt*qxtendc(n,j,i,k),0.0_rkx)
+            qxtendc(n,j,i,k) = (qx(n,j,i,k)-mo2mc%qxx(j,i,k,n))*rdt
           end do
         end do
       end do
@@ -661,15 +673,6 @@ module mod_micro_nogtom
       end do
     end do
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fccfg(j,i,k) = mo2mc%cldf(j,i,k)
-          fccfg(j,i,k) = min(max(fccfg(j,i,k),zerocf),onecf)
-        end do
-      end do
-    end do
-
 #ifdef DEBUG
     if ( stats ) then
       ngs%statssupw(:,:,:) = d_zero
@@ -768,10 +771,6 @@ module mod_micro_nogtom
             qicefrac = d_zero
           end if
 
-          ! local cloud cover
-
-          ccover = fccfg(j,i,k)
-
           qpretot = d_zero
           do n = 1 , nqx
             if ( lfall(n) ) then
@@ -792,12 +791,21 @@ module mod_micro_nogtom
           tc       = tk - tzero
           dens     = mo2mc%rho(j,i,k)
           sqmix    = qsmix(j,i,k)
+          ! local cloud cover
+          zrh = min(qxfg(iqqv)/sqmix,d_one)
+          if ( zrh > rhcrit(j,i) ) then
+            ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
+            ccover = min(max(ccover,zerocf),onecf)
+          else
+            ccover = zerocf
+          end if
+
           if ( k == 1 ) then
             lccover = d_zero
             rainp   = d_zero
             snowp   = d_zero
           else
-            lccover = fccfg(j,i,k-1)
+            lccover = ccover
             rainp   = pfplsx(iqqr,j,i,k)
             snowp   = pfplsx(iqqs,j,i,k)
           end if
@@ -963,13 +971,13 @@ module mod_micro_nogtom
                 excess = totcond + subsat
                 if ( excess < d_zero ) then
                   if ( ltkgthomo ) then
-                    evapl = max(-totcond,-evaplimmix)!*oneodt
+                    evapl = max(-totcond,-evaplimmix)!*rdt
                     qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - evapl
                     qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + evapl
                     qxfg(iqql) = qxfg(iqql) + evapl
                     qxfg(iqqv) = qxfg(iqqv) - evapl
                   else
-                    evapi = max(-totcond,-evaplimmix)!*oneodt
+                    evapi = max(-totcond,-evaplimmix)!*rdt
                     ! turn subsaturation into vapour
                     qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - evapi
                     qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + evapi
@@ -1028,11 +1036,16 @@ module mod_micro_nogtom
             ! update the diagnostic cloud cover and logicals
             !------------------------------------------------
 
-            ccover = d_one-sqrt(max(d_zero,d_one-qx0(iqqv)/sqmix)/0.4_rkx)
-            ccover = min(max(ccover,zerocf),onecf)
+            zrh = min(qxfg(iqqv)/sqmix,d_one)
+            if ( zrh > rhcrit(j,i) ) then
+              ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
+              ccover = min(max(ccover,zerocf),onecf)
+            else
+              ccover = zerocf
+            end if
 
-            lcloud    = ( ccover > zerocf )
-            locast    = ( ccover >= onecf )
+            lcloud = ( ccover > zerocf )
+            locast = ( ccover >= onecf )
             !--------------------------------
             ! in-cloud consensate amount
             !--------------------------------
@@ -1080,11 +1093,11 @@ module mod_micro_nogtom
             ! note that old diagnostic mix phased qsat is retained for moment
             !------------------------------------------------------------------
             dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
-            dpmxdt = dp*oneodt
+            dpmxdt = dp*rdt
             wtot   = mo2mc%pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
             dtdiab = min(dpmxdt*dtdp, &
-                       max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
+                     max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
             ! ldefr = 0
             ! note: ldefr should be set to the difference between the mixed
             ! phase functions in the convection and cloud scheme, and
@@ -1350,8 +1363,7 @@ module mod_micro_nogtom
             !---------------------------------------------------------------
             if ( qpretot > d_zero .and. lccover > zerocf ) then
               covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
-                             (d_one - max(ccover,lccover)) / &
-                             (d_one - min(lccover,onecf)))
+                  (d_one - max(ccover,lccover))/(d_one-lccover))
               covptot(j,i) = max(covptot(j,i),rcovpmin)
             else
               covptot(j,i) = d_zero ! no flux - reset cover
@@ -1790,14 +1802,14 @@ module mod_micro_nogtom
             fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                     fallsink(j,i,n) * qxn(n)
             ! Calculate the water variables tendencies
-            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*oneodt
+            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*rdt
             ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                 wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
+                 wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*rdt
             else if ( iphase(n) == 2 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                 wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
+                 wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*rdt
             end if
           end do
 
