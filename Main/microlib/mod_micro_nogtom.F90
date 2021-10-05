@@ -399,8 +399,6 @@ module mod_micro_nogtom
     real(rkx) :: critauto
     real(rkx) :: qliqfrac
     real(rkx) :: qicefrac
-    real(rkx) :: rlv , ocpm
-    ! real(rkx) :: gdph_r
     ! constants for deposition process
     real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
                  qice0 , qinew , rainaut , snowaut
