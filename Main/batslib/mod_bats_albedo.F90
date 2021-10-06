@@ -44,10 +44,7 @@ module mod_bats_albedo
   real(rkx) , parameter :: snal0 = 0.95_rkx
   real(rkx) , parameter :: snal1 = 0.65_rkx
 
-  logical :: ldesseas = .false.
-
   public :: albedo
-  public :: ldesseas
 
   contains
 !
@@ -91,33 +88,6 @@ module mod_bats_albedo
     ! =================================================================
     ! 1. set initial parameters
     ! =================================================================
-    !
-    ! Desert seasonal albedo
-    ! Works for Sahara desert and generally northern emisphere
-    ! In souther emisphere only some points have this class
-    !
-    if ( ldesseas ) then
-      if ( rcmtimer%month == 1 .or. &
-           rcmtimer%month == 2 .or. &
-           rcmtimer%month == 12 ) then
-        solour(1) = 0.12_rkx
-      endif
-      if ( rcmtimer%month == 3 .or. &
-           rcmtimer%month == 4 .or. &
-           rcmtimer%month == 5 ) then
-        solour(1) = 0.15_rkx
-      endif
-      if ( rcmtimer%month == 6 .or. &
-           rcmtimer%month == 7 .or. &
-           rcmtimer%month == 8) then
-        solour(1) = 0.18_rkx
-      endif
-      if ( rcmtimer%month == 9 .or. &
-           rcmtimer%month == 10 .or. &
-           rcmtimer%month == 11) then
-        solour(1) = 0.15_rkx
-      endif
-    end if
     !
     ! 1.2  set default vegetation and albedo
     !

@@ -3026,13 +3026,7 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('ocean_precipitaion_cooling_effect',ipcpcool))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('ocean_albedo_from_whitecapping',iwhitecap))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('simple_sea_ice_scheme',iseaice))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('seasonal_desert_albedo',idesseas))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
         call outstream_addatt(outstream(i)%ncout(j), &

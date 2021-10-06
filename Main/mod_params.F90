@@ -101,11 +101,10 @@ module mod_params
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
       iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-      ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
-      idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
-      iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
-      temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset
+      ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
+      icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
+      islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
+      ghg_year_const , ifixsolar , fixedsolarval , irceideal , year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -264,10 +263,7 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
-    ipcpcool = 0
-    iwhitecap = 0
     iseaice = 0
-    idesseas = 0
     iconvlwp = 1
     icldfrac = 0
     icldmstrat = 0
@@ -714,9 +710,6 @@ module mod_params
 #endif
         end if
       end if
-
-      ! Hack. permanently disable seasonal albedo.
-      idesseas = 0
 
       icup(1) = icup_lnd
       icup(2) = icup_ocn
@@ -1283,11 +1276,8 @@ module mod_params
     call bcast(scenario,8)
     call bcast(ghg_year_const)
     call bcast(idcsst)
-    call bcast(ipcpcool)
-    call bcast(iwhitecap)
     call bcast(iseaice)
     call bcast(icetriggert)
-    call bcast(idesseas)
     call bcast(iconvlwp)
     call bcast(icldfrac)
     call bcast(icldmstrat)
@@ -1979,7 +1969,6 @@ module mod_params
       write(stdout,'(a,i2)') '  Lake model in BATS          : ' , lakemod
       write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ' , idcsst
       write(stdout,'(a,i2)') '  Simulate sea ice cover      : ' , iseaice
-      write(stdout,'(a,i2)') '  Simulate desert seasons     : ' , idesseas
 #endif
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
       write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
