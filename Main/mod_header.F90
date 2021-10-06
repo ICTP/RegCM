@@ -44,12 +44,12 @@ module mod_header
     implicit none
     integer(ik4) , intent(in) :: myid
     character(len=*) , parameter :: f99001 = &
-        '(2x," SVN Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+        '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
     if ( myid == iocpu ) then
       call cpu_time(start_time)
       last_time = start_time
-      write (stdout,"(/,2x,'This is RegCM trunk')")
+      write (stdout,"(/,2x,'This is RegCM 5')")
       write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
     end if
 

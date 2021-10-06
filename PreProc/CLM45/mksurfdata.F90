@@ -199,10 +199,10 @@ program mksurfdata
   character (len=32) :: user='?'
   character (len=128) :: directory='?'
   character (len=*) , parameter :: f99001 = &
-          '(2x," SVN Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+          '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   write (stdout,  &
-     "(/,2x,'This is mksurfdata part of RegCM package version 4')")
+     "(/,2x,'This is mksurfdata part of RegCM package version 5')")
   write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
 
 #ifdef IBM
