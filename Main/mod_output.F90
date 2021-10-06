@@ -584,9 +584,6 @@ module mod_output
             atm_kth_out = uwstate%kth(jci1:jci2,ici1:ici2,1:kz)
           if ( associated(atm_kzm_out) ) &
             atm_kzm_out = uwstate%kzm(jci1:jci2,ici1:ici2,1:kz)
-        else if ( ibltyp == 4 ) then
-          if ( associated(atm_tke_out) ) &
-            atm_tke_out = atms%tkepbl(jci1:jci2,ici1:ici2,1:kz)
         end if
 
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
@@ -1601,14 +1598,6 @@ module mod_output
           if ( ibltyp == 2 ) then
             kpbl_io = kpbl
           end if
-          if ( ibltyp == 4 ) then
-            tke_pbl_io = atms%tkepbl
-            kpbl_io = kpbl
-            myjsf_uz0_io = sfs%uz0
-            myjsf_vz0_io = sfs%vz0
-            myjsf_thz0_io = sfs%thz0
-            myjsf_qz0_io = sfs%qz0
-          end if
           if ( idynamic == 2 ) then
             atm1_pp_io(jce1:jce2,ice1:ice2,:) = atm1%pp(jce1:jce2,ice1:ice2,:)
             atm2_pp_io(jce1:jce2,ice1:ice2,:) = atm2%pp(jce1:jce2,ice1:ice2,:)
@@ -1635,9 +1624,6 @@ module mod_output
           o3prof_io = o3prof
           if ( iocnflx == 2 ) then
             zpbl_io = zpbl
-          end if
-          if ( any(icup == 3) ) then
-            cldefi_io = cldefi
           end if
           if ( any(icup == 4) ) then
             cbmf2d_io = cbmf2d
@@ -1774,14 +1760,6 @@ module mod_output
           if ( ibltyp == 2 ) then
             call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
           end if
-          if ( ibltyp == 4 ) then
-            call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
-            call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%uz0,myjsf_uz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%thz0,myjsf_thz0_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%qz0,myjsf_qz0_io,jci1,jci2,ici1,ici2)
-          end if
           if ( idynamic == 2 ) then
             call grid_collect(atm1%pp,atm1_pp_io,jce1,jce2,ice1,ice2,1,kz)
             call grid_collect(atm2%pp,atm2_pp_io,jce1,jce2,ice1,ice2,1,kz)
@@ -1808,9 +1786,6 @@ module mod_output
           call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
           if ( iocnflx == 2 ) then
             call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
-          end if
-          if ( any(icup == 3) ) then
-            call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
           end if
           if ( any(icup == 4) ) then
             call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)

@@ -858,7 +858,7 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED CUMULUS SCHEME')
       end if
-      if ( ibltyp < 0 .or. ibltyp > 4 ) then
+      if ( ibltyp < 0 .or. ibltyp > 2 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
@@ -2229,10 +2229,6 @@ module mod_params
         write(stdout,'(a,f11.6)') '  czero     = ', czero
         write(stdout,'(a,f11.6)') '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
-      else if ( ibltyp == 3 ) then
-        write(stdout,*) 'GFS PBL Scheme'
-      else if ( ibltyp == 4 ) then
-        write(stdout,*) 'MYJ PBL Scheme'
       else
         write(stdout,*) &
           'Model frictionless and insulated for the lower boundary.'
@@ -2447,8 +2443,8 @@ module mod_params
     if ( any(icup == 3) ) then
       if ( myid == italk ) then
         write(stderr,*) &
-          'WARNING : The Betts-Miller Convection scheme is not ', &
-          'properly implemented'
+          'The Betts-Miller Convection scheme has been removed in V5.'
+        call fatal(__FILE__,__LINE__,'MODEL STOPS')
       end if
     end if
     if ( any(icup == 4) ) then
