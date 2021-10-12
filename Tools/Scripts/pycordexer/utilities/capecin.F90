@@ -213,8 +213,8 @@ module mod_capecin
     real , parameter :: wlhf = 0.33355e6
     real , parameter :: wlhs = 2.83435e6
     real , parameter :: cpv = 1846.0932676
-    real , parameter :: cpw = 4186.95_rkx
-    real , parameter :: cpi = 2117.27_rkx
+    real , parameter :: cpw = 4186.95
+    real , parameter :: cpi = 2117.27
     real , parameter :: rgas = 287.0569248
     real , parameter :: egrav = 9.80665
     real , parameter :: regrav = 1.0/egrav
