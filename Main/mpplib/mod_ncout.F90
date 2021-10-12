@@ -3194,7 +3194,7 @@ module mod_ncout
         end if
         if ( any(icup == 4) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('mit_lowest_convection_sigma',minsig))
+            ncattribute_integer('mit_lowest_convection_level',minorig))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8( &
             'mit_autoconversion_threshold_mixing_over_ocean',elcrit_ocn))

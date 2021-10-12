@@ -315,9 +315,9 @@ module mod_micro_nogtom
     ! if an ice category melts/freezes, where does it go?
 
     imelt(iqqv) = -99
-    imelt(iqql) = -99
+    imelt(iqql) = iqqi
     imelt(iqqi) = iqql
-    imelt(iqqr) = -99
+    imelt(iqqr) = iqqs
     imelt(iqqs) = iqqr
 
     ! Set the fall velocities
@@ -548,8 +548,14 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          eeliq(j,i,k) = c2es*exp(c3les*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4les)))
-          eeice(j,i,k) = c2es*exp(c3ies*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4ies)))
+          !eeliq(j,i,k) = 611.21_rkx * &
+          !  exp(17.502_rkx*((tx(j,i,k)-tzero)/(tx(j,i,k)-32.19_rkx)))
+          !eeice(j,i,k) = 611.21_rkx * &
+          !  exp(22.587_rkx*((tx(j,i,k)-tzero)/(tx(j,i,k)+0.7_rkx)))
+          !eeliq(j,i,k) = c2es*exp(c3les*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4les)))
+          !eeice(j,i,k) = c2es*exp(c3ies*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4ies)))
+          eeliq(j,i,k) = ep2*pfesat_water(tx(j,i,k))
+          eeice(j,i,k) = ep2*pfesat_ice(tx(j,i,k))
           koop(j,i,k) = min(rkoop1-rkoop2*tx(j,i,k),eeliq(j,i,k)/eeice(j,i,k))
         end do
       end do
@@ -1106,7 +1112,7 @@ module mod_micro_nogtom
             dtforc = dtdp*wtot*dt + dtdiab
             qold   = sqmix
             told   = tk
-            tcond  = tk+dtforc
+            tcond  = tk + dtforc
             tcond  = max(tcond,160.0_rkx)
             ! the goal is to produce dqs = qsmix - qold, where qsmix is
             ! reduced because of the condensation. so that dqs is negative?
@@ -1114,7 +1120,7 @@ module mod_micro_nogtom
             phases = max(min(d_one,((max(rtice,min(tzero, &
                        tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
             ! saturation mixing ratio ws
-            qsat = eewm(tcond,phases)*qp
+            qsat = eewm(tcond,phases) * qp
             qsat = min(d_half,qsat)          ! ws < 0.5        WHY?
             corr  = d_one/(d_one-ep1*qsat)
             qsat = qsat*corr
@@ -2004,6 +2010,8 @@ module mod_micro_nogtom
 
     contains
 
+#include <pfesat.inc>
+
     pure real(rkx) function edem(t,phase)
       implicit none
       real(rkx) , intent(in):: t , phase
@@ -2024,8 +2032,12 @@ module mod_micro_nogtom
       implicit none
       real(rkx) , intent(in) :: t , phase
       real(rkx) :: eliq , eice
-      eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
-      eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
+      !eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
+      !eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
+      !eliq = 611.21_rkx*exp(17.502_rkx*((t-tzero)/(t-32.19_rkx)))
+      !eice = 611.21_rkx*exp(22.587_rkx*((t-tzero)/(t+0.7_rkx)))
+      eliq = ep2*pfesat_water(t)
+      eice = ep2*pfesat_ice(t)
       eewm = phase * eliq + (d_one-phase) * eice
     end function eewm
 

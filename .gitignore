@@ -131,6 +131,8 @@ PreProc/ICBC/chem_icbc
 PreProc/ICBC/clmbc
 PreProc/ICBC/icbc
 PreProc/ICBC/sst
+PreProc/ICBC/pgw_icbc
+PreProc/ICBC/pgwbc
 PreProc/ICBC/*.o
 PreProc/ICBC/*.mod
 
