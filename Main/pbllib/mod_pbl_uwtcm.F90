@@ -212,7 +212,7 @@ module mod_pbl_uwtcm
           rttenx(k) = m2p%heatrt(j,i,k)
           preshl(k) = m2p%patm(j,i,k)
           rlv(k) = wlhv - cpvmcl*(tx(k)-tzero)
-          cp(k) = cpd*(d_one-qx(k)) + cpw*qx(k)
+          cp(k) = cpd*(d_one-qx(k)) + clq*qx(k)
           orlv(k) = d_one/rlv(k)
           ocp(k) = d_one/cp(k)
         end do

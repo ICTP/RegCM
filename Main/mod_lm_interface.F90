@@ -1147,6 +1147,7 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <pfdesatdt.inc>
 #include <pqderiv.inc>
 #include <wlh.inc>
 #include <evpt.inc>

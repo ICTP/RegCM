@@ -138,7 +138,7 @@ module mod_params
       shrmax_ocn , edtmin_ocn, edtmax_ocn, edtmino_ocn ,           &
       edtmaxo_ocn , edtminx_ocn , edtmaxx_ocn
 
-    namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
+    namelist /emanparam/ minorig , elcrit_ocn , elcrit_lnd , tlcrit , &
       entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
       betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
 
@@ -405,26 +405,22 @@ module mod_params
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
     !
-    if ( idynamic == 3 ) then
-      minsig = 0.85_rkx ! THIS IS TRICKY.....
-    else
-      minsig = 0.95_rkx ! Lowest sigma level from which convection can start
-    end if
-    elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
-    elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
+    minorig = 1
+    elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
+    elcrit_lnd = 0.0033_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 0.06_rkx       ! Coefficient of mixing in the entrainment formulation
+    entp = 1.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
-    sigs = 0.15_rkx       ! Fraction of precipitation falling outside of cloud
+    sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
     omtsnow = 5.5_rkx     ! Fall speed of snow (P/s)
     coeffr = 1.0_rkx      ! Coefficient governing the rate of rain evaporation
     coeffs = 0.8_rkx      ! Coefficient governing the rate of snow evaporation
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
-    dtmax = 0.65_rkx    ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.02_rkx   ! Controls the approach rate to quasi-equilibrium
-    damp = 0.01_rkx     ! Controls the approach rate to quasi-equilibrium
+    dtmax = 0.90_rkx    ! Max negative parcel temperature perturbation below LFC
+    alphae = 0.0125_rkx ! Controls the approach rate to quasi-equilibrium
+    damp = 0.1_rkx      ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
     !
@@ -1432,7 +1428,7 @@ module mod_params
     end if
 
     if ( any(icup == 4) ) then
-      call bcast(minsig)
+      call bcast(minorig)
       call bcast(elcrit_ocn)
       call bcast(elcrit_lnd)
       call bcast(tlcrit)
@@ -2437,14 +2433,10 @@ module mod_params
       end if
     end if
     if ( any(icup == 4) ) then
-      minorig = kz
-      do k = 1 , kz
-        if ( hsigma(k) <= minsig ) minorig = kz - k
-      end do
       if ( myid == italk ) then
         write(stdout,*) 'Emanuel (1991) Convection Scheme V4.3C used.'
-        write(stdout,'(a,f11.6,a,i2,a)') &
-          '  Min Convection origin             : ',minsig,', (',kzp1-minorig,')'
+        write(stdout,'(a,i3)')    '  Min Convection origin             : ', &
+          minorig
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (ocean)  : ', &
           elcrit_ocn
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (land)   : ', &

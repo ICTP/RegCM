@@ -277,6 +277,7 @@ module mod_bats_bndry
 
 #include <wlh.inc>
 #include <pfesat.inc>
+#include <pfdesatdt.inc>
 #include <pqderiv.inc>
 
   end subroutine bndry

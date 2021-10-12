@@ -432,7 +432,6 @@ module mod_cu_tiedtke
           j = jmap(ii)
           cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
           cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-          cu_qten(j,i,k,iqc) = pxlte(ii,k)
           cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
@@ -440,25 +439,57 @@ module mod_cu_tiedtke
     end do
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do ii = 1 , nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqi) = pxite(ii,k)
-          end if
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if ( ktype(ii) > 0 ) then
+              i = imap(ii)
+              j = jmap(ii)
+              cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
+              cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
+            end if
+          end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if ( ktype(ii) > 0 ) then
+              i = imap(ii)
+              j = jmap(ii)
+              cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
+                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+              cu_qten(j,i,k,iqi) = pxite(ii,k) - &
+                  m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+            end if
+          end do
+        end do
+      end if
     else
-      do k = 1 , kz
-        do ii = 1 , nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
-          end if
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if ( ktype(ii) > 0 ) then
+              i = imap(ii)
+              j = jmap(ii)
+              cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
+                  m2c%qxten(j,i,k,iqc)
+              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
+            end if
+          end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if ( ktype(ii) > 0 ) then
+              i = imap(ii)
+              j = jmap(ii)
+              cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
+                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
+            end if
+          end do
+        end do
+      end if
     end if
 
     if ( ichem == 1 .and. ichcumtra == 1 .and. &

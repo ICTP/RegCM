@@ -437,7 +437,7 @@ module mod_micro_interface
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
             dqv = conf * (qvcs - qvs)
-          else if ( rhc > 0.99_rkx ) then
+          else if ( rhc > 0.99999_rkx ) then
             dqv = conf * (qvcs - qvs)      ! High cloud cover
           else
             fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))

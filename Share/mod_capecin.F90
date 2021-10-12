@@ -96,8 +96,8 @@ module mod_capecin
     real(rkx) :: lhv , lhs , lhf , rm , cpm
     real(rkx) :: avgth , avgqv
 
-    real(rkx), parameter :: lv1   = wlhv+(cpw-cpv)*tzero
-    real(rkx), parameter :: lv2   = cpw-cpv
+    real(rkx), parameter :: lv1   = wlhv+(clq-cpv)*tzero
+    real(rkx), parameter :: lv2   = clq-cpv
     real(rkx), parameter :: ls1   = wlhs+(cpi-cpv)*tzero
     real(rkx), parameter :: ls2   = cpi-cpv
     real(rkx), parameter :: rp00  = d_one/p00
@@ -276,7 +276,7 @@ module mod_capecin
           lhf = lhs-lhv
 
           rm = rgas+rwat*qvbar
-          cpm = cpd+cpv*qvbar+cpw*qlbar+cpi*qibar
+          cpm = cpd+cpv*qvbar+clq*qlbar+cpi*qibar
           th2 = th1*exp( lhv*(ql2-ql1)/(cpm*tbar) +   &
                          lhs*(qi2-qi1)/(cpm*tbar) +   &
                          (rm/cpm-rgas/cpd)*log(p2/p1) )

@@ -77,7 +77,7 @@ module mod_micro_wsm5
   real(rkx) , parameter :: minni = 1.0e3_rkx
   real(rkx) , parameter :: maxni = 1.0e6_rkx
 
-  real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
+  real(rkx) , parameter :: xa = -(cpv-clq)/rwat
   real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -(cpv-cpi)/rwat
   real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)

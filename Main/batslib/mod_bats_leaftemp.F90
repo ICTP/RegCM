@@ -304,6 +304,7 @@ module mod_bats_leaftemp
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
+#include <pfdesatdt.inc>
 #include <pqderiv.inc>
 
   end subroutine lftemp
@@ -745,6 +746,7 @@ module mod_bats_leaftemp
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
+#include <pfdesatdt.inc>
 #include <pqderiv.inc>
 
   end subroutine deriv

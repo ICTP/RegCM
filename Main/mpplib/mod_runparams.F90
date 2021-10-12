@@ -290,7 +290,6 @@ module mod_runparams
   real(rkx) , public :: elcrit_ocn
   real(rkx) , public :: elcrit_lnd
   real(rkx) , public :: entp
-  real(rkx) , public :: minsig
   real(rkx) , public :: omtrain
   real(rkx) , public :: omtsnow
   real(rkx) , public :: sigd
