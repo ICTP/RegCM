@@ -285,7 +285,7 @@ module mod_micro_subex
                 else
                   pptsum(j,i) = pptsum(j,i) - rdevap*dpovg ![kg/m2/s][avg]
                 end if
-                rlv = wlhv-cpvmcl*(mo2mc%t(j,i,k)-tzero)
+                rlv = wlh(mo2mc%t(j,i,k))
                 ocpm = d_one/(cpd*(d_one-mo2mc%qxx(j,i,k,iqv)) + &
                               cpv*mo2mc%qxx(j,i,k,iqv))
                 pptkm1 = pptkm1 - rdevap
@@ -403,6 +403,7 @@ module mod_micro_subex
 
   contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>

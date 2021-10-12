@@ -43,6 +43,11 @@ module mod_cu_em
   real(rkx) , parameter :: mincbmf = 1.0e-30_rkx
   real(rkx) , parameter :: delt0 = 300.0_rkx
 
+  ! Latent heats
+  real(rkx) , parameter :: clq = 2500.0_rkx
+  real(rkx) , parameter :: cpvmcl = 630.0_rkx
+
+
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
   real(rkx) , public , pointer , dimension(:,:) :: elcrit2d
   real(rkx) , public , pointer , dimension(:,:) :: epmax2d
@@ -140,7 +145,7 @@ module mod_cu_em
         tcup(n,k) = m2c%tas(j,i,kk)                                   ! [K]
         ! Model wants specific humidities and pressures in mb
         qcup(n,k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
-        qscup(n,k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
+        qscup(n,k) = pfqsat(m2c%tas(j,i,kk),m2c%pas(j,i,kk))
         ucup(n,k) = m2c%uas(j,i,kk)                                   ! [m/s]
         vcup(n,k) = m2c%vas(j,i,kk)                                   ! [m/s]
         zcup(n,k) = m2c%zas(j,i,kk)                                   ! [m/s]
@@ -269,6 +274,9 @@ module mod_cu_em
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+    contains
+#include <pfesat.inc>
+#include <pfqsat.inc>
   end subroutine cupemandrv
 !
 !**************************************************************************
@@ -510,7 +518,7 @@ module mod_cu_em
       ! Calculate lifted condensation level of air at parcel origin level
       ! (within 0.2% of formula of bolton, mon. wea. rev.,1980)
       !
-      rh = max(min(q(n,nk)/qs(n,nk),1.01_rkx),0.01_rkx)
+      rh = max(min(q(n,nk)/qs(n,nk),1.1_rkx),0.1_rkx)
       chi = t(n,nk)/(1669.0_rkx-122.0_rkx*rh-t(n,nk))
       plcl = p(n,nk)*(rh**chi)
       if ( plcl < 200.0_rkx .or. plcl >= 2000.0_rkx ) then
@@ -1170,7 +1178,7 @@ module mod_cu_em
     contains
 
 #include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfqsat.inc>
 
       !
       ! Calculate lifting level temperature
@@ -1182,8 +1190,8 @@ module mod_cu_em
         real(rkx) , dimension(:,:) , intent(in) :: p , q , qs , t
         real(rkx) , dimension(nd) , intent(in) :: gz
         real(rkx) , dimension(nd) , intent(inout) :: clw , tpk , tvp
-        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
-                     qg , rg , s , tg
+        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , qg , rg , s , tg
+        real(rkx) :: ppa
         !real(rkx) :: tc , es , denom
         integer(ik4) :: i , j , nsb , nst
         !
@@ -1232,7 +1240,7 @@ module mod_cu_em
             !end if
             !qg = rgow * es/(p(n,i) - es * (1.0_rkx-rgow))
             ppa = p(n,i)*100.0_rkx
-            qg = pfwsat(tg,ppa)
+            qg = pfqsat(tg,ppa)
           end do
           tpk(i) = (ah0-(clq-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(n,nk) - qg
