@@ -45,8 +45,6 @@ module mod_cu_em
 
   ! Latent heats
   real(rkx) , parameter :: clq = 2500.0_rkx
-  real(rkx) , parameter :: cpvmcl = 630.0_rkx
-
 
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
   real(rkx) , public , pointer , dimension(:,:) :: elcrit2d
@@ -466,9 +464,9 @@ module mod_cu_em
       ! Calculate arrays of geopotential, heat capacity and static energy
       !
       gz(1) = d_zero
-      cpn(1) = cpd*(d_one-q(n,1)) + q(n,1)*cpv
+      cpn(1) = cpd*(d_one-q(n,1)) + cpv*q(n,1)
       h(1) = t(n,1)*cpn(1)
-      lv(1) = wlhv-cpvmcl*(t(n,1)-tzero)
+      lv(1) = wlh(t(n,1))
       hm(1) = lv(1)*q(n,1)
       tv(1) = t(n,1)*(d_one+q(n,1)*rgowi-q(n,1))
       ahmin = 1.0e12_rkx
@@ -479,8 +477,8 @@ module mod_cu_em
         gz(i) = gz(i-1) + (rgas*d_half)*(tvx+tvy)*(p(n,i-1)-p(n,i))/ph(n,i)
         cpn(i) = cpd*(d_one-q(n,i)) + cpv*q(n,i)
         h(i) = t(n,i)*cpn(i) + gz(i)
-        lv(i) = wlhv - cpvmcl*(t(n,i)-tzero)
-        hm(i) = (cpd*(d_one-q(n,i))+clq*q(n,i))*(t(n,i)-t(n,1))+ &
+        lv(i) = wlh(t(n,i))
+        hm(i) = (cpd*(d_one-q(n,i))+cpv*q(n,i))*(t(n,i)-t(n,1))+ &
                  lv(i)*q(n,i)+gz(i)
         tv(i) = t(n,i)*(d_one+q(n,i)*rgowi-q(n,i))
         !
@@ -669,7 +667,7 @@ module mod_cu_em
       ! Calculate liquid water static energy of lifted parcel
       !
       do i = icb , ict
-        hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(n,i))*ep(i)*clw(i)
+        hp(i) = h(nk) + (lv(i)+(cpd-clq)*t(n,i))*ep(i)*clw(i)
       end do
       !
       ! Calculate cloud base mass flux and rates of mixing, m(i),
@@ -727,8 +725,8 @@ module mod_cu_em
         qti = q(n,nk) - ep(i)*clw(i)
         do j = icb , ict
           bf2 = d_one + lv(j)*lv(j)*qs(n,j)/(rwat*t(n,j)*t(n,j)*cpd)
-          anum = h(j) - hp(i) + (cpv-cpd)*t(n,j)*(qti-q(n,j))
-          denom = h(i) - hp(i) + (cpd-cpv)*(q(n,i)-qti)*t(n,j)
+          anum = h(j) - hp(i) + (clq-cpd)*t(n,j)*(qti-q(n,j))
+          denom = h(i) - hp(i) + (cpd-clq)*(q(n,i)-qti)*t(n,j)
           dei = denom
           if ( abs(dei) < 0.01_rkx ) dei = 0.01_rkx
           sij(i,j) = anum/dei
@@ -1039,7 +1037,7 @@ module mod_cu_em
               (gz(i+1)-gz(i))*cpinv)-ad*(t(n,i)-t(n,i-1)+ &
               (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(n,i) = ft(n,i) + egrav*dpinv*ment(i,i) * &
-              (hp(i)-h(i)+t(n,i)*(cpv-cpd)*(q(n,i)-qent(i,i)))*cpinv
+              (hp(i)-h(i)+t(n,i)*(clq-cpd)*(q(n,i)-qent(i,i)))*cpinv
         ft(n,i) = ft(n,i) + sigd*wt(i+1)*(clq-cpd)*water(i+1) * &
               (t(n,i+1)-t(n,i))*dpinv*cpinv
         fq(n,i) = fq(n,i) + egrav*dpinv * &
@@ -1177,6 +1175,7 @@ module mod_cu_em
 
     contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfqsat.inc>
 
@@ -1197,9 +1196,9 @@ module mod_cu_em
         !
         ! calculate certain parcel quantities, including static energy
         !
-        ah0 = (cpd*(d_one-q(n,nk))+clq*q(n,nk))*t(n,nk) + q(n,nk) * &
-              (wlhv-cpvmcl*(t(n,nk)-tzero)) + gz(nk)
-        cpp = cpd*(d_one-q(n,nk)) + q(n,nk)*cpv
+        ah0 = (cpd*(d_one-q(n,nk))+cpv*q(n,nk))*t(n,nk) + q(n,nk) * &
+              wlh(t(n,nk)) + gz(nk)
+        cpp = cpd*(d_one-q(n,nk)) + cpv*q(n,nk)
         cpinv = d_one/cpp
         if ( kk == 1 ) then
           !
@@ -1225,7 +1224,7 @@ module mod_cu_em
         do i = nsb , nst
           tg = t(n,i)
           qg = qs(n,i)
-          alv = wlhv-cpvmcl*(tg-tzero)
+          alv = wlh(tg)
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
             ahg = cpd*tg + (clq-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
