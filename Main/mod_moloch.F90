@@ -112,6 +112,7 @@ module mod_moloch
 
   contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
@@ -780,7 +781,7 @@ module mod_moloch
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                      w(j,i,k) > 0.1_rkx ) then
-                  rlv = wlhv - cpvmcl*(t(j,i,k-1)-tzero)
+                  rlv = wlh(t(j,i,k-1))
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
                   zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*rlv*rlv* &
                     zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))

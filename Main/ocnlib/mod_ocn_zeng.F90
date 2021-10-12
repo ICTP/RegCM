@@ -78,7 +78,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
                  wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
-                 tha , nobu , rlv
+                 tha , nobu
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -106,7 +106,6 @@ module mod_ocn_zeng
 
       uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       tsurf = tgrd(i) - tzero
-      rlv = wlhv - cpvmcl*tsurf
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
@@ -264,9 +263,8 @@ module mod_ocn_zeng
         end if
         obu = nobu
       end do
-      rlv = wlhv - cpvmcl*tstar
       tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*rlv*qstar*ustar
+      lh = -xdens*wlhv*qstar*ustar
       sh = -xdens*cpd*tstar*ustar
       !
       ! x and y components of tau:
@@ -370,7 +368,7 @@ module mod_ocn_zeng
       end if ! dcsst
 
       sent(i) = sh
-      evpr(i) = lh/rlv
+      evpr(i) = lh/wlhv
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995

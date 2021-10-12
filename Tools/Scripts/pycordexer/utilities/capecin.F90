@@ -213,8 +213,8 @@ module mod_capecin
     real , parameter :: wlhf = 0.33355e6
     real , parameter :: wlhs = 2.83435e6
     real , parameter :: cpv = 1846.0932676
-    real , parameter :: clq = 2500.8
-    real , parameter :: cpi = 2106.0
+    real , parameter :: cpw = 4186.95_rkx
+    real , parameter :: cpi = 2117.27_rkx
     real , parameter :: rgas = 287.0569248
     real , parameter :: egrav = 9.80665
     real , parameter :: regrav = 1.0/egrav
@@ -223,8 +223,8 @@ module mod_capecin
     real , parameter :: rwat = 461.5233169
     real , parameter :: p00 = 1.000000e5
     real , parameter :: ep2 = 0.6219770795
-    real , parameter :: lv1   = wlhv+(clq-cpv)*tzero
-    real , parameter :: lv2   = clq-cpv
+    real , parameter :: lv1   = wlhv+(cpw-cpv)*tzero
+    real , parameter :: lv2   = cpw-cpv
     real , parameter :: ls1   = wlhs+(cpi-cpv)*tzero
     real , parameter :: ls2   = cpi-cpv
     real , parameter :: rp00  = 1.0/p00
@@ -403,7 +403,7 @@ module mod_capecin
           lhf = lhs-lhv
 
           rm = rgas+rwat*qvbar
-          cpm = cpd+cpv*qvbar+clq*qlbar+cpi*qibar
+          cpm = cpd+cpv*qvbar+cpw*qlbar+cpi*qibar
           th2 = th1*exp( lhv*(ql2-ql1)/(cpm*tbar) +   &
                          lhs*(qi2-qi1)/(cpm*tbar) +   &
                          (rm/cpm-rgas/cpd)*log(p2/p1) )

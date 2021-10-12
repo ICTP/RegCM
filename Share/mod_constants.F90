@@ -147,9 +147,6 @@ module mod_constants
   real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
-  ! Latent heat of condensation of water at 0C in J/kg/K
-  real(rkx) , parameter :: clq = 2500.8_rkx
-  real(rkx) , parameter :: cpvmcl = clq - cpv
   ! Specific heat of ice at 0 Celsius J/kg/K
   real(rkx) , parameter :: cpi = 2117.27_rkx
   ! Specific heat of water at 0 Celsius J/kg/K

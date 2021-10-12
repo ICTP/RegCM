@@ -430,7 +430,7 @@ module mod_micro_interface
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           qvs = pfwsat(tmp3,pres)
-          rlv = wlhv-cpvmcl*(tmp3-tzero)
+          rlv = wlh(tmp3)
           cpm = cpd*(d_one-qvcs) + cpv*qvcs
           r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
           rhc = min(max(qvcs/qvs,d_zero),d_one)
@@ -481,6 +481,7 @@ module mod_micro_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
 
   end subroutine condtq
 

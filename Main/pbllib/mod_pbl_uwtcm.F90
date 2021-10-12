@@ -211,8 +211,8 @@ module mod_pbl_uwtcm
           zax(k) = m2p%za(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
           preshl(k) = m2p%patm(j,i,k)
-          rlv(k) = wlhv - cpvmcl*(tx(k)-tzero)
-          cp(k) = cpd*(d_one-qx(k)) + clq*qx(k)
+          rlv(k) = wlh(tx(k))
+          cp(k) = cpd*(d_one-qx(k)) + cpv*qx(k)
           orlv(k) = d_one/rlv(k)
           ocp(k) = d_one/cp(k)
         end do
@@ -726,6 +726,7 @@ module mod_pbl_uwtcm
 
     contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
