@@ -1184,6 +1184,7 @@ module mod_cu_em
         real(rkx) , dimension(nd) , intent(inout) :: clw , tpk , tvp
         real(rkx) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
                      qg , rg , s , tg
+        !real(rkx) :: tc , es , denom
         integer(ik4) :: i , j , nsb , nst
         !
         ! calculate certain parcel quantities, including static energy
@@ -1220,7 +1221,16 @@ module mod_cu_em
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
             ahg = cpd*tg + (clq-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
-            tg = max(tg + s*(ah0-ahg),35.0_rkx)
+            tg = tg + s*(ah0-ahg)
+            !tg = max(tg + s*(ah0-ahg),35.0_rkx)
+            !tc = tg - tzero
+            !denom = 243.5_rkx + tc
+            !if ( tc >= 0.0_rkx ) then
+            !  es = 6.112_rkx * exp(17.67_rkx*tc/denom)
+            !else
+            !  es = exp(23.33086_rkx-6111.72784_rkx/tg+0.15215_rkx*log(tg))
+            !end if
+            !qg = rgow * es/(p(n,i) - es * (1.0_rkx-rgow))
             ppa = p(n,i)*100.0_rkx
             qg = pfwsat(tg,ppa)
           end do
