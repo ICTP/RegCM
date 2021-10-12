@@ -517,7 +517,7 @@
  &emanparam
  minorig = 1,         ! Lowest level from which convection can originate
  elcrit_ocn = 0.0011, ! Autoconversion threshold water content (g/g) (ocean)
- elcrit_lnd = 0.0033, ! Autoconversion threshold water content (g/g) (land)
+ elcrit_lnd = 0.0011, ! Autoconversion threshold water content (g/g) (land)
  tlcrit = -55.0,      ! Below tlcrit auto-conversion threshold is zero
  entp = 1.50,         ! Coefficient of mixing in the entrainment formulation
  sigd = 0.05,         ! Fractional area covered by unsaturated dndraft
@@ -529,7 +529,7 @@
  cu = 0.7,            ! Coefficient governing convective momentum transport
  betae = 10.0,        ! Controls downdraft velocity scale
  dtmax = 0.90,        ! Max negative parcel temperature perturbation below LFC
- alphae = 0.0125,     ! Controls the approach rate to quasi-equilibrium
+ alphae = 0.01,       ! Controls the approach rate to quasi-equilibrium
  damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
  epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
  epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)

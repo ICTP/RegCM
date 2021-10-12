@@ -407,7 +407,7 @@ module mod_params
     !
     minorig = 1
     elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
-    elcrit_lnd = 0.0033_rkx ! Autoconversion threshold water content (gm/gm)
+    elcrit_lnd = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
     entp = 1.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
@@ -419,7 +419,7 @@ module mod_params
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
     dtmax = 0.90_rkx    ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.0125_rkx ! Controls the approach rate to quasi-equilibrium
+    alphae = 0.01_rkx   ! Controls the approach rate to quasi-equilibrium
     damp = 0.1_rkx      ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean

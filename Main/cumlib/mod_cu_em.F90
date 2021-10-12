@@ -667,7 +667,7 @@ module mod_cu_em
       ! Calculate liquid water static energy of lifted parcel
       !
       do i = icb , ict
-        hp(i) = h(nk) + (lv(i)+(cpd-clq)*t(n,i))*ep(i)*clw(i)
+        hp(i) = h(nk) + (lv(i)+(cpd-cpw)*t(n,i))*ep(i)*clw(i)
       end do
       !
       ! Calculate cloud base mass flux and rates of mixing, m(i),
@@ -725,8 +725,8 @@ module mod_cu_em
         qti = q(n,nk) - ep(i)*clw(i)
         do j = icb , ict
           bf2 = d_one + lv(j)*lv(j)*qs(n,j)/(rwat*t(n,j)*t(n,j)*cpd)
-          anum = h(j) - hp(i) + (clq-cpd)*t(n,j)*(qti-q(n,j))
-          denom = h(i) - hp(i) + (cpd-clq)*(q(n,i)-qti)*t(n,j)
+          anum = h(j) - hp(i) + (cpv-cpd)*t(n,j)*(qti-q(n,j))
+          denom = h(i) - hp(i) + (cpd-cpv)*(q(n,i)-qti)*t(n,j)
           dei = denom
           if ( abs(dei) < 0.01_rkx ) dei = 0.01_rkx
           sij(i,j) = anum/dei
@@ -943,8 +943,8 @@ module mod_cu_em
                 end do
               end if
             else if ( mp(i+1) > d_zero ) then
-              qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(n,i+1)*(clq-cpd)) + &
-                       cpd*(t(n,i+1)-t(n,i)))/(lv(i)+t(n,i)*(clq-cpd))
+              qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(n,i+1)*(cpv-cpd)) + &
+                       cpd*(t(n,i+1)-t(n,i)))/(lv(i)+t(n,i)*(cpv-cpd))
               up(i) = up(i+1)
               vp(i) = vp(i+1)
               if ( chemcutran ) then
@@ -983,7 +983,7 @@ module mod_cu_em
       if ( (d_two*egrav*dpinv*am) >= d_one/dt ) iflag = 4
       ft(n,1) = ft(n,1) + egrav*dpinv*am*(t(n,2)-t(n,1)+(gz(2)-gz(1))/cpn(1))
       ft(n,1) = ft(n,1) - lvcp(1)*sigd*evap(1)
-      ft(n,1) = ft(n,1) + sigd*wt(2)*(clq-cpd)*water(2)* &
+      ft(n,1) = ft(n,1) + sigd*wt(2)*(cpw-cpd)*water(2)* &
                 (t(n,2)-t(n,1))*dpinv/cpn(1)
       fq(n,1) = fq(n,1) + egrav*mp(2)*(qp(2)-q(n,1))*dpinv + sigd*evap(1)
       fq(n,1) = fq(n,1) + egrav*am*(q(n,2)-q(n,1))*dpinv
@@ -1037,8 +1037,8 @@ module mod_cu_em
               (gz(i+1)-gz(i))*cpinv)-ad*(t(n,i)-t(n,i-1)+ &
               (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(n,i) = ft(n,i) + egrav*dpinv*ment(i,i) * &
-              (hp(i)-h(i)+t(n,i)*(clq-cpd)*(q(n,i)-qent(i,i)))*cpinv
-        ft(n,i) = ft(n,i) + sigd*wt(i+1)*(clq-cpd)*water(i+1) * &
+              (hp(i)-h(i)+t(n,i)*(cpv-cpd)*(q(n,i)-qent(i,i)))*cpinv
+        ft(n,i) = ft(n,i) + sigd*wt(i+1)*(cpw-cpd)*water(i+1) * &
               (t(n,i+1)-t(n,i))*dpinv*cpinv
         fq(n,i) = fq(n,i) + egrav*dpinv * &
               (amp1*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))
@@ -1227,7 +1227,7 @@ module mod_cu_em
           alv = wlh(tg)
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
-            ahg = cpd*tg + (clq-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
+            ahg = cpd*tg + (cpv-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
             tg = tg + s*(ah0-ahg)
             !tg = max(tg + s*(ah0-ahg),35.0_rkx)
             !tc = tg - tzero
@@ -1241,7 +1241,7 @@ module mod_cu_em
             ppa = p(n,i)*100.0_rkx
             qg = pfqsat(tg,ppa)
           end do
-          tpk(i) = (ah0-(clq-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
+          tpk(i) = (ah0-(cpv-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(n,nk) - qg
           clw(i) = max(d_zero,clw(i))
           rg = qg/(d_one-q(n,nk))
