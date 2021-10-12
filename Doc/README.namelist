@@ -537,7 +537,7 @@
  cu = 0.7,            ! Coefficient governing convective momentum transport
  betae = 10.0,        ! Controls downdraft velocity scale
  dtmax = 0.90,        ! Max negative parcel temperature perturbation below LFC
- alphae = 0.0125,     ! Controls the approach rate to quasi-equilibrium
+ alphae = 0.01,       ! Controls the approach rate to quasi-equilibrium
  damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
  epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
  epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)

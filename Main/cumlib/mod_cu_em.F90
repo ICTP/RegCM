@@ -667,7 +667,7 @@ module mod_cu_em
       ! Calculate liquid water static energy of lifted parcel
       !
       do i = icb , ict
-        hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(n,i))*ep(i)*clw(i)
+        hp(i) = h(nk) + (lv(i)+(cpd-cpw)*t(n,i))*ep(i)*clw(i)
       end do
       !
       ! Calculate cloud base mass flux and rates of mixing, m(i),
@@ -983,7 +983,7 @@ module mod_cu_em
       if ( (d_two*egrav*dpinv*am) >= d_one/dt ) iflag = 4
       ft(n,1) = ft(n,1) + egrav*dpinv*am*(t(n,2)-t(n,1)+(gz(2)-gz(1))/cpn(1))
       ft(n,1) = ft(n,1) - lvcp(1)*sigd*evap(1)
-      ft(n,1) = ft(n,1) + sigd*wt(2)*(cpv-cpd)*water(2)* &
+      ft(n,1) = ft(n,1) + sigd*wt(2)*(cpw-cpd)*water(2)* &
                 (t(n,2)-t(n,1))*dpinv/cpn(1)
       fq(n,1) = fq(n,1) + egrav*mp(2)*(qp(2)-q(n,1))*dpinv + sigd*evap(1)
       fq(n,1) = fq(n,1) + egrav*am*(q(n,2)-q(n,1))*dpinv
@@ -1038,7 +1038,7 @@ module mod_cu_em
               (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(n,i) = ft(n,i) + egrav*dpinv*ment(i,i) * &
               (hp(i)-h(i)+t(n,i)*(cpv-cpd)*(q(n,i)-qent(i,i)))*cpinv
-        ft(n,i) = ft(n,i) + sigd*wt(i+1)*(cpv-cpd)*water(i+1) * &
+        ft(n,i) = ft(n,i) + sigd*wt(i+1)*(cpw-cpd)*water(i+1) * &
               (t(n,i+1)-t(n,i))*dpinv*cpinv
         fq(n,i) = fq(n,i) + egrav*dpinv * &
               (amp1*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))

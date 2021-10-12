@@ -423,7 +423,7 @@ module mod_params
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
     dtmax = 0.90_rkx    ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.0125_rkx ! Controls the approach rate to quasi-equilibrium
+    alphae = 0.01_rkx   ! Controls the approach rate to quasi-equilibrium
     damp = 0.1_rkx      ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
