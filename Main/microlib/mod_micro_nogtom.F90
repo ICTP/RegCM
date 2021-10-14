@@ -387,6 +387,7 @@ module mod_micro_nogtom
     real(rkx) :: ql_incld , qi_incld , qli_incld
     real(rkx) :: supsat , subsat
     real(rkx) :: ldifdt
+    real(rkx) :: botm , rm
     real(rkx) :: qold , told , tcond , dqs
     real(rkx) :: chng , chngmax
     real(rkx) :: icenuclei
@@ -781,14 +782,8 @@ module mod_micro_nogtom
           tc       = tk - tzero
           dens     = mo2mc%rho(j,i,k)
           sqmix    = qsmix(j,i,k)
-          ! local cloud cover
-          zrh = min(qxfg(iqqv)/sqmix,d_one)
-          if ( zrh > rhcrit(j,i) ) then
-            ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
-            ccover = min(max(ccover,zerocf),onecf)
-          else
-            ccover = zerocf
-          end if
+          ccover   = mc2mo%fcc(j,i,k)
+          ccover   = min(max(ccover,zerocf),onecf)
 
           if ( k == 1 ) then
             lccover = d_zero
@@ -899,7 +894,7 @@ module mod_micro_nogtom
               if ( ltkgt0 ) then
                 facl = d_one
               else
-                facl = ccover + koop(j,i,k)*(d_one-ccover)
+                facl = min(ccover + koop(j,i,k)*(d_one-ccover),d_one)
               end if
             end if
 
@@ -963,10 +958,9 @@ module mod_micro_nogtom
                 end if
               end if
             end if
-
             !
-            ! call addpath(iqql,iqqv,supsatl,qsexp,qsimp,d_zero,qxfg)
-            ! call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
+            !call addpath(iqql,iqqv,supsatl,qsexp,qsimp,d_zero,qxfg)
+            !call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
             !
             !-------------------------------------------------------
             ! source/sink array for implicit and explicit terms
@@ -1014,7 +1008,11 @@ module mod_micro_nogtom
 
             zrh = min(qxfg(iqqv)/sqmix,d_one)
             if ( zrh > rhcrit(j,i) ) then
-              ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
+              !ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
+              botm = zrh ** 0.25_rkx
+              rm = -100.0_rkx * &
+                    (qxfg(iqql)+qxfg(iqqi))/(sqmix-qxfg(iqqv))**0.49_rkx
+              ccover = botm * (1.0_rkx - exp(rm))
               ccover = min(max(ccover,zerocf),onecf)
             else
               ccover = zerocf
@@ -1758,10 +1756,9 @@ module mod_micro_nogtom
           do n = 1 , nqx
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = fallsink(j,i,n) * qxn(n)*rdtgdp
+            pfplsx(n,j,i,k+1) = fallsink(j,i,n)*qxn(n)*rdtgdp
             ! Calculate fluxes in and out of box for conservation of TL
-            fluxq = convsrce(n) + fallsrce(j,i,n) - &
-                    fallsink(j,i,n) * qxn(n)
+            fluxq = convsrce(n) + fallsrce(j,i,n) - fallsink(j,i,n)*qxn(n)
             ! Calculate the water variables tendencies
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*rdt
             ! Calculate the temperature tendencies
@@ -2173,21 +2170,21 @@ module mod_micro_nogtom
         qxn(m) = xsum/qlhs(m,m)
       end do
     end subroutine mysolve
-!
-!  subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
-!    implicit none
-!    real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
-!    real(rkx) , pointer , intent(inout) , dimension(:) :: fg
-!    real(rkx) , intent(in) :: proc
-!    integer(ik4) , intent(in) :: src , snk
-!    real(rkx) , intent(in) :: beta
-!    zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
-!    zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
-!    fg(src) = fg(src) + (d_one-beta)*proc
-!    fg(snk) = fg(snk) - (d_one-beta)*proc
-!    zsqb(src,snk) = zsqb(src,snk) + beta*proc
-!  end subroutine addpath
-!
+
+   ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
+   !   implicit none
+   !   real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
+   !   real(rkx) , pointer , intent(inout) , dimension(:) :: fg
+   !   real(rkx) , intent(in) :: proc
+   !   integer(ik4) , intent(in) :: src , snk
+   !   real(rkx) , intent(in) :: beta
+   !   zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
+   !   zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
+   !   fg(src) = fg(src) + (d_one-beta)*proc
+   !   fg(snk) = fg(snk) - (d_one-beta)*proc
+   !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
+   ! end subroutine addpath
+
   end subroutine nogtom
 
 end module mod_micro_nogtom
