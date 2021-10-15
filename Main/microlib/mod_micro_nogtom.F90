@@ -357,9 +357,9 @@ module mod_micro_nogtom
     integer(ik4) :: i , j , k , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud
     logical :: locast , lconden , lccn , lerror
-    real(rkx) :: rexplicit
-    real(rkx) :: facl , faci , facw , corr , gdp
-    real(rkx) :: alfaw , phases , zdelta , tmpl , &
+    real(rkx) :: rexplicit , xlcondlim
+    real(rkx) :: facl , faci , facw , corr , gdp , acond , zdl
+    real(rkx) :: alfaw , phases , zdelta , tmpl , qexc , rhc , zsig , &
                  tmpi , tnew , qvnew , qe , rain , rainh , preclr , arg
     real(rkx) :: sink ! sink term for sedimentation conservation
     real(rkx) :: totcond ! total condensate liquid+ice
@@ -410,6 +410,7 @@ module mod_micro_nogtom
 
 #ifndef __PGI
     procedure (voidsub) , pointer :: selautoconv => null()
+    procedure (voidsub) , pointer :: selnss => null()
 #endif
 
 #ifdef DEBUG
@@ -436,6 +437,16 @@ module mod_micro_nogtom
         selautoconv => sundqvist
       case default
         call fatal(__FILE__,__LINE__,'UNKNOWN AUTOCONVERSION SCHEME')
+    end select
+    select case(nssopt)
+      case(0,1)
+        selnss => nss_tompkins
+      case(2)
+        selnss => nss_lohmann_and_karcher
+      case(3)
+        selnss => nss_gierens
+      case default
+        call fatal(__FILE__,__LINE__, & 'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end select
 #endif
 
@@ -776,7 +787,7 @@ module mod_micro_nogtom
           end do
 
           critauto = xlcrit(j,i)
-          pbot     = mo2mc%pfs(j,i,k+1)
+          pbot     = mo2mc%pfs(j,i,kz+1)
           dp       = dpfs(j,i,k)
           tk       = tx(j,i,k)
           tc       = tk - tzero
@@ -1176,6 +1187,81 @@ module mod_micro_nogtom
 #ifdef DEBUG
                   if ( stats ) then
                     ngs%statscond1c(j,i,k) = chng
+                  end if
+#endif
+                end if
+              else
+                ! (2) generation of new clouds (dc/dt>0)
+#ifdef __PGI
+                select case (nssopt)
+                  case (0,1)
+                    call nss_tompkins
+                  case (2) ! Khairoutdinov and Kogan (2000)
+                    call nss_lohmann_and_karcher
+                  case (3) ! Kessler(1969)
+                    call nss_gierens
+                end select
+#else
+                call selnss
+#endif
+                rhc = rhcrit(j,i)
+                zsig = mo2mc%phs(j,i,k)/pbot
+                if ( zsig > 0.8_rkx ) then
+                  ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
+                  rhc = rhc + (d_one-rhc)*((zsig-rhc)/(d_one-zsig))**2
+                end if
+                ! supersaturation options
+                if ( ltkgt0 .or. nssopt == 0 ) then
+                  ! no ice supersaturation allowed
+                  facl = d_one
+                else
+                  ! ice supersaturation
+                  facl = koop(j,i,1)
+                end if
+                if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
+                  ! note: not **2 on 1-a term if qe is used.
+                  ! added correction term fac to numerator 15/03/2010
+                  acond = -(d_one-ccover)*facl*dqs / &
+                          max(d_two*(facl*sqmix-qexc),dlowval)
+                  acond = min(acond,d_one-ccover) ! put the limiter back
+                  ! linear term:
+                  ! added correction term fac 15/03/2010
+                  chng = -facl*dqs*d_half*acond !mine linear
+                  ! new limiter formulation
+                  ! qsice(j,i,1)-qexc) /
+                  tmpa = d_one-ccover
+                  zdl = d_two*(facl*sqmix-qexc) / tmpa
+                  ! added correction term fac 15/03/2010
+                  if ( facl*dqs < -zdl ) then
+                    ! qsice(j,i,1)+qvnow
+                    xlcondlim = (ccover-d_one)*facl*dqs-facl*sqmix+qxfg(iqqv)
+                    chng = min(chng,xlcondlim)
+                  end if
+                  chng = max(chng,d_zero)
+                  if ( chng < activqx ) then
+                    chng = d_zero
+                  end if
+                  !-------------------------------------------------------------
+                  ! all increase goes into liquid unless so cold cloud
+                  ! homogeneously freezes
+                  ! include new liquid formation in first guess value, otherwise
+                  ! liquid remains at cold temperatures until next timestep.
+                  !-------------------------------------------------------------
+                  if ( ltkgthomo ) then
+                    qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + chng
+                    qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - chng
+                    qxfg(iqql) = qxfg(iqql) + chng
+                    qxfg(iqqv) = qxfg(iqqv) - chng
+                  else
+                    ! homogeneous freezing
+                    qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + chng
+                    qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - chng
+                    qxfg(iqqi) = qxfg(iqqi) + chng
+                    qxfg(iqqv) = qxfg(iqqv) - chng
+                  end if
+#ifdef DEBUG
+                  if ( stats ) then
+                    ngs%statscond1c(j,i,k) = ngs%statscond1c(j,i,k) + chng
                   end if
 #endif
                 end if
@@ -1991,6 +2077,21 @@ module mod_micro_nogtom
       eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
       eewm = phase * eliq + (d_one-phase) * eice
     end function eewm
+
+    subroutine nss_tompkins
+      implicit none
+      qexc = max((qxfg(iqqv)-ccover*sqmix)/(d_one-ccover),d_zero)
+    end subroutine nss_tompkins
+
+    subroutine nss_lohmann_and_karcher
+      implicit none
+      qexc = qxfg(iqqv)
+    end subroutine nss_lohmann_and_karcher
+
+    subroutine nss_gierens
+      implicit none
+      qexc = qxfg(iqqv)/totcond
+    end subroutine nss_gierens
 
     subroutine klein_and_pincus
       implicit none
