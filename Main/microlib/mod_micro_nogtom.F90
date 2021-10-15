@@ -446,7 +446,7 @@ module mod_micro_nogtom
       case(3)
         selnss => nss_gierens
       case default
-        call fatal(__FILE__,__LINE__, & 'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
+        call fatal(__FILE__,__LINE__, 'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end select
 #endif
 
