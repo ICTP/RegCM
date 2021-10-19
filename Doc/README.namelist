@@ -291,10 +291,7 @@
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
- ipcpcool =          0, ! Precipitation cooling effect over ocean surface
- iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
  icldfrac =          0, ! Cloud fraction algorithm
