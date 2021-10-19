@@ -94,7 +94,7 @@ module mod_earth
     real(rk8) , intent(out) :: x , y , z
     real(rk8) :: rlat , rlon
     rlat = max(min(dble(lat),89.999_rk8),-89.999_rk8)*degrad
-    rlon = lon*degrad
+    rlon = dble(lon)*degrad
     x = cos(rlat) * sin(rlon)
     y = sin(rlat)
     z = cos(rlat) * cos(rlon)
@@ -107,7 +107,7 @@ module mod_earth
     real(rk8) , intent(out) , dimension(3) :: x
     real(rk8) :: rlat , rlon
     rlat = max(min(dble(lat),89.999_rk8),-89.999_rk8)*degrad
-    rlon = lon*degrad
+    rlon = dble(lon)*degrad
     x(1) = cos(rlat) * sin(rlon)
     x(2) = sin(rlat)
     x(3) = cos(rlat) * cos(rlon)
@@ -123,7 +123,7 @@ module mod_earth
     integer(ik4) :: i
     do i = 1 , ni
       rlat = max(min(dble(lat(i)),89.999_rk8),-89.999_rk8)*degrad
-      rlon = lon(i)*degrad
+      rlon = dble(lon(i))*degrad
       x(1,i) = cos(rlat) * sin(rlon)
       x(2,i) = sin(rlat)
       x(3,i) = cos(rlat) * cos(rlon)
@@ -144,7 +144,7 @@ module mod_earth
     do j = 1 , size(lat)
       do i = 1 , size(lon)
         rlat = max(min(dble(lat(j)),89.999_rk8),-89.999_rk8)*degrad
-        rlon = lon(i)*degrad
+        rlon = dble(lon(i))*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
         x(3,n) = cos(rlat) * cos(rlon)
@@ -168,7 +168,7 @@ module mod_earth
     do j = 1 , size(lat,2)
       do i = 1 , size(lat,1)
         rlat = max(min(dble(lat(i,j)),89.999_rk8),-89.999_rk8)*degrad
-        rlon = lon(i,j)*degrad
+        rlon = dble(lon(i,j))*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
         x(3,n) = cos(rlat) * cos(rlon)
