@@ -537,8 +537,7 @@ if eval "test x$DEBUG = x1"; then
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
-            -Wintrinsics-std -Wintrinsic-shadow \
-            -fcheck=array-temps,bounds,do,mem,recursion"
+            -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
