@@ -40,7 +40,7 @@ module mod_sst_cmip6
   type(cmip6_2d_var) :: sst
 
   character(len=*) , parameter , public :: mpihr_version = 'v20190710'
-  character(len=*) , parameter , public :: hadmm_version = 'v20191207'
+  character(len=*) , parameter , public :: hadmm_version = 'v20200515'
   character(len=*) , parameter , public :: gfdl_version = 'v20180701'
 
   abstract interface
@@ -80,7 +80,7 @@ module mod_sst_cmip6
             call die('sst','Calendar mismatch',1)
           end if
           read_func => read_sst_hadmm
-          sst%vname = 'ts'
+          sst%vname = 'tos'
           step = 86400
           nsteps = int(tohours(tdif))/24 + 1
         case ( 'GFDL-ESM4' )
@@ -146,24 +146,24 @@ module mod_sst_cmip6
     subroutine read_hcoord_sst_hadmm(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlon , nlat
-      istatus = nf90_inq_dimid(ncid,'lon',idimid)
+      istatus = nf90_inq_dimid(ncid,'i',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lon dim')
-      istatus = nf90_inq_dimid(ncid,'lat',idimid)
+      istatus = nf90_inq_dimid(ncid,'j',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_had:lon')
-      call getmem1d(lat,1,nlat,'cmip6_had:lat')
-      istatus = nf90_inq_varid(ncid,'lon',ivarid)
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_had:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_had:lat')
+      istatus = nf90_inq_varid(ncid,'longitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read longitude var')
-      istatus = nf90_inq_varid(ncid,'lat',ivarid)
+      istatus = nf90_inq_varid(ncid,'latitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find latitude var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read latitude var')
@@ -302,7 +302,7 @@ module mod_sst_cmip6
         call split_idate(idate, year, month, day, hour)
         y = (year / 5) * 5
         write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'Eday',hadmm_version,v%vname)), &
+          trim(cmip6_path(y,'Oday',hadmm_version,v%vname)), &
           y, '0101-', y+4, '1230.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -313,11 +313,11 @@ module mod_sst_cmip6
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_sst_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_sst_hadmm(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
-                                   v%hcoord%lat1d,v%hcoord%lon1d,xlat,xlon)
-        call getmem2d(v%var,1,size(v%hcoord%lon1d), &
-                            1,size(v%hcoord%lat1d), &
+                                   v%hcoord%lat2d,v%hcoord%lon2d,xlat,xlon)
+        call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
+                            1,size(v%hcoord%lat2d,2), &
                             'cmip6_had:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then
@@ -372,6 +372,11 @@ module mod_sst_cmip6
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//trim(v%vname)// &
           ' from '//trim(v%filename)//'.')
+      where ( v%var > 0.9E+20_rkx )
+        v%var = -9999.0_rkx
+      else where
+        v%var = v%var + 273.15_rkx
+      end where
     end subroutine read_sst_hadmm
 
     recursive subroutine read_sst_gfdl(idate,v)
