@@ -741,13 +741,13 @@ module mod_params
 #endif
       end if
       if ( cftotmax < 0.0 ) then
-          cftotmax = 0.1_rkx
+        cftotmax = 0.1_rkx
       else if ( cftotmax > 1.0_rkx ) then
         cftotmax = 1.00_rkx
       end if
-      if ( icldfrac == 2 .and. ipptls < 2 ) then
-        write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
-        icldfrac = 0
+      if ( ipptls == 2 ) then
+        write(stdout,*) 'Will set icldfrac == 1 : Xu-Randall scheme'
+        icldfrac = 1
       end if
 
       if ( ipptls == 1 ) then
@@ -772,10 +772,6 @@ module mod_params
         end if
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
-        end if
-        if ( cftotmax < 1.0_rkx ) then
-          write(stdout,*) 'Will set cftotmax == 1.0'
-          cftotmax = 1.0_rkx
         end if
       end if
 
