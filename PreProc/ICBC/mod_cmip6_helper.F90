@@ -117,6 +117,7 @@ module mod_cmip6_helper
       character(len=*) , intent(in) :: var , freq , ver
       integer(ik4) , intent(in) :: year
       character(len=12) :: experiment
+      character(len=4) :: grid
       select case ( cmip6_model )
         case ( 'MPI-ESM1-2-HR' )
           fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
@@ -129,6 +130,7 @@ module mod_cmip6_helper
             fpath = trim(fpath)//'DKRZ'//pthsep//'MPI-ESM1-2-HR'//pthsep
             experiment = trim(cmip6_ssp)
           end if
+          grid = cmip6_grid
         case ( 'HadGEM3-GC31-MM' )
           fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'//pthsep//'CMIP6'//pthsep
           if ( year < 2015 ) then
@@ -139,6 +141,7 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
+          grid = cmip6_grid
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'//pthsep
           if ( year < 2015 ) then
@@ -149,16 +152,21 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'NOAA-GFDL'//pthsep//'GFDL-ESM4'//pthsep
+          if ( var == 'tos' ) then
+            grid = 'gn'
+          else
+            grid = cmip6_grid
+          end if
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
       end select
       fpath = trim(fpath)//trim(experiment)//pthsep
       fpath = trim(fpath)//trim(cmip6_variant)//pthsep//trim(freq)//pthsep// &
-        trim(var)//pthsep//trim(cmip6_grid)//pthsep//trim(ver)// &
+        trim(var)//pthsep//trim(grid)//pthsep//trim(ver)// &
         pthsep//trim(var)//'_'//trim(freq)//'_'//trim(cmip6_model)//'_'
       fpath = trim(fpath)//trim(experiment)//'_'
-      fpath = trim(fpath)//trim(cmip6_variant)//'_'//trim(cmip6_grid)//'_'
+      fpath = trim(fpath)//trim(cmip6_variant)//'_'//trim(grid)//'_'
     end function cmip6_path
 
     subroutine cmip6_error(ival,filename,line,arg)

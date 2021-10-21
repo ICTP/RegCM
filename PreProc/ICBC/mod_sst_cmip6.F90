@@ -172,19 +172,19 @@ module mod_sst_cmip6
     subroutine read_hcoord_sst_gfdl(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlon , nlat
-      istatus = nf90_inq_dimid(ncid,'lon',idimid)
+      istatus = nf90_inq_dimid(ncid,'x',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lon dim')
-      istatus = nf90_inq_dimid(ncid,'lat',idimid)
+      istatus = nf90_inq_dimid(ncid,'y',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_gfd:lon')
-      call getmem1d(lat,1,nlat,'cmip6_gfd:lat')
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_gfd:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_gfd:lat')
       istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -391,12 +391,16 @@ module mod_sst_cmip6
           write(v%filename,'(a,a,a)') &
             trim(cmip6_path(y,'Oday',gfdl_version,v%vname)), &
             '20100101-', '20141231.nc'
-        else if ( year > 2014 .and. year < 2020 ) then
+        else if ( year > 2094 ) then
           write(v%filename,'(a,a,a)') &
             trim(cmip6_path(y,'Oday',gfdl_version,v%vname)), &
-            '20150101-', '20191231.nc'
+            '20950101-', '21001231.nc'
         else
-          y = (year / 10) * 10
+          if ( year >= 2015 ) then
+            y = ((year - 2015)  / 10) * 10 + 2015
+          else
+            y = (year / 10) * 10
+          end if
           write(v%filename,'(a,i4,a,i4,a)') &
             trim(cmip6_path(y,'Oday',gfdl_version,v%vname)), &
             y, '0101-', y+9, '1231.nc'
@@ -410,11 +414,11 @@ module mod_sst_cmip6
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_sst_gfdl(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_sst_gfdl(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
-                                   v%hcoord%lat1d,v%hcoord%lon1d,xlat,xlon)
-        call getmem2d(v%var,1,size(v%hcoord%lon1d), &
-                            1,size(v%hcoord%lat1d), &
+                                   v%hcoord%lat2d,v%hcoord%lon2d,xlat,xlon)
+        call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
+                            1,size(v%hcoord%lat2d,2), &
                             'cmip6_gfdl:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then
