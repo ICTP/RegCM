@@ -29,11 +29,13 @@ module mod_mtrxclm
       dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 ,    &
       idate2 , eccen , obliqr , lambm0 , mvelpp
   use mod_mpmessage
+  use mod_constants
   use mod_service
   use mod_mppparam
   use mod_date
   use mod_clm
   use mod_regcm_types
+  use mod_stdio
   use mod_sunorbit
 
   use clm_time_manager , only : get_curr_calday
