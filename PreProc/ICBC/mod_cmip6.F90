@@ -888,31 +888,31 @@ module mod_cmip6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( year > 2015 .and. year < 2020 ) then
+        if ( year >= 2015 .and. year < 2020 ) then
           if ( year == 2015 .and. month == 1 .and. &
                day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
+            write(v%filename,'(a,a,a)') &
+              trim(cmip6_path(2010,'6hrLev',hadmm_version2,v%vname)), &
               '201001010600-', '201501010000.nc'
-          else if ( year == 2020 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
-              '202001010600-', '203001010000.nc'
           else
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
+            write(v%filename,'(a,a,a)') &
+              trim(cmip6_path(2015,'6hrLev',hadmm_version3,v%vname)), &
               '201501010600-', '202001010000.nc'
           end if
-        else if ( year > 2010 .and. year < 2015 ) then
+        else if ( year == 2020 .and. month == 1 .and. &
+                 day == 1 .and. hour == 0 ) then
+          write(v%filename,'(a,a,a)') &
+            trim(cmip6_path(2015,'6hrLev',hadmm_version3,v%vname)), &
+            '201501010600-', '202001010000.nc'
+        else if ( year >= 2010 .and. year < 2015 ) then
           if ( year == 2010 .and. month == 1 .and. &
                day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
+            write(v%filename,'(a,a,a)') &
+              trim(cmip6_path(2000,'6hrLev',hadmm_version2,v%vname)), &
               '200001010600-', '201001010000.nc'
           else
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
+            write(v%filename,'(a,a,a)') &
+              trim(cmip6_path(2010,'6hrLev',hadmm_version2,v%vname)), &
               '201001010600-', '201501010000.nc'
           end if
         else
@@ -920,9 +920,15 @@ module mod_cmip6
           if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
             y = y - 10
           end if
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
-            y, '01010600-', y+10, '01010000.nc'
+          if ( y > 2015 ) then
+            write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(y,'6hrLev',hadmm_version3,v%vname)), &
+              y, '01010600-', y+10, '01010000.nc'
+          else
+            write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
+              y, '01010600-', y+10, '01010000.nc'
+          end if
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
