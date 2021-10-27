@@ -1216,7 +1216,7 @@ module mod_micro_nogtom
                   facl = d_one
                 else
                   ! ice supersaturation
-                  facl = koop(j,i,1)
+                  facl = koop(j,i,k)
                 end if
                 if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
                   ! note: not **2 on 1-a term if qe is used.
@@ -1228,12 +1228,12 @@ module mod_micro_nogtom
                   ! added correction term fac 15/03/2010
                   chng = -facl*dqs*d_half*acond !mine linear
                   ! new limiter formulation
-                  ! qsice(j,i,1)-qexc) /
+                  ! qsice(j,i,k)-qexc) /
                   tmpa = d_one-ccover
                   zdl = d_two*(facl*sqmix-qexc) / tmpa
                   ! added correction term fac 15/03/2010
                   if ( facl*dqs < -zdl ) then
-                    ! qsice(j,i,1)+qvnow
+                    ! qsice(j,i,k)+qvnow
                     xlcondlim = (ccover-d_one)*facl*dqs-facl*sqmix+qxfg(iqqv)
                     chng = min(chng,xlcondlim)
                   end if
