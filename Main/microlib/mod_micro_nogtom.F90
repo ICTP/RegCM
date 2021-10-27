@@ -615,7 +615,7 @@ module mod_micro_nogtom
             sumq0(j,i,k) = sumq0(j,i,k)+(tmpl+tmpi+qx(iqqv,j,i,k))*dp*regrav
 
             ! Detrained water treated here
-            if ( lmicro .and. qe > activqx ) then
+            if ( lmicro .and. abs(qe) > activqx ) then
               sumq0(j,i,k) = sumq0(j,i,k) + qe*dp*regrav
               alfaw = qliq(j,i,k)
               tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
@@ -993,9 +993,9 @@ module mod_micro_nogtom
             !------------------------------------------------------------------
             ! convective detrainment
             !------------------------------------------------------------------
-            if ( mo2mc%qdetr(j,i,k) > activqx ) then
+            qe = mo2mc%qdetr(j,i,k)
+            if ( abs(qe) > activqx ) then
               !qice = 1 if T < 250, qice = 0 if T > 273
-              qe = mo2mc%qdetr(j,i,k)
               alfaw = qliq(j,i,k)
               convsrce(iqql) = alfaw*qe
               convsrce(iqqi) = (d_one-alfaw)*qe
