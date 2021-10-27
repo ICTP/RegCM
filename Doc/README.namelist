@@ -485,6 +485,7 @@
  auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for kautoconv=1
  rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
  skconv = 1.0-3,            ! Autoconversion coefficient for snow
+ rcldiff = 1.0e-6,          ! Diffusion coefficient for evaporation
  rcovpmin = 0.1,            ! Minimum precipitation coverage
  rpecons = 5.547e-5,        ! Evaporation constant Kessler
  /
