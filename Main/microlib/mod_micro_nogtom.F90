@@ -1461,9 +1461,9 @@ module mod_micro_nogtom
                 alpha1 = min(dt*skconv*exp(0.025_rkx*tc),qi_incld)
                 arg = (qi_incld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
-                  snowaut = alpha1 * (d_one - exp(-arg))
+                  snowaut = ccover * alpha1 * (d_one - exp(-arg))
                 else
-                  snowaut = alpha1
+                  snowaut = ccover * alpha1
                 end if
                 qsimp(iqqs,iqqi) = qsimp(iqqs,iqqi) + snowaut
 #ifdef DEBUG
@@ -2095,7 +2095,7 @@ module mod_micro_nogtom
 
     subroutine klein_and_pincus
       implicit none
-      rainaut = dt*auto_rate_klepi * (ql_incld**(2.3_rkx))
+      rainaut = ccover*dt*auto_rate_klepi * (ql_incld**(2.3_rkx))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
       qsexp(iqqr,iqql) = d_zero
@@ -2103,14 +2103,14 @@ module mod_micro_nogtom
 
     subroutine khairoutdinov_and_kogan
       implicit none
-      rainaut = dt*auto_rate_khair*(ql_incld**(auto_expon_khair))
+      rainaut = ccover*dt*auto_rate_khair*(ql_incld**(auto_expon_khair))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
     subroutine kessler
       implicit none
-      rainaut = dt*auto_rate_kessl*autocrit_kessl
+      rainaut = ccover*dt*auto_rate_kessl*autocrit_kessl
       qsimp(iqql,iqqv) = d_zero
       qsexp(iqqr,iqql) = qsexp(iqqr,iqql) - rainaut
       qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + rainaut
@@ -2149,9 +2149,9 @@ module mod_micro_nogtom
       ! security for exp for some compilers
       arg = (ql_incld/acrit)**2
       if ( arg < 25.0_rkx ) then
-        rainaut = alpha1*(d_one - exp(-arg))
+        rainaut = ccover*alpha1*(d_one - exp(-arg))
       else
-        rainaut = alpha1
+        rainaut = ccover*alpha1
       end if
       ! clean up
       qsimp(iqql,iqqv) = d_zero
