@@ -801,7 +801,7 @@ module mod_micro_nogtom
             rainp   = d_zero
             snowp   = d_zero
           else
-            lccover = ccover
+            lccover = mc2mo%fcc(j,i,k-1)
             rainp   = pfplsx(iqqr,j,i,k)
             snowp   = pfplsx(iqqs,j,i,k)
           end if
@@ -1017,32 +1017,32 @@ module mod_micro_nogtom
             ! update the diagnostic cloud cover and logicals
             !------------------------------------------------
 
-            zrh = min(qxfg(iqqv)/sqmix,d_one)
-            if ( zrh > rhcrit(j,i) ) then
-              !ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
-              botm = zrh ** 0.25_rkx
-              rm = -100.0_rkx * &
-                    (qxfg(iqql)+qxfg(iqqi))/(sqmix-qxfg(iqqv))**0.49_rkx
-              ccover = botm * (1.0_rkx - exp(rm))
-              ccover = min(max(ccover,zerocf),onecf)
-            else
-              ccover = zerocf
-            end if
+            !zrh = min(qxfg(iqqv)/sqmix,d_one)
+            !if ( zrh > rhcrit(j,i) ) then
+            !  !ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
+            !  botm = zrh ** 0.25_rkx
+            !  rm = -100.0_rkx * &
+            !        (qxfg(iqql)+qxfg(iqqi))/(sqmix-qxfg(iqqv))**0.49_rkx
+            !  ccover = botm * (1.0_rkx - exp(rm))
+            !  ccover = min(max(ccover,zerocf),onecf)
+            !else
+            !  ccover = zerocf
+            !end if
 
-            lcloud = ( ccover > zerocf )
-            locast = ( ccover >= onecf )
+            !lcloud = ( ccover > zerocf )
+            !locast = ( ccover >= onecf )
             !--------------------------------
             ! in-cloud consensate amount
             !--------------------------------
-            if ( lcloud ) then
-              tmpa = d_one/ccover
-              ql_incld = qxfg(iqql)*tmpa
-              qi_incld = qxfg(iqqi)*tmpa
-            else
-              ql_incld = d_zero
-              qi_incld = d_zero
-            end if
-            qli_incld  = ql_incld + qi_incld
+            !if ( lcloud ) then
+            !  tmpa = d_one/ccover
+            !  ql_incld = qxfg(iqql)*tmpa
+            !  qi_incld = qxfg(iqqi)*tmpa
+            !else
+            !  ql_incld = d_zero
+            !  qi_incld = d_zero
+            !end if
+            !qli_incld  = ql_incld + qi_incld
 
             !---------------------------------------
             ! EROSION OF CLOUDS BY TURBULENT MIXING
@@ -1461,9 +1461,9 @@ module mod_micro_nogtom
                 alpha1 = min(dt*skconv*exp(0.025_rkx*tc),qi_incld)
                 arg = (qi_incld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
-                  snowaut = ccover*alpha1 * (d_one - exp(-arg))
+                  snowaut = alpha1 * (d_one - exp(-arg))
                 else
-                  snowaut = ccover*alpha1
+                  snowaut = alpha1
                 end if
                 qsimp(iqqs,iqqi) = qsimp(iqqs,iqqi) + snowaut
 #ifdef DEBUG
@@ -2095,7 +2095,7 @@ module mod_micro_nogtom
 
     subroutine klein_and_pincus
       implicit none
-      rainaut = dt*ccover*auto_rate_klepi * (ql_incld**(2.3_rkx))
+      rainaut = dt*auto_rate_klepi * (ql_incld**(2.3_rkx))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
       qsexp(iqqr,iqql) = d_zero
@@ -2103,14 +2103,14 @@ module mod_micro_nogtom
 
     subroutine khairoutdinov_and_kogan
       implicit none
-      rainaut = dt*ccover*auto_rate_khair*(ql_incld**(auto_expon_khair))
+      rainaut = dt*auto_rate_khair*(ql_incld**(auto_expon_khair))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
     subroutine kessler
       implicit none
-      rainaut = ccover*auto_rate_kessl*autocrit_kessl
+      rainaut = dt*auto_rate_kessl*autocrit_kessl
       qsimp(iqql,iqqv) = d_zero
       qsexp(iqqr,iqql) = qsexp(iqqr,iqql) - rainaut
       qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + rainaut
@@ -2149,9 +2149,9 @@ module mod_micro_nogtom
       ! security for exp for some compilers
       arg = (ql_incld/acrit)**2
       if ( arg < 25.0_rkx ) then
-        rainaut = ccover*alpha1*(d_one - exp(-arg))
+        rainaut = alpha1*(d_one - exp(-arg))
       else
-        rainaut = d_zero
+        rainaut = alpha1
       end if
       ! clean up
       qsimp(iqql,iqqv) = d_zero
