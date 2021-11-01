@@ -104,7 +104,7 @@ module mod_ocn_coare
         cpv = cpmf(q995)
 
         ! latent heat of vaporization (J/kg) at sea surface
-        le = wlh(tgrd(i))
+        le = wlhv
 
         ! moist air density (kg/m3)
         rhoa = sfps(i)/(rgas*ta*(d_one+ep1*q995))
@@ -373,7 +373,6 @@ module mod_ocn_coare
 #include <pfqsat.inc>
 #include <pfdesatdt.inc>
 #include <pqderiv.inc>
-#include <wlh.inc>
 #include <cpmf.inc>
 
       pure real(rkx) function psiuo(zet)
