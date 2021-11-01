@@ -451,7 +451,7 @@ module mod_ocn_lake
     if ( (aveice < iceminh) .and. (tprof(1) > tcutoff) ) then
 
       ! Graziano: removed hlat. It is calculated from evaporation
-      qe = -d_one*evl*wlhv
+      qe = -d_one*evl*wlh(tprof(1)+tzero)
       qh = hsen
 
       ! Calculate eddy diffusivities
@@ -504,6 +504,8 @@ module mod_ocn_lake
     tgl = tprof(1) + tzero
 
     contains
+
+#include <wlh.inc>
 
   end subroutine lake
 
@@ -679,7 +681,7 @@ module mod_ocn_lake
     real(rkx) , intent(inout) :: hi , aveice , hs
     real(rkx) , dimension(ndpmax) , intent(inout) :: tprof
     real(rkx) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-                 t2 , tf , theta , rho
+                 t2 , tf , theta , rho , rlv
     real(rkx) , parameter :: isurf = 0.6_rkx
     ! attenuation coeff for ice in visible band (m-1)
     real(rkx) , parameter :: lami1 = 1.5_rkx
@@ -732,8 +734,9 @@ module mod_ocn_lake
 
     khat = (ki*hs+ks*hi)/(ki*ks)
     theta = cpw0*rho*cd*u2
-    psi = wlhv*rho*cd*u2*ep2/(ps*d_r100)
-    evl = psi*(eomb(t0)-ea)/(wlhv*rho)
+    rlv = wlh(t0+tzero)
+    psi = rlv*rho*cd*u2*ep2/(ps*d_r100)
+    evl = psi*(eomb(t0)-ea)/(rlv*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
     qpen = fsw * 0.7_rkx *                                      &
        ((d_one-exp(-lams1*hs))                  / (ks*lams1)  + &
@@ -800,6 +803,8 @@ module mod_ocn_lake
     end if
 
     contains
+
+#include <wlh.inc>
 
     pure real(rkx) function t4(x)
       implicit none

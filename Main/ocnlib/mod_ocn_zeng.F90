@@ -27,7 +27,7 @@ module mod_ocn_zeng
   use mod_constants
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl , ipcpcool
+  use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
   use mod_runparams , only : iocncpl , iwavcpl
   use mod_runparams , only : zomax , ustarmax
 
@@ -64,7 +64,7 @@ module mod_ocn_zeng
 
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
-  logical :: flag1 , flag2 , lpcpcool
+  logical :: flag1 , flag2
 
   contains
   !
@@ -78,7 +78,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
                  wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
-                 pcpcool , tha , nobu
+                 tha , nobu , rlv
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -92,8 +92,6 @@ module mod_ocn_zeng
 
     wt1 = (threedays-dtocn)/threedays
     wt2 = dtocn/threedays
-
-    lpcpcool = ( ipcpcool == 1 .and. iocncpl /= 1 )
 
     do i = iocnbeg , iocnend
       if ( mask(i) /= 1 ) cycle
@@ -111,6 +109,7 @@ module mod_ocn_zeng
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
+      rlv = wlh(tgrd(i))
       zi = max(z995,hpbl(i))
       hu = z995
       zh = z995
@@ -265,20 +264,9 @@ module mod_ocn_zeng
         end if
         obu = nobu
       end do
-      if ( lpcpcool ) then
-        ! Stull 2011
-        rhp = min(max(q995/qs,d_zero),d_one) * d_100
-        twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
-                 atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
-                 0.00391838_rkx*(rhp)**1.5_rkx * atan(0.023101_rkx*rhp) - &
-                 4.686035_rkx
-        pcpcool = cpw*prcp(i)*(twbulb-tsurf)
-      else
-        pcpcool = d_zero
-      end if
       tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*wlhv*qstar*ustar
-      sh = -xdens*cpd*tstar*ustar - pcpcool
+      lh = -xdens*rlv*qstar*ustar
+      sh = -xdens*cpd*tstar*ustar
       !
       ! x and y components of tau:
       ! lms%taux=xdens*ustar*ustar*u_x/um
@@ -380,9 +368,8 @@ module mod_ocn_zeng
         tgbrd(i) = sst(i)
       end if ! dcsst
 
-      tgbrd(i) = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
       sent(i) = sh
-      evpr(i) = lh/wlhv
+      evpr(i) = lh/rlv
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
@@ -407,6 +394,7 @@ module mod_ocn_zeng
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
     !
     ! stability function for rb < 0
     !
