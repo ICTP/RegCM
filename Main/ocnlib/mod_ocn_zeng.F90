@@ -78,7 +78,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
                  wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
-                 tha , nobu
+                 tha , nobu , rlv
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -109,6 +109,7 @@ module mod_ocn_zeng
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
+      rlv = wlh(tgrd(i))
       zi = max(z995,hpbl(i))
       hu = z995
       zh = z995
@@ -264,7 +265,7 @@ module mod_ocn_zeng
         obu = nobu
       end do
       tau = xdens*ustar*ustar*uv995/um
-      lh = -xdens*wlhv*qstar*ustar
+      lh = -xdens*rlv*qstar*ustar
       sh = -xdens*cpd*tstar*ustar
       !
       ! x and y components of tau:
@@ -368,7 +369,7 @@ module mod_ocn_zeng
       end if ! dcsst
 
       sent(i) = sh
-      evpr(i) = lh/wlhv
+      evpr(i) = lh/rlv
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
@@ -393,6 +394,7 @@ module mod_ocn_zeng
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
     !
     ! stability function for rb < 0
     !

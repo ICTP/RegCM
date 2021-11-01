@@ -503,8 +503,6 @@ module mod_ocn_lake
     end if
     tgl = tprof(1) + tzero
 
-    contains
-
   end subroutine lake
 
   subroutine lakeeddy(ndpt,dtlake,u2,xl,tprof)
@@ -732,8 +730,8 @@ module mod_ocn_lake
 
     khat = (ki*hs+ks*hi)/(ki*ks)
     theta = cpw0*rho*cd*u2
-    psi = wlhv*rho*cd*u2*ep2/(ps*d_r100)
-    evl = psi*(eomb(t0)-ea)/(wlhv*rho)
+    psi = wlhs*rho*cd*u2*ep2/(ps*d_r100)
+    evl = psi*(eomb(t0)-ea)/(wlhs*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
     qpen = fsw * 0.7_rkx *                                      &
        ((d_one-exp(-lams1*hs))                  / (ks*lams1)  + &
