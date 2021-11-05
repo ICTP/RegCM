@@ -140,7 +140,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , rpfac , tbbls
+    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
     real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
                  dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
                  thvflx , q0s , tvfac , svs , cpoxlv
@@ -180,8 +180,10 @@ module mod_pbl_uwtcm
 
         ! Copy in local versions of necessary variables
         if ( idynamic == 3 ) then
+          pfac = dt
           rpfac = rdt
         else
+          pfac = dt / m2p%psb(j,i)
           rpfac = rdt * m2p%psb(j,i)
         end if
         tskx = m2p%tg(j,i)
@@ -200,9 +202,11 @@ module mod_pbl_uwtcm
         zqx(kzp2) = d_zero
 
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)/rpfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv)/rpfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc)/rpfac
+          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)*pfac
+          qx(k)  = max(m2p%qxatm(j,i,k,iqv) + &
+                       p2m%qxten(j,i,k,iqv)*pfac,1.0e-8_rkx)
+          qcx(k) = max(m2p%qxatm(j,i,k,iqc) + &
+                       p2m%qxten(j,i,k,iqc)*pfac,d_zero)
         end do
 
         do k = 1 , kz
@@ -219,7 +223,8 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi)/rpfac
+            qix(k) = max(m2p%qxatm(j,i,k,iqi) + &
+                         p2m%qxten(j,i,k,iqi)*pfac,d_zero)
           end do
         end if
 
@@ -342,7 +347,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-5_rkx))
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
@@ -841,7 +846,7 @@ module mod_pbl_uwtcm
 
       kloop: &
       do k = kz , 2, -1
-        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0e-9_rkx)
+        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k))
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
         gh = max(min(gh,0.0233_rkx),-0.28_rkx)
@@ -874,38 +879,41 @@ module mod_pbl_uwtcm
       end do kloop
 
       ! special case for tops of convective layers
-      conv: &
-      do ilay = 1 , kpbconv
-        k = ktop(ilay)
-        if ( nsquar(k) >= minn2 ) then
-          kethl(k) = nuk*kzm(k+1)
-          if ( k >= 3 ) then
-            kethl(k-1) = 0.0_rkx
-            delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
-                      (thlxin(k) + thx(k)  *ep1*qwxin(k))
-            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
-            bige = 0.8_rkx * elambda
-            biga = aone * (d_one + atwo * bige)
+      if ( kpbconv > 0 ) then
+        conv: &
+        do ilay = 1 , kpbconv
+          k = ktop(ilay)
+          if ( nsquar(k) >= minn2 ) then
+            kethl(k) = nuk*kzm(k+1)
+            if ( k >= 3 ) then
+              kethl(k-1) = 0.0_rkx
+              delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
+                        (thlxin(k) + thx(k)  *ep1*qwxin(k))
+              delthvl = delthvl + sign(1.0e-9_rkx,delthvl)
+              elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/delthvl
+              bige = 0.8_rkx * elambda
+              biga = aone * (d_one + atwo * bige)
 
-            ! kth(k) = min(10000.0_rkx, biga * sqrt(tke(k)**3)/nsquar(k)/    &
-            !          max(bbls(k),bbls(k+1)))
-            ! Limit the diffusivity to be the vertical grid spacing squared
-            ! over the time step; this implies that the entrainment rate
-            ! can only be so large that the BL height would change by
-            ! one grid level over one time step -- TAO
-            ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
-            ! kthmax = 1.0e4_rkx
-            kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
-                     max(bbls(k),bbls(k+1)))
-            ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
-            ! Smoothly limit kth to a maximum value
-            ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
-            ! prandtl number from layer below
-            ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
-            kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
+              ! kth(k) = min(10000.0_rkx, biga * sqrt(tke(k)**3)/nsquar(k)/    &
+              !          max(bbls(k),bbls(k+1)))
+              ! Limit the diffusivity to be the vertical grid spacing squared
+              ! over the time step; this implies that the entrainment rate
+              ! can only be so large that the BL height would change by
+              ! one grid level over one time step -- TAO
+              ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
+              ! kthmax = 1.0e4_rkx
+              kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
+                       max(bbls(k),bbls(k+1)))
+              ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
+              ! Smoothly limit kth to a maximum value
+              ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
+              ! prandtl number from layer below
+              ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
+              kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
+            end if
           end if
-        end if
-      end do conv
+        end do conv
+      end if
 
       ! need kethl at top
       kethl(1) = kethl(2)
@@ -1006,7 +1014,8 @@ module mod_pbl_uwtcm
           if ( k >= 3 ) then
             delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) - &
                       (thlxin(k)  +thx(k)  *ep1*qwxin(k))
-            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            delthvl = delthvl + sign(1.0e-9_rkx,delthvl)
+            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/delthvl
             bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
             entnnll = biga * sqrt(tkeavg**3) / bbls(k)
