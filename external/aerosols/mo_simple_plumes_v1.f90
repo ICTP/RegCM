@@ -72,7 +72,7 @@ CONTAINS
     ! ----------
     !
     INTEGER :: iret, ncid, DimID, VarID, xdmy
-    REAL :: temp(nyears-164,nplumes)
+    REAL :: temp(nyears,nplumes)
     !
     ! ----------
     !
@@ -149,7 +149,8 @@ CONTAINS
     iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/1,1/),count=(/164,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
+    year_weight(1:165,1:nplumes) = temp(1:165,1:nplumes)
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     iret = nf90_inq_varid(ncid, "ann_cycle"     , VarId)
     iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:)  , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
@@ -163,9 +164,9 @@ CONTAINS
       STOP 'NetCDF File not opened'
     END IF
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, temp, start=(/165,1/),count=(/nyears-164,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
-    year_weight(165:,:) = temp
+    year_weight(166:nyears,1:nplumes) = temp(166:nyears,1:nplumes)
 
     iret = nf90_close(ncid)
 
