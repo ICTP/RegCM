@@ -39,7 +39,7 @@ module mod_sun
 
    private
 
-   real(rkx) , dimension(:) , pointer :: heppatsi
+   real(rkx) , dimension(:) , pointer :: heppatsi => null()
    real(rkx) , dimension(3,1610:2008) :: tsi
    real(rkx) , parameter :: tsifac = 0.9965_rkx
    integer(ik4) :: ii , jj
