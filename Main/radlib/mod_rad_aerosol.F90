@@ -1569,7 +1569,6 @@ module mod_rad_aerosol
       implicit none
       type (rcm_time_and_date) , intent(in) :: idatex
       type(mod_2_rad) , intent(in) :: m2r
-      character(len=64) :: infile
       logical , save :: lfirst
       logical :: dointerp
       real(rkx) , dimension(kz) :: opprnt
@@ -1796,7 +1795,7 @@ module mod_rad_aerosol
       integer(ik4) , intent(in) :: ncid , iyear , imon
       character(len=*) , intent(in) :: vname
       real(rkx) , intent(out) , dimension(:,:,:) :: val
-      integer(ik4) , save :: ilastncid , icvar
+      integer(ik4) , save :: icvar
       integer(ik4) , save , dimension(4) :: istart , icount
       integer(ik4) :: iret , irec
       data icvar /-1/
