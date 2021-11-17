@@ -291,7 +291,7 @@
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario =   'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
+ scenario =   'SSP119', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
                         ! AR4 old CMIP3 scenario to use in A1B, A2, B1, B2
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
@@ -299,10 +299,9 @@
  ipcpcool =          0, ! Precipitation cooling effect over ocean surface
  iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- idesseas =          0, ! Model desert seasonal albedo variability
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
- icldfrac =          0, ! Cloud fraction algorithm
+ icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
                         !   2 : Thompson scheme
@@ -310,7 +309,7 @@
                         !   4 : Texeira scheme
                         !   5 : Tompkins linearized scheme
                         !   6 : Echam5 like scheme
- icldmstrat =        1, ! Simulate stratocumulus clouds
+ icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
                         ! It is only used only if mass fluxes are not
