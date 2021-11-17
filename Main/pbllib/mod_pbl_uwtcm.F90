@@ -347,7 +347,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-5_rkx))
+        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
@@ -846,7 +846,7 @@ module mod_pbl_uwtcm
 
       kloop: &
       do k = kz , 2, -1
-        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k))
+        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0e-9_rkx)
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
         gh = max(min(gh,0.0233_rkx),-0.28_rkx)
@@ -889,8 +889,7 @@ module mod_pbl_uwtcm
               kethl(k-1) = 0.0_rkx
               delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
                         (thlxin(k) + thx(k)  *ep1*qwxin(k))
-              delthvl = delthvl + sign(1.0e-9_rkx,delthvl)
-              elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/delthvl
+              elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
               bige = 0.8_rkx * elambda
               biga = aone * (d_one + atwo * bige)
 
@@ -1014,8 +1013,7 @@ module mod_pbl_uwtcm
           if ( k >= 3 ) then
             delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) - &
                       (thlxin(k)  +thx(k)  *ep1*qwxin(k))
-            delthvl = delthvl + sign(1.0e-9_rkx,delthvl)
-            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/delthvl
+            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
             bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
             entnnll = biga * sqrt(tkeavg**3) / bbls(k)
