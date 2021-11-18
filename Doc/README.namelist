@@ -299,7 +299,7 @@
  icldfrac =          0, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
- icldmstrat =        1, ! Simulate stratocumulus clouds
+ icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
                         ! It is only used only if mass fluxes are not
