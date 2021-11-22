@@ -54,6 +54,7 @@ module mod_write
   integer(ik4) :: nvar2d
   type(ncvariable2d_mixed) , allocatable , save , dimension(:) :: v2dvar_icbc
   type(ncvariable3d_mixed) , allocatable , save , dimension(:) :: v3dvar_icbc
+  logical :: qli_present = .false.
 
   contains
 
@@ -217,10 +218,15 @@ module mod_write
   subroutine init_output
     implicit none
     integer(ik4) :: ierr , i3i
+    if ( dattyp == 'FNEST' .or. dattyp == 'IFSXX' ) then
+      qli_present = .true.
+    else
+      qli_present = .false.
+    end if
     call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
     call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
     call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
-    if ( dattyp == 'FNEST' ) then
+    if ( qli_present ) then
       call getmem3d(qc4,1,jx,1,iy,1,kz,'mod_write:qc4')
       call getmem3d(qi4,1,jx,1,iy,1,kz,'mod_write:qi4')
     end if
@@ -249,7 +255,7 @@ module mod_write
       call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
       call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
     end if
-    if ( dattyp == 'FNEST' ) then
+    if ( qli_present ) then
       nvar3d = nvar3d + 2
     end if
     allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
@@ -303,7 +309,7 @@ module mod_write
     v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
     v3dvar_icbc(4)%standard_name = 'grid_northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
-    if ( dattyp == 'FNEST' ) then
+    if ( qli_present ) then
       v3dvar_icbc(5)%vname = 'qc'
       v3dvar_icbc(5)%vunit = 'kg kg-1'
       v3dvar_icbc(5)%long_name = 'Mass Fraction of Cloud Liquid Water'
@@ -517,7 +523,7 @@ module mod_write
     v3dvar_icbc(2)%rval => q4
     v3dvar_icbc(3)%rval => u4
     v3dvar_icbc(4)%rval => v4
-    if ( dattyp == 'FNEST' ) then
+    if ( qli_present ) then
       v3dvar_icbc(5)%rval => qc4
       v3dvar_icbc(6)%rval => qi4
       i3i = 7
@@ -613,7 +619,7 @@ module mod_write
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,v4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,t4,tv4,ps4,ps0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,q4,tv4,ps4,ps0,2)
-      if ( dattyp == 'FNEST' ) then
+      if ( qli_present ) then
         call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qc4,tv4,ps4,ps0,1)
         call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qi4,tv4,ps4,ps0,1)
       end if

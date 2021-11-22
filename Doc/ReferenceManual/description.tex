@@ -868,7 +868,7 @@ The time and space discretization of equations
 
 \begin{eqnarray}
   \label{impli1}
-  w^{(n+1)}_{(k)} &=& w^{(n)}_{(k)} - F_{fz(k)}c_{p_d} \overline{\Theta_v}^{(n)}
+  w^{(n+1)}_{(k)} &=& w^{(n)}_{(k)} - F_{z_f(k)}c_{p_d}\overline{\Theta_v}^{(n)}
       \frac{\Pi^{(n+1)}_{(k)} - \Pi^{(n+1)}_{(k+1)}}{\Delta z} \Delta t_{s} -
       g \Delta t_{s} \\
   \label{impli2}
@@ -879,7 +879,7 @@ The time and space discretization of equations
 
 where the average is performed from the above and below half levels for
 $\overline{\Theta_v}$ and $DIV^{(n)}_{(k)}$ is the part of wind divergence
-computed at timelevel $n$, $F_{fz(k)}$ and $F_{z (k)}$ are computed at full
+computed at timelevel $n$, $F_{z_f(k)}$ and $F_{z (k)}$ are computed at full
 ($w$) and half $\zeta$ levels.
 
 By substituting \ref{impli2} into \ref{impli1} we obtain a tri-diagonal linear
@@ -888,7 +888,7 @@ system we must solve to compute the vertical velocity at the new time level:
 \begin{eqnarray}
   -Z_p w^{(n+1)}_{(k+1)} + (1 + Z_p + Z_m) w^{(n+1)}_{(k)} -
    Z_m w^{(n+1)}_{(k-1)} = RHS \\
-   RHS = w^{(n+1)}_{(Ek)} + F_{fz(k)}c_{p_d}
+   RHS = w^{(n+1)}_{(Ek)} + F_{z_f(k)}c_{p_d}
      \frac{R_d}{c_{v_d}} \overline{\Theta_v}^{(n)}
      \frac{\Delta t_{s}^2}{\Delta \zeta} \left(
      \Pi^{(n)}_{(k-1)}DIV^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}DIV^{(n)}_{(k)}
@@ -898,7 +898,7 @@ system we must solve to compute the vertical velocity at the new time level:
 where
 
 \begin{equation}
-  w^{(n+1)}_{(Ek)} = w^{(n)}_{(k)} - F_{fz(k)}c_{p_d} \overline{\Theta_v}^{(n)}
+  w^{(n+1)}_{(Ek)} = w^{(n)}_{(k)} - F_{z_f(k)}c_{p_d} \overline{\Theta_v}^{(n)}
       \frac{\Pi^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}}{\Delta \zeta} \Delta t_{s} -
       g \Delta t_{s}
 \end{equation}
@@ -907,10 +907,10 @@ denotes the explicit velocity at the new timelevel. The off-diagonal terms
 $Z_p$ and $Z_m$ are:
 
 \begin{eqnarray}
-  Z_p &=& \Pi^{(n)}_{(k)} F_{z (k)} F_{fz(k)} \frac{R_d}{c_{v_d}} c_{p_d}
+  Z_p &=& \Pi^{(n)}_{(k)} F_{z (k)} F_{z_f(k)} \frac{R_d}{c_{v_d}} c_{p_d}
     \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
      {\Delta \zeta}\right)^2 \\
-  Z_m &=& \Pi^{(n)}_{(k-1)} F_{z (k-1)} F_{fz(k)} \frac{R_d}{c_{v_d}} c_{p_d}
+  Z_m &=& \Pi^{(n)}_{(k-1)} F_{z (k-1)} F_{z_f(k)} \frac{R_d}{c_{v_d}} c_{p_d}
     \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
      {\Delta \zeta}\right)^2
 \end{eqnarray}
