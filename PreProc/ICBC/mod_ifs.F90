@@ -58,8 +58,9 @@ module mod_ifs
   real(rkx) , pointer :: clvar(:,:,:) , civar(:,:,:)
   real(rkx) , pointer :: p_out(:,:,:) , pd_out(:,:,:)
   real(rkx) , pointer :: topou(:,:) , topov(:,:)
-  real(rkx) , pointer :: xps(:,:) , xts(:,:) , xzs(:,:) , yzs(:,:)
-  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:) , z1(:,:)
+  real(rkx) , pointer :: xps(:,:) , skt(:,:) , yts(:,:)
+  real(rkx) , pointer :: xzs(:,:) , yzs(:,:)
+  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:) , z1(:,:) , t1(:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -70,11 +71,10 @@ module mod_ifs
   real(rkx) , pointer , dimension(:) :: hyam , hybm
 
   integer(ik4) :: ncin
-  integer(ik4) , parameter :: nrvar = 10
+  integer(ik4) , parameter :: nrvar = 11
   character(len=4) , dimension(nrvar) , parameter :: varname = &
-           ['t   ' , 'q   ' , 'u   ' , 'v   ' , &
-            'lnsp' , 'skt ' , 'z   ' , 'z_2 ' , &
-            'clwc' , 'ciwc']
+           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'clwc' , 'ciwc' , &
+            'lnsp' , 'skt ' , 'st  ' , 'z   ' , 'z_2 ']
   integer(ik4) , dimension(nrvar) :: ivar
 
   type(global_domain) :: gdomain
@@ -148,6 +148,7 @@ module mod_ifs
     call getmem2d(ts,1,jx,1,iy,'mod_ifs:ts')
     call getmem2d(zs,1,jx,1,iy,'mod_ifs:zs')
     call getmem2d(z1,1,jx,1,iy,'mod_ifs:z1')
+    call getmem2d(t1,1,jx,1,iy,'mod_ifs:t1')
 
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -210,7 +211,8 @@ module mod_ifs
     call getmem3d(b2,1,ilon,1,jlat,1,klev*5,'mod_ifs:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ifs:d2')
     call getmem2d(xps,1,ilon,1,jlat,'mod_ifs:xps')
-    call getmem2d(xts,1,ilon,1,jlat,'mod_ifs:xts')
+    call getmem2d(skt,1,ilon,1,jlat,'mod_ifs:skt')
+    call getmem2d(yts,1,ilon,1,jlat,'mod_ifs:yts')
     call getmem2d(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
     call getmem2d(yzs,1,ilon,1,jlat,'mod_ifs:yzs')
     if ( idynamic /= 3 ) then
@@ -280,9 +282,10 @@ module mod_ifs
       call h_interpolate_cont(udot_hint,d2,d3)
     end if
     call h_interpolate_cont(cross_hint,xps,ps)
-    call h_interpolate_cont(cross_hint,xts,ts)
+    call h_interpolate_cont(cross_hint,skt,ts)
     call h_interpolate_cont(cross_hint,xzs,zs)
     call h_interpolate_cont(cross_hint,yzs,z1)
+    call h_interpolate_cont(cross_hint,yts,t1)
     ps = ps * d_r1000
     !
     ! Rotate u-v fields after horizontal interpolation
@@ -298,9 +301,9 @@ module mod_ifs
     ! New calculation of p* on rcm topography.
     !
     call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
-
     if ( idynamic == 3 ) then
-      z3(:,:,klev) = z1(:,:)
+      z3(:,:,klev) = zs(:,:) + log(ps(:,:)/p3(:,:,klev))*rovg* &
+                       0.5_rkx * (t3(:,:,klev)+ts(:,:))
       do k = klev-1, 1 , -1
         z3(:,:,k) = z3(:,:,k+1) + log(p3(:,:,k+1)/p3(:,:,k))*rovg* &
                 d_half * (t3(:,:,k+1)*(d_one+ep1*q3(:,:,k+1)) + &
@@ -308,7 +311,6 @@ module mod_ifs
       end do
       call ucrs2dot(z3u,z3,jx,iy,klev,i_band)
       call vcrs2dot(z3v,z3,jx,iy,klev,i_crm)
-      call intz3(ts4,t3,z3,topogm,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     else
       if ( idynamic == 1 ) then
         do k = 1 , kz
@@ -323,11 +325,12 @@ module mod_ifs
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call crs2dot(pd3,p3,jx,iy,klev,i_band,i_crm)
       ps = ps4 + ptop
-      call intp3(ts4,t3,p3,ps,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
 
     where ( mask == 0 )
       ts4 = ts
+    else where
+      ts4 = t1
     end where
     !
     ! Interpolate U, V, T, and Q.
@@ -404,20 +407,22 @@ module mod_ifs
       else if ( iv == 4 ) then
         call getwork3(ivar(iv),vvar)
       else if ( iv == 5 ) then
+        call getwork3(ivar(iv),clvar)
+      else if ( iv == 6 ) then
+        call getwork3(ivar(iv),civar)
+      else if ( iv == 7 ) then
         call getwork23(ivar(iv),xps)
         xps = exp(xps)
-      else if ( iv == 6 ) then
-        call getwork2(ivar(iv),xts)
-      else if ( iv == 7 ) then
+      else if ( iv == 8 ) then
+        call getwork2(ivar(iv),skt)
+      else if ( iv == 9 ) then
+        call getwork23(ivar(iv),yts)
+      else if ( iv == 10 ) then
         call getwork23(ivar(iv),xzs)
         xzs = xzs / 9.80616_rkx
-      else if ( iv == 7 ) then
+      else if ( iv == 11 ) then
         call getwork2(ivar(iv),yzs)
         yzs = yzs / 9.80616_rkx
-      else if ( iv == 9 ) then
-        call getwork3(ivar(iv),clvar)
-      else if ( iv == 10 ) then
-        call getwork3(ivar(iv),civar)
       end if
     end do
 
