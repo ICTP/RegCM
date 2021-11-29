@@ -95,6 +95,12 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'hist-1950'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_hist-1950_'
+        case ( 'NorESM2-MM' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot/cmor'// &
+            pthsep//'CMIP6'//pthsep//'CMIP/NCC'//pthsep//'NorESM2-MM'//pthsep
+          fpath = trim(fpath)//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
             pthsep//'AerChemMIP'//pthsep
@@ -157,6 +163,17 @@ module mod_cmip6_helper
           else
             grid = cmip6_grid
           end if
+        case ( 'NorESM2-MM' )
+           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot/cmor/CMIP6'//pthsep
+           if ( year < 2015 ) then
+             fpath = trim(fpath)//'CMIP'//pthsep
+             experiment = 'historical'
+           else
+             fpath = trim(fpath)//'ScenarioMIP'//pthsep
+             experiment = trim(cmip6_ssp)
+           end if
+           fpath = trim(fpath)//'NCC'//pthsep//'NorESM2-MM'//pthsep
+           grid = cmip6_grid
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
