@@ -127,21 +127,23 @@
 ! CMIP6 model selection
 !
  &cmip6param
- cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ ! cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
  ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
- ! cmip6_inp = 'https://esgdata.gfdl.noaa.gov/thredds/dodsC',
  ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
- cmip6_model = 'MPI-ESM1-2-HR',
+ cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
+ ! cmip6_model = 'MPI-ESM1-2-HR',
  ! cmip6_model = 'HadGEM3-GC31-MM',
  ! cmip6_model = 'NorESM2-MM',
- ! cmip6_model = 'GFDL-ESM4',
+ cmip6_model = 'CNRM-ESM2-1',
  cmip6_ssp = 'ssp585',
- cmip6_variant = 'r1i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_variant = 'r1i1p1f3',
  ! cmip6_variant = 'r1i1p1f1',
- cmip6_grid = 'gn',
+ cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
- ! cmip6_grid = 'gr1',
+ ! cmip6_grid = 'gn',
+ ! cmip6_grid = 'gn',
+ cmip6_grid = 'gr',
  /
 !
 ! Nesting control
