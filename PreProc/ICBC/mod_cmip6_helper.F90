@@ -42,7 +42,7 @@ module mod_cmip6_helper
   type cmip6_vertical_coordinate
     real(rkx) , pointer , dimension(:) :: plev => null( )
     real(rkx) , pointer , dimension(:) :: sigmar => null( )
-    real(rkx) :: pss , pst
+    real(rkx) :: pss , pst , p0
     real(rkx) , pointer , dimension(:) :: ak => null( )
     real(rkx) , pointer , dimension(:) :: bk => null( )
     real(rkx) , pointer , dimension(:,:) :: topo => null( )
@@ -96,10 +96,16 @@ module mod_cmip6_helper
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_hist-1950_'
         case ( 'NorESM2-MM' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot/cmor'// &
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
             pthsep//'CMIP6'//pthsep//'CMIP/NCC'//pthsep//'NorESM2-MM'//pthsep
           fpath = trim(fpath)//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
+        case ( 'CNRM-ESM2-1' )
+          fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
+            pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+          fpath = trim(fpath)//'historical'//pthsep
+          fx_variant = 'r1i1p1f2'
           fx_experiment = '_historical_'
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
@@ -148,6 +154,33 @@ module mod_cmip6_helper
           end if
           fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
           grid = cmip6_grid
+        case ( 'NorESM2-MM' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
+            pthsep//'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'NCC'//pthsep//'NorESM2-MM'//pthsep
+          grid = cmip6_grid
+        case ( 'CNRM-ESM2-1' )
+          fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'CNRM-CERFACS'//pthsep//'/CNRM-ESM2-1'//pthsep
+          if ( var == 'tos' ) then
+            grid = 'gn'
+          else
+            grid = cmip6_grid
+          end if
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'//pthsep
           if ( year < 2015 ) then
@@ -163,17 +196,6 @@ module mod_cmip6_helper
           else
             grid = cmip6_grid
           end if
-        case ( 'NorESM2-MM' )
-           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot/cmor/CMIP6'//pthsep
-           if ( year < 2015 ) then
-             fpath = trim(fpath)//'CMIP'//pthsep
-             experiment = 'historical'
-           else
-             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-             experiment = trim(cmip6_ssp)
-           end if
-           fpath = trim(fpath)//'NCC'//pthsep//'NorESM2-MM'//pthsep
-           grid = cmip6_grid
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
