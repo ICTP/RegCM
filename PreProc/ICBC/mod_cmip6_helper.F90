@@ -104,9 +104,9 @@ module mod_cmip6_helper
         case ( 'CNRM-ESM2-1' )
           fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
             pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
-          fpath = trim(fpath)//'historical'//pthsep
+          fpath = trim(fpath)//'amip'//pthsep
           fx_variant = 'r1i1p1f2'
-          fx_experiment = '_historical_'
+          fx_experiment = '_amip_'
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
             pthsep//'AerChemMIP'//pthsep
@@ -175,7 +175,7 @@ module mod_cmip6_helper
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
             experiment = trim(cmip6_ssp)
           end if
-          fpath = trim(fpath)//'CNRM-CERFACS'//pthsep//'/CNRM-ESM2-1'//pthsep
+          fpath = trim(fpath)//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
           if ( var == 'tos' ) then
             grid = 'gn'
           else
