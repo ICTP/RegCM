@@ -603,9 +603,11 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      play(:,k) = stdplevh(kclimh+k-kzp1)
-    end do
+    if ( idynamic /= 3 ) then
+      do k = kzp1 , kth
+        play(:,k) = stdplevh(kclimh+k-kzp1)
+      end do
+    end if
     !
     ! convert pressures from Pa to mb and define interface pressures:
     !
@@ -619,9 +621,11 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1+1 , ktf
-      plev(:,k) = stdplevf(kclimf+k-kzp1)
-    end do
+    if ( idynamic /= 3 ) then
+      do k = kzp1+1 , ktf
+        plev(:,k) = stdplevf(kclimf+k-kzp1)
+      end do
+    end if
     !
     ! ground temperature
     !
@@ -645,15 +649,17 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tlay(n,k) = stdatm_val(calday,m2r%xlat(j,i),play(n,k),istdatm_tempk)
-          n = n + 1
+    if ( idynamic /= 3 ) then
+      do k = kzp1 , kth
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tlay(n,k) = stdatm_val(calday,m2r%xlat(j,i),play(n,k),istdatm_tempk)
+            n = n + 1
+          end do
         end do
       end do
-    end do
+    end if
     !
     ! air temperature at the interface
     !
@@ -672,15 +678,17 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , ktf
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tlev(n,k) = stdatm_val(calday,m2r%xlat(j,i),plev(n,k),istdatm_tempk)
-          n = n + 1
+    if ( idynamic /= 3 ) then
+      do k = kzp1 , ktf
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tlev(n,k) = stdatm_val(calday,m2r%xlat(j,i),plev(n,k),istdatm_tempk)
+            n = n + 1
+          end do
         end do
       end do
-    end do
+    end if
     if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
@@ -712,19 +720,21 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          h2ommr(n,k) = d_zero !stdatm_val(calday,m2r%xlat(j,i), &
-                        !           play(n,k),istdatm_qdens) / &
-                        !stdatm_val(calday,m2r%xlat(j,i), &
-                        !           play(n,k),istdatm_airdn)
-          h2ovmr(n,k) = d_zero ! h2ommr(n,k) * rep2
-          n = n + 1
+    if ( idynamic /= 3 ) then
+      do k = kzp1 , kth
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            h2ommr(n,k) = d_zero !stdatm_val(calday,m2r%xlat(j,i), &
+                          !           play(n,k),istdatm_qdens) / &
+                          !stdatm_val(calday,m2r%xlat(j,i), &
+                          !           play(n,k),istdatm_airdn)
+            h2ovmr(n,k) = d_zero ! h2ommr(n,k) * rep2
+            n = n + 1
+          end do
         end do
       end do
-    end do
+    end if
     !
     ! o3 volume mixing ratio (already on the right grid)
     !
@@ -738,18 +748,20 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          o3vmr(n,k) = stdatm_val(calday,m2r%xlat(j,i), &
-                                  play(n,k),istdatm_ozone) / &
-                       stdatm_val(calday,m2r%xlat(j,i), &
-                                  play(n,k),istdatm_airdn) * amd/amo3
-          n = n + 1
+    if ( idynamic /= 3 ) then
+      do k = kzp1 , kth
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            o3vmr(n,k) = stdatm_val(calday,m2r%xlat(j,i), &
+                                    play(n,k),istdatm_ozone) / &
+                         stdatm_val(calday,m2r%xlat(j,i), &
+                                    play(n,k),istdatm_airdn) * amd/amo3
+            n = n + 1
+          end do
         end do
       end do
-    end do
+    end if
     !
     ! cgas is in ppm , ppb , ppt
     !
@@ -765,7 +777,7 @@ module mod_rrtmg_driver
     end do
 
     do k = 1 , kz
-      co2vmrk(:,k) = co2vmr(n)
+      co2vmrk(:,k) = co2vmr(:)
     end do
 
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
@@ -832,10 +844,10 @@ module mod_rrtmg_driver
          tauaer(n,k,:) = tauxar3d(n,kj,:)
          ssaaer(n,k,:) = tauasc3d(n,kj,:)
          asmaer(n,k,:) = gtota3d(n,kj,:)
-         ecaer(:,:,:)   = 0.78_rkx! not used
          tauaer_lw(n,k,:) = tauxar3d_lw(n,kj,:)
         end do
       end do
+      ecaer(:,:,:)   = 0.78_rkx ! not used
     else
       tauaer(:,:,:) = d_zero
       ssaaer(:,:,:) = d_zero
@@ -889,8 +901,10 @@ module mod_rrtmg_driver
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
-    cldf(:,kzp1:kth) = d_zero
-    clwp(:,kzp1:kth) = d_zero
+    if ( idynamic /= 3 ) then
+      cldf(:,kzp1:kth) = d_zero
+      clwp(:,kzp1:kth) = d_zero
+    end if
     !
     ! set cloud fractional cover at bottom (ncld) model levels = 0
     !
