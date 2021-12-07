@@ -1691,21 +1691,6 @@ module mod_params
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
 
-    rnsrf_for_srffrq = syncro_srf/alarm_out_srf
-    rsrf_in_atm = syncro_srf/alarm_out_atm
-    if ( lakemod == 1 ) then
-      rnsrf_for_lakfrq = syncro_srf/alarm_out_lak
-    end if
-    if ( nsg > 1 ) then
-      rnsrf_for_subfrq = syncro_srf/alarm_out_sub
-    end if
-    rnsrf_for_day = syncro_srf/alarm_day
-    rnrad_for_radfrq = syncro_rad/alarm_out_rad
-    rnrad_for_srffrq = syncro_rad/alarm_out_srf
-    rnrad_for_optfrq = syncro_rad/alarm_out_opt
-    if ( irrtm == 1 ) then
-        rnrad_for_optfrq = syncro_radfor/alarm_out_opt
-    end if
     rsrffrq_sec = d_one/(srffrq*secph)
 
     if ( idynamic == 1 ) then

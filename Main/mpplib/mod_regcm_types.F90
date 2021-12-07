@@ -511,6 +511,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: hpbl        ! zpbl
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
+    real(rkx) , pointer , dimension(:,:) :: totcf       ! totcf
     real(rkx) , pointer , dimension(:,:) :: sfps        ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: sfta        ! atms%ts2d
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
@@ -603,6 +604,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: fsw
     real(rkx) , pointer , dimension(:,:) :: flw
     real(rkx) , pointer , dimension(:,:) :: flwd
+    real(rkx) , pointer , dimension(:,:) :: totcf
     real(rkx) , pointer , dimension(:,:,:) :: heatrt
   end type rad_2_mod
 

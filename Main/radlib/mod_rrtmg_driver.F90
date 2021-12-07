@@ -339,7 +339,7 @@ module mod_rrtmg_driver
         end do
       end do
       if ( imcica == 1 ) then
-              ! generates cloud properties:
+        ! generates cloud properties:
         permuteseed = permuteseed+mypid+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
         call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,         &
@@ -405,19 +405,19 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
-    sabtp(:) = swdflx(:,kth) - swuflx(:,kth)
-    solin(:) = swdflx(:,kth)
+    sabtp(:)  = swdflx(:,kth) - swuflx(:,kth)
+    solin(:)  = swdflx(:,kth)
     solout(:) = swuflx(:,kth)
-    frsa(:)  = swdflx(:,1) - swuflx(:,1)
-    clrst(:) = swdflxc(:,kth) - swuflxc(:,kth)
-    clrss(:) = swdflxc(:,1) - swuflxc(:,1)
+    frsa(:)   = swdflx(:,1) - swuflx(:,1)
+    clrst(:)  = swdflxc(:,kth) - swuflxc(:,kth)
+    clrss(:)  = swdflxc(:,1) - swuflxc(:,1)
 
-    firtp(:) = -d_one * (lwdflx(:,kth) - lwuflx(:,kth))
-    lwout(:) = -lwuflx(:,kth)
-    lwin(:)  = -lwdflx(:,kth)
-    frla(:)  = -d_one * (lwdflx(:,1) - lwuflx(:,1))
-    clrlt(:) = -d_one * (lwdflxc(:,kth) - lwuflxc(:,kth))
-    clrls(:) = -d_one * (lwdflxc(:,1) - lwuflxc(:,1))
+    firtp(:)  = -d_one * (lwdflx(:,kth) - lwuflx(:,kth))
+    lwout(:)  = -lwuflx(:,kth)
+    lwin(:)   = -lwdflx(:,kth)
+    frla(:)   = -d_one * (lwdflx(:,1) - lwuflx(:,1))
+    clrlt(:)  = -d_one * (lwdflxc(:,kth) - lwuflxc(:,kth))
+    clrls(:)  = -d_one * (lwdflxc(:,1) - lwuflxc(:,1))
 
     ! coupling with BATS
     !  r2m%sabveg set to frsa (as in standard version : potential inconsistency
@@ -426,12 +426,12 @@ module mod_rrtmg_driver
     abv(:) = frsa(:) + frla(:)
     sol(:) = swdvisflx(:,1)
     ! surface SW incident
-    sols(:) =  swddiruviflx(:,1)
+    sols(:)  = swddiruviflx(:,1)
     solsd(:) =  swddifuviflx(:,1)
-    soll(:) =  swddirpirflx(:,1)
+    soll(:)  =  swddirpirflx(:,1)
     solld(:) =  swddifpirflx(:,1)
     ! LW incident
-    slwd(:) = lwdflx(:,1)
+    slwd(:)  = lwdflx(:,1)
 
     ! 3d heating rate back on regcm grid and converted to K.S-1
     do k = 1 , kz
@@ -579,8 +579,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        dlat(n) = abs(m2r%xlat(j,i))
-        xptrop(n) = m2r%ptrop(j,i) * d_r100
+        dlat(n) = m2r%xlat(j,i)
         n = n + 1
       end do
     end do
@@ -588,6 +587,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
         n = n + 1
       end do
@@ -654,7 +654,7 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tlay(n,k) = stdatm_val(calday,m2r%xlat(j,i),play(n,k),istdatm_tempk)
+            tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
             n = n + 1
           end do
         end do
@@ -683,7 +683,7 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tlev(n,k) = stdatm_val(calday,m2r%xlat(j,i),plev(n,k),istdatm_tempk)
+            tlev(n,k) = stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk)
             n = n + 1
           end do
         end do
@@ -725,9 +725,9 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            h2ommr(n,k) = d_zero !stdatm_val(calday,m2r%xlat(j,i), &
+            h2ommr(n,k) = d_zero !stdatm_val(calday,dlat(n), &
                           !           play(n,k),istdatm_qdens) / &
-                          !stdatm_val(calday,m2r%xlat(j,i), &
+                          !stdatm_val(calday,dlat(n), &
                           !           play(n,k),istdatm_airdn)
             h2ovmr(n,k) = d_zero ! h2ommr(n,k) * rep2
             n = n + 1
@@ -753,10 +753,9 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            o3vmr(n,k) = stdatm_val(calday,m2r%xlat(j,i), &
-                                    play(n,k),istdatm_ozone) / &
-                         stdatm_val(calday,m2r%xlat(j,i), &
-                                    play(n,k),istdatm_airdn) * amd/amo3
+            o3vmr(n,k) = &
+              stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
+              stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
             n = n + 1
           end do
         end do
@@ -838,17 +837,27 @@ module mod_rrtmg_driver
       end do
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
-      do k = 1 , kz
-        kj = kzp1 - k
-        do n = 1 , npr
-         tauaer(n,k,:) = tauxar3d(n,kj,:)
-         ssaaer(n,k,:) = tauasc3d(n,kj,:)
-         asmaer(n,k,:) = gtota3d(n,kj,:)
-         tauaer_lw(n,k,:) = tauxar3d_lw(n,kj,:)
+      do i = 1 , nbndsw
+        do k = 1 , kz
+          kj = kzp1 - k
+          do n = 1 , npr
+            ecaer(n,k,i)  = 0.78_rkx ! not used
+            tauaer(n,k,i) = tauxar3d(n,kj,i)
+            ssaaer(n,k,i) = tauasc3d(n,kj,i)
+            asmaer(n,k,i) = gtota3d(n,kj,i)
+          end do
         end do
       end do
-      ecaer(:,:,:)   = 0.78_rkx ! not used
+      do i = 1 , nbndlw
+        do k = 1 , kz
+          kj = kzp1 - k
+          do n = 1 , npr
+            tauaer_lw(n,k,i) = tauxar3d_lw(n,kj,i)
+          end do
+        end do
+      end do
     else
+      ecaer(:,:,:)  = 0.78_rkx ! not used
       tauaer(:,:,:) = d_zero
       ssaaer(:,:,:) = d_zero
       asmaer(:,:,:) = d_zero
@@ -935,7 +944,7 @@ module mod_rrtmg_driver
     !
     do k = 1 , kth
       do n = 1 , npr
-        ciwp(n,k) =  clwp(n,k) *  fice(n,k)
+        ciwp(n,k) =  clwp(n,k) * fice(n,k)
         clwp(n,k) =  clwp(n,k) * (d_one - fice(n,k))
       end do
     end do
@@ -1065,9 +1074,9 @@ module mod_rrtmg_driver
      end if
    end if  ! inflagsw
   end subroutine prep_dat_rrtm
-!
-! for now we use for RRTM the same param as in standard rad
-!
+  !
+  ! For now we use for RRTM the same param as in standard rad
+  !
   subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , t
@@ -1084,8 +1093,8 @@ module mod_rrtmg_driver
     ! picemn - normalized pressure below which rei=reimax
     real(rkx) , parameter :: picemn = 0.4_rkx
     ! Temperatures in K (263.16 , 243.16)
-    real(rkx) , parameter :: minus10 = wattp-d_10
-    real(rkx) , parameter :: minus30 = wattp-(d_three*d_10)
+    real(rkx) , parameter :: minus10 = wattp-10.0_rkx
+    real(rkx) , parameter :: minus30 = wattp-30.0_rkx
 
     do k = 1 , kth
       do n = 1 , npr
