@@ -92,6 +92,7 @@ module mod_atm_interface
   real(rkx) , pointer , public , dimension(:,:) :: solvsd
   real(rkx) , pointer , public , dimension(:,:) :: solvl
   real(rkx) , pointer , public , dimension(:,:) :: solvld
+  real(rkx) , pointer , public , dimension(:,:) :: totcf
   real(rkx) , pointer , public , dimension(:,:) :: flw
   real(rkx) , pointer , public , dimension(:,:) :: fsw
   real(rkx) , pointer , public , dimension(:,:) :: flwd
@@ -1102,6 +1103,7 @@ module mod_atm_interface
       call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'storage:cldfra')
       call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'storage:cldlwc')
       call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'storage:heatrt')
+      call getmem2d(totcf,jci1,jci2,ici1,ici2,'storage:totcf')
       call getmem2d(flw,jci1,jci2,ici1,ici2,'storage:flw')
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')

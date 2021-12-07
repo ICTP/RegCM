@@ -117,10 +117,11 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        r2m%fsw(j,i) = frsa(n)
+        r2m%totcf(j,i) = totcf(n)
         r2m%solis(j,i) = sol(n)
-        r2m%flw(j,i) = frla(n)
-        r2m%flwd(j,i) = slwd(n)
+        r2m%fsw(j,i)   = frsa(n)
+        r2m%flw(j,i)   = frla(n)
+        r2m%flwd(j,i)  = slwd(n)
         n = n + 1
       end do
     end do
@@ -136,14 +137,21 @@ module mod_rad_outrad
     do i = ici1 , ici2
       do j = jci1 , jci2
         r2m%sabveg(j,i) = abv(n)
-        r2m%solvs(j,i) = sols(n)
+        r2m%solvs(j,i)  = sols(n)
         r2m%solvsd(j,i) = solsd(n)
-        r2m%solvl(j,i) = soll(n)
+        r2m%solvl(j,i)  = soll(n)
         r2m%solvld(j,i) = solld(n)
-        r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
         n = n + 1
       end do
     end do
+
+    if ( ifrad ) then
+      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
+    end if
+    if ( ifopt ) then
+      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
+    end if
 
     if ( ifrad .and. associated(rad_higcl_out) .and. &
                      associated(rad_midcl_out) .and. &
@@ -187,12 +195,6 @@ module mod_rad_outrad
       end do
     end if
 
-    if ( ifsrf ) then
-      if ( associated(srf_totcf_out) ) then
-        call copy2d_add(totcf,srf_totcf_out)
-      end if
-    end if
-
     if ( rcmtimer%start( ) ) return
 
     if ( ifopt .and. (iaerosol == 1 .or. iclimaaer > 0) ) then
@@ -202,8 +204,8 @@ module mod_rad_outrad
         visband = 8
       endif
       call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz)
-     ! call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
-     ! call copy4d_div(gtota3d,opt_agfu8_out,visband,deltaz)
+      ! call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
+      ! call copy4d_div(gtota3d,opt_agfu8_out,visband,deltaz)
       call copy4d(tauasc3d,opt_assa8_out,visband)
       call copy4d(gtota3d,opt_agfu8_out,visband)
 

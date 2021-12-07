@@ -151,6 +151,7 @@ module mod_rad_interface
     call assignpnt(fsw,r2m%fsw)
     call assignpnt(flw,r2m%flw)
     call assignpnt(flwd,r2m%flwd)
+    call assignpnt(totcf,r2m%totcf)
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
 

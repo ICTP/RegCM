@@ -29,6 +29,7 @@ module mod_ipcc_scenario
   use mod_mpmessage
   use mod_memutil
   use mod_runparams
+  use mod_mppparam , only : italk
   use mod_stdio
   use netcdf
 
@@ -1925,8 +1926,12 @@ module mod_ipcc_scenario
         write (stderr, *) nf90_strerror(ierr) , trim(filename)
         call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
       end if
-      lcmip6 = .true.
     end do
+    if ( myid == italk ) then
+      write(stdout,'(a,i0.4,i0.2,a,a)') &
+            ' Load GHG for ',year,month,' ',trim(sname)
+    end if
+    lcmip6 = .true.
   end subroutine load_scenario
 
   real(rkx) function ghgval(igas,year,month,lat)
@@ -1937,6 +1942,10 @@ module mod_ipcc_scenario
     if ( lcmip6 ) then
       if ( local_ghgc%year /= year .or. local_ghgc%month /= month ) then
         call load_scenario(local_ghgc%sname,year,month,local_ghgc)
+        if ( myid == italk ) then
+          write(stdout,'(a,i0.4,i0.2,a,a)') &
+            ' Load GHG for ', year, month, ' ', trim(local_ghgc%sname)
+        end if
       end if
       ilat = int((lat+89.75_rkx)/0.5_rkx) + 1
       ghgval = local_ghgc%gmf(ilat,igas) * cgunit(igas)

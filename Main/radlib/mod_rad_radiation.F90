@@ -1392,7 +1392,7 @@ module mod_rad_radiation
       else if ( abs(wavmin(ns)-0.701_rkx) < dlowval ) then
         indxsl = 3
       else if ( abs(wavmin(ns)-0.702_rkx) < dlowval .or. &
-                     wavmin(ns) > 2.38_rkx ) then
+                    wavmin(ns) > 2.38_rkx ) then
         indxsl = 4
       end if
       !
@@ -2116,7 +2116,7 @@ module mod_rad_radiation
     ! those locations where there are clouds
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
-    where ( tclrsf(:,kzp1) > mincld )
+    where ( tclrsf(:,kzp1) < 1.0e-3 )
       skip = .true.
     elsewhere
       skip = .false.

@@ -1515,8 +1515,13 @@ module mod_moloch
           end if
           loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
           labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
-          if ( debug_level > 3 .and. labsem .and. myid == italk ) then
-            write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+          if ( debug_level > 3 .and. myid == italk ) then
+            if ( labsem ) then
+              write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+            end if
+            if ( loutrad ) then
+              write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
+            end if
           end if
           call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
         end if

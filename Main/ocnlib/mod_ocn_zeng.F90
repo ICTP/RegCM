@@ -73,8 +73,9 @@ module mod_ocn_zeng
   !
   subroutine zengocndrv
     implicit none
-    real(rkx) :: dqh , dth , facttq , lh , q995 , qs , sh , zo , &
-                 t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
+    real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo , &
+                 tau , tsurf , ustar , uv10 , zi
+    real(rkx) :: t995 , q995 , uv995 , z995
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
                  wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
@@ -131,8 +132,8 @@ module mod_ocn_zeng
       !   Andreas (1989) CRREL Rep. 89-11
       !
       visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * t995 + &
-                               8.301e-6_rkx * t995*t995 - &
-                               4.840e-9_rkx * t995*t995*t995)
+                                   8.301e-6_rkx * t995*t995 - &
+                                   4.840e-9_rkx * t995*t995*t995)
       !
       ! initial values of u* and convective velocity
       !
@@ -184,7 +185,7 @@ module mod_ocn_zeng
       if ( br(i) >= d_zero ) then       ! neutral or stable
         zeta = br(i)*log(hu/zo)/(d_one-d_five*min(br(i),0.19_rkx))
         zeta = min(d_two,max(zeta,minz))
-      else                           ! unstable
+      else                              ! unstable
         zeta = br(i)*log(hu/zo)
         zeta = max(-d_100,min(zeta,-minz))
       end if
@@ -249,10 +250,10 @@ module mod_ocn_zeng
         end if
         thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
-        if ( zeta >= d_zero ) then   !neutral or stable
+        if ( zeta >= d_zero ) then     !  neutral or stable
           um = uv995
           zeta = min(d_two,max(zeta,minz))
-        else                   !unstable
+        else                           ! unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
           um = sqrt(uv995*uv995+wc*wc)
           zeta = max(-d_100,min(zeta,-minz))
