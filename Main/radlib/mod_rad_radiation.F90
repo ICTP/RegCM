@@ -2095,7 +2095,7 @@ module mod_rad_radiation
     if ( linteract ) then
       aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
       aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
-                    (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
+                      (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
         fsul(:,:) = fsul0(:,:)
@@ -2948,7 +2948,8 @@ module mod_rad_radiation
     ! g4       - Arguement in exp() in eq(10) table A2
     ! dplos    - Ozone pathlength eq(A2) in R&Di
     ! dplol    - Presure weighted ozone pathlength
-    ! beta     - Local interface temperature (includes Voigt line correction factor)
+    ! beta     - Local interface temperature
+    !            (includes Voigt line correction factor)
     ! rphat    - Effective pressure for ozone beta
     ! tcrfac   - Ozone temperature factor table 1 R&Di
     ! tmp1     - Ozone band factor see eq(A1) in R&Di
