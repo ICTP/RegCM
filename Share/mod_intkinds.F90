@@ -18,10 +18,16 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_intkinds
+#ifdef F2008
+  use , intrinsic :: iso_fortran_env
+#endif
 
   implicit none
 
   public
+
+#define __SYSTEM_INTMAX_32__          2147483647_int32
+#define __SYSTEM_INTMAX_64__ 9223372036854775807_int64
 
   ! Kind helpers
   integer , parameter :: ik8 = selected_int_kind(R=18)
@@ -29,12 +35,10 @@ module mod_intkinds
   integer , parameter :: ik2 = selected_int_kind(R=4)
   integer , parameter :: ik1 = selected_int_kind(R=2)
 
-#ifdef __PGI
-  ! quiet nan for portland group compilers
-  integer(ik4),  parameter :: bigint = O'17777777777'
+#ifdef F2008
+  integer(ik4),  parameter :: bigint = __SYSTEM_INTMAX_32__
 #else
-  ! signaling nan otherwise
-  integer(ik4),  parameter :: bigint = O'17777777777'
+  integer(ik4),  parameter :: bigint = 2147483647
 #endif
 
 end module mod_intkinds
