@@ -442,7 +442,7 @@ module mod_rrtmg_driver
       clwp_int(:,kj) = clwp(:,k)
     end do
 
-    kmaxcld = 3
+    kmaxcld = 1+ncld
     kmincld = kz-ncld
     cld_int(:,:) = d_zero
     do k = kmaxcld , kmincld
@@ -506,7 +506,7 @@ module mod_rrtmg_driver
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) , intent(in) :: iyear , imonth
-    integer(ik4) :: i , j , k , kj , ns , n , itr
+    integer(ik4) :: i , j , k , kj , ns , n , itr , kmaxcld , kmincld
     real(rkx) , parameter :: verynearone = 0.999999_rkx
     real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
     real(rkx) :: w1 , w2 , p1 , p2
@@ -890,7 +890,11 @@ module mod_rrtmg_driver
     !
     ! qc   = gary's mods for clouds/radiation tie-in to exmois
     !
-    do k = 1 , kz
+    kmaxcld = 1+ncld
+    kmincld = kz-ncld
+    cldf = d_zero
+    clwp = d_zero
+    do k = kmincld , kmaxcld
       kj = kzp1 - k
       n = 1
       do i = ici1 , ici2
@@ -914,15 +918,6 @@ module mod_rrtmg_driver
       cldf(:,kzp1:kth) = d_zero
       clwp(:,kzp1:kth) = d_zero
     end if
-    !
-    ! set cloud fractional cover at bottom (ncld) model levels = 0
-    !
-    do k = 1 , ncld
-      do n = 1 , npr
-        cldf(n,k) = d_zero
-        clwp(n,k) = d_zero
-      end do
-    end do
     !
     ! CLOUD Properties:
     !
