@@ -107,6 +107,7 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'amip'//pthsep
           fx_variant = 'r1i1p1f2'
           fx_experiment = '_amip_'
+        case ( 'EC-Earth3-Veg' )
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
             pthsep//'AerChemMIP'//pthsep

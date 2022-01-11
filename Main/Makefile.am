@@ -46,7 +46,7 @@ CUMLIBPTH = ./cumlib
 RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ_NEW
-RRTMSWLIBPTH = radlib/RRTMG_SW
+RRTMLIBPTH = radlib/RRTMG
 PLUMELIBPTH = $(REGCM_ROOT)/external
 BMILIBPTH = $(REGCM_ROOT)/external
 
@@ -62,7 +62,7 @@ CUMLIB = $(CUMLIBPTH)/libcum.a
 RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
-RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
+RRTMLIB = $(RRTMLIBPTH)/librrtmg.a
 PLUMELIB = $(PLUMELIBPTH)/libaerosol.a
 BMILIB = $(BMILIBPTH)/libbmi.a
 
@@ -81,7 +81,7 @@ LCUMLIB = -L$(CUMLIBPTH) -lcum
 LRADLIB = -L$(RADLIBPTH) -lrad
 LPBLLIB = -L$(PBLLIBPTH) -lpbl
 LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
-LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
+LRRTMLIB = -L$(RRTMLIBPTH) -lrrtmg
 LPLUMELIB = -L$(PLUMELIBPTH) -laerosol
 LBMILIB = -L$(BMILIBPTH) -lbmi
 
@@ -89,16 +89,16 @@ if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
               -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(OCNLIBPTH) -M$(CUMLIBPTH)  \
               -M$(MICROLIBPTH) -M$(CLOUDLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) \
-              -M$(RRTMSWLIBPTH) -M$(CLMLIBPTH)/clm4.5
+              -M$(RRTMLIBPTH) -M$(CLMLIBPTH)/clm4.5
 else
   CPPFLAGS += -I$(MPPLIBPTH) -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) \
               -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(OCNLIBPTH) -I$(CUMLIBPTH)  \
               -I$(MICROLIBPTH) -I$(CLOUDLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) \
-              -I$(RRTMSWLIBPTH) -I$(CLMLIBPTH)/clm4.5
+              -I$(RRTMLIBPTH) -I$(CLMLIBPTH)/clm4.5
 endif
 
 LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
-       $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
+       $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMLIB) \
        $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB) \
        $(LPLUMELIB) $(LBMILIB)
 
@@ -202,7 +202,7 @@ endif
 regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o mod_date.o mod_constants.o mod_stdio.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
 	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
-         $(RRTMSWLIB) $(PLUMELIB) $(BMILIB)
+         $(RRTMLIB) $(PLUMELIB) $(BMILIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o mod_stdatm.o mod_date.o mod_stdio.o
