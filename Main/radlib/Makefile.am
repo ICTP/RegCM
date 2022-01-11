@@ -19,10 +19,10 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/external:$(REGCM_ROOT)/Main/mpplib:RRTMG_SW/:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/external:$(REGCM_ROOT)/Main/mpplib:RRTMG/:.
 
-SUBDIRS = RRTMG_SW
-RRTMGSW = RRTMG_SW/librrtmgsw.a
+SUBDIRS = RRTMG
+RRTMG = RRTMG/librrtmg.a
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -50,9 +50,9 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   rrtmg_lw_cldprmc.F90  rrtmg_lw_read_nc.F90    rrtmg_lw_rtrnmr.F90
 
 if COMPILER_SUN
-  CPPFLAGS += -MRRTMG_SW
+  CPPFLAGS += -MRRTMG
 else
-  CPPFLAGS += -IRRTMG_SW
+  CPPFLAGS += -IRRTMG
 endif
 
 %.o: %.F90

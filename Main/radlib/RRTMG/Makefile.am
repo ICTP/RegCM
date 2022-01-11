@@ -21,8 +21,8 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
-noinst_LIBRARIES = librrtmgsw.a
-librrtmgsw_a_SOURCES = \
+noinst_LIBRARIES = librrtmg.a
+librrtmg_a_SOURCES = \
 parkind.F90    rrlw_kg06.F90  rrlw_kg16.F90   rrsw_kg17.F90  rrsw_kg27.F90  \
 parrrsw.F90    rrlw_kg07.F90  rrlw_ncpar.F90  rrsw_kg18.F90  rrsw_kg28.F90  \
 parrrtm.F90    rrlw_kg08.F90  rrlw_ref.F90    rrsw_kg19.F90  rrsw_kg29.F90  \

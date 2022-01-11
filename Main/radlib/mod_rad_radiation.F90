@@ -358,14 +358,6 @@ module mod_rad_radiation
   real(rkx) , parameter :: cplos = v0/(amd*egrav)*d_100
   real(rkx) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
   !
-  ! v_raytau_xx - Constants for new bands
-  ! v_abo3_xx   - Constants for new bands
-  !
-  real(rkx) , parameter :: v_raytau_35 = 0.155208_rkx
-  real(rkx) , parameter :: v_raytau_64 = 0.0392_rkx
-  real(rkx) , parameter :: v_abo3_35   = 2.4058030e+1_rkx
-  real(rkx) , parameter :: v_abo3_64   = 2.210e+1_rkx
-  !
   ! delta    - Pressure (atmospheres) for stratos. h2o limit
   ! o2mmr    - O2 mass mixing ratio
   !
@@ -523,12 +515,11 @@ module mod_rad_radiation
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx/
 
-  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx , &
-              1.2500_rkx , 1.0850_rkx , 0.7300_rkx ,              &
-              v_raytau_35 , v_raytau_64 ,                         &
-              0.0200_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
-              0.0001_rkx , 0.0001_rkx/
+  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
+              1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
+              0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+              0.0001_rkx , 0.0001_rkx , 0.0001_rkx/
   !
   ! Absorption coefficients
   !
@@ -537,10 +528,10 @@ module mod_rad_radiation
              0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
            190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
 
-  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx , &
-            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , v_abo3_35 ,    &
-            v_abo3_64 ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,    &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx , &
+  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
+            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
+            2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
             0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx/
 
   data abco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
