@@ -13,6 +13,7 @@
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
 ! Revised: MJIacono, AER, aug2008
+! Revised: MJIacono, AER, nov2015, solar variability
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -22,6 +23,9 @@
 ! selfrefo: real
 ! forrefo : real
 !sfluxrefo: real
+!irradnceo: real
+!facbrghto: real
+!snsptdrko: real
 ! abso3ao : real
 ! abso3bo : real
 ! raylao  : real
@@ -34,6 +38,8 @@
       real(kind=rb) :: kbo(5,13:59,no24)
       real(kind=rb) :: selfrefo(10,no24), forrefo(3,no24)
       real(kind=rb) :: sfluxrefo(no24,9)
+      real(kind=rb) :: irradnceo(no24,9)
+      real(kind=rb) :: facbrghto(no24,9),snsptdrko(no24,9)
       real(kind=rb) :: abso3ao(no24), abso3bo(no24)
       real(kind=rb) :: raylao(no24,9), raylbo(no24)
 
@@ -44,6 +50,7 @@
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
 ! Revised: MJIacono, AER, aug2008
+! Revised: MJIacono, AER, nov2015, solar variability
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -55,6 +62,9 @@
 ! selfref : real
 ! forref  : real
 ! sfluxref: real
+! irradnce: real
+! facbrght: real
+! snsptdrk: real
 ! abso3a  : real
 ! abso3b  : real
 ! rayla   : real
@@ -65,6 +75,8 @@
       real(kind=rb) :: kb(5,13:59,ng24), absb(235,ng24)
       real(kind=rb) :: selfref(10,ng24), forref(3,ng24)
       real(kind=rb) :: sfluxref(ng24,9)
+      real(kind=rb) :: irradnce(ng24,9)
+      real(kind=rb) :: facbrght(ng24,9),snsptdrk(ng24,9)
       real(kind=rb) :: abso3a(ng24), abso3b(ng24)
       real(kind=rb) :: rayla(ng24,9), raylb(ng24)
 

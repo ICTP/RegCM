@@ -1,34 +1,34 @@
-module parkind
+      module parkind
 
-  use mod_realkinds
-  use mod_intkinds
+      implicit none
+      save
 
-  implicit none
+!------------------------------------------------------------------
+! rrtmg kinds
+! Define integer and real kinds for various types.
+!
+! Initial version: MJIacono, AER, jun2006
+! Revised: MJIacono, AER, aug2008
+!------------------------------------------------------------------
 
-  !------------------------------------------------------------------
-  ! rrtmg kinds
-  ! Define integer and real kinds for various types.
-  !------------------------------------------------------------------
-  !
-  ! integer kinds
-  ! -------------
-  !
-  integer, parameter :: kind_ib = ik8
-  integer, parameter :: kind_im = ik4
-  integer, parameter :: kind_in = kind(1) ! native integer
-  !
-  ! real kinds
-  ! ----------
-  !
-#ifdef SINGLE_PRECISION_REAL
-  integer, parameter :: kind_rb = rk4
-  real(kind_rb) , parameter :: almostzero = 1.e-10_kind_rb
-#else
-  integer, parameter :: kind_rb = rk8
-  real(kind_rb) , parameter :: almostzero = 1.e-20_kind_rb
-#endif
-  integer, parameter :: kind_rm = rk4
-  integer, parameter :: kind_rn = kind(1.0) ! native real
+!
+!     integer kinds
+!     -------------
+!
+      integer, parameter :: kind_ib = selected_int_kind(13)  ! 8 byte integer
+      integer, parameter :: kind_im = selected_int_kind(6)   ! 4 byte integer
+      integer, parameter :: kind_in = kind(1)                ! native integer
 
-end module parkind
+!
+!     real kinds
+!     ----------
+!
+      integer, parameter :: kind_rb = selected_real_kind(12) ! 8 byte real
+      integer, parameter :: kind_rm = selected_real_kind(6)  ! 4 byte real
+      integer, parameter :: kind_rn = kind(1.0)              ! native real
+
+      real(kind_rb) , parameter :: almostzero = 1.e-20_kind_rb
+
+      end module parkind
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

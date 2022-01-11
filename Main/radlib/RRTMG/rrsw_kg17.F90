@@ -13,6 +13,7 @@
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
 ! Revised: MJIacono, AER, aug2008
+! Revised: MJIacono, AER, nov2015, solar variability
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -22,6 +23,9 @@
 ! selfrefo: real
 ! forrefo : real
 !sfluxrefo: real
+!irradnceo: real
+!facbrghto: real
+!snsptdrko: real
 !-----------------------------------------------------------------
 
       integer(kind=im), parameter :: no17 = 16
@@ -30,6 +34,8 @@
       real(kind=rb) :: kbo(5,5,13:59,no17)
       real(kind=rb) :: selfrefo(10,no17), forrefo(4,no17)
       real(kind=rb) :: sfluxrefo(no17,5)
+      real(kind=rb) :: irradnceo(no17,5)
+      real(kind=rb) :: facbrghto(no17,5),snsptdrko(no17,5)
 
       real(kind=rb) :: rayl
 
@@ -40,6 +46,7 @@
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
 ! Revised: MJIacono, AER, aug2008
+! Revised: MJIacono, AER, nov2015, solar variability
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -51,12 +58,17 @@
 ! selfref : real
 ! forref  : real
 ! sfluxref: real
+! irradnce: real
+! facbrght: real
+! snsptdrk: real
 !-----------------------------------------------------------------
 
       real(kind=rb) :: ka(9,5,13,ng17) , absa(585,ng17)
       real(kind=rb) :: kb(5,5,13:59,ng17), absb(1175,ng17)
       real(kind=rb) :: selfref(10,ng17), forref(4,ng17)
       real(kind=rb) :: sfluxref(ng17,5)
+      real(kind=rb) :: irradnce(ng17,5)
+      real(kind=rb) :: facbrght(ng17,5),snsptdrk(ng17,5)
 
       equivalence (ka(1,1,1,1),absa(1,1)), (kb(1,1,13,1),absb(1,1))
 
