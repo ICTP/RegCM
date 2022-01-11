@@ -25,11 +25,11 @@
 ! ngsNN  :  integer: cumulative number of g-intervals per band
 !------------------------------------------------------------------
 
-      integer(kind=im), parameter :: mxlay  = 203    !jplay, klev
+      integer(kind=im), parameter :: mxlay  = 603    !jplay, klev
       integer(kind=im), parameter :: mg     = 16     !jpg
       integer(kind=im), parameter :: nbndsw = 14     !jpsw, ksw
       integer(kind=im), parameter :: naerec  = 6     !jpaer
-      integer(kind=im), parameter :: mxmol  = 38
+      integer(kind=im), parameter :: mxmol  = 39
       integer(kind=im), parameter :: nstr   = 2
       integer(kind=im), parameter :: nmol   = 7
 ! Use for 112 g-point model
@@ -115,6 +115,5 @@
       real(kind=rb), parameter :: rrsw_scon = 1.36822e+03     ! W/m2
 
       end module parrrsw
-
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
