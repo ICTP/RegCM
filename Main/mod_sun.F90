@@ -281,7 +281,7 @@ module mod_sun
                   obliqr,declin,eccf)
     ! If we are fixing the solar constant, then fix the declination
     ! angle and eccentricity factor to constant values
-    if ( ifixsolar == 1 ) then
+    if ( irceideal == 1 ) then
       declin = 0.0_rkx
       eccf = 1.0_rkx
     end if
