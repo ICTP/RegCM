@@ -80,6 +80,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
          cfc11mmr , cfc12mmr , deltaz , dzr
+  real(rkx) , pointer , dimension(:) :: topz
   real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
@@ -270,6 +271,7 @@ module mod_rrtmg_driver
     call getmem2d(cfc11mmr,1,npr,1,kth,'rrtmg:cfc11mmr')
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
+    call getmem1d(topz,1,npr,'rrtmg:topz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
     call allocate_tracers(1,npr)
@@ -427,9 +429,9 @@ module mod_rrtmg_driver
     sol(:) = swdvisflx(:,1)
     ! surface SW incident
     sols(:)  = swddiruviflx(:,1)
-    solsd(:) =  swddifuviflx(:,1)
-    soll(:)  =  swddirpirflx(:,1)
-    solld(:) =  swddifpirflx(:,1)
+    solsd(:) = swddifuviflx(:,1)
+    soll(:)  = swddirpirflx(:,1)
+    solld(:) = swddifpirflx(:,1)
     ! LW incident
     slwd(:)  = lwdflx(:,1)
 
@@ -580,6 +582,7 @@ module mod_rrtmg_driver
     do i = ici1 , ici2
       do j = jci1 , jci2
         dlat(n) = m2r%xlat(j,i)
+        topz(n) = m2r%zq(j,i,1)-m2r%za(j,i,1)
         n = n + 1
       end do
     end do
@@ -661,24 +664,37 @@ module mod_rrtmg_driver
       end do
     end if
     !
-    ! air temperature at the interface
+    ! deltaz
     !
-    tlev(:,1) = tsfc(:)
-    do k = 2 , kz
-      kj = kzp1-k+1
+    do k = 1 , kz
       n = 1
+      kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p1 = (plev(n,k)/play(n,k-1))**c287
-          p2 = (plev(n,k)/play(n,k))**c287
-          w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
-          w2 = (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
-          tlev(n,k) = w1 * tlay(n,k-1) * p1 + w2 * tlay(n,k) * p2
+          deltaz(n,k) = m2r%deltaz(j,i,kj)
           n = n + 1
         end do
       end do
     end do
+    !
+    ! air temperature at the interface
+    !
+    tlev(:,1) = tsfc(:)
     if ( idynamic /= 3 ) then
+      do k = 2 , kz
+        kj = kzp1-k+1
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p1 = (plev(n,k)/play(n,k-1))**c287
+            p2 = (plev(n,k)/play(n,k))**c287
+            w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
+            w2 = (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
+            tlev(n,k) = w1 * tlay(n,k-1) * p1 + w2 * tlay(n,k) * p2
+            n = n + 1
+          end do
+        end do
+      end do
       do k = kzp1 , ktf
         n = 1
         do i = ici1 , ici2
@@ -687,6 +703,21 @@ module mod_rrtmg_driver
             n = n + 1
           end do
         end do
+      end do
+    else
+      do k = 2 , kz
+        kj = kzp1-k+1
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tlev(n,k) = 0.5_rkx * (tlay(n,k-1) + tlay(n,k))
+            n = n + 1
+          end do
+        end do
+      end do
+      do n = 1 , npr
+        tlev(n,kzp1) = tlay(n,kz) + &
+          (tlay(n,kz)-tlay(n,kzm1))/deltaz(n,kz) * topz(n)
       end do
     end if
     if ( ipptls > 1 ) then
@@ -736,7 +767,7 @@ module mod_rrtmg_driver
       end do
     end if
     !
-    ! o3 volume mixing ratio (already on the right grid)
+    ! o3 volume mixing ratio
     !
     do k = 1 , kz
       n = 1
@@ -805,11 +836,12 @@ module mod_rrtmg_driver
     !
     if ( ichem == 1 ) then
       do itr = 1 , ntr
+        kj = kzp1-k+1
         do k = 1 , kz
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = m2r%chiatms(j,i,k,itr)
+              aermmr(n,k,itr) = m2r%chiatms(j,i,kj,itr)
               n = n + 1
             end do
           end do
@@ -819,18 +851,20 @@ module mod_rrtmg_driver
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
         n = 1
+        kj = kzp1-k+1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh(n,k) = m2r%rhatms(j,i,k)
+            rh(n,k) = m2r%rhatms(j,i,kj)
             n = n + 1
           end do
         end do
       end do
       do k = 1 , kzp1
         n = 1
+        kj = kzp1-k+1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pint(n,k) = m2r%pfatms(j,i,k)
+            pint(n,k) = m2r%pfatms(j,i,kj)
             n = n + 1
           end do
         end do
@@ -866,22 +900,14 @@ module mod_rrtmg_driver
     !
     ! deltaz
     !
-    do k = 1 , kz
-      n = 1
-      kj = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          deltaz(n,k) = m2r%deltaz(j,i,kj)
-          n = n + 1
+    if ( idynamic == 3 ) then
+      do k = kzp1 , kth
+        do n = 1 , npr
+          deltaz(n,k) = rgas*regrav*tlay(n,k)/play(n,k) * &
+                  (plev(n,k)-plev(n,k+1))
         end do
       end do
-    end do
-    do k = kzp1 , kth
-      do n = 1 , npr
-        deltaz(n,k) = rgas*regrav*tlay(n,k)/play(n,k) * &
-                (plev(n,k)-plev(n,k+1))
-      end do
-    end do
+    end if
     !
     ! cloud fraction and cloud liquid waterpath calculation:
     ! as in STANDARD SCHEME for now (getdat) : We need to improve this
