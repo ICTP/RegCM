@@ -1,23 +1,42 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_rtrnmc.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.7 $
-!     created:   $Date: 2009/11/12 20:52:25 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_rtrnmc
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! --------- Modules ----------
 
-      use parkind, only : im => kind_im, rb => kind_rb , almostzero
+      use parkind, only : im => kind_im, rb => kind_rb
       use parrrtm, only : mg, nbndlw, ngptlw
       use rrlw_con, only: fluxfac, heatfac
       use rrlw_wvn, only: delwave, ngb, ngs
@@ -29,7 +48,7 @@
       contains
 
 !-----------------------------------------------------------------------------
-      subroutine rtrnmc(nlayers, istart, iend, iout, pz, semiss, &
+      subroutine rtrnmc(nlayers, istart, iend, iout, pz, semiss, ncbands, &
                         cldfmc, taucmc, planklay, planklev, plankbnd, &
                         pwvcm, fracs, taut, &
                         totuflux, totdflux, fnet, htr, &
@@ -86,6 +105,7 @@
                                                       !    Dimensions: (nlayers,ngptlw)
 
 ! Clouds
+      integer(kind=im), intent(in) :: ncbands         ! number of cloud spectral bands
       real(kind=rb), intent(in) :: cldfmc(:,:)        ! layer cloud fraction [mcica]
                                                       !    Dimensions: (ngptlw,nlayers)
       real(kind=rb), intent(in) :: taucmc(:,:)        ! layer cloud optical depth [mcica]
@@ -163,6 +183,7 @@
 !    nlayers                      ! number of model layers
 !    ngptlw                       ! total number of g-point subintervals
 !    nbndlw                       ! number of longwave spectral bands
+!    ncbands                      ! number of spectral bands for clouds
 !    secdiff                      ! diffusivity angle
 !    wtdiff                       ! weight for radiance to flux conversion
 !    pavel                        ! layer pressures (mb)
@@ -247,7 +268,7 @@
                0.414_rb,  0.00_rb,  0.00_rb,  0.00_rb, &
                 0.00_rb,  0.00_rb,  0.00_rb,  0.00_rb /
 
-      hvrrtc = '$Revision: 1.7 $'
+      hvrrtc = '$Revision$'
 
       do ibnd = 1,nbndlw
          if (ibnd.eq.1 .or. ibnd.eq.4 .or. ibnd.ge.10) then
@@ -296,11 +317,7 @@
             if (cldfmc(ig,lay) .eq. 1._rb) then
                ib = ngb(ig)
                odcld(lay,ig) = secdiff(ib) * taucmc(ig,lay)
-               if ( odcld(lay,ig) < 25.0D0 ) then
-                 transcld = exp(-odcld(lay,ig))
-               else
-                 transcld = 0.0_rb
-               end if
+               transcld = exp(-odcld(lay,ig))
                abscld(lay,ig) = 1._rb - transcld
                efclfrac(lay,ig) = abscld(lay,ig) * cldfmc(ig,lay)
                icldlyr(lay) = 1
@@ -336,12 +353,11 @@
                dplankup = planklev(lev,iband) - blay
                dplankdn = planklev(lev-1,iband) - blay
                odepth = secdiff(iband) * taut(lev,igc)
-               if ( odepth .lt. almostzero ) odepth = 0.0_rb
+               if (odepth .lt. 0.0_rb) odepth = 0.0_rb
 !  Cloudy layer
                if (icldlyr(lev).eq.1) then
                   iclddn = 1
                   odtot = odepth + odcld(lev,igc)
-                  if ( odtot < almostzero ) odtot = 0.0_rb
                   if (odtot .lt. 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth
@@ -383,6 +399,7 @@
                      bbutot(lev) = plfrac * (blay + tfactot * dplankup)
 
                   else
+
                      tblind = odepth/(bpade+odepth)
                      itgas = int(tblint*tblind+0.5_rb)
                      odepth = tau_tbl(itgas)
@@ -555,6 +572,7 @@
       totuclfl(0) = totuclfl(0) * fluxfac
       totdclfl(0) = totdclfl(0) * fluxfac
       fnetc(0) = totuclfl(0) - totdclfl(0)
+
 ! Calculate fluxes at model levels
       do lev = 1, nlayers
          totuflux(lev) = totuflux(lev) * fluxfac

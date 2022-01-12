@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_rtrnmr.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.7 $
-!     created:   $Date: 2009/11/12 20:52:26 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_rtrnmr
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
@@ -121,14 +140,14 @@
 
 ! ----- Local -----
 ! Declarations for radiative transfer
-!      real(kind=rb) :: abscld(nlayers,nbndlw)
+      real(kind=rb) :: abscld(nlayers,nbndlw)
       real(kind=rb) :: atot(nlayers)
       real(kind=rb) :: atrans(nlayers)
       real(kind=rb) :: bbugas(nlayers)
       real(kind=rb) :: bbutot(nlayers)
       real(kind=rb) :: clrurad(0:nlayers)
       real(kind=rb) :: clrdrad(0:nlayers)
-!      real(kind=rb) :: efclfrac(nlayers,nbndlw)
+      real(kind=rb) :: efclfrac(nlayers,nbndlw)
       real(kind=rb) :: uflux(0:nlayers)
       real(kind=rb) :: dflux(0:nlayers)
       real(kind=rb) :: urad(0:nlayers)
@@ -140,8 +159,7 @@
       real(kind=rb) :: secdiff(nbndlw)                 ! secant of diffusivity angle
       real(kind=rb) :: a0(nbndlw),a1(nbndlw),a2(nbndlw)! diffusivity angle adjustment coefficients
       real(kind=rb) :: wtdiff, rec_6
-!      real(kind=rb) :: transcld
-      real(kind=rb) :: radld, radclrd, plfrac, blay, dplankup, dplankdn
+      real(kind=rb) :: transcld, radld, radclrd, plfrac, blay, dplankup, dplankdn
       real(kind=rb) :: odepth, odtot, odepth_rec, odtot_rec, gassrc, ttot
       real(kind=rb) :: tblind, tfactot, bbd, bbdtot, tfacgas, transc, tausfac
       real(kind=rb) :: rad0, reflect, radlu, radclru
@@ -280,7 +298,7 @@
          endif
       enddo
 
-      hvrrtx = '$Revision: 1.7 $'
+      hvrrtx = '$Revision$'
 
       urad(0) = 0.0_rb
       drad(0) = 0.0_rb
@@ -398,8 +416,12 @@
                   rat2 = 0._rb
                endif
             endif
-            faccmb1(lev+1) = facclr1(lev+1) * faccld2(lev) * cldfrac(lev-1)
-            faccmb2(lev+1) = faccld1(lev+1) * facclr2(lev) * (1._rb - cldfrac(lev-1))
+            if (istcld(lev).ne.1) then
+                faccmb1(lev+1) = max(0.,min(cldfrac(lev+1)-cldfrac(lev), &
+                    cldfrac(lev-1)-cldfrac(lev)))
+                faccmb2(lev+1) = max(0.,min(cldfrac(lev)-cldfrac(lev+1), &
+                    cldfrac(lev)-cldfrac(lev-1)))
+            endif
          else
             istcld(lev+1) = 1
          endif
@@ -472,8 +494,12 @@
                   rat2 = 0._rb
                endif
             endif
-            faccmb1d(lev-1) = facclr1d(lev-1) * faccld2d(lev) * cldfrac(lev+1)
-            faccmb2d(lev-1) = faccld1d(lev-1) * facclr2d(lev) * (1._rb - cldfrac(lev+1))
+            if (istcldd(lev).ne.1) then
+                faccmb1d(lev-1) = max(0.,min(cldfrac(lev+1)-cldfrac(lev), &
+                    cldfrac(lev-1)-cldfrac(lev)))
+                faccmb2d(lev-1) = max(0.,min(cldfrac(lev)-cldfrac(lev+1), &
+                    cldfrac(lev)-cldfrac(lev-1)))
+            endif
          else
             istcldd(lev-1) = 1
          endif

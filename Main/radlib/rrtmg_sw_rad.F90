@@ -730,8 +730,8 @@ module rrtmg_sw_rad
             (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
              zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, ztaua,       &
              zasya, zomga, cossza, adjflux, laytrop, jp, jt, jt1,      &
-             colch4, colco2, colh2o, colmol, colo2, colo3, fac00,      &
-             fac01, fac10, fac11, selffac, selffrac, indself,          &
+             colch4, colco2, colh2o, colmol, coln2o, colo2, colo3,     &
+             fac00, fac01, fac10, fac11, selffac, selffrac, indself,   &
              forfac, forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu,      &
              zuvfd, zuvcd, znifd, znicd, zbbfddir, zbbcddir,           &
              zuvfddir, zuvcddir, znifddir, znicddir, zvsfd )

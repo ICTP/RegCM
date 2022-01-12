@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_spcvrt.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.5 $
-!     created:   $Date: 2009/05/22 22:22:22 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
       module rrtmg_sw_spcvrt
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
@@ -32,14 +51,14 @@
 
 ! ---------------------------------------------------------------------------
       subroutine spcvrt_sw &
-            (nlayers, istart, iend, icpr, idelm, iout, palbd, palbp, &
-             pclfr, ptauc, pasyc, pomgc, ptaucorig, ptaua, pasya,    &
-             pomga, prmu0, adjflux, laytrop, jp, jt, jt1, colch4,    &
-             colco2, colh2o, colmol, colo2, colo3, fac00, fac01,     &
-             fac10, fac11, selffac, selffrac, indself, forfac,       &
-             forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu, puvfd,     &
-             puvcd, pnifd, pnicd, pbbfddir, pbbcddir, puvfddir,      &
-             puvcddir, pnifddir, pnicddir, pvsfd)
+            (nlayers, istart, iend, icpr, idelm, iout, &
+             palbd, palbp, pclfr, ptauc, pasyc, pomgc, ptaucorig, &
+             ptaua, pasya, pomga, prmu0, adjflux, laytrop, jp, jt, jt1, &
+             co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
+             fac00, fac01, fac10, fac11, selffac, selffrac, indself, &
+             forfac, forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu, &
+             puvfd, puvcd, pnifd, pnicd, pbbfddir, pbbcddir, &
+             puvfddir, puvcddir, pnifddir, pnicddir, pvsfd)
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes,
@@ -92,12 +111,19 @@
       integer(kind=im), intent(in) :: jt(:)
                                                                !   Dimensions: (nlayers)
       integer(kind=im), intent(in) :: jt1(:)
-                                                               !   Dimensions: (nlayers)
 
       real(kind=rb), intent(in) :: colmol(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: adjflux(:)                  ! Earth/Sun distance adjustment
                                                                !   Dimensions: (jpband)
+! Solar variability
+      integer(kind=im) :: isolvar                  ! Flag for solar variability method
+      real(kind=rb) :: svar_f                      ! Solar variability facular multiplier
+      real(kind=rb) :: svar_s                      ! Solar variability sunspot multiplier
+      real(kind=rb) :: svar_i                      ! Solar variability baseline irradiance multiplier
+      real(kind=rb) :: svar_f_bnd(jpband)          ! Solar variability facular multiplier (by band)
+      real(kind=rb) :: svar_s_bnd(jpband)          ! Solar variability sunspot multiplier (by band)
+      real(kind=rb) :: svar_i_bnd(jpband)          ! Solar variability baseline irradiance multiplier (by band)
 
       real(kind=rb), intent(in) :: palbd(:)                    ! surface albedo (diffuse)
                                                                !   Dimensions: (nbndsw)
@@ -127,9 +153,13 @@
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colch4(:)
                                                                !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: co2mult(:)
+                                                               !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo3(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo2(:)
+                                                               !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: coln2o(:)
                                                                !   Dimensions: (nlayers)
 
       real(kind=rb), intent(in) :: forfac(:)
@@ -175,8 +205,6 @@
 !      real(kind=rb), intent(out) :: pnifu(:)
 !      real(kind=rb), intent(out) :: pvscd(:)
 !      real(kind=rb), intent(out) :: pvscu(:)
-
-! FAB , interface RegCM
        real(kind=rb), intent(out) :: pvsfd(:)
 !      real(kind=rb), intent(out) :: pvsfu(:)
 
@@ -186,8 +214,8 @@
       logical :: lrtchkclr(nlayers),lrtchkcld(nlayers)
 
       integer(kind=im)  :: klev
-      integer(kind=im) :: ib1, ib2, ibm, igt, ikl
-      integer(kind=im) :: iw, jb, jg, jk
+      integer(kind=im) :: ib1, ib2, ibm, igt, ikl, ikp, ikx
+      integer(kind=im) :: iw, jb, jg, jl, jk
 !      integer(kind=im), parameter :: nuv = ??
 !      integer(kind=im), parameter :: nvs = ??
       integer(kind=im) :: itind
@@ -195,22 +223,24 @@
       real(kind=rb) :: tblind, ze1
       real(kind=rb) :: zclear, zcloud
       real(kind=rb) :: zdbt(nlayers+1), zdbt_nodel(nlayers+1)
-      real(kind=rb) :: zgcc(nlayers), zgco(nlayers)
-      real(kind=rb) :: zomcc(nlayers), zomco(nlayers)
+      real(kind=rb) :: zgc(nlayers), zgcc(nlayers), zgco(nlayers)
+      real(kind=rb) :: zomc(nlayers), zomcc(nlayers), zomco(nlayers)
       real(kind=rb) :: zrdnd(nlayers+1), zrdndc(nlayers+1)
       real(kind=rb) :: zref(nlayers+1), zrefc(nlayers+1), zrefo(nlayers+1)
       real(kind=rb) :: zrefd(nlayers+1), zrefdc(nlayers+1), zrefdo(nlayers+1)
       real(kind=rb) :: zrup(nlayers+1), zrupd(nlayers+1)
       real(kind=rb) :: zrupc(nlayers+1), zrupdc(nlayers+1)
+      real(kind=rb) :: zs1(nlayers+1)
       real(kind=rb) :: ztauc(nlayers), ztauo(nlayers)
-      real(kind=rb) :: ztdbt(nlayers+1)
+      real(kind=rb) :: ztdn(nlayers+1), ztdnd(nlayers+1), ztdbt(nlayers+1)
+      real(kind=rb) :: ztoc(nlayers), ztor(nlayers)
       real(kind=rb) :: ztra(nlayers+1), ztrac(nlayers+1), ztrao(nlayers+1)
       real(kind=rb) :: ztrad(nlayers+1), ztradc(nlayers+1), ztrado(nlayers+1)
       real(kind=rb) :: zdbtc(nlayers+1), ztdbtc(nlayers+1)
       real(kind=rb) :: zincflx(ngptsw), zdbtc_nodel(nlayers+1)
       real(kind=rb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
-      real(kind=rb) :: zdbtmc, zdbtmo, zf
+      real(kind=rb) :: zdbtmc, zdbtmo, zf, zgw, zreflect
       real(kind=rb) :: zwf, tauorig, repclc
 !     real(kind=rb) :: zincflux                                   ! inactive
 
@@ -220,6 +250,7 @@
 !      real(kind=rb) :: zsflxzen(16)
       real(kind=rb) :: ztaug(nlayers,ngptsw), ztaur(nlayers,ngptsw)
       real(kind=rb) :: zsflxzen(ngptsw)
+      real(kind=rb) :: ssi(ngptsw), tsi
 
 ! Arrays from rrtmg_sw_vrtqdr routine
 
@@ -240,6 +271,7 @@
       klev = nlayers
       iw = 0
       repclc = 1.e-12_rb
+      isolvar = -1
 !      zincflux = 0.0_rb
 
       do jk=1,klev+1
@@ -265,14 +297,15 @@
 
       call taumol_sw(klev, &
                      colh2o, colco2, colch4, colo2, colo3, colmol, &
-                     laytrop, jp, jt, jt1, &
-                     fac00, fac01, fac10, fac11, &
-                     selffac, selffrac, indself, forfac, forfrac, indfor, &
-                     zsflxzen, ztaug, ztaur)
-
+                     laytrop, jp, jt, jt1, fac00, fac01, fac10, fac11, &
+                     selffac, selffrac, indself, forfac, forfrac, &
+                     indfor, isolvar, svar_f, svar_s, svar_i, &
+                     svar_f_bnd, svar_s_bnd, svar_i_bnd, &
+                     ssi, zsflxzen, ztaug, ztaur)
 
 ! Top of shortwave spectral band loop, jb = 16 -> 29; ibm = 1 -> 14
 
+      tsi = 0.0_rb
       do jb = ib1, ib2
          ibm = jb-15
          igt = ngc(ibm)
@@ -292,8 +325,17 @@
             iw = iw+1
 
 ! Apply adjustments for correct Earth/Sun distance and zenith angle to incoming solar flux
-            zincflx(iw) = adjflux(jb) * zsflxzen(iw) * prmu0
-!             zincflux = zincflux + adjflux(jb) * zsflxzen(iw) * prmu0           ! inactive
+! No solar variability and no solar cycle
+            if (isolvar .lt. 0) then
+               zincflx(iw) = adjflux(jb) * zsflxzen(iw) * prmu0
+!               zincflux = zincflux + adjflux(jb) * zsflxzen(iw) * prmu0           ! inactive
+            endif
+! Solar variability with averaged or specified solar cycle
+            if (isolvar .ge. 0) then
+               zincflx(iw) = adjflux(jb) * ssi(iw) * prmu0
+            endif
+!            tsi = tsi + ssi(iw)
+            tsi = tsi + zincflx(iw)
 
 ! Compute layer reflectances and transmittances for direct and diffuse sources,
 ! first clear then cloudy
@@ -401,7 +443,7 @@
                      zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = int(tblint * tblind + 0.5_rb)
+                     itind = tblint * tblind + 0.5_rb
                      zdbtmc = exp_tbl(itind)
                   endif
 
@@ -418,7 +460,7 @@
                      zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = int(tblint * tblind + 0.5_rb)
+                     itind = tblint * tblind + 0.5_rb
                      zdbtmo = exp_tbl(itind)
                   endif
 
@@ -503,7 +545,7 @@
                   zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = tblint * tblind + 0.5_rb
                   zdbtmc = exp_tbl(itind)
                endif
 
@@ -520,7 +562,7 @@
                   zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = tblint * tblind + 0.5_rb
                   zdbtmo = exp_tbl(itind)
                endif
 
@@ -575,6 +617,10 @@
                if (ibm >= 10 .and. ibm <= 13) then
                   puvcd(ikl) = puvcd(ikl) + zincflx(iw)*zcd(jk,iw)
                   puvfd(ikl) = puvfd(ikl) + zincflx(iw)*zfd(jk,iw)
+                  ! FAB RegCM
+                  if ( ibm == 10 ) then
+                     pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
+                  endif
                   if (idelm .eq. 0) then
                      puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
@@ -582,11 +628,6 @@
                      puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt(jk)
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc(jk)
                   endif
-!FAB
-                  if ( ibm == 10 ) then
-                    pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
-                  end if
-
 ! Accumulate direct fluxes for near-IR bands
                else if (ibm == 14 .or. ibm <= 9) then
                   pnicd(ikl) = pnicd(ikl) + zincflx(iw)*zcd(jk,iw)
@@ -611,6 +652,5 @@
       end subroutine spcvrt_sw
 
       end module rrtmg_sw_spcvrt
-
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

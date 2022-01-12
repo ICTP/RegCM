@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_taumol.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.5 $
-!     created:   $Date: 2009/05/22 22:22:22 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
       module rrtmg_sw_taumol
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
@@ -29,11 +48,13 @@
 
 !----------------------------------------------------------------------------
       subroutine taumol_sw(nlayers, &
-                           colh2o, colco2, colch4, colo2, colo3, colmol, &
+                           colh2o, colco2, colch4, colo2, colo3, colmol,&
                            laytrop, jp, jt, jt1, &
                            fac00, fac01, fac10, fac11, &
-                           selffac, selffrac, indself, forfac, forfrac, indfor, &
-                           sfluxzen, taug, taur)
+                           selffac, selffrac, indself, forfac, forfrac, &
+                           indfor, isolvar, svar_f, svar_s, svar_i, &
+                           svar_f_bnd, svar_s_bnd, svar_i_bnd, &
+                           ssi, sfluxzen, taug, taur)
 !----------------------------------------------------------------------------
 
 ! ******************************************************************************
@@ -206,7 +227,18 @@
                        fac00(:), fac01(:), &             !   Dimensions: (nlayers)
                        fac10(:), fac11(:)
 
+! Solar variability
+      integer(kind=im), intent(in) :: isolvar            ! Flag for solar variability method
+      real(kind=rb), intent(in) :: svar_f                ! Solar variability facular multiplier
+      real(kind=rb), intent(in) :: svar_s                ! Solar variability sunspot multiplier
+      real(kind=rb), intent(in) :: svar_i                ! Solar variability baseline irradiance multiplier
+      real(kind=rb), intent(in) :: svar_f_bnd(:)         ! Solar variability facular multiplier (by band)
+      real(kind=rb), intent(in) :: svar_s_bnd(:)         ! Solar variability sunspot multiplier (by band)
+      real(kind=rb), intent(in) :: svar_i_bnd(:)         ! Solar variability baseline irradiance multiplier (by band)
+
 ! ----- Output -----
+      real(kind=rb), intent(out) :: ssi(:)               ! spectral solar intensity with solar variability
+                                                         !   Dimensions: (ngptsw)
       real(kind=rb), intent(out) :: sfluxzen(:)          ! solar source function
                                                          !   Dimensions: (ngptsw)
       real(kind=rb), intent(out) :: taug(:,:)            ! gaseous optical depth
@@ -216,7 +248,7 @@
 !      real(kind=rb), intent(out) :: ssa(:,:)            ! single scattering albedo (inactive)
                                                          !   Dimensions: (nlayers,ngptsw)
 
-      hvrtau = '$Revision: 1.5 $'
+      hvrtau = '$Revision$'
 
 ! Calculate gaseous optical depth and planck fractions for each spectral band.
 
@@ -250,7 +282,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng16
-      use rrsw_kg16, only : absa, absb, forref, selfref, sfluxref, rayl
+      use rrsw_kg16, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -331,6 +366,16 @@
                  fac11(lay) * absb(ind1+1,ig))
 !            ssa(lay,ig) = tauray/taug(lay,ig)
             if (lay .eq. laysolfr) sfluxzen(ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ig) = svar_f_bnd(ngb(ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ig)) * irradnce(ig)
             taur(lay,ig) = tauray
          enddo
       enddo
@@ -348,8 +393,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng17, ngs16
-      use rrsw_kg17, only : absa, absb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg17, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -454,6 +501,23 @@
 !            ssa(lay,ngs16+ig) = tauray/taug(lay,ngs16+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs16+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs16+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs16+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs16+ig) = svar_f_bnd(ngb(ngs16+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs16+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs16+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs16+ig) = tauray
          enddo
       enddo
@@ -471,8 +535,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng18, ngs17
-      use rrsw_kg18, only : absa, absb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg18, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -536,6 +602,23 @@
 !            ssa(lay,ngs17+ig) = tauray/taug(lay,ngs17+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs17+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs17+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs17+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs17+ig) = svar_f_bnd(ngb(ngs17+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs17+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs17+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs17+ig) = tauray
          enddo
       enddo
@@ -570,8 +653,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng19, ngs18
-      use rrsw_kg19, only : absa, absb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg19, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -635,6 +720,23 @@
 !            ssa(lay,ngs18+ig) = tauray/taug(lay,ngs18+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs18+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs18+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs18+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs18+ig) = svar_f_bnd(ngb(ngs18+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs18+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs18+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs18+ig) = tauray
          enddo
       enddo
@@ -669,8 +771,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng20, ngs19
-      use rrsw_kg20, only : absa, absb, forref, selfref, &
-                            sfluxref, absch4, rayl
+      use rrsw_kg20, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, absch4, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
       implicit none
 
@@ -678,9 +782,11 @@
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, lay, laysolfr, &
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
                           layreffr
-      real(kind=rb) :: tauray
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -713,8 +819,18 @@
                  (forref(indf+1,ig) - forref(indf,ig)))) &
                  + colch4(lay) * absch4(ig)
 !            ssa(lay,ngs19+ig) = tauray/taug(lay,ngs19+ig)
-            taur(lay,ngs19+ig) = tauray
             if (lay .eq. laysolfr) sfluxzen(ngs19+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs19+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs19+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs19+ig) = svar_f_bnd(ngb(ngs19+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs19+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs19+ig)) * irradnce(ig)
+            taur(lay,ngs19+ig) = tauray
          enddo
       enddo
 
@@ -753,7 +869,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng21, ngs20
-      use rrsw_kg21, only : absa, absb, forref, selfref, sfluxref, rayl
+      use rrsw_kg21, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -817,6 +936,23 @@
 !            ssa(lay,ngs20+ig) = tauray/taug(lay,ngs20+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs20+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs20+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs20+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs20+ig) = svar_f_bnd(ngb(ngs20+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs20+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs20+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs20+ig) = tauray
          enddo
       enddo
@@ -874,7 +1010,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng22, ngs21
-      use rrsw_kg22, only : absa, absb, forref, selfref, sfluxref, rayl
+      use rrsw_kg22, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -946,6 +1085,23 @@
 !            ssa(lay,ngs21+ig) = tauray/taug(lay,ngs21+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs21+ig) = sfluxref(ig,js) &
                 + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs21+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs21+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs21+ig) = svar_f_bnd(ngb(ngs21+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs21+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs21+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs21+ig) = tauray
          enddo
       enddo
@@ -982,16 +1138,20 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng23, ngs22
-      use rrsw_kg23, only : absa, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg23, only : absa, ka, forref, selfref, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, lay, laysolfr, &
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
                           layreffr
-      real(kind=rb) :: tauray, givfac
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray, givfac
 
 ! Average Giver et al. correction factor for this band.
       givfac = 1.029_rb
@@ -1027,6 +1187,16 @@
                  (forref(indf+1,ig) - forref(indf,ig))))
 !            ssa(lay,ngs22+ig) = tauray/taug(lay,ngs22+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs22+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs22+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs22+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs22+ig) = svar_f_bnd(ngb(ngs22+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs22+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs22+ig)) * irradnce(ig)
             taur(lay,ngs22+ig) = tauray
          enddo
       enddo
@@ -1054,8 +1224,10 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng24, ngs23
-      use rrsw_kg24, only : absa, absb, forref, selfref, &
-                            sfluxref, abso3a, abso3b, rayla, raylb
+      use rrsw_kg24, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, abso3a, abso3b, rayla, raylb, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1121,6 +1293,23 @@
 !            ssa(lay,ngs23+ig) = tauray/taug(lay,ngs23+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs23+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs23+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs23+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs23+ig) = svar_f_bnd(ngb(ngs23+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs23+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs23+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs23+ig) = tauray
          enddo
       enddo
@@ -1156,14 +1345,20 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng25, ngs24
-      use rrsw_kg25, only : absa, sfluxref, abso3a, abso3b, rayl
+      use rrsw_kg25, only : absa, ka, &
+                            sfluxref, abso3a, abso3b, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, lay, laysolfr, layreffr
-      real(kind=rb) :: tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1189,6 +1384,16 @@
                  colo3(lay) * abso3a(ig)
 !            ssa(lay,ngs24+ig) = tauray/taug(lay,ngs24+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs24+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs24+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs24+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs24+ig) = svar_f_bnd(ngb(ngs24+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs24+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs24+ig)) * irradnce(ig)
             taur(lay,ngs24+ig) = tauray
          enddo
       enddo
@@ -1216,13 +1421,18 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng26, ngs25
-      use rrsw_kg26, only : sfluxref, rayl
+      use rrsw_kg26, only : sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1236,6 +1446,16 @@
 !            taug(lay,ngs25+ig) = colmol(lay) * rayl(ig)
 !            ssa(lay,ngs25+ig) = 1.0_rb
             if (lay .eq. laysolfr) sfluxzen(ngs25+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs25+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs25+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs25+ig) = svar_f_bnd(ngb(ngs25+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs25+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs25+ig)) * irradnce(ig)
             taug(lay,ngs25+ig) = 0._rb
             taur(lay,ngs25+ig) = colmol(lay) * rayl(ig)
          enddo
@@ -1264,14 +1484,19 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng27, ngs26
-      use rrsw_kg27, only : absa, absb, sfluxref, rayl
+      use rrsw_kg27, only : absa, ka, absb, kb, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, lay, laysolfr, layreffr
-      real(kind=rb) :: tauray, scalekur
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray, scalekur
 
 ! Kurucz solar source function
 ! The values in sfluxref were obtained using the "low resolution"
@@ -1323,6 +1548,16 @@
                  fac11(lay) * absb(ind1+1,ig))
 !            ssa(lay,ngs26+ig) = tauray/taug(lay,ngs26+ig)
             if (lay.eq.laysolfr) sfluxzen(ngs26+ig) = scalekur * sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs26+ig) = scalekur * sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs26+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs26+ig) = svar_f_bnd(ngb(ngs26+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs26+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs26+ig)) * irradnce(ig)
             taur(lay,ngs26+ig) = tauray
          enddo
       enddo
@@ -1340,13 +1575,16 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng28, ngs27
-      use rrsw_kg28, only : absa, absb, sfluxref, rayl
+      use rrsw_kg28, only : absa, ka, absb, kb, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, js, lay, laysolfr, layreffr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray, strrat
@@ -1356,7 +1594,7 @@
 ! vapor self-continuum is interpolated (in temperature) separately.
 
       strrat = 6.67029e-07_rb
-      layreffr = 58
+      layreffr = 42
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -1430,6 +1668,23 @@
 !            ssa(lay,ngs27+ig) = tauray/taug(lay,ngs27+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs27+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs27+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs27+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs27+ig) = svar_f_bnd(ngb(ngs27+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs27+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs27+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs27+ig) = tauray
          enddo
       enddo
@@ -1447,16 +1702,20 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng29, ngs28
-      use rrsw_kg29, only : absa, absb, forref, selfref, &
-                            sfluxref, absh2o, absco2, rayl
+      use rrsw_kg29, only : absa, ka, absb, kb, forref, selfref, &
+                            sfluxref, absh2o, absco2, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig , ind0 , ind1 , indf , inds , lay, &
-                          laysolfr, layreffr
-      real(kind=rb) :: tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1509,6 +1768,16 @@
                  + colh2o(lay) * absh2o(ig)
 !            ssa(lay,ngs28+ig) = tauray/taug(lay,ngs28+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs28+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs28+ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs28+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs28+ig) = svar_f_bnd(ngb(ngs28+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs28+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs28+ig)) * irradnce(ig)
             taur(lay,ngs28+ig) = tauray
          enddo
       enddo

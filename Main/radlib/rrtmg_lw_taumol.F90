@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_taumol.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.7 $
-!     created:   $Date: 2009/10/20 15:08:37 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_taumol
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
@@ -29,7 +48,7 @@
 
 !----------------------------------------------------------------------------
       subroutine taumol(nlayers, pavel, wx, coldry, &
-                        laytrop, jp, jt, jt1, &
+                        laytrop, jp, jt, jt1, planklay, planklev, plankbnd, &
                         colh2o, colco2, colo3, coln2o, colco, colch4, colo2, &
                         colbrd, fac00, fac01, fac10, fac11, &
                         rat_h2oco2, rat_h2oco2_1, rat_h2oo3, rat_h2oo3_1, &
@@ -190,6 +209,12 @@
                                                       !    Dimensions: (nlayers)
       integer(kind=im), intent(in) :: jt1(:)          !
                                                       !    Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: planklay(:,:)      !
+                                                      !    Dimensions: (nlayers,nbndlw)
+      real(kind=rb), intent(in) :: planklev(0:,:)     !
+                                                      !    Dimensions: (nlayers,nbndlw)
+      real(kind=rb), intent(in) :: plankbnd(:)        !
+                                                      !    Dimensions: (nbndlw)
 
       real(kind=rb), intent(in) :: colh2o(:)          ! column amount (h2o)
                                                       !    Dimensions: (nlayers)
@@ -247,7 +272,7 @@
       real(kind=rb), intent(out) :: taug(:,:)         ! gaseous optical depth
                                                       !    Dimensions: (nlayers,ngptlw)
 
-      hvrtau = '$Revision: 1.7 $'
+      hvrtau = '$Revision$'
 
 ! Calculate gaseous optical depth and planck fractions for each spectral band.
 
@@ -288,7 +313,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng1
-      use rrlw_kg01, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg01, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mn2, kb_mn2, selfref, forref
 
 ! ------- Declarations -------
@@ -315,7 +340,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
          pp = pavel(lay)
-         corradj =  1.0_rb
+         corradj =  1.
          if (pp .lt. 250._rb) then
             corradj = 1._rb - 0.15_rb * (250._rb-pp) / 154.4_rb
          endif
@@ -379,7 +404,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng2, ngs1
-      use rrlw_kg02, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg02, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -450,7 +475,7 @@
 
       use parrrtm, only : ng3, ngs2
       use rrlw_ref, only : chi_mls
-      use rrlw_kg03, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg03, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mn2o, kb_mn2o, selfref, forref
 
 ! ------- Declarations -------
@@ -764,7 +789,7 @@
 
       use parrrtm, only : ng4, ngs3
       use rrlw_ref, only : chi_mls
-      use rrlw_kg04, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg04, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -1000,13 +1025,13 @@
 ! Empirical modification to code to improve stratospheric cooling rates
 ! for co2.  Revised to apply weighting for g-point reduction in this band.
 
-         taug(lay,ngs3+8)=taug(lay,ngs3+8)*0.92_rb
-         taug(lay,ngs3+9)=taug(lay,ngs3+9)*0.88_rb
-         taug(lay,ngs3+10)=taug(lay,ngs3+10)*1.07_rb
-         taug(lay,ngs3+11)=taug(lay,ngs3+11)*1.1_rb
-         taug(lay,ngs3+12)=taug(lay,ngs3+12)*0.99_rb
-         taug(lay,ngs3+13)=taug(lay,ngs3+13)*0.88_rb
-         taug(lay,ngs3+14)=taug(lay,ngs3+14)*0.943_rb
+         taug(lay,ngs3+8)=taug(lay,ngs3+8)*0.92
+         taug(lay,ngs3+9)=taug(lay,ngs3+9)*0.88
+         taug(lay,ngs3+10)=taug(lay,ngs3+10)*1.07
+         taug(lay,ngs3+11)=taug(lay,ngs3+11)*1.1
+         taug(lay,ngs3+12)=taug(lay,ngs3+12)*0.99
+         taug(lay,ngs3+13)=taug(lay,ngs3+13)*0.88
+         taug(lay,ngs3+14)=taug(lay,ngs3+14)*0.943
 
       enddo
 
@@ -1024,7 +1049,7 @@
 
       use parrrtm, only : ng5, ngs4
       use rrlw_ref, only : chi_mls
-      use rrlw_kg05, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg05, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mo3, selfref, forref, ccl4
 
 ! ------- Declarations -------
@@ -1299,7 +1324,7 @@
 
       use parrrtm, only : ng6, ngs5
       use rrlw_ref, only : chi_mls
-      use rrlw_kg06, only : fracrefa, absa, ka_mco2, &
+      use rrlw_kg06, only : fracrefa, absa, ka, ka_mco2, &
                             selfref, forref, cfc11adj, cfc12
 
 ! ------- Declarations -------
@@ -1385,7 +1410,7 @@
 
       use parrrtm, only : ng7, ngs6
       use rrlw_ref, only : chi_mls
-      use rrlw_kg07, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg07, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mco2, kb_mco2, selfref, forref
 
 ! ------- Declarations -------
@@ -1659,7 +1684,7 @@
 
       use parrrtm, only : ng8, ngs7
       use rrlw_ref, only : chi_mls
-      use rrlw_kg08, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg08, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mco2, ka_mn2o, ka_mo3, kb_mco2, kb_mn2o, &
                             selfref, forref, cfc12, cfc22adj
 
@@ -1782,7 +1807,7 @@
 
       use parrrtm, only : ng9, ngs8
       use rrlw_ref, only : chi_mls
-      use rrlw_kg09, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg09, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mn2o, kb_mn2o, selfref, forref
 
 ! ------- Declarations -------
@@ -2043,7 +2068,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng10, ngs9
-      use rrlw_kg10, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg10, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -2111,7 +2136,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng11, ngs10
-      use rrlw_kg11, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg11, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             ka_mo2, kb_mo2, selfref, forref
 
 ! ------- Declarations -------
@@ -2191,7 +2216,8 @@
 
       use parrrtm, only : ng12, ngs11
       use rrlw_ref, only : chi_mls
-      use rrlw_kg12, only : fracrefa, absa, selfref, forref
+      use rrlw_kg12, only : fracrefa, absa, ka, &
+                            selfref, forref
 
 ! ------- Declarations -------
 
@@ -2393,7 +2419,7 @@
 
       use parrrtm, only : ng13, ngs12
       use rrlw_ref, only : chi_mls
-      use rrlw_kg13, only : fracrefa, fracrefb, absa, &
+      use rrlw_kg13, only : fracrefa, fracrefb, absa, ka, &
                             ka_mco2, ka_mco, kb_mo3, selfref, forref
 
 ! ------- Declarations -------
@@ -2652,7 +2678,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng14, ngs13
-      use rrlw_kg14, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg14, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -2715,7 +2741,8 @@
 
       use parrrtm, only : ng15, ngs14
       use rrlw_ref, only : chi_mls
-      use rrlw_kg15, only : fracrefa, absa, ka_mn2, selfref, forref
+      use rrlw_kg15, only : fracrefa, absa, ka, &
+                            ka_mn2, selfref, forref
 
 ! ------- Declarations -------
 
@@ -2938,7 +2965,7 @@
 
       use parrrtm, only : ng16, ngs15
       use rrlw_ref, only : chi_mls
-      use rrlw_kg16, only : fracrefa, fracrefb, absa, absb, &
+      use rrlw_kg16, only : fracrefa, fracrefb, absa, ka, absb, kb, &
                             selfref, forref
 
 ! ------- Declarations -------

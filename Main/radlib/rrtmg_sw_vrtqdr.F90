@@ -1,23 +1,42 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_vrtqdr.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.4 $
-!     created:   $Date: 2009/05/22 22:22:22 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_sw_vrtqdr
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
-      use parkind, only: im => kind_im, rb => kind_rb , almostzero
+      use parkind, only: im => kind_im, rb => kind_rb
 !      use parrrsw, only: ngptsw
 
       implicit none
@@ -83,7 +102,7 @@
 
       integer(kind=im) :: ikp, ikx, jk
 
-      real(kind=rb) :: zreflect , a1 , a2
+      real(kind=rb) :: zreflect
       real(kind=rb) :: ztdn(klev+1)
 
 ! Definitions
@@ -131,70 +150,26 @@
 
       do jk = 2,klev
          ikp = jk+1
-         if ( ptra(jk) > 1.0e-5_rb ) then
-            ztdn(ikp) = ptdbt(jk) * ptra(jk)
-         else
-            ztdn(ikp) = 0.0_rb
-         end if
          zreflect = 1._rb / (1._rb - prefd(jk) * prdnd(jk))
-         if ( zreflect > almostzero .and. ptrad(jk) > almostzero ) then
-           a1 = ztdn(jk) - ptdbt(jk)
-           if ( ptdbt(jk) > almostzero .and. &
-                pref(jk)  > almostzero .and. &
-                prdnd(jk) > almostzero ) then
-              a2 = ptdbt(jk) * pref(jk) * prdnd(jk)
-           else
-              a2 = 0.0_rb
-           end if
-           if ( a1 < almostzero ) a1 = 0.0_rb
-           if ( a2 < almostzero ) a2 = 0.0_rb
-           ztdn(ikp) = ztdn(ikp) + zreflect * ptrad(jk) * (a1 + a2)
-         end if
-         ! ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
-         !            (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
-         !             ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
+         ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
+                    (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
+                     ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
          prdnd(ikp) = prefd(jk) + ptrad(jk) * ptrad(jk) * &
                       prdnd(jk) * zreflect
-         if ( prdnd(ikp) < almostzero ) prdnd(ikp) = 0.0_rb
       enddo
 
 ! Up and down-welling fluxes at levels
 
       do jk = 1,klev+1
          zreflect = 1._rb / (1._rb - prdnd(jk) * prupd(jk))
-         if ( zreflect > almostzero ) then
-            if ( ptdbt(jk) > almostzero .and. &
-                 prup(jk)  > almostzero ) then
-               a1 = ptdbt(jk) * prup(jk)
-            else
-               a1 = 0.0_rb
-            end if
-            if ( prupd(jk) > almostzero ) then
-               a2 = (ztdn(jk) - ptdbt(jk)) * prupd(jk)
-            else
-               a2 = 0.0_rb
-            end if
-            if ( a1 < almostzero ) a1 = 0.0_rb
-            if ( a2 < almostzero ) a2 = 0.0_rb
-            pfu(jk,kw) = (a1 + a2) * zreflect
-            a1 = ztdn(jk) - ptdbt(jk)
-            if ( ptdbt(jk) > almostzero .and. &
-                 prup(jk)  > almostzero .and. &
-                 prdnd(jk) > almostzero ) then
-               a2 = ptdbt(jk) * prup(jk) * prdnd(jk)
-            else
-               a2 = 0.0_rb
-            end if
-            if ( a1 < almostzero ) a1 = 0.0_rb
-            if ( a2 < almostzero ) a2 = 0.0_rb
-            pfd(jk,kw) = ptdbt(jk) + (a1 + a2) * zreflect
-         else
-            pfu(jk,kw) = 0.0_rb
-            pfd(jk,kw) = ptdbt(jk)
-         end if
+         pfu(jk,kw) = (ptdbt(jk) * prup(jk) + &
+                      (ztdn(jk) - ptdbt(jk)) * prupd(jk)) * zreflect
+         pfd(jk,kw) = ptdbt(jk) + (ztdn(jk) - ptdbt(jk)+ &
+                      ptdbt(jk) * prup(jk) * prdnd(jk)) * zreflect
       enddo
 
       end subroutine vrtqdr_sw
 
       end module rrtmg_sw_vrtqdr
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
