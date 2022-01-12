@@ -506,7 +506,7 @@ module rrtmg_lw_rad
         !  each longwave spectral band.
 
         call taumol(nlayers, pavel, wx, coldry, &
-                  laytrop, jp, jt, jt1, &
+                  laytrop, jp, jt, jt1, planklay, planklev, plankbnd, &
                   colh2o, colco2, colo3, coln2o, colco, colch4, colo2, &
                   colbrd, fac00, fac01, fac10, fac11, &
                   rat_h2oco2, rat_h2oco2_1, rat_h2oo3, rat_h2oo3_1, &
@@ -571,7 +571,7 @@ module rrtmg_lw_rad
           ! to be used.  Clear sky calculation is done simultaneously.
           ! For McICA, RTRNMC is called for clear and cloudy calculations.
 
-          call rtrnmc(nlayers, istart, iend, iout, pz, semiss, &
+          call rtrnmc(nlayers, istart, iend, iout, pz, semiss, ncbands, &
                       cldfmc, taucmc, planklay, planklev, plankbnd, &
                       pwvcm, fracs, taut, &
                       totuflux, totdflux, fnet, htr, &

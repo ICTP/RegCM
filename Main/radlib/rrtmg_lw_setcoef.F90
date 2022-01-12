@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_setcoef.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.5 $
-!     created:   $Date: 2009/11/12 20:52:26 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_setcoef
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
 
@@ -147,7 +166,7 @@
       real(kind=rb) :: plog, fp, ft, ft1, water, scalefac, factor, compfp
 
 
-      hvrset = '$Revision: 1.5 $'
+      hvrset = '$Revision$'
 
       stpfac = 296._rb/1013._rb
 
@@ -157,14 +176,14 @@
       elseif (indbound .gt. 180) then
          indbound = 180
       endif
-      tbndfrac = tbound - 159._rb - real(indbound,rb)
+      tbndfrac = tbound - 159._rb - real(indbound,kind=rb)
       indlev0 = int(tz(0) - 159._rb)
       if (indlev0 .lt. 1) then
          indlev0 = 1
       elseif (indlev0 .gt. 180) then
          indlev0 = 180
       endif
-      t0frac = tz(0) - 159._rb - real(indlev0,rb)
+      t0frac = tz(0) - 159._rb - real(indlev0,kind=rb)
       laytrop = 0
 
 ! Begin layer loop
@@ -177,14 +196,14 @@
          elseif (indlay .gt. 180) then
             indlay = 180
          endif
-         tlayfrac = tavel(lay) - 159._rb - real(indlay,rb)
-         indlev = int(tz(lay)-159._rb)
+         tlayfrac = tavel(lay) - 159._rb - real(indlay,kind=rb)
+         indlev = int(tz(lay) - 159._rb)
          if (indlev .lt. 1) then
             indlev = 1
          elseif (indlev .gt. 180) then
             indlev = 180
          endif
-         tlevfrac = tz(lay) - 159._rb - real(indlev,rb)
+         tlevfrac = tz(lay) - 159._rb - real(indlev,kind=rb)
 
 ! Begin spectral band loop
          do iband = 1, 15
@@ -277,14 +296,15 @@
          elseif (jt(lay) .gt. 4) then
             jt(lay) = 4
          endif
-         ft = ((tavel(lay)-tref(jp(lay)))/15._rb) - real(jt(lay)-3,rb)
+         ft = ((tavel(lay)-tref(jp(lay)))/15._rb) - &
+               real(jt(lay)-3,kind=rb)
          jt1(lay) = int(3._rb + (tavel(lay)-tref(jp1))/15._rb)
          if (jt1(lay) .lt. 1) then
             jt1(lay) = 1
          elseif (jt1(lay) .gt. 4) then
             jt1(lay) = 4
          endif
-         ft1 = ((tavel(lay)-tref(jp1))/15._rb) - real(jt1(lay)-3,rb)
+         ft1 = ((tavel(lay)-tref(jp1))/15._rb) - real(jt1(lay)-3,kind=rb)
          water = wkl(1,lay)/coldry(lay)
          scalefac = pavel(lay) * stpfac / tavel(lay)
 
@@ -296,14 +316,14 @@
          forfac(lay) = scalefac / (1.0_rb+water)
          factor = (332.0_rb-tavel(lay))/36.0_rb
          indfor(lay) = min(2, max(1, int(factor)))
-         forfrac(lay) = factor - real(indfor(lay),rb)
+         forfrac(lay) = factor - real(indfor(lay),kind=rb)
 
 !  Set up factors needed to separately include the water vapor
 !  self-continuum in the calculation of absorption coefficient.
          selffac(lay) = water * forfac(lay)
          factor = (tavel(lay)-188.0_rb)/7.2_rb
          indself(lay) = min(9, max(1, int(factor)-7))
-         selffrac(lay) = factor - real(indself(lay) + 7,rb)
+         selffrac(lay) = factor - real(indself(lay) + 7,kind=rb)
 
 !  Set up factors needed to separately include the minor gases
 !  in the calculation of absorption coefficient
@@ -312,7 +332,7 @@
              *(wbroad(lay)/(coldry(lay)+wkl(1,lay)))
          factor = (tavel(lay)-180.8_rb)/7.2_rb
          indminor(lay) = min(18, max(1, int(factor)))
-         minorfrac(lay) = factor - real(indminor(lay),rb)
+         minorfrac(lay) = factor - real(indminor(lay),kind=rb)
 
 !  Setup reference ratio to be used in calculation of binary
 !  species parameter in lower atmosphere.
@@ -366,7 +386,7 @@
              * (wbroad(lay)/(coldry(lay)+wkl(1,lay)))
          factor = (tavel(lay)-180.8_rb)/7.2_rb
          indminor(lay) = min(18, max(1, int(factor)))
-         minorfrac(lay) = factor - real(indminor(lay),rb)
+         minorfrac(lay) = factor - real(indminor(lay),kind=rb)
 
 !  Setup reference ratio to be used in calculation of binary
 !  species parameter in upper atmosphere.
@@ -1990,4 +2010,5 @@
       end subroutine lwavplankderiv
 
       end module rrtmg_lw_setcoef
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

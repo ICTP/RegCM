@@ -494,7 +494,7 @@ module rrtmg_lw_rad_nomcica
 !  each longwave spectral band.
 
          call taumol(nlayers, pavel, wx, coldry, &
-                     laytrop, jp, jt, jt1, &
+                     laytrop, jp, jt, jt1, planklay, planklev, plankbnd, &
                      colh2o, colco2, colo3, coln2o, colco, colch4, colo2, &
                      colbrd, fac00, fac01, fac10, fac11, &
                      rat_h2oco2, rat_h2oco2_1, rat_h2oo3, rat_h2oo3_1, &
