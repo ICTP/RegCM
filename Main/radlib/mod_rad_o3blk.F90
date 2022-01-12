@@ -97,7 +97,8 @@ module mod_rad_o3blk
   character(len=256) function o3filename(year)
     implicit none
     integer(ik4) , intent(in) :: year
-    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
+         scenario(1:5) == 'CONST' ) then
       ozname = ozname_rcp
       mulfac = 1.0e-6_rkx
       moffset = 1
@@ -389,7 +390,8 @@ module mod_rad_o3blk
       write (stderr, *) trim(o3file) , ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
-    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
+         scenario(1:5) == 'CONST' ) then
       iret = nf90_inq_dimid(ncid,'longitude',idimid)
       iret = nf90_inquire_dimension(ncid,idimid,len=nlon)
       iret = nf90_inq_dimid(ncid,'latitude',idimid)
@@ -492,12 +494,12 @@ module mod_rad_o3blk
     integer(ik4) :: icvar , iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
     iret = nf90_get_var(ncid,icvar,val)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
   end subroutine readvar1d
