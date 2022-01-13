@@ -2107,10 +2107,10 @@ module mod_rad_radiation
     ! those locations where there are clouds
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
-    where ( tclrsf(:,kzp1) > 1.0e-3 )
-      skip = .true.
-    elsewhere
+    where ( tclrsf(:,kzp1) < 0.999_rkx )
       skip = .false.
+    elsewhere
+      skip = .true.
     end where
     !
     ! Compute downflux at level 1 for cloudy sky

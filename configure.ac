@@ -563,12 +563,13 @@ if eval "test x$DEBUG = x1"; then
   fi
 else
   if test -z "$COMPILER_G95_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="-O3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
+    NOOPTFC="-finline-functions $FCFLAGS"
     if test -z "${osname##Linux}"; then
       FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then
@@ -582,12 +583,12 @@ else
       fi
     fi
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
     AC_SUBST(AR)
+    NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
@@ -598,21 +599,21 @@ else
 #	      -mieee-fp $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_SUN_TRUE"; then
+    NOOPTFC="-xfilebyteorder=big16:%all \
+	    -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     FCFLAGS="-O3 -xfilebyteorder=big16:%all \
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
@@ -622,10 +623,10 @@ else
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="$(FCFLAGS)"
     AC_SUBST(FCFLAGS)
     CPRDEF="GNU"
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
 fi

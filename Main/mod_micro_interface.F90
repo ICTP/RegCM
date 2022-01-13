@@ -218,8 +218,6 @@ module mod_micro_interface
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
     integer(ik4) :: i , j , k , ichi
 
-    mc2mo%fcc = d_zero
-
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
         do k = 1 , kz
