@@ -879,40 +879,38 @@ module mod_pbl_uwtcm
       end do kloop
 
       ! special case for tops of convective layers
-      if ( kpbconv > 0 ) then
-        conv: &
-        do ilay = 1 , kpbconv
-          k = ktop(ilay)
-          if ( nsquar(k) >= minn2 ) then
-            kethl(k) = nuk*kzm(k+1)
-            if ( k >= 3 ) then
-              kethl(k-1) = 0.0_rkx
-              delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
-                        (thlxin(k) + thx(k)  *ep1*qwxin(k))
-              elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
-              bige = 0.8_rkx * elambda
-              biga = aone * (d_one + atwo * bige)
+      conv: &
+      do ilay = 1 , kpbconv
+        k = ktop(ilay)
+        if ( nsquar(k) >= minn2 ) then
+          kethl(k) = nuk*kzm(k+1)
+          if ( k >= 3 ) then
+            kethl(k-1) = 0.0_rkx
+            delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2)) -   &
+                      (thlxin(k) + thx(k)  *ep1*qwxin(k))
+            elambda = ocp(k)*rlv(k)*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            bige = 0.8_rkx * elambda
+            biga = aone * (d_one + atwo * bige)
 
-              ! kth(k) = min(10000.0_rkx, biga * sqrt(tke(k)**3)/nsquar(k)/    &
-              !          max(bbls(k),bbls(k+1)))
-              ! Limit the diffusivity to be the vertical grid spacing squared
-              ! over the time step; this implies that the entrainment rate
-              ! can only be so large that the BL height would change by
-              ! one grid level over one time step -- TAO
-              ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
-              ! kthmax = 1.0e4_rkx
-              kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
-                       max(bbls(k),bbls(k+1)))
-              ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
-              ! Smoothly limit kth to a maximum value
-              ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
-              ! prandtl number from layer below
-              ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
-              kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
-            end if
+            ! kth(k) = min(10000.0_rkx, biga * sqrt(tke(k)**3)/nsquar(k)/    &
+            !          max(bbls(k),bbls(k+1)))
+            ! Limit the diffusivity to be the vertical grid spacing squared
+            ! over the time step; this implies that the entrainment rate
+            ! can only be so large that the BL height would change by
+            ! one grid level over one time step -- TAO
+            ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
+            ! kthmax = 1.0e4_rkx
+            kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
+                     max(bbls(k),bbls(k+1)))
+            ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
+            ! Smoothly limit kth to a maximum value
+            ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
+            ! prandtl number from layer below
+            ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
+            kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
           end if
-        end do conv
-      end if
+        end if
+      end do conv
 
       ! need kethl at top
       kethl(1) = kethl(2)
