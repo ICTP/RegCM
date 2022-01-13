@@ -805,8 +805,8 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    o3vmr(:,kth+1) = o3vmr(:,kth)*0.65_rkx
-    o3vmr(:,kth+2) = o3vmr(:,kth+1)*0.65_rkx
+    o3vmr(:,kth+1) = o3vmr(:,kth)
+    o3vmr(:,kth+2) = o3vmr(:,kth)
     !
     ! cgas is in ppm , ppb , ppt
     !
