@@ -687,7 +687,8 @@ module mod_rrtmg_driver
       end do
     end do
     do k = kzp1 , kth
-      deltaz(:,k) = stdhlevf(kclimh+k-kzp1+1) - stdhlevf(kclimh+k-kzp1)
+      deltaz(:,k) = (stdhlevf(kclimh+k-kzp1+1) - &
+                     stdhlevf(kclimh+k-kzp1)) * d_1000
     end do
     deltaz(:,kth+1) = 10000.0_rkx
     deltaz(:,kth+2) = 10000.0_rkx
