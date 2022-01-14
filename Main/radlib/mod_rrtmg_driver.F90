@@ -142,7 +142,7 @@ module mod_rrtmg_driver
       ksh = kth + 2
       do k = 1 , n_hreflev
         kclimf = k
-        if ( ptop*d_r1000 < stdhlevf(k) ) exit
+        if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
       end do
       ktf = kz + n_hreflev - kclimf - 1
       ksf = ktf + 2
@@ -331,10 +331,10 @@ module mod_rrtmg_driver
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
 
-    if (ichem == 1 .and. iaerosol ==1) then
-     ldirect =idirect
+    if ( ichem == 1 .and. iaerosol ==1 ) then
+      ldirect = idirect
     elseif ( iclimaaer > 0 ) then
-     ldirect = 2
+      ldirect = 2
     end if
 
     if ( maxval(m2r%coszrs) > 1.0e-3_rkx ) then
@@ -722,11 +722,7 @@ module mod_rrtmg_driver
         end do
       end do
     end if
-    do n = 1 , npr
-      tlev(n,kzp1) = tlay(n,kz) + &
-        (tlay(n,kz)-tlay(n,kzm1))/deltaz(n,kz) * topz(n)
-    end do
-    do k = kzp2 , ktf
+    do k = kzp1 , ktf
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -735,8 +731,8 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    tlay(:,ktf+1) = 247.02_rkx
-    tlay(:,ktf+2) = 219.58_rkx
+    tlev(:,ktf+1) = 247.02_rkx
+    tlev(:,ktf+2) = 219.58_rkx
     if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
@@ -772,11 +768,8 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = d_zero !stdatm_val(calday,dlat(n), &
-                        !           play(n,k),istdatm_qdens) / &
-                        !stdatm_val(calday,dlat(n), &
-                        !           play(n,k),istdatm_airdn)
-          h2ovmr(n,k) = d_zero ! h2ommr(n,k) * rep2
+          h2ommr(n,k) = 1.0e-10_rkx
+          h2ovmr(n,k) = h2ommr(n,k) * rep2
           n = n + 1
         end do
       end do
@@ -1172,11 +1165,9 @@ module mod_rrtmg_driver
             ! if colder than -30 degrees C then ice phase
             fice(n,k) = d_one
           end if
-          !
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
-        !
       end do
     end do
   end subroutine cldefr_rrtm
