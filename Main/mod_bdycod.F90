@@ -196,9 +196,7 @@ module mod_bdycod
     call invert_top_bottom(u)
     call invert_top_bottom(v)
     call invert_top_bottom(r)
-    call random_number(noise)
-    xtsb%b0 = noise
-    xtsb%b0 = xtsb%b0 + ts - 0.5_rkx
+    xtsb%b0 = ts
     if ( idynamic == 1 ) then
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0
