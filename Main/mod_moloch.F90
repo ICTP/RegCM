@@ -664,7 +664,6 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
-        real(rkx) :: rlv
 #ifdef DEBUG
         integer(ik4) :: n
 #endif
@@ -781,9 +780,8 @@ module mod_moloch
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                      w(j,i,k) > 0.1_rkx ) then
-                  rlv = wlh(t(j,i,k-1))
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*rlv*rlv* &
+                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*wlhv*wlhv* &
                     zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
                   zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
