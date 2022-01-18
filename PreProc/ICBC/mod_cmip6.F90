@@ -50,6 +50,8 @@ module mod_cmip6
   character(len=*) , parameter , public :: normm_version = 'v20191108'
   character(len=*) , parameter , public :: cnrm_version = 'v20181205'
   character(len=*) , parameter , public :: cnrm_version1 = 'v20181206'
+  character(len=*) , parameter , public :: cesm_version = 'v20190514'
+  character(len=*) , parameter , public :: cesm_version1 = 'v20200528'
 
   public :: init_cmip6 , get_cmip6 , conclude_cmip6
 
@@ -297,6 +299,68 @@ module mod_cmip6
           call getmem3d(uah,1,jx,1,iy,1,nkin,'cmip6:cnrm:uah')
           call getmem3d(vah,1,jx,1,iy,1,nkin,'cmip6:cnrm:vah')
           call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:cnrm:zgh')
+        case ( 'CESM2' )
+          allocate(ps,ua,va,ta,qa,orog)
+          ps%vname = 'ps'
+          ua%vname = 'ua'
+          va%vname = 'va'
+          ta%vname = 'ta'
+          qa%vname = 'hus'
+          orog%vname = 'orog'
+          call read_fx_cesm(orog)
+          if ( idynamic == 3 ) then
+            allocate(orog%hint(3))
+            call h_interpolator_create(orog%hint(1),orog%hcoord%lat1d, &
+              orog%hcoord%lon1d, xlat, xlon)
+            call h_interpolator_create(orog%hint(2),orog%hcoord%lat1d, &
+              orog%hcoord%lon1d, ulat, ulon)
+            call h_interpolator_create(orog%hint(3),orog%hcoord%lat1d, &
+              orog%hcoord%lon1d, vlat, vlon)
+          else
+            allocate(orog%hint(2))
+            call h_interpolator_create(orog%hint(1),orog%hcoord%lat1d, &
+              orog%hcoord%lon1d, xlat, xlon)
+            call h_interpolator_create(orog%hint(2),orog%hcoord%lat1d, &
+              orog%hcoord%lon1d, dlat, dlon)
+          end if
+          ps%hint => orog%hint
+          ta%hint => orog%hint
+          ua%hint => orog%hint
+          va%hint => orog%hint
+          qa%hint => orog%hint
+          ps%hcoord => orog%hcoord
+          ta%hcoord => orog%hcoord
+          ua%hcoord => orog%hcoord
+          va%hcoord => orog%hcoord
+          qa%hcoord => orog%hcoord
+          stop
+          !call read_2d_cesm(idate,ps,only_coord)
+          !call read_3d_cesm(idate,ta,only_coord)
+          ua%vcoord => ta%vcoord
+          va%vcoord => ta%vcoord
+          qa%vcoord => qa%vcoord
+          !call read_3d_cesm(idate,ua,only_coord)
+          !call read_3d_cesm(idate,va,only_coord)
+          !call read_3d_cesm(idate,qa,only_coord)
+          nkin = nipl
+          call getmem1d(sigmar,1,nkin,'cmip6:cesm:sigmar')
+          do k = 1 , nkin
+            sigmar(k) = (fplev(k)-fplev(nkin))/(fplev(1)-fplev(nkin))
+          end do
+          pss = (fplev(1)-fplev(nkin))/10.0_rkx
+          pst = fplev(nkin)/10.0_rkx
+          call getmem3d(pa_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:cesm:pa_in')
+          call getmem3d(zp_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:cesm:zp_in')
+          call getmem3d(tvar,1,ta%ni,1,ta%nj,1,nkin,'cmip6:cesm:tvar')
+          call getmem3d(uvar,1,ua%ni,1,ua%nj,1,nkin,'cmip6:cesm:uvar')
+          call getmem3d(vvar,1,va%ni,1,va%nj,1,nkin,'cmip6:cesm:vvar')
+          call getmem3d(qvar,1,qa%ni,1,qa%nj,1,nkin,'cmip6:cesm:qvar')
+          call getmem3d(zvar,1,ta%ni,1,ta%nj,1,nkin,'cmip6:cesm:zvar')
+          call getmem3d(tah,1,jx,1,iy,1,nkin,'cmip6:cesm:tah')
+          call getmem3d(qah,1,jx,1,iy,1,nkin,'cmip6:cesm:qah')
+          call getmem3d(uah,1,jx,1,iy,1,nkin,'cmip6:cesm:uah')
+          call getmem3d(vah,1,jx,1,iy,1,nkin,'cmip6:cesm:vah')
+          call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:cesm:zgh')
         case ( 'NorESM2-MM' )
           allocate(ps,ua,va,ta,qa,orog)
           ps%vname = 'ps'
@@ -490,6 +554,8 @@ module mod_cmip6
           call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
           call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
                       ta%ni,ta%nj,ta%nk,fplev,nkin)
+        case ( 'CESM2' )
+          stop
         case default
           call die(__FILE__,'__LINE__ : Unsupported cmip6 model.',-1)
       end select
@@ -1848,7 +1914,91 @@ module mod_cmip6
           'Error close file '//trim(v%filename)//'.')
     end subroutine read_fx_cnrm
 
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
+    recursive subroutine read_fx_cesm(v)
+      implicit none
+      type(cmip6_2d_var) , pointer , intent(inout) :: v
+      integer(ik4) :: istatus
+
+      v%filename = trim(cmip6_fxpath(cesm_version,v%vname))
+#ifdef DEBUG
+      write(stderr,*) 'Opening ',trim(v%filename)
+#endif
+      istatus = nf90_open(v%filename,nf90_nowrite,v%ncid)
+      call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error opening file '//trim(v%filename)//'.')
+      allocate(v%hcoord)
+      call read_hcoord_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+      v%ni = size(v%hcoord%lon1d)
+      v%nj = size(v%hcoord%lat1d)
+      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:cesm:'//trim(v%vname))
+#ifdef DEBUG
+      write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
+#endif
+      istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
+      call cmip6_error(istatus,__FILE__,__LINE__, &
+        'Error searchong '//trim(v%vname)//' var in file '// &
+        trim(v%filename)//'.')
+      istatus = nf90_get_var(v%ncid,v%ivar,v%var)
+      call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
+      istatus = nf90_close(v%ncid)
+      call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error close file '//trim(v%filename)//'.')
+    end subroutine read_fx_cesm
+
+    subroutine read_hcoord_cesm(ncid,lon,lat)
+      implicit none
+      integer(ik4) , intent(in) :: ncid
+      real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
+      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4) :: nlon , nlat
+      istatus = nf90_inq_dimid(ncid,'lon',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+      istatus = nf90_inq_dimid(ncid,'lat',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+      call getmem1d(lon,1,nlon,'cmip6_cesm:lon')
+      call getmem1d(lat,1,nlat,'cmip6_cesm:lat')
+      istatus = nf90_inq_varid(ncid,'lon',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
+      istatus = nf90_get_var(ncid,ivarid,lon)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read lon var')
+      istatus = nf90_inq_varid(ncid,'lat',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat var')
+      istatus = nf90_get_var(ncid,ivarid,lat)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
+    end subroutine read_hcoord_cesm
+
+    subroutine read_vcoord_cesm(ncid,a,b,p0)
+      implicit none
+      integer(ik4) , intent(in) :: ncid
+      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
+      real(rkx) , intent(out) :: p0
+      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4) :: nlev
+      istatus = nf90_inq_dimid(ncid,'lev',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
+      call getmem1d(a,1,nlev,'cmip6_cesm:a')
+      call getmem1d(b,1,nlev,'cmip6_cesm:b')
+      istatus = nf90_inq_varid(ncid,'a',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
+      istatus = nf90_get_var(ncid,ivarid,a)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read a var')
+      istatus = nf90_inq_varid(ncid,'b',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(ncid,ivarid,b)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
+      istatus = nf90_inq_varid(ncid,'p0',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
+      istatus = nf90_get_var(ncid,ivarid,p0)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
+    end subroutine read_vcoord_cesm
+
 end module mod_cmip6
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
