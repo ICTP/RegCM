@@ -838,16 +838,16 @@ module rrtmg_sw_rad
 
     integer(kind=im), intent(in) :: idn
 
-    real(kind=rb) :: gamma
+    real(kind=rb) :: xgamma
 
-    gamma = 2._rb*pi*(idn-1)/365._rb
+    xgamma = 2._rb*pi*(idn-1)/365._rb
 
     ! Use Iqbal's equation 1.2.1
 
-    earth_sun = 1.000110_rb + .034221_rb * cos(gamma) + &
-                .001289_rb * sin(gamma) + &
-                .000719_rb * cos(2._rb*gamma) + &
-                .000077_rb * sin(2._rb*gamma)
+    earth_sun = 1.000110_rb + .034221_rb * cos(xgamma) + &
+                .001289_rb * sin(xgamma) + &
+                .000719_rb * cos(2._rb*xgamma) + &
+                .000077_rb * sin(2._rb*xgamma)
   end function earth_sun
   !
   !  Input atmospheric profile from GCM, and prepare it for use in RRTMG_SW.

@@ -706,7 +706,7 @@ module mod_sst_cmip6
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , intent(inout) :: v
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
+      integer(ik4) :: year , month , day , hour
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -807,7 +807,7 @@ module mod_sst_cmip6
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , intent(inout) :: v
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
+      integer(ik4) :: year , month , day , hour
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times

@@ -307,7 +307,9 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
+            mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas* mo_atm%t(j,i,k))
+            mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - mo_atm%rho(j,i,1) * &
+              egrav * (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
           end do
         end do
 

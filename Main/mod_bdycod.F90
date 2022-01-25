@@ -244,8 +244,13 @@ module mod_bdycod
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
       end do
-      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call exchange(xub%b0,1,jde1,jde2,ice1,ice2,1,kz)
+      call exchange(xvb%b0,1,jce1,jce2,ide1,ide2,1,kz)
+      call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
