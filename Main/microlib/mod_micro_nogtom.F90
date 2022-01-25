@@ -387,7 +387,7 @@ module mod_micro_nogtom
     real(rkx) :: ql_incld , qi_incld , qli_incld
     real(rkx) :: supsat , subsat
     real(rkx) :: ldifdt
-    real(rkx) :: botm , rm
+    ! real(rkx) :: botm , rm
     real(rkx) :: qold , told , tcond , dqs
     real(rkx) :: chng , chngmax
     real(rkx) :: icenuclei

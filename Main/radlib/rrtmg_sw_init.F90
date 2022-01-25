@@ -58,7 +58,7 @@
 
       use parrrsw, only : mg, nbndsw, ngptsw
       use rrsw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl
-      use rrsw_vsn, only: hvrini, hnamini
+      use rrsw_vsn, only: hvrini
 
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
@@ -510,7 +510,7 @@
 
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -602,7 +602,7 @@
 
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -698,7 +698,7 @@
 
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -792,7 +792,7 @@
 
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -886,7 +886,7 @@
 
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, absch4o, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, absch4, &
+                            ka, kb, selfref, forref, sfluxref, absch4, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -976,7 +976,7 @@
 
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1072,7 +1072,7 @@
 
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1166,7 +1166,7 @@
 
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, selfref, forref, sfluxref, rayl, &
+                            ka, selfref, forref, sfluxref, rayl, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1246,7 +1246,7 @@
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             abso3ao, abso3bo, raylao, raylbo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             abso3a, abso3b, rayla, raylb, &
                             irradnce, facbrght, snsptdrk
 
@@ -1361,8 +1361,7 @@
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, sfluxref, &
-                            abso3a, abso3b, rayl, &
+                            ka, sfluxref, abso3a, abso3b, rayl, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1464,7 +1463,7 @@
 
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, sfluxref, rayl, &
+                            ka, kb, sfluxref, rayl, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1530,7 +1529,7 @@
 
       use rrsw_kg28, only : kao, kbo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            absa, ka, absb, kb, sfluxref, &
+                            ka, kb, sfluxref, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -1603,7 +1602,7 @@
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             irradnceo, facbrghto, snsptdrko, &
                             absh2oo, absco2o, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             absh2o, absco2, &
                             irradnce, facbrght, snsptdrk
 

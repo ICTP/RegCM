@@ -234,7 +234,7 @@ module mod_ipcc_scenario
     implicit none
     character(len=8) , intent(in) :: csc
     integer(ik4) :: year , month
-    integer(ik4) :: ii , jj
+    integer(ik4) :: jj
     real(rkx) , dimension(1+n_greenhouse_gases) :: ctemp
 
     select case (csc)

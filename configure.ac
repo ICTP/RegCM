@@ -528,7 +528,9 @@ AC_SUBST(CPRDEF)
 if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
@@ -538,27 +540,37 @@ if eval "test x$DEBUG = x1"; then
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
              -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-O0 -qsuppress=1501-245 -qcheck -qflttrap=nanq,overflow \
              -qxlf2003=polymorphic -qmaxmem=-1 -qzerosize $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
              -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
              -gopt -traceback $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
     FCFLAGS="-g $(FCFLAGS)"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
     CPRDEF="GNU"
   fi
 else

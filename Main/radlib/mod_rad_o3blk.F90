@@ -428,10 +428,9 @@ module mod_rad_o3blk
     character(len=*) , intent(in) :: vname
     real(rkx) , intent(out) , dimension(:,:,:) :: val
     real(rkx) , save :: xscale , xfact
-    real(rkx)  :: frstp
     integer(ik4) , save :: ilastncid , icvar , itvar
     integer(ik4) , save , dimension(4) :: istart , icount
-    integer(ik4) :: iret , irec
+    integer(ik4) :: iret
     character(len=256) :: infile
     data ilastncid /-1/
     data icvar /-1/

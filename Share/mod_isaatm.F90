@@ -35,7 +35,7 @@ module mod_isaatm
     real(rkx) , intent(out) :: pressure    ! Pressure in Pa
     real(rkx) , intent(out) :: density     ! Density in kg/m^3
 
-    real(rkx) :: h , i , c , m , n , o
+    real(rkx) :: h , i , m , n , o
 
     real(rkx) , parameter :: height0 = 0.0_rkx
     real(rkx) , parameter :: height1 = 11000.0_rkx

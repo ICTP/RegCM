@@ -78,8 +78,7 @@ module mod_ocn_zeng
     real(rkx) :: t995 , q995 , uv995 , z995
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
-                 wc , zeta , zoq , wt1 , wt2 , rhp , twbulb ,   &
-                 tha , nobu , rlv
+                 wc , zeta , zoq , wt1 , wt2 , tha , nobu , rlv
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
