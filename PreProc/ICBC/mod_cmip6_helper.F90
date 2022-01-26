@@ -107,9 +107,13 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'amip'//pthsep
           fx_variant = 'r1i1p1f2'
           fx_experiment = '_amip_'
-        case ( 'EC-Earth3-Veg' )
-          call die(__FILE__, &
-            'Unsupported cmip6 model: '//trim(cmip6_model),-1)
+        case ( 'EC-Earth3' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'// &
+            pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep//'CMIP'//&
+            pthsep//'EC-Earth-Consortium'// &
+            pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
         case ( 'CESM2' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
             pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCAR'// &
@@ -185,6 +189,23 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+          if ( var == 'tos' ) then
+            grid = 'gn'
+          else
+            grid = cmip6_grid
+          end if
+        case ( 'EC-Earth3' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'// &
+            pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'EC-Earth-Consortium'//pthsep// &
+            'EC-Earth3'//pthsep
           if ( var == 'tos' ) then
             grid = 'gn'
           else
