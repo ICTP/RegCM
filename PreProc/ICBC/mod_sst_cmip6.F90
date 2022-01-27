@@ -42,7 +42,8 @@ module mod_sst_cmip6
   character(len=*) , parameter , public :: mpihr_version = 'v20190710'
   character(len=*) , parameter , public :: hadmm_version = 'v20200515'
   character(len=*) , parameter , public :: gfdl_version = 'v20180701'
-  character(len=*) , parameter , public :: normm_version = 'v20191108'
+  character(len=*) , parameter , public :: normm_version = 'v20200218'
+  character(len=*) , parameter , public :: normm_version1 = 'v20200702'
   character(len=*) , parameter , public :: cnrm_version = 'v20181206'
   character(len=*) , parameter , public :: cesm_version = 'v20190514'
   character(len=*) , parameter , public :: cesm_version1 = 'v20200528'
@@ -654,12 +655,12 @@ module mod_sst_cmip6
             '20100101-', '20141231.nc'
         else if ( year >= 2015 .and. year < 2021 ) then
           write(v%filename,'(a,a,a)') &
-            trim(cmip6_path(year,'Oday',normm_version,v%vname)), &
+            trim(cmip6_path(year,'Oday',normm_version1,v%vname)), &
             '20150101-', '20201231.nc'
         else
           y = ((year-1) / 10) * 10 + 1
           write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'Oday',normm_version,v%vname)), &
+            trim(cmip6_path(y,'Oday',normm_version1,v%vname)), &
             y, '0101-', y+9, '1231.nc'
         end if
 #ifdef DEBUG
