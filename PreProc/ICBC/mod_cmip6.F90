@@ -48,6 +48,10 @@ module mod_cmip6
   character(len=*) , parameter , public :: hadmm_version2 = 'v20201019'
   character(len=*) , parameter , public :: hadmm_version3 = 'v20201113'
   character(len=*) , parameter , public :: normm_version = 'v20191108'
+  character(len=*) , parameter , public :: normm_version1 = 'v20210319'
+  character(len=*) , parameter , public :: normm_version2 = 'v20200702'
+  character(len=*) , parameter , public :: normm_version3 = 'v20200218'
+  character(len=*) , parameter , public :: normm_version4 = 'v20210319'
   character(len=*) , parameter , public :: cnrm_version = 'v20181205'
   character(len=*) , parameter , public :: cnrm_version1 = 'v20181206'
   character(len=*) , parameter , public :: cesm_version = 'v20190514'
@@ -463,13 +467,13 @@ module mod_cmip6
           va%hcoord => orog%hcoord
           qa%hcoord => orog%hcoord
           call read_2d_normm(idate,ps,only_coord)
-          call read_3d_hadmm(idate,ta,only_coord)
+          call read_3d_normm(idate,ta,only_coord)
           ua%vcoord => ta%vcoord
           va%vcoord => ta%vcoord
           qa%vcoord => qa%vcoord
-          call read_3d_hadmm(idate,ua,only_coord)
-          call read_3d_hadmm(idate,va,only_coord)
-          call read_3d_hadmm(idate,qa,only_coord)
+          call read_3d_normm(idate,ua,only_coord)
+          call read_3d_normm(idate,va,only_coord)
+          call read_3d_normm(idate,qa,only_coord)
           nkin = nipl
           call getmem1d(sigmar,1,nkin,'cmip6:normm:sigmar')
           do k = 1 , nkin
@@ -620,7 +624,7 @@ module mod_cmip6
           call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
           call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
                       ta%ni,ta%nj,ta%nk,fplev,nkin)
-        case ( 'CESM2' )
+        case ( 'CESM2' , 'NorESM2-MM' )
 !$OMP SECTIONS
 !$OMP SECTION
           call read_2d_cesm(idate,ps)
@@ -1440,14 +1444,25 @@ module mod_cmip6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = year
-        if ( month == 1 .and. day == 1 .and. hour == 0 ) then
-          y = y - 1
+        if ( idate < 2010010106 ) then
+          y = (year / 10) * 10
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',normm_version3,v%vname)), &
+            y, '01010600-', y+10, '01010000.nc'
+        else if ( idate < 2015010106 ) then
+          y = 2010
+          v%filename = trim(cmip6_path(y,'6hrLev',normm_version3,v%vname)) // &
+            '201001010600-201501010000.nc'
+        else if ( idate < 2022010106 ) then
+          y = 2015
+          v%filename = trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)) // &
+            '201501010600-202101010000.nc'
+        else
+          y = (year-2021)/10*10 + 2021
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)), &
+            y, '01010600-', y+10, '01010000.nc'
         end if
-        ver = normm_version
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
-          y, '01010600-', y+1, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -1548,13 +1563,25 @@ module mod_cmip6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = (year / 5) * 5
-        if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-          y = y - 5
+        if ( idate < 2010010106 ) then
+          y = (year / 10) * 10
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',normm_version1,v%vname)), &
+            y, '01010600-', y+10, '01010000.nc'
+        else if ( idate < 2015010106 ) then
+          y = 2010
+          v%filename = trim(cmip6_path(y,'6hrLev',normm_version1,v%vname)) // &
+            '201001010600-201501010000.nc'
+        else if ( idate < 2021010106 ) then
+          y = 2015
+          v%filename = trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)) // &
+            '201501010600-202101010000.nc'
+        else
+          y = (year-2021)/10*10 + 2021
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)), &
+            y, '01010600-', y+10, '01010000.nc'
         end if
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'6hrLev',normm_version,v%vname)), &
-          y, '01010300-', y+5, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
