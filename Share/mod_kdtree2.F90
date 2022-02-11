@@ -417,7 +417,7 @@ module mod_kdtree2
       ! c is the identity of which coordinate has the greatest spread.
       !
 
-      if ( .false. ) then
+      if ( .true. ) then
         ! select exact median to have fully balanced tree.
         m = (l+u)/2
         call select_on_coordinate(tp%the_data,tp%ind,c,m,l,u)
