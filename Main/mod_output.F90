@@ -607,11 +607,15 @@ module mod_output
         end if
 
         if ( associated(atm_tsw_out) ) then
-          where ( mddom%ldmsk == 1 )
-            atm_tsw_out = atm_tsw_out / rnsrf_for_atmfrq
-          elsewhere
+          if ( rcmtimer%integrating( ) ) then
+            where ( mddom%ldmsk == 1 )
+              atm_tsw_out = atm_tsw_out / rnsrf_for_atmfrq
+            elsewhere
+              atm_tsw_out = dmissval
+            end where
+          else
             atm_tsw_out = dmissval
-          end where
+          end if
         end if
 
         if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
