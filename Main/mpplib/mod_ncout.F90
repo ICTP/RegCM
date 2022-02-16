@@ -2489,9 +2489,9 @@ module mod_ncout
           enable_che3d_vars(che_pai) = .false.
         end if
         if ( enable_che3d_vars(che_mixrat) ) then
-          call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','1', &
-            'Atmosphere tracer mixing ratio', &
-            'atmosphere_mixing_ratio_of_tracer',.true.)
+          call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','kg kg-1', &
+            'Atmosphere tracer mass mixing ratio', &
+            'atmosphere_mass_mixing_ratio_of_tracer',.true.)
           che_mixrat_out => v3dvar_che(che_mixrat)%rval
         end if
         if ( ichdiag > 0 ) then
