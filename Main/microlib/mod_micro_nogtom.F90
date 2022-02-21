@@ -95,7 +95,13 @@ module mod_micro_nogtom
   real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
   real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
-  real(rkx) , parameter :: ramid = 0.8_rkx
+  real(rkx) , parameter :: siglow = 0.8_rkx
+  ! Cloud fraction threshold that defines cloud top
+  real(rkx) , parameter :: cldtopcf = 0.1_rkx
+  ! Fraction of deposition rate in cloud top layer
+  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
+  ! Depth of supercooled liquid water layer (m)
+  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! max threshold rh for evaporation for a precip coverage of zero
   real(rkx) , parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
@@ -135,14 +141,16 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:):: sumh0 , sumq0
   real(rkx) , pointer , dimension(:,:,:) :: sumh1 , sumq1
   real(rkx) , pointer , dimension(:,:) :: errorq , errorh
-  real(rkx) , pointer , dimension(:,:,:):: tentkeep
-  real(rkx) , pointer , dimension(:,:,:,:) :: tenkeep
+  real(rkx) , pointer , dimension(:,:,:):: tentkp
+  real(rkx) , pointer , dimension(:,:,:,:) :: tenqkp
+  ! distance from the top of the cloud
+  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! Mass variables
   ! Microphysics
   real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
   ! for sedimentation source/sink terms
-  real(rkx) , pointer , dimension(:,:,:) :: fallsrce
-  real(rkx) , pointer , dimension(:,:,:) :: fallsink
+  real(rkx) , pointer , dimension(:) :: fallsrce
+  real(rkx) , pointer , dimension(:) :: fallsink
   ! for convection detrainment source and subsidence source/sink terms
   real(rkx) , pointer , dimension(:) :: convsrce
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
@@ -256,10 +264,11 @@ module mod_micro_nogtom
     call getmem4d(qx,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:qx')
     call getmem3d(tx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tx')
     call getmem3d(qsliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsliq')
-    call getmem3d(fallsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsink')
-    call getmem3d(fallsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsrce')
+    call getmem1d(fallsink,1,nqx,'cmicro:fallsink')
+    call getmem1d(fallsrce,1,nqx,'cmicro:fallsrce')
     call getmem1d(ratio,1,nqx,'cmicro:ratio')
     call getmem1d(sinksum,1,nqx,'cmicro:sinksum')
+    call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
     call getmem3d(pfplsl,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsl')
     call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsn')
@@ -291,8 +300,8 @@ module mod_micro_nogtom
       call getmem3d(sumh1,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumh1')
       call getmem2d(errorq,jci1,jci2,ici1,ici2,'cmicro:errorq')
       call getmem2d(errorh,jci1,jci2,ici1,ici2,'cmicro:errorh')
-      call getmem4d(tenkeep,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tenkeep')
-      call getmem3d(tentkeep,jci1,jci2,ici1,ici2,1,kz,'cmicro:tentkeep')
+      call getmem4d(tenqkp,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tenqkp')
+      call getmem3d(tentkp,jci1,jci2,ici1,ici2,1,kz,'cmicro:tentkp')
     end if
   end subroutine allocate_mod_nogtom
 
@@ -354,11 +363,11 @@ module mod_micro_nogtom
     type(mod_2_micro) , intent(in) :: mo2mc
     type(nogtom_stats) , intent(inout) :: ngs
     type(micro_2_mod) , intent(out) :: mc2mo
-    integer(ik4) :: i , j , k , n , m , jn , jo
+    integer(ik4) :: i , j , k , kk , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud
     logical :: locast , lconden , lccn , lerror
     real(rkx) :: rexplicit , xlcondlim
-    real(rkx) :: facl , faci , facw , corr , gdp , acond , zdl
+    real(rkx) :: facl , faci , facw , corr , gdp , acond , zdl , infactor
     real(rkx) :: alfaw , phases , zdelta , tmpl , qexc , rhc , zsig , &
                  tmpi , tnew , qvnew , qe , rain , rainh , preclr , arg
     real(rkx) :: sink ! sink term for sedimentation conservation
@@ -572,15 +581,15 @@ module mod_micro_nogtom
     if ( budget_compute ) then
 
       ! Reset arrays
-      tentkeep(:,:,:)  = d_zero
-      tenkeep(:,:,:,:) = d_zero
+      tentkp(:,:,:)  = d_zero
+      tenqkp(:,:,:,:) = d_zero
 
       ! Record the tendencies
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             do n = 1 , nqx
-              tenkeep(n,j,i,k) = qxtendc(n,j,i,k)
+              tenqkp(n,j,i,k) = qxtendc(n,j,i,k)
             end do
           end do
         end do
@@ -588,7 +597,7 @@ module mod_micro_nogtom
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tentkeep(j,i,k) = ttendc(j,i,k)
+            tentkp(j,i,k) = ttendc(j,i,k)
           end do
         end do
       end do
@@ -676,6 +685,25 @@ module mod_micro_nogtom
       end do
     end do
 
+    !--------------------------------ADEED BY RITA
+    ! Calculate distance from cloud top
+    ! defined by cloudy layer below a layer with cloud frac <0.01
+    !--------------------------------------------------------------
+
+    cldtopdist(:,:,:) = d_zero
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do kk = 2 , k
+            if ( mc2mo%fcc(j,i,kk-1) > cldtopcf .and. &
+                 mc2mo%fcc(j,i,kk)  <= cldtopcf ) then
+              cldtopdist(j,i,k) = cldtopdist(j,i,k) + mo2mc%delz(j,i,kk)
+            end if
+          end do
+        end do
+      end do
+    end do
+
 #ifdef DEBUG
     if ( stats ) then
       ngs%statssupw(:,:,:) = d_zero
@@ -704,8 +732,6 @@ module mod_micro_nogtom
     !
     covptot(:,:) = d_zero
     covpclr(:,:) = d_zero
-    fallsrce(:,:,:) = d_zero
-    fallsink(:,:,:) = d_zero
     !
     !----------------------------------------------------------------------
     !                       START OF VERTICAL LOOP
@@ -719,6 +745,8 @@ module mod_micro_nogtom
 
           supsat      = d_zero
           subsat      = d_zero
+          fallsrce(:) = d_zero
+          fallsink(:) = d_zero
           convsrce(:) = d_zero
           ldefr       = d_zero
 
@@ -765,7 +793,8 @@ module mod_micro_nogtom
           end do
 
           totcond = qxfg(iqql)+qxfg(iqqi)
-          if ( totcond > 2.0_rkx*activqx ) then
+          lconden = ( totcond > 2.0_rkx*activqx )
+          if ( lconden ) then
             qliqfrac = qxfg(iqql)/totcond
             qicefrac = d_one-qliqfrac
           else
@@ -787,7 +816,7 @@ module mod_micro_nogtom
           end do
 
           critauto = xlcrit(j,i)
-          pbot     = mo2mc%pfs(j,i,kz+1)
+          pbot     = mo2mc%pfs(j,i,kzp1)
           dp       = dpfs(j,i,k)
           tk       = tx(j,i,k)
           tc       = tk - tzero
@@ -813,7 +842,6 @@ module mod_micro_nogtom
           ltkgthomo = ( tk > thomo )
           lcloud    = ( ccover > zerocf )
           locast    = ( ccover >= onecf )
-          lconden   = ( totcond > activqx )
 
           ! Derived variables needed
           gdp = egrav/dp       ! g/dp  =(1/m)
@@ -873,12 +901,12 @@ module mod_micro_nogtom
               do n = 1 , nqx
                 if ( lfall(n) ) then
                   ! Source from layer above
-                  fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
-                  qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
-                  qxfg(n) = qxfg(n) + fallsrce(j,i,n)
+                  fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
+                  qsexp(n,n) = qsexp(n,n) + fallsrce(n)
+                  qxfg(n) = qxfg(n) + fallsrce(n)
                   qpretot = qpretot + qxfg(n)
                 endif
-              enddo
+              end do
             end if
 
             !-----------..........--------------------------------------------
@@ -1010,39 +1038,6 @@ module mod_micro_nogtom
               end if
 #endif
             end if
-
-            !------------------------------------------------
-            ! UPDATE CLOUD COVER TO ALLOW MICROPHYSICS
-            ! TO WORK ON SATURATION ADJUSMENT LIQUID
-            ! update the diagnostic cloud cover and logicals
-            !------------------------------------------------
-
-            !zrh = min(qxfg(iqqv)/sqmix,d_one)
-            !if ( zrh > rhcrit(j,i) ) then
-            !  !ccover = d_one-sqrt((d_one-zrh)/(d_one-rhcrit(j,i)))
-            !  botm = zrh ** 0.25_rkx
-            !  rm = -100.0_rkx * &
-            !        (qxfg(iqql)+qxfg(iqqi))/(sqmix-qxfg(iqqv))**0.49_rkx
-            !  ccover = botm * (1.0_rkx - exp(rm))
-            !  ccover = min(max(ccover,zerocf),onecf)
-            !else
-            !  ccover = zerocf
-            !end if
-
-            !lcloud = ( ccover > zerocf )
-            !locast = ( ccover >= onecf )
-            !--------------------------------
-            ! in-cloud consensate amount
-            !--------------------------------
-            !if ( lcloud ) then
-            !  tmpa = d_one/ccover
-            !  ql_incld = qxfg(iqql)*tmpa
-            !  qi_incld = qxfg(iqqi)*tmpa
-            !else
-            !  ql_incld = d_zero
-            !  qi_incld = d_zero
-            !end if
-            !qli_incld  = ql_incld + qi_incld
 
             !---------------------------------------
             ! EROSION OF CLOUDS BY TURBULENT MIXING
@@ -1206,9 +1201,9 @@ module mod_micro_nogtom
 #endif
                 rhc = rhcrit(j,i)
                 zsig = mo2mc%phs(j,i,k)/pbot
-                if ( zsig > 0.8_rkx ) then
+                if ( zsig > siglow ) then
                   ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-                  rhc = rhc + (d_one-rhc)*((zsig-rhc)/(d_one-zsig))**2
+                  rhc = rhc + (d_one-rhc)*((zsig-siglow)/(d_one-siglow))**2
                 end if
                 ! supersaturation options
                 if ( ltkgt0 .or. nssopt == 0 ) then
@@ -1287,7 +1282,7 @@ module mod_micro_nogtom
                 ! Sink to next layer, constant fall speed
                 ! *AMT* now included in first guess.
                 sink = dtgdp * vqx(n) * dens
-                fallsink(j,i,n) = sink
+                fallsink(n) = sink
                 ! plus due to implicit negative sign
                 qxfg(n) = qxfg(n)/(d_one+sink)
               end if  !lfall
@@ -1362,13 +1357,17 @@ module mod_micro_nogtom
               ! mixed
               !-------------------------------------------------------
               chng = ccover*(qinew-qice0)
+              !re-added by Rita 3/2/2022
+              infactor = min(icenuclei/15000.0_rkx,d_one)
+              chng = chng*min(infactor + (d_one-infactor)* &
+                  (depliqrefrate+cldtopdist(j,i,k)/depliqrefdepth),d_one)
+              chng = min(chng,qxfg(iqql))
 
               !-------------------------------------------------------------
               ! limit deposition to liquid water amount
               ! can't treat vapour in ice-only cloud without extra
               ! prognostic variable
               !-------------------------------------------------------------
-              chng = min(chng,qxfg(iqql))
               chng = max(chng,d_zero)
 
               !--------------
@@ -1808,7 +1807,7 @@ module mod_micro_nogtom
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
-                qlhs(jn,n) = d_one + fallsink(j,i,n)
+                qlhs(jn,n) = d_one + fallsink(n)
                 do jo = 1 , nqx
                   qlhs(jn,n) = qlhs(jn,n) + qsimp(jo,jn)
                 end do
@@ -1842,9 +1841,9 @@ module mod_micro_nogtom
           do n = 1 , nqx
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = fallsink(j,i,n)*qxn(n)*rdtgdp
+            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
             ! Calculate fluxes in and out of box for conservation of TL
-            fluxq = convsrce(n) + fallsrce(j,i,n) - fallsink(j,i,n)*qxn(n)
+            fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
             ! Calculate the water variables tendencies
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*rdt
             ! Calculate the temperature tendencies
@@ -1925,17 +1924,17 @@ module mod_micro_nogtom
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
-            qvnew = qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k))
+            tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkp(j,i,k))
+            qvnew = qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenqkp(iqqv,j,i,k))
             dp = dpfs(j,i,k)
             if ( k > 1 ) then
               sumq1(j,i,k) = sumq1(j,i,k-1)
               sumh1(j,i,k) = sumh1(j,i,k-1)
             end if
-            tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
-                   qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
-            tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
-                   qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))
+            tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenqkp(iqql,j,i,k))+&
+                   qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenqkp(iqqr,j,i,k))
+            tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenqkp(iqqi,j,i,k))+&
+                   qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenqkp(iqqs,j,i,k))
             tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
             sumq1(j,i,k) = sumq1(j,i,k) + (tmpl + tmpi + qvnew)* dp*regrav
             sumh1(j,i,k) = sumh1(j,i,k) + dp*tnew
