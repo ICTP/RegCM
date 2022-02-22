@@ -1718,7 +1718,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qx0(n),activqx)/max(sinksum(n),max(qx0(n),activqx))
+            ratio(n) = max(qxfg(n),activqx) / &
+              max(sinksum(n),max(qxfg(n),activqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1759,8 +1760,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qx0(jo),activqx) / &
-               max(sinksum(jo),max(qx0(jo),activqx))
+            ratio(jo) = max(qxfg(jo),activqx) / &
+               max(sinksum(jo),max(qxfg(jo),activqx))
           end do
           !------
           ! scale
@@ -1803,7 +1804,7 @@ module mod_micro_nogtom
               ! Positive, since summed over 2nd index
               rexplicit = rexplicit + qsexp(n,jn)
             end do
-            qxn(n) = qx0(n) + rexplicit
+            qxn(n) = qxfg(n) + rexplicit
           end do
 
           call mysolve
@@ -1820,12 +1821,13 @@ module mod_micro_nogtom
             ! Calculate fluxes in and out of box for conservation of TL
             fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
             ! Calculate the water variables tendencies
-            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*rdt
+            chng = qxn(n) - qx0(n)
+            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
             ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(qxn(n)-qx0(n)-fluxq)*rdt
+              ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
             else if ( iphase(n) == 2 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(qxn(n)-qx0(n)-fluxq)*rdt
+              ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
             end if
           end do
 
