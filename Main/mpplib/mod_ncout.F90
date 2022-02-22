@@ -1963,8 +1963,9 @@ module mod_ncout
           rad_cld_out => v3dvar_rad(rad_cld)%rval
         end if
         if ( enable_rad3d_vars(rad_clwp) ) then
-          call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','m', &
-            'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
+          call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','mm', &
+            'In-cloud liquid water path', &
+            'thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
         if ( idiag > 0 ) then
