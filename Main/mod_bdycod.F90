@@ -5599,7 +5599,7 @@ module mod_bdycod
   subroutine invert_top_bottom(v)
     implicit none
     real(rkx) , dimension(:) , intent(inout) :: v
-    real, dimension(size(v)) :: swap
+    real(rkx), dimension(size(v)) :: swap
     integer :: nk , k , kk
     swap = v
     nk = size(v)

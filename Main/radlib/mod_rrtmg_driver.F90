@@ -131,7 +131,7 @@ module mod_rrtmg_driver
         kclimf = k
         if ( ptop*d_10 > stdplevf(k) ) exit
       end do
-      ktf = kz + n_preflev - kclimf - 1
+      ktf = kzp1 + n_preflev - kclimf - 1
       ksf = ktf + 2
     else
       do k = 1 , n_hrehlev
@@ -144,7 +144,7 @@ module mod_rrtmg_driver
         kclimf = k
         if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
       end do
-      ktf = kz + n_hreflev - kclimf - 1
+      ktf = kzp1 + n_hreflev - kclimf - 1
       ksf = ktf + 2
     end if
 
@@ -860,7 +860,7 @@ module mod_rrtmg_driver
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
         n = 1
-        kj = kzp1-k+1
+        kj = kz-k+1
         do i = ici1 , ici2
           do j = jci1 , jci2
             rh(n,k) = m2r%rhatms(j,i,kj)

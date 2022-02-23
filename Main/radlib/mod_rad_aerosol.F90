@@ -52,13 +52,13 @@ module mod_rad_aerosol
   public :: cmip6_plume_profile
   !
   character(len=256) :: macv2sp_hist , macv2sp_scen
-  real(rk4) , pointer , dimension(:) :: lambdaw
-  real(rk4) , pointer , dimension(:) :: latr4 , lonr4 , altr4
-  real(rk4) , pointer , dimension(:,:) :: z , dz
-  real(rk4) , pointer , dimension(:) :: dnovrnr4
-  real(rk4) , pointer , dimension(:,:,:) :: extprofr4
-  real(rk4) , pointer , dimension(:,:,:) :: ssaprofr4
-  real(rk4) , pointer , dimension(:,:,:) :: asyprofr4
+  real(rk8) , pointer , dimension(:) :: lambdaw
+  real(rk8) , pointer , dimension(:) :: latr4 , lonr4 , altr4
+  real(rk8) , pointer , dimension(:,:) :: z , dz
+  real(rk8) , pointer , dimension(:) :: dnovrnr4
+  real(rk8) , pointer , dimension(:,:,:) :: extprofr4
+  real(rk8) , pointer , dimension(:,:,:) :: ssaprofr4
+  real(rk8) , pointer , dimension(:,:,:) :: asyprofr4
   real(rkx) , pointer , dimension(:) :: lat , lon , alt
   real(rkx) , pointer , dimension(:,:) :: alon , alat
   real(rkx) , pointer , dimension(:,:,:) :: ext1 , ext2
@@ -2345,7 +2345,7 @@ module mod_rad_aerosol
       integer(ik4) :: ibin , i , j , k , n
       integer(ik4) :: iy , im , id
       integer(ik4) , save :: idlast = -1
-      real(rk4) :: year_fr
+      real(rk8) :: year_fr
 
       if ( lfirst ) then
         if ( irrtm == 0 ) then
