@@ -62,7 +62,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
     rh , cld_int , tlay , h2ovmr , o3vmr , co2vmrk , play , ch4vmr ,   &
     n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr ,        &
-    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,  &
+    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel , cldf ,&
     lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
 
   real(rkx) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
@@ -918,7 +918,7 @@ module mod_rrtmg_driver
     kmincld = kz-ncld
     cldf = d_zero
     clwp = d_zero
-    do k = kmincld , kmaxcld
+    do k = kmaxcld , kmincld
       kj = kzp1 - k
       n = 1
       do i = ici1 , ici2
