@@ -118,7 +118,11 @@
       do itr = 1, ntbl-1
          tfn = real(itr,kind=rb) / real(ntbl,kind=rb)
          tau_tbl = bpade * tfn / (1._rb - tfn)
-         exp_tbl(itr) = exp(-tau_tbl)
+         if ( tau_tbl > 20.0_rb ) then
+           exp_tbl(itr) = expeps
+         else
+           exp_tbl(itr) = exp(-tau_tbl)
+         end if
          if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
       enddo
 

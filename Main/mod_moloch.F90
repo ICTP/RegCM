@@ -664,9 +664,6 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
-#ifdef DEBUG
-        integer(ik4) :: n
-#endif
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
