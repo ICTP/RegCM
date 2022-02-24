@@ -598,7 +598,7 @@ module mod_micro_nogtom
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tnew = mo2mc%t(j,i,k)
+            tnew = tx(j,i,k)
             dp = dpfs(j,i,k)
             qe = mo2mc%qdetr(j,i,k)
 
@@ -789,12 +789,6 @@ module mod_micro_nogtom
             qicefrac = d_zero
           end if
 
-          qpretot = d_zero
-          do n = 1 , nqx
-            if ( lfall(n) ) then
-              qpretot = qpretot + qxfg(n)
-            end if
-          end do
           qicetot = d_zero
           do n = 1 , nqx
             if ( iphase(n) == 2 ) then
@@ -884,6 +878,7 @@ module mod_micro_nogtom
             !-------------------------------------------------------
             !  FALL SOURCE
             !-------------------------------------------------------
+            qpretot = d_zero
             if ( k > 1 ) then
               do n = 1 , nqx
                 if ( lfall(n) ) then
@@ -891,7 +886,14 @@ module mod_micro_nogtom
                   fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
                   qsexp(n,n) = qsexp(n,n) + fallsrce(n)
                   qxfg(n) = qxfg(n) + fallsrce(n)
+                  qpretot = qpretot + qxfg(n)
                 endif
+              end do
+            else
+              do n = 1 , nqx
+                if ( lfall(n) ) then
+                  qpretot = qpretot + qxfg(n)
+                end if
               end do
             end if
 
@@ -1297,9 +1299,7 @@ module mod_micro_nogtom
             ! By considering sedimentation first and including the
             ! implicit loss term in the first guess of ice.
             !--------------------------------------------------------------
-            lactiv = qliqfrac > d_zero .and.    &
-                     qxfg(iqql) > activqx .and. &
-                     ltklt0 .and. lcloud
+            lactiv = qxfg(iqql) > activqx .and. ltklt0
             if ( lactiv ) then
               vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
@@ -1319,8 +1319,7 @@ module mod_micro_nogtom
 
               xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(airconduct*tk)
               xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
-              cvds = (7.8_rkx/qliqfrac) * &
-                     (icenuclei/dens)**0.666_rkx * &
+              cvds = 7.8_rkx * (icenuclei/dens)**0.666_rkx * &
                      (vpliq-vpice)/(ciden13*(xadd+xbdd)*vpice)
               cvds = max(cvds,d_zero)
 
@@ -1378,7 +1377,6 @@ module mod_micro_nogtom
               ql_incld = d_zero
               qi_incld = d_zero
             end if
-            qli_incld  = ql_incld + qi_incld
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap
@@ -1902,7 +1900,7 @@ module mod_micro_nogtom
         do i = ici1 , ici2
           do j = jci1 , jci2
             dp = dpfs(j,i,k)
-            tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkp(j,i,k))
+            tnew = tx(j,i,k)+dt*(ttendc(j,i,k)-tentkp(j,i,k))
             qvnew = qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenqkp(iqqv,j,i,k))
             if ( k > 1 ) then
               sumq1(j,i,k) = sumq1(j,i,k-1)
