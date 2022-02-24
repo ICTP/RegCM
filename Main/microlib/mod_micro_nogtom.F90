@@ -233,7 +233,7 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-10_rkx
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
@@ -598,7 +598,7 @@ module mod_micro_nogtom
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tnew = mo2mc%t(j,i,k)
+            tnew = tx(j,i,k)
             dp = dpfs(j,i,k)
             qe = mo2mc%qdetr(j,i,k)
 
@@ -789,12 +789,6 @@ module mod_micro_nogtom
             qicefrac = d_zero
           end if
 
-          qpretot = d_zero
-          do n = 1 , nqx
-            if ( lfall(n) ) then
-              qpretot = qpretot + qxfg(n)
-            end if
-          end do
           qicetot = d_zero
           do n = 1 , nqx
             if ( iphase(n) == 2 ) then
@@ -884,6 +878,7 @@ module mod_micro_nogtom
             !-------------------------------------------------------
             !  FALL SOURCE
             !-------------------------------------------------------
+            qpretot = d_zero
             if ( k > 1 ) then
               do n = 1 , nqx
                 if ( lfall(n) ) then
@@ -891,7 +886,14 @@ module mod_micro_nogtom
                   fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
                   qsexp(n,n) = qsexp(n,n) + fallsrce(n)
                   qxfg(n) = qxfg(n) + fallsrce(n)
+                  qpretot = qpretot + qxfg(n)
                 endif
+              end do
+            else
+              do n = 1 , nqx
+                if ( lfall(n) ) then
+                  qpretot = qpretot + qxfg(n)
+                end if
               end do
             end if
 
@@ -1297,9 +1299,7 @@ module mod_micro_nogtom
             ! By considering sedimentation first and including the
             ! implicit loss term in the first guess of ice.
             !--------------------------------------------------------------
-            lactiv = qliqfrac > d_zero .and.    &
-                     qxfg(iqql) > activqx .and. &
-                     ltklt0 .and. lcloud
+            lactiv = qxfg(iqql) > activqx .and. ltklt0
             if ( lactiv ) then
               vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
@@ -1319,8 +1319,7 @@ module mod_micro_nogtom
 
               xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(airconduct*tk)
               xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
-              cvds = (7.8_rkx/qliqfrac) * &
-                     (icenuclei/dens)**0.666_rkx * &
+              cvds = 7.8_rkx * (icenuclei/dens)**0.666_rkx * &
                      (vpliq-vpice)/(ciden13*(xadd+xbdd)*vpice)
               cvds = max(cvds,d_zero)
 
@@ -1378,7 +1377,6 @@ module mod_micro_nogtom
               ql_incld = d_zero
               qi_incld = d_zero
             end if
-            qli_incld  = ql_incld + qi_incld
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap
@@ -1718,8 +1716,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qxfg(n),activqx) / &
-              max(sinksum(n),max(qxfg(n),activqx))
+            ratio(n) = max(qx0(n),activqx) / &
+              max(sinksum(n),max(qx0(n),activqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1731,14 +1729,13 @@ module mod_micro_nogtom
           end do
           do n = 1 , nqx
             do jn = 1 , nqx
-              if ( lind1(jn) .and. ratio(jn) < rmin(n) ) then
+              if ( lind1(jn) .and. ratio(jn) <= rmin(n) ) then
                 iorder(n) = jn
                 rmin(n) = ratio(jn)
+                lind1(jn) = .false.
+                exit
               end if
             end do
-          end do
-          do n = 1 , nqx
-            lind1(iorder(n)) = .false.
           end do
           !--------------------------------------------
           ! scale the sink terms, in the correct order,
@@ -1760,8 +1757,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qxfg(jo),activqx) / &
-               max(sinksum(jo),max(qxfg(jo),activqx))
+            ratio(jo) = max(qx0(jo),activqx) / &
+               max(sinksum(jo),max(qx0(jo),activqx))
           end do
           !------
           ! scale
@@ -1804,7 +1801,7 @@ module mod_micro_nogtom
               ! Positive, since summed over 2nd index
               rexplicit = rexplicit + qsexp(n,jn)
             end do
-            qxn(n) = qxfg(n) + rexplicit
+            qxn(n) = qx0(n) + rexplicit
           end do
 
           call mysolve
@@ -1902,7 +1899,7 @@ module mod_micro_nogtom
         do i = ici1 , ici2
           do j = jci1 , jci2
             dp = dpfs(j,i,k)
-            tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkp(j,i,k))
+            tnew = tx(j,i,k)+dt*(ttendc(j,i,k)-tentkp(j,i,k))
             qvnew = qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenqkp(iqqv,j,i,k))
             if ( k > 1 ) then
               sumq1(j,i,k) = sumq1(j,i,k-1)
@@ -2153,7 +2150,7 @@ module mod_micro_nogtom
         end do
         if ( aamax == d_zero ) then
           do nn = 1 , nqx
-            write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qxfg(nn)
+            write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
             do ll = 1 , nqx
               write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', ll , nn , qlhs(ll,nn)
             end do
