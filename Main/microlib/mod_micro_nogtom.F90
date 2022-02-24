@@ -2151,7 +2151,7 @@ module mod_micro_nogtom
         end do
         if ( aamax == d_zero ) then
           do nn = 1 , nqx
-            write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qxfg(nn)
+            write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
             do ll = 1 , nqx
               write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', ll , nn , qlhs(ll,nn)
             end do
