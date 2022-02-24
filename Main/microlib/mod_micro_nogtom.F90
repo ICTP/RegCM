@@ -233,7 +233,7 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-10_rkx
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
@@ -1716,8 +1716,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qxfg(n),activqx) / &
-              max(sinksum(n),max(qxfg(n),activqx))
+            ratio(n) = max(qx0(n),activqx) / &
+              max(sinksum(n),max(qx0(n),activqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1729,14 +1729,13 @@ module mod_micro_nogtom
           end do
           do n = 1 , nqx
             do jn = 1 , nqx
-              if ( lind1(jn) .and. ratio(jn) < rmin(n) ) then
+              if ( lind1(jn) .and. ratio(jn) <= rmin(n) ) then
                 iorder(n) = jn
                 rmin(n) = ratio(jn)
+                lind1(jn) = .false.
+                exit
               end if
             end do
-          end do
-          do n = 1 , nqx
-            lind1(iorder(n)) = .false.
           end do
           !--------------------------------------------
           ! scale the sink terms, in the correct order,
@@ -1758,8 +1757,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qxfg(jo),activqx) / &
-               max(sinksum(jo),max(qxfg(jo),activqx))
+            ratio(jo) = max(qx0(jo),activqx) / &
+               max(sinksum(jo),max(qx0(jo),activqx))
           end do
           !------
           ! scale
@@ -1802,7 +1801,7 @@ module mod_micro_nogtom
               ! Positive, since summed over 2nd index
               rexplicit = rexplicit + qsexp(n,jn)
             end do
-            qxn(n) = qxfg(n) + rexplicit
+            qxn(n) = qx0(n) + rexplicit
           end do
 
           call mysolve
