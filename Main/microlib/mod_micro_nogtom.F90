@@ -135,7 +135,6 @@ module mod_micro_nogtom
   ! array for sorting explicit terms
   integer(ik4) , pointer , dimension(:) :: iorder
   logical , pointer , dimension(:) :: lfall
-  logical , pointer , dimension(:) ::   lind1
   logical , pointer , dimension(:,:) :: lind2
 
   real(rkx) , pointer , dimension(:,:,:):: sumh0 , sumq0
@@ -158,7 +157,6 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:) :: qliq
 
   real(rkx) , pointer , dimension(:) :: ratio
-  real(rkx) , pointer , dimension(:) :: rmin
   real(rkx) , pointer , dimension(:) :: sinksum
   real(rkx) , pointer , dimension(:,:,:) :: eew
   ! ice water saturation
@@ -267,7 +265,6 @@ module mod_micro_nogtom
     call getmem1d(fallsink,1,nqx,'cmicro:fallsink')
     call getmem1d(fallsrce,1,nqx,'cmicro:fallsrce')
     call getmem1d(ratio,1,nqx,'cmicro:ratio')
-    call getmem1d(rmin,1,nqx,'cmicro:rmin')
     call getmem1d(sinksum,1,nqx,'cmicro:sinksum')
     call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
@@ -275,7 +272,6 @@ module mod_micro_nogtom
     call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsn')
     call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqlf')
     call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqif')
-    call getmem1d(lind1,1,nqx,'cmicro:lind1')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
     call getmem2d(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
@@ -1722,21 +1718,8 @@ module mod_micro_nogtom
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
           !--------------------------------------------------------
-          do n = 1 , nqx
-            iorder(n) = -999
-            lind1(n) = .true.
-            rmin(n) = 1.0e32_rkx
-          end do
-          do n = 1 , nqx
-            do jn = 1 , nqx
-              if ( lind1(jn) .and. ratio(jn) <= rmin(n) ) then
-                iorder(n) = jn
-                rmin(n) = ratio(jn)
-                lind1(jn) = .false.
-                exit
-              end if
-            end do
-          end do
+          iorder = argsort(ratio)
+
           !--------------------------------------------
           ! scale the sink terms, in the correct order,
           ! recalculating the scale factor each time
@@ -2258,6 +2241,32 @@ module mod_micro_nogtom
    !   fg(snk) = fg(snk) - (d_one-beta)*proc
    !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
    ! end subroutine addpath
+
+    function argsort(a) result(b)
+      implicit none
+      real(rk8) , intent(in) :: a(:)
+      integer(ik4) , dimension(size(a)) :: b
+      integer :: n , i , imin , temp1
+      real(rk8) :: temp2
+      real(rk8) , dimension(size(a)) :: a2
+      a2 = a
+      n = size(a)
+      do i = 1 , n
+        b(i) = i
+      end do
+      if ( n == 1 ) return
+      do i = 1 , n-1
+        imin = minloc(a2(i:),1) + i - 1
+        if ( imin /= i ) then
+          temp2 = a2(i)
+          a2(i) = a2(imin)
+          a2(imin) = temp2
+          temp1 = b(i)
+          b(i) = b(imin)
+          b(imin) = temp1
+        end if
+      end do
+    end function argsort
 
   end subroutine nogtom
 
