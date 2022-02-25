@@ -2242,7 +2242,7 @@ module mod_micro_nogtom
    !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
    ! end subroutine addpath
 
-    function argsort(a) result(b)
+    pure function argsort(a) result(b)
       implicit none
       real(rk8) , intent(in) :: a(:)
       integer(ik4) , dimension(size(a)) :: b
