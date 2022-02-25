@@ -752,10 +752,6 @@ module mod_params
       else if ( cftotmax > 1.0_rkx ) then
         cftotmax = 1.00_rkx
       end if
-      if ( ipptls == 2 ) then
-        write(stdout,*) 'Will set icldfrac == 1 : Xu-Randall scheme'
-        icldfrac = 1
-      end if
 
       if ( ipptls == 1 ) then
         rewind(ipunit)
