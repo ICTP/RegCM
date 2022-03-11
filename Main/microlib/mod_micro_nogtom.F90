@@ -105,12 +105,12 @@ module mod_micro_nogtom
   ! max threshold rh for evaporation for a precip coverage of zero
   real(rkx) , parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
-  real(rkx) , parameter :: tw1 = 1329.31_rkx
-  real(rkx) , parameter :: tw2 = 0.0074615_rkx
-  real(rkx) , parameter :: tw3 = 0.85e5_rkx
-  real(rkx) , parameter :: tw4 = 40.637_rkx
-  real(rkx) , parameter :: tw5 = 275.0_rkx
-  real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
+  !real(rkx) , parameter :: tw1 = 1329.31_rkx
+  !real(rkx) , parameter :: tw2 = 0.0074615_rkx
+  !real(rkx) , parameter :: tw3 = 0.85e5_rkx
+  !real(rkx) , parameter :: tw4 = 40.637_rkx
+  !real(rkx) , parameter :: tw5 = 275.0_rkx
+  !real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   ! initial mass of ice particle
@@ -958,8 +958,7 @@ module mod_micro_nogtom
             supsat = max((qxfg(iqqv)-facl*sqmix)*corqsmix,d_zero)
             ! e < esi, because for e > esi ice still present
             subsat = min((qxfg(iqqv)-facl*sqmix)*corqsmix,d_zero)
-
-            if ( supsat > d_zero ) then
+            if ( supsat > dlowval ) then
               if ( ltkgthomo ) then
                 ! turn supersaturation into liquid water
                 qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + supsat
@@ -971,7 +970,7 @@ module mod_micro_nogtom
                   ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + supsat
                 end if
 #endif
-              else
+              else if  ( ltklt0 ) then
                 ! turn supersaturation into ice water
                 qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + supsat
                 qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - supsat
@@ -994,7 +993,7 @@ module mod_micro_nogtom
                     qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + evapl
                     qxfg(iqql) = qxfg(iqql) + evapl
                     qxfg(iqqv) = qxfg(iqqv) - evapl
-                  else
+                  else if  ( ltklt0 ) then
                     evapi = max(-qxfg(iqqi),subsat)
                     ! turn subsaturation into vapour
                     qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - evapi
@@ -1180,7 +1179,7 @@ module mod_micro_nogtom
                     ngs%statscond1w(j,i,k) = chng
                   end if
 #endif
-                else
+                else if ( ltklt0 ) then
                   qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + chng
                   qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - chng
                   qxfg(iqqi) = qxfg(iqqi) + chng
@@ -1462,10 +1461,11 @@ module mod_micro_nogtom
               ! ice saturation T < 273K
               ! liquid water saturation for T > 273K
               !---------------------------------------------
-              if ( qicetot > activqx ) then
+              qicetot = qxfg(iqqi)+qxfg(iqqs)
+              if ( qicetot > d_zero ) then
                 ! Calculate subsaturation
                 ! qsice(j,i,k)-qxfg(iqqv),d_zero)
-                subsat = max(qsice(j,i,k)-qxfg(iqqv),d_zero)
+                subsat = max(sqmix-qxfg(iqqv),d_zero)
                 ! Calculate difference between dry-bulb (t)  and the temperature
                 ! at which the wet-bulb = 0degC
                 ! Melting only occurs if the wet-bulb temperature >0
@@ -1479,10 +1479,13 @@ module mod_micro_nogtom
                 ! humidity of the air is low. The wet-bulb temperature is
                 ! approximated as in the scheme described by
                 ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-                tdiff = tc - subsat * &
-                    (tw1+tw2*(mo2mc%phs(j,i,k)-tw3)-tw4*(tk-tw5))
+                ! tdiff = tc - subsat * &
+                !     (tw1+tw2*(mo2mc%phs(j,i,k)-tw3)-tw4*(tk-tw5))
+                tdiff = tc
                 ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
-                cons1 = dt/rtaumel !abs(dt*(d_one + d_half*tdiff)/rtaumel)
+                ! cons1 = abs(dt*(d_one + d_half*tdiff)/rtaumel)
+                ! cons1 = dt/rtaumel
+                cons1 = d_one
                 chngmax = max(tdiff*cons1*rldcp,d_zero)
                 if ( chngmax > d_zero ) then
                   ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
