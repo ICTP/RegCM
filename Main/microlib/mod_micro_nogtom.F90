@@ -871,6 +871,23 @@ module mod_micro_nogtom
 
           if ( lmicro ) then
 
+            !------------------------------------------------
+            ! Evaporate very small amounts of liquid and ice
+            !------------------------------------------------
+
+            if ( qx0(iqql) < activqx ) then
+              qsexp(iqqv,iqql) =  qx0(iqql)
+              qsexp(iqql,iqqv) = -qx0(iqql)
+              qxfg(iqql) = qxfg(iqql) - qx0(iqql)
+              qxfg(iqqv) = qxfg(iqql) + qx0(iqql)
+            end if
+            if ( qx0(iqqi) < activqx ) then
+              qsexp(iqqv,iqqi) =  qx0(iqqi)
+              qsexp(iqqi,iqqv) = -qx0(iqqi)
+              qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
+              qxfg(iqqv) = qxfg(iqqi) + qx0(iqqi)
+            end if
+
             !-------------------------------------------------------
             !  FALL SOURCE
             !-------------------------------------------------------
