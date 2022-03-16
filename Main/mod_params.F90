@@ -364,7 +364,7 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqr = 4.0_rkx
-    vfqi = 0.5_rkx
+    vfqi = 0.01_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
