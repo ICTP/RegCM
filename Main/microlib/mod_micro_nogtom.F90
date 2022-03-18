@@ -1377,14 +1377,9 @@ module mod_micro_nogtom
 #endif
             end if
 
-            if ( lcloud ) then
-              tmpa = d_one/ccover
-              ql_incld = qxfg(iqql)*tmpa
-              qi_incld = qxfg(iqqi)*tmpa
-            else
-              ql_incld = d_zero
-              qi_incld = d_zero
-            end if
+            tmpa = d_one/ccover
+            ql_incld = qxfg(iqql)*tmpa
+            qi_incld = qxfg(iqqi)*tmpa
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap
