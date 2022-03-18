@@ -808,6 +808,7 @@ module mod_micro_nogtom
             snowp   = d_zero
           else
             lccover = mc2mo%fcc(j,i,k-1)
+            lccover = min(max(lccover,zerocf),onecf)
             rainp   = pfplsx(iqqr,j,i,k)
             snowp   = pfplsx(iqqs,j,i,k)
           end if
@@ -851,14 +852,9 @@ module mod_micro_nogtom
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          if ( lcloud ) then
-            tmpa = d_one/ccover
-            ql_incld = qxfg(iqql)*tmpa
-            qi_incld = qxfg(iqqi)*tmpa
-          else
-            ql_incld = d_zero
-            qi_incld = d_zero
-          end if
+          tmpa = d_one/ccover
+          ql_incld = qxfg(iqql)*tmpa
+          qi_incld = qxfg(iqqi)*tmpa
           qli_incld  = ql_incld + qi_incld
 
           !------------------------------------------------------------------
@@ -1457,9 +1453,9 @@ module mod_micro_nogtom
                 alpha1 = dt*skconv*exp(0.025_rkx*tc)
                 arg = (qi_incld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
-                  snowaut = ccover * alpha1 * (d_one - exp(-arg))
+                  snowaut = alpha1 * (d_one - exp(-arg))
                 else
-                  snowaut = ccover * alpha1
+                  snowaut = alpha1
                 end if
                 qsimp(iqqs,iqqi) = qsimp(iqqs,iqqi) + snowaut
 #ifdef DEBUG
@@ -2071,7 +2067,7 @@ module mod_micro_nogtom
 
     subroutine klein_and_pincus
       implicit none
-      rainaut = ccover*dt*auto_rate_klepi*(ql_incld**(2.3_rkx))
+      rainaut = dt*auto_rate_klepi*(ql_incld**(2.3_rkx))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
       qsexp(iqqr,iqql) = d_zero
@@ -2079,14 +2075,14 @@ module mod_micro_nogtom
 
     subroutine khairoutdinov_and_kogan
       implicit none
-      rainaut = ccover*dt*auto_rate_khair*(ql_incld**(auto_expon_khair))
+      rainaut = dt*auto_rate_khair*(ql_incld**(auto_expon_khair))
       qsimp(iqql,iqqv) = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
     subroutine kessler
       implicit none
-      rainaut = ccover*dt*auto_rate_kessl*autocrit_kessl
+      rainaut = dt*auto_rate_kessl*autocrit_kessl
       qsimp(iqql,iqqv) = d_zero
       qsexp(iqqr,iqql) = qsexp(iqqr,iqql) - rainaut
       qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + rainaut
@@ -2125,9 +2121,9 @@ module mod_micro_nogtom
       ! security for exp for some compilers
       arg = (ql_incld/acrit)**2
       if ( arg < 25.0_rkx ) then
-        rainaut = ccover*alpha1*(d_one - exp(-arg))
+        rainaut = alpha1*(d_one - exp(-arg))
       else
-        rainaut = ccover*alpha1
+        rainaut = alpha1
       end if
       ! clean up
       qsimp(iqql,iqqv) = d_zero
