@@ -45,12 +45,15 @@ module mod_sst_gndnc
   integer(ik4) , dimension(3) :: istart , icount
   real(rkx) , pointer ::  work(:)
   real(rkx) , pointer , dimension(:,:) :: workf
+  integer(ik2) , pointer , dimension(:,:) :: worki
   real(rkx) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
   type(h_interpolator) :: hint
+  integer(ik2) :: fillvalue
+  real(rkx) :: add_offset , scale_factor
 
   data varname/'time', 'TOBESET'/
 
@@ -85,6 +88,17 @@ module mod_sst_gndnc
       write (inpfile,'(a,i0.4,a)') &
          trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
             'tmisst', year, '.nc'
+      varname(1) = 'time'
+      varname(2) = 'sst'
+    else if ( ssttyp(1:3) == 'EID' ) then
+      write (inpfile,'(a,i0.4,a)') trim(inpglob)//pthsep// &
+        dattyp//pthsep//'SSTD'//pthsep//'sst.',year, '.nc'
+      varname(1) = 'time'
+      varname(2) = 'sst'
+    else if ( ssttyp(1:4) == 'ERA5' ) then
+      write (inpfile,'(a,i0.4,a,i0.2,a)') &
+        trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SSTD'//pthsep// &
+         'sst_',year,'_',month,'.nc'
       varname(1) = 'time'
       varname(2) = 'sst'
     else
@@ -180,6 +194,29 @@ module mod_sst_gndnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lon')
       call h_interpolator_create(hint,glat,glon,xlat,xlon)
+    else if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
+      istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2)//' _FillValue')
+      istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2)//' add_offset')
+      istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2)//' scale_factor')
+      write(stdout,*) 'Add offset   = ',add_offset
+      write(stdout,*) 'Scale factor = ',scale_factor
+      write(stdout,*) 'Fill Value   = ',fillvalue
+      call getmem2d(worki,1,ilon,1,jlat,'mod_gndnc_sst:worki')
+      call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
+      call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
+      istatus = nf90_get_var(inet1,latid,glat1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
+      istatus = nf90_get_var(inet1,lonid,glon1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lon')
+      call h_interpolator_create(hint,glat1,glon1,xlat,xlon)
     else
       call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
       call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
@@ -256,6 +293,14 @@ module mod_sst_gndnc
       call split_idate(idate, year, month, day, hour)
       if ( ssttyp(1:3) == 'NO_' ) then
         call find_noresm_sst(inpfile,idate)
+      else if ( ssttyp(1:3) == 'EID' ) then
+        write (inpfile,'(a,i0.4,a)') &
+          trim(inpglob)//pthsep//dattyp//pthsep//'SSTD'// &
+          pthsep//'sst.',year, '.nc'
+      else if ( ssttyp(1:4) == 'ERA5' ) then
+        write (inpfile,'(a,i0.4,a,i0.2,a)') &
+          trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SSTD'//pthsep// &
+           'sst_',year,'_',month,'.nc'
       else if ( ssttyp == 'TMIST' ) then
         write (inpfile,'(a,i0.4,a)') &
            trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
@@ -281,6 +326,20 @@ module mod_sst_gndnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire dim time')
       call getmem1d(work,1,timlen,'mod_gndnc_sst:work')
+      if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
+        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' _FillValue')
+        istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' add_offset')
+        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2)//' scale_factor')
+        write(stdout,*) 'Add offset   = ',add_offset
+        write(stdout,*) 'Scale factor = ',scale_factor
+        write(stdout,*) 'Fill Value   = ',fillvalue
+      end if
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work,istart(1:1),icount(1:1))
@@ -301,7 +360,11 @@ module mod_sst_gndnc
     icount(2) = jlat
     icount(3) = 1
     istart(3) = it
-    call getworkf(2,workf)
+    if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
+      call getworki(2,workf,worki)
+    else
+      call getworkf(2,workf)
+    end if
     if ( ssttyp == 'TMIST' ) then
       do j = 1 , jlat
         do i = 1 , ilon
@@ -325,6 +388,20 @@ module mod_sst_gndnc
     end if
 
     contains
+
+      subroutine getworki(irec,wk,wi)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        real(rkx) , pointer , dimension(:,:) :: wk
+        integer(ik2) , pointer , dimension(:,:) :: wi
+        istatus = nf90_get_var(inet1,ivar2(irec),wi(:,:),istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error read var '//varname(irec))
+        wk = 1E+20
+        where ( wi /= fillvalue )
+          wk = wi * scale_factor + add_offset
+        end where
+      end subroutine getworki
 
       subroutine getworkf(irec,wk)
         implicit none
