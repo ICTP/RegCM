@@ -33,7 +33,8 @@ program checksun
   integer , dimension(3) :: idims , istart , icount
   integer , dimension(1) :: ixtime
   integer :: ivarid , itimid , ilonid , ilatid
-  integer :: idate0 , idate1 , idate2 , ifrq
+  integer(8) :: idate0 , idate1 , idate2
+  integer :: ifrq
   integer :: year , month , day , hour
   type(rcm_time_and_date) :: xidate0 , xidate1 , xidate2 , xidate
   type(rcm_time_interval) :: tdif
@@ -41,7 +42,7 @@ program checksun
   integer :: jx , iy
   integer :: it , nt , ibase
   real(8) :: xtime , gmt
-  character(32) :: csdate
+  character(32) :: csdate , calendar
   character(256) :: ofname
   real(8) , parameter :: dayspy = 365.2422D0
   real(8) , parameter :: solcon = 1367.0D0
@@ -52,7 +53,7 @@ program checksun
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
     write (6,*) 'Usage : ', trim(chararg), &
-              ' XXXX_DOMAIN000.nc IDATE0 IDATE1 IDATE2 IFRQ'
+              ' XXXX_DOMAIN000.nc CALENDAR IDATE0 IDATE1 IDATE2 IFRQ'
     write (6,*) ' '
     write (6,*) 'Where IDATEs are dates in the format YYYYMMDDHH,', &
                 ' and IFRQ is delta in hours'
@@ -60,34 +61,35 @@ program checksun
     write (6,*) ' '
     write (6,*) 'Example:'
     write (6,*) trim(chararg), &
-             ' EUROPE_DOMAIN000.nc 1999010100 2001010100 2010010100 3'
+             ' EUROPE_DOMAIN000.nc gregorian 1999010100 2001010100 2010010100 3'
     write (6,*) ' '
     stop
   end if
 
   call get_command_argument(1,value=ncfile)
-  call get_command_argument(2,value=chararg)
+  call get_command_argument(2,value=calendar)
+  call get_command_argument(3,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate0
   if (istatus /= 0) then
     print *, 'Cannot parse idate0'
     stop
   end if
-  xidate0 = idate0
-  call get_command_argument(3,value=chararg)
+  xidate0 = i8wcal(idate0,calendar_int(calendar))
+  call get_command_argument(4,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate1
   if (istatus /= 0) then
     print *, 'Cannot parse idate1'
     stop
   end if
-  xidate1 = idate1
-  call get_command_argument(4,value=chararg)
+  xidate1 = i8wcal(idate1,calendar_int(calendar))
+  call get_command_argument(5,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate2
   if (istatus /= 0) then
     print *, 'Cannot parse idate2'
     stop
   end if
-  xidate2 = idate2
-  call get_command_argument(5,value=chararg)
+  xidate2 = i8wcal(idate2,calendar_int(calendar))
+  call get_command_argument(6,value=chararg)
   read(chararg, '(i5)',iostat=istatus) ifrq
   if (istatus /= 0) then
     print *, 'Cannot parse ifrq'
