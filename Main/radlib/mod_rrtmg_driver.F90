@@ -97,7 +97,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer(ik4) :: npr , kth , ktf , kclimf , kclimh
+  integer(ik4) :: npr
 
   integer(ik4) :: permuteseed = 1 , mypid
 
@@ -116,30 +116,6 @@ module mod_rrtmg_driver
     integer , external :: getpid_
 #endif
     npr = (jci2-jci1+1)*(ici2-ici1+1)
-
-    ! Define here the total number of vertical levels, including standard
-    ! atmosphere hat replace kz by kth, kzp1 by ktf
-
-    if ( idynamic /= 3 ) then
-      do k = 1 , n_prehlev
-        kclimh = k
-        if ( ptop*d_10 > stdplevh(k) ) exit
-      end do
-      kth = kz + n_prehlev - kclimh - 1
-      do k = 1 , n_preflev
-        kclimf = k
-        if ( ptop*d_10 > stdplevf(k) ) exit
-      end do
-      ktf = kzp1 + n_preflev - kclimf - 1
-    else
-      do k = 1 , n_hreflev
-        kclimf = k
-        if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
-      end do
-      ktf = kzp1 + n_hreflev - kclimf - 1
-      kclimh = kclimf
-      kth = kz + ktf-kzp1
-    end if
 
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
@@ -626,8 +602,10 @@ module mod_rrtmg_driver
       end do
     end do
     do k = kzp1+1 , ktf
-      plev(:,k) = stdplevf(kclimf+k-kzp1)
+      plev(:,k) = stdplevf(kclimf+k-kzp1-1)
     end do
+    ! smooth transition from top to climato at kzp1
+    play(:,kzp1) = d_half * (plev(:,kzp1) + plev(:,kzp2) )
     !
     ! ground temperature
     !
@@ -675,8 +653,8 @@ module mod_rrtmg_driver
       end do
     end do
     do k = kzp1 , kth
-      deltaz(:,k) = (stdhlevf(kclimh+k-kzp1+1) - &
-                     stdhlevf(kclimh+k-kzp1)) * d_1000
+      deltaz(:,k) = (stdhlevf(kclimf+k-kzp1) - &
+                     stdhlevf(kclimf+k-kzp1-1)) * d_1000
     end do
     !
     ! air temperature at the interface
@@ -865,8 +843,8 @@ module mod_rrtmg_driver
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
       do i = 1 , nbndsw
-        do k = 1 , kz
-          kj = kzp1 - k
+        do k = 1 , kth
+          kj = kth + 1 - k
           do n = 1 , npr
             ecaer(n,k,i)  = 0.78_rkx ! not used
             tauaer(n,k,i) = tauxar3d(n,kj,i)
