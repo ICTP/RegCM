@@ -105,7 +105,7 @@ module mod_params
       idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
       iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
       temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset
+      fixedsolarval , irceideal , year_offset , radclimpath
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -275,6 +275,7 @@ module mod_params
     islab_ocean = 0
     iclimao3 = 0
     iclimaaer = 0
+    radclimpath = 'OPPMONTH'
     isolconst = 0
     year_offset = 0
     ifixsolar = 0
@@ -1158,6 +1159,7 @@ module mod_params
     call bcast(lakemod)
     call bcast(ichem)
     call bcast(iclimaaer)
+    call bcast(radclimpath,256)
 
     if ( idynamic == 3 ) then
       if ( isladvec == 1 ) then

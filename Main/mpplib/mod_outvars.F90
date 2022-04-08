@@ -210,6 +210,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: rad_clwp_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: rad_qrs_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: rad_qrl_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: rad_o3_out => null()
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_taucl_out => null()
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_tauci_out => null()
 

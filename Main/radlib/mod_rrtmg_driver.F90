@@ -61,7 +61,7 @@ module mod_rrtmg_driver
 
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
     rh , cld_int , tlay , h2ovmr , o3vmr , co2vmrk , play , ch4vmr ,   &
-    n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr ,        &
+    n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , o3 ,   &
     reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel , cldf ,&
     lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
 
@@ -97,7 +97,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer(ik4) :: npr , kth , ktf , kclimf , kclimh
+  integer(ik4) :: npr
 
   integer(ik4) :: permuteseed = 1 , mypid
 
@@ -117,30 +117,6 @@ module mod_rrtmg_driver
 #endif
     npr = (jci2-jci1+1)*(ici2-ici1+1)
 
-    ! Define here the total number of vertical levels, including standard
-    ! atmosphere hat replace kz by kth, kzp1 by ktf
-
-    if ( idynamic /= 3 ) then
-      do k = 1 , n_prehlev
-        kclimh = k
-        if ( ptop*d_10 > stdplevh(k) ) exit
-      end do
-      kth = kz + n_prehlev - kclimh - 1
-      do k = 1 , n_preflev
-        kclimf = k
-        if ( ptop*d_10 > stdplevf(k) ) exit
-      end do
-      ktf = kzp1 + n_preflev - kclimf - 1
-    else
-      do k = 1 , n_hreflev
-        kclimf = k
-        if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
-      end do
-      ktf = kzp1 + n_hreflev - kclimf - 1
-      kclimh = kclimf
-      kth = kz + ktf-kzp1
-    end if
-
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
@@ -158,8 +134,11 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
-    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
-    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
+    if ( idiag == 1 ) then
+      call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
+      call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
+      call getmem2d(o3,1,npr,1,kth,'rrtmg:o3')
+    end if
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
@@ -439,10 +418,16 @@ module mod_rrtmg_driver
     slwd(:)  = lwdflx(:,1)
 
     ! 3d heating rate back on regcm grid and converted to K.S-1
+    if ( idiag == 1 ) then
+      do k = 1 , kz
+        kj = kzp1-k
+        o3(:,kj) = o3vmr(:,k)
+        qrs(:,kj) = swhr(:,k) / secpd
+        qrl(:,kj) = lwhr(:,k) / secpd
+      end do
+    end if
     do k = 1 , kz
       kj = kzp1-k
-      qrs(:,kj) = swhr(:,k) / secpd
-      qrl(:,kj) = lwhr(:,k) / secpd
       dzr(:,kj) = deltaz(:,k)
       clwp_int(:,kj) = clwp(:,k)
     end do
@@ -502,8 +487,8 @@ module mod_rrtmg_driver
                 frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,          &
                 solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
-                tauasc3d,gtota3d,dzr,outtaucl,outtauci,asaeradfo,   &
-                asaeradfos,asaerlwfo,asaerlwfos,r2m,m2r)
+                tauasc3d,gtota3d,dzr,o3,outtaucl,outtauci,          &
+                asaeradfo,asaeradfos,asaerlwfo,asaerlwfos,r2m,m2r)
 
   end subroutine rrtmg_driver
 
@@ -626,8 +611,10 @@ module mod_rrtmg_driver
       end do
     end do
     do k = kzp1+1 , ktf
-      plev(:,k) = stdplevf(kclimf+k-kzp1)
+      plev(:,k) = stdplevf(kclimf+k-kzp1-1)
     end do
+    ! smooth transition from top to climato at kzp1
+    play(:,kzp1) = d_half * (plev(:,kzp1) + plev(:,kzp2) )
     !
     ! ground temperature
     !
@@ -675,8 +662,8 @@ module mod_rrtmg_driver
       end do
     end do
     do k = kzp1 , kth
-      deltaz(:,k) = (stdhlevf(kclimh+k-kzp1+1) - &
-                     stdhlevf(kclimh+k-kzp1)) * d_1000
+      deltaz(:,k) = (stdhlevf(kclimf+k-kzp1) - &
+                     stdhlevf(kclimf+k-kzp1-1)) * d_1000
     end do
     !
     ! air temperature at the interface
@@ -769,7 +756,7 @@ module mod_rrtmg_driver
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          o3vmr(n,k) = d_half*(o3prof(j,i,kj+1)+o3prof(j,i,kj)) * amd/amo3
+          o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
           n = n + 1
         end do
       end do
@@ -865,8 +852,8 @@ module mod_rrtmg_driver
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
       do i = 1 , nbndsw
-        do k = 1 , kz
-          kj = kzp1 - k
+        do k = 1 , kth
+          kj = kth + 1 - k
           do n = 1 , npr
             ecaer(n,k,i)  = 0.78_rkx ! not used
             tauaer(n,k,i) = tauxar3d(n,kj,i)
