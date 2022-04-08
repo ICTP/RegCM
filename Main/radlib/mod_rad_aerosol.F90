@@ -1814,27 +1814,27 @@ module mod_rad_aerosol
         ext = (ext1*xfac2 + ext2*xfac1) * zdzr3d
         ssa = ssa1*xfac2 + ssa2*xfac1
         asy = asy1*xfac2 + asy2*xfac1
+
+        where ( ext < 1.E-10_rkx ) ext = 1.E-10_rkx
+        where ( ssa < 1.E-10_rkx ) ssa = 0.991_rkx
+        where ( asy < 1.E-10_rkx ) ssa = 0.611_rkx
       end if
       call grid_distribute(ext,extprof,jci1,jci2,ici1,ici2,1,kth)
       call grid_distribute(ssa,ssaprof,jci1,jci2,ici1,ici2,1,kth)
       call grid_distribute(asy,asyprof,jci1,jci2,ici1,ici2,1,kth)
-      do k = 1, kth
-        extprof(jci1:jci2,ici1:ici2,k) = &
-           max(extprof(jci1:jci2,ici1:ici2,k),1.E-10_rkx)
-      end do
       if ( myid == italk .and. dointerp ) then
-        do k = 1 , kz
-          opprnt(k) = extprof(3,3,kzp1-k)
+        do k = 1 , kth
+          opprnt(k) = extprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated ext profile at (3,3)')
-        do k = 1 , kz
-          opprnt(k) = ssaprof(3,3,kzp1-k)
+        call vprntv(opprnt,kth,'Updated ext profile at (3,3)')
+        do k = 1 , kth
+          opprnt(k) = ssaprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated ssa profile at (3,3)')
-        do k = 1 , kz
-          opprnt(k) = asyprof(3,3,kzp1-k)
+        call vprntv(opprnt,kth,'Updated ssa profile at (3,3)')
+        do k = 1 , kth
+          opprnt(k) = asyprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated asy profile at (3,3)')
+        call vprntv(opprnt,kth,'Updated asy profile at (3,3)')
       end if
       lfirst = .false.
     end subroutine read_aeroppdata

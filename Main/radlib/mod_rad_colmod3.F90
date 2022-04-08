@@ -782,7 +782,7 @@ module mod_rad_colmod3
                 rt%flwds,rt%sols,rt%soll,rt%solsd,rt%solld,rt%totcf,  &
                 rt%totwv,rt%totcl,rt%totci,rt%cld,rt%clwp,rt%abv,     &
                 rt%sol,rt%aeradfo,rt%aeradfos,rt%aerlwfo,rt%aerlwfos, &
-                tauxar3d,tauasc3d,gtota3d,rt%dz,rt%outtaucl,          &
+                tauxar3d,tauasc3d,gtota3d,rt%dz,rt%o3vmr,rt%outtaucl, &
                 rt%outtauci,rt%asaeradfo,rt%asaeradfos,rt%asaerlwfo,  &
                 rt%asaerlwfos,r2m,m2r)
 #ifdef DEBUG

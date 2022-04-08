@@ -81,22 +81,27 @@ module mod_rad_interface
     ! Define here the total number of vertical levels, including standard
     ! atmosphere hat replace kz by kth, kzp1 by ktf
 
-    if ( idynamic /= 3 ) then
-      do k = 1 , n_prehlev
-        kclimh = k
-        if ( ptop*d_10 > stdplevh(k) ) exit
-      end do
-      kth = n_prehlev - kclimh + 1 + kz
-      ktf = kth + 1
-      kclimf = kclimh + 1
-    else
-      do k = 1 , n_hrehlev
-        kclimh = k
-        if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
-      end do
-      kth  = n_hrehlev - kclimh + 1 + kz
-      ktf  = kth + 1
-      kclimf = kclimh + 1
+    kth = kz
+    ktf = kzp1
+
+    if ( irrtm == 1 ) then
+      if ( idynamic /= 3 ) then
+        do k = 1 , n_prehlev
+          kclimh = k
+          if ( ptop*d_10 > stdplevh(k) ) exit
+        end do
+        kth = n_prehlev - kclimh + 1 + kz
+        ktf = kth + 1
+        kclimf = kclimh + 1
+      else
+        do k = 1 , n_hrehlev
+          kclimh = k
+          if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
+        end do
+        kth  = n_hrehlev - kclimh + 1 + kz
+        ktf  = kth + 1
+        kclimf = kclimh + 1
+      end if
     end if
 
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')

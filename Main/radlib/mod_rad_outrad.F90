@@ -48,7 +48,7 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
-                    deltaz,outtaucl,outtauci,asaeradfo,asaeradfos,       &
+                    deltaz,o3,outtaucl,outtauci,asaeradfo,asaeradfos,    &
                     asaerlwfo,asaerlwfos,r2m,m2r)
     implicit none
     !
@@ -86,7 +86,7 @@ module mod_rad_outrad
            soll , solld , sols , solsd , totcf , totcl , totci , totwv ,   &
            abv , sol , aeradfo , aeradfos , aerlwfo , aerlwfos
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: cld , clwp ,   &
-           qrl , qrs , deltaz
+           qrl , qrs , deltaz , o3
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtaucl ,  &
            outtauci , tauxar3d , tauasc3d , gtota3d
     real(rkx) , pointer , dimension(:) , intent(inout) :: asaeradfo , &
@@ -235,10 +235,15 @@ module mod_rad_outrad
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
         rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
-        call copy3d(qrs,rad_qrs_out)
-        call copy3d(qrl,rad_qrl_out)
-        call copy4d1(outtaucl,rad_taucl_out,4)
-        call copy4d1(outtauci,rad_tauci_out,4)
+        if ( idiag > 0 ) then
+          call copy3d(qrs,rad_qrs_out)
+          call copy3d(qrl,rad_qrl_out)
+          call copy3d(o3,rad_o3_out)
+        end if
+        if ( icosp == 1 ) then
+          call copy4d1(outtaucl,rad_taucl_out,4)
+          call copy4d1(outtauci,rad_tauci_out,4)
+        end if
         call copy2d(frsa,rad_frsa_out)
         call copy2d(frla,rad_frla_out)
         call copy2d(clrst,rad_clrst_out)

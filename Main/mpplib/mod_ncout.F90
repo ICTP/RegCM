@@ -80,7 +80,7 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 16 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 6
+  integer(ik4) , parameter :: nrad3dvars = 7
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
@@ -367,6 +367,7 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clwp   = 4
   integer(ik4) , parameter :: rad_qrs    = 5
   integer(ik4) , parameter :: rad_qrl    = 6
+  integer(ik4) , parameter :: rad_o3     = 7
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
@@ -1981,9 +1982,15 @@ module mod_ncout
               'tendency_of_air_temperature_due_to_longwave_heating',.true.)
             rad_qrl_out => v3dvar_rad(rad_qrl)%rval
           end if
+          if ( enable_rad3d_vars(rad_o3) ) then
+            call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
+              'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
+            rad_o3_out => v3dvar_rad(rad_o3)%rval
+          end if
         else
           enable_rad3d_vars(rad_qrs) = .false.
           enable_rad3d_vars(rad_qrl) = .false.
+          enable_rad3d_vars(rad_o3) = .false.
         end if
         if ( icosp == 1 ) then
           if ( enable_rad4d_vars(rad_taucl) ) then
