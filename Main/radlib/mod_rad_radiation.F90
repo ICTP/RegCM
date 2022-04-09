@@ -358,14 +358,6 @@ module mod_rad_radiation
   real(rkx) , parameter :: cplos = v0/(amd*egrav)*d_100
   real(rkx) , parameter :: cplol = v0/(amd*egrav*p0)*d_half*d_100
   !
-  ! v_raytau_xx - Constants for new bands
-  ! v_abo3_xx   - Constants for new bands
-  !
-  real(rkx) , parameter :: v_raytau_35 = 0.155208_rkx
-  real(rkx) , parameter :: v_raytau_64 = 0.0392_rkx
-  real(rkx) , parameter :: v_abo3_35   = 2.4058030e+1_rkx
-  real(rkx) , parameter :: v_abo3_64   = 2.210e+1_rkx
-  !
   ! delta    - Pressure (atmospheres) for stratos. h2o limit
   ! o2mmr    - O2 mass mixing ratio
   !
@@ -523,12 +515,11 @@ module mod_rad_radiation
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx/
 
-  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx , &
-              1.2500_rkx , 1.0850_rkx , 0.7300_rkx ,              &
-              v_raytau_35 , v_raytau_64 ,                         &
-              0.0200_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
-              0.0001_rkx , 0.0001_rkx/
+  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
+              1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
+              0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+              0.0001_rkx , 0.0001_rkx , 0.0001_rkx/
   !
   ! Absorption coefficients
   !
@@ -537,10 +528,10 @@ module mod_rad_radiation
              0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
            190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
 
-  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx , &
-            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , v_abo3_35 ,    &
-            v_abo3_64 ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,    &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx , &
+  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
+            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
+            2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
             0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx/
 
   data abco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
@@ -1392,7 +1383,7 @@ module mod_rad_radiation
       else if ( abs(wavmin(ns)-0.701_rkx) < dlowval ) then
         indxsl = 3
       else if ( abs(wavmin(ns)-0.702_rkx) < dlowval .or. &
-                     wavmin(ns) > 2.38_rkx ) then
+                    wavmin(ns) > 2.38_rkx ) then
         indxsl = 4
       end if
       !
@@ -2095,7 +2086,7 @@ module mod_rad_radiation
     if ( linteract ) then
       aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
       aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
-                    (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
+                      (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
         fsul(:,:) = fsul0(:,:)
@@ -2116,10 +2107,10 @@ module mod_rad_radiation
     ! those locations where there are clouds
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
-    where ( tclrsf(:,kzp1) > mincld )
-      skip = .true.
-    elsewhere
+    where ( tclrsf(:,kzp1) < 0.999_rkx )
       skip = .false.
+    elsewhere
+      skip = .true.
     end where
     !
     ! Compute downflux at level 1 for cloudy sky
@@ -2948,7 +2939,8 @@ module mod_rad_radiation
     ! g4       - Arguement in exp() in eq(10) table A2
     ! dplos    - Ozone pathlength eq(A2) in R&Di
     ! dplol    - Presure weighted ozone pathlength
-    ! beta     - Local interface temperature (includes Voigt line correction factor)
+    ! beta     - Local interface temperature
+    !            (includes Voigt line correction factor)
     ! rphat    - Effective pressure for ozone beta
     ! tcrfac   - Ozone temperature factor table 1 R&Di
     ! tmp1     - Ozone band factor see eq(A1) in R&Di

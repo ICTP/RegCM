@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_init.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.5 $
-!     created:   $Date: 2009/11/12 20:52:25 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_init
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! ------- Modules -------
       use parkind, only : im => kind_im, rb => kind_rb
@@ -38,25 +57,9 @@
 !  spectral band are reduced from 256 g-point intervals to 140.
 ! **************************************************************************
 
-      use parrrtm, only : mg, nbndlw
-      use rrlw_tbl, only: ntbl, pade, bpade, tau_tbl, exp_tbl, tfn_tbl
+      use parrrtm, only : mg, nbndlw, ngptlw
+      use rrlw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrini
-      use rrtmg_lw_read_nc , only : lw_kgb01
-      use rrtmg_lw_read_nc , only : lw_kgb02
-      use rrtmg_lw_read_nc , only : lw_kgb03
-      use rrtmg_lw_read_nc , only : lw_kgb04
-      use rrtmg_lw_read_nc , only : lw_kgb05
-      use rrtmg_lw_read_nc , only : lw_kgb06
-      use rrtmg_lw_read_nc , only : lw_kgb07
-      use rrtmg_lw_read_nc , only : lw_kgb08
-      use rrtmg_lw_read_nc , only : lw_kgb09
-      use rrtmg_lw_read_nc , only : lw_kgb10
-      use rrtmg_lw_read_nc , only : lw_kgb11
-      use rrtmg_lw_read_nc , only : lw_kgb12
-      use rrtmg_lw_read_nc , only : lw_kgb13
-      use rrtmg_lw_read_nc , only : lw_kgb14
-      use rrtmg_lw_read_nc , only : lw_kgb15
-      use rrtmg_lw_read_nc , only : lw_kgb16
 
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
@@ -68,7 +71,7 @@
       integer(kind=im) :: igcsm, iprsm
 
       real(kind=rb) :: wtsum, wtsm(mg)        !
-      real(kind=rb) :: tfn , mxarg
+      real(kind=rb) :: tfn                    !
 
       real(kind=rb), parameter :: expeps = 1.e-20_rb   ! Smallest value for exponential table
 
@@ -84,7 +87,7 @@
 !     BPADE   Inverse of the Pade approximation constant
 !
 
-      hvrini = '$Revision: 1.5 $'
+      hvrini = '$Revision$'
 
 ! Initialize model data
       call lwdatinit(cpdair)
@@ -119,7 +122,6 @@
 ! are computed at intervals of 0.001.  The inverse of the constant used
 ! in the Pade approximation to the tau transition function is set to b.
 
-      mxarg = - log(epsilon(1.0_rb))
       tau_tbl(0) = 0.0_rb
       tau_tbl(ntbl) = 1.e10_rb
       exp_tbl(0) = 1.0_rb
@@ -127,19 +129,19 @@
       tfn_tbl(0) = 0.0_rb
       tfn_tbl(ntbl) = 1.0_rb
       bpade = 1.0_rb / pade
-      do itr = 1 , ntbl-1
-         tfn = real(itr,rb) / real(ntbl,rb)
+      do itr = 1, ntbl-1
+         tfn = real(itr,kind=rb) / real(ntbl,kind=rb)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl(itr) .ge. mxarg ) then
-           exp_tbl(itr) = expeps
+         if ( tau_tbl(itr) < 20.0_rb ) then
+           exp_tbl(itr) = exp(-tau_tbl(itr))
          else
-           exp_tbl(itr) = max(exp(-tau_tbl(itr)),1.e-7_rb)
+           exp_tbl(itr) = expeps
          end if
+         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
          if (tau_tbl(itr) .lt. 0.06_rb) then
             tfn_tbl(itr) = tau_tbl(itr)/6._rb
          else
-            tfn_tbl(itr) = 1._rb-2._rb*((1._rb/tau_tbl(itr)) - &
-                           (exp_tbl(itr)/(1._rb-exp_tbl(itr))))
+            tfn_tbl(itr) = 1._rb-2._rb*((1._rb/tau_tbl(itr))-(exp_tbl(itr)/(1.-exp_tbl(itr))))
          endif
       enddo
 
@@ -201,7 +203,7 @@
 
 ! --------- Modules ----------
 
-      use parrrtm, only : maxinpx
+      use parrrtm, only : maxxsec, maxinpx
       use rrlw_con, only: heatfac, grav, planck, boltz, &
                           clight, avogad, alosmt, gascon, radcn1, radcn2, &
                           sbcnst, secdy
@@ -405,14 +407,16 @@
 !        10-250 cm-1 (low - h2o; high - h2o)
 !***************************************************************************
 
-      use rrlw_kg01, only: fracrefao, fracrefbo, kao, kbo, kao_mn2, &
-                           kbo_mn2, selfrefo, forrefo, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng1
+      use rrlw_kg01, only: fracrefao, fracrefbo, kao, kbo, kao_mn2, kbo_mn2, &
+                           selfrefo, forrefo, &
                            fracrefa, fracrefb, ka, kb, ka_mn2, kb_mn2, &
                            selfref, forref
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
       real(kind=rb) :: sumk, sumk1, sumk2, sumf1, sumf2
+
 
       do jt = 1,5
          do jp = 1,13
@@ -503,13 +507,14 @@
 !           250 - 500 cm-1 (low - h2o; high - h2o)
 !***************************************************************************
 
-      use rrlw_kg02, only: fracrefao, fracrefbo, kao, kbo, selfrefo, &
-                           forrefo, fracrefa, fracrefb, ka, kb,      &
-                           selfref, forref
+      use parrrtm, only : mg, nbndlw, ngptlw, ng2
+      use rrlw_kg02, only: fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, selfref, forref
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
       real(kind=rb) :: sumk, sumf1, sumf2
+
 
       do jt = 1,5
          do jp = 1,13
@@ -585,14 +590,16 @@
 ! old band 3:  500-630 cm-1 (low - h2o,co2; high - h2o,co2)
 !***************************************************************************
 
-      use rrlw_kg03, only: fracrefao, fracrefbo, kao, kbo, kao_mn2o, &
-                           kbo_mn2o, selfrefo, forrefo, fracrefa,    &
-                           fracrefb, ka, kb, ka_mn2o, kb_mn2o, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng3
+      use rrlw_kg03, only: fracrefao, fracrefbo, kao, kbo, kao_mn2o, kbo_mn2o, &
+                           selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, ka_mn2o, kb_mn2o, &
                            selfref, forref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
       real(kind=rb) :: sumk, sumf
+
 
       do jn = 1,9
          do jt = 1,5
@@ -712,13 +719,14 @@
 ! old band 4:  630-700 cm-1 (low - h2o,co2; high - o3,co2)
 !***************************************************************************
 
-      use rrlw_kg04, only: fracrefao, fracrefbo, kao, kbo, selfrefo, &
-                           forrefo, fracrefa, fracrefb, ka, kb,      &
-                           selfref, forref
+      use parrrtm, only : mg, nbndlw, ngptlw, ng4
+      use rrlw_kg04, only: fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, selfref, forref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
       real(kind=rb) :: sumk, sumf
+
 
       do jn = 1,9
          do jt = 1,5
@@ -811,9 +819,10 @@
 ! old band 5:  700-820 cm-1 (low - h2o,co2; high - o3,co2)
 !***************************************************************************
 
-      use rrlw_kg05, only: fracrefao, fracrefbo, kao, kbo, kao_mo3, &
-                           ccl4o, selfrefo, forrefo, fracrefa,      &
-                           fracrefb, ka, kb, ka_mo3, ccl4, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng5
+      use rrlw_kg05, only: fracrefao, fracrefbo, kao, kbo, kao_mo3, ccl4o, &
+                           selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, ka_mo3, ccl4, &
                            selfref, forref
 
 ! ------- Local -------
@@ -936,6 +945,7 @@
 ! old band 6:  820-980 cm-1 (low - h2o; high - nothing)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng6
       use rrlw_kg06, only: fracrefao, kao, kao_mco2, cfc11adjo, cfc12o, &
                            selfrefo, forrefo, &
                            fracrefa, ka, ka_mco2, cfc11adj, cfc12, &
@@ -1024,9 +1034,10 @@
 ! old band 7:  980-1080 cm-1 (low - h2o,o3; high - o3)
 !***************************************************************************
 
-      use rrlw_kg07, only: fracrefao, fracrefbo, kao, kbo, kao_mco2, &
-                           kbo_mco2, selfrefo, forrefo, fracrefa,    &
-                           fracrefb, ka, kb, ka_mco2, kb_mco2, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng7
+      use rrlw_kg07, only: fracrefao, fracrefbo, kao, kbo, kao_mco2, kbo_mco2, &
+                           selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, ka_mco2, kb_mco2, &
                            selfref, forref
 
 ! ------- Local -------
@@ -1147,12 +1158,13 @@
 ! old band 8:  1080-1180 cm-1 (low (i.e.>~300mb) - h2o; high - o3)
 !***************************************************************************
 
-      use rrlw_kg08, only: fracrefao, fracrefbo, kao, kao_mco2, &
-                           kao_mn2o, kao_mo3, kbo, kbo_mco2, kbo_mn2o, &
-                           selfrefo, forrefo, cfc12o, cfc22adjo, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng8
+      use rrlw_kg08, only: fracrefao, fracrefbo, kao, kao_mco2, kao_mn2o, &
+                           kao_mo3, kbo, kbo_mco2, kbo_mn2o, selfrefo, forrefo, &
+                           cfc12o, cfc22adjo, &
                            fracrefa, fracrefb, ka, ka_mco2, ka_mn2o, &
-                           ka_mo3, kb, kb_mco2, kb_mn2o, selfref,    &
-                           forref, cfc12, cfc22adj
+                           ka_mo3, kb, kb_mco2, kb_mn2o, selfref, forref, &
+                           cfc12, cfc22adj
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -1265,6 +1277,7 @@
 ! old band 9:  1180-1390 cm-1 (low - h2o,ch4; high - ch4)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng9
       use rrlw_kg09, only: fracrefao, fracrefbo, kao, kao_mn2o, &
                            kbo, kbo_mn2o, selfrefo, forrefo, &
                            fracrefa, fracrefb, ka, ka_mn2o, &
@@ -1388,8 +1401,10 @@
 ! old band 10:  1390-1480 cm-1 (low - h2o; high - h2o)
 !***************************************************************************
 
-      use rrlw_kg10, only: fracrefao, fracrefbo, kao, kbo, selfrefo, &
-                           forrefo, fracrefa, fracrefb, ka, kb, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng10
+      use rrlw_kg10, only: fracrefao, fracrefbo, kao, kbo, &
+                           selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, &
                            selfref, forref
 
 ! ------- Local -------
@@ -1475,6 +1490,7 @@
 !                              (high key - h2o; high minor - o2)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng11
       use rrlw_kg11, only: fracrefao, fracrefbo, kao, kao_mo2, &
                            kbo, kbo_mo2, selfrefo, forrefo, &
                            fracrefa, fracrefb, ka, ka_mo2, &
@@ -1575,6 +1591,7 @@
 ! old band 12:  1800-2080 cm-1 (low - h2o,co2; high - nothing)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng12
       use rrlw_kg12, only: fracrefao, kao, selfrefo, forrefo, &
                            fracrefa, ka, selfref, forref
 
@@ -1646,8 +1663,9 @@
 ! old band 13:  2080-2250 cm-1 (low - h2o,n2o; high - nothing)
 !***************************************************************************
 
-      use rrlw_kg13, only: fracrefao, fracrefbo, kao, kao_mco2, &
-                           kao_mco, kbo_mo3, selfrefo, forrefo, &
+      use parrrtm, only : mg, nbndlw, ngptlw, ng13
+      use rrlw_kg13, only: fracrefao, fracrefbo, kao, kao_mco2, kao_mco, &
+                           kbo_mo3, selfrefo, forrefo, &
                            fracrefa, fracrefb, ka, ka_mco2, ka_mco, &
                            kb_mo3, selfref, forref
 
@@ -1758,6 +1776,7 @@
 ! old band 14:  2250-2380 cm-1 (low - co2; high - co2)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng14
       use rrlw_kg14, only: fracrefao, fracrefbo, kao, kbo, &
                            selfrefo, forrefo, &
                            fracrefa, fracrefb, ka, kb, &
@@ -1766,6 +1785,7 @@
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
       real(kind=rb) :: sumk, sumf1, sumf2
+
 
       do jt = 1,5
          do jp = 1,13
@@ -1844,6 +1864,7 @@
 ! old band 15:  2380-2600 cm-1 (low - n2o,co2; high - nothing)
 !***************************************************************************
 
+      use parrrtm, only : mg, nbndlw, ngptlw, ng15
       use rrlw_kg15, only: fracrefao, kao, kao_mn2, selfrefo, forrefo, &
                            fracrefa, ka, ka_mn2, selfref, forref
 
@@ -1929,9 +1950,9 @@
 ! old band 16:  2600-3000 cm-1 (low - h2o,ch4; high - nothing)
 !***************************************************************************
 
-      use rrlw_kg16, only: fracrefao, fracrefbo, kao, kbo, selfrefo, &
-                           forrefo, fracrefa, fracrefb, ka, kb, &
-                           selfref, forref
+      use parrrtm, only : mg, nbndlw, ngptlw, ng16
+      use rrlw_kg16, only: fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, &
+                           fracrefa, fracrefb, ka, kb, selfref, forref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm

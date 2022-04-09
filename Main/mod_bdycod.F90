@@ -196,9 +196,7 @@ module mod_bdycod
     call invert_top_bottom(u)
     call invert_top_bottom(v)
     call invert_top_bottom(r)
-    call random_number(noise)
-    xtsb%b0 = noise
-    xtsb%b0 = xtsb%b0 + ts - 0.5_rkx
+    xtsb%b0 = ts
     if ( idynamic == 1 ) then
       xpsb%b0 = ps * 0.1_rkx
       ht = 0.0
@@ -246,8 +244,13 @@ module mod_bdycod
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
       end do
-      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call exchange(xub%b0,1,jde1,jde2,ice1,ice2,1,kz)
+      call exchange(xvb%b0,1,jce1,jce2,ide1,ide2,1,kz)
+      call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     else
       call fatal(__FILE__,__LINE__, &
         'Should never get here....')
@@ -5596,7 +5599,7 @@ module mod_bdycod
   subroutine invert_top_bottom(v)
     implicit none
     real(rkx) , dimension(:) , intent(inout) :: v
-    real, dimension(size(v)) :: swap
+    real(rkx), dimension(size(v)) :: swap
     integer :: nk , k , kk
     swap = v
     nk = size(v)

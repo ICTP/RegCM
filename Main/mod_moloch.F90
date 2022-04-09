@@ -112,6 +112,7 @@ module mod_moloch
 
   contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
@@ -663,10 +664,6 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
-        real(rkx) :: rlv
-#ifdef DEBUG
-        integer(ik4) :: n
-#endif
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
@@ -780,9 +777,8 @@ module mod_moloch
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                      w(j,i,k) > 0.1_rkx ) then
-                  rlv = wlhv - cpvmcl*(t(j,i,k-1)-tzero)
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*rlv*rlv* &
+                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*wlhv*wlhv* &
                     zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
                   zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
@@ -1067,12 +1063,7 @@ module mod_moloch
               !                              (d_one-zphi)*pp(j,i,k))
             end do
           end do
-          do j = jci1 , jci2
-            zrfmd = zdtrdz * fmz(j,i,1)/fmzf(j,i,2)
-            zdv = -s(j,i,2) * zrfmd * pp(j,i,1)
-            wz(j,i,1) = pp(j,i,1) + wfw(j,2) * zrfmd + zdv
-          end do
-          do k = 2 , kz
+          do k = 1 , kz
             do j = jci1 , jci2
               zrfmu = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zrfmd = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
@@ -1514,8 +1505,13 @@ module mod_moloch
           end if
           loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
           labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
-          if ( debug_level > 3 .and. labsem .and. myid == italk ) then
-            write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+          if ( debug_level > 3 .and. myid == italk ) then
+            if ( labsem ) then
+              write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+            end if
+            if ( loutrad ) then
+              write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
+            end if
           end if
           call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
         end if

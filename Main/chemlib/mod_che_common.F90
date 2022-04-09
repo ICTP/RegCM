@@ -41,7 +41,6 @@ module mod_che_common
 
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: cbin = 12
-  integer(ik4) , parameter :: maxntr = 50
   !
   ! Only one cover type per grid cell for now
   !

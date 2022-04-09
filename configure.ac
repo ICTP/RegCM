@@ -528,7 +528,9 @@ AC_SUBST(CPRDEF)
 if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
@@ -537,39 +539,49 @@ if eval "test x$DEBUG = x1"; then
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
-            -Wintrinsics-std -Wintrinsic-shadow \
-            -fcheck=array-temps,bounds,do,mem,recursion"
+            -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
              -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-O0 -qsuppress=1501-245 -qcheck -qflttrap=nanq,overflow \
              -qxlf2003=polymorphic -qmaxmem=-1 -qzerosize $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
              -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
              -gopt -traceback $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
     FCFLAGS="-g $(FCFLAGS)"
+    NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
     CPRDEF="GNU"
   fi
 else
   if test -z "$COMPILER_G95_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="-O3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
+    NOOPTFC="-finline-functions $FCFLAGS"
     if test -z "${osname##Linux}"; then
       FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then
@@ -583,12 +595,12 @@ else
       fi
     fi
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
     AC_SUBST(AR)
+    NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
@@ -599,21 +611,21 @@ else
 #	      -mieee-fp $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_SUN_TRUE"; then
+    NOOPTFC="-xfilebyteorder=big16:%all \
+	    -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     FCFLAGS="-O3 -xfilebyteorder=big16:%all \
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
@@ -623,10 +635,10 @@ else
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
+    NOOPTFC="$FCFLAGS"
     FCFLAGS="$(FCFLAGS)"
     AC_SUBST(FCFLAGS)
     CPRDEF="GNU"
-    NOOPTFC="$FCFLAGS"
     AC_SUBST(NOOPTFC)
   fi
 fi
@@ -698,7 +710,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/ocnlib/Makefile Main/clmlib/clm4.5/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ_NEW/Makefile \
                  Main/cumlib/Makefile Main/microlib/Makefile \
-                 Main/radlib/Makefile Main/radlib/RRTMG_SW/Makefile \
+                 Main/radlib/Makefile Main/radlib/RRTMG/Makefile \
                  Main/pbllib/Makefile Main/cloudlib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \

@@ -710,10 +710,10 @@
            call spcvrt_sw &
               (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
                cldfrac, ztauc, zasyc, zomgc, ztaucorig, ztaua, zasya,    &
-               zomga, cossza, adjflux, laytrop, jp, jt, jt1, colch4,     &
-               colco2, colh2o, colmol, colo2, colo3, fac00, fac01,       &
-               fac10, fac11, selffac, selffrac, indself, forfac,         &
-               forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd,       &
+               zomga, cossza, adjflux, laytrop, jp, jt, jt1, co2mult, &
+               colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
+               fac00, fac01, fac10, fac11, selffac, selffrac, indself, &
+               forfac, forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd, &
                zuvcd, znifd, znicd, zbbfddir, zbbcddir, zuvfddir,        &
                zuvcddir, znifddir, znicddir, zvsfd )
 
@@ -1033,7 +1033,7 @@
 !
       do ib = jpb1,jpb2
 !         solvar(ib) = 1._rb
-         solvar(ib) = rrsw_scon / scon
+         solvar(ib) = scon/rrsw_scon
          adjflux(ib) = adjflx * solvar(ib)
       enddo
 

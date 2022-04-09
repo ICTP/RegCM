@@ -81,7 +81,7 @@ module mod_rad_tracer
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ch4
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: n2o
     !
-    ! dlat   - absolute value of latitude in degrees
+    ! dlat   - latitude in degrees
     ! xn2o   - pressure scale height for n2o
     ! xch4   - pressure scale height for ch4
     ! xcfc11 - pressure scale height for cfc11
@@ -97,7 +97,7 @@ module mod_rad_tracer
     xch4 = d_zero
     xn2o = d_zero
     do n = n1 , n2
-      alat = dlat(n) ! This is absolute value of latitude in degrees
+      alat = abs(dlat(n)) ! This is absolute value of latitude in degrees
       if ( alat <= 45.0_rkx ) then
         xn2o = 0.3478_rkx + 0.00116_rkx*alat
         xch4 = 0.2353_rkx

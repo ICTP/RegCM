@@ -81,7 +81,7 @@ module mod_clm_accumul
 
   !maximum number of accumulated fields
   integer(ik4) , parameter :: max_accum = 100
-  type (accum_field) , save :: accum(max_accum)   !array accumulated fields
+  type (accum_field) :: accum(max_accum)   !array accumulated fields
   integer(ik4) :: naccflds = 0             !accumulator field counter
 
   contains

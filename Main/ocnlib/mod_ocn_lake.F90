@@ -360,6 +360,7 @@ module mod_ocn_lake
       um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
+      ustr(i) = max(ustr(i),1.0e-5_rkx)
       call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
       taux(i) = drag(i) * (u10m(i)/usw(i))
       tauy(i) = drag(i) * (v10m(i)/vsw(i))
@@ -451,7 +452,7 @@ module mod_ocn_lake
     if ( (aveice < iceminh) .and. (tprof(1) > tcutoff) ) then
 
       ! Graziano: removed hlat. It is calculated from evaporation
-      qe = -d_one*evl*wlh(tprof(1))
+      qe = -d_one*evl*wlhv
       qh = hsen
 
       ! Calculate eddy diffusivities
@@ -502,10 +503,6 @@ module mod_ocn_lake
       end if
     end if
     tgl = tprof(1) + tzero
-
-    contains
-
-#include <wlh.inc>
 
   end subroutine lake
 
@@ -681,7 +678,7 @@ module mod_ocn_lake
     real(rkx) , intent(inout) :: hi , aveice , hs
     real(rkx) , dimension(ndpmax) , intent(inout) :: tprof
     real(rkx) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-                 t2 , tf , theta , rho , rlv
+                 t2 , tf , theta , rho
     real(rkx) , parameter :: isurf = 0.6_rkx
     ! attenuation coeff for ice in visible band (m-1)
     real(rkx) , parameter :: lami1 = 1.5_rkx
@@ -734,9 +731,8 @@ module mod_ocn_lake
 
     khat = (ki*hs+ks*hi)/(ki*ks)
     theta = cpw0*rho*cd*u2
-    rlv = wlh(t0)
-    psi = rlv*rho*cd*u2*ep2/(ps*d_r100)
-    evl = psi*(eomb(t0)-ea)/(rlv*rho)
+    psi = wlhs*rho*cd*u2*ep2/(ps*d_r100)
+    evl = psi*(eomb(t0)-ea)/(wlhs*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
     qpen = fsw * 0.7_rkx *                                      &
        ((d_one-exp(-lams1*hs))                  / (ks*lams1)  + &
@@ -749,8 +745,12 @@ module mod_ocn_lake
     f1 = f(t1)
     icount = 0
     do
+      if ( abs(f1-f0) < 1.0e-8_rkx ) then
+        t2 = t1
+        exit
+      end if
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( (t2-t1)/t1 < 0.001_rkx .or. t2 > 0.0_rkx .or. &
+      if ( (t2-t1) < 0.001_rkx .or. t2 > 0.0_rkx .or. &
            icount == maxiter ) then
         exit
       end if
@@ -803,8 +803,6 @@ module mod_ocn_lake
     end if
 
     contains
-
-#include <wlh.inc>
 
     pure real(rkx) function t4(x)
       implicit none

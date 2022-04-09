@@ -15,7 +15,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_rdldtr.F90 mod_intldtr.F90 mod_kdtree2_priority.F90 \
                       mod_kdtree2.F90 mod_earth.F90 mod_kdinterp.F90 \
                       mod_spbarcoord.F90 mod_posix.F90 mod_zita.F90 \
-                      mod_hash.F90
+                      mod_isaatm.F90 mod_hash.F90 mod_sort.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
@@ -67,3 +67,5 @@ mod_kdinterp.o : mod_kdinterp.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 	$(FC) $(CPPFLAGS) $(GITVER) $(OMPFLAGS) $(FCFLAGS) -c $<
 mod_zita.o : mod_zita.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o
 mod_hash.o : mod_hash.F90 mod_intkinds.o
+mod_isaatm.o : mod_isaatm.F90 mod_realkinds.o mod_constants.o
+mod_sort.o : mod_sort.F90 mod_realkinds.o mod_constants.o

@@ -80,7 +80,7 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 16 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 6
+  integer(ik4) , parameter :: nrad3dvars = 7
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
@@ -367,6 +367,7 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clwp   = 4
   integer(ik4) , parameter :: rad_qrs    = 5
   integer(ik4) , parameter :: rad_qrl    = 6
+  integer(ik4) , parameter :: rad_o3     = 7
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
@@ -1963,8 +1964,9 @@ module mod_ncout
           rad_cld_out => v3dvar_rad(rad_cld)%rval
         end if
         if ( enable_rad3d_vars(rad_clwp) ) then
-          call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','m', &
-            'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
+          call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','mm', &
+            'In-cloud liquid water path', &
+            'thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
         if ( idiag > 0 ) then
@@ -1980,9 +1982,15 @@ module mod_ncout
               'tendency_of_air_temperature_due_to_longwave_heating',.true.)
             rad_qrl_out => v3dvar_rad(rad_qrl)%rval
           end if
+          if ( enable_rad3d_vars(rad_o3) ) then
+            call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
+              'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
+            rad_o3_out => v3dvar_rad(rad_o3)%rval
+          end if
         else
           enable_rad3d_vars(rad_qrs) = .false.
           enable_rad3d_vars(rad_qrl) = .false.
+          enable_rad3d_vars(rad_o3) = .false.
         end if
         if ( icosp == 1 ) then
           if ( enable_rad4d_vars(rad_taucl) ) then
@@ -2489,9 +2497,9 @@ module mod_ncout
           enable_che3d_vars(che_pai) = .false.
         end if
         if ( enable_che3d_vars(che_mixrat) ) then
-          call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','1', &
-            'Atmosphere tracer mixing ratio', &
-            'atmosphere_mixing_ratio_of_tracer',.true.)
+          call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','kg kg-1', &
+            'Atmosphere tracer mass mixing ratio', &
+            'atmosphere_mass_mixing_ratio_of_tracer',.true.)
           che_mixrat_out => v3dvar_che(che_mixrat)%rval
         end if
         if ( ichdiag > 0 ) then
@@ -3194,7 +3202,7 @@ module mod_ncout
         end if
         if ( any(icup == 4) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('mit_lowest_convection_sigma',minsig))
+            ncattribute_integer('mit_lowest_convection_level',minorig))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8( &
             'mit_autoconversion_threshold_mixing_over_ocean',elcrit_ocn))

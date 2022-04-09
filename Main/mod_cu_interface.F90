@@ -395,6 +395,19 @@ module mod_cu_interface
           end if
         end if
 
+        if ( ipptls == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( cuscheme(j,i) == 5 ) then
+                  cu_qten(j,i,k,iqc) = d_zero
+                  cu_qten(j,i,k,iqi) = d_zero
+                end if
+              end do
+            end do
+          end do
+        end if
+
       end if
 
       ! Sum cumulus tendencies
@@ -516,10 +529,18 @@ module mod_cu_interface
       end if
 
       if ( any(icup == 5) ) then
+        if ( ipptls == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * dt
+              end do
+            end do
+          end do
+        end if
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * dt
               c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
             end do
           end do

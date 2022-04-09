@@ -71,8 +71,7 @@ module mod_pgw
   subroutine init_pgw(filename)
     implicit none
     character(len=*) , intent(in) :: filename
-    integer :: istatus , idimid , ivarid
-    integer :: k , kkrec
+    integer :: istatus , idimid , ivarid , kkrec
 
     pgwfile = filename
     istatus = nf90_open(pgwfile,nf90_nowrite,ncid)

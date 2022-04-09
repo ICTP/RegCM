@@ -110,7 +110,7 @@ module mod_runparams
      rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_optfrq , &
      rnrad_for_srffrq , rnrad_for_radfrq
   ! Step of surface scheme in one atmosphere I/O interval
-  real(rkx) , public :: rsrf_in_atm
+  real(rkx) , public :: rnsrf_for_atmfrq
   ! One over seconds in one surface I/O interval
   real(rkx) , public :: rsrffrq_sec
   ! Model base timestep in seconds
@@ -294,7 +294,6 @@ module mod_runparams
   real(rkx) , public :: elcrit_ocn
   real(rkx) , public :: elcrit_lnd
   real(rkx) , public :: entp
-  real(rkx) , public :: minsig
   real(rkx) , public :: omtrain
   real(rkx) , public :: omtsnow
   real(rkx) , public :: sigd
@@ -391,6 +390,7 @@ module mod_runparams
 
   integer(ik4) , public :: iclimao3
   integer(ik4) , public :: iclimaaer
+  character(len=256) , public :: radclimpath
 
   ! UW PBL parameters
 

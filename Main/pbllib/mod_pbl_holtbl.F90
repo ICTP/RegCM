@@ -45,7 +45,7 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: cgh , cgs , kvc , kvh , &
                                           kvm , kvq
   real(rkx) , pointer, dimension(:,:) :: xhfx , xqfx , exns , pfcor
-  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , thv10 , tv10 , ustr
+  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , thv10 , ustr
 
   real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
@@ -112,7 +112,6 @@ module mod_pbl_holtbl
     call getmem2d(exns,jci1,jci2,ici1,ici2,'mod_holtbl:enxns')
     call getmem2d(pfcor,jci1,jci2,ici1,ici2,'mod_holtbl:pfcor')
     call getmem2d(thv10,jci1,jci2,ici1,ici2,'mod_holtbl:thv10')
-    call getmem2d(tv10,jci1,jci2,ici1,ici2,'mod_holtbl:tv10')
     call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
     call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
@@ -132,9 +131,8 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rkx) :: drgdot , kzmax , rin , rc , uu , n2 , ss , dudz , dvdz , &
-      uflxsf , uflxsfx , vflxsf , vflxsfx , fofri , rrho , tvg , oblen ,  &
-      sh10
+    real(rkx) :: drgdot , kzmax , rin , uu , n2 , ss , dudz , dvdz , &
+      uflxsf , uflxsfx , vflxsf , vflxsfx , fofri , rrho , oblen , sh10
     integer(ik4) :: i , j , k , itr , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
@@ -192,8 +190,8 @@ module mod_pbl_holtbl
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          vv(j,i,k) = m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
-                      m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k) + 1.0e-10_rkx
+          vv(j,i,k) = max(m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
+                          m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k),0.025_rkx)
           dudz = (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))/dza(j,i,k-1)
           dvdz = (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))/dza(j,i,k-1)
           ! Vertical wind shear (square)
@@ -202,7 +200,7 @@ module mod_pbl_holtbl
           n2 = egrav * (m2p%thatm(j,i,k-1)-m2p%thatm(j,i,k)) / &
               (dza(j,i,k-1)*0.5_rkx*(m2p%thatm(j,i,k-1)+m2p%thatm(j,i,k)))
           ! Compute the gradient Richardson number
-          rin = n2/ss
+          rin = max(-5.0_rkx,min(10.0_rkx,n2/ss))
           if ( rin < 0.0_rkx ) then
             fofri = sqrt(max(1.0_rkx-18.0_rkx*rin,0.0_rkx))
           else
@@ -279,7 +277,8 @@ module mod_pbl_holtbl
                          (d_one + ep1*sh10)
           end if
           do iter = 1 , holtth10iter
-            oblen = -(thv10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
+            oblen = -(thv10(j,i)*ustr(j,i)**3) / &
+              (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
             if ( oblen >= m2p%za(j,i,kz) ) then
               thv10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                  (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
@@ -301,15 +300,8 @@ module mod_pbl_holtbl
           thv10(j,i) = min(thv10(j,i),m2p%tg(j,i))  ! gtb add to minimize
         end if
         ! obklen compute obukhov length
-        obklen(j,i) = -(thv10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
-      end do
-    end do
-    !
-    ! Recompute tv10
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        tv10(j,i) = thv10(j,i)*exns(j,i)
+        obklen(j,i) = -(thv10(j,i)*ustr(j,i)**3) / &
+              (gvk*(hfxv(j,i)+sign(1.e-10_rkx,hfxv(j,i))))
       end do
     end do
 
@@ -1253,7 +1245,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             zlv = m2p%za(j,i,kz)
-            tlv = tv10(j,i)
+            tlv = thv10(j,i)
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
             do k = kzm1 , kmxpbl(j,i) , -1
@@ -1262,6 +1254,7 @@ module mod_pbl_holtbl
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
               vvk = vvk + 1.0e-10_rkx
               ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end do
         end do
@@ -1271,6 +1264,7 @@ module mod_pbl_holtbl
             do k = kzm1 , kmxpbl(j,i) , -1
               ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
                           (thv10(j,i)*vv(j,i,k))
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end do
         end do
@@ -1301,20 +1295,22 @@ module mod_pbl_holtbl
               ! thermal temperature excess
               therm = fak * hfxv(j,i)/wsc
               zlv = m2p%za(j,i,kz)
-              tlv = thvx(j,i,kz) + therm
+              tlv = thv10(j,i) + therm
               ulv = m2p%uxatm(j,i,kz)
               vlv = m2p%vxatm(j,i,kz)
               !zlv = max(obklen(j,i),d_10)
-              !tlv = tv10(j,i) + therm
+              !tlv = thv10(j,i) + therm
               vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
-              ri(kz,j,i) = -egrav*therm*zlv/(tv10(j,i)*vvk)
+              ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
+              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
               ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 zkv = m2p%za(j,i,k)
                 tkv = thvx(j,i,k)
                 vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-                vvk = vvk +  fak*ustr(j,i)**2 + 1.0e-10_rkx
-                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tv10(j,i)*vvk)
+                vvk = vvk + 1.0e-10_rkx
+                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
+                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
               end do
             end if
           end do
@@ -1330,11 +1326,13 @@ module mod_pbl_holtbl
               therm = fak * hfxv(j,i)/wsc
               tlv = thv10(j,i) + therm
               ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vv(j,i,kz))
+              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
               ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 tkv = thvx(j,i,k)
                 ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
                    (thv10(j,i)*vv(j,i,k))
+                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
               end do
             end if
           end do

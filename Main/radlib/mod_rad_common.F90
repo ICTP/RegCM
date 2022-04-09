@@ -43,7 +43,7 @@ module mod_rad_common
 
   logical , save :: doabsems , dolw , dosw
   integer(ik4) , save :: ichso4 , ichbc , ichoc
-
+  integer(ik4) , save :: kclimh , kth , ktf , ksf , kclimf
   real(rkx) :: chfrovrradfr ! chfrq/rafrq
 
   data wavmin/0.200_rkx , 0.245_rkx , 0.265_rkx , 0.275_rkx , 0.285_rkx ,&

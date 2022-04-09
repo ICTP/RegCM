@@ -128,10 +128,30 @@
 !
  &cmip6param
  cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
+ ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
+ ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
+ ! cmip6_inp = 'https://esgf-data.ucar.edu/thredds/dodsC',
+ ! cmip6_inp = 'https://esg-dn2.nsc.liu.se/thredds/dodsC',
  cmip6_model = 'MPI-ESM1-2-HR',
+ ! cmip6_model = 'HadGEM3-GC31-MM',
+ ! cmip6_model = 'NorESM2-MM',
+ ! cmip6_model = 'CNRM-ESM2-1',
+ ! cmip6_model = 'CESM2',
+ ! cmip6_model = 'EC-Earth3',
  cmip6_ssp = 'ssp585',
  cmip6_variant = 'r1i1p1f1',
+ ! cmip6_variant = 'r1i1p1f3',
+ ! cmip6_variant = 'r2i1p1f1',
+ ! cmip6_variant = 'r1i1p1f2',
+ ! cmip6_variant = 'r11i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  cmip6_grid = 'gn',
+ ! cmip6_grid = 'gn',
+ ! cmip6_grid = 'gn',
+ ! cmip6_grid = 'gr',
+ ! cmip6_grid = 'gn',
+ ! cmip6_grid = 'gr',
  /
 !
 ! Nesting control
@@ -281,7 +301,7 @@
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario =   'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
+ scenario =   'SSP119', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
                         ! AR4 old CMIP3 scenario to use in A1B, A2, B1, B2
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
@@ -289,10 +309,9 @@
  ipcpcool =          0, ! Precipitation cooling effect over ocean surface
  iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- idesseas =          0, ! Model desert seasonal albedo variability
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
- icldfrac =          0, ! Cloud fraction algorithm
+ icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
                         !   2 : Thompson scheme
@@ -300,7 +319,7 @@
                         !   4 : Texeira scheme
                         !   5 : Tompkins linearized scheme
                         !   6 : Echam5 like scheme
- icldmstrat =        1, ! Simulate stratocumulus clouds
+ icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
                         ! It is only used only if mass fluxes are not
@@ -316,8 +335,10 @@
                         ! interactive aerosol load affecting radiative scheme.
                         ! 0 => No aereosol considered
                         ! 1 => Use interpolated mixing ratios from chem ICBC
-                        ! 2 => Use climate MACV2 dataset
+                        ! 2 => Use climate MERRA2 dataset (1980-2021)
                         ! 3 => Use inline CMIP6 plume model
+ radclimpath = 'OPPMONTH,! Path to the MERRA2 dataset for iclimaaer == 2
+                         ! https://b2share.fz-juelich.de/communities/EURO-CORDEX
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
@@ -385,8 +406,8 @@
 ! MOLOCH control parameters
 ! 
  &molochparam
- mo_ztop = 20000.0, ! Atmosphere top lid in meters
- mo_h = 6500.0,     ! Atmosphere reference height
+ mo_ztop = 30000.0, ! Atmosphere top lid in meters
+ mo_h = 8000.0,     ! Atmosphere reference height
  mo_a0 = 0.0,       ! Vertical stretching in model level equations
  /
 !
@@ -486,6 +507,7 @@
  auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for kautoconv=1
  rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
  skconv = 1.0-3,            ! Autoconversion coefficient for snow
+ rcldiff = 1.0e-6,          ! Diffusion coefficient for evaporation
  rcovpmin = 0.1,            ! Minimum precipitation coverage
  rpecons = 5.547e-5,        ! Evaporation constant Kessler
  /
@@ -523,22 +545,22 @@
 ! Emanuel Cumuls scheme control
 !
  &emanparam
- minsig = 0.95,       ! Lowest sigma level from which convection can originate
+ minorig = 1,         ! Lowest level from which convection can originate
  elcrit_ocn = 0.0011, ! Autoconversion threshold water content (g/g) (ocean)
  elcrit_lnd = 0.0011, ! Autoconversion threshold water content (g/g) (land)
  tlcrit = -55.0,      ! Below tlcrit auto-conversion threshold is zero
- entp = 0.06,         ! Coefficient of mixing in the entrainment formulation
+ entp = 1.50,         ! Coefficient of mixing in the entrainment formulation
  sigd = 0.05,         ! Fractional area covered by unsaturated dndraft
- sigs = 0.15,         ! Fraction of precipitation falling outside of cloud
+ sigs = 0.12,         ! Fraction of precipitation falling outside of cloud
  omtrain = 50.0,      ! Fall speed of rain (Pa/s)
  omtsnow = 5.5,       ! Fall speed of snow (Pa/s)
  coeffr = 1.0,        ! Coefficient governing the rate of rain evaporation
  coeffs = 0.8,        ! Coefficient governing the rate of snow evaporation
  cu = 0.7,            ! Coefficient governing convective momentum transport
  betae = 10.0,        ! Controls downdraft velocity scale
- dtmax = 0.65,        ! Max negative parcel temperature perturbation below LFC
- alphae = 0.02,       ! Controls the approach rate to quasi-equilibrium
- damp = 0.01,         ! Controls the approach rate to quasi-equilibrium
+ dtmax = 0.90,        ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.01,       ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
  epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
  epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)
  /
@@ -666,7 +688,7 @@
  inflglw  = 2, ! Flag for cloud optical properties as above but for LW
  iceflglw = 3, ! Flag for ice particle specification as above but for LW
  liqflglw = 1, ! Flag for liquid droplet specification as above but for LW
- icld  = 1,    ! Cloud Overlap hypothesis
+ icld  = 2,    ! Cloud Overlap hypothesis
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
  nradfo = 4,   !

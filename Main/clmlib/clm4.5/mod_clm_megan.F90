@@ -181,7 +181,9 @@ module mod_clm_megan
 
     shr_megan_factors_file = megan_factors_file
 
-    write(*,*)'test01 ',megan_factors_file
+    if ( myid == iocpu ) then
+      write(stdout,*) 'MEGAN FACTOR FILE : ',trim(megan_factors_file)
+    end if
     ! parse the namelist info and initialize the module data
     call shr_megan_init( megan_specifier, megan_fields )
 

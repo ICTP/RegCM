@@ -222,6 +222,8 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%hgt,ht)
       call c2l_gs(ocncomm,lm%uatm,usw)
       call c2l_gs(ocncomm,lm%vatm,vsw)
+      usw = sign(1.0_rkx,usw)*max(abs(usw),0.001_rkx)
+      vsw = sign(1.0_rkx,vsw)*max(abs(vsw),0.001_rkx)
       call c2l_gs(ocncomm,lm%tatm,tatm)
       call c2l_gs(ocncomm,lm%patm,patm)
       call c2l_gs(ocncomm,lm%sfta,sfta)

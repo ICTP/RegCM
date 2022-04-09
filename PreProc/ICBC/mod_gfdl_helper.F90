@@ -107,9 +107,14 @@ module mod_gfdl_helper
     call split_idate(idate,y,m,d,h)
     y1 = (y-1)/5*5+1
     y2 = y1+4
+    if ( y == y1 .and. m == 1 .and. d == 1 .and. h == 0 ) then
+      y1 = y1-5
+      y2 = y2-5
+    end if
     write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 0
     write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, 12, 31, 23
-    if ( .not. date_in_scenario(idate,5,.true.) ) then
+    if ( .not. date_in_scenario(idate,5,.true.) .or. &
+      (y == 2006 .and.  m == 1 .and. d == 1 .and. h == 0) ) then
       call assemble_path(gfdl_filename,'RF',var,d1,d2)
     else
       call assemble_path(gfdl_filename,'RCP'//dattyp(4:5),var,d1,d2)

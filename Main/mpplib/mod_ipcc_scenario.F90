@@ -29,6 +29,7 @@ module mod_ipcc_scenario
   use mod_mpmessage
   use mod_memutil
   use mod_runparams
+  use mod_mppparam , only : italk
   use mod_stdio
   use netcdf
 
@@ -233,7 +234,7 @@ module mod_ipcc_scenario
     implicit none
     character(len=8) , intent(in) :: csc
     integer(ik4) :: year , month
-    integer(ik4) :: ii , jj
+    integer(ik4) :: jj
     real(rkx) , dimension(1+n_greenhouse_gases) :: ctemp
 
     select case (csc)
@@ -1925,8 +1926,12 @@ module mod_ipcc_scenario
         write (stderr, *) nf90_strerror(ierr) , trim(filename)
         call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
       end if
-      lcmip6 = .true.
     end do
+    if ( myid == italk ) then
+      write(stdout,'(a,i0.4,i0.2,a,a)') &
+            ' Load GHG for ',year,month,' ',trim(sname)
+    end if
+    lcmip6 = .true.
   end subroutine load_scenario
 
   real(rkx) function ghgval(igas,year,month,lat)

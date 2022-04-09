@@ -348,7 +348,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        rt%dlat(n) = abs(m2r%xlat(j,i))
+        rt%dlat(n) = m2r%xlat(j,i)
         rt%xptrop(n) = m2r%ptrop(j,i)
         n = n + 1
       end do
@@ -518,13 +518,10 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    kmaxcld = 3
+    rt%cld  = 0.0_rkx
+    rt%clwp = 0.0_rkx
+    kmaxcld = 1 + ncld
     kmincld = kz - ncld
-    do k = 1 , kz
-      do n = rt%n1 , rt%n2
-        rt%cld(n,k) = 0.0_rkx
-      end do
-    end do
     do k = kmaxcld , kmincld
       n = 1
       do i = ici1 , ici2
@@ -785,7 +782,7 @@ module mod_rad_colmod3
                 rt%flwds,rt%sols,rt%soll,rt%solsd,rt%solld,rt%totcf,  &
                 rt%totwv,rt%totcl,rt%totci,rt%cld,rt%clwp,rt%abv,     &
                 rt%sol,rt%aeradfo,rt%aeradfos,rt%aerlwfo,rt%aerlwfos, &
-                tauxar3d,tauasc3d,gtota3d,rt%dz,rt%outtaucl,          &
+                tauxar3d,tauasc3d,gtota3d,rt%dz,rt%o3vmr,rt%outtaucl, &
                 rt%outtauci,rt%asaeradfo,rt%asaeradfos,rt%asaerlwfo,  &
                 rt%asaerlwfos,r2m,m2r)
 #ifdef DEBUG

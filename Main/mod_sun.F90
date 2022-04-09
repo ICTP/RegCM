@@ -39,7 +39,7 @@ module mod_sun
 
    private
 
-   real(rkx) , dimension(:) , pointer :: heppatsi
+   real(rkx) , dimension(:) , pointer :: heppatsi => null()
    real(rkx) , dimension(3,1610:2008) :: tsi
    real(rkx) , parameter :: tsifac = 0.9965_rkx
    integer(ik4) :: ii , jj
@@ -281,7 +281,7 @@ module mod_sun
                   obliqr,declin,eccf)
     ! If we are fixing the solar constant, then fix the declination
     ! angle and eccentricity factor to constant values
-    if ( ifixsolar == 1 ) then
+    if ( irceideal == 1 ) then
       declin = 0.0_rkx
       eccf = 1.0_rkx
     end if

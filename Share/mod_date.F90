@@ -182,7 +182,7 @@ module mod_date
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
-  public :: curr_date , ref_date , curr_time , calendar_str
+  public :: curr_date , ref_date , curr_time , calendar_str , calendar_int
   public :: date_in_scenario
   public :: ndaypm , yeardays , yearpoint
 
@@ -1061,7 +1061,7 @@ module mod_date
         write (stderr, *) 'year  = ', iy
         write (stderr, *) 'month = ', im
         write (stderr, *) 'day   = ', id
-        call die('mod_date','Day non existent, inside Julian/Gregorian jump',1)
+        call die('mod_date','Day non existent, inside Julian/Gregorian jump')
       end if
     end function lcaltype
   end function ymd_julianday
@@ -1073,7 +1073,7 @@ module mod_date
     if ( x%calendar /= y%calendar ) then
       write (stderr,*) 'X calendar = ', calstr(x%calendar)
       write (stderr,*) 'Y calendar = ', calstr(y%calendar)
-      call die('mod_date','Dates not comparable: not using same calendar.',1)
+      call die('mod_date','Dates not comparable: not using same calendar.')
     end if
   end subroutine check_cal
 
@@ -1246,7 +1246,7 @@ module mod_date
     real(rk8) :: jd
     if (x%calendar /= gregorian) then
       call die('mod_date', &
-               'Error: week concept works only for gregorian calendar.',1)
+               'Error: week concept works only for gregorian calendar.')
     end if
     call days_from_reference_to_date(x,d)
     jd = julianday(d%year, d%month, d%day)
@@ -1923,7 +1923,7 @@ module mod_date
         hs = real(x%ival,rk8)*24.0_rk8
       case default
         hs = 0.0_rk8
-        call die('mod_date','Interval unit conversion depend on calendar',1)
+        call die('mod_date','Interval unit conversion depend on calendar')
     end select
   end function tohours
 
@@ -2177,6 +2177,21 @@ module mod_date
         call die('mod_date','Unknown Calendar!!!')
     end select
   end function calendar_str
+
+  pure integer function calendar_int(calstr) result(calint)
+    implicit none
+    character(len=*) , intent(in) :: calstr
+    select case (calstr)
+      case('gregorian', 'standard')
+        calint = gregorian
+      case('noleap', '365_days', '365_day', 'days_365', 'day_365')
+        calint = noleap
+      case('days_360', 'day_360', '360_days', '360_day')
+        calint = y360
+      case default
+        calint = gregorian
+    end select
+  end function calendar_int
 
   logical function date_in_scenario(x,cmip_cycle,l2006)
     implicit none

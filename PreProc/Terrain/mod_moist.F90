@@ -116,8 +116,13 @@ module mod_moist
 
     istat = nf90_inq_varid(ncid,'mrso',idmoist)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error finding variable mrso in moisture file'
-      lmrso = .false.
+      istat = nf90_inq_varid(ncid,'mrsos',idmoist)
+      if ( istat /= nf90_noerr ) then
+        write(stderr,*) 'Error finding variable mrso in moisture file'
+        lmrso = .false.
+      else
+        lmrso = .true.
+      end if
     else
       lmrso = .true.
     end if

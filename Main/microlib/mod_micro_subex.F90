@@ -53,7 +53,7 @@ module mod_micro_subex
   real(rkx) , parameter :: remfrc = 0.0_rkx
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: pptmin = 0.0_rkx
-  real(rkx) , parameter :: actcld = 0.0_rkx
+  real(rkx) , parameter :: actcld = 0.01_rkx
   real(rkx) , parameter :: actliq = 1.0e-8_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
@@ -196,7 +196,7 @@ module mod_micro_subex
     do i = ici1 , ici2
       do j = jci1 , jci2
         pptnew = d_zero
-        afc = mc2mo%fcc(j,i,1)     ![frac][avg]
+        afc = min(mc2mo%fcc(j,i,1),d_one-actcld)                ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         if ( qcw > actliq .and. afc > actcld ) then ! if there is a cloud
           pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
@@ -252,7 +252,7 @@ module mod_micro_subex
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
-          afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
+          afc = min(mc2mo%fcc(j,i,k),d_one-actcld)                ![frac][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           pptnew = d_zero
           if ( pptsum(j,i) > d_zero ) then
@@ -285,7 +285,7 @@ module mod_micro_subex
                 else
                   pptsum(j,i) = pptsum(j,i) - rdevap*dpovg ![kg/m2/s][avg]
                 end if
-                rlv = wlhv-cpvmcl*(mo2mc%t(j,i,k)-tzero)
+                rlv = wlh(mo2mc%t(j,i,k))
                 ocpm = d_one/(cpd*(d_one-mo2mc%qxx(j,i,k,iqv)) + &
                               cpv*mo2mc%qxx(j,i,k,iqv))
                 pptkm1 = pptkm1 - rdevap
@@ -403,6 +403,7 @@ module mod_micro_subex
 
   contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>

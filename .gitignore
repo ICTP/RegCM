@@ -71,11 +71,11 @@ Main/pbllib/*.o
 
 Main/radlib/Makefile
 Main/radlib/Makefile.in
-Main/radlib/RRTMG_SW/Makefile
-Main/radlib/RRTMG_SW/Makefile.in
-Main/radlib/RRTMG_SW/librrtmgsw.a
-Main/radlib/RRTMG_SW/*.mod
-Main/radlib/RRTMG_SW/*.o
+Main/radlib/RRTMG/Makefile
+Main/radlib/RRTMG/Makefile.in
+Main/radlib/RRTMG/librrtmg.a
+Main/radlib/RRTMG/*.mod
+Main/radlib/RRTMG/*.o
 Main/radlib/librad.a
 Main/radlib/*.mod
 Main/radlib/*.o
@@ -131,6 +131,8 @@ PreProc/ICBC/chem_icbc
 PreProc/ICBC/clmbc
 PreProc/ICBC/icbc
 PreProc/ICBC/sst
+PreProc/ICBC/pgw_icbc
+PreProc/ICBC/pgwbc
 PreProc/ICBC/*.o
 PreProc/ICBC/*.mod
 

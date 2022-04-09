@@ -117,8 +117,8 @@ module mod_slice
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-        atms%pf3d(j,i,1) = mo_atm%p(j,i,1) - mo_atm%rho(j,i,1) * egrav * &
-              (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+        atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
+            (atms%zq(j,i,1)-atms%za(j,i,1))
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))

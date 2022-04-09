@@ -61,13 +61,6 @@ module mod_output
     module procedure uvrot3d
   end interface uvrot
 
-  logical :: lfirstsrf = .false.
-  logical :: lfirstrad = .false.
-  logical :: lfirstlak = .false.
-  logical :: lfirstsub = .false.
-  logical :: lfirstopt = .false.
-  logical :: lfirststs = .false.
-
   contains
 
   subroutine output
@@ -85,15 +78,6 @@ module mod_output
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-
-    if ( rcmtimer%start( ) ) then
-      lfirstsrf = .true.
-      lfirstrad = .true.
-      lfirstlak = .true.
-      lfirstsub = .true.
-      lfirstopt = .true.
-      lfirststs = .true.
-    end if
 
     lstartup = .false.
     if ( rcmtimer%start( ) .or. doing_restart ) then
@@ -626,11 +610,15 @@ module mod_output
         end if
 
         if ( associated(atm_tsw_out) ) then
-          where ( mddom%ldmsk == 1 )
-            atm_tsw_out = atm_tsw_out * rsrf_in_atm
-          elsewhere
+          if ( rcmtimer%integrating( ) ) then
+            where ( mddom%ldmsk == 1 )
+              atm_tsw_out = atm_tsw_out / rnsrf_for_atmfrq
+            elsewhere
+              atm_tsw_out = dmissval
+            end where
+          else
             atm_tsw_out = dmissval
-          end where
+          end if
         end if
 
         if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
@@ -921,19 +909,14 @@ module mod_output
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
         if ( ipptls > 1 ) sfs%snownc  = d_zero
+        rnsrf_for_atmfrq = d_zero
       end if
     end if
 
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
-        if ( lfirstsrf ) then
-          srffac = d_one/((d_one/rnsrf_for_srffrq)+d_one)
-          srafac = d_one/((d_one/rnrad_for_srffrq)+d_one)
-          lfirstsrf = .false.
-        else
-          srffac = rnsrf_for_srffrq
-          srafac = rnrad_for_srffrq
-        end if
+        srffac = d_one / rnsrf_for_srffrq
+        srafac = d_one / rnrad_for_srffrq
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1012,8 +995,7 @@ module mod_output
           end if
         end if
         if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out*srffac / &
-                             alarm_out_srf%dt
+          srf_snowmelt_out = srf_snowmelt_out*srffac / alarm_out_srf%dt
         if ( associated(srf_u10m_out) .and. associated(srf_v10m_out) ) then
           if ( associated(srf_wspd_out) ) then
             srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
@@ -1025,10 +1007,10 @@ module mod_output
         end if
 
         if ( associated(srf_totcf_out) ) then
-          srf_totcf_out = srf_totcf_out * srafac * d_100
+          srf_totcf_out = srf_totcf_out * srffac * d_100
         end if
         if ( associated(srf_evpot_out) ) then
-          srf_evpot_out = srf_evpot_out*srffac
+          srf_evpot_out = srf_evpot_out * srffac
         end if
 
         if ( associated(srf_ua100_out) .and. &
@@ -1180,18 +1162,16 @@ module mod_output
         if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
         if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
         if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
+
+        rnsrf_for_srffrq = d_zero
+        rnrad_for_srffrq = d_zero
+
       end if
     end if
 
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
-        if ( lfirstsub ) then
-          subfac = d_one/((d_one/rnsrf_for_subfrq)+d_one)
-          lfirstsub = .false.
-        else
-          subfac = rnsrf_for_subfrq
-        end if
-
+        subfac = d_one / rnsrf_for_subfrq
         sub_ps_out = sub_ps_out*subfac
 
         if ( associated(sub_evp_out) ) then
@@ -1230,17 +1210,13 @@ module mod_output
         if ( associated(sub_sena_out) ) sub_sena_out = d_zero
         if ( associated(sub_srunoff_out) ) sub_srunoff_out = d_zero
         if ( associated(sub_trunoff_out) ) sub_trunoff_out = d_zero
+        rnsrf_for_subfrq = d_zero
       end if
     end if
 
     if ( lak_stream > 0 ) then
       if ( ldolak ) then
-        if ( lfirstlak ) then
-          lakfac = d_one/((d_one/rnsrf_for_lakfrq)+d_one)
-          lfirstlak = .false.
-        else
-          lakfac = rnsrf_for_lakfrq
-        end if
+        lakfac = d_one / rnsrf_for_lakfrq
 
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
@@ -1290,17 +1266,13 @@ module mod_output
         if ( associated(lak_fld_out) )    lak_fld_out = d_zero
         if ( associated(lak_sina_out) )   lak_sina_out = d_zero
         if ( associated(lak_evp_out) )    lak_evp_out = d_zero
+        rnsrf_for_lakfrq = d_zero
       end if
     end if
 
     if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
       if ( ldoopt ) then
-        if ( lfirstopt ) then
-          optfac = d_one/((d_one/rnrad_for_optfrq)+d_one)
-          lfirstopt = .false.
-        else
-          optfac = rnrad_for_optfrq
-        end if
+        optfac = d_one / rnrad_for_optfrq
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1352,6 +1324,7 @@ module mod_output
         if ( associated(opt_aastsrrf_out) ) opt_aastsrrf_out = d_zero
         if ( associated(opt_aastalrf_out) ) opt_aastalrf_out = d_zero
         if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out = d_zero
+        rnrad_for_optfrq = d_zero
       end if
     end if
 
@@ -1422,13 +1395,7 @@ module mod_output
 
     if ( sts_stream > 0 ) then
       if ( ldosts ) then
-        if ( lfirststs ) then
-          stsfac = d_one/((d_one/rnsrf_for_day)+d_one)
-          lfirststs = .false.
-        else
-          stsfac = rnsrf_for_day
-        end if
-
+        stsfac = d_one / rnsrf_for_day
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1479,18 +1446,13 @@ module mod_output
         if ( associated(sts_sund_out) )    sts_sund_out    = d_zero
         if ( associated(sts_srunoff_out) ) sts_srunoff_out = d_zero
         if ( associated(sts_trunoff_out) ) sts_trunoff_out = d_zero
-
+        rnsrf_for_day = d_zero
       end if
     end if
 
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
-        if ( lfirstrad ) then
-          radfac = d_one/((d_one/rnrad_for_radfrq)+d_one)
-          lfirstrad = .false.
-        else
-          radfac = rnrad_for_radfrq
-        end if
+        radfac = d_one / rnrad_for_radfrq
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1526,6 +1488,7 @@ module mod_output
         if ( associated(rad_higcl_out) ) rad_higcl_out = d_zero
         if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
         if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
+        rnrad_for_radfrq = d_zero
       end if
     end if
 

@@ -48,7 +48,7 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
-                    deltaz,outtaucl,outtauci,asaeradfo,asaeradfos,       &
+                    deltaz,o3,outtaucl,outtauci,asaeradfo,asaeradfos,    &
                     asaerlwfo,asaerlwfos,r2m,m2r)
     implicit none
     !
@@ -86,7 +86,7 @@ module mod_rad_outrad
            soll , solld , sols , solsd , totcf , totcl , totci , totwv ,   &
            abv , sol , aeradfo , aeradfos , aerlwfo , aerlwfos
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: cld , clwp ,   &
-           qrl , qrs , deltaz
+           qrl , qrs , deltaz , o3
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtaucl ,  &
            outtauci , tauxar3d , tauasc3d , gtota3d
     real(rkx) , pointer , dimension(:) , intent(inout) :: asaeradfo , &
@@ -117,10 +117,11 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        r2m%fsw(j,i) = frsa(n)
+        r2m%totcf(j,i) = totcf(n)
         r2m%solis(j,i) = sol(n)
-        r2m%flw(j,i) = frla(n)
-        r2m%flwd(j,i) = slwd(n)
+        r2m%fsw(j,i)   = frsa(n)
+        r2m%flw(j,i)   = frla(n)
+        r2m%flwd(j,i)  = slwd(n)
         n = n + 1
       end do
     end do
@@ -136,14 +137,21 @@ module mod_rad_outrad
     do i = ici1 , ici2
       do j = jci1 , jci2
         r2m%sabveg(j,i) = abv(n)
-        r2m%solvs(j,i) = sols(n)
+        r2m%solvs(j,i)  = sols(n)
         r2m%solvsd(j,i) = solsd(n)
-        r2m%solvl(j,i) = soll(n)
+        r2m%solvl(j,i)  = soll(n)
         r2m%solvld(j,i) = solld(n)
-        r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
         n = n + 1
       end do
     end do
+
+    if ( ifrad ) then
+      rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
+    end if
+    if ( ifopt ) then
+      rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
+    end if
 
     if ( ifrad .and. associated(rad_higcl_out) .and. &
                      associated(rad_midcl_out) .and. &
@@ -187,27 +195,28 @@ module mod_rad_outrad
       end do
     end if
 
-    if ( ifsrf ) then
-      if ( associated(srf_totcf_out) ) then
-        call copy2d_add(totcf,srf_totcf_out)
-      end if
-    end if
-
     if ( rcmtimer%start( ) ) return
 
     if ( ifopt .and. (iaerosol == 1 .or. iclimaaer > 0) ) then
+      ! when outputing aerosol properties, back to extinction m-1, ssa, and g
       if ( irrtm == 1 ) then
         visband = 10
+        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,kth-kz+1,kth)
+        ! Include the top radiation levels in integrated AOD
+        ! (strato contribution) outputs
+        ! Note that the stratospheric radiation hat is not visible in
+        ! the oppt profiles
+        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,1,kth)
+        call copy4d(tauasc3d,opt_assa8_out,visband,kth-kz+1,kth)
+        call copy4d(gtota3d,opt_agfu8_out,visband,kth-kz+1,kth)
       else
         visband = 8
+        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,1,kz)
+        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kz)
+        call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
+        call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
       endif
-      call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz)
-     ! call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
-     ! call copy4d_div(gtota3d,opt_agfu8_out,visband,deltaz)
-      call copy4d(tauasc3d,opt_assa8_out,visband)
-      call copy4d(gtota3d,opt_agfu8_out,visband)
 
-      call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband)
       call copy4d2(deltaz,opt_deltaz_out)
       if ( idirect > 0 .or. iclimaaer > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
@@ -225,11 +234,16 @@ module mod_rad_outrad
       if ( lout ) then
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
-        rad_clwp_out = rad_clwp_out * rad_cld_out
-        call copy3d(qrs,rad_qrs_out)
-        call copy3d(qrl,rad_qrl_out)
-        call copy4d1(outtaucl,rad_taucl_out,4)
-        call copy4d1(outtauci,rad_tauci_out,4)
+        rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
+        if ( idiag > 0 ) then
+          call copy3d(qrs,rad_qrs_out)
+          call copy3d(qrl,rad_qrl_out)
+          call copy3d(o3,rad_o3_out)
+        end if
+        if ( icosp == 1 ) then
+          call copy4d1(outtaucl,rad_taucl_out,4)
+          call copy4d1(outtauci,rad_tauci_out,4)
+        end if
         call copy2d(frsa,rad_frsa_out)
         call copy2d(frla,rad_frla_out)
         call copy2d(clrst,rad_clrst_out)
@@ -263,15 +277,15 @@ module mod_rad_outrad
     end if
   end subroutine copy2d
 
-  subroutine copy2d_integrate_from3(a,b,l)
+  subroutine copy2d_integrate_from3(a,b,l,ki,kl)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) , intent(in) :: l
+    integer(ik4) , intent(in) :: l , kl , ki
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       b(:,:) = d_zero
-      do k = 1 , kz
+      do k = ki , kl
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -309,14 +323,14 @@ module mod_rad_outrad
     end if
   end subroutine copy3d1
 
-  subroutine copy4d(a,b,l)
+  subroutine copy4d(a,b,l,ki,kl)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
-    integer(ik4) , intent(in) :: l
+    integer(ik4) , intent(in) :: l , ki , kl
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
+      do k = ki , kl
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -387,25 +401,47 @@ module mod_rad_outrad
     end if
   end subroutine copy4d_mult
 
-  subroutine copy4d_div(a,b,l,c)
+  subroutine copy4d_div(a,b,l,c,ki,kl)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rkx) , pointer , intent(in) , dimension(:,:) :: c
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
-    integer(ik4) , intent(in) :: l
-    integer(ik4) :: i , j , k , n
+    integer(ik4) , intent(in) :: l , ki , kl
+    integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
-      do k = 1 , kz
+      kk = 1
+      do k = ki , kl
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            b(j,i,k) = a(n,k,l) / c(n,k)
+            b(j,i,kk) = a(n,k,l) / c(n,kk)
+            n = n + 1
+          end do
+        end do
+        kk = kk + 1
+      end do
+    end if
+  end subroutine copy4d_div
+
+  subroutine copy4d_div2(a,b,l,c,ki,kl)
+    implicit none
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: c
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: l , ki , kl
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = ki , kl
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k,l) / c(n,k,l)
             n = n + 1
           end do
         end do
       end do
     end if
-  end subroutine copy4d_div
+  end subroutine copy4d_div2
 
   subroutine copy2d_add(a,b)
     implicit none

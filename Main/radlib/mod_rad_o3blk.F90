@@ -97,7 +97,8 @@ module mod_rad_o3blk
   character(len=256) function o3filename(year)
     implicit none
     integer(ik4) , intent(in) :: year
-    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
+         scenario(1:5) == 'CONST' ) then
       ozname = ozname_rcp
       mulfac = 1.0e-6_rkx
       moffset = 1
@@ -262,6 +263,8 @@ module mod_rad_o3blk
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
+    data ism /-1/
+    data isy /-1/
 
     call split_idate(idatex,iyear,imon,iday,ihour)
     imonmidd = monmiddle(idatex)
@@ -275,7 +278,18 @@ module mod_rad_o3blk
     if ( ifirst ) then
       call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
       call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
-      ifirst = .false.
+!      ifirst = .false.
+      if ( myid == iocpu ) then
+        infile = o3filename(iyear)
+        call init_o3data(infile,ncid,olat,olon,oplev)
+        call getmem3d(yozone,1,njcross,1,nicross,1,size(oplev),'ozone:yozone')
+        call getmem3d(xozone1,1,size(olon),1,size(olat),1,size(oplev), &
+          'ozone:xozone1')
+        call getmem3d(xozone2,1,size(olon),1,size(olat),1,size(oplev), &
+          'ozone:xozone2')
+        call h_interpolator_create(hint,olat,olon,alat,alon)
+      endif
+
     end if
 
     im1 = imon
@@ -284,60 +298,44 @@ module mod_rad_o3blk
     iy2 = iyear
     if ( idatex > imonmidd ) then
       call inextmon(iy2,im2)
-      ism = im1
-      isy = iy1
       iref1 = imonmidd
       iref2 = monmiddle(nextmon(idatex))
     else
       call iprevmon(iy1,im1)
-      ism = im1
-      isy = iy1
       iref1 = monmiddle(prevmon(idatex))
       iref2 = imonmidd
     end if
     dointerp = .false.
-
-    if ( myid == iocpu ) then
-      infile = o3filename(isy)
-    end if
-
-    if ( ncid < 0 ) then
-      if ( myid == iocpu ) then
-        call init_o3data(infile,ncid,olat,olon,oplev)
-        call getmem3d(yozone,1,njcross,1,nicross,1,size(oplev),'ozone:yozone')
-        call getmem3d(xozone1,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone1')
-        call getmem3d(xozone2,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone2')
-        call h_interpolator_create(hint,olat,olon,alat,alon)
-      else
-        ncid = 0
-      end if
-      ism = im1
-      isy = iy1
-      dointerp = .true.
-    else
       if ( ism /= im1 .or. isy /= iy1 ) then
         ism = im1
         isy = iy1
         dointerp = .true.
       end if
-    end if
-
     if ( dointerp ) then
       ! We need pressure
       call grid_collect(m2r%psatms,aps,jci1,jci2,ici1,ici2)
       call grid_collect(m2r%pfatms,pp3d,jci1,jci2,ici1,ici2,1,kzp1)
       if ( myid == iocpu ) then
-        write (stdout,*) 'Reading Ozone Data...'
-        call readvar3d_pack(ncid,iy1,im1,ozname,xozone1)
-        call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-        call h_interpolate_cont(hint,xozone1,yozone)
-        call intlinreg(ozone1,yozone,aps,oplev, &
-                       1,njcross,1,nicross,size(oplev),pp3d,kzp1)
-        call h_interpolate_cont(hint,xozone2,yozone)
-        call intlinreg(ozone2,yozone,aps,oplev, &
-                       1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+        if ( ifirst ) then
+          write (stdout,*) 'Reading Ozone Data...'
+          call readvar3d_pack(ncid,iy1,im1,ozname,xozone1)
+          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
+          call h_interpolate_cont(hint,xozone1,yozone)
+          call intlinreg(ozone1,yozone,aps,oplev, &
+                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          call h_interpolate_cont(hint,xozone2,yozone)
+          call intlinreg(ozone2,yozone,aps,oplev, &
+                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+        else
+          ozone1 = ozone2
+          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
+          call h_interpolate_cont(hint,xozone1,yozone)
+          call intlinreg(ozone1,yozone,aps,oplev, &
+                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          call h_interpolate_cont(hint,xozone2,yozone)
+          call intlinreg(ozone2,yozone,aps,oplev, &
+                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+        end if
       end if
     end if
 
@@ -356,6 +354,7 @@ module mod_rad_o3blk
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Updated ozone profile at (3,3)')
     end if
+    ifirst = .false.
   end subroutine read_o3data
 
   subroutine inextmon(iyear,imon)
@@ -389,7 +388,8 @@ module mod_rad_o3blk
       write (stderr, *) trim(o3file) , ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT OPEN OZONE FILE')
     end if
-    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' ) then
+    if ( scenario(1:3) == 'RCP' .or. scenario(1:3) == 'rcp' .or. &
+         scenario(1:5) == 'CONST' ) then
       iret = nf90_inq_dimid(ncid,'longitude',idimid)
       iret = nf90_inquire_dimension(ncid,idimid,len=nlon)
       iret = nf90_inq_dimid(ncid,'latitude',idimid)
@@ -426,10 +426,9 @@ module mod_rad_o3blk
     character(len=*) , intent(in) :: vname
     real(rkx) , intent(out) , dimension(:,:,:) :: val
     real(rkx) , save :: xscale , xfact
-    real(rkx)  :: frstp
     integer(ik4) , save :: ilastncid , icvar , itvar
     integer(ik4) , save , dimension(4) :: istart , icount
-    integer(ik4) :: iret , irec
+    integer(ik4) :: iret
     character(len=256) :: infile
     data ilastncid /-1/
     data icvar /-1/
@@ -492,12 +491,12 @@ module mod_rad_o3blk
     integer(ik4) :: icvar , iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
     iret = nf90_get_var(ncid,icvar,val)
     if ( iret /= nf90_noerr ) then
-      write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) trim(vname), ': ', nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
   end subroutine readvar1d

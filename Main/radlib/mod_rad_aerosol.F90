@@ -26,6 +26,7 @@ module mod_rad_aerosol
   use mod_constants
   use mod_memutil
   use mod_mpmessage
+  use mod_stdatm
   use mod_rad_common
   use mod_regcm_types
   use mod_mppparam
@@ -52,28 +53,30 @@ module mod_rad_aerosol
   public :: cmip6_plume_profile
   !
   character(len=256) :: macv2sp_hist , macv2sp_scen
-  real(rk4) , pointer , dimension(:) :: lambdaw
-  real(rk4) , pointer , dimension(:) :: latr4 , lonr4 , altr4
-  real(rk4) , pointer , dimension(:,:) :: z , dz
-  real(rk4) , pointer , dimension(:) :: dnovrnr4
-  real(rk4) , pointer , dimension(:,:,:) :: extprofr4
-  real(rk4) , pointer , dimension(:,:,:) :: ssaprofr4
-  real(rk4) , pointer , dimension(:,:,:) :: asyprofr4
-  real(rkx) , pointer , dimension(:) :: lat , lon , alt
+  real(rk8) , pointer , dimension(:) :: lambdaw
+  real(rk8) , pointer , dimension(:) :: latr4 , lonr4 , altr4
+  real(rk8) , pointer , dimension(:,:) :: z , dz
+  real(rk8) , pointer , dimension(:) :: dnovrnr4
+  real(rk8) , pointer , dimension(:,:,:) :: extprofr4
+  real(rk8) , pointer , dimension(:,:,:) :: ssaprofr4
+  real(rk8) , pointer , dimension(:,:,:) :: asyprofr4
+  real(rkx) , pointer , dimension(:) :: lat , lon
   real(rkx) , pointer , dimension(:,:) :: alon , alat
   real(rkx) , pointer , dimension(:,:,:) :: ext1 , ext2
   real(rkx) , pointer , dimension(:,:,:) :: extprof
   real(rkx) , pointer , dimension(:,:,:) :: ssaprof
   real(rkx) , pointer , dimension(:,:,:) :: asyprof
   real(rkx) , pointer , dimension(:,:,:) :: ssa1 , ssa2 , asy1 , asy2
-  real(rkx) , pointer , dimension(:,:,:) :: ext , ssa , asy , zq3d
-  real(rkx) , pointer , dimension(:,:,:) :: yext , yssa , yasy
+  real(rkx) , pointer , dimension(:,:,:) :: ext , ssa , asy , zp3d , zdz3d
+  real(rkx) , pointer , dimension(:,:,:) :: zpr3d , zdzr3d
+  real(rkx) , pointer , dimension(:,:,:) :: yext , yssa , yasy, ydelp , yphcl
   real(rkx) , pointer , dimension(:,:,:) :: xext1 , xext2
-  real(rkx) , pointer , dimension(:,:,:) :: xssa1 ,xssa2
+  real(rkx) , pointer , dimension(:,:,:) :: xssa1 , xssa2
   real(rkx) , pointer , dimension(:,:,:) :: xasy1 , xasy2
+  real(rkx) , pointer , dimension(:,:,:) :: xdelp1 , xdelp2
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
-  integer(ik4) :: clnlon , clnlat , clnlev , cliyear
+  integer(ik4) :: clnlon , clnlat , clnlev
   !
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
   integer(ik4) , parameter :: nwav = 19
@@ -1107,26 +1110,34 @@ module mod_rad_aerosol
         if ( myid == iocpu ) then
           call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
           call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
-          call getmem3d(zq3d,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:zq3d')
+          call getmem3d(zp3d,jcross1,jcross2, &
+                             icross1,icross2,1,kz,'aerosol:zp3d')
+          call getmem3d(zdz3d,jcross1,jcross2, &
+                             icross1,icross2,1,kz,'aerosol:zdz3d')
+          ! FAB: now define radiative OP on kth radiative levels,
+          ! including strato hat
+          call getmem3d(zpr3d,jcross1,jcross2, &
+                              icross1,icross2,1,kth,'aerosol:zpr3d')
+          call getmem3d(zdzr3d,jcross1,jcross2, &
+                              icross1,icross2,1,kth,'aerosol:zdz3d')
           call getmem3d(ext1,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:ext1')
+                             icross1,icross2,1,kth,'aerosol:ext1')
           call getmem3d(ext2,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:ext2')
+                             icross1,icross2,1,kth,'aerosol:ext2')
           call getmem3d(ext,jcross1,jcross2, &
-                            icross1,icross2,1,kz,'aerosol:ext')
+                            icross1,icross2,1,kth,'aerosol:ext')
           call getmem3d(ssa1,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:ssa1')
+                             icross1,icross2,1,kth,'aerosol:ssa1')
           call getmem3d(ssa2,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:ssa2')
+                             icross1,icross2,1,kth,'aerosol:ssa2')
           call getmem3d(ssa,jcross1,jcross2, &
-                            icross1,icross2,1,kz,'aerosol:ssa')
+                            icross1,icross2,1,kth,'aerosol:ssa')
           call getmem3d(asy1,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:asy1')
+                             icross1,icross2,1,kth,'aerosol:asy1')
           call getmem3d(asy2,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:asy2')
+                             icross1,icross2,1,kth,'aerosol:asy2')
           call getmem3d(asy,jcross1,jcross2, &
-                            icross1,icross2,1,kz,'aerosol:asy')
+                            icross1,icross2,1,kth,'aerosol:asy')
         end if
       end if
 
@@ -1160,10 +1171,21 @@ module mod_rad_aerosol
       call getmem2d(path,1,npoints,1,kz,'aerosol:path')
       call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
       call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
-      call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
-      call getmem3d(tauasc3d,1,npoints,0,kz,1,nband,'aerosol:tauasc3d')
-      call getmem3d(tauxar3d,1,npoints,0,kz,1,nband,'aerosol:tauxar3d')
-      call getmem3d(tauxar3d_lw,1,npoints,0,kz,1,nbndlw,'aerosol:tauxar3d_lw')
+
+      ! these variables are defined on full rad grid including hat
+      if (irrtm == 1) then
+        call getmem3d(gtota3d,1,npoints,1,kth,1,nband,'aerosol:gtota3d')
+        call getmem3d(tauasc3d,1,npoints,1,kth,1,nband,'aerosol:tauasc3d')
+        call getmem3d(tauxar3d,1,npoints,1,kth,1,nband,'aerosol:tauxar3d')
+        call getmem3d(tauxar3d_lw,1,npoints, &
+                      1,kth,1,nbndlw,'aerosol:tauxar3d_lw')
+      else ! standard scheme has one extra strato level at k = 0
+        call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
+        call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
+        call getmem3d(tauasc3d,1,npoints,0,kz,1,nband,'aerosol:tauasc3d')
+        call getmem3d(tauxar3d,1,npoints,0,kz,1,nband,'aerosol:tauxar3d')
+      end if
+
       call getmem2d(ftota,1,npoints,1,nband,'aerosol:ftota')
       call getmem2d(gtota,1,npoints,1,nband,'aerosol:gtota')
       call getmem2d(tauasc,1,npoints,1,nband,'aerosol:tauasc')
@@ -1185,9 +1207,11 @@ module mod_rad_aerosol
       end if
 
       if ( iclimaaer == 2 ) then
-        call getmem3d(extprof,jci1,jci2,ici1,ici2,1,kz,'rad:extprof')
-        call getmem3d(asyprof,jci1,jci2,ici1,ici2,1,kz,'rad:asyprof')
-        call getmem3d(ssaprof,jci1,jci2,ici1,ici2,1,kz,'rad:ssaprof')
+        ! FAB note that prof are always determined on kth level,
+        ! even with standard scheme
+        call getmem3d(extprof,jci1,jci2,ici1,ici2,1,kth,'rad:extprof')
+        call getmem3d(asyprof,jci1,jci2,ici1,ici2,1,kth,'rad:asyprof')
+        call getmem3d(ssaprof,jci1,jci2,ici1,ici2,1,kth,'rad:ssaprof')
       else if ( iclimaaer == 3 ) then
         macv2sp_hist = trim(inpglob)//pthsep//'CMIP6'//pthsep// &
               'AEROSOL'//pthsep//'MACv2.0-SP_v1.nc'
@@ -1569,14 +1593,13 @@ module mod_rad_aerosol
       implicit none
       type (rcm_time_and_date) , intent(in) :: idatex
       type(mod_2_rad) , intent(in) :: m2r
-      character(len=64) :: infile
       logical , save :: lfirst
       logical :: dointerp
       real(rkx) , dimension(kz) :: opprnt
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) :: k , im1 , iy1 , im2 , iy2
+      integer(ik4) ::i,j, k ,kj, im1 , iy1 , im2 , iy2
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -1587,33 +1610,19 @@ module mod_rad_aerosol
       call split_idate(idatex,iyear,imon,iday,ihour)
       imonmidd = monmiddle(idatex)
 
-      if ( (iyear < 1850 .and. iyear > 2099) .or. &
-           (iyear == 2100 .and. imon /= 1 ) ) then
+      if (iyear < 1979 .and. iyear > 2021) then
         write (stderr,*) 'NO CLIMATIC AEROPP DATA AVAILABLE FOR ',iyear*100+imon
         return
       end if
 
-      if ( myid == iocpu ) then
-        if ( 1==0 ) then
-          clnlev = 30
-          clnlon = 211
-          clnlat = 89
-        else if ( 1==1 ) then
-          clnlev = 20
-          clnlon = 360
-          clnlat = 180
-        else
-          call fatal(__FILE__,__LINE__,' XXXXX ')
-        end if
-        call getfile(iyear,cliyear,ncid)
-      end if
       if ( lfirst ) then
         call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
         call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
+          call getfile(iyear,imon,ncid)
+
           call getmem1d(lat,1,clnlat,'aeropp:lat')
           call getmem1d(lon,1,clnlon,'aeropp:lon')
-          call getmem1d(alt,1,clnlev,'aeropp:alt')
           call getmem3d(xext1,1,clnlon, &
                               1,clnlat,1,clnlev, 'aerosol:xext1')
           call getmem3d(xext2,1,clnlon, &
@@ -1626,10 +1635,16 @@ module mod_rad_aerosol
                               1,clnlat,1,clnlev, 'aerosol:xasy1')
           call getmem3d(xasy2,1,clnlon, &
                               1,clnlat,1,clnlev, 'aerosol:xasy2')
+          call getmem3d(xdelp1,1,clnlon, &
+                               1,clnlat,1,clnlev, 'aerosol:xasy2')
+          call getmem3d(xdelp2,1,clnlon, &
+                               1,clnlat,1,clnlev, 'aerosol:xasy2')
           call getmem3d(yext,1,njcross,1,nicross,1,clnlev,':yext')
           call getmem3d(yssa,1,njcross,1,nicross,1,clnlev,':yssa')
           call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
-          call init_aeroppdata(ncid,lat,lon,alt)
+          call getmem3d(ydelp,1,njcross,1,nicross,1,clnlev,':ydelp')
+          call getmem3d(yphcl,1,njcross,1,nicross,1,clnlev,':yphcl')
+          call init_aeroppdata(ncid,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
         end if
       end if
@@ -1654,57 +1669,139 @@ module mod_rad_aerosol
         dointerp = .true.
       end if
       if ( dointerp ) then
-        call grid_collect(m2r%zq,zq3d,jci1,jci2,ici1,ici2,1,kz)
+        call grid_collect(m2r%phatms,zp3d,jci1,jci2,ici1,ici2,1,kz)
+        call grid_collect(m2r%deltaz,zdz3d,jci1,jci2,ici1,ici2,1,kz)
         if ( myid == iocpu ) then
+          ! First build model pressure levels (in Pa) including
+          ! radiative hat (up to kth)
+          do k = 1, kz
+            zpr3d(1:njcross,1:nicross,kth-kz+k) = zp3d(1:njcross,1:nicross,k)
+            zdzr3d(1:njcross,1:nicross,kth-kz+k) = zdz3d(1:njcross,1:nicross,k)
+          end do
+          do k = 1, kth -kz
+            zpr3d(1:njcross,1:nicross,kth-kz-k+1) = stdplevh(kclimh+k-1)*d_100
+            zdzr3d(1:njcross,1:nicross,kth-kz-k+1) = &
+              (stdhlevf(kclimh +k)-stdhlevf(kclimh +k -1)) * d_1000
+          end do
+
           write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
           if ( lfirst ) then
-            call getfile(iy1,cliyear,ncid)
-            call readvar3d(ncid,iy1,im1,'ext',xext1)
-            call readvar3d(ncid,iy1,im1,'ssa',xssa1)
-            call readvar3d(ncid,iy1,im1,'asy',xasy1)
-            call getfile(iy2,cliyear,ncid)
-            call readvar3d(ncid,iy2,im2,'ext',xext2)
-            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
-            call readvar3d(ncid,iy2,im2,'asy',xasy2)
-            xext1 = max(xext1,d_zero)
-            xssa1 = max(xssa1,d_zero)
-            xasy1 = max(xasy1,d_zero)
-            xext2 = max(xext2,d_zero)
-            xssa2 = max(xssa2,d_zero)
-            xasy2 = max(xasy2,d_zero)
+            call getfile(iy1,im1,ncid)
+            call readvar3d(ncid,'EXTTOT',xext1)
+            call readvar3d(ncid,'SSATOT',xssa1)
+            call readvar3d(ncid,'GTOT',xasy1)
+            call readvar3d(ncid,'DELP',xdelp1)
+
+            call getfile(iy2,im2,ncid)
+            call readvar3d(ncid,'EXTTOT',xext2)
+            call readvar3d(ncid,'SSATOT',xssa2)
+            call readvar3d(ncid,'GTOT',xasy2)
+            call readvar3d(ncid,'DELP',xdelp2)
+
+            xext1  = max(xext1,d_zero)
+            xssa1  = min(max(xssa1,d_zero),d_one)
+            xasy1  = min(max(xasy1,d_zero),d_one)
+            xdelp1 = max(xdelp1,d_zero)
+            xext2  = max(xext2,d_zero)
+            xssa2  = min(max(xssa2,d_zero),d_one)
+            xasy2  = min(max(xasy2,d_zero),d_one)
+            xdelp2 = max(xdelp2,d_zero)
+
             call h_interpolate_cont(hint,xext1,yext)
             call h_interpolate_cont(hint,xssa1,yssa)
             call h_interpolate_cont(hint,xasy1,yasy)
-            call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(ssa1,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(asy1,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xdelp1,ydelp)
+            !
+            !               VERTICAL Interpolation
+            !
+            ! The pressure at the MERRA top is a fixed constant:
+            !
+            !                 PTOP = 0.01 hPa (1 Pa)
+            !
+            ! Pressures at edges should be computed by summing the DELP
+            ! pressure thickness starting at PTOP.
+            ! A representative pressure for the layer can then be obtained
+            ! from these. Here just use linear av for now, should be improved !!
+            ! MERRA grid is top down
+            yphcl(1:njcross,1:nicross,1)  = d_one + &
+                ydelp(1:njcross,1:nicross,1)*d_half
+            do k = 2 , clnlev
+              yphcl(1:njcross,1:nicross,k) = &
+                 yphcl(1:njcross,1:nicross,k-1)  + &
+                 (ydelp(1:njcross,1:nicross,k-1) + &
+                  ydelp(1:njcross,1:nicross,k))*d_half
+            end do
+
+            call intp1(ext1,yext,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(ssa1,yssa,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(asy1,yasy,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+
+            ! same for ext2
             call h_interpolate_cont(hint,xext2,yext)
             call h_interpolate_cont(hint,xssa2,yssa)
             call h_interpolate_cont(hint,xasy2,yasy)
-            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-          else
+            call h_interpolate_cont(hint,xdelp2,ydelp)
+            yphcl(1:njcross,1:nicross,1) = d_one + &
+                ydelp(1:njcross,1:nicross,1)*d_half
+            do k = 2,clnlev
+              yphcl(1:njcross,1:nicross,k) = &
+                  yphcl(1:njcross,1:nicross,k-1)  + &
+                  (ydelp(1:njcross,1:nicross,k-1) + &
+                   ydelp(1:njcross,1:nicross,k))*d_half
+            end do
+            call intp1(ext2,yext,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(ssa2,yssa,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(asy2,yasy,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+
+          else  ! ( if not first call , just update ext2 )
+
             ext1 = ext2
             ssa1 = ssa2
             asy1 = asy2
-            call getfile(iy2,cliyear,ncid)
-            call readvar3d(ncid,iy2,im2,'ext',xext2)
-            call readvar3d(ncid,iy2,im2,'ssa',xssa2)
-            call readvar3d(ncid,iy2,im2,'asy',xasy2)
+            call getfile(iy2,im2,ncid)
+            call readvar3d(ncid,'EXTTOT',xext2)
+            call readvar3d(ncid,'SSATOT',xssa2)
+            call readvar3d(ncid,'GTOT',xasy2)
+            call readvar3d(ncid,'DELP',xdelp2)
+
             xext2 = max(xext2,d_zero)
-            xssa2 = max(xssa2,d_zero)
-            xasy2 = max(xasy2,d_zero)
+            xssa2 = min(max(xssa2,d_zero),d_one)
+            xasy2 = min(max(xasy2,d_zero),d_one)
+            xdelp2= max(xdelp2,d_zero)
+
             call h_interpolate_cont(hint,xext2,yext)
             call h_interpolate_cont(hint,xssa2,yssa)
             call h_interpolate_cont(hint,xasy2,yasy)
-            call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(ssa2,yssa,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
-            call intlinreg(asy2,yasy,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
+            call h_interpolate_cont(hint,xdelp2,ydelp)
+
+            yphcl(1:njcross,1:nicross,1) = d_one + &
+                ydelp(1:njcross,1:nicross,1)*d_half
+            do k = 2,clnlev
+              yphcl(1:njcross,1:nicross,k) = &
+                  yphcl(1:njcross,1:nicross,k-1)  + &
+                  (ydelp(1:njcross,1:nicross,k-1) + &
+                   ydelp(1:njcross,1:nicross,k))*d_half
+            end do
+
+            call intp1(ext2,yext,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(ssa2,yssa,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+            call intp1(asy2,yasy,zpr3d,yphcl,njcross,nicross, &
+                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
           end if
         end if
-      end if
+      end if ! end of interp
       if ( myid == iocpu ) then
+        ! FAB :  normally we should perform vertical interpolation here
+        ! rather than in dointerp, since it depends on instantaneous model
+        ! pressure field !
         tdif = idatex-iref1
         xfac1 = real(tohours(tdif),rkx)
         tdif = idatex-iref2
@@ -1712,34 +1809,32 @@ module mod_rad_aerosol
         odist = xfac1 - xfac2
         xfac1 = xfac1 / odist
         xfac2 = d_one - xfac1
-        ext = ext1*xfac2 + ext2*xfac1
+        ! ! Important :  radiation schemes expect AOD per layer, calculated
+        !   from extinction
+        ext = (ext1*xfac2 + ext2*xfac1) * zdzr3d
         ssa = ssa1*xfac2 + ssa2*xfac1
         asy = asy1*xfac2 + asy2*xfac1
+
+        where ( ext < 1.E-10_rkx ) ext = 1.E-10_rkx
+        where ( ssa < 1.E-10_rkx ) ssa = 0.991_rkx
+        where ( asy < 1.E-10_rkx ) ssa = 0.611_rkx
       end if
-
-      call grid_distribute(ext,extprof,jci1,jci2,ici1,ici2,1,kz)
-      call grid_distribute(ssa,ssaprof,jci1,jci2,ici1,ici2,1,kz)
-      call grid_distribute(asy,asyprof,jci1,jci2,ici1,ici2,1,kz)
-
-      ! Important :  radiation schemes expect AOD per layer, calculated
-      !              from extinction
-      extprof(jci1:jci2,ici1:ici2,1:kz) = &
-         max(extprof(jci1:jci2,ici1:ici2,1:kz) * &
-              m2r%deltaz(jci1:jci2,ici1:ici2,1:kz),d_zero)
-
+      call grid_distribute(ext,extprof,jci1,jci2,ici1,ici2,1,kth)
+      call grid_distribute(ssa,ssaprof,jci1,jci2,ici1,ici2,1,kth)
+      call grid_distribute(asy,asyprof,jci1,jci2,ici1,ici2,1,kth)
       if ( myid == italk .and. dointerp ) then
-        do k = 1 , kz
-          opprnt(k) = extprof(3,3,kzp1-k)
+        do k = 1 , kth
+          opprnt(k) = extprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated ext profile at (3,3)')
-        do k = 1 , kz
-          opprnt(k) = ssaprof(3,3,kzp1-k)
+        call vprntv(opprnt,kth,'Updated ext profile at (3,3)')
+        do k = 1 , kth
+          opprnt(k) = ssaprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated ssa profile at (3,3)')
-        do k = 1 , kz
-          opprnt(k) = asyprof(3,3,kzp1-k)
+        call vprntv(opprnt,kth,'Updated ssa profile at (3,3)')
+        do k = 1 , kth
+          opprnt(k) = asyprof(3,3,kth-k+1)
         end do
-        call vprntv(opprnt,kz,'Updated asy profile at (3,3)')
+        call vprntv(opprnt,kth,'Updated asy profile at (3,3)')
       end if
       lfirst = .false.
     end subroutine read_aeroppdata
@@ -1764,13 +1859,12 @@ module mod_rad_aerosol
       end if
     end subroutine iprevmon
 
-    subroutine init_aeroppdata(ncid,lat,lon,alt)
+    subroutine init_aeroppdata(ncid,lat,lon)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , intent(inout) , dimension(:) :: lat , lon , alt
+      real(rkx) , intent(inout) , dimension(:) :: lat , lon
       call readvar1d(ncid,'lat',lat)
       call readvar1d(ncid,'lon',lon)
-      call readvar1d(ncid,'alt',alt)
     end subroutine init_aeroppdata
 
     subroutine readvar1d(ncid,vname,val)
@@ -1791,12 +1885,12 @@ module mod_rad_aerosol
       end if
     end subroutine readvar1d
 
-    subroutine readvar3d(ncid,iyear,imon,vname,val)
+    subroutine readvar3d(ncid,vname,val)
       implicit none
-      integer(ik4) , intent(in) :: ncid , iyear , imon
+      integer(ik4) , intent(in) :: ncid
       character(len=*) , intent(in) :: vname
       real(rkx) , intent(out) , dimension(:,:,:) :: val
-      integer(ik4) , save :: ilastncid , icvar
+      integer(ik4) , save :: icvar
       integer(ik4) , save , dimension(4) :: istart , icount
       integer(ik4) :: iret , irec
       data icvar /-1/
@@ -1806,8 +1900,8 @@ module mod_rad_aerosol
       icount(2) = clnlat
       icount(3) = clnlev
       icount(4) = 1
-      irec = ((iyear-cliyear)*12+imon)
       ! irec = ((iyear-cliyear)*12+imon)-1
+      irec = 1
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
@@ -1931,14 +2025,13 @@ module mod_rad_aerosol
           visband = 10
            ! FAB try only the visible RRTM  now
           ns = visband
-          do k = 1 , kz
+          do k = 1 , kth
             n = 1
-            kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                tauxar3d(n,k,ns) = extprof(j,i,kk)  !already scaled
-                tauasc3d(n,k,ns) = ssaprof(j,i,kk)
-                gtota3d(n,k,ns)  = asyprof(j,i,kk)
+                tauxar3d(n,k,ns) = extprof(j,i,k)  !already scaled, top down regcm
+                tauasc3d(n,k,ns) = ssaprof(j,i,k)
+                gtota3d(n,k,ns)  = asyprof(j,i,k)
                 n = n + 1
               end do
             end do
@@ -1950,21 +2043,38 @@ module mod_rad_aerosol
           tauasc(:,ns) = d_zero
           gtota(:,ns) = d_zero
           ftota(:,ns) = d_zero
+          ! adapt the clim vert grid (1 to kth) to the standard
+          ! rad grid ( 0 to kz) first Treat the top radiative layer
+          ! tauxar3d(n,0,ns)
+          n = 1
+          do i = ici1 , ici2
+             do j = jci1 , jci2
+               tauxar3d(n,0,ns) = sum(extprof(j,i,1: kth -kz) )
+               tauasc3d(n,0,ns) = sum(ssaprof(j,i,1: kth -kz)) / &
+                                 (kth-kz) * tauxar3d(n,0,ns)
+               gtota3d(n,0,ns) = sum(asyprof(j,i,1: kth -kz)) / &
+                                 (kth-kz) * tauasc3d(n,0,ns)
+               ftota3d(n,0,ns) = (sum(asyprof(j,i,1: kth -kz)) / &
+                                 (kth-kz) )**2 * tauasc3d(n,0,ns)
+               n = n +1
+             end do
+          end do
+
           do k = 1 , kz
             n = 1
-            kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ! already scaled for layer height
-                tauxar3d(n,k,ns) = extprof(j,i,kk)
+                ! grid is top down
+                tauxar3d(n,k,ns) = extprof(j,i,kth-kz+k)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(n,k,ns) = ssaprof(j,i,kk) * tauxar3d(n,k,ns)
-                gtota3d(n,k,ns)  = asyprof(j,i,kk) * tauasc3d(n,k,ns)
-                ftota3d(n,k,ns)  = asyprof(j,i,kk)**2 * tauasc3d(n,k,ns)
+                tauasc3d(n,k,ns) = ssaprof(j,i,kth-kz+k) * tauxar3d(n,k,ns)
+                gtota3d(n,k,ns)  = asyprof(j,i,kth-kz+k) * tauasc3d(n,k,ns)
+                ftota3d(n,k,ns)  = asyprof(j,i,kth-kz+k)**2 * tauasc3d(n,k,ns)
                 tauxar(n,ns) = tauxar(n,ns) + tauxar3d(n,k,ns)
                 tauasc(n,ns) = tauasc(n,ns) + tauasc3d(n,k,ns)
-                gtota(n,ns) =  gtota(n,ns)  + gtota3d(n,k,ns)
-                ftota(n,ns) =  ftota(n,ns)  + ftota3d(n,k,ns)
+                gtota(n,ns)  = gtota(n,ns)  + gtota3d(n,k,ns)
+                ftota(n,ns)  = ftota(n,ns)  + ftota3d(n,k,ns)
                 n = n + 1
               end do
             end do
@@ -2346,7 +2456,7 @@ module mod_rad_aerosol
       integer(ik4) :: ibin , i , j , k , n
       integer(ik4) :: iy , im , id
       integer(ik4) , save :: idlast = -1
-      real(rk4) :: year_fr
+      real(rk8) :: year_fr
 
       if ( lfirst ) then
         if ( irrtm == 0 ) then
@@ -2397,57 +2507,54 @@ module mod_rad_aerosol
       end if
     end subroutine cmip6_plume_profile
 
-    subroutine getfile(year,cliyear,ncid)
+    subroutine getfile(year,month,ncid)
       implicit none
-      integer(ik4) , intent(in) :: year
-      integer(ik4) , intent(inout) :: cliyear , ncid
-      character(len=32) :: infile
-      integer(ik4) :: iret
-      integer(ik4) , save :: lastcliyear
-      if ( .false. ) then
-        infile = 'clim_aer_trendso4_nab4_lonlat.nc'
-        cliyear = 1979
-      else
-        if ( year < 1901) then
-          infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
-          cliyear = 1850
-        else if (year > 1900 .and. year < 1951) then
-          infile = 'MACV2_gt_t_00550nm_1901_1950.nc'
-          cliyear = 1901
-        else if (year > 1950 .and. year < 2001) then
-          infile = 'MACV2_gt_t_00550nm_1951_2000.nc'
-          cliyear = 1951
-        else if (year > 2000 .and. year < 2051) then
-          infile = 'MACV2_gt_t_00550nm_2001_2050.nc'
-          cliyear = 2001
-        else if (year > 2050 .and. year <= 2101) then
-          infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
-          cliyear = 2051
-        endif
-      end if
+      integer(ik4) , intent(in) :: year,month
+      integer(ik4) , intent(inout) ::  ncid
+      character(len=256) :: infile
+      integer(ik4) :: iret , idimid
+      write(infile,'(A,I4,I0.2,A)') &
+        trim(radclimpath)//pthsep//'MERRA2_OPPMONTH_wb10.',year,month,'.nc'
       if ( ncid < 0 ) then
         iret = nf90_open(infile,nf90_nowrite,ncid)
         if ( iret /= nf90_noerr ) then
-          write (stderr, *) nf90_strerror(iret) , infile
+          write (stderr, *) nf90_strerror(iret), trim(infile)
           call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
+        else
+          write(stdout,*) 'AEROPP file open ', trim(infile)
         end if
-        lastcliyear = cliyear
       else
-        if ( lastcliyear /= cliyear ) then
-          iret = nf90_close(ncid)
-          if ( iret /= nf90_noerr ) then
-            write (stderr, *) nf90_strerror(iret) , infile
-            call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
-          end if
-          iret = nf90_open(infile,nf90_nowrite,ncid)
-          if ( iret /= nf90_noerr ) then
-            write (stderr, *) nf90_strerror(iret) , infile
-            call fatal(__FILE__,__LINE__, &
-                       'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
-          end if
-          lastcliyear = cliyear
+        iret = nf90_close(ncid)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret), trim(infile)
+          call fatal(__FILE__,__LINE__,'CANNOT CLOSE FILE')
         end if
+        iret = nf90_open(infile,nf90_nowrite,ncid)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret), trim(infile)
+          call fatal(__FILE__,__LINE__, &
+                     'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
+        end if
+        write(stdout,*) 'AEROPP file open ', trim(infile)
       end if
+      ncstatus = nf90_inq_dimid(ncid,'lev',idimid)
+      call check_ok(__FILE__,__LINE__, &
+         'Error searching dimension lev in file '//trim(infile),'OPP FILE')
+      ncstatus = nf90_inquire_dimension(ncid,idimid,len=clnlev)
+      call check_ok(__FILE__,__LINE__, &
+         'Error reading dimension lev in file '//trim(infile),'OPP FILE')
+      ncstatus = nf90_inq_dimid(ncid,'lon',idimid)
+      call check_ok(__FILE__,__LINE__, &
+         'Error searching dimension lon in file '//trim(infile),'OPP FILE')
+      ncstatus = nf90_inquire_dimension(ncid,idimid,len=clnlon)
+      call check_ok(__FILE__,__LINE__, &
+         'Error reading dimension lon in file '//trim(infile),'OPP FILE')
+      ncstatus = nf90_inq_dimid(ncid,'lat',idimid)
+      call check_ok(__FILE__,__LINE__, &
+         'Error searching dimension lat in file '//trim(infile),'OPP FILE')
+      ncstatus = nf90_inquire_dimension(ncid,idimid,len=clnlat)
+      call check_ok(__FILE__,__LINE__, &
+         'Error reading dimension lat in file '//trim(infile),'OPP FILE')
     end subroutine getfile
 
 end module mod_rad_aerosol

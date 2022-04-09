@@ -682,7 +682,7 @@ sensitivity experiments to select the best scheme for your application.
                         !   2 : Thompson scheme
                         !   3 : Gultepe-Isaac scheme
                         !   4 : Texeira scheme
- icldmstrat =        1, ! Simulate stratocumulus clouds
+ icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
                         ! It is only used only if mass fluxes are not
@@ -971,6 +971,7 @@ This namelist controls the new microphysics scheme.
  auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for iautoconv=1
  rkconv = 1.666e-4,         ! Autoconversion coefficient for iautoconv=4
  skconv = 1.0-3,            ! Autoconversion coefficient for snow
+ rcldiff = 1.0e-6,          ! Diffusion coefficient for evaporation
  rcovpmin = 0.1,            ! Minimum precipitation coverage
  rpecons = 5.547e-5,        ! Evaporation constant Kessler
  /
@@ -1014,22 +1015,22 @@ selected number is $2, 4, 5$.
  /
 
  &emanparam
- minsig = 0.95,       ! Lowest sigma level from which convection can originate
+ minorig = 1,         ! Lowest level from which convection can originate
  elcrit_ocn = 0.0011, ! Autoconversion threshold water content (g/g) (ocean)
  elcrit_lnd = 0.0011, ! Autoconversion threshold water content (g/g) (land)
  tlcrit = -55.0,      ! Below tlcrit auto-conversion threshold is zero
- entp = 0.06,         ! Coefficient of mixing in the entrainment formulation
+ entp = 1.50,         ! Coefficient of mixing in the entrainment formulation
  sigd = 0.05,         ! Fractional area covered by unsaturated dndraft
- sigs = 0.15,         ! Fraction of precipitation falling outside of cloud
+ sigs = 0.12,         ! Fraction of precipitation falling outside of cloud
  omtrain = 50.0,      ! Fall speed of rain (Pa/s)
  omtsnow = 5.5,       ! Fall speed of snow (Pa/s)
  coeffr = 1.0,        ! Coefficient governing the rate of rain evaporation
  coeffs = 0.8,        ! Coefficient governing the rate of snow evaporation
  cu = 0.7,            ! Coefficient governing convective momentum transport
  betae = 10.0,        ! Controls downdraft velocity scale
- dtmax = 0.65,        ! Max negative parcel temperature perturbation below LFC
- alphae = 0.02,       ! Controls the approach rate to quasi-equilibrium
- damp = 0.01,         ! Controls the approach rate to quasi-equilibrium
+ dtmax = 0.90,        ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.01,       ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
  epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
  epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)
  /

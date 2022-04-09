@@ -105,7 +105,7 @@ module mod_params
       idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
       iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
       temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset
+      fixedsolarval , irceideal , year_offset , radclimpath
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -139,7 +139,7 @@ module mod_params
       shrmax_ocn , edtmin_ocn, edtmax_ocn, edtmino_ocn ,           &
       edtmaxo_ocn , edtminx_ocn , edtmaxx_ocn
 
-    namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
+    namelist /emanparam/ minorig , elcrit_ocn , elcrit_lnd , tlcrit , &
       entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
       betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
 
@@ -275,6 +275,7 @@ module mod_params
     islab_ocean = 0
     iclimao3 = 0
     iclimaaer = 0
+    radclimpath = 'OPPMONTH'
     isolconst = 0
     year_offset = 0
     ifixsolar = 0
@@ -314,7 +315,7 @@ module mod_params
     inflglw  = 2
     iceflglw = 3
     liqflglw = 1
-    icld  = 1
+    icld  = 2
     imcica = 1
     irng = 1
     nradfo = 4
@@ -368,7 +369,7 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqr = 4.0_rkx
-    vfqi = 0.5_rkx
+    vfqi = 0.01_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
@@ -409,26 +410,22 @@ module mod_params
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
     !
-    if ( idynamic == 3 ) then
-      minsig = 0.85_rkx ! THIS IS TRICKY.....
-    else
-      minsig = 0.95_rkx ! Lowest sigma level from which convection can start
-    end if
-    elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
-    elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
+    minorig = 1
+    elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
+    elcrit_lnd = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 0.06_rkx       ! Coefficient of mixing in the entrainment formulation
+    entp = 0.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
-    sigs = 0.15_rkx       ! Fraction of precipitation falling outside of cloud
+    sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
     omtsnow = 5.5_rkx     ! Fall speed of snow (P/s)
     coeffr = 1.0_rkx      ! Coefficient governing the rate of rain evaporation
     coeffs = 0.8_rkx      ! Coefficient governing the rate of snow evaporation
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
-    dtmax = 0.65_rkx    ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.02_rkx   ! Controls the approach rate to quasi-equilibrium
-    damp = 0.01_rkx     ! Controls the approach rate to quasi-equilibrium
+    dtmax = 0.90_rkx    ! Max negative parcel temperature perturbation below LFC
+    alphae = 0.01_rkx   ! Controls the approach rate to quasi-equilibrium
+    damp = 0.1_rkx      ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
     !
@@ -752,13 +749,9 @@ module mod_params
 #endif
       end if
       if ( cftotmax < 0.0 ) then
-          cftotmax = 0.1_rkx
+        cftotmax = 0.1_rkx
       else if ( cftotmax > 1.0_rkx ) then
         cftotmax = 1.00_rkx
-      end if
-      if ( icldfrac == 2 .and. ipptls < 2 ) then
-        write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
-        icldfrac = 0
       end if
 
       if ( ipptls == 1 ) then
@@ -783,10 +776,6 @@ module mod_params
         end if
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
-        end if
-        if ( cftotmax < 1.0_rkx ) then
-          write(stdout,*) 'Will set cftotmax == 1.0'
-          cftotmax = 1.0_rkx
         end if
       end if
 
@@ -1170,6 +1159,7 @@ module mod_params
     call bcast(lakemod)
     call bcast(ichem)
     call bcast(iclimaaer)
+    call bcast(radclimpath,256)
 
     if ( idynamic == 3 ) then
       if ( isladvec == 1 ) then
@@ -1442,7 +1432,7 @@ module mod_params
     end if
 
     if ( any(icup == 4) ) then
-      call bcast(minsig)
+      call bcast(minorig)
       call bcast(elcrit_ocn)
       call bcast(elcrit_lnd)
       call bcast(tlcrit)
@@ -1709,21 +1699,6 @@ module mod_params
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
 
-    rnsrf_for_srffrq = syncro_srf/alarm_out_srf
-    rsrf_in_atm = syncro_srf/alarm_out_atm
-    if ( lakemod == 1 ) then
-      rnsrf_for_lakfrq = syncro_srf/alarm_out_lak
-    end if
-    if ( nsg > 1 ) then
-      rnsrf_for_subfrq = syncro_srf/alarm_out_sub
-    end if
-    rnsrf_for_day = syncro_srf/alarm_day
-    rnrad_for_radfrq = syncro_rad/alarm_out_rad
-    rnrad_for_srffrq = syncro_rad/alarm_out_srf
-    rnrad_for_optfrq = syncro_rad/alarm_out_opt
-    if ( irrtm == 1 ) then
-        rnrad_for_optfrq = syncro_radfor/alarm_out_opt
-    end if
     rsrffrq_sec = d_one/(srffrq*secph)
 
     if ( idynamic == 1 ) then
@@ -2452,14 +2427,10 @@ module mod_params
       end if
     end if
     if ( any(icup == 4) ) then
-      minorig = kz
-      do k = 1 , kz
-        if ( hsigma(k) <= minsig ) minorig = kz - k
-      end do
       if ( myid == italk ) then
         write(stdout,*) 'Emanuel (1991) Convection Scheme V4.3C used.'
-        write(stdout,'(a,f11.6,a,i2,a)') &
-          '  Min Convection origin             : ',minsig,', (',kzp1-minorig,')'
+        write(stdout,'(a,i3)')    '  Min Convection origin             : ', &
+          minorig
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (ocean)  : ', &
           elcrit_ocn
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (land)   : ', &

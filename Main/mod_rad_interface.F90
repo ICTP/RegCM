@@ -22,11 +22,13 @@ module mod_rad_interface
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_constants
   use mod_date
   use mod_memutil
   use mod_runparams
   use mod_regcm_types
   use mod_ipcc_scenario , only : set_scenario
+  use mod_stdatm
   use mod_rad_common
   use mod_rad_colmod3 , only : allocate_mod_rad_colmod3 , colmod3
   use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
@@ -74,6 +76,34 @@ module mod_rad_interface
 
   subroutine allocate_radiation
     implicit none
+    integer(ik4) :: k
+
+    ! Define here the total number of vertical levels, including standard
+    ! atmosphere hat replace kz by kth, kzp1 by ktf
+
+    kth = kz
+    ktf = kzp1
+
+    if ( irrtm == 1 ) then
+      if ( idynamic /= 3 ) then
+        do k = 1 , n_prehlev
+          kclimh = k
+          if ( ptop*d_10 > stdplevh(k) ) exit
+        end do
+        kth = n_prehlev - kclimh + 1 + kz
+        ktf = kth + 1
+        kclimf = kclimh + 1
+      else
+        do k = 1 , n_hrehlev
+          kclimh = k
+          if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
+        end do
+        kth  = n_hrehlev - kclimh + 1 + kz
+        ktf  = kth + 1
+        kclimf = kclimh + 1
+      end if
+    end if
+
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
@@ -151,6 +181,7 @@ module mod_rad_interface
     call assignpnt(fsw,r2m%fsw)
     call assignpnt(flw,r2m%flw)
     call assignpnt(flwd,r2m%flwd)
+    call assignpnt(totcf,r2m%totcf)
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
 
@@ -222,3 +253,4 @@ module mod_rad_interface
 
 end module mod_rad_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
+

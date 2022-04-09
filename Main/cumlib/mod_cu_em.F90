@@ -41,6 +41,10 @@ module mod_cu_em
   public :: allocate_mod_cu_em , cupemandrv
 
   real(rkx) , parameter :: mincbmf = 1.0e-30_rkx
+  real(rkx) , parameter :: delt0 = 300.0_rkx
+
+  ! Latent heats
+  real(rkx) , parameter :: clq = 2500.0_rkx
 
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
   real(rkx) , public , pointer , dimension(:,:) :: elcrit2d
@@ -139,7 +143,7 @@ module mod_cu_em
         tcup(n,k) = m2c%tas(j,i,kk)                                   ! [K]
         ! Model wants specific humidities and pressures in mb
         qcup(n,k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
-        qscup(n,k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
+        qscup(n,k) = pfqsat(m2c%tas(j,i,kk),m2c%pas(j,i,kk))
         ucup(n,k) = m2c%uas(j,i,kk)                                   ! [m/s]
         vcup(n,k) = m2c%vas(j,i,kk)                                   ! [m/s]
         zcup(n,k) = m2c%zas(j,i,kk)                                   ! [m/s]
@@ -268,6 +272,9 @@ module mod_cu_em
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+    contains
+#include <pfesat.inc>
+#include <pfqsat.inc>
   end subroutine cupemandrv
 !
 !**************************************************************************
@@ -422,16 +429,15 @@ module mod_cu_em
                  anum , asij , awat , b6 , bf2 , bsum , by , byp , c6 ,  &
                  cape , capem , cbmfold , chi , coeff , cpinv , cwat ,   &
                  damps , dbo , dbosum , defrac , dei , delm , delp ,     &
-                 delt0 , denom , dhdp , dpinv , dtma , dtmnx , dtpbl ,   &
-                 elacrit , ents , fac , fqold , frac , ftold , ftraold , &
-                 fuold , fvold , plcl , qp1 , qsm , qstm , qti , rat ,   &
-                 rdcp , revap , rh , scrit , sigt , sjmax , sjmin ,      &
-                 smid , smin , stemp , tca , traav , tvaplcl , tvpplcl , &
-                 tvx , tvy , uav , vav , wdtrain , amp1
+                 denom , dhdp , dpinv , dtma , dtmnx , dtpbl , elacrit , &
+                 ents , fac , fqold , frac , ftold , ftraold , fuold ,   &
+                 fvold , plcl , qp1 , qsm , qstm , qti , rat , revap ,   &
+                 rh , scrit , sigt , sjmax , sjmin , smid , smin ,       &
+                 stemp , tca , traav , tvaplcl , tvpplcl , tvx ,  tvy ,  &
+                 uav , vav , wdtrain , amp1
     real(rkx) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
                                    hp , lv , lvcp , m , mp , qp , sigp , &
-                                   th , tp , tv , tvp , up , vp ,        &
-                                   water , wt
+                                   tp , tv , tvp , up , vp , water , wt
     integer(ik4) :: n , nl , i , ihmin , icb , ict , ict1 , j , jtt , k , nk
     integer(ik4) , dimension(nd+1) :: nent
     real(rkx) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
@@ -454,17 +460,13 @@ module mod_cu_em
 
     pointloop: &
     do  n = 1 , np
-      do i = 1 , nl + 1
-        rdcp = (rgas*(d_one-q(n,i))+q(n,i)*rwat)/(cpd*(d_one-q(n,i))+q(n,i)*cpv)
-        th(i) = t(n,i)*(d_1000/p(n,i))**rdcp
-      end do
       !
       ! Calculate arrays of geopotential, heat capacity and static energy
       !
       gz(1) = d_zero
-      cpn(1) = cpd*(d_one-q(n,1)) + q(n,1)*cpv
+      cpn(1) = cpd*(d_one-q(n,1)) + cpv*q(n,1)
       h(1) = t(n,1)*cpn(1)
-      lv(1) = wlhv-cpvmcl*(t(n,1)-tzero)
+      lv(1) = wlh(t(n,1))
       hm(1) = lv(1)*q(n,1)
       tv(1) = t(n,1)*(d_one+q(n,1)*rgowi-q(n,1))
       ahmin = 1.0e12_rkx
@@ -475,8 +477,8 @@ module mod_cu_em
         gz(i) = gz(i-1) + (rgas*d_half)*(tvx+tvy)*(p(n,i-1)-p(n,i))/ph(n,i)
         cpn(i) = cpd*(d_one-q(n,i)) + cpv*q(n,i)
         h(i) = t(n,i)*cpn(i) + gz(i)
-        lv(i) = wlhv - cpvmcl*(t(n,i)-tzero)
-        hm(i) = (cpd*(d_one-q(n,i))+cpw*q(n,i))*(t(n,i)-t(n,1))+ &
+        lv(i) = wlh(t(n,i))
+        hm(i) = (cpd*(d_one-q(n,i))+cpv*q(n,i))*(t(n,i)-t(n,1))+ &
                  lv(i)*q(n,i)+gz(i)
         tv(i) = t(n,i)*(d_one+q(n,i)*rgowi-q(n,i))
         !
@@ -514,7 +516,7 @@ module mod_cu_em
       ! Calculate lifted condensation level of air at parcel origin level
       ! (within 0.2% of formula of bolton, mon. wea. rev.,1980)
       !
-      rh = q(n,nk)/qs(n,nk)
+      rh = max(min(q(n,nk)/qs(n,nk),1.1_rkx),0.1_rkx)
       chi = t(n,nk)/(1669.0_rkx-122.0_rkx*rh-t(n,nk))
       plcl = p(n,nk)*(rh**chi)
       if ( plcl < 200.0_rkx .or. plcl >= 2000.0_rkx ) then
@@ -665,7 +667,7 @@ module mod_cu_em
       ! Calculate liquid water static energy of lifted parcel
       !
       do i = icb , ict
-        hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(n,i))*ep(i)*clw(i)
+        hp(i) = h(nk) + (lv(i)+(cpd-cpw)*t(n,i))*ep(i)*clw(i)
       end do
       !
       ! Calculate cloud base mass flux and rates of mixing, m(i),
@@ -691,7 +693,6 @@ module mod_cu_em
       ! Adjust cloud base mass flux
       !
       cbmfold = cbmf(n)
-      delt0 = 300.0_rkx
       damps = damp*dt/delt0
       cbmf(n) = (d_one-damps)*cbmf(n) + 0.1_rkx*alphae*dtma
       cbmf(n) = max(cbmf(n),d_zero)
@@ -942,8 +943,8 @@ module mod_cu_em
                 end do
               end if
             else if ( mp(i+1) > d_zero ) then
-              qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(n,i+1)*(cpw-cpd)) + &
-                       cpd*(t(n,i+1)-t(n,i)))/(lv(i)+t(n,i)*(cpw-cpd))
+              qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(n,i+1)*(cpv-cpd)) + &
+                       cpd*(t(n,i+1)-t(n,i)))/(lv(i)+t(n,i)*(cpv-cpd))
               up(i) = up(i+1)
               vp(i) = vp(i+1)
               if ( chemcutran ) then
@@ -1174,8 +1175,9 @@ module mod_cu_em
 
     contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfqsat.inc>
 
       !
       ! Calculate lifting level temperature
@@ -1187,15 +1189,16 @@ module mod_cu_em
         real(rkx) , dimension(:,:) , intent(in) :: p , q , qs , t
         real(rkx) , dimension(nd) , intent(in) :: gz
         real(rkx) , dimension(nd) , intent(inout) :: clw , tpk , tvp
-        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
-                     qg , rg , s , tg
+        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , qg , rg , s , tg
+        real(rkx) :: ppa
+        !real(rkx) :: tc , es , denom
         integer(ik4) :: i , j , nsb , nst
         !
         ! calculate certain parcel quantities, including static energy
         !
-        ah0 = (cpd*(d_one-q(n,nk))+cpw*q(n,nk))*t(n,nk) + q(n,nk) * &
-              (wlhv-cpvmcl*(t(n,nk)-tzero)) + gz(nk)
-        cpp = cpd*(d_one-q(n,nk)) + q(n,nk)*cpv
+        ah0 = (cpd*(d_one-q(n,nk))+cpv*q(n,nk))*t(n,nk) + q(n,nk) * &
+              wlh(t(n,nk)) + gz(nk)
+        cpp = cpd*(d_one-q(n,nk)) + cpv*q(n,nk)
         cpinv = d_one/cpp
         if ( kk == 1 ) then
           !
@@ -1221,15 +1224,24 @@ module mod_cu_em
         do i = nsb , nst
           tg = t(n,i)
           qg = qs(n,i)
-          alv = wlhv-cpvmcl*(tg-tzero)
+          alv = wlh(tg)
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
-            ahg = cpd*tg + (cpw-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
-            tg = max(tg + s*(ah0-ahg),35.0_rkx)
+            ahg = cpd*tg + (cpv-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
+            tg = tg + s*(ah0-ahg)
+            !tg = max(tg + s*(ah0-ahg),35.0_rkx)
+            !tc = tg - tzero
+            !denom = 243.5_rkx + tc
+            !if ( tc >= 0.0_rkx ) then
+            !  es = 6.112_rkx * exp(17.67_rkx*tc/denom)
+            !else
+            !  es = exp(23.33086_rkx-6111.72784_rkx/tg+0.15215_rkx*log(tg))
+            !end if
+            !qg = rgow * es/(p(n,i) - es * (1.0_rkx-rgow))
             ppa = p(n,i)*100.0_rkx
-            qg = pfwsat(tg,ppa)
+            qg = pfqsat(tg,ppa)
           end do
-          tpk(i) = (ah0-(cpw-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
+          tpk(i) = (ah0-(cpv-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(n,nk) - qg
           clw(i) = max(d_zero,clw(i))
           rg = qg/(d_one-q(n,nk))

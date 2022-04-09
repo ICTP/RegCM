@@ -48,10 +48,10 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_bats_albedo.o : mod_bats_albedo.F90 mod_bats_drag.o mod_bats_internal.o mod_bats_param.o mod_constants.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_service.o mod_bats_leaftemp.o
-mod_bats_bndry.o : mod_bats_bndry.F90 mod_bats_drag.o mod_bats_internal.o mod_bats_leaftemp.o mod_bats_param.o mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_service.o pfesat.inc pfqsat.inc pqderiv.inc wlh.inc
+mod_bats_bndry.o : mod_bats_bndry.F90 mod_bats_drag.o mod_bats_internal.o mod_bats_leaftemp.o mod_bats_param.o mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_service.o pfesat.inc pfqsat.inc pfdesatdt.inc pqderiv.inc wlh.inc
 mod_bats_co2.o : mod_bats_co2.F90 mod_bats_internal.o mod_bats_leaftemp.o mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_bats_param.o
 mod_bats_common.o : mod_bats_common.F90 mod_bats_albedo.o mod_bats_bndry.o mod_bats_drag.o mod_bats_internal.o mod_bats_leaftemp.o mod_bats_param.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_stdio.o pfesat.inc pfwsat.inc
 mod_bats_drag.o : mod_bats_drag.F90 mod_bats_internal.o mod_bats_param.o mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_service.o
 mod_bats_internal.o : mod_bats_internal.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_regcm_types.o mod_constants.o
-mod_bats_leaftemp.o : mod_bats_leaftemp.F90 mod_bats_internal.o mod_bats_param.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_service.o pfesat.inc pfqsat.inc pqderiv.inc
+mod_bats_leaftemp.o : mod_bats_leaftemp.F90 mod_bats_internal.o mod_bats_param.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_service.o pfesat.inc pfqsat.inc pfdesatdt.inc pqderiv.inc
 mod_bats_param.o : mod_bats_param.F90 mod_intkinds.o mod_realkinds.o

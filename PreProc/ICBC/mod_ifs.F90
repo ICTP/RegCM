@@ -51,13 +51,16 @@ module mod_ifs
   real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
   real(rkx) , pointer :: p3(:,:,:) , pd3(:,:,:)
   real(rkx) , pointer :: q3(:,:,:) , t3(:,:,:) , z3(:,:,:)
+  real(rkx) , pointer :: l3(:,:,:) , i3(:,:,:)
   real(rkx) , pointer :: z3u(:,:,:) , z3v(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:) , pvar(:,:,:)
   real(rkx) , pointer :: qvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: clvar(:,:,:) , civar(:,:,:)
   real(rkx) , pointer :: p_out(:,:,:) , pd_out(:,:,:)
   real(rkx) , pointer :: topou(:,:) , topov(:,:)
-  real(rkx) , pointer :: xps(:,:) , xts(:,:) , xzs(:,:)
-  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:)
+  real(rkx) , pointer :: xps(:,:) , skt(:,:) , yts(:,:)
+  real(rkx) , pointer :: xzs(:,:) , yzs(:,:)
+  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:) , z1(:,:) , t1(:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -68,10 +71,11 @@ module mod_ifs
   real(rkx) , pointer , dimension(:) :: hyam , hybm
 
   integer(ik4) :: ncin
-  integer(ik4) , parameter :: nrvar = 7
+  integer(ik4) , parameter :: nrvar = 11
   character(len=4) , dimension(nrvar) , parameter :: varname = &
-           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'lnsp' , 'st  ' , 'z   ']
-  integer(ik4) , dimension(nrvar) :: ivar5
+           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'clwc' , 'ciwc' , &
+            'lnsp' , 'skt ' , 'st  ' , 'z   ' , 'z_2 ']
+  integer(ik4) , dimension(nrvar) :: ivar
 
   type(global_domain) :: gdomain
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
@@ -128,7 +132,7 @@ module mod_ifs
     call getmem1d(glat,1,jlat,'mod_ifs:glat')
     call getmem1d(glon,1,ilon,'mod_ifs:glon')
     call getmem1d(ghelp,1,max(jlat,ilon),'mod_ifs:ghelp')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ifs:b3')
+    call getmem3d(b3,1,jx,1,iy,1,klev*5,'mod_ifs:b3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ifs:d3v')
@@ -143,6 +147,8 @@ module mod_ifs
     call getmem2d(ps,1,jx,1,iy,'mod_ifs:ps')
     call getmem2d(ts,1,jx,1,iy,'mod_ifs:ts')
     call getmem2d(zs,1,jx,1,iy,'mod_ifs:zs')
+    call getmem2d(z1,1,jx,1,iy,'mod_ifs:z1')
+    call getmem2d(t1,1,jx,1,iy,'mod_ifs:t1')
 
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -202,11 +208,13 @@ module mod_ifs
       call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ifs:b2')
+    call getmem3d(b2,1,ilon,1,jlat,1,klev*5,'mod_ifs:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ifs:d2')
     call getmem2d(xps,1,ilon,1,jlat,'mod_ifs:xps')
-    call getmem2d(xts,1,ilon,1,jlat,'mod_ifs:xts')
+    call getmem2d(skt,1,ilon,1,jlat,'mod_ifs:skt')
+    call getmem2d(yts,1,ilon,1,jlat,'mod_ifs:yts')
     call getmem2d(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
+    call getmem2d(yzs,1,ilon,1,jlat,'mod_ifs:yzs')
     if ( idynamic /= 3 ) then
       call getmem3d(pd3,1,jx,1,iy,1,klev,'mod_nest:pd3')
       call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
@@ -228,11 +236,15 @@ module mod_ifs
     t3 => b3(:,:,1:klev)
     q3 => b3(:,:,1*klev+1:2*klev)
     p3 => b3(:,:,2*klev+1:3*klev)
+    l3 => b3(:,:,3*klev+1:4*klev)
+    i3 => b3(:,:,4*klev+1:5*klev)
     uvar => d2(:,:,1:klev)
     vvar => d2(:,:,klev+1:2*klev)
     tvar => b2(:,:,1:klev)
     qvar => b2(:,:,1*klev+1:2*klev)
     pvar => b2(:,:,2*klev+1:3*klev)
+    clvar => b2(:,:,3*klev+1:4*klev)
+    civar => b2(:,:,4*klev+1:5*klev)
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
@@ -270,8 +282,10 @@ module mod_ifs
       call h_interpolate_cont(udot_hint,d2,d3)
     end if
     call h_interpolate_cont(cross_hint,xps,ps)
-    call h_interpolate_cont(cross_hint,xts,ts)
+    call h_interpolate_cont(cross_hint,skt,ts)
     call h_interpolate_cont(cross_hint,xzs,zs)
+    call h_interpolate_cont(cross_hint,yzs,z1)
+    call h_interpolate_cont(cross_hint,yts,t1)
     ps = ps * d_r1000
     !
     ! Rotate u-v fields after horizontal interpolation
@@ -287,10 +301,9 @@ module mod_ifs
     ! New calculation of p* on rcm topography.
     !
     call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
-
     if ( idynamic == 3 ) then
       z3(:,:,klev) = zs(:,:) + log(ps(:,:)/p3(:,:,klev))*rovg* &
-                  t3(:,:,klev)*(d_one+ep1*q3(:,:,klev))
+                       0.5_rkx * (t3(:,:,klev)+ts(:,:))
       do k = klev-1, 1 , -1
         z3(:,:,k) = z3(:,:,k+1) + log(p3(:,:,k+1)/p3(:,:,k))*rovg* &
                 d_half * (t3(:,:,k+1)*(d_one+ep1*q3(:,:,k+1)) + &
@@ -298,7 +311,6 @@ module mod_ifs
       end do
       call ucrs2dot(z3u,z3,jx,iy,klev,i_band)
       call vcrs2dot(z3v,z3,jx,iy,klev,i_crm)
-      call intz3(ts4,t3,z3,topogm,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     else
       if ( idynamic == 1 ) then
         do k = 1 , kz
@@ -313,11 +325,12 @@ module mod_ifs
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call crs2dot(pd3,p3,jx,iy,klev,i_band,i_crm)
       ps = ps4 + ptop
-      call intp3(ts4,t3,p3,ps,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
 
     where ( mask == 0 )
       ts4 = ts
+    else where
+      ts4 = t1
     end where
     !
     ! Interpolate U, V, T, and Q.
@@ -332,6 +345,10 @@ module mod_ifs
       call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
       call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+!$OMP SECTION
+      call intz1(qc4,l3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+!$OMP SECTION
+      call intz1(qi4,i3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
@@ -343,6 +360,10 @@ module mod_ifs
       call intp1(t4,t3,p_out,p3,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
       call intp1(q4,q3,p_out,p3,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+!$OMP SECTION
+      call intp1(qc4,l3,p_out,p3,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+!$OMP SECTION
+      call intp1(qi4,i3,p_out,p3,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
     end if
   end subroutine get_ifs
@@ -350,7 +371,7 @@ module mod_ifs
   subroutine ifs6hour(idate,idate0)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: k , it , kkrec , istatus , ivar
+    integer(ik4) :: k , it , iv , istatus
     character(len=64) :: inname
     character(len=256) :: pathaddname
     integer(ik4) :: year , month , day , hour
@@ -367,33 +388,41 @@ module mod_ifs
     istatus = nf90_open(pathaddname,nf90_nowrite,ncin)
     call checkncerr(istatus,__FILE__,__LINE__, &
                      'Error open file '//trim(pathaddname))
-    do kkrec = 1 , size(varname)
-      istatus = nf90_inq_varid(ncin,varname(kkrec), ivar5(kkrec))
+    do iv = 1 , size(varname)
+      istatus = nf90_inq_varid(ncin,varname(iv), ivar(iv))
       call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var '//varname(kkrec))
+                    'Error find var '//varname(iv))
     end do
 
     it = 1
 
-    do kkrec = 1 , size(varname)
-      ivar = ivar5(kkrec)
-      if ( kkrec == 1 ) then
-        call getwork3(kkrec,tvar)
-      else if ( kkrec == 2 ) then
-        call getwork3(kkrec,qvar)
+    do iv = 1 , size(varname)
+      if ( iv == 1 ) then
+        call getwork3(ivar(iv),tvar)
+      else if ( iv == 2 ) then
+        call getwork3(ivar(iv),qvar)
         call sph2mxr(qvar,ilon,jlat,klev)
-      else if ( kkrec == 3 ) then
-        call getwork3(kkrec,uvar)
-      else if ( kkrec == 4 ) then
-        call getwork3(kkrec,vvar)
-      else if ( kkrec == 5 ) then
-        call getwork2(kkrec,xps)
+      else if ( iv == 3 ) then
+        call getwork3(ivar(iv),uvar)
+      else if ( iv == 4 ) then
+        call getwork3(ivar(iv),vvar)
+      else if ( iv == 5 ) then
+        call getwork3(ivar(iv),clvar)
+      else if ( iv == 6 ) then
+        call getwork3(ivar(iv),civar)
+      else if ( iv == 7 ) then
+        call getwork23(ivar(iv),xps)
         xps = exp(xps)
-      else if ( kkrec == 6 ) then
-        call getwork2(kkrec,xts)
-      else if ( kkrec == 7 ) then
-        call getwork2(kkrec,xzs)
+      else if ( iv == 8 ) then
+        call getwork2(ivar(iv),skt)
+      else if ( iv == 9 ) then
+        call getwork23(ivar(iv),yts)
+      else if ( iv == 10 ) then
+        call getwork23(ivar(iv),xzs)
         xzs = xzs / 9.80616_rkx
+      else if ( iv == 11 ) then
+        call getwork2(ivar(iv),yzs)
+        yzs = yzs / 9.80616_rkx
       end if
     end do
 
@@ -403,10 +432,10 @@ module mod_ifs
 
     contains
 
-      subroutine getwork3(irec,var)
+      subroutine getwork3(vid,var)
         implicit none
         real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: var
-        integer(ik4) , intent(in) :: irec
+        integer(ik4) , intent(in) :: vid
         integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(4) :: icount , istart
         istart(3) = 1
@@ -421,17 +450,17 @@ module mod_ifs
           istart(2) = gdomain%jgstart
           icount(2) = gdomain%nj
           itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(ncin,ivar,var(iti:itf,:,:),istart,icount)
+          istatus = nf90_get_var(ncin,vid,var(iti:itf,:,:),istart,icount)
           call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(irec))
+                          'Error read var '//varname(iv))
           iti = iti + gdomain%ni(itile)
         end do
       end subroutine getwork3
 
-      subroutine getwork2(irec,var)
+      subroutine getwork2(vid,var)
         implicit none
         real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
-        integer(ik4) , intent(in) :: irec
+        integer(ik4) , intent(in) :: vid
         integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(3) :: icount , istart
         istart(3) = it
@@ -444,12 +473,37 @@ module mod_ifs
           istart(2) = gdomain%jgstart
           icount(2) = gdomain%nj
           itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(ncin,ivar,var(iti:itf,:),istart,icount)
+          istatus = nf90_get_var(ncin,vid,var(iti:itf,:),istart,icount)
           call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(irec))
+                          'Error read var '//varname(iv))
           iti = iti + gdomain%ni(itile)
         end do
       end subroutine getwork2
+
+      subroutine getwork23(vid,var)
+        implicit none
+        real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
+        integer(ik4) , intent(in) :: vid
+        integer(ik4) :: itile , iti , itf
+        integer(ik4) , dimension(4) :: icount , istart
+        istart(4) = it
+        icount(4) = 1
+        istart(3) = 1
+        icount(3) = 1
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(ncin,vid,var(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(iv))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine getwork23
 
     end subroutine ifs6hour
 

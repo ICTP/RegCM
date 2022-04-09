@@ -1,19 +1,38 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_cldprop.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.8 $
-!     created:   $Date: 2009/05/22 21:04:30 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
       module rrtmg_lw_cldprop
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 
 ! --------- Modules ----------
 
@@ -87,7 +106,7 @@
       real(kind=rb) :: factor                         !
       real(kind=rb) :: fint                           !
       real(kind=rb) :: tauctot(nlayers)               ! band integrated cloud optical depth
-!      real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
+      real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
 
 ! ------- Definitions -------
@@ -149,7 +168,7 @@
                 1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5, &
                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
 
-      hvrcld = '$Revision: 1.8 $'
+      hvrcld = '$Revision$'
 
       ncbands = 1
       tauctot(:) = 0._rb
@@ -211,7 +230,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 43) index = 42
-                     fint = factor - real(index,rb)
+                     fint = factor - real(index,kind=rb)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                             absice2(index,ib) + fint * &
@@ -227,7 +246,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 46) index = 45
-                     fint = factor - real(index,rb)
+                     fint = factor - real(index,kind=rb)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                           absice3(index,ib) + fint * &
@@ -255,7 +274,7 @@
                   index = int(radliq - 1.5_rb)
                   if (index .eq. 0) index = 1
                   if (index .eq. 58) index = 57
-                  fint = radliq - 1.5_rb - real(index,rb)
+                  fint = radliq - 1.5_rb - real(index,kind=rb)
                   ncbands = 16
                   do ib = 1, ncbands
                      abscoliq(ib) = &
@@ -276,4 +295,5 @@
       end subroutine cldprop
 
       end module rrtmg_lw_cldprop
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

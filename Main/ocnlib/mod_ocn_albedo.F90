@@ -55,10 +55,10 @@ module mod_ocn_albedo
   subroutine ocn_albedo
     implicit none
     real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
-                 cf1 , cff , conn , cons , wspd , czeta , czf , &
-                 dfalbl , dfalbs , dralbl , dralbs , sl , sl2 , &
-                 sli , tdiff , tdiffs , wfac , scrat , scvk ,   &
-                 onemc , w0
+                 cf1 , cff , conn , cons , czeta , czf , sl2 ,  &
+                 dfalbl , dfalbs , dralbl , dralbs , sl , sli , &
+                 tdiff , tdiffs , scrat , scvk , wfac , onemc , &
+                 w0 , wspd
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocn_albedo'

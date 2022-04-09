@@ -354,6 +354,7 @@ module mod_lm_interface
     call assignpnt(solvld,lm%lwdif)
     call assignpnt(sdelq,lm%deltaq)
     call assignpnt(sdelt,lm%deltat)
+    call assignpnt(totcf,lm%totcf)
     if ( ichem == 1 ) then
       call assignpnt(sdelt,lm%deltat)
       call assignpnt(sdelq,lm%deltaq)
@@ -837,11 +838,18 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
+      if ( ifrad ) then
+        rnrad_for_srffrq = rnrad_for_srffrq + 1.0_rkx
+      end if
       if ( ifatm ) then
+        rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
       end if
       if ( ifsrf ) then
+        rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
+        if ( associated(srf_totcf_out) ) &
+          srf_totcf_out = srf_totcf_out + lm%totcf
         if ( associated(srf_evp_out) ) &
           srf_evp_out = srf_evp_out + lm%qfx
         if ( associated(srf_tpr_out) ) &
@@ -907,6 +915,7 @@ module mod_lm_interface
         end if
       end if
       if ( ifsub ) then
+        rnsrf_for_subfrq = rnsrf_for_subfrq + 1.0_rkx
         call reorder_add_subgrid(lms%sfcp,sub_ps_out)
         if ( associated(sub_evp_out) ) &
           call reorder_add_subgrid(lms%evpr,sub_evp_out)
@@ -944,6 +953,7 @@ module mod_lm_interface
         end if
       end if
       if ( ifsts ) then
+        rnsrf_for_day = rnsrf_for_day + 1.0_rkx
         if ( associated(sts_tgmax_out) ) &
           sts_tgmax_out = max(sts_tgmax_out,sum(lms%tgrd,1)*rdnnsg)
         if ( associated(sts_tgmin_out) ) &
@@ -976,6 +986,7 @@ module mod_lm_interface
         end if
       end if
       if ( iflak ) then
+        rnsrf_for_lakfrq = rnsrf_for_lakfrq + 1.0_rkx
         if ( associated(lak_tpr_out) ) &
           lak_tpr_out = lak_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(lak_scv_out) ) &
@@ -1148,6 +1159,7 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <pfdesatdt.inc>
 #include <pqderiv.inc>
 #include <wlh.inc>
 #include <evpt.inc>

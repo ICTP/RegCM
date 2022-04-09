@@ -730,8 +730,8 @@ module rrtmg_sw_rad
             (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
              zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, ztaua,       &
              zasya, zomga, cossza, adjflux, laytrop, jp, jt, jt1,      &
-             colch4, colco2, colh2o, colmol, colo2, colo3, fac00,      &
-             fac01, fac10, fac11, selffac, selffrac, indself,          &
+             colch4, colco2, colh2o, colmol, coln2o, colo2, colo3,     &
+             fac00, fac01, fac10, fac11, selffac, selffrac, indself,   &
              forfac, forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu,      &
              zuvfd, zuvcd, znifd, znicd, zbbfddir, zbbcddir,           &
              zuvfddir, zuvcddir, znifddir, znicddir, zvsfd )
@@ -838,16 +838,16 @@ module rrtmg_sw_rad
 
     integer(kind=im), intent(in) :: idn
 
-    real(kind=rb) :: gamma
+    real(kind=rb) :: xgamma
 
-    gamma = 2._rb*pi*(idn-1)/365._rb
+    xgamma = 2._rb*pi*(idn-1)/365._rb
 
     ! Use Iqbal's equation 1.2.1
 
-    earth_sun = 1.000110_rb + .034221_rb * cos(gamma) + &
-                .001289_rb * sin(gamma) + &
-                .000719_rb * cos(2._rb*gamma) + &
-                .000077_rb * sin(2._rb*gamma)
+    earth_sun = 1.000110_rb + .034221_rb * cos(xgamma) + &
+                .001289_rb * sin(xgamma) + &
+                .000719_rb * cos(2._rb*xgamma) + &
+                .000077_rb * sin(2._rb*xgamma)
   end function earth_sun
   !
   !  Input atmospheric profile from GCM, and prepare it for use in RRTMG_SW.
@@ -1054,7 +1054,7 @@ module rrtmg_sw_rad
     !
     do ib = jpb1,jpb2
 !     solvar(ib) = 1._rb
-      solvar(ib) = rrsw_scon / scon
+      solvar(ib) = scon/rrsw_scon
       adjflux(ib) = adjflx * solvar(ib)
     end do
 

@@ -140,7 +140,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , rpfac , tbbls
+    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
     real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
                  dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
                  thvflx , q0s , tvfac , svs , cpoxlv
@@ -180,8 +180,10 @@ module mod_pbl_uwtcm
 
         ! Copy in local versions of necessary variables
         if ( idynamic == 3 ) then
+          pfac = dt
           rpfac = rdt
         else
+          pfac = dt / m2p%psb(j,i)
           rpfac = rdt * m2p%psb(j,i)
         end if
         tskx = m2p%tg(j,i)
@@ -200,9 +202,11 @@ module mod_pbl_uwtcm
         zqx(kzp2) = d_zero
 
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)/rpfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv)/rpfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc)/rpfac
+          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)*pfac
+          qx(k)  = max(m2p%qxatm(j,i,k,iqv) + &
+                       p2m%qxten(j,i,k,iqv)*pfac,1.0e-8_rkx)
+          qcx(k) = max(m2p%qxatm(j,i,k,iqc) + &
+                       p2m%qxten(j,i,k,iqc)*pfac,d_zero)
         end do
 
         do k = 1 , kz
@@ -211,15 +215,16 @@ module mod_pbl_uwtcm
           zax(k) = m2p%za(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
           preshl(k) = m2p%patm(j,i,k)
-          rlv(k) = wlhv - cpvmcl*(tx(k)-tzero)
-          cp(k) = cpd*(d_one-qx(k)) + cpw*qx(k)
+          rlv(k) = wlh(tx(k))
+          cp(k) = cpd*(d_one-qx(k)) + cpv*qx(k)
           orlv(k) = d_one/rlv(k)
           ocp(k) = d_one/cp(k)
         end do
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi)/rpfac
+            qix(k) = max(m2p%qxatm(j,i,k,iqi) + &
+                         p2m%qxten(j,i,k,iqi)*pfac,d_zero)
           end do
         end if
 
@@ -726,6 +731,7 @@ module mod_pbl_uwtcm
 
     contains
 
+#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 

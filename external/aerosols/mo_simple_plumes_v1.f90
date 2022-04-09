@@ -27,6 +27,8 @@ MODULE MO_SIMPLE_PLUMES
 
   IMPLICIT NONE
 
+  integer , parameter :: wp  = selected_real_kind(2*precision(1.0))
+
   INTEGER, PARAMETER ::                        &
        nplumes   = 9                          ,& !< Number of plumes
        nfeatures = 2                          ,& !< Number of features per plume
@@ -36,7 +38,7 @@ MODULE MO_SIMPLE_PLUMES
   LOGICAL, SAVE ::                             &
        sp_initialized = .FALSE.                  !< parameter determining whether input needs to be read
 
-  REAL ::                                      &
+  REAL(kind=wp) ::                             &
        plume_lat      (nplumes)               ,& !< latitude of plume center (AOD maximum)
        plume_lon      (nplumes)               ,& !< longitude of plume center (AOD maximum)
        beta_a         (nplumes)               ,& !< parameter a for beta function vertical profile
@@ -72,7 +74,7 @@ CONTAINS
     ! ----------
     !
     INTEGER :: iret, ncid, DimID, VarID, xdmy
-    REAL :: temp(nyears-164,nplumes)
+    REAL(kind=wp) :: temp(nyears,nplumes)
     !
     ! ----------
     !
@@ -149,7 +151,8 @@ CONTAINS
     iret = nf90_get_var(ncid, VarID, ftr_weight(:,:)   , start=(/1,1/),count=(/nfeatures,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading plume_lat'
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, year_weight(:,:)  , start=(/1,1/),count=(/164,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
+    year_weight(1:165,1:nplumes) = temp(1:165,1:nplumes)
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
     iret = nf90_inq_varid(ncid, "ann_cycle"     , VarId)
     iret = nf90_get_var(ncid, VarID, ann_cycle(:,:,:)  , start=(/1,1,1/),count=(/nfeatures,ntimes,nplumes/))
@@ -163,9 +166,9 @@ CONTAINS
       STOP 'NetCDF File not opened'
     END IF
     iret = nf90_inq_varid(ncid, "year_weight"   , VarId)
-    iret = nf90_get_var(ncid, VarID, temp, start=(/165,1/),count=(/nyears-164,nplumes   /))
+    iret = nf90_get_var(ncid, VarID, temp, start=(/1,1/),count=(/nyears,nplumes/))
     IF (iret /= NF90_NOERR) STOP 'NetCDF Error reading year_weight'
-    year_weight(165:,:) = temp
+    year_weight(166:nyears,1:nplumes) = temp(166:nyears,1:nplumes)
 
     iret = nf90_close(ncid)
 
@@ -185,7 +188,7 @@ CONTAINS
     !
     ! ----------
     !
-    REAL, INTENT(IN) ::  &
+    REAL(kind=wp), INTENT(IN) ::  &
          year_fr           !< Fractional Year (1850.0 - 2100.99)
 
     INTEGER          ::  &
@@ -228,7 +231,7 @@ CONTAINS
          nlevels,                 & !< number of levels
          ncol                       !< number of columns
 
-    REAL, INTENT(IN)           :: &
+    REAL(kind=wp), INTENT(IN)     :: &
          lambda,                  & !< wavelength
          year_fr,                 & !< Fractional Year (1903.0 is the 0Z on the first of January 1903, Gregorian)
          oro(ncol),               & !< orographic height (m)
@@ -237,7 +240,7 @@ CONTAINS
          z (ncol,nlevels),        & !< height above sea-level (m)
          dz(ncol,nlevels)           !< level thickness (difference between half levels) (m)
 
-    REAL, INTENT(OUT)          :: &
+    REAL(kind=wp), INTENT(OUT) :: &
          dNovrN(ncol)           , & !< anthropogenic increase in cloud drop number concentration (factor)
          aod_prof(ncol,nlevels) , & !< profile of aerosol optical depth
          ssa_prof(ncol,nlevels) , & !< profile of single scattering albedo
@@ -245,7 +248,7 @@ CONTAINS
 
     INTEGER                    :: iplume, icol, k
 
-    REAL                       ::  &
+    REAL(kind=wp)              ::  &
          eta(ncol,nlevels),        & !< normalized height (by 15 km)
          z_beta(ncol,nlevels),     & !< profile for scaling column optical depth
          prof(ncol,nlevels),       & !< scaled profile (by beta function)
@@ -271,6 +274,7 @@ CONTAINS
          f2,                       & !< contribution from feature 2
          f3,                       & !< contribution from feature 1 in natural background of Twomey effect
          f4,                       & !< contribution from feature 2 in natural background of Twomey effect
+         arg,                      & !< exponential "guard"
          aod_550,                  & !< aerosol optical depth at 550nm
          aod_lmd,                  & !< aerosol optical depth at input wavelength
          lfactor                     !< factor to compute wavelength dependence of optical properties
@@ -290,21 +294,21 @@ CONTAINS
     !
     DO k=1,nlevels
       DO icol=1,ncol
-        aod_prof(icol,k) = 0.0
-        ssa_prof(icol,k) = 0.0
-        asy_prof(icol,k) = 0.0
-!        z_beta(icol,k)   = MERGE(1.0, 0.0, z(icol,k) >= oro(icol))
+        aod_prof(icol,k) = 0.0_wp
+        ssa_prof(icol,k) = 0.0_wp
+        asy_prof(icol,k) = 0.0_wp
+!        z_beta(icol,k)   = MERGE(1.0_wp, 0.0_wp, z(icol,k) >= oro(icol))
 !FAB in sigma-coordinates the first atm level altitude should always be above
 !topography !
         z_beta(icol,k) = 1.!
-        eta(icol,k)      = MAX(0.0,MIN(1.0,z(icol,k)/15000.))
+        eta(icol,k)      = MAX(0.0_wp,MIN(1.0_wp,z(icol,k)/15000.0_wp))
       END DO
     END DO
 
     DO icol=1,ncol
-      dNovrN(icol)   = 1.0
-      caod_sp(icol)  = 0.0
-      caod_bg(icol)  = 0.02
+      dNovrN(icol)   = 1.0_wp
+      caod_sp(icol)  = 0.0_wp
+      caod_bg(icol)  = 0.02_wp
     END DO
     !
     ! sum contribution from plumes to construct composite profiles of aerosol optical properties
@@ -336,13 +340,13 @@ CONTAINS
         !
         delta_lat   = lat(icol) - plume_lat(iplume)
         delta_lon   = lon(icol) - plume_lon(iplume)
-        delta_lon_t = MERGE (260., 180., iplume == 1)
-        delta_lon   = MERGE ( delta_lon-SIGN(360.,delta_lon) , delta_lon , ABS(delta_lon) > delta_lon_t)
+        delta_lon_t = MERGE (260.0_wp, 180.0_wp, iplume == 1)
+        delta_lon   = MERGE ( delta_lon-SIGN(360.0_wp,delta_lon) , delta_lon , ABS(delta_lon) > delta_lon_t)
 
-        a_plume1  = 0.5 / (MERGE(sig_lon_E(1,iplume), sig_lon_W(1,iplume), delta_lon > 0)**2)
-        b_plume1  = 0.5 / (MERGE(sig_lat_E(1,iplume), sig_lat_W(1,iplume), delta_lon > 0)**2)
-        a_plume2  = 0.5 / (MERGE(sig_lon_E(2,iplume), sig_lon_W(2,iplume), delta_lon > 0)**2)
-        b_plume2  = 0.5 / (MERGE(sig_lat_E(2,iplume), sig_lat_W(2,iplume), delta_lon > 0)**2)
+        a_plume1  = 0.5_wp / (MERGE(sig_lon_E(1,iplume), sig_lon_W(1,iplume), delta_lon > 0)**2)
+        b_plume1  = 0.5_wp / (MERGE(sig_lat_E(1,iplume), sig_lat_W(1,iplume), delta_lon > 0)**2)
+        a_plume2  = 0.5_wp / (MERGE(sig_lon_E(2,iplume), sig_lon_W(2,iplume), delta_lon > 0)**2)
+        b_plume2  = 0.5_wp / (MERGE(sig_lat_E(2,iplume), sig_lat_W(2,iplume), delta_lon > 0)**2)
         !
         ! adjust for a plume specific rotation which helps match plume state to climatology.
         !
@@ -354,17 +358,28 @@ CONTAINS
         ! calculate contribution to plume from its different features, to get a column weight for the anthropogenic
         ! (cw_an) and the fine-mode natural background aerosol (cw_bg)
         !
-        f1 = time_weight(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2))))
-        f2 = time_weight(2,iplume) * ftr_weight(2,iplume) * EXP(-1.* (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2))))
-        f3 = time_weight_bg(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2))))
-        f4 = time_weight_bg(2,iplume) * ftr_weight(2,iplume) * EXP(-1.* (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2))))
-
+        arg = (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2)))
+        if ( arg < 25.0_wp ) then
+          f1 = time_weight(1,iplume) * ftr_weight(1,iplume) * EXP(-arg)
+          f3 = time_weight_bg(1,iplume) * ftr_weight(1,iplume) * EXP(-arg)
+        else
+          f1 = 0.0_wp
+          f3 = 0.0_wp
+        end if
+        arg = (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2)))
+        if ( arg < 25.0_wp ) then
+          f2 = time_weight(2,iplume) * ftr_weight(2,iplume) * EXP(-arg)
+          f4 = time_weight_bg(2,iplume) * ftr_weight(2,iplume) * EXP(-arg)
+        else
+          f2 = 0.0_wp
+          f4 = 0.0_wp
+        end if
         cw_an(icol) = f1 * aod_spmx(iplume) + f2 * aod_spmx(iplume)
         cw_bg(icol) = f3 * aod_fmbg(iplume) + f4 * aod_fmbg(iplume)
         !
         ! calculate wavelength-dependent scattering properties
         !
-        lfactor   = MIN(1.0,700.0/lambda)
+        lfactor   = MIN(1.0_wp,700.0_wp/lambda)
         ssa(icol) = (ssa550(iplume) * lfactor**4) / ((ssa550(iplume) * lfactor**4) + ((1-ssa550(iplume)) * lfactor))
         asy(icol) =  asy550(iplume) * SQRT(lfactor)
       END DO
@@ -372,7 +387,7 @@ CONTAINS
       ! distribute plume optical properties across its vertical profile weighting by optical depth and scaling for
       ! wavelength using the angstrom parameter.
       !
-      lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0))
+      lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0_wp))
       !FAB TEST
       DO k=1,nlevels
         DO icol = 1,ncol
@@ -391,15 +406,15 @@ CONTAINS
     !
     DO k=1,nlevels
       DO icol = 1,ncol
-        asy_prof(icol,k) = MERGE(asy_prof(icol,k)/ssa_prof(icol,k), 0.0, ssa_prof(icol,k) > TINY(1.))
-        ssa_prof(icol,k) = MERGE(ssa_prof(icol,k)/aod_prof(icol,k), 1.0, aod_prof(icol,k) > TINY(1.))
+        asy_prof(icol,k) = MERGE(asy_prof(icol,k)/ssa_prof(icol,k), 0.0_wp, ssa_prof(icol,k) > TINY(1.))
+        ssa_prof(icol,k) = MERGE(ssa_prof(icol,k)/aod_prof(icol,k), 1.0_wp, aod_prof(icol,k) > TINY(1.))
       END DO
     END DO
     !
     ! calculate effective radius normalization (divisor) factor
     !
     DO icol=1,ncol
-      dNovrN(icol) = LOG((1000.0 * (caod_sp(icol) + caod_bg(icol))) + 1.0)/LOG((1000.0 * caod_bg(icol)) + 1.0)
+      dNovrN(icol) = LOG((1000.0_wp * (caod_sp(icol) + caod_bg(icol))) + 1.0_wp)/LOG((1000.0_wp * caod_bg(icol)) + 1.0_wp)
     END DO
 
     RETURN

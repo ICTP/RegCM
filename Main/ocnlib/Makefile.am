@@ -49,8 +49,8 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_ocn_albedo.o : mod_ocn_albedo.F90 mod_constants.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o
 mod_ocn_bats.o : mod_ocn_bats.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o pfesat.inc pfqsat.inc
-mod_ocn_coare.o : mod_ocn_coare.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o cpmf.inc pfesat.inc pfqsat.inc pqderiv.inc wlh.inc
+mod_ocn_coare.o : mod_ocn_coare.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o cpmf.inc pfesat.inc pfqsat.inc pfdesatdt.inc pqderiv.inc wlh.inc
 mod_ocn_common.o : mod_ocn_common.F90 mod_intkinds.o mod_mppparam.o mod_ocn_albedo.o mod_ocn_bats.o mod_ocn_coare.o mod_ocn_internal.o mod_ocn_lake.o mod_ocn_zeng.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_constants.o
 mod_ocn_internal.o : mod_ocn_internal.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_regcm_types.o mod_runparams.o
-mod_ocn_lake.o : mod_ocn_lake.F90 mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o mod_constants.o pfesat.inc pfqsat.inc wlh.inc
-mod_ocn_zeng.o : mod_ocn_zeng.F90 mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o mod_constants.o pfesat.inc pfwsat.inc
+mod_ocn_lake.o : mod_ocn_lake.F90 mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o mod_constants.o pfesat.inc pfqsat.inc
+mod_ocn_zeng.o : mod_ocn_zeng.F90 mod_dynparam.o mod_intkinds.o mod_ocn_internal.o mod_realkinds.o mod_runparams.o mod_service.o mod_constants.o pfesat.inc pfwsat.inc wlh.inc

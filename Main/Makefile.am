@@ -46,7 +46,7 @@ CUMLIBPTH = ./cumlib
 RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ_NEW
-RRTMSWLIBPTH = radlib/RRTMG_SW
+RRTMLIBPTH = radlib/RRTMG
 PLUMELIBPTH = $(REGCM_ROOT)/external
 BMILIBPTH = $(REGCM_ROOT)/external
 
@@ -62,7 +62,7 @@ CUMLIB = $(CUMLIBPTH)/libcum.a
 RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
-RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
+RRTMLIB = $(RRTMLIBPTH)/librrtmg.a
 PLUMELIB = $(PLUMELIBPTH)/libaerosol.a
 BMILIB = $(BMILIBPTH)/libbmi.a
 
@@ -81,7 +81,7 @@ LCUMLIB = -L$(CUMLIBPTH) -lcum
 LRADLIB = -L$(RADLIBPTH) -lrad
 LPBLLIB = -L$(PBLLIBPTH) -lpbl
 LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
-LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
+LRRTMLIB = -L$(RRTMLIBPTH) -lrrtmg
 LPLUMELIB = -L$(PLUMELIBPTH) -laerosol
 LBMILIB = -L$(BMILIBPTH) -lbmi
 
@@ -89,16 +89,16 @@ if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
               -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(OCNLIBPTH) -M$(CUMLIBPTH)  \
               -M$(MICROLIBPTH) -M$(CLOUDLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) \
-              -M$(RRTMSWLIBPTH) -M$(CLMLIBPTH)/clm4.5
+              -M$(RRTMLIBPTH) -M$(CLMLIBPTH)/clm4.5
 else
   CPPFLAGS += -I$(MPPLIBPTH) -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) \
               -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(OCNLIBPTH) -I$(CUMLIBPTH)  \
               -I$(MICROLIBPTH) -I$(CLOUDLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) \
-              -I$(RRTMSWLIBPTH) -I$(CLMLIBPTH)/clm4.5
+              -I$(RRTMLIBPTH) -I$(CLMLIBPTH)/clm4.5
 endif
 
 LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
-       $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
+       $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMLIB) \
        $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB) \
        $(LPLUMELIB) $(LBMILIB)
 
@@ -155,12 +155,12 @@ if DO_COMPILE_LIBCLM
 mod_lm_interface.o : mod_lm_interface.F90 clm_time_manager.o clm_varctl.o clm_varsur.o mod_atm_interface.o mod_bats_common.o mod_dynparam.o mod_che_interface.o mod_clm.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_mtrxclm.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_date.o perf_mod.o restFileMod.o spmdMod.o mod_stdio.o pfesat.inc pfwsat.inc wlh.inc evpt.inc
 else
 if  DO_COMPILE_LIBCLM45
-mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o mod_che_interface.o mod_dynparam.o mod_clm_regcm.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slice.o mod_stdio.o mod_date.o pfesat.inc pfwsat.inc wlh.inc evpt.inc pqderiv.inc
+mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o mod_che_interface.o mod_dynparam.o mod_clm_regcm.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slice.o mod_stdio.o mod_date.o pfesat.inc pfwsat.inc wlh.inc evpt.inc pfdesatdt.inc pqderiv.inc
 else
-mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o mod_che_interface.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slice.o mod_stdio.o mod_date.o pfesat.inc pfwsat.inc wlh.inc evpt.inc pqderiv.inc
+mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_common.o mod_che_interface.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ocn_common.o mod_outvars.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slice.o mod_stdio.o mod_date.o pfesat.inc pfwsat.inc wlh.inc evpt.inc pfdesatdt.inc pqderiv.inc
 endif
 endif
-mod_moloch.o : mod_moloch.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_constants.o mod_cu_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_slice.o mod_stdatm.o mod_stdio.o mod_sun.o cpmf.inc
+mod_moloch.o : mod_moloch.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_constants.o mod_cu_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_slice.o mod_stdatm.o mod_stdio.o mod_sun.o cpmf.inc wlh.inc
 mod_ncio.o : mod_ncio.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_constants.o mod_stdio.o mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_runparams.o pfesat.inc
 mod_oasis.o : mod_oasis.F90 mod_atm_interface.o mod_realkinds.o
 mod_output.o : mod_output.F90 mod_atm_interface.o mod_bdycod.o mod_capecin.o mod_che_interface.o mod_che_output.o mod_cu_interface.o mod_dynparam.o mod_header.o mod_intkinds.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_moloch.o mod_split.o mod_projections.o pfwsat.inc pfesat.inc
@@ -202,7 +202,7 @@ endif
 regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o mod_date.o mod_constants.o mod_stdio.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
 	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
-         $(RRTMSWLIB) $(PLUMELIB) $(BMILIB)
+         $(RRTMLIB) $(PLUMELIB) $(BMILIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o mod_stdatm.o mod_date.o mod_stdio.o
