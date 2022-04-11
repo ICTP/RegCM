@@ -1940,7 +1940,7 @@ module mod_rad_aerosol
     !---------------------------Code history--------------------------------
     !
     ! Original version:  B. Briegleb  March 1995
-    ! /Standarized:       L. Buja,     Feb 1996
+    ! Standarized:       L. Buja,     Feb 1996
     ! Reviewed:          B. Briegleb, Mar 1996
     !
     !-----------------------------------------------------------------------
@@ -2521,7 +2521,7 @@ module mod_rad_aerosol
           write (stderr, *) nf90_strerror(iret), trim(infile)
           call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         else
-          write (stdout,*) 'AEROPP file open : ', trim(infile)
+          write(stdout,*) 'AEROPP file open ', trim(infile)
         end if
       else
         iret = nf90_close(ncid)
