@@ -44,7 +44,7 @@ module mod_header
     implicit none
     integer(ik4) , intent(in) :: myid
     character(len=*) , parameter :: f99001 = &
-        '(2x," SVN Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
+        '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
     if ( myid == iocpu ) then
       call cpu_time(start_time)
