@@ -11,7 +11,7 @@ function print_header
 
 
   This is `basename $0` part of the RegCM version 4
-   SVN Revision: `svnversion`
+   GIT Revision: `git describe --abbrev=4 --dirty --always --tags`
 
  : this run start at    : `date '+%Y-%m-%d %H:%M:%S%z'` 
  : it is submitted by   : `whoami`

@@ -327,7 +327,7 @@ class RegcmOutputFile(object):
                     LOGGER.debug('Found an untagged version of RegCM')
                     if rev_temp.lower().startswith('rev'):
                         rev_temp = rev_temp[3:]
-                    self._revision = '4-svn' + rev_temp
+                    self._revision = '4-git' + rev_temp
                     self._rev_version = 'v0'
                 LOGGER.debug(
                     'The model revision is %s; the version is %s',
