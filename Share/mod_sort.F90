@@ -48,16 +48,19 @@ module mod_sort
     real(rk8) , dimension(:) , allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
     integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
+    integer(ik4) :: is , js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
+    is = lbound(a,1)
+    js = lbound(a,2)
     do n = 1 , nn
-      j = (iord(n)-1)/nx+1
-      i = iord(n)-(j-1)*ny
-      jj = (n-1)/nx+1
-      ii = n-(jj-1)*ny
+      j = js + (iord(n)-1)/nx
+      i = is + (iord(n)-1)-(j-js)*nx
+      jj = 1 + (n-1)/nx
+      ii = 1 + (n-1)-(jj-1)*nx
       idx(ii,jj) = i
       jdx(ii,jj) = j
     end do
@@ -70,16 +73,19 @@ module mod_sort
     real(rk4) , dimension(:) , allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
     integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
+    integer(ik4) :: is , js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
+    is = lbound(a,1)
+    js = lbound(a,2)
     do n = 1 , nn
-      j = (iord(n)-1)/nx+1
-      i = iord(n)-(j-1)*ny
-      jj = (n-1)/nx+1
-      ii = n-(jj-1)*ny
+      j = js + (iord(n)-1)/nx
+      i = is + (iord(n)-1)-(j-js)*nx
+      jj = 1 + (n-1)/nx
+      ii = 1 + (n-1)-(jj-1)*nx
       idx(ii,jj) = i
       jdx(ii,jj) = j
     end do
@@ -92,16 +98,19 @@ module mod_sort
     integer(ik4) , dimension(:) , allocatable :: b
     integer(ik4), dimension(product(shape(a))) :: iord
     integer(ik4) :: nn , n , i , j , ii , jj , nx , ny
+    integer(ik4) :: is , js
     nn = product(shape(a))
     b = reshape(a,(/nn/))
     iord = argsort(b)
     nx = size(a,1)
     ny = size(a,2)
+    is = lbound(a,1)
+    js = lbound(a,2)
     do n = 1 , nn
-      j = (iord(n)-1)/nx+1
-      i = iord(n)-(j-1)*ny
-      jj = (n-1)/nx+1
-      ii = n-(jj-1)*ny
+      j = js + (iord(n)-1)/nx
+      i = is + (iord(n)-1)-(j-js)*nx
+      jj = 1 + (n-1)/nx
+      ii = 1 + (n-1)-(jj-1)*nx
       idx(ii,jj) = i
       jdx(ii,jj) = j
     end do
