@@ -43,6 +43,9 @@ module mod_cloud_xuran
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
     real(rkx) :: botm , rm , qcld , rhrng
+    real(rkx) , parameter :: parm_p = 0.25_rkx
+    real(rkx) , parameter :: parm_gamma = 0.49_rkx
+    real(rkx) , parameter :: parm_alpha0 = 100.0_rkx
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
@@ -59,43 +62,14 @@ module mod_cloud_xuran
             if ( rhrng > 0.99999 ) then
               fcc(j,i,k) = d_one
             else
-              botm = rhrng ** 0.25_rkx
-              rm = -100.0_rkx * qcld/(qs(j,i,k)-qv(j,i,k))**0.49_rkx
+              botm = rhrng ** parm_p
+              rm = -(parm_alpha0 * qcld)/((d_one-rhrng)*qs(j,i,k))**parm_gamma
               fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
             end if
-            !botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))
-            !rm = exp(0.25_rkx*log(rhrng))
-            !if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-            !  fcc(j,i,k) = rm
-            !else
-            !  fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
-            !end if
-            !fcc(j,i,k) = min(fcc(j,i,k),hicld)
           end if
         end do
       end do
     end do
-    !
-    ! Correction:
-    !   Ivan Guettler, 14.10.2010.
-    ! Based on: Vavrus, S. and Waliser D., 2008,
-    ! An Improved Parameterization for Simulating Arctic Cloud Amount
-    ! in the CCSM3 Climate Model, J. Climate
-    !
-    if ( larcticcorr ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! clouds below 750hPa, extremely cold conditions,
-            !  when no cld microphy
-            if ( p(j,i,k) >= 75000.0_rkx .and. qv(j,i,k) <= 0.003_rkx ) then
-              fcc(j,i,k) = fcc(j,i,k) * &
-                    max(0.15_rkx,min(d_one,qv(j,i,k)/0.003_rkx))
-            end if
-          end do
-        end do
-      end do
-    end if
 
   end subroutine xuran_cldfrac
 

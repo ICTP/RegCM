@@ -2535,7 +2535,7 @@ module mod_rad_aerosol
           call fatal(__FILE__,__LINE__, &
                      'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         end if
-        write (stdout,*) 'AEROPP file open : ', trim(infile)
+        write(stdout,*) 'AEROPP file open ', trim(infile)
       end if
       ncstatus = nf90_inq_dimid(ncid,'lev',idimid)
       call check_ok(__FILE__,__LINE__, &
