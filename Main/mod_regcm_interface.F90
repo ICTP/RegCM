@@ -43,6 +43,9 @@ module mod_regcm_interface
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif
+#ifdef OASIS
+  use mod_oasis_interface
+#endif
   use mpi
   implicit none
 
@@ -123,6 +126,9 @@ module mod_regcm_interface
     call memory_init
 
     call header(myid,nproc)
+#ifdef OASIS
+    call oasisxregcm_header
+#endif
     call set_nproc
     call setup_model_indexes
 
@@ -133,6 +139,25 @@ module mod_regcm_interface
     ! Parameter Setup
     !
     call param
+    !
+    ! OASIS Setup
+    !
+#ifdef OASIS
+    if ( ioasiscpl == 1 ) then
+      !
+      ! OASIS Log Files Setup
+      !
+      call oasisxregcm_open_log(comp_name,comp_id)
+      !
+      ! OASIS Variables Setup
+      !
+      call oasisxregcm_params
+      !
+      ! OASIS Definition Phase (grids, partitions, fields)
+      !
+      call oasisxregcm_def
+    end if
+#endif
     !
     ! Read IC and BC data.
     !
@@ -191,6 +216,14 @@ module mod_regcm_interface
       end if
 #endif
       !
+      ! Receive OASIS fields
+      !
+#ifdef OASIS
+      if ( ioasiscpl == 1 ) then
+        call oasisxregcm_rcv_all(int(extime,ik4))
+      end if
+#endif
+      !
       ! Compute tendencies
       !
       if ( idynamic == 3 ) then
@@ -202,6 +235,14 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
+      !
+      ! Send OASIS fields
+      !
+#ifdef OASIS
+      if ( ioasiscpl == 1 ) then
+        call oasisxregcm_snd_all(int(extime,ik4),rcmtimer%reached_endtime)
+      end if
+#endif
       !
       ! Boundary code
       !
@@ -273,6 +314,19 @@ module mod_regcm_interface
     call rcmtimer%dismiss( )
     call memory_destroy
     call finaltime(myid)
+
+#ifdef OASIS
+    if ( ioasiscpl == 1 ) then
+      !
+      ! OASIS Variables Release
+      !
+      call oasisxregcm_release
+      !
+      ! OASIS Log Files Closing
+      !
+      call oasisxregcm_close_log
+    end if
+#endif
 
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V4 simulation successfully reached end'

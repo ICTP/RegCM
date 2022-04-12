@@ -51,10 +51,16 @@ AC_ARG_WITH([szip],
   [SZIP_PREFIX="$withval"], [SZIP_PREFIX="${SZIP}"]
 )
 
-AC_ARG_WITH([oasis-include],
-  AC_HELP_STRING([--with-oasis-include],
-                 [Path to OASIS installation (default: do not use)]),
-  [USEOASIS="1"; OASIS_INCLUDE="$withval"], [USEOASIS="0"]
+AC_ARG_WITH([oasis-path],
+  AC_HELP_STRING([--with-oasis-path],
+		 [Path to OASIS3-MCT installation (require --enable-oasis) [default: ~/oasis3-mct/compile_oa3-mct]]),
+  [OASIS_PREFIX="$withval"], [OASIS_PREFIX="~/oasis3-mct/compile_oa3-mct"]
+) 
+
+AC_ARG_WITH([oasis-comm],
+  AC_HELP_STRING([--with-oasis-comm],
+		 [Communication technique used in OASIS3-MCT (require --enable-oasis) [default: MPI1]]),
+  [OASIS_CHAN="$withval"], [OASIS_CHAN="MPI1"]
 )
 
 PARALLEL="1"
@@ -142,6 +148,22 @@ AC_ARG_ENABLE(sequence,
   [SRKDEF="SEQUENCE"],
 )
 
+USEOASIS="0"
+AC_ARG_ENABLE(oasis,
+  AC_HELP_STRING([--enable-oasis],
+                 [Supply this option if you plan on using OASIS option.]),
+  [USEOASIS="1"]
+)
+AM_CONDITIONAL(DO_COMPILE_OASIS, [test x"$USEOASIS" = x1])
+
+if eval "test x"$USEOASIS" = x1"; then
+  AC_MSG_WARN([Compiling OASIS enabled code])
+  AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
+  AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
+  AM_CPPFLAGS="\$(DEFINE)OASIS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USECLM="0"
 USEMEGAN="0"
 AC_ARG_ENABLE(clm,
@@ -192,11 +214,6 @@ AM_CONDITIONAL(DO_COMPILE_CPL, [test x"$USECPL" = x1])
 
 if eval "test x"$USECPL" = x1"; then
   AM_CPPFLAGS="\$(DEFINE)CPL $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
-
-if eval "test x"$USEOASIS" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)OASIS -I$OASIS_INCLUDE $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -679,6 +696,23 @@ fi
 AC_SUBST(MPEUCFLAGS)
 AC_SUBST(MPEUFCFLAGS)
 
+if eval "test x"$USEOASIS" = x1"; then
+  if test -z "$COMPILER_SUN_TRUE"; then
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/scrip"
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/mct"
+    AC_SUBST(AM_CPPFLAGS)
+  else
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/scrip"
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/mct"
+    AC_SUBST(AM_CPPFLAGS)
+  fi
+  OASIS3_LIBS="-L$OASIS_PREFIX/lib -lpsmile.$OASIS_CHAN -lmct -lmpeu -lscrip"
+  LIBS="$LIBS $OASIS3_LIBS"
+  AC_SUBST(LIBS)
+fi
+
 F90FLAGS="$FCFLAGS"
 AC_SUBST(F90FLAGS)
 
@@ -712,6 +746,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/cumlib/Makefile Main/microlib/Makefile \
                  Main/radlib/Makefile Main/radlib/RRTMG/Makefile \
                  Main/pbllib/Makefile Main/cloudlib/Makefile \
+                 Main/oasislib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/timeseries/Makefile])
