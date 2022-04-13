@@ -133,9 +133,9 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
+    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
+    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
     if ( idiag == 1 ) then
-      call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
-      call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
       call getmem2d(o3,1,npr,1,kth,'rrtmg:o3')
     end if
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
