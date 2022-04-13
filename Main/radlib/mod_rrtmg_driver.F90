@@ -270,7 +270,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld ,ldirect
+    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld , ldirect
     logical :: lradfor
     real(rkx) :: adjes
 
