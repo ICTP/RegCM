@@ -302,6 +302,7 @@ module mod_rrtmg_driver
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
 
+    ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
     elseif ( iclimaaer > 0 ) then
