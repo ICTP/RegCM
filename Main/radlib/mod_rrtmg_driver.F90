@@ -107,7 +107,6 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-    integer(ik4) :: k
 
 #if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
     integer , external :: getpid

@@ -1599,7 +1599,7 @@ module mod_rad_aerosol
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) ::i,j, k ,kj, im1 , iy1 , im2 , iy2
+      integer(ik4) :: k , im1 , iy1 , im2 , iy2
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -2009,7 +2009,7 @@ module mod_rad_aerosol
       real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
 
       integer(ik4) :: n , l , ibin , jbin , itr , k1 , k2 , ns
-      integer(ik4) :: j , i , k , kk , visband
+      integer(ik4) :: j , i , k , visband
       real(rkx) :: uaerdust , qabslw , rh0
 
       !-
@@ -2131,7 +2131,9 @@ module mod_rad_aerosol
         gtota3d(:,:,:) = d_zero
         ftota3d(:,:,:) = d_zero
         aertrlw (:,:,:) = d_one
-        tauxar3d_lw(:,:,:) = d_zero
+        if ( irrtm == 1 ) then
+          tauxar3d_lw(:,:,:) = d_zero
+        end if
         return
       end if
       !
