@@ -270,7 +270,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld ,ldirect
+    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld , ldirect
     logical :: lradfor
     real(rkx) :: adjes
 
@@ -302,9 +302,10 @@ module mod_rrtmg_driver
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
 
+    ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
-    elseif ( iclimaaer > 0 ) then
+    else if ( iclimaaer > 0 ) then
       ldirect = 2
     end if
 
