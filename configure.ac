@@ -19,7 +19,7 @@
 
 AC_INIT([RegCM], [4.9.0], [ggiulian@ictp.it])
 
-AC_SUBST([PACKAGE_URL], ["https://gforge.ictp.it/gf/project/regcm"])
+AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 
 #AC_PREREQ([2.64])
 
