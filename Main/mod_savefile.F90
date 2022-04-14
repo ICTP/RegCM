@@ -1843,10 +1843,14 @@ module mod_savefile
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
 #ifndef PNETCDF
+#ifdef NETCDF4_HDF5
+    imode = ior(nf90_clobber, nf90_netcdf4)
+#else
 #ifdef NETCDF_CDF5
     imode = ior(nf90_clobber, nf90_cdf5)
 #else
     imode = nf90_clobber
+#endif
 #endif
 #else
     imode = iomode
