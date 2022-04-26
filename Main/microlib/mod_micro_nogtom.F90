@@ -355,10 +355,15 @@ module mod_micro_nogtom
     end do
   end subroutine init_nogtom
 
-  subroutine nogtom(mo2mc,ngs,mc2mo)
+#ifdef DEBUG
+  subroutine nogtom(mo2mc,mc2mo,ngs)
     implicit none
-    type(mod_2_micro) , intent(in) :: mo2mc
     type(nogtom_stats) , intent(inout) :: ngs
+#else
+  subroutine nogtom(mo2mc,mc2mo)
+    implicit none
+#endif
+    type(mod_2_micro) , intent(in) :: mo2mc
     type(micro_2_mod) , intent(out) :: mc2mo
     integer(ik4) :: i , j , k , kk , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud
@@ -1987,7 +1992,7 @@ module mod_micro_nogtom
               pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
               mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
-               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
+              pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
           end do
         end do

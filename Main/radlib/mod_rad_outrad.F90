@@ -328,16 +328,18 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l , ki , kl
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
+      kk = 1
       do k = ki , kl
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            b(j,i,k) = a(n,k,l)
+            b(j,i,kk) = a(n,k,l)
             n = n + 1
           end do
         end do
+        kk = kk + 1
       end do
     end if
   end subroutine copy4d
@@ -429,16 +431,22 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: c
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l , ki , kl
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
+      kk = 1
       do k = ki , kl
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            b(j,i,k) = a(n,k,l) / c(n,k,l)
+            if ( abs(c(n,k,l)) > dlowval ) then
+              b(j,i,kk) = a(n,k,l) / c(n,k,l)
+            else
+              b(j,i,kk) = smissval
+            end if
             n = n + 1
           end do
         end do
+        kk = kk + 1
       end do
     end if
   end subroutine copy4d_div2

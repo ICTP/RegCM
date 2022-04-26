@@ -1174,13 +1174,12 @@ module mod_rad_aerosol
 
       ! these variables are defined on full rad grid including hat
       if (irrtm == 1) then
-        call getmem3d(gtota3d,1,npoints,1,kth,1,nband,'aerosol:gtota3d')
-        call getmem3d(tauasc3d,1,npoints,1,kth,1,nband,'aerosol:tauasc3d')
-        call getmem3d(tauxar3d,1,npoints,1,kth,1,nband,'aerosol:tauxar3d')
+        call getmem3d(gtota3d,1,npoints,0,kth,1,nband,'aerosol:gtota3d')
+        call getmem3d(tauasc3d,1,npoints,0,kth,1,nband,'aerosol:tauasc3d')
+        call getmem3d(tauxar3d,1,npoints,0,kth,1,nband,'aerosol:tauxar3d')
         call getmem3d(tauxar3d_lw,1,npoints, &
-                      1,kth,1,nbndlw,'aerosol:tauxar3d_lw')
+                      0,kth,1,nbndlw,'aerosol:tauxar3d_lw')
       else ! standard scheme has one extra strato level at k = 0
-        call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
         call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
         call getmem3d(tauasc3d,1,npoints,0,kz,1,nband,'aerosol:tauasc3d')
         call getmem3d(tauxar3d,1,npoints,0,kz,1,nband,'aerosol:tauxar3d')

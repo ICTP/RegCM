@@ -199,7 +199,11 @@ module mod_micro_interface
       case (1)
         call subex(mo2mc,mc2mo)
       case (2)
-        call nogtom(mo2mc,ngs,mc2mo)
+#ifdef DEBUG
+        call nogtom(mo2mc,mc2mo,ngs)
+#else
+        call nogtom(mo2mc,mc2mo)
+#endif
       case (3)
         call wsm5(mo2mc,mc2mo)
       case default
@@ -334,40 +338,68 @@ module mod_micro_interface
         end do
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            exlwc = d_zero
-            ! Cloud Water Volume
-            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-            if ( mc2mo%fcc(j,i,k) > lowcld ) then
-              exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-              ! NOTE : IN CLOUD HERE IS NEEDED !!!
-              exlwc = exlwc/mc2mo%fcc(j,i,k)
-            end if
-            ! Scaling for CF
-            ! Implements CF scaling as in Liang GRL 32, 2005
-            ! doi: 10.1029/2004GL022301
-            ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
-            exlwc = exlwc * chis(ichi)
-            if ( cldfra(j,i,k) > lowcld ) then
-              ! get maximum cloud fraction between cumulus and large scale
-              cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
-                              cldlwc(j,i,k) * cldfra(j,i,k)) / &
-                              (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
-              cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-            else
-              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-              cldlwc(j,i,k) = exlwc
-            end if
-            if ( cldlwc(j,i,k) > d_zero ) then
-              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
-            else
-              cldfra(j,i,k) = d_zero
-            end if
+      if ( any(icup > 1) ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              exlwc = d_zero
+              ! Cloud Water Volume
+              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+              if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+                ! NOTE : IN CLOUD HERE IS NEEDED !!!
+                exlwc = exlwc/mc2mo%fcc(j,i,k)
+              end if
+              ! Scaling for CF
+              ! Implements CF scaling as in Liang GRL 32, 2005
+              ! doi: 10.1029/2004GL022301
+              ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+              exlwc = exlwc * chis(ichi)
+              if ( cldfra(j,i,k) > lowcld ) then
+                ! get maximum cloud fraction between cumulus and large scale
+                cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
+                                cldlwc(j,i,k) * cldfra(j,i,k)) / &
+                                (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
+                cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+              else
+                cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+                cldlwc(j,i,k) = exlwc
+              end if
+              if ( cldlwc(j,i,k) > d_zero ) then
+                cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+              else
+                cldfra(j,i,k) = d_zero
+              end if
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              exlwc = d_zero
+              ! Cloud Water Volume
+              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+              if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+                ! NOTE : IN CLOUD HERE IS NEEDED !!!
+                exlwc = exlwc/mc2mo%fcc(j,i,k)
+              end if
+              ! Scaling for CF
+              ! Implements CF scaling as in Liang GRL 32, 2005
+              ! doi: 10.1029/2004GL022301
+              ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+              exlwc = exlwc * chis(ichi)
+              cldlwc(j,i,k) = exlwc
+              if ( cldlwc(j,i,k) > d_zero ) then
+                cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
+              else
+                cldfra(j,i,k) = d_zero
+              end if
+            end do
+          end do
+        end do
+      end if
     end if
 
     if ( ipptls == 1 ) then
