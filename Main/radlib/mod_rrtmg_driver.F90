@@ -107,7 +107,6 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-    integer(ik4) :: k
 
 #if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
     integer , external :: getpid
@@ -134,9 +133,9 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
+    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
+    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
     if ( idiag == 1 ) then
-      call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
-      call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
       call getmem2d(o3,1,npr,1,kth,'rrtmg:o3')
     end if
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
@@ -271,7 +270,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld ,ldirect
+    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld , ldirect
     logical :: lradfor
     real(rkx) :: adjes
 
@@ -303,6 +302,7 @@ module mod_rrtmg_driver
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
 
+    ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
     elseif ( iclimaaer > 0 ) then

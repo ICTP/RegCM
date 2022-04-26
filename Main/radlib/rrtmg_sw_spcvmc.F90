@@ -545,7 +545,11 @@
                endif
 
                zdbtc(jk) = zdbtmc
-               ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
+               if ( zdbtc(jk) > 1.0e-20 .and. ztdbtc(jk) > 1.0e-20 ) then
+                 ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
+               else
+                 ztdbtc(jk+1) = 1.0e-20
+               end if
 
 ! Clear + Cloud
 !                zdbtmo = exp(-ztauo(jk) / prmu0)
@@ -562,7 +566,11 @@
                endif
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+               if ( zdbt(jk) > 1.0e-20 .and. ztdbt(jk) > 1.0e-20 ) then
+                 ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+               else
+                 ztdbt(jk+1) = 1.0e-20
+               end if
 
             enddo
 

@@ -159,7 +159,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding global history')
     incstat = nf90_put_att(ncid, nf90_global, 'references', &
-               'http://gforge.ictp.it/gf/project/regcm')
+               'https://github.com/ICTP/RegCM')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding global references')
     incstat = nf90_put_att(ncid, nf90_global, 'model_revision',GIT_VER)

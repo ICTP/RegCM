@@ -1595,11 +1595,11 @@ module mod_rad_aerosol
       type(mod_2_rad) , intent(in) :: m2r
       logical , save :: lfirst
       logical :: dointerp
-      real(rkx) , dimension(kz) :: opprnt
+      real(rkx) , dimension(kth) :: opprnt
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) ::i,j, k ,kj, im1 , iy1 , im2 , iy2
+      integer(ik4) :: k , im1 , iy1 , im2 , iy2
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -2009,7 +2009,7 @@ module mod_rad_aerosol
       real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
 
       integer(ik4) :: n , l , ibin , jbin , itr , k1 , k2 , ns
-      integer(ik4) :: j , i , k , kk , visband
+      integer(ik4) :: j , i , k , visband
       real(rkx) :: uaerdust , qabslw , rh0
 
       !-
@@ -2046,20 +2046,21 @@ module mod_rad_aerosol
           ! adapt the clim vert grid (1 to kth) to the standard
           ! rad grid ( 0 to kz) first Treat the top radiative layer
           ! tauxar3d(n,0,ns)
-          n = 1
-          do i = ici1 , ici2
-             do j = jci1 , jci2
-               tauxar3d(n,0,ns) = sum(extprof(j,i,1: kth -kz) )
-               tauasc3d(n,0,ns) = sum(ssaprof(j,i,1: kth -kz)) / &
-                                 (kth-kz) * tauxar3d(n,0,ns)
-               gtota3d(n,0,ns) = sum(asyprof(j,i,1: kth -kz)) / &
-                                 (kth-kz) * tauasc3d(n,0,ns)
-               ftota3d(n,0,ns) = (sum(asyprof(j,i,1: kth -kz)) / &
-                                 (kth-kz) )**2 * tauasc3d(n,0,ns)
-               n = n +1
-             end do
-          end do
-
+          if ( kth > kz ) then
+            n = 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                tauxar3d(n,0,ns) = sum(extprof(j,i,1:kth-kz) )
+                tauasc3d(n,0,ns) = sum(ssaprof(j,i,1:kth-kz)) / &
+                                  real(kth-kz,rkx) * tauxar3d(n,0,ns)
+                gtota3d(n,0,ns) = sum(asyprof(j,i,1:kth-kz)) / &
+                                  real(kth-kz,rkx) * tauasc3d(n,0,ns)
+                ftota3d(n,0,ns) = (sum(asyprof(j,i,1:kth-kz)) / &
+                                  real(kth-kz,rkx))**2 * tauasc3d(n,0,ns)
+                n = n +1
+              end do
+            end do
+          end if
           do k = 1 , kz
             n = 1
             do i = ici1 , ici2
@@ -2131,7 +2132,9 @@ module mod_rad_aerosol
         gtota3d(:,:,:) = d_zero
         ftota3d(:,:,:) = d_zero
         aertrlw (:,:,:) = d_one
-        tauxar3d_lw(:,:,:) = d_zero
+        if ( irrtm == 1 ) then
+          tauxar3d_lw(:,:,:) = d_zero
+        end if
         return
       end if
       !

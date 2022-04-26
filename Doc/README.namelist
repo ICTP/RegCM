@@ -337,13 +337,12 @@
                         ! 1 => Use interpolated mixing ratios from chem ICBC
                         ! 2 => Use climate MERRA2 dataset (1980-2021)
                         ! 3 => Use inline CMIP6 plume model
- radclimpath = 'OPPMONTH,! Path to the MERRA2 dataset for iclimaaer == 2
-                         ! https://b2share.fz-juelich.de/communities/EURO-CORDEX
+ radclimpath = 'OPPMONTH',! Path to the MERRA2 dataset for iclimaaer == 2
+                        ! https://b2share.fz-juelich.de/communities/EURO-CORDEX
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
  itweak =            0, ! Enable tweak scenario
- ipgwrun =           0, ! Expect PGW monthly deltas to be added to the ICBC
  ifixsolar =         0, ! Fix the solar constant to fixedsolarval
                         ! (no diurnal or seasonal cycle)
  fixedsolarval =  343., ! The constant solar value for ifixsolar = 1
