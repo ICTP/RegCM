@@ -1603,9 +1603,6 @@ module mod_micro_nogtom
                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
 
-                ! AMT just evaporate all rain if the rainfall is very small
-                if ( qxfg(iqqr) < activqx ) dpevap = qxfg(iqqr)
-
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
                 ! this has to be explicit since if treated in the implicit

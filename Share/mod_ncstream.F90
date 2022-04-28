@@ -3293,7 +3293,7 @@ module mod_ncstream
       attc%theval = 'CF-1.7'
       call add_attribute(stream,attc)
       attc%aname = 'references'
-      attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
+      attc%theval = 'https://github.com/ICTP/RegCM'
       call add_attribute(stream,attc)
       attc%aname = 'model_revision'
       attc%theval = GIT_VER
