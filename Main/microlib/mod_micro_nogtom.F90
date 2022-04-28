@@ -67,7 +67,6 @@ module mod_micro_nogtom
   use mod_runparams , only : iqqr => iqr !rain
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
-  use mod_runparams , only : sigma
   use mod_runparams , only : dt , rdt
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
@@ -94,6 +93,8 @@ module mod_micro_nogtom
   real(rkx) , parameter :: autocrit_kessl = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
+  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
+  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
   real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
   real(rkx) , parameter :: siglow = 0.8_rkx
   ! Cloud fraction threshold that defines cloud top
@@ -117,8 +118,6 @@ module mod_micro_nogtom
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
-  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
-  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
   !------------------------------------------------
   real(rkx) , parameter :: ciden13 = 8.87_rkx      ! ice density 700**0.333
   real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
@@ -231,7 +230,7 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
+  real(rkx) , parameter :: activqx = 1.0e-16_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
@@ -781,13 +780,21 @@ module mod_micro_nogtom
 
           ldetr = ( abs(mo2mc%qdetr(j,i,k)) > activqx )
           totcond = qxfg(iqql)+qxfg(iqqi)
-          lconden = ( totcond > 2.0*activqx )
+          lconden = ( qxfg(iqql) > activqx .and. qxfg(iqqi) > activqx )
           if ( lconden ) then
             qliqfrac = qxfg(iqql)/totcond
             qicefrac = d_one-qliqfrac
           else
-            qliqfrac = d_zero
-            qicefrac = d_zero
+            if ( qxfg(iqql) > activqx ) then
+              qliqfrac = d_one
+              qicefrac = d_zero
+            else if ( qxfg(iqqi) > activqx ) then
+              qliqfrac = d_zero
+              qicefrac = d_one
+            else
+              qliqfrac = d_zero
+              qicefrac = d_zero
+            end if
           end if
 
           qicetot = d_zero
@@ -892,23 +899,6 @@ module mod_micro_nogtom
                   qpretot = qpretot + qxfg(n)
                 end if
               end do
-            end if
-
-            !------------------------------------------------
-            ! Evaporate very small amounts of liquid and ice
-            !------------------------------------------------
-
-            if ( qx0(iqql) < activqx ) then
-              qsexp(iqqv,iqql) =  qx0(iqql)
-              qsexp(iqql,iqqv) = -qx0(iqql)
-              qxfg(iqql) = qxfg(iqql) - qx0(iqql)
-              qxfg(iqqv) = qxfg(iqql) + qx0(iqql)
-            end if
-            if ( qx0(iqqi) < activqx ) then
-              qsexp(iqqv,iqqi) =  qx0(iqqi)
-              qsexp(iqqi,iqqv) = -qx0(iqqi)
-              qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
-              qxfg(iqqv) = qxfg(iqqi) + qx0(iqqi)
             end if
 
             !------------------------------------------------------------------
@@ -1256,9 +1246,6 @@ module mod_micro_nogtom
                     chng = min(chng,xlcondlim)
                   end if
                   chng = max(chng,d_zero)
-                  if ( chng < activqx ) then
-                    chng = d_zero
-                  end if
                   !-------------------------------------------------------------
                   ! all increase goes into liquid unless so cold cloud
                   ! homogeneously freezes
@@ -1615,9 +1602,6 @@ module mod_micro_nogtom
                 denom = d_one + beta*dt*corqsliq
                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
-
-                ! AMT just evaporate all rain if the rainfall is very small
-                if ( qxfg(iqqr) < activqx ) dpevap = qxfg(iqqr)
 
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.

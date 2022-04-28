@@ -54,9 +54,7 @@ module mod_cloud_xuran
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) < minqc ) then
-            fcc(j,i,k) = d_zero
-          else
+          if ( qc(j,i,k) > dlowval ) then
             qcld = qc(j,i,k)
             rhrng = max(rhmin,min(rhmax,rh(j,i,k)))
             if ( rhrng > 0.99999 ) then
@@ -66,6 +64,8 @@ module mod_cloud_xuran
               rm = -(parm_alpha0 * qcld)/((d_one-rhrng)*qs(j,i,k))**parm_gamma
               fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
             end if
+          else
+            fcc(j,i,k) = d_zero
           end if
         end do
       end do
