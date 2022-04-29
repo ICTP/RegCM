@@ -121,7 +121,7 @@ module mod_bdycod
     module procedure moraydamp
   end interface raydamp
 
-  logical , parameter :: bdyflow = .false.
+  logical , parameter :: bdyflow = .true.
   logical :: present_qc = .false.
   logical :: present_qi = .false.
 
