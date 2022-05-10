@@ -60,7 +60,7 @@ module mod_cloud_subex
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > dlowval ) then
+          if ( qc(j,i,k) > 1.0e-12_rkx ) then
             ! Adjusted relative humidity threshold
             rhrng = min(max(rh(j,i,k),rhmin),1.0_rkx)
             if ( t(j,i,k) > tc0 ) then
