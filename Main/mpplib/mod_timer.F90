@@ -55,7 +55,7 @@ module mod_timer
     logical :: next_is_endtime
     type(rcm_time_and_date) :: idate
     type(rcm_time_interval) :: intmdl
-    integer(ik4) :: nowinday
+    integer(ik8) :: nowinday
     integer(ik4) :: year , month , day , hour , minute , second
     character(len=32) :: model_timestring
     integer(ik4) :: nalarm = 0

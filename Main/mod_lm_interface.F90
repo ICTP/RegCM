@@ -861,7 +861,7 @@ module mod_lm_interface
         if ( associated(srf_scv_out) ) &
           srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
-          where( lm%swdir+lm%lwdir > 120.0_rkx )
+          where( lm%rswf > 120.0_rkx )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if

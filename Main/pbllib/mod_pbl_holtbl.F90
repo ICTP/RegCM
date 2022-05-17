@@ -1232,10 +1232,10 @@ module mod_pbl_holtbl
     !
     subroutine blhnew
       implicit none
-      real(rkx) :: fak1 , fak2 , xfht , xfmt , pblk , pblk1 , pblk2 , &
-                 phpblm , pr , therm , therm2 , tkv , tlv , wsc , z , &
-                 zh , zl , zm , zp , zzh , zzhnew , zzhnew2 , ulv ,   &
-                 vlv , vvk , zlv , zkv , term , wstr , fak3
+      real(rkx) :: fak1 , fak2 , xfht , xfmt , pblk , pblk1 , pblk2 ,  &
+                 phpblm , pr , therm , tkv , tlv , wsc , z , zh , zl , &
+                 zm , zp , zzh , zzhnew , zzhnew2 , ulv , vlv , vvk , &
+                 zlv , zkv , term , wstr , fak3
       integer(ik4) :: i , j , k
       !
       ! note: kmxpbl, max no. of pbl levels (set in slice)
