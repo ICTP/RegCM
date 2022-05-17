@@ -928,7 +928,7 @@ module mod_rdldtr
       do i = 1 , nlat
         do j = 1 , nlon
           if ( gfile%mask(j,i) == 0 ) then
-            vread(j,i) = -1
+            vread(j,i) = idef
           else
             if ( vread(j,i) < 0 ) vread(j,i) = idef
           end if
