@@ -46,15 +46,15 @@ module mod_mksoilcol
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soilcolfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    call gfread(gfile,varname,soilcol,1)
+    call gfread(gfile,varname,soilcol,15)
     call gfclose(gfile)
 
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
-          soilcol(j,i) = -1
+          soilcol(j,i) = 15
         else
-          if ( soilcol(j,i) < 1 ) soilcol(j,i) = 1
+          if ( soilcol(j,i) < 1 ) soilcol(j,i) = 15
         end if
       end do
     end do

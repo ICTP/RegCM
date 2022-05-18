@@ -237,6 +237,7 @@ program pgw_icbc
     call getmem3d(ww,1,jx,1,iy,1,kz,'pgw_icbc:ww')
   end if
   if ( idynamic == 3 ) then
+    call getmem3d(z0,1,jx,1,iy,1,kz,'pgw_icbc:z0')
     call getmem1d(ak,1,kz,'pgw_icbc:ak')
     call getmem1d(bk,1,kz,'pgw_icbc:bk')
   end if

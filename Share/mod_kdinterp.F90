@@ -836,7 +836,7 @@ module mod_kdinterp
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
           iv = g(sj,si)
-          gvals(iv) = gvals(iv) + sqrt(h_i%tg%ft(j,i)%wgt(n)%wgt)
+          gvals(iv) = gvals(iv) + 1
         end do
         v = maxloc(gvals) - 1 + n1
         f(j,i) = v(1)

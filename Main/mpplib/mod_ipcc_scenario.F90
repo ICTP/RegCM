@@ -1799,12 +1799,7 @@ module mod_ipcc_scenario
     character(len=*) , intent(in) :: sname
     integer(ik4) , intent(in) :: year , month
     type(ghg_mf) , intent(inout) :: ghgmf
-    integer(ik4) , parameter :: ico2 = 1
-    integer(ik4) , parameter :: in2o = 2
-    integer(ik4) , parameter :: ich4 = 3
-    integer(ik4) , parameter :: ic11 = 4
-    integer(ik4) , parameter :: ic12 = 5
-    integer(ik4) , parameter :: imax = ic12
+    integer(ik4) , parameter :: imax = 5
     integer(ik4) , parameter :: smax = 9
 
     character(len=1024) :: filename

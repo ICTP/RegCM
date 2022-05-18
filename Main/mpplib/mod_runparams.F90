@@ -337,6 +337,8 @@ module mod_runparams
                                   ! cloud at which evaporation starts for ocean
   real(rkx) , public :: rprc_lnd  ! coeff for conversion from cloud water
   real(rkx) , public :: rprc_ocn  ! coeff for conversion from cloud water
+  real(rkx) , public :: revap_lnd ! coeff evaporation over land
+  real(rkx) , public :: revap_ocn ! coeff evaporation over ocean
   real(rkx) , public :: detrpen_lnd ! Detrainment rate for penetrative conv
   real(rkx) , public :: detrpen_ocn ! Detrainment rate for penetrative conv
   real(rkx) , public :: entshalp  ! shallow entrainment factor for entrorg
