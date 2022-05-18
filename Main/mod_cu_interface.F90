@@ -33,7 +33,7 @@ module mod_cu_interface
   use mod_mppparam , only : tenxtouvten , uvtentotenx
   use mod_mppparam , only : meanall , minall , maxall
 
-  use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
+  use mod_cu_common , only : cuscheme , total_precip_points , &
       model_cumulus_cloud , init_mod_cumulus
   use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
       cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
@@ -83,7 +83,6 @@ module mod_cu_interface
   public :: dtauc2d
   public :: elcrit2d
   public :: epmax2d
-  public :: cevapu
   public :: k700
   public :: total_precip_points
 

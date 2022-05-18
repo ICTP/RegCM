@@ -147,8 +147,9 @@ module mod_params
       entrpen_ocn , entrscv , entrmid , cprcon , detrpen_lnd ,       &
       detrpen_ocn , entshalp , rcuc_lnd , rcuc_ocn , rcpec_lnd ,     &
       rcpec_ocn , rhebc_lnd , rhebc_ocn , rprc_ocn , rprc_lnd ,      &
-      cmtcape , lmfpen , lmfmid , lmfdd , lepcld , lmfdudv ,         &
-      lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
+      revap_lnd , revap_ocn , cmtcape , lmfpen , lmfmid , lmfdd ,    &
+      lepcld , lmfdudv , lmfscv , lmfuvdis , lmftrac , lmfsmooth ,   &
+      lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate ,        &
@@ -453,6 +454,8 @@ module mod_params
                             ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
+    revap_lnd = 1.0e-5_rkx  ! coefficient for evaporation over land
+    revap_ocn = 1.0e-5_rkx  ! coefficient for evaporation over ocean
     cmtcape = 3600.0_rkx   ! CAPE adjustment timescale
     lmfpen    = .true.  ! penetrative conv is switched on
     lmfmid    = .true.  ! midlevel conv is switched on
@@ -1472,6 +1475,8 @@ module mod_params
       call bcast(rhebc_ocn)
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
+      call bcast(revap_lnd)
+      call bcast(revap_ocn)
       call bcast(cmtcape)
       call bcast(lmfpen)
       call bcast(lmfmid)
@@ -2482,7 +2487,6 @@ module mod_params
         write(stdout,'(a,f12.6)') &
           '  CAPE adjustment timescale         : ',cmtcape
       end if
-      cevapu = cevaplnd
     end if
     if ( any(icup == 6)  ) then
       if ( myid == italk ) then

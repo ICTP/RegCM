@@ -585,6 +585,8 @@
  rhebc_ocn = 0.8,       ! Critical rh below cloud for evaporation iconv=4
  rprc_lnd = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
  rprc_ocn = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
+ revap_lnd = 1.0e-5,    ! Raindrop evap rate coef land
+ revap_ocn = 1.0e-5,    ! Raindrop evap rate coef ocean
  entshalp = 2.0,        ! shallow entrainment factor for entrorg iconv=4
  cmtcape = 3600.0,      ! CAPE adjustment timescale iconv=[1,2,3]
  lmfpen    = .true.,    ! penetrative conv is switched on
