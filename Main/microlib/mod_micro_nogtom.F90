@@ -1324,7 +1324,7 @@ module mod_micro_nogtom
             ! By considering sedimentation first and including the
             ! implicit loss term in the first guess of ice.
             !--------------------------------------------------------------
-            lactiv = qxfg(iqql) > activqx .and. ltklt0
+            lactiv = qx0(iqql) > activqx .and. ltklt0
             if ( lactiv ) then
               vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
@@ -1546,7 +1546,7 @@ module mod_micro_nogtom
             ! calculate sublimation latent heat
 
             chngmax = max((tzero-tk)*rldcp,d_zero)
-            if ( chngmax > d_zero .and. qxfg(iqqr) > activqx ) then
+            if ( chngmax > d_zero .and. qx0(iqqr) > activqx ) then
               chng = min(qxfg(iqqr),chngmax)
               chng = max(chng,d_zero)
               qsexp(iqqs,iqqr) = qsexp(iqqs,iqqr) + chng
@@ -1565,7 +1565,7 @@ module mod_micro_nogtom
             !-------------------
 
             chngmax = max((thomo-tk)*rldcp,d_zero)
-            if ( chngmax > d_zero .and. qxfg(iqql) > activqx ) then
+            if ( chngmax > d_zero .and. qx0(iqql) > activqx ) then
               chng = min(qxfg(iqql),chngmax)
               chng = max(chng,d_zero)
               qsexp(iqqi,iqql) = qsexp(iqqi,iqql) + chng
@@ -1609,7 +1609,7 @@ module mod_micro_nogtom
             lactiv = covpclr(j,i) > d_zero .and. &
                      covptot(j,i) > d_zero .and. &
                      qpretot > d_zero .and.      &
-                     qxfg(iqqr) > activqx .and.  &
+                     qx0(iqqr) > activqx .and.   &
                      qe < zrh*qsliq(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
@@ -1667,7 +1667,7 @@ module mod_micro_nogtom
             lactiv = covpclr(j,i) > d_zero .and. &
                      covptot(j,i) > d_zero .and. &
                      qpretot > d_zero .and.      &
-                     qxfg(iqqs) > activqx .and.  &
+                     qx0(iqqs) > activqx .and.   &
                      qe < zrh*qsice(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
