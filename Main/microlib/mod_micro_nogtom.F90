@@ -1687,6 +1687,7 @@ module mod_micro_nogtom
 
                 ! sublimation of  snow
                 ! AMT just evaporate all if snow is very small
+                if ( qxfg(iqqs) < activqx ) dpevap = qxfg(iqqs)
 
                 chng = min(dpevap,qxfg(iqqs))
                 chng = max(chng,d_zero)
