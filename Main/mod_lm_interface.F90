@@ -847,8 +847,6 @@ module mod_lm_interface
       end if
       if ( ifsrf ) then
         rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
-        if ( associated(srf_totcf_out) ) &
-          srf_totcf_out = srf_totcf_out + lm%totcf
         if ( associated(srf_evp_out) ) &
           srf_evp_out = srf_evp_out + lm%qfx
         if ( associated(srf_tpr_out) ) &
