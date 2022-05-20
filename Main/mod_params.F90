@@ -1683,8 +1683,8 @@ module mod_params
     if ( ichem == 1 ) then
       alarm_out_che => rcm_alarm(rcmtimer,secph*chemfrq)
     end if
-      alarm_out_opt => rcm_alarm(rcmtimer,secph*optfrq)
-      if ( nsg > 1 ) then
+    alarm_out_opt => rcm_alarm(rcmtimer,secph*optfrq)
+    if ( nsg > 1 ) then
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
@@ -1703,8 +1703,6 @@ module mod_params
     if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
-
-    rsrffrq_sec = d_one/(srffrq*secph)
 
     if ( idynamic == 1 ) then
       do ns = 1 , nsplit

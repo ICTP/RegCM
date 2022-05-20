@@ -231,7 +231,7 @@ module mod_regcm_interface
       extime = extime + real(dtsec,rk8)
       if ( debug_level > 3 ) then
         if ( myid == italk ) then
-          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
+          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( )
         end if
       end if
 

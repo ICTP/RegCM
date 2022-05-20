@@ -502,11 +502,13 @@ module mod_moloch
         end if
       end if
     end if
-
     !
     ! Next timestep ready : increment elapsed forecast time
     !
     call rcmtimer%advance( )
+    if ( rcmtimer%lcount == 2 ) then
+      dtbat = dtsrf
+    end if
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
     !
     ! calculate new solar zenith angle

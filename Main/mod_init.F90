@@ -552,6 +552,7 @@ module mod_init
         solvl = solvl_io
         solvld = solvld_io
         sabveg = sabveg_io
+        totcf = totcf_io
         flw = flw_io
         flwd = flwd_io
         fsw = fsw_io
@@ -738,6 +739,7 @@ module mod_init
         call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
         call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
         call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
+        call grid_distribute(totcf_io,totcf,jci1,jci2,ici1,ici2)
         call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
         call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
         call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
