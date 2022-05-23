@@ -676,7 +676,7 @@ module mod_savefile
     call mygetvar(ncid,'solvl',solvl_io)
     call mygetvar(ncid,'solvld',solvld_io)
     call mygetvar(ncid,'sabveg',sabveg_io)
-    call mygetvar(ncid,'totcf',totcf_io)
+    call mygetvar(ncid,'totcf',totcf_io,.true.)
     call mygetvar(ncid,'sw',sw_io)
     call mygetvar(ncid,'tlef',tlef_io)
     call mygetvar(ncid,'tgrd',tgrd_io)
@@ -1369,7 +1369,7 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2dd
 
-  subroutine mygetvar2dd(ncid,str,var)
+  subroutine mygetvar2dd(ncid,str,var,skippable)
 #ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
@@ -1380,6 +1380,7 @@ module mod_savefile
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: var
+    logical , optional :: skippable
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
 #else
@@ -1394,7 +1395,16 @@ module mod_savefile
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
-    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+    if ( present(skippable) ) then
+      if ( skippable ) then
+        var(:,:) = 0.0_rk8
+        return
+      else
+        call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+      end if
+    else
+      call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+    end if
   end subroutine mygetvar2dd
 
   subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
