@@ -68,7 +68,7 @@ module mod_params
     implicit none
     real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
                qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
-               xtop , xx , yy , mo_c1 , mo_c2 , dl
+               xtop , xx , yy , mo_c1 , mo_c2 , dl , minfrq
     real(rkx) , dimension(kzp1) :: fak , fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
@@ -996,6 +996,22 @@ module mod_params
 
       dt = check_against_outparams(dt,mindt)
 
+      minfrq = 86400.0
+      if ( ifsrf  ) minfrq = min(minfrq,srffrq*3600.0)
+      if ( ifatm  ) minfrq = min(minfrq,atmfrq*3600.0)
+      if ( ifrad  ) minfrq = min(minfrq,radfrq*3600.0)
+      if ( ifopt  ) minfrq = min(minfrq,optfrq*3600.0)
+      if ( ifshf  ) minfrq = min(minfrq,3600.0)
+      if ( ichem == 1 ) then
+        if ( ifchem ) minfrq = min(minfrq,chemfrq*3600.0)
+      end if
+      if ( lakemod == 1 ) then
+        if ( iflak ) minfrq = min(minfrq,lakfrq*3600.0)
+      end if
+      if ( nsg > 1 ) then
+        if ( ifsub ) minfrq = min(minfrq,subfrq*3600.0)
+      end if
+
       if ( dtsrf <= 0.0_rkx ) dtsrf = 600.0_rkx
       if ( dtcum <= 0.0_rkx ) dtcum = 300.0_rkx
       if ( dtche <= 0.0_rkx ) dtche = 900.0_rkx
@@ -1017,31 +1033,25 @@ module mod_params
       if ( dtabem < dt ) dtabem = dt
 
       dtsrf = int(dtsrf / dt) * dt
-      if ( ifshf ) then
-        do while ( mod(3600.0_rkx,dtsrf) > d_zero )
-          dtsrf = dtsrf - dt
-        end do
-      else
-        do while ( mod(86400.0_rkx,dtsrf) > d_zero )
-          dtsrf = dtsrf - dt
-        end do
-      end if
-      dtsrf = int(dtsrf / dt) * dt
+      do while ( mod(minfrq,dtsrf) > d_zero )
+        dtsrf = dtsrf - dt
+      end do
 
       dtcum = int(dtcum / dt) * dt
-      do while ( mod(86400.0_rkx,dtcum) > d_zero )
+      do while ( mod(minfrq,dtcum) > d_zero )
         dtcum = dtcum - dt
       end do
-      dtcum = int(dtcum / dt) * dt
+      dtcum = max(int(dtcum / (0.5_rkx*dtsrf)),1) * (0.5_rkx*dtsrf)
 
       dtrad = int(dtrad / dt) * dt
-      do while ( mod(86400.0_rkx,dtrad) > d_zero )
+      do while ( mod(minfrq,dtrad) > d_zero )
         dtrad = dtrad - dt
       end do
-      dtrad = int(dtrad / dt) * dt
+      dtrad = max(int(dtrad / (d_two*dtsrf)),1) * (d_two*dtsrf)
+
+      dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 
       dtche = int(dtche / dt) * dt
-      dtabem = int(dtabem / dtrad) * dtrad
 
       if ( iseaice == 1 ) then
         select case (ssttyp)
