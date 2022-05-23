@@ -117,7 +117,7 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        r2m%totcf(j,i) = r2m%totcf(j,i) + totcf(n)
+        r2m%totcf(j,i) = totcf(n)
         r2m%solis(j,i) = sol(n)
         r2m%fsw(j,i)   = frsa(n)
         r2m%flw(j,i)   = frla(n)
