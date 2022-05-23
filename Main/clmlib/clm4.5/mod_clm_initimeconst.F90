@@ -1104,6 +1104,7 @@ module mod_clm_initimeconst
                 exp(-d**2/(2.0_rk8*micro_sigma(c)**2))
         h2osfc_thresh(c) = 1.e3_rk8 * h2osfc_thresh(c) !convert to mm from meters
       else
+        micro_sigma(c) = 9.99e-7_rk8
         h2osfc_thresh(c) = 0._rk8
       end if
 

@@ -39,7 +39,7 @@ module mod_clm_canopyfluxes
   ! false => btran is based on currently unfrozen levels
   logical,  public :: perchroot_alt = .false.
   ! Marta Llopart hack
-  logical, public :: mlhack = .true.
+  logical, public :: mlhack = .false.
 
   private :: Photosynthesis ! Leaf stomatal resistance and leaf photosynthesis
   private :: hybrid         ! hybrid solver for ci
