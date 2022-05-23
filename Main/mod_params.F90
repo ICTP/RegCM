@@ -1650,6 +1650,11 @@ module mod_params
     ! Calculate the time step in minutes.
     !
     dtsec = dt
+    if ( idynamic == 3 ) then
+      dtbat = dtsrf
+    else
+      dtbat = dt
+    end if
     dtbat = dt
     rdt   = d_one/dt
     dtbdys = real(ibdyfrq,rkx)*secph

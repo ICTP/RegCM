@@ -1645,6 +1645,7 @@ module mod_output
           solvl_io = solvl
           solvld_io = solvld
           sabveg_io = sabveg
+          totcf_io = totcf
           flw_io = flw
           flwd_io = flwd
           fsw_io = fsw
@@ -1823,6 +1824,7 @@ module mod_output
           call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
           call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
           call grid_collect(sabveg,sabveg_io,jci1,jci2,ici1,ici2)
+          call grid_collect(totcf,totcf_io,jci1,jci2,ici1,ici2)
           call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
           call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
           call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
