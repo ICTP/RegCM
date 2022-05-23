@@ -1655,7 +1655,6 @@ module mod_params
     else
       dtbat = dt
     end if
-    dtbat = dt
     rdt   = d_one/dt
     dtbdys = real(ibdyfrq,rkx)*secph
     !
