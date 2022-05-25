@@ -2198,6 +2198,12 @@ module mod_clm_biogeophysrest
         if ( ltype(l) /= istdlak ) then
           ! This calculation is now done for lakes in initSLake.
           do j = 1 , nlevs
+            if ( cptr%cws%h2osoi_liq(c,j) < 1.0e-20_rk8 ) then
+              cptr%cws%h2osoi_liq(c,j) = 0.0_rk8
+            end if
+            if ( cptr%cws%h2osoi_ice(c,j) < 1.0e-20_rk8 ) then
+              cptr%cws%h2osoi_ice(c,j) = 0.0_rk8
+            end if
             cptr%cws%h2osoi_vol(c,j) = &
                     cptr%cws%h2osoi_liq(c,j)/(cptr%cps%dz(c,j)*denh2o) + &
                     cptr%cws%h2osoi_ice(c,j)/(cptr%cps%dz(c,j)*denice)
