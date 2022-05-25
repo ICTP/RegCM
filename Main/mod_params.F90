@@ -1002,20 +1002,20 @@ module mod_params
 
       dt = check_against_outparams(dt,mindt)
 
-      minfrq = 86400.0
-      if ( ifsrf  ) minfrq = min(minfrq,srffrq*3600.0)
-      if ( ifatm  ) minfrq = min(minfrq,atmfrq*3600.0)
-      if ( ifrad  ) minfrq = min(minfrq,radfrq*3600.0)
-      if ( ifopt  ) minfrq = min(minfrq,optfrq*3600.0)
-      if ( ifshf  ) minfrq = min(minfrq,3600.0)
+      minfrq = 86400.0_rkx
+      if ( ifsrf  ) minfrq = min(minfrq,srffrq*3600.0_rkx)
+      if ( ifatm  ) minfrq = min(minfrq,atmfrq*3600.0_rkx)
+      if ( ifrad  ) minfrq = min(minfrq,radfrq*3600.0_rkx)
+      if ( ifopt  ) minfrq = min(minfrq,optfrq*3600.0_rkx)
+      if ( ifshf  ) minfrq = min(minfrq,3600.0_rkx)
       if ( ichem == 1 ) then
-        if ( ifchem ) minfrq = min(minfrq,chemfrq*3600.0)
+        if ( ifchem ) minfrq = min(minfrq,chemfrq*3600.0_rkx)
       end if
       if ( lakemod == 1 ) then
-        if ( iflak ) minfrq = min(minfrq,lakfrq*3600.0)
+        if ( iflak ) minfrq = min(minfrq,lakfrq*3600.0_rkx)
       end if
       if ( nsg > 1 ) then
-        if ( ifsub ) minfrq = min(minfrq,subfrq*3600.0)
+        if ( ifsub ) minfrq = min(minfrq,subfrq*3600.0_rkx)
       end if
 
       if ( dtsrf <= 0.0_rkx ) dtsrf = 600.0_rkx

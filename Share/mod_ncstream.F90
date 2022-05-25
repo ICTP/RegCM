@@ -1147,6 +1147,7 @@ module mod_ncstream
       real(rk8) :: val
       val = hourdiff(dtime,reference_date)
       call outstream_addrec_value(ncout,val)
+      call outstream_sync(ncout%ncp%xs)
     end subroutine outstream_addrec_date
 
     subroutine outstream_addrec_value(ncout,val)
@@ -3250,7 +3251,6 @@ module mod_ncstream
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
-      call outstream_sync(stream)
     end subroutine outstream_writevar
 
     subroutine cdumlogical(cdum,yesno)
