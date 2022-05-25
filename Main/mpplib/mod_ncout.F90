@@ -3948,6 +3948,8 @@ module mod_ncout
         end select
       end if
 
+      call outstream_sync(outstream(istream)%ncout(jfile))
+
     end do
 
   end subroutine write_record_output_stream

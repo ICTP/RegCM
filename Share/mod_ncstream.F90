@@ -91,6 +91,7 @@ module mod_ncstream
   public :: outstream_addvaratt
   public :: outstream_writevar
   public :: outstream_addrec
+  public :: outstream_sync
 
   public :: nc_input_stream
   public :: ncinstream_params
@@ -120,6 +121,7 @@ module mod_ncstream
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
       else
+        imode = ior(nf90_nowrite,nf90_share)
         ncstat = nf90_open(stream%filename,imode,stream%id)
       end if
 #else
@@ -136,6 +138,7 @@ module mod_ncstream
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
 #else
+        imode = ior(nf90_nowrite,nf90_share)
         ncstat = nf90_open(stream%filename,imode,stream%id)
 #endif
 #endif
@@ -1102,9 +1105,12 @@ module mod_ncstream
       end if
     end subroutine outstream_enable
 
-    subroutine outstream_sync(stream)
+    subroutine outstream_sync(ncout)
       implicit none
-      type(ncoutstream) , pointer , intent(in) :: stream
+      type(nc_output_stream) , intent(in) :: ncout
+      type(ncoutstream) , pointer :: stream
+      if ( .not. associated(ncout%ncp%xs) ) return
+      stream => ncout%ncp%xs
       if ( .not. stream%l_enabled ) return
       if ( stream%l_sync ) then
 #ifdef PNETCDF
@@ -3250,7 +3256,6 @@ module mod_ncstream
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
-      call outstream_sync(stream)
     end subroutine outstream_writevar
 
     subroutine cdumlogical(cdum,yesno)
