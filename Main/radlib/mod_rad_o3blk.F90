@@ -436,7 +436,7 @@ module mod_rad_o3blk
     data xfact /0.0_rkx/
     data istart  / 1 , 1 , 1 , 1 /
 
-    if ( iyear == yend ) then
+    if ( iyear == yend .or. iyear < ystart ) then
       iret = nf90_close(ncid)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
@@ -478,6 +478,7 @@ module mod_rad_o3blk
     iret = nf90_get_var(ncid,icvar,val,istart,icount)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret)
+      write (stderr, *) trim(o3filename(iyear))
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
     val = real(val*xscale+xfact,rkx)
