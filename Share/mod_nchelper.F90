@@ -138,7 +138,7 @@ module mod_nchelper
     integer(ik4) , dimension(8) :: tvals
 
     incstat = nf90_put_att(ncid, nf90_global, 'title',  &
-               'ICTP Regional Climatic model V4')
+               'ICTP Regional Climatic model V5')
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global title')
     incstat = nf90_put_att(ncid, nf90_global, 'institution','ICTP')
     call checkncerr(incstat,__FILE__,__LINE__, &
