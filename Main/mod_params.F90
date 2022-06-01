@@ -2534,7 +2534,7 @@ module mod_params
     dsmalc = 10.0_rkx
     dxtemc = min(max(ds,dsmalc),dlargc)
     clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
-    clfrcv = min(clfrcv,d_one)
+    clfrcv = min(clfrcv,afracs)
     clfrcv = max(clfrcv,afracl)
     if ( myid == italk ) then
       write(stdout,*) &

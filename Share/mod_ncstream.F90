@@ -3283,7 +3283,7 @@ module mod_ncstream
       stream => ncout%ncp%xs
       stvar  => ncout%svp%xv
       attc%aname = 'title'
-      attc%theval = 'ICTP Regional Climatic model V4'
+      attc%theval = 'ICTP Regional Climatic model V5'
       call add_attribute(stream,attc)
       attc%aname = 'institution'
       attc%theval = 'ICTP'

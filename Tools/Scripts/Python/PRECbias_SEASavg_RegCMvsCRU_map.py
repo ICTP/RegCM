@@ -1,7 +1,7 @@
 #!/usr/bin/python25.6
 
 """
- Purpose: Plot seasonal bias in precipitation rate using CRU observations and RegCM4.7 output
+ Purpose: Plot seasonal bias in precipitation rate using CRU observations and RegCM output
           Period: 1980-1989
           Used variables: pre (CRU; mm/month) and pr (RegCM; kg/m2/s) 
  Author:  S. STRADA
@@ -118,7 +118,7 @@ cmap.set_bad(color='gray')
 seas={1:"DJF",2:"MAM",3:"JJA",4:"SON"} # set dictionary
 
 # Set up figure title
-plt.suptitle('Seasonal Bias: RegCM4.7 - CRU4.0 [1980-1989]', fontsize=15)
+plt.suptitle('Seasonal Bias: RegCM - CRU4.0 [1980-1989]', fontsize=15)
 
 ii=1
 for jj in range(0, 4): #loop over the 4 seasons
