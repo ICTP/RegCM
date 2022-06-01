@@ -275,7 +275,7 @@ module mod_regcm_interface
     call finaltime(myid)
 
     if ( myid == italk ) then
-      write(stdout,*) 'RegCM V4 simulation successfully reached end'
+      write(stdout,*) 'RegCM V5 simulation successfully reached end'
     end if
   end subroutine RCM_finalize
 
