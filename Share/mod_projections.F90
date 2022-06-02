@@ -61,6 +61,7 @@ module mod_projections
     real(rk8) :: conefac , rconefac
     integer(ik4) :: nlat , nlon
     logical :: lamtan
+    logical :: skiprot
   end type regcm_projdata
 
   type regcm_projection
@@ -411,6 +412,7 @@ module mod_projections
     real(rk8) :: rotlam , rotphi
     real(rkx) :: lon , lat , ri , rj
     integer(ik4) :: i , j
+    if ( abs(plat-90.0_rk8) < 0.001 ) pj%p%skiprot = .true.
     pj%p%dlon = raddeg * ds / earthrad
     pj%p%dlat = pj%p%dlon
     phi = degrad*plat
@@ -466,60 +468,62 @@ module mod_projections
           lam = degrad*lon
           phi = degrad*lat
           dlam = lam - pj%p%lam0
-          if ( abs(rotlam) < 1.0e-7 ) then
-            if ( lam > halfpi .or. lam < -halfpi ) then
-              pj%f1(i,j) = -1.0_rk8
-              pj%f2(i,j) = 0.0_rk8
-              pj%f3(i,j) = 0.0_rk8
-              pj%f4(i,j) = -1.0_rk8
+          if ( .not. pj%p%skiprot ) then
+            if ( abs(rotlam) < 1.0e-7 ) then
+              if ( lam > halfpi .or. lam < -halfpi ) then
+                pj%f1(i,j) = -1.0_rk8
+                pj%f2(i,j) = 0.0_rk8
+                pj%f3(i,j) = 0.0_rk8
+                pj%f4(i,j) = -1.0_rk8
+              else
+                pj%f1(i,j) = 1.0_rk8
+                pj%f2(i,j) = 0.0_rk8
+                pj%f3(i,j) = 0.0_rk8
+                pj%f4(i,j) = 1.0_rk8
+              end if
             else
-              pj%f1(i,j) = 1.0_rk8
-              pj%f2(i,j) = 0.0_rk8
-              pj%f3(i,j) = 0.0_rk8
-              pj%f4(i,j) = 1.0_rk8
+              pj%f1(i,j) = sin(dlam)*sin(pj%p%phi0) / cos(rotphi)
+              pj%f2(i,j) = (cos(dlam)*sin(phi)*sin(pj%p%phi0) + &
+                            cos(pj%p%phi0)*cos(phi)) / &
+                            cos(rotphi)
+              pj%f3(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
+                            sin(pj%p%phi0)*sin(rotphi)*cos(rotlam)) / &
+                           (sin(pj%p%phi0)*sin(rotlam))
+              pj%f4(i,j) = -cos(phi) / (sin(pj%p%phi0)*sin(rotlam))
             end if
-          else
-            pj%f1(i,j) = sin(dlam)*sin(pj%p%phi0) / cos(rotphi)
-            pj%f2(i,j) = (cos(dlam)*sin(phi)*sin(pj%p%phi0) + &
-                          cos(pj%p%phi0)*cos(phi)) / &
-                          cos(rotphi)
-            pj%f3(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
-                          sin(pj%p%phi0)*sin(rotphi)*cos(rotlam)) / &
-                         (sin(pj%p%phi0)*sin(rotlam))
-            pj%f4(i,j) = -cos(phi) / (sin(pj%p%phi0)*sin(rotlam))
-          end if
-          if ( abs(cos(phi)) > 1.0e-7_rk8 ) then
-            if ( abs(sin(dlam)) > 1.0e-7_rk8 ) then
-              pj%f5(i,j) = -sin(pj%p%phi0)*sin(rotlam)/cos(phi)
-              pj%f6(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
-                            sin(pj%p%phi0)*sin(rotphi)*cos(rotlam)) / cos(phi)
-              pj%f7(i,j) = cos(rotphi)/(sin(dlam)*sin(pj%p%phi0))
-              pj%f8(i,j) = (cos(dlam)*sin(pj%p%phi0)*sin(phi) + &
-                            cos(pj%p%phi0)*cos(phi))/cos(rotphi)
+            if ( abs(cos(phi)) > 1.0e-7_rk8 ) then
+              if ( abs(sin(dlam)) > 1.0e-7_rk8 ) then
+                pj%f5(i,j) = -sin(pj%p%phi0)*sin(rotlam)/cos(phi)
+                pj%f6(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
+                              sin(pj%p%phi0)*sin(rotphi)*cos(rotlam))/cos(phi)
+                pj%f7(i,j) = cos(rotphi)/(sin(dlam)*sin(pj%p%phi0))
+                pj%f8(i,j) = (cos(dlam)*sin(pj%p%phi0)*sin(phi) + &
+                              cos(pj%p%phi0)*cos(phi))/cos(rotphi)
+              else
+                if ( dlam < -halfpi .or. dlam > halfpi ) then
+                  pj%f5(i,j) = -1.0_rk8
+                  pj%f6(i,j) = 0.0_rk8
+                  pj%f7(i,j) = -1.0_rk8
+                  pj%f8(i,j) = 0.0_rk8
+                else
+                  pj%f5(i,j) = 1.0_rk8
+                  pj%f6(i,j) = 0.0_rk8
+                  pj%f7(i,j) = 1.0_rk8
+                  pj%f8(i,j) = 0.0_rk8
+                end if
+              end if
             else
-              if ( dlam < -halfpi .or. dlam > halfpi ) then
-                pj%f5(i,j) = -1.0_rk8
+              if ( pj%p%phi0 < 0.0 ) then
+                pj%f5(i,j) = -lam
                 pj%f6(i,j) = 0.0_rk8
-                pj%f7(i,j) = -1.0_rk8
+                pj%f7(i,j) = 0.0_rk8
                 pj%f8(i,j) = 0.0_rk8
               else
-                pj%f5(i,j) = 1.0_rk8
+                pj%f5(i,j) = lam
                 pj%f6(i,j) = 0.0_rk8
-                pj%f7(i,j) = 1.0_rk8
+                pj%f7(i,j) = 0.0_rk8
                 pj%f8(i,j) = 0.0_rk8
               end if
-            end if
-          else
-            if ( pj%p%phi0 < 0.0 ) then
-              pj%f5(i,j) = -lam
-              pj%f6(i,j) = 0.0_rk8
-              pj%f7(i,j) = 0.0_rk8
-              pj%f8(i,j) = 0.0_rk8
-            else
-              pj%f5(i,j) = lam
-              pj%f6(i,j) = 0.0_rk8
-              pj%f7(i,j) = 0.0_rk8
-              pj%f8(i,j) = 0.0_rk8
             end if
           end if
         end do
@@ -1451,6 +1455,7 @@ module mod_projections
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , i , j
     real(rk8) :: tmp1 , tmp2
+    if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
@@ -1476,6 +1481,7 @@ module mod_projections
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , i , j
     real(rk8) :: tmp1 , tmp2
+    if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
@@ -1510,6 +1516,7 @@ module mod_projections
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
     real(rk8) :: tmp1 , tmp2
+    if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
@@ -1539,6 +1546,7 @@ module mod_projections
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
     real(rk8) :: tmp1 , tmp2
+    if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
     j1 = lbound(u,2)
