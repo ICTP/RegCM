@@ -290,7 +290,7 @@ module mod_bdycod
       call getmem1d(wgtd,2,nspgd-1,'bdycon:wgtd')
       call getmem1d(wgtx,2,nspgx-1,'bdycon:wgtx')
     end if
-    if ( iboudy == 5 ) then
+    if ( iboudy >= 5 ) then
       call getmem2d(hefc,2,nspgx-1,1,kz,'bdycon:hefc')
       call getmem2d(hegc,2,nspgx-1,1,kz,'bdycon:hegc')
       call getmem2d(hefd,2,nspgd-1,1,kz,'bdycon:hefd')
@@ -331,7 +331,7 @@ module mod_bdycod
   subroutine setup_bdycon
     implicit none
     real(rkx) , dimension(kz) :: anudge
-    real(rkx) :: xfun
+    real(rkx) :: xfun , nb2
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
@@ -351,7 +351,7 @@ module mod_bdycod
     ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
     !
     rdtbdy = d_one / dtbdys
-    if ( iboudy == 1 .or. iboudy == 5 ) then
+    if ( iboudy == 1 .or. iboudy >= 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
@@ -405,6 +405,22 @@ module mod_bdycod
         end do
         do n = 2 , nspgd-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
+          hefd(n,k) = fnudge*xfun
+          hegd(n,k) = gnudge*xfun
+        end do
+      end do
+    end if
+    if ( iboudy == 6 ) then
+      do k = 1 , kz
+        nb2 = d_two * nspgx
+        do n = 2 , nspgx-1
+          xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
+          hefc(n,k) = fnudge*xfun
+          hegc(n,k) = gnudge*xfun
+        end do
+        nb2 = d_two * nspgd
+        do n = 2 , nspgd-1
+          xfun = d_half * (d_one - cos(mathpi/((n-nb2)/nb2)))
           hefd(n,k) = fnudge*xfun
           hegd(n,k) = gnudge*xfun
         end do
