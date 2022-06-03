@@ -541,7 +541,7 @@ module mod_moloch
           end if
         end if
 
-        if ( iboudy == 1 .or. iboudy == 5 ) then
+        if ( iboudy == 1 .or. iboudy >= 5 ) then
           call nudge(iboudy,pai,xpaib)
           call nudge(iboudy,ps,xpsb)
           call nudge(iboudy,t,xtb)
@@ -576,7 +576,7 @@ module mod_moloch
           end if
         end if
         if ( ichem == 1 ) then
-          if ( iboudy == 1 .or. iboudy == 5 ) then
+          if ( iboudy == 1 .or. iboudy >= 5 ) then
             call nudge_chi(trac)
           else if ( iboudy == 4 ) then
             ! Not implemented sponge_chi
@@ -1155,10 +1155,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = i+1
+                  ih = min(i+1,icross2)
                 end if
                 ihm1 = max(ih-1,icross1)
-                ih = min(ih,icross2)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1218,10 +1217,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = j+1
+                  jh = min(j+1,jcross2)
                 end if
                 jhm1 = max(jh-1,jcross1)
-                jh = min(jh,jcross2)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1289,10 +1287,10 @@ module mod_moloch
             end do
             !do i = ici1 , ici2
             !  do j = jci1 , jci2
-                !zdv = (v(j,i+1,k) * rmv(j,i+1) - &
-                !       v(j,i,k)   * rmv(j,i)   ) * zdtrdy * pp(j,i,k)
-                !p0(j,i,k) = wz(j,i,k) + &
-                !  mx2(j,i) * (zpby(j,i) - zpby(j,i+1) + zdv)
+            !    zdv = (v(j,i+1,k) * rmv(j,i+1) - &
+            !           v(j,i,k)   * rmv(j,i)   ) * zdtrdy * pp(j,i,k)
+            !    p0(j,i,k) = wz(j,i,k) + &
+            !      mx2(j,i) * (zpby(j,i) - zpby(j,i+1) + zdv)
             !  end do
             !end do
           end do

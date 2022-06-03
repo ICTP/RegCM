@@ -301,7 +301,7 @@ module mod_params
     mo_wmax = 150.0_rkx
     mo_nadv = 3
     mo_nsound = 6
-    mo_anu2 = 0.6_rkx
+    mo_anu2 = 0.1_rkx
     mo_nzfilt = 0
     mo_filterpai = .false.
     !
@@ -997,19 +997,19 @@ module mod_params
       dt = check_against_outparams(dt,mindt)
 
       minfrq = 86400.0_rkx
-      if ( ifsrf  ) minfrq = min(minfrq,srffrq*3600.0_rkx)
-      if ( ifatm  ) minfrq = min(minfrq,atmfrq*3600.0_rkx)
-      if ( ifrad  ) minfrq = min(minfrq,radfrq*3600.0_rkx)
-      if ( ifopt  ) minfrq = min(minfrq,optfrq*3600.0_rkx)
+      if ( ifsrf  ) minfrq = min(minfrq,max(srffrq*3600.0_rkx,dt))
+      if ( ifatm  ) minfrq = min(minfrq,max(atmfrq*3600.0_rkx,dt))
+      if ( ifrad  ) minfrq = min(minfrq,max(radfrq*3600.0_rkx,dt))
+      if ( ifopt  ) minfrq = min(minfrq,max(optfrq*3600.0_rkx,dt))
       if ( ifshf  ) minfrq = min(minfrq,3600.0_rkx)
       if ( ichem == 1 ) then
-        if ( ifchem ) minfrq = min(minfrq,chemfrq*3600.0_rkx)
+        if ( ifchem ) minfrq = min(minfrq,max(chemfrq*3600.0_rkx,dt))
       end if
       if ( lakemod == 1 ) then
-        if ( iflak ) minfrq = min(minfrq,lakfrq*3600.0_rkx)
+        if ( iflak ) minfrq = min(minfrq,max(lakfrq*3600.0_rkx,dt))
       end if
       if ( nsg > 1 ) then
-        if ( ifsub ) minfrq = min(minfrq,subfrq*3600.0_rkx)
+        if ( ifsub ) minfrq = min(minfrq,max(subfrq*3600.0_rkx,dt))
       end if
 
       if ( dtsrf <= 0.0_rkx ) dtsrf = 600.0_rkx
@@ -2154,7 +2154,7 @@ module mod_params
       call compute_moloch_static
     end if
 
-    if ( iboudy < 0 .or. iboudy > 5 ) then
+    if ( iboudy < 0 .or. iboudy > 6 ) then
       call fatal(__FILE__,__LINE__, &
                  'UNSUPPORTED BDY SCHEME.')
     end if
@@ -2611,6 +2611,8 @@ module mod_params
         write(stdout,*) 'Sponge boundary conditions are used.'
       else if ( iboudy == 5 ) then
         write(stdout,*) 'Relaxation boundary conditions (exponential method)'
+      else if ( iboudy == 6 ) then
+        write(stdout,*) 'Relaxation boundary conditions (sinusoidal method)'
       end if
 
       if ( idynamic /= 3 ) then

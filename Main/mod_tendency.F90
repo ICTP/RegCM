@@ -1428,7 +1428,7 @@ module mod_tendency
       !
       if ( iboudy == 4 ) then
         call sponge(xpsb,pten)
-      else if ( iboudy == 1 .or. iboudy == 5 ) then
+      else if ( iboudy == 1 .or. iboudy >= 5 ) then
         call nudge(iboudy,sfs%psb,xpsb,pten)
       end if
       !
@@ -1456,7 +1456,7 @@ module mod_tendency
 
     subroutine boundary
       implicit none
-      if ( iboudy == 1 .or. iboudy == 5 ) then
+      if ( iboudy == 1 .or. iboudy >= 5 ) then
         if ( idiag > 0 ) then
           ten0 = tdyn
           qen0 = qxdyn(:,:,:,iqv)
@@ -1498,7 +1498,7 @@ module mod_tendency
 #endif
       end if
       if ( idynamic == 2 ) then
-        if ( iboudy == 1 .or. iboudy == 5 ) then
+        if ( iboudy == 1 .or. iboudy >= 5 ) then
           call nudge(iboudy,atm2%pp,xppb,ppdyn)
           call nudge(iboudy,atm2%w,xwwb,wdyn)
         else if ( iboudy == 4 ) then
@@ -1510,7 +1510,7 @@ module mod_tendency
         if ( ichdiag > 0 ) then
           chiten0 = chidyn
         end if
-        if ( iboudy == 1 .or. iboudy == 5 ) then
+        if ( iboudy == 1 .or. iboudy >= 5 ) then
           call nudge_chi(atm2%chi,chidyn)
         end if
         if ( ichdiag > 0 ) then
