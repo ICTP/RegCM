@@ -363,6 +363,10 @@ module mod_bdycod
         ! The dxsq is simplified in below when dividing by dxsq
         gnudge = 0.02_rkx/dt2
       end if
+      if ( idynamic == 3 ) then
+        fnudge = fnudge * 3.333_rkx
+        gnudge = gnudge * 3.333_rkx
+      end if
       if ( myid == italk ) then
         write(stdout, '(a,f12.6,a,f12.6)') &
           ' Nudging coefficients F1=',fnudge,', F2=',gnudge
