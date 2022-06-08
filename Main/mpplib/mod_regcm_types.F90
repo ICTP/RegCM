@@ -637,6 +637,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: uten     ! aten%u
     real(rkx) , pointer , dimension(:,:,:) :: vten     ! aten%v
     real(rkx) , pointer , dimension(:,:,:,:) :: qxten  ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: dynqx  ! aten%qx
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! aten%chi
     real(rkx) , pointer , dimension(:,:,:) :: heatrt   ! radiation heat rate
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn

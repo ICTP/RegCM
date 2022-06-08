@@ -364,8 +364,8 @@ module mod_bdycod
         gnudge = 0.02_rkx/dt2
       end if
       if ( idynamic == 3 ) then
-        fnudge = fnudge * 3.333_rkx
-        gnudge = gnudge * 3.333_rkx
+        fnudge = fnudge * mo_nadv * mo_nsound
+        gnudge = 0.0_rkx
       end if
       if ( myid == italk ) then
         write(stdout, '(a,f12.6,a,f12.6)') &

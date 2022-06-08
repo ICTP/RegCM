@@ -197,6 +197,7 @@ module mod_cu_interface
     else
       call assignpnt(aten%t,m2c%tten,pc_physic)
       call assignpnt(aten%qx,m2c%qxten,pc_physic)
+      call assignpnt(aten%qx,m2c%dynqx,pc_dynamic)
       call assignpnt(aten%u,m2c%uten,pc_physic)
       call assignpnt(aten%v,m2c%vten,pc_physic)
       if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_physic)
