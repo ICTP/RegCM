@@ -1047,7 +1047,7 @@ module mod_params
       do while ( mod(minfrq,dtrad) > d_zero )
         dtrad = dtrad - dt
       end do
-      dtrad = max(int(dtrad / (d_two*dtsrf)),1) * (d_two*dtsrf)
+      dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
 
       dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 

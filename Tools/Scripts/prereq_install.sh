@@ -24,15 +24,15 @@
 # Destination directory
 #DEST=$PWD
 
-netcdf_c_ver=4.7.4
-netcdf_f_ver=4.5.2
-hdf5_ver=1.12.0
-zlib_ver=1.2.11
-ompi_ver=4.0.3
+netcdf_c_ver=4.8.1
+netcdf_f_ver=4.5.4
+hdf5_ver=1.13.1
+zlib_ver=1.2.12
+ompi_ver=4.1.4
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
 hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2`
 
-UNIDATA=https://www.unidata.ucar.edu/downloads/netcdf/ftp
+UNIDATA=https://downloads.unidata.ucar.edu/
 OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
 HDFGROUP=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${hdf5_major}/hdf5-${hdf5_ver}/src
 ZLIB=http://zlib.net
@@ -89,13 +89,13 @@ then
   exit 1
 fi
 echo "Downloading netCDF Library..."
-$WGET -c $UNIDATA/netcdf-c-${netcdf_c_ver}.tar.gz -o $DEST/logs/download_C.log
+$WGET -c $UNIDATA/netcdf-c/${netcdf_c_ver}/netcdf-c-${netcdf_c_ver}.tar.gz -o $DEST/logs/download_C.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF C library from www.unidata.ucar.edu"
   exit 1
 fi
-$WGET -c $UNIDATA/netcdf-fortran-${netcdf_f_ver}.tar.gz -o $DEST/logs/download_F.log
+$WGET -c $UNIDATA/netcdf-fortran/${netcdf_f_ver}/netcdf-fortran-${netcdf_f_ver}.tar.gz -o $DEST/logs/download_F.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF Fortran library from www.unidata.ucar.edu"
