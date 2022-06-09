@@ -101,7 +101,7 @@ module mod_moloch
   logical , parameter :: do_fulleq = .false.
   logical :: do_filterpai = .false.
   logical , parameter :: do_vadvtwice = .true.
-  logical , parameter :: do_filterdiv = .true.
+  logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -230,7 +230,7 @@ module mod_moloch
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
-    ddamp = 0.2_rkx
+    ddamp = 0.1_rkx
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine

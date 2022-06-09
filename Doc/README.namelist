@@ -390,8 +390,8 @@
  rayhd = 10000.0,   ! Damping scale depth
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop
- mo_nsound = 6,     ! Number of sound loops for advection loop
- mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
+ mo_nsound = 5,     ! Number of sound loops for advection loop
+ mo_anu2 = 0.05,    ! Moloch factor for divergence filtering
  mo_nzfilt = 0,     ! Number of top levels where W filter is active
  mo_filterpai = .F.,! Filter on Exner function tendencies activated
  /
