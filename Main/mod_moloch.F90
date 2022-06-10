@@ -230,7 +230,7 @@ module mod_moloch
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
-    ddamp = 0.1_rkx
+    ddamp = 0.25_rkx
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -586,23 +586,54 @@ module mod_moloch
           end if
         end if
         call uvstagtox(u,v,ux,vx)
+        if ( ipptls > 0 ) then
+          call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
+          call filt4d(qx,mo_anu2,iqfrst,iqlst)
+        end if
       end subroutine boundary
 
-      subroutine filt3d
+      subroutine filt4d(p,nu,n1,n2)
         implicit none
+        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
+        integer(ik4) , intent(in) :: n1 , n2
+        integer(ik4) :: j , i , k , n
+
+        do n = n1 , n2
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
+                                        p(j,i-1,k,n) + p(j,i+1,k,n)) - &
+                           d_half   * p(j,i,k,n)
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
+              end do
+            end do
+          end do
+        end do
+      end subroutine filt4d
+
+      subroutine filt3d(p,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
         integer(ik4) :: j , i , k
 
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                      zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                         d_half   * zdiv2(j,i,k)
+              p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+                                      p(j,i-1,k) + p(j,i+1,k)) - &
+                         d_half   * p(j,i,k)
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * p2d(j,i)
+              p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
             end do
           end do
         end do
@@ -750,7 +781,7 @@ module mod_moloch
           end if
           call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
           call divdamp(dtsound)
-          if ( do_filterdiv ) call filt3d
+          if ( do_filterdiv ) call filt3d(zdiv2,mo_anu2)
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -1862,7 +1893,7 @@ module mod_moloch
     integer(ik4) :: i , j , k
     real(rkx) :: ddamp1
 
-    ddamp1 = ddamp*0.125_rkx*dx**2/dts
+    ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
     if ( lrotllr ) then
       do k = 1 , kz
         do i = ici1 , ici2
