@@ -98,9 +98,10 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .false.
-  logical :: do_filterpai = .false.
+  logical , parameter :: do_fulleq = .true.
+  logical , parameter :: do_filterpai = .false.
   logical , parameter :: do_vadvtwice = .true.
+  logical , parameter :: do_filterqx = .false.
   logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
@@ -154,9 +155,8 @@ module mod_moloch
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
-    do_filterpai = mo_filterpai
     if ( do_fulleq ) then
-      if ( ipptls /= 1 ) then
+      if ( ipptls > 0 ) then
         call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
         call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
       end if
@@ -203,11 +203,6 @@ module mod_moloch
         call assignpnt(mo_atm%qx,qi,iqi)
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
-      else
-        if ( do_fulleq ) then
-          call assignpnt(mo_atm%qx,qwltot,iqc)
-          call assignpnt(mo_atm%qx,qwitot,iqc)
-        end if
       end if
     end if
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
@@ -240,7 +235,7 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt
+    real(rkx) :: tv , lrt , fice
     !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
@@ -294,6 +289,23 @@ module mod_moloch
             end do
           end do
         end do
+        if ( do_fulleq ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( t(j,i,k) >= tzero ) then
+                  qwltot(j,i,k) = qc(j,i,k)
+                else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
+                  qwitot(j,i,k) = qc(j,i,k)
+                else
+                  fice = (tzero-t(j,i,k))/20.0_rkx
+                  qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
+                  qwitot(j,i,k) = qc(j,i,k) * fice
+                end if
+              end do
+            end do
+          end do
+        end if
       end if
     else
       do k = 1 , kz
@@ -586,7 +598,7 @@ module mod_moloch
           end if
         end if
         call uvstagtox(u,v,ux,vx)
-        if ( ipptls > 0 ) then
+        if ( do_filterqx .and. ipptls > 0 ) then
           call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
           call filt4d(qx,mo_anu2,iqfrst,iqlst)
         end if

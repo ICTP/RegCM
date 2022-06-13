@@ -115,8 +115,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_anu2 , mo_filterpai , mo_nadv , mo_nsound ,       &
-      mo_wmax , mo_nzfilt
+      mo_anu2 , mo_nadv , mo_nsound , mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -306,7 +305,6 @@ module mod_params
     mo_nsound = 5
     mo_anu2 = 0.05_rkx
     mo_nzfilt = 0
-    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
@@ -1190,7 +1188,6 @@ module mod_params
       call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
-      call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
@@ -1800,7 +1797,6 @@ module mod_params
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
-      mo_filterpai = .false.
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
