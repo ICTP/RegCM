@@ -1001,11 +1001,21 @@ module mod_params
       dt = check_against_outparams(dt,mindt)
 
       minfrq = 86400.0_rkx
-      if ( ifsrf  ) minfrq = min(minfrq,max(srffrq*3600.0_rkx,dt))
-      if ( ifatm  ) minfrq = min(minfrq,max(atmfrq*3600.0_rkx,dt))
-      if ( ifrad  ) minfrq = min(minfrq,max(radfrq*3600.0_rkx,dt))
-      if ( ifopt  ) minfrq = min(minfrq,max(optfrq*3600.0_rkx,dt))
-      if ( ifshf  ) minfrq = min(minfrq,3600.0_rkx)
+
+      ! Check user input
+      if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
+      if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+      if ( radfrq <= 0.0_rkx ) radfrq = 6.0_rkx
+      if ( optfrq <= 0.0_rkx ) optfrq = 6.0_rkx
+      if ( lakfrq <= 0.0_rkx ) lakfrq = 6.0_rkx
+      if ( subfrq <= 0.0_rkx ) subfrq = 3.0_rkx
+      if ( chemfrq <= 0.0_rkx ) chemfrq = 6.0_rkx
+
+      if ( ifsrf ) minfrq = min(minfrq,max(srffrq*3600.0_rkx,dt))
+      if ( ifatm ) minfrq = min(minfrq,max(atmfrq*3600.0_rkx,dt))
+      if ( ifrad ) minfrq = min(minfrq,max(radfrq*3600.0_rkx,dt))
+      if ( ifopt ) minfrq = min(minfrq,max(optfrq*3600.0_rkx,dt))
+      if ( ifshf ) minfrq = min(minfrq,3600.0_rkx)
       if ( ichem == 1 ) then
         if ( ifchem ) minfrq = min(minfrq,max(chemfrq*3600.0_rkx,dt))
       end if
