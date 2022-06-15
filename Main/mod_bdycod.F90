@@ -2199,6 +2199,8 @@ module mod_bdycod
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
           if ( cplmsk(j,i) /= 0 ) cycle
         end if
+        ! FAB do not update if slaboc / adjust or restore run
+        if (islab_ocean == 1 ) cycle
         sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
       end do
     end do

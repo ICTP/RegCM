@@ -29,6 +29,9 @@ module mod_slabocean
   use mod_constants
   use mod_stdio
   use mod_outvars
+  use mod_mpmessage
+  use netcdf
+  use mod_kdinterp
 
   implicit none
 
@@ -39,10 +42,16 @@ module mod_slabocean
   ! the actual prognotic sst pointing on tg2
   real(rkx) , pointer , dimension(:,:) :: sstemp
   real(rkx) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
+  real(rkx) , pointer , dimension(:,:,:) :: slabmld
   real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst
   real(rkx) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
     hflx , qflb0 , qflb1 , qflbt
   logical , pointer , dimension(:,:) :: ocmask
+  real(rkx) , pointer , dimension(:,:,:) :: climld
+  real(rkx) , pointer , dimension(:,:,:) :: ymld
+  real(rkx) , pointer , dimension(:) :: lat, lon
+  real(rkx) , pointer , dimension(:,:) :: alon , alat
+  type(h_interpolator) :: hint
 
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
@@ -52,6 +61,8 @@ module mod_slabocean
 !
     subroutine allocate_mod_slabocean
       implicit none
+      call getmem3d(slabmld,jci1,jci2,ici1,ici2,1,mpy,&
+                    'slab_ocean:slabmld')
       call getmem3d(qflux_restore_sst,jci1,jci2,ici1,ici2,1,mpy,&
                     'slab_ocean:qflux_restore_sst')
       call getmem2d(qflux_sst,jci1,jci2,ici1,ici2,'slab_ocean:qflux_sst')
@@ -64,18 +75,35 @@ module mod_slabocean
       call getmem2d(ocmask,jci1,jci2,ici1,ici2,'slab_ocean:ocmask')
       stepcount(:) = 0
       dtocean = dtsrf
+      if (myid == iocpu) then
+        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'slab_ocean:alon')
+        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'slab_ocean:alat')
+        call getmem3d(ymld,1,njcross,1,nicross,1,mpy,'slab_ocean:ymld')
+     end if
+ 
     end subroutine allocate_mod_slabocean
 !
-    subroutine init_slabocean(sfs,lndcat,fsw,flw)
+    subroutine init_slabocean(sfs,lndcat,fsw,flw,xlon,xlat)
       implicit none
       ! interface for regcm variable / slab ocean
       type(surfstate) , intent(in) :: sfs
       real(rkx) , pointer , intent(in) , dimension(:,:) :: lndcat
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: fsw , flw
+      real(rkx) , pointer , intent(in) , dimension(:,:) :: fsw , flw,xlon,xlat
       integer :: i , j
+      integer(ik4) ::  ncid
+      character(len=256) :: infile
+      integer(ik4) :: iret
+      integer(ik4)  icvar
+      integer(ik4) , dimension(4) :: istart , icount
+      integer(ik4) ::irec
+      character(len= 20) :: vname
+      data icvar /-1/
+      data istart  /  1 ,  1 ,  1 ,  1/
+
+
 
       ! water heat capacity ~ 4 J/g/K
-      mlcp = mixed_layer_depth*4.0e6_rkx
+      ! mlcp = mixed_layer_depth*4.0e6_rkx
 
       call assignpnt(sfs%tg,sstemp)
       call assignpnt(sfs%hfx,ohfx)
@@ -91,23 +119,99 @@ module mod_slabocean
           end if
         end do
       end do
+!FAB  Read mixed layer depth monthly climato  
+      call grid_collect(xlon,alon,jce1,jce2,ice1,ice2)
+      call grid_collect(xlat,alat,jce1,jce2,ice1,ice2)
+    
+      if ( myid == iocpu ) then
+        call getmem1d(lat,1,90,'slab_ocean:lat')
+        call getmem1d(lon,1,180,'slab_ocean:lat')
+        call getmem3d(climld,1,180,1,90,1,mpy,'slab_ocean:mld')
+        
+
+        infile  = 'mld_DT02_c1m_reg2.0.nc' 
+        iret = nf90_open(infile,nf90_nowrite,ncid)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret) , infile
+          call fatal(__FILE__,__LINE__,'CANNOT OPEN SLABOC MIX.LAY. CLIM FILE')
+        end if
+
+        vname ='lon'
+        iret = nf90_inq_varid(ncid,vname,icvar)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLABOC MLD FILE')
+        end if
+        iret = nf90_get_var(ncid,icvar,lon)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLABOC MLD FILE')
+        end if
+        vname ='lat'
+        iret = nf90_inq_varid(ncid,vname,icvar)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLABOC MLD FILE')
+        end if
+        iret = nf90_get_var(ncid,icvar,lat)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLABOC MLD FILE')
+        end if
+!!!! read 3 d mld
+        icount(1) = 180
+        icount(2) = 90
+        icount(3) = mpy
+        icount(4) = 1
+        irec =1
+        vname = 'mld'
+        iret = nf90_inq_varid(ncid,vname,icvar)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLAB MLD FILE')
+        end if
+        istart(4) = irec
+        iret = nf90_get_var(ncid,icvar,climld,istart,icount)
+        if ( iret /= nf90_noerr ) then
+           write (stderr, *) nf90_strerror(iret)
+           call fatal(__FILE__,__LINE__,'CANNOT READ FROM SLAB MLD FILE')
+        end if         
+! interpolate on regcm grid 
+        where(climld > 1000._rkx)
+           climld = -1.E9_rkx
+        end where
+        ! climld = min(1000._rkx,max(d_zero,climld))
+        call h_interpolator_create(hint,lat,lon,alat,alon)
+        call h_interpolate_cont(hint,climld,ymld)
+        
+     end if ! iocpu
+
+     call grid_distribute(ymld,slabmld,jci1,jci2,ici1,ici2,1,mpy)
+ 
+
+
     end subroutine init_slabocean
 
-    subroutine update_slabocean(xt)
+    subroutine update_slabocean(xt,lms)
       implicit none
       real(rk8) , intent(in) :: xt
+      type(lm_state), intent(inout) :: lms 
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
       integer(ik4) :: i , j
 #ifdef DEBUG
       real(rkx) , dimension(5) :: pval , pval1
 #endif
+      ! water heat capacity ~ 4 J/g/K
+      ! mlcp = slabmld*4.0e6_rkx
+     
       if ( do_restore_sst ) then
         stepcount(rcmtimer%month) = stepcount(rcmtimer%month)+1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( ocmask(j,i) ) then
-              qflux_sst(j,i) = (xtsb%b1(j,i) - sstemp(j,i)) * &
-                mlcp / (sst_restore_timescale * 86400.0_rkx) ! w/m2
+            if ( ocmask(j,i) ) then              
+!               qflux_sst(j,i) = (xtsb%b1(j,i) - sstemp(j,i)) * &
+              qflux_sst(j,i) = (xtsb%b0(j,i) + xt*xtsb%bt(j,i) - sstemp(j,i)) *&
+                 slabmld(j,i,rcmtimer%month)* 4.0e6_rkx  / (sst_restore_timescale * 86400.0_rkx) ! w/m2
               qflux_restore_sst(j,i,rcmtimer%month) = &
                 qflux_restore_sst(j,i,rcmtimer%month) + qflux_sst(j,i)
             end if
@@ -157,10 +261,17 @@ module mod_slabocean
             ! account for the retaured or adjustment flux term
             net_hflx(j,i) = hflx(j,i) + qflux_adj(j,i) + qflux_sst(j,i)
             ! update the prognostic seasurface temperature (pointing on tg2)
-            sstemp(j,i) = sstemp(j,i) + dtocean*net_hflx(j,i)/mlcp
+            
+            sstemp(j,i) = sstemp(j,i) + dtocean*net_hflx(j,i)/ (slabmld(j,i,rcmtimer%month)* 4.0e6_rkx)
+            lms%tgrd(:,j,i)  =  sstemp(j,i)
+            lms%tgbb(:,j,i) = sstemp(j,i)
+
+
+
           end if
         end do
       end do
+
     end subroutine update_slabocean
 
     subroutine fill_slaboc_outvars
@@ -173,7 +284,7 @@ module mod_slabocean
               do j = jci1 , jci2
                 if ( ocmask(j,i) ) then
                   slab_qflx_out(j,i,imon) = &
-                        qflux_restore_sst(j,i,imon)/real(stepcount(imon),rkx)
+                    qflux_restore_sst(j,i,imon)/real(stepcount(imon),rkx)  
                 else
                   slab_qflx_out(j,i,imon) = dmissval
                 end if

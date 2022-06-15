@@ -1797,7 +1797,7 @@ module mod_tendency
           write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
         end if
         call surface_model
-        if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+       !FAB  if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
       end if
       !
       !------------------------------------------------

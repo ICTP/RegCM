@@ -33,6 +33,7 @@ module mod_lm_interface
   use mod_bats_common
   use mod_ocn_common
   use mod_stdio
+  use mod_slabocean
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -465,6 +466,9 @@ module mod_lm_interface
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
 #endif
+!FAB  
+    if ( islab_ocean == 1 ) call update_slabocean(xslabtime,lms)
+
     call vecocn(lm,lms)
     ! Fill land part of this output vars
     do i = ici1, ici2

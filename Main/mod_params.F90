@@ -2155,7 +2155,7 @@ module mod_params
     call init_radiation
     if ( islab_ocean == 1 ) then
       call allocate_mod_slabocean
-      call init_slabocean(sfs,mddom%lndcat,fsw,flw)
+      call init_slabocean(sfs,mddom%lndcat,fsw,flw,mddom%xlon,mddom%xlat)
     end if
     !
     ! Setup Boundary condition routines.
