@@ -125,6 +125,12 @@ PreProc/CLM45/mksurfdata
 PreProc/CLM45/*.o
 PreProc/CLM45/*.mod
 
+PreProc/ICBC/cmip6/Makefile
+PreProc/ICBC/cmip6/Makefile.in
+PreProc/ICBC/cmip6/libcmip6.a
+PreProc/ICBC/cmip6/*.o
+PreProc/ICBC/cmip6/*.mod
+
 PreProc/ICBC/Makefile
 PreProc/ICBC/Makefile.in
 PreProc/ICBC/chem_icbc
