@@ -265,18 +265,18 @@ module mod_cmip6_cnrm
               '200001010600-201501010000.nc'
           else
             write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',cnrm_version1,v%vname)), &
+              trim(cmip6_path(year,'6hrLev',cnrm_version2,v%vname)), &
               '201501010600-206501010000.nc'
           end if
         else
           if ( year == 2065 .and. month == 1 .and. &
                day == 1 .and. hour == 0 ) then
             write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',cnrm_version1,v%vname)), &
+              trim(cmip6_path(year,'6hrLev',cnrm_version2,v%vname)), &
               '201501010600-206501010000.nc'
           else
             write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',cnrm_version1,v%vname)), &
+              trim(cmip6_path(year,'6hrLev',cnrm_version2,v%vname)), &
               '206501010600-210101010000.nc'
           end if
         end if
