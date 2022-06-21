@@ -34,6 +34,7 @@ module mod_cmip6_cnrm
 
   character(len=*) , parameter :: cnrm_version = 'v20181205'
   character(len=*) , parameter :: cnrm_version1 = 'v20181206'
+  character(len=*) , parameter :: cnrm_version2 = 'v20191021'
 
   public :: read_3d_cnrm , read_2d_cnrm , read_fx_cnrm
 

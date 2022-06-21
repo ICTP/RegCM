@@ -45,6 +45,7 @@ module mod_sst_cmip6
   character(len=*) , parameter , public :: normm_version = 'v20200218'
   character(len=*) , parameter , public :: normm_version1 = 'v20200702'
   character(len=*) , parameter , public :: cnrm_version = 'v20181206'
+  character(len=*) , parameter , public :: cnrm_version1 = 'v20191021'
   character(len=*) , parameter , public :: cesm_version = 'v20190514'
   character(len=*) , parameter , public :: cesm_version1 = 'v20200528'
   character(len=*) , parameter , public :: ecea_version = 'v20200918'
@@ -797,7 +798,7 @@ module mod_sst_cmip6
             '19500101-20141231.nc'
         else if ( year >= 2015 ) then
           write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'Oday',cnrm_version,v%vname)), &
+            trim(cmip6_path(year,'Oday',cnrm_version1,v%vname)), &
             '20150101-21001231.nc'
         end if
 #ifdef DEBUG
