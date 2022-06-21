@@ -138,7 +138,11 @@ module mod_cmip6_cnrm
             y2 = y1
           end if
         end if
-        ver = cnrm_version1
+        if ( year < 2015 ) then
+          ver = cnrm_version1
+        else
+          ver = cnrm_version2
+        end if
         write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
           trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
           y1, m1, '010600-', y2, m2, '010000.nc'
