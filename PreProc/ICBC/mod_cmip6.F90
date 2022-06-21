@@ -673,6 +673,43 @@ module mod_cmip6
           call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
           call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
                       ta%ni,ta%nj,ta%nk,fplev,nkin)
+        case ( 'MIROC6' )
+!$OMP SECTIONS
+!$OMP SECTION
+          call read_2d_miroc6(idate,ps)
+!$OMP SECTION
+          call read_3d_miroc6(idate,ua)
+!$OMP SECTION
+          call read_3d_miroc6(idate,va)
+!$OMP SECTION
+          call read_3d_miroc6(idate,ta)
+!$OMP SECTION
+          call read_3d_miroc6(idate,qa)
+!$OMP END SECTIONS
+          call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
+          do k = 1 , ta%nk
+            do j = 1 , ta%nj
+              do i = 1 , ta%ni
+                pa_in(i,j,k) = ta%vcoord%ak(k) * ta%vcoord%p0 + &
+                       ta%vcoord%bk(k) * ps%var(i,j)
+              end do
+            end do
+          end do
+          pa_in = pa_in * 0.01_rkx
+!$OMP SECTIONS
+!$OMP SECTION
+          call intlin(uvar,ua%var,pa_in,ua%ni,ua%nj,ua%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(vvar,va%var,pa_in,va%ni,va%nj,va%nk,fplev,nkin)
+!$OMP SECTION
+          call intlog(tvar,ta%var,pa_in,ta%ni,ta%nj,ta%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
+!$OMP END SECTIONS
+          ps%var = ps%var * 0.01_rkx
+          call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
+          call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
+                      ta%ni,ta%nj,ta%nk,fplev,nkin)
         case ( 'CESM2' , 'NorESM2-MM' )
 !$OMP SECTIONS
 !$OMP SECTION

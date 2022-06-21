@@ -107,40 +107,24 @@ module mod_cmip6_miroc6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( v%vname == 'ua' .or. v%vname == 'va' ) then
-          y1 = year
-          m1 = ((month-1)/4) * 4 + 1
-          if ( m1 == month .and. day == 1 .and. hour == 0 ) then
-            m1 = m1 - 4
-            if ( m1 < 1 ) then
-              m1 = 12 + m1
-              y1 = y1 - 1
-            end if
-          end if
-          m2 = m1 + 4
-          if ( m2 > 12 ) then
-            m2 = 1
-            y2 = y1 + 1
+        if ( day == 1 .and. hour == 0 ) then
+          m1 = month - 1
+          if ( m1 < 0 ) then
+            m1 = 12
+            y1 = year - 1
           else
-            y2 = y1
+            y1 = year
           end if
         else
           y1 = year
-          m1 = ((month-1)/6) * 6 + 1
-          if ( m1 == month .and. day == 1 .and. hour == 0 ) then
-            m1 = m1 - 6
-            if ( m1 < 1 ) then
-              m1 = 12 + m1
-              y1 = y1 - 1
-            end if
-          end if
-          m2 = m1 + 6
-          if ( m2 > 12 ) then
-            m2 = 1
-            y2 = y1 + 1
-          else
-            y2 = y1
-          end if
+          m1 = month
+        end if
+        m2 = m1 + 1
+        if ( m2 > 12 ) then
+          m2 = 1
+          y2 = y1 + 1
+        else
+          y2 = y1
         end if
         ver = miroc6_version1
         write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
@@ -235,55 +219,42 @@ module mod_cmip6_miroc6
     recursive subroutine read_2d_miroc6(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_and_date) :: last_date
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: year , month , day , hour , y1 ,  m1 , y2 , m2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( year < 2000 ) then
-          write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-            '195001010600-200001010000.nc'
-        else if ( year < 2015 ) then
-          if ( year == 2000 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '195001010600-200001010000.nc'
+        if ( day == 1 .and. hour == 0 ) then
+          m1 = month - 1
+          if ( m1 < 0 ) then
+            m1 = 12
+            y1 = year - 1
           else
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '200001010600-201501010000.nc'
-          end if
-        else if ( year < 2065 ) then
-          if ( year == 2015 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '200001010600-201501010000.nc'
-          else
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '201501010600-206501010000.nc'
+            y1 = year
           end if
         else
-          if ( year == 2065 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '201501010600-206501010000.nc'
-          else
-            write(v%filename,'(a,a)') &
-              trim(cmip6_path(year,'6hrLev',miroc6_version1,v%vname)), &
-              '206501010600-210101010000.nc'
-          end if
+          y1 = year
+          m1 = month
         end if
+        m2 = m1 + 1
+        if ( m2 > 12 ) then
+          m2 = 1
+          y2 = y1 + 1
+        else
+          y2 = y1
+        end if
+        ver = miroc6_version1
+        write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
+          trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
+          y1, m1, '010600-', y2, m2, '010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif

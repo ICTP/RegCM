@@ -54,20 +54,20 @@ module mod_cmip6_helper
     integer(ik4) :: ivar = -1
     integer(ik4) :: nrec = -1
     type(rcm_time_and_date) :: first_date
-    type(h_interpolator) , pointer , dimension(:) :: hint
+    type(h_interpolator) , pointer , dimension(:) :: hint => null( )
   end type cmip6_file
 
   type, extends(cmip6_file) :: cmip6_2d_var
     character(len=8) :: vname
     integer(ik4) :: ni , nj
-    real(rkx) , pointer , dimension(:,:) :: var
+    real(rkx) , pointer , dimension(:,:) :: var => null( )
     type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
   end type cmip6_2d_var
 
   type, extends(cmip6_file) :: cmip6_3d_var
     character(len=8) :: vname
     integer(ik4) :: ni , nj , nk
-    real(rkx) , pointer , dimension(:,:,:) :: var
+    real(rkx) , pointer , dimension(:,:,:) :: var => null( )
     type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
     type(cmip6_vertical_coordinate) , pointer :: vcoord => null( )
   end type cmip6_3d_var
