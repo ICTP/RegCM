@@ -73,7 +73,8 @@ module mod_cmip6_helper
   end type cmip6_3d_var
 
   public :: cmip6_2d_var , cmip6_3d_var
-  public :: cmip6_fxpath , cmip6_path , cmip6_error
+  public :: cmip6_fxpath , cmip6_path
+  public :: cmip6_error
 
   contains
 
@@ -145,8 +146,8 @@ module mod_cmip6_helper
 
     character(len=1024) function cmip6_path(year,freq,ver,var) result(fpath)
       implicit none
-      character(len=*) , intent(in) :: var , freq , ver
       integer(ik4) , intent(in) :: year
+      character(len=*) , intent(in) :: var , freq , ver
       character(len=12) :: experiment
       character(len=4) :: grid
       select case ( cmip6_model )
