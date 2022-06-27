@@ -136,7 +136,7 @@ module mod_cmip6_miroc6
         call split_idate(idate, year, month, day, hour)
         if ( day == 1 .and. hour == 0 ) then
           m1 = month - 1
-          if ( m1 < 0 ) then
+          if ( m1 < 1 ) then
             m1 = 12
             y1 = year - 1
           else
@@ -261,7 +261,7 @@ module mod_cmip6_miroc6
         call split_idate(idate, year, month, day, hour)
         if ( day == 1 .and. hour == 0 ) then
           m1 = month - 1
-          if ( m1 < 0 ) then
+          if ( m1 < 1 ) then
             m1 = 12
             y1 = year - 1
           else
