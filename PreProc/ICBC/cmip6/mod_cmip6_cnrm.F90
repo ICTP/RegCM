@@ -437,11 +437,11 @@ module mod_cmip6_cnrm
         call split_idate(idate, year, month, day, hour)
         if ( year < 1950 ) then
           write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'Oday',cnrm_version,v%vname)), &
+            trim(cmip6_path(year,'Oday',cnrm_version1,v%vname)), &
             '18500101-19491231.nc'
         else if ( year >= 1950 .and. year < 2015 ) then
           write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'Oday',cnrm_version,v%vname)), &
+            trim(cmip6_path(year,'Oday',cnrm_version1,v%vname)), &
             '19500101-20141231.nc'
         else if ( year >= 2015 ) then
           write(v%filename,'(a,a)') &
