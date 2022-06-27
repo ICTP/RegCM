@@ -25,6 +25,7 @@ module mod_cmip6_cnrm
   use mod_date
   use mod_stdio
   use mod_memutil
+  use mod_kdinterp
   use mod_cmip6_helper
   use netcdf
 
@@ -36,7 +37,7 @@ module mod_cmip6_cnrm
   character(len=*) , parameter :: cnrm_version1 = 'v20181206'
   character(len=*) , parameter :: cnrm_version2 = 'v20191021'
 
-  public :: read_3d_cnrm , read_2d_cnrm , read_fx_cnrm
+  public :: read_3d_cnrm , read_2d_cnrm , read_fx_cnrm , read_sst_cnrm
 
   contains
 
@@ -65,6 +66,32 @@ module mod_cmip6_cnrm
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
     end subroutine read_hcoord_cnrm
+
+    subroutine read_hcoord_sst_cnrm(ncid,lon,lat)
+      implicit none
+      integer(ik4) , intent(in) :: ncid
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
+      integer(ik4) :: istatus , idimid , ivarid
+      integer(ik4) :: nlon , nlat
+      istatus = nf90_inq_dimid(ncid,'x',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon x')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire x dim')
+      istatus = nf90_inq_dimid(ncid,'y',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find y dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire y dim')
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_cnrm:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_cnrm:lat')
+      istatus = nf90_inq_varid(ncid,'lon',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
+      istatus = nf90_get_var(ncid,ivarid,lon)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read lon var')
+      istatus = nf90_inq_varid(ncid,'lat',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat var')
+      istatus = nf90_get_var(ncid,ivarid,lat)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
+    end subroutine read_hcoord_sst_cnrm
 
     subroutine read_vcoord_cnrm(ncid,ap,b)
       implicit none
@@ -393,6 +420,108 @@ module mod_cmip6_cnrm
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(v%filename)//'.')
     end subroutine read_fx_cnrm
+
+    recursive subroutine read_sst_cnrm(idate,v,lat,lon)
+      implicit none
+      type(rcm_time_and_date) , intent(in) :: idate
+      type(cmip6_2d_var) , intent(inout) :: v
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
+      integer(ik4) :: istatus , idimid , it , irec
+      integer(ik4) :: year , month , day , hour
+      character(len=32) :: timecal , timeunit
+      integer(ik4) , dimension(3) :: istart , icount
+      real(rk8) , dimension(2) :: times
+      type(rcm_time_interval) :: tdif
+
+      if ( v%ncid == -1 ) then
+        call split_idate(idate, year, month, day, hour)
+        if ( year < 1950 ) then
+          write(v%filename,'(a,a)') &
+            trim(cmip6_path(year,'Oday',cnrm_version1,v%vname)), &
+            '18500101-19491231.nc'
+        else if ( year >= 1950 .and. year < 2015 ) then
+          write(v%filename,'(a,a)') &
+            trim(cmip6_path(year,'Oday',cnrm_version1,v%vname)), &
+            '19500101-20141231.nc'
+        else if ( year >= 2015 ) then
+          write(v%filename,'(a,a)') &
+            trim(cmip6_path(year,'Oday',cnrm_version2,v%vname)), &
+            '20150101-21001231.nc'
+        end if
+#ifdef DEBUG
+        write(stderr,*) 'Opening ',trim(v%filename)
+#endif
+        istatus = nf90_open(trim(v%filename),nf90_nowrite,v%ncid)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error opening file '//trim(v%filename)//'.')
+      end if
+      if ( .not. associated(v%hcoord) ) then
+        allocate(v%hcoord)
+        call read_hcoord_sst_cnrm(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
+        call h_interpolator_create(v%hint(1), &
+                                   v%hcoord%lat2d,v%hcoord%lon2d,lat,lon)
+        call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
+                            1,size(v%hcoord%lat2d,2), &
+                            'cmip6_cnrm:'//trim(v%vname))
+      end if
+      if ( v%ivar == -1 ) then
+        istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error searchong '//trim(v%vname)// &
+          ' var in file '//trim(v%filename)//'.')
+      end if
+      if ( v%nrec == -1 ) then
+        istatus = nf90_inq_dimid(v%ncid,'time',idimid)
+        call cmip6_error(istatus,__FILE__,__LINE__,'Error find time dim')
+        istatus = nf90_inquire_dimension(v%ncid,idimid,len=v%nrec)
+        call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire time dim')
+        istatus = nf90_inq_varid(v%ncid,'time',it)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error searching time var in file '//trim(v%filename)//'.')
+        istatus = nf90_get_att(v%ncid,it,"calendar",timecal)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error reading time attribute calendar in file '//&
+          trim(v%filename)//'.')
+        istatus = nf90_get_att(v%ncid,it,"units",timeunit)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error reading time attribute units in file '//trim(v%filename)//'.')
+        istart(1) = 1
+        icount(1) = 2
+        istatus = nf90_get_var(v%ncid,it,times,istart(1:1),icount(1:1))
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error reading time from file '//trim(v%filename)//'.')
+        v%first_date = timeval2date(times(1),timeunit,timecal)
+      end if
+
+      tdif = idate - v%first_date
+      irec = nint((tohours(tdif)+12)/24) + 1
+
+      if ( irec > v%nrec ) then
+        istatus = nf90_close(v%ncid)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error close file '//trim(v%filename)//'.')
+        v%ncid = -1
+        v%ivar = -1
+        v%nrec = -1
+        irec = 1
+        call read_sst_cnrm(idate,v,lat,lon)
+      end if
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = irec
+      icount(1) = size(v%var,1)
+      icount(2) = size(v%var,2)
+      icount(3) = 1
+      istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
+      call cmip6_error(istatus,__FILE__,__LINE__, &
+          'Error read variable '//trim(v%vname)// &
+          ' from '//trim(v%filename)//'.')
+      where ( v%var > 0.9E+20_rkx )
+        v%var = -9999.0_rkx
+      else where
+        v%var = v%var + 273.15_rkx
+      end where
+    end subroutine read_sst_cnrm
 
 end module mod_cmip6_cnrm
 
