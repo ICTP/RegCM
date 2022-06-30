@@ -30,6 +30,7 @@ module mod_sst_cmip6
   use mod_date
   use mod_stdio
   use mod_cmip6_cesm
+  use mod_cmip6_canesm
   use mod_cmip6_cnrm
   use mod_cmip6_ecea
   use mod_cmip6_gfdl
@@ -131,6 +132,15 @@ module mod_sst_cmip6
             call die('sst','Calendar mismatch',1)
           end if
           read_func => read_sst_cesm
+          sst%vname = 'tos'
+          step = 86400
+          nsteps = int(tohours(tdif))/24 + 1
+        case ( 'CanESM5' )
+          if ( calendar /= 'noleap' ) then
+            write(stderr,*) 'CanESM5 requires noleap calendar.'
+            call die('sst','Calendar mismatch',1)
+          end if
+          read_func => read_sst_canesm
           sst%vname = 'tos'
           step = 86400
           nsteps = int(tohours(tdif))/24 + 1
