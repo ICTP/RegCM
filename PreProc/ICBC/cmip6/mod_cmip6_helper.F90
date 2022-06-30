@@ -128,6 +128,12 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'ssp370-lowNTCFCH4'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_ssp370-lowNTCFCH4_'
+        case ( 'CanESM5' )
+          fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'// &
+            pthsep//'AR6'//pthsep//'CMIP6'//pthsep//'CMIP'// &
+            pthsep//'CCCma'//pthsep//'CanESM5'//pthsep//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
         case ( 'MIROC6' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
             pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
@@ -251,6 +257,25 @@ module mod_cmip6_helper
           else
             grid = cmip6_grid
           end if
+        case ( 'CanESM5' )
+          if ( year < 2015 ) then
+            if ( var == 'tos' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgC_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            end if
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(cmip6_inp)//pthsep//'esgD_dataroot'//pthsep// &
+              'AR6'//pthsep//'CMIP6'//pthsep
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'CCCma'//pthsep//'CanESM5'//pthsep
+          grid = cmip6_grid
         case ( 'MIROC6' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
             'CMIP6'//pthsep
