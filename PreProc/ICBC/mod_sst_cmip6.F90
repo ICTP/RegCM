@@ -35,6 +35,7 @@ module mod_sst_cmip6
   use mod_cmip6_gfdl
   use mod_cmip6_hadmm
   use mod_cmip6_miroc6
+  use mod_cmip6_miresl
   use mod_cmip6_mpihr
   use mod_cmip6_normm
   use netcdf
@@ -142,6 +143,20 @@ module mod_sst_cmip6
           sst%vname = 'tos'
           step = 86400
           nsteps = int(tohours(tdif))/24 + 1
+        case ( 'MIROC-ES2L' )
+          if ( calendar /= 'gregorian' ) then
+            write(stderr,*) 'MIROC-ES2L requires gregorian calendar.'
+            call die('sst','Calendar mismatch',1)
+          end if
+          read_func => read_sst_miresl
+          sst%vname = 'tos'
+          idateo = prevmon(globidate1)
+          idatef = monfirst(globidate2)
+          if (idatef < globidate2) then
+            idatef = nextmon(idatef)
+          end if
+          step = rcm_time_interval(1_ik8,umnt)
+          nsteps = imondiff(idatef,idateo) + 1
         case default
           call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
       end select

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cmip6_miroc6
+module mod_cmip6_miresl
 
   use mod_intkinds
   use mod_realkinds
@@ -33,14 +33,16 @@ module mod_cmip6_miroc6
 
   private
 
-  character(len=*) , parameter :: miroc6_version = 'v20190311'
-  character(len=*) , parameter :: miroc6_version1 = 'v20191114'
+  character(len=*) , parameter :: miresl_version = 'v20190823'
+  character(len=*) , parameter :: miresl_version1 = 'v20220314'
+  character(len=*) , parameter :: miresl_version2 = 'v20191129'
+  character(len=*) , parameter :: miresl_version3 = 'v20220530'
 
-  public :: read_3d_miroc6 , read_2d_miroc6 , read_fx_miroc6 , read_sst_miroc6
+  public :: read_3d_miresl , read_2d_miresl , read_fx_miresl , read_sst_miresl
 
   contains
 
-    subroutine read_hcoord_miroc6(ncid,lon,lat)
+    subroutine read_hcoord_miresl(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
@@ -54,8 +56,8 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_miroc6:lon')
-      call getmem1d(lat,1,nlat,'cmip6_miroc6:lat')
+      call getmem1d(lon,1,nlon,'cmip6_miresl:lon')
+      call getmem1d(lat,1,nlat,'cmip6_miresl:lat')
       istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -64,9 +66,9 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
-    end subroutine read_hcoord_miroc6
+    end subroutine read_hcoord_miresl
 
-    subroutine read_hcoord_sst_miroc6(ncid,lon,lat)
+    subroutine read_hcoord_sst_miresl(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
@@ -80,8 +82,8 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find y dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire y dim')
-      call getmem2d(lon,1,nlon,1,nlat,'cmip6_miroc6:lon')
-      call getmem2d(lat,1,nlon,1,nlat,'cmip6_miroc6:lat')
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_miresl:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_miresl:lat')
       istatus = nf90_inq_varid(ncid,'longitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -90,9 +92,9 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find latitude var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read latitude var')
-    end subroutine read_hcoord_sst_miroc6
+    end subroutine read_hcoord_sst_miresl
 
-    subroutine read_vcoord_miroc6(ncid,a,b,p0)
+    subroutine read_vcoord_miresl(ncid,a,b,p0)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
@@ -103,8 +105,8 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(a,1,nlev,'cmip6_miroc6:a')
-      call getmem1d(b,1,nlev,'cmip6_miroc6:b')
+      call getmem1d(a,1,nlev,'cmip6_miresl:a')
+      call getmem1d(b,1,nlev,'cmip6_miresl:b')
       istatus = nf90_inq_varid(ncid,'a',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
       istatus = nf90_get_var(ncid,ivarid,a)
@@ -117,9 +119,9 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
       istatus = nf90_get_var(ncid,ivarid,p0)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
-    end subroutine read_vcoord_miroc6
+    end subroutine read_vcoord_miresl
 
-    recursive subroutine read_3d_miroc6(idate,v,lonlyc)
+    recursive subroutine read_3d_miresl(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_3d_var) , pointer , intent(inout) :: v
@@ -134,29 +136,20 @@ module mod_cmip6_miroc6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( day == 1 .and. hour == 0 ) then
-          m1 = month - 1
-          if ( m1 < 1 ) then
-            m1 = 12
-            y1 = year - 1
-          else
-            y1 = year
-          end if
+        if ( month == 1 .and. day == 1 .and. hour == 0 ) then
+          y1 = year - 1
         else
           y1 = year
-          m1 = month
         end if
-        m2 = m1 + 1
-        if ( m2 > 12 ) then
-          m2 = 1
-          y2 = y1 + 1
+        y2 = y1 + 1
+        if ( y1 < 2015 ) then
+          ver = miresl_version2
         else
-          y2 = y1
+          ver = miresl_version3
         end if
-        ver = miroc6_version1
-        write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
+        write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
-          y1, m1, '010600-', y2, m2, '010000.nc'
+          y1, '01010600-', y2, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -166,17 +159,17 @@ module mod_cmip6_miroc6
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_miroc6(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_miresl(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%vcoord) ) then
         allocate(v%vcoord)
-        call read_vcoord_miroc6(v%ncid,v%vcoord%ak,v%vcoord%bk,v%vcoord%p0)
+        call read_vcoord_miresl(v%ncid,v%vcoord%ak,v%vcoord%bk,v%vcoord%p0)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
         v%nk = size(v%vcoord%ak)
-        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:miroc6:'//trim(v%vname))
+        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:miresl:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ', &
           v%ni,'x',v%nj,'x',v%nk
@@ -228,7 +221,7 @@ module mod_cmip6_miroc6
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_3d_miroc6(idate,v)
+        call read_3d_miresl(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -241,9 +234,9 @@ module mod_cmip6_miroc6
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_3d_miroc6
+    end subroutine read_3d_miresl
 
-    recursive subroutine read_2d_miroc6(idate,v,lonlyc)
+    recursive subroutine read_2d_miresl(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(rcm_time_and_date) :: last_date
@@ -259,29 +252,20 @@ module mod_cmip6_miroc6
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( day == 1 .and. hour == 0 ) then
-          m1 = month - 1
-          if ( m1 < 1 ) then
-            m1 = 12
-            y1 = year - 1
-          else
-            y1 = year
-          end if
+        if ( month == 1 .and. day == 1 .and. hour == 0 ) then
+          y1 = year - 1
         else
           y1 = year
-          m1 = month
         end if
-        m2 = m1 + 1
-        if ( m2 > 12 ) then
-          m2 = 1
-          y2 = y1 + 1
+        y2 = y1 + 1
+        if ( y1 < 2015 ) then
+          ver = miresl_version2
         else
-          y2 = y1
+          ver = miresl_version3
         end if
-        ver = miroc6_version1
-        write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
+        write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
-          y1, m1, '010600-', y2, m2, '010000.nc'
+          y1, '01010600-', y2, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -291,12 +275,12 @@ module mod_cmip6_miroc6
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_miroc6(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_miresl(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
-        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:miroc6:'//trim(v%vname))
+        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:miresl:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -347,7 +331,7 @@ module mod_cmip6_miroc6
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_2d_miroc6(idate,v)
+        call read_2d_miresl(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -358,14 +342,14 @@ module mod_cmip6_miroc6
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_2d_miroc6
+    end subroutine read_2d_miresl
 
-    recursive subroutine read_fx_miroc6(v)
+    recursive subroutine read_fx_miresl(v)
       implicit none
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       integer(ik4) :: istatus
 
-      v%filename = trim(cmip6_fxpath(miroc6_version,v%vname))
+      v%filename = trim(cmip6_fxpath(miresl_version,v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -373,10 +357,10 @@ module mod_cmip6_miroc6
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error opening file '//trim(v%filename)//'.')
       allocate(v%hcoord)
-      call read_hcoord_miroc6(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+      call read_hcoord_miresl(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       v%ni = size(v%hcoord%lon1d)
       v%nj = size(v%hcoord%lat1d)
-      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:miroc6:'//trim(v%vname))
+      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:miresl:'//trim(v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -390,9 +374,9 @@ module mod_cmip6_miroc6
       istatus = nf90_close(v%ncid)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(v%filename)//'.')
-    end subroutine read_fx_miroc6
+    end subroutine read_fx_miresl
 
-    recursive subroutine read_sst_miroc6(idate,v,lat,lon)
+    recursive subroutine read_sst_miresl(idate,v,lat,lon)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , intent(inout) :: v
@@ -408,25 +392,13 @@ module mod_cmip6_miroc6
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
         if ( year < 2015 ) then
-          y1 = (year/10)*10
-          if ( y1 == 2010 ) then
-            y2 = 2014
-          else
-            y2 = y1 + 9
-          end if
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'Oday',miroc6_version1,v%vname)), &
-            y1,'0101-',y2,'1231.nc'
+          write(v%filename,'(a,a)') &
+            trim(cmip6_path(year,'Omon',miresl_version,v%vname)), &
+            '185001-201412.nc'
         else
-          y1 = (year-2015)/10*10 + 2015
-          if ( y1 == 2095 ) then
-            y2 = 2100
-          else
-            y2 = y1 + 9
-          end if
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'Oday',miroc6_version1,v%vname)), &
-            y1,'0101-',y2,'1231.nc'
+          write(v%filename,'(a,a)') &
+            trim(cmip6_path(year,'Omon',miresl_version1,v%vname)), &
+            '201501-210012.nc'
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -437,12 +409,12 @@ module mod_cmip6_miroc6
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_sst_miroc6(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
+        call read_hcoord_sst_miresl(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
                                    v%hcoord%lat2d,v%hcoord%lon2d,lat,lon)
         call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
                             1,size(v%hcoord%lat2d,2), &
-                            'cmip6_miroc6:'//trim(v%vname))
+                            'cmip6_miresl:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
@@ -473,8 +445,7 @@ module mod_cmip6_miroc6
         v%first_date = timeval2date(times(1),timeunit,timecal)
       end if
 
-      tdif = idate - v%first_date
-      irec = nint((tohours(tdif)+12)/24) + 1
+      irec = imondiff(idate,v%first_date) + 1
 
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
@@ -484,7 +455,7 @@ module mod_cmip6_miroc6
         v%ivar = -1
         v%nrec = -1
         irec = 1
-        call read_sst_miroc6(idate,v,lat,lon)
+        call read_sst_miresl(idate,v,lat,lon)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -501,8 +472,8 @@ module mod_cmip6_miroc6
       else where
         v%var = v%var + 273.15_rkx
       end where
-    end subroutine read_sst_miroc6
+    end subroutine read_sst_miresl
 
-end module mod_cmip6_miroc6
+end module mod_cmip6_miresl
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

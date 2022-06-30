@@ -134,6 +134,12 @@ module mod_cmip6_helper
             pthsep//'MIROC6'//pthsep//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
+        case ( 'MIROC-ES2L')
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+            pthsep//'MIROC-ES2L'//pthsep//'historical'//pthsep
+          fx_variant = cmip6_variant
+          fx_experiment = '_historical_'
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
@@ -256,6 +262,18 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'MIROC'//pthsep//'MIROC6'//pthsep
+          grid = cmip6_grid
+        case ( 'MIROC-ES2L' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
+            'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'MIROC'//pthsep//'MIROC-ES2L'//pthsep
           grid = cmip6_grid
         case default
           call die(__FILE__, &
