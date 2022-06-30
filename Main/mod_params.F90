@@ -101,11 +101,11 @@ module mod_params
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
       iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-      ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
-      idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
-      iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
-      temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-      fixedsolarval , irceideal , year_offset , radclimpath
+      ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
+      icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
+      islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
+      ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
+      year_offset , radclimpath
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -264,10 +264,7 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
-    ipcpcool = 0
-    iwhitecap = 0
     iseaice = 0
-    idesseas = 0
     iconvlwp = 1
     icldfrac = 0
     icldmstrat = 0
@@ -413,7 +410,7 @@ module mod_params
     elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 0.50_rkx       ! Coefficient of mixing in the entrainment formulation
+    entp = 1.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
     sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
@@ -713,9 +710,6 @@ module mod_params
         end if
       end if
 
-      ! Hack. permanently disable seasonal albedo.
-      idesseas = 0
-
       icup(1) = icup_lnd
       icup(2) = icup_ocn
       if ( any(icup == 1) ) then
@@ -848,7 +842,7 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED CUMULUS SCHEME')
       end if
-      if ( ibltyp < 0 .or. ibltyp > 4 ) then
+      if ( ibltyp < 0 .or. ibltyp > 2 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
@@ -1293,11 +1287,8 @@ module mod_params
     call bcast(scenario,8)
     call bcast(ghg_year_const)
     call bcast(idcsst)
-    call bcast(ipcpcool)
-    call bcast(iwhitecap)
     call bcast(iseaice)
     call bcast(icetriggert)
-    call bcast(idesseas)
     call bcast(iconvlwp)
     call bcast(icldfrac)
     call bcast(icldmstrat)
@@ -1977,7 +1968,6 @@ module mod_params
       write(stdout,'(a,i2)') '  Lake model in BATS          : ' , lakemod
       write(stdout,'(a,i2)') '  Simulate diurnal sst cycle  : ' , idcsst
       write(stdout,'(a,i2)') '  Simulate sea ice cover      : ' , iseaice
-      write(stdout,'(a,i2)') '  Simulate desert seasons     : ' , idesseas
 #endif
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
       write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
@@ -2227,10 +2217,6 @@ module mod_params
         write(stdout,'(a,f11.6)') '  czero     = ', czero
         write(stdout,'(a,f11.6)') '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
-      else if ( ibltyp == 3 ) then
-        write(stdout,*) 'GFS PBL Scheme'
-      else if ( ibltyp == 4 ) then
-        write(stdout,*) 'MYJ PBL Scheme'
       else
         write(stdout,*) &
           'Model frictionless and insulated for the lower boundary.'
@@ -2445,8 +2431,8 @@ module mod_params
     if ( any(icup == 3) ) then
       if ( myid == italk ) then
         write(stderr,*) &
-          'WARNING : The Betts-Miller Convection scheme is not ', &
-          'properly implemented'
+          'The Betts-Miller Convection scheme has been removed in V5.'
+        call fatal(__FILE__,__LINE__,'MODEL STOPS')
       end if
     end if
     if ( any(icup == 4) ) then

@@ -330,7 +330,7 @@ module mod_sun
     end if
     scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
-      coszrs(:,:) = 1.0
+      coszrs(:,:) = 1.0_rkx
     else
       do i = ici1 , ici2
         do j = jci1 , jci2

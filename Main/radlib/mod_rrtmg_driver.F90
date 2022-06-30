@@ -305,7 +305,7 @@ module mod_rrtmg_driver
     ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
-    elseif ( iclimaaer > 0 ) then
+    else if ( iclimaaer > 0 ) then
       ldirect = 2
     end if
 
