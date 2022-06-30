@@ -30,6 +30,8 @@ module mod_pbl_interface
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : allocate_tcm_state
   use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , uwtkemin
+  use mod_pbl_gfs , only : init_pbl_gfs , pbl_gfs
+  use mod_pbl_myj , only : init_myjpbl , myjpbl , myjtkemin
   use mod_runparams , only : ibltyp , pc_physic
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -65,6 +67,11 @@ module mod_pbl_interface
       call allocate_tcm_state(uwstate)
       tkemin = uwtkemin
       call init_mod_pbl_uwtcm
+    else if ( ibltyp == 3 ) then
+      call init_pbl_gfs
+    else if ( ibltyp == 4 ) then
+      tkemin = myjtkemin
+      call init_myjpbl
     end if
     if ( ibltyp > 1 ) then
       if ( idynamic == 3 ) then
@@ -129,6 +136,12 @@ module mod_pbl_interface
       else
         call assignpnt(atm2%tke,m2p%tkests)
       end if
+    else if ( ibltyp == 4 ) then
+      call assignpnt(atms%tkepbl,m2p%tkests)
+      call assignpnt(sfs%uz0,m2p%uz0)
+      call assignpnt(sfs%vz0,m2p%vz0)
+      call assignpnt(sfs%thz0,m2p%thz0)
+      call assignpnt(sfs%qz0,m2p%qz0)
     end if
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
@@ -142,6 +155,8 @@ module mod_pbl_interface
       call assignpnt(mo_atm%qxten,p2m%qxten)
       if ( ibltyp == 2 ) then
         call assignpnt(mo_atm%tketen,p2m%tketen)
+      else if ( ibltyp == 4 ) then
+        call assignpnt(atms%tkepbl,p2m%tkepbl)
       end if
       call assignpnt(mo_atm%chiten,p2m%chiten)
     else
@@ -151,6 +166,8 @@ module mod_pbl_interface
       call assignpnt(aten%qx,p2m%qxten,pc_physic)
       if ( ibltyp == 2 ) then
         call assignpnt(aten%tke,p2m%tketen,pc_physic)
+      else if ( ibltyp == 4 ) then
+        call assignpnt(atms%tkepbl,p2m%tkepbl)
       end if
       call assignpnt(aten%chi,p2m%chiten,pc_physic)
     end if
@@ -175,6 +192,68 @@ module mod_pbl_interface
         utend = d_zero
         vtend = d_zero
         call uwtcm(m2p,p2m)
+        if ( idynamic == 3 ) then
+          call tenxtouvten(utenx,vtenx,utend,vtend)
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jci1 , jci2
+                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jdi1 , jdi2
+                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
+              end do
+            end do
+          end do
+        else
+          call uvcross2dot(utenx,vtenx,utend,vtend)
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+              end do
+            end do
+          end do
+        end if
+      case (3)
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
+        call pbl_gfs(m2p,p2m)
+        if ( idynamic == 3 ) then
+          call tenxtouvten(utenx,vtenx,utend,vtend)
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jci1 , jci2
+                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jdi1 , jdi2
+                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
+              end do
+            end do
+          end do
+        else
+          call uvcross2dot(utenx,vtenx,utend,vtend)
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+              end do
+            end do
+          end do
+        end if
+      case (4)
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
+        call myjpbl(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
           do k = 1 , kz

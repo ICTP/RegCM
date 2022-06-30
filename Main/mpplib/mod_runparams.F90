@@ -131,9 +131,13 @@ module mod_runparams
   integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
   integer(ik4) , public :: idcsst
+  integer(ik4) , public :: ipcpcool
+  integer(ik4) , public :: iwhitecap
   ! Sea Ice scheme index
   integer(ik4) , public :: iseaice
   real(rkx) , public :: icetriggert
+  ! Seasonal albedo for desert index
+  integer(ik4) , public :: idesseas
   ! Ocean model switch indexes
   integer(ik4) , public :: iocnrough , iocnflx , iocncpl , iocnzoq
   ! Wave model switch indexes

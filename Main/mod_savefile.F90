@@ -100,6 +100,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io
   real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io
 
+  real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io
+
   real(rkx) , public , pointer , dimension(:,:) :: psa_io
   real(rkx) , public , pointer , dimension(:,:) :: psb_io
 
@@ -154,6 +156,11 @@ module mod_savefile
 
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io
   real(rkx) , public , pointer , dimension(:,:) :: zpbl_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_uz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_vz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_thz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_qz0_io
+
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io
@@ -167,6 +174,8 @@ module mod_savefile
 
   real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io
   real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io
+
+  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io
 
@@ -238,6 +247,9 @@ module mod_savefile
         call getmem2d(psa_io,jce1,jce2,ice1,ice2,'psa_io')
         call getmem2d(psb_io,jce1,jce2,ice1,ice2,'psb_io')
       end if
+      if ( ibltyp == 4 ) then
+        call getmem3d(tke_pbl_io,jci1,jci2,ici1,ici2,1,kz,'tke_pbl_io')
+      end if
       if ( idynamic == 2 ) then
         call getmem3d(atm1_w_io,jce1,jce2,ice1,ice2,1,kzp1,'atm1_w_io')
         call getmem3d(atm2_w_io,jce1,jce2,ice1,ice2,1,kzp1,'atm2_w_io')
@@ -295,6 +307,12 @@ module mod_savefile
       call getmem2d(solvld_io,jci1,jci2,ici1,ici2,'solvld_io')
       if ( ibltyp == 2 ) then
         call getmem2d(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
+      else if ( ibltyp == 4 ) then
+        call getmem2d(myjsf_uz0_io,jci1,jci2,ici1,ici2,'myjsf_uz0_io')
+        call getmem2d(myjsf_vz0_io,jci1,jci2,ici1,ici2,'myjsf_vz0_io')
+        call getmem2d(myjsf_thz0_io,jci1,jci2,ici1,ici2,'myjsf_thz0_io')
+        call getmem2d(myjsf_qz0_io,jci1,jci2,ici1,ici2,'myjsf_qz0_io')
+        call getmem2d(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
         call getmem3d(sst_io,1,nnsg,jci1,jci2,ici1,ici2,'sst_io')
@@ -329,8 +347,11 @@ module mod_savefile
                       1,12,'qflux_restore_sst_io')
       end if
 
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call getmem2d(zpbl_io,jci1,jci2,ici1,ici2,'zpbl_io')
+      end if
+      if ( any(icup == 3) ) then
+        call getmem2d(cldefi_io,jci1,jci2,ici1,ici2,'cldefi_io')
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call getmem3d(cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz,'cu_avg_ww_io')
@@ -393,6 +414,10 @@ module mod_savefile
         call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
         call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
       end if
+      if ( ibltyp == 4 ) then
+        call getmem3d(tke_pbl_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'tke_pbl_io')
+      end if
       if ( idynamic == 2 ) then
         call getmem3d(atm1_w_io,jcross1,jcross2, &
                       icross1,icross2,1,kzp1,'atm1_w_io')
@@ -454,6 +479,16 @@ module mod_savefile
       call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
       if ( ibltyp == 2 ) then
         call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      else if ( ibltyp == 4 ) then
+        call getmem2d(myjsf_uz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_uz0_io')
+        call getmem2d(myjsf_vz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_vz0_io')
+        call getmem2d(myjsf_thz0_io,jcross1,jcross2, &
+                                    icross1,icross2,'myjsf_thz0_io')
+        call getmem2d(myjsf_qz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_qz0_io')
+        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
         call getmem3d(sst_io,1,nnsg,jcross1,jcross2, &
@@ -497,8 +532,11 @@ module mod_savefile
                       icross1,icross2,1,12,'qflux_restore_sst_io')
       end if
 
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+      end if
+      if ( any(icup == 3) ) then
+        call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
@@ -582,6 +620,13 @@ module mod_savefile
     end if
     if ( ibltyp == 2 ) then
       call mygetvar(ncid,'kpbl',kpbl_io)
+    else if ( ibltyp == 4 ) then
+      call mygetvar(ncid,'tke_pbl',tke_pbl_io)
+      call mygetvar(ncid,'kpbl',kpbl_io)
+      call mygetvar(ncid,'myjsf_uz0',myjsf_uz0_io)
+      call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
+      call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
+      call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
     end if
     if ( idynamic == 2 ) then
       call mygetvar(ncid,'atm1_w',atm1_w_io)
@@ -602,6 +647,9 @@ module mod_savefile
     call mygetvar(ncid,'rah',rah_io)
     call mygetvar(ncid,'ustar',ustar_io)
     call mygetvar(ncid,'zo',zo_io)
+    if ( any(icup == 3) ) then
+      call mygetvar(ncid,'cldefi',cldefi_io)
+    end if
     if ( any(icup == 4) ) then
       call mygetvar(ncid,'cbmf2d',cbmf2d_io)
     end if
@@ -663,7 +711,7 @@ module mod_savefile
     call mygetvar(ncid,'fsw',fsw_io)
     call mygetvar(ncid,'sinc',sinc_io)
     call mygetvar(ncid,'ldmsk',ldmsk_io)
-    if ( iocnflx == 2 ) then
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
       call mygetvar(ncid,'zpbl',zpbl_io)
     end if
     if ( ichem == 1 .and. ichecold == 0 ) then
@@ -833,6 +881,14 @@ module mod_savefile
     end if
     if ( ibltyp == 2 ) then
       call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+    else if ( ibltyp == 4 ) then
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
     if ( idynamic == 2 ) then
       wrkdim(3) = dimids(idkf)
@@ -856,6 +912,9 @@ module mod_savefile
     call savedefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
     wrkdim(3) = dimids(idkh)
+    if ( any(icup == 3) ) then
+      call savedefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call savedefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
@@ -938,7 +997,7 @@ module mod_savefile
     call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
-    if ( iocnflx == 2 ) then
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
       call savedefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
     end if
     if ( ichem == 1 ) then
@@ -1051,6 +1110,13 @@ module mod_savefile
     end if
     if ( ibltyp == 2 ) then
       call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+    else if ( ibltyp == 4 ) then
+      call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
+      call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_uz0',myjsf_uz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
     end if
     if ( idynamic == 2 ) then
       call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
@@ -1071,6 +1137,9 @@ module mod_savefile
     call myputvar(ncid,'rah',rah_io,varids,ivcc)
     call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
     call myputvar(ncid,'zo',zo_io,varids,ivcc)
+    if ( any(icup == 3) ) then
+      call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
+    end if
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
     end if
@@ -1132,7 +1201,7 @@ module mod_savefile
     call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
     call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
     call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
-    if ( iocnflx == 2 ) then
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
       call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
     end if
     if ( ichem == 1 ) then

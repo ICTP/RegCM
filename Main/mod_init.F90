@@ -359,11 +359,23 @@ module mod_init
       if ( idynamic == 3 ) then
         if ( ibltyp == 2 ) then
           mo_atm%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl(:,:,:) = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
         end if
       else
         if ( ibltyp == 2 ) then
           atm1%tke(:,:,:) = tkemin
           atm2%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
         end if
       end if
       !
@@ -459,6 +471,14 @@ module mod_init
         if ( ibltyp == 2 ) then
           kpbl = kpbl_io
         end if
+        if ( ibltyp == 4 ) then
+          atms%tkepbl = tke_pbl_io
+          kpbl = kpbl_io
+          sfs%uz0 = myjsf_uz0_io
+          sfs%vz0 = myjsf_vz0_io
+          sfs%thz0 = myjsf_thz0_io
+          sfs%qz0 = myjsf_qz0_io
+        end if
         if ( idynamic == 2 ) then
           atm1%pp(jce1:jce2,ice1:ice2,:) = atm1_pp_io(jce1:jce2,ice1:ice2,:)
           atm2%pp(jce1:jce2,ice1:ice2,:) = atm2_pp_io(jce1:jce2,ice1:ice2,:)
@@ -485,6 +505,9 @@ module mod_init
         o3prof = o3prof_io
         if ( iocnflx == 2 ) then
           zpbl = zpbl_io
+        end if
+        if ( any(icup == 3) ) then
+          cldefi = cldefi_io
         end if
         if ( any(icup == 4) ) then
           cbmf2d = cbmf2d_io
@@ -628,6 +651,15 @@ module mod_init
         if ( ibltyp == 2 ) then
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
         end if
+        if ( ibltyp == 4 ) then
+          call grid_distribute(tke_pbl_io,atms%tkepbl, &
+                               jci1,jci2,ici1,ici2,1,kz)
+          call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
+        end if
         if ( idynamic == 2 ) then
           call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
@@ -652,8 +684,11 @@ module mod_init
         end if
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
-        if ( iocnflx == 2 ) then
+        if ( iocnflx == 2 .or. ibltyp == 3 ) then
           call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 3) ) then
+          call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
         end if
         if ( any(icup == 4) ) then
           call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)

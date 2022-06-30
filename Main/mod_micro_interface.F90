@@ -33,6 +33,11 @@ module mod_micro_interface
   use mod_micro_wsm5
   use mod_cloud_subex
   use mod_cloud_xuran
+  use mod_cloud_thomp
+  use mod_cloud_guli2007
+  use mod_cloud_texeira
+  use mod_cloud_tompkins
+  use mod_cloud_echam5
 
   implicit none
 
@@ -218,13 +223,24 @@ module mod_micro_interface
     integer(ik4) :: i , j , k , ichi
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+      if ( icldfrac == 3 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
+                            mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       do k = 1 , kz
         do i = ici1 , ici2
@@ -239,6 +255,18 @@ module mod_micro_interface
       case (1)
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qvn, &
                            mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+      case (2)
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn, &
+                           totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
+                           ds,mc2mo%fcc)
+      case (3)
+        call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)
+      case (4)
+        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0,mc2mo%fcc)
+      case (5)
+        call tompkins_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
+      case (6)
+        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
