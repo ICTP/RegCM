@@ -269,8 +269,13 @@ module mod_cmip6_helper
             fpath = trim(fpath)//'CMIP'//pthsep
             experiment = 'historical'
           else
-            fpath = trim(cmip6_inp)//pthsep//'esgD_dataroot'//pthsep// &
-              'AR6'//pthsep//'CMIP6'//pthsep
+            if ( var == 'tos' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgD_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esgF_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            end if
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
             experiment = trim(cmip6_ssp)
           end if
