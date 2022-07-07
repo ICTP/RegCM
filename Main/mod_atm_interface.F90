@@ -820,6 +820,7 @@ module mod_atm_interface
       call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
       call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem2d(dom%area,jde1,jde2,ide1,ide2,'storage:area')
       if ( idynamic == 3 ) then
         call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
         call getmem2d(dom%msfu,jde1ga,jde2ga,ide1,ide2,'storage:msfu')
@@ -869,7 +870,8 @@ module mod_atm_interface
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
       call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
-      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem3d(sub%area,1,nnsg,jde1,jde2,ide1,ide2,'storage:area')
       call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem3d(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem3d(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')

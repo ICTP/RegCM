@@ -67,6 +67,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: lndcat
     real(rkx) , pointer , dimension(:,:) :: lndtex
     real(rkx) , pointer , dimension(:,:) :: mask
+    real(rkx) , pointer , dimension(:,:) :: area
     real(rkx) , pointer , dimension(:,:) :: dlat
     real(rkx) , pointer , dimension(:,:) :: dlon
     real(rkx) , pointer , dimension(:,:) :: ulat
@@ -110,6 +111,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: xlat
     real(rkx) , pointer , dimension(:,:,:) :: xlon
     real(rkx) , pointer , dimension(:,:,:) :: mask
+    real(rkx) , pointer , dimension(:,:,:) :: area
     real(rkx) , pointer , dimension(:,:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:,:) :: iveg
@@ -494,6 +496,7 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
     real(rkx) , pointer , dimension(:,:,:) :: ht1       ! mdsub%ht
     real(rkx) , pointer , dimension(:,:,:) :: lndcat1   ! mdsub%lndcat
+    real(rkx) , pointer , dimension(:,:,:) :: area1     ! mdsub%area
     real(rkx) , pointer , dimension(:,:,:) :: xlat1     ! mdsub%xlat
     real(rkx) , pointer , dimension(:,:,:) :: xlon1     ! mdsub%xlon
     real(rkx) , pointer , dimension(:,:,:) :: dhlake1   ! mdsub%dhlake

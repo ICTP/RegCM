@@ -88,6 +88,7 @@ module mod_output
         xlon_out = mddom%xlon(jci1:jci2,ici1:ici2)
         xlat_out = mddom%xlat(jci1:jci2,ici1:ici2)
         mask_out = mddom%mask(jci1:jci2,ici1:ici2)
+        area_out = mddom%area(jci1:jci2,ici1:ici2)
         topo_out = mddom%ht(jci1:jci2,ici1:ici2)
         topo_out = topo_out*regrav
       end if
@@ -95,6 +96,7 @@ module mod_output
         call reorder_subgrid(mdsub%xlon,sub_xlon_out)
         call reorder_subgrid(mdsub%xlat,sub_xlat_out)
         call reorder_subgrid(mdsub%mask,sub_mask_out)
+        call reorder_subgrid(mdsub%area,sub_area_out)
         call reorder_subgrid(mdsub%ht,sub_topo_out)
         sub_topo_out = sub_topo_out*regrav
       end if

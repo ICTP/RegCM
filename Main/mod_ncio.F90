@@ -89,7 +89,7 @@ module mod_ncio
     we_have_qi = has_qi
   end function we_have_qi
 
-  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon, &
+  subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
                               ulat,ulon,vlat,vlon,msfx,msfd,msfu,  &
                               msfv,coriol,snowam,smoist,rmoist,hlake,ts0)
     implicit none
@@ -97,6 +97,7 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: tex
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: mask
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: area
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlat
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlon
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlat
@@ -193,6 +194,9 @@ module mod_ncio
         end if
       end if
       ht(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'areacella',rspace, &
+                             istart=istart,icount=icount)
+      area(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
       mask(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
@@ -302,6 +306,9 @@ module mod_ncio
           end if
         end if
         call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'areacella',rspace, &
+                               istart=istart,icount=icount)
+        call grid_distribute(rspace,area,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'landuse',rspace, &
@@ -362,6 +369,7 @@ module mod_ncio
           call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         end if
         call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,area,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,tex,jde1,jde2,ide1,ide2)
@@ -389,12 +397,13 @@ module mod_ncio
     end if
   end subroutine read_domain_info
 
-  subroutine read_subdomain_info(ht,lnd,tex,mask,xlat,xlon,hlake)
+  subroutine read_subdomain_info(ht,lnd,tex,mask,area,xlat,xlon,hlake)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: lnd
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: tex
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: mask
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: area
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlat
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlon
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: hlake
@@ -437,6 +446,9 @@ module mod_ncio
         end if
       end if
       call input_reorder(rspace,ht,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'areacella',rspace, &
+                             istart=istart,icount=icount)
+      call input_reorder(rspace,area,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
       call input_reorder(rspace,mask,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
@@ -476,6 +488,10 @@ module mod_ncio
         end if
         call input_reorder(rspace,rspace0,1,jx,1,iy)
         call subgrid_distribute(rspace0,ht,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'areacella',rspace, &
+                               istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,area,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
         call subgrid_distribute(rspace0,mask,jde1,jde2,ide1,ide2)
@@ -500,6 +516,7 @@ module mod_ncio
         call subgrid_distribute(rspace0,xlat,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,ht,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,area,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,mask,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,lnd,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,tex,jde1,jde2,ide1,ide2)
