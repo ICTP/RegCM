@@ -479,7 +479,7 @@ module mod_cmip6
           call getmem3d(uah,1,jx,1,iy,1,nkin,'cmip6:miresl:uah')
           call getmem3d(vah,1,jx,1,iy,1,nkin,'cmip6:miresl:vah')
           call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:miresl:zgh')
-        case ( 'EC-Earth3' )
+        case ( 'EC-Earth3-veg' )
           allocate(ps,ua,va,ta,qa,zg,orog)
           ps%vname = 'ps'
           ua%vname = 'ua'
@@ -516,15 +516,15 @@ module mod_cmip6
           va%hcoord => orog%hcoord
           qa%hcoord => orog%hcoord
           zg%hcoord => orog%hcoord
-          call read_2d_cnrm(idate,ps,only_coord)
+          call read_2d_ecea(idate,ps,only_coord)
           stop
-          call read_3d_cnrm(idate,ta,only_coord)
+          call read_3d_ecea(idate,ta,only_coord)
           ua%vcoord => ta%vcoord
           va%vcoord => ta%vcoord
           qa%vcoord => qa%vcoord
-          call read_3d_cnrm(idate,ua,only_coord)
-          call read_3d_cnrm(idate,va,only_coord)
-          call read_3d_cnrm(idate,qa,only_coord)
+          call read_3d_ecea(idate,ua,only_coord)
+          call read_3d_ecea(idate,va,only_coord)
+          call read_3d_ecea(idate,qa,only_coord)
           nkin = nipl
           call getmem1d(sigmar,1,nkin,'cmip6:cnrm:sigmar')
           do k = 1 , nkin

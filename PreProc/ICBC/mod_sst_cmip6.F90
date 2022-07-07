@@ -117,9 +117,9 @@ module mod_sst_cmip6
           sst%vname = 'tos'
           step = 86400
           nsteps = int(tohours(tdif))/24 + 1
-        case ( 'EC-Earth3' )
+        case ( 'EC-Earth3-Veg' )
           if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'EC-Earth3 requires gregorian calendar.'
+            write(stderr,*) 'EC-Earth3-Veg requires gregorian calendar.'
             call die('sst','Calendar mismatch',1)
           end if
           read_func => read_sst_ecea
