@@ -15,7 +15,7 @@ module mod_clm_surfrd
   use mod_stdio
   use mod_memutil
   use mod_mpmessage
-  use mod_dynparam , only : myid , ds
+  use mod_dynparam , only : myid
 #if (defined CNDV)
   use mod_dynparam , only : enable_dv_baresoil
 #endif
@@ -110,7 +110,7 @@ module mod_clm_surfrd
     ldomain%lonc = adomain%xlon
     ldomain%latc = adomain%xlat
     ldomain%topo = adomain%topo
-    ldomain%area = ds*ds
+    ldomain%area = adomain%area*.000001_rk8 ! square kilometers
     ldomain%pftm = ldomain%mask
 
     ! Check lat limited to -90,90

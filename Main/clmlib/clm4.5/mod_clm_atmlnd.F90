@@ -22,6 +22,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: xlat
     real(rk8) , pointer , dimension(:) :: xlon
     real(rk8) , pointer , dimension(:) :: topo
+    real(rk8) , pointer , dimension(:) :: area
     integer(ik4) , pointer , dimension(:) :: iveg
     integer(ik4) , pointer , dimension(:) :: itex
     real(rk8) , pointer , dimension(:) :: snow
