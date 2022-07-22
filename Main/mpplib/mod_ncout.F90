@@ -447,7 +447,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_emten    = 14
   integer(ik4) , parameter :: che_chgact   = 15
   integer(ik4) , parameter :: che_ncon     = 16
-  integer(ik4) , parameter :: che_massc    = 17
+  integer(ik4) , parameter :: che_airden   = 17
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -2326,6 +2326,7 @@ module mod_ncout
             opt_pai_out => v3dvar_opt(opt_pai)%rval
           end if
           enable_opt3d_vars(opt_pp) = .false.
+          enable_opt3d_vars(opt_deltaz) = .false. 
         else
           enable_opt3d_vars(opt_pp) = .false.
           enable_opt3d_vars(opt_pai) = .false.
@@ -2502,6 +2503,12 @@ module mod_ncout
             'atmosphere_mass_mixing_ratio_of_tracer',.true.)
           che_mixrat_out => v3dvar_che(che_mixrat)%rval
         end if
+        if ( enable_che3d_vars(che_airden) ) then
+            call setup_var(v3dvar_che,che_airden,vsize,'airden', 'kg m-3', &
+              'Atmosphere air density', &
+              'atmosphere_air_density',.true.)
+            che_airden_out => v3dvar_che(che_airden)%rval
+        end if
         if ( ichdiag > 0 ) then
           if ( enable_che3d_vars(che_cheten) ) then
             call setup_var(v3dvar_che,che_cheten,vsize,'cheten', &
@@ -2585,16 +2592,9 @@ module mod_ncout
               'atmosphere_layer_number_content_of_aerosol_particles',.true.)
             che_ncon_out => v3dvar_che(che_ncon)%rval
           end if
-          if ( enable_che3d_vars(che_massc) ) then
-            call setup_var(v3dvar_che,che_massc,vsize,'massc', 'kg m-3', &
-              'Atmosphere tracer mass concentration', &
-              'mass_concentration_of_tracer_in_air',.true.)
-            che_massc_out => v3dvar_che(che_massc)%rval
-          end if
         else
           enable_che3d_vars(che_chgact) = .false.
           enable_che3d_vars(che_ncon) = .false.
-          enable_che3d_vars(che_massc) = .false.
         end if
 
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
