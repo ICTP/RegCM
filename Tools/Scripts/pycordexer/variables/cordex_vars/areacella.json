@@ -1,0 +1,24 @@
+{
+  "areacella": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "areacella"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "areacella",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "m2",
+            "long_name": "Atmosphere Grid-Cell Area",
+            "standard_name": "cell_area"
+          }
+        }
+      ]
+    ]
+  ]
+}

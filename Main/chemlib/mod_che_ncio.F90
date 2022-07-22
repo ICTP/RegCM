@@ -506,11 +506,11 @@ module mod_che_ncio
         call check_ok(__FILE__,__LINE__, &
                       'variable time units miss', &
                       'CHEMISS FILE')
-        if ( chemi_timeunits(1:6) == 'months' ) then
+        if ( chemi_timeunits(1:5) == 'month' ) then
           ifreq = ifrqmon
-        else if ( chemi_timeunits(1:4) == 'days' ) then
+        else if ( chemi_timeunits(1:3) == 'day' ) then
           ifreq = ifrqday
-        else if ( chemi_timeunits(1:5) == 'hours' ) then
+        else if ( chemi_timeunits(1:4) == 'hour' ) then
           ifreq = ifrqhrs
         else
           call fatal(__FILE__,__LINE__, &

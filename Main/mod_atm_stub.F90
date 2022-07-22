@@ -557,6 +557,7 @@ module mod_atm_stub
       call assignpnt(mddom%rmoist,lm%rmoist)
       call assignpnt(mdsub%xlat,lm%xlat1)
       call assignpnt(mdsub%xlon,lm%xlon1)
+      call assignpnt(mdsub%area,lm%area1)
       call assignpnt(mdsub%lndcat,lm%lndcat1)
       call assignpnt(mdsub%ldmsk,lm%ldmsk1)
       call assignpnt(mdsub%ht,lm%ht1)

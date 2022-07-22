@@ -55,7 +55,7 @@ module mod_ncout
     integer(ik4) :: jl1 , jl2 , il1 , il2
   end type regcm_stream
 
-  integer(ik4) , parameter :: nbase = 5
+  integer(ik4) , parameter :: nbase = 6
 
   integer(ik4) , parameter :: natm2dvars = 7 + nbase
   integer(ik4) , parameter :: natm3dvars = 62
@@ -168,14 +168,15 @@ module mod_ncout
   integer(ik4) , parameter :: atm_xlat  = 2
   integer(ik4) , parameter :: atm_mask  = 3
   integer(ik4) , parameter :: atm_topo  = 4
-  integer(ik4) , parameter :: atm_ps    = 5
-  integer(ik4) , parameter :: atm_p0    = 6
-  integer(ik4) , parameter :: atm_tpr   = 7
-  integer(ik4) , parameter :: atm_tsn   = 8
-  integer(ik4) , parameter :: atm_tgb   = 9
-  integer(ik4) , parameter :: atm_tsw   = 10
-  integer(ik4) , parameter :: atm_cape  = 11
-  integer(ik4) , parameter :: atm_cin   = 12
+  integer(ik4) , parameter :: atm_area  = 5
+  integer(ik4) , parameter :: atm_ps    = 6
+  integer(ik4) , parameter :: atm_p0    = 7
+  integer(ik4) , parameter :: atm_tpr   = 8
+  integer(ik4) , parameter :: atm_tsn   = 9
+  integer(ik4) , parameter :: atm_tgb   = 10
+  integer(ik4) , parameter :: atm_tsw   = 11
+  integer(ik4) , parameter :: atm_cape  = 12
+  integer(ik4) , parameter :: atm_cin   = 13
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -244,50 +245,52 @@ module mod_ncout
   integer(ik4) , parameter :: shf_xlat   = 2
   integer(ik4) , parameter :: shf_mask   = 3
   integer(ik4) , parameter :: shf_topo   = 4
-  integer(ik4) , parameter :: shf_ps     = 5
-  integer(ik4) , parameter :: shf_pcpavg = 6
-  integer(ik4) , parameter :: shf_pcpmax = 7
-  integer(ik4) , parameter :: shf_pcprcv = 8
-  integer(ik4) , parameter :: shf_twetb  = 9
+  integer(ik4) , parameter :: shf_area   = 5
+  integer(ik4) , parameter :: shf_ps     = 6
+  integer(ik4) , parameter :: shf_pcpavg = 7
+  integer(ik4) , parameter :: shf_pcpmax = 8
+  integer(ik4) , parameter :: shf_pcprcv = 9
+  integer(ik4) , parameter :: shf_twetb  = 10
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
   integer(ik4) , parameter :: srf_mask     = 3
   integer(ik4) , parameter :: srf_topo     = 4
-  integer(ik4) , parameter :: srf_ps       = 5
-  integer(ik4) , parameter :: srf_uvdrag   = 6
-  integer(ik4) , parameter :: srf_tg       = 7
-  integer(ik4) , parameter :: srf_tlef     = 8
-  integer(ik4) , parameter :: srf_tpr      = 9
-  integer(ik4) , parameter :: srf_evp      = 10
-  integer(ik4) , parameter :: srf_scv      = 11
-  integer(ik4) , parameter :: srf_sena     = 12
-  integer(ik4) , parameter :: srf_lena     = 13
-  integer(ik4) , parameter :: srf_flw      = 14
-  integer(ik4) , parameter :: srf_fsw      = 15
-  integer(ik4) , parameter :: srf_uflw     = 16
-  integer(ik4) , parameter :: srf_ufsw     = 17
-  integer(ik4) , parameter :: srf_fld      = 18
-  integer(ik4) , parameter :: srf_sina     = 19
-  integer(ik4) , parameter :: srf_prcv     = 20
-  integer(ik4) , parameter :: srf_zpbl     = 21
-  integer(ik4) , parameter :: srf_aldirs   = 22
-  integer(ik4) , parameter :: srf_aldifs   = 23
-  integer(ik4) , parameter :: srf_sund     = 24
-  integer(ik4) , parameter :: srf_seaice   = 25
-  integer(ik4) , parameter :: srf_snowmelt = 26
-  integer(ik4) , parameter :: srf_dew      = 27
-  integer(ik4) , parameter :: srf_srunoff  = 28
-  integer(ik4) , parameter :: srf_trunoff  = 29
-  integer(ik4) , parameter :: srf_ustar    = 30
-  integer(ik4) , parameter :: srf_zo       = 31
-  integer(ik4) , parameter :: srf_rhoa     = 32
-  integer(ik4) , parameter :: srf_totcf    = 33
-  integer(ik4) , parameter :: srf_wspd     = 34
-  integer(ik4) , parameter :: srf_taux     = 35
-  integer(ik4) , parameter :: srf_tauy     = 36
-  integer(ik4) , parameter :: srf_psl      = 37
-  integer(ik4) , parameter :: srf_evpot    = 38
+  integer(ik4) , parameter :: srf_area     = 5
+  integer(ik4) , parameter :: srf_ps       = 6
+  integer(ik4) , parameter :: srf_uvdrag   = 7
+  integer(ik4) , parameter :: srf_tg       = 8
+  integer(ik4) , parameter :: srf_tlef     = 9
+  integer(ik4) , parameter :: srf_tpr      = 10
+  integer(ik4) , parameter :: srf_evp      = 11
+  integer(ik4) , parameter :: srf_scv      = 12
+  integer(ik4) , parameter :: srf_sena     = 13
+  integer(ik4) , parameter :: srf_lena     = 14
+  integer(ik4) , parameter :: srf_flw      = 15
+  integer(ik4) , parameter :: srf_fsw      = 16
+  integer(ik4) , parameter :: srf_uflw     = 17
+  integer(ik4) , parameter :: srf_ufsw     = 18
+  integer(ik4) , parameter :: srf_fld      = 19
+  integer(ik4) , parameter :: srf_sina     = 20
+  integer(ik4) , parameter :: srf_prcv     = 21
+  integer(ik4) , parameter :: srf_zpbl     = 22
+  integer(ik4) , parameter :: srf_aldirs   = 23
+  integer(ik4) , parameter :: srf_aldifs   = 24
+  integer(ik4) , parameter :: srf_sund     = 25
+  integer(ik4) , parameter :: srf_seaice   = 26
+  integer(ik4) , parameter :: srf_snowmelt = 27
+  integer(ik4) , parameter :: srf_dew      = 28
+  integer(ik4) , parameter :: srf_srunoff  = 29
+  integer(ik4) , parameter :: srf_trunoff  = 30
+  integer(ik4) , parameter :: srf_ustar    = 31
+  integer(ik4) , parameter :: srf_zo       = 32
+  integer(ik4) , parameter :: srf_rhoa     = 33
+  integer(ik4) , parameter :: srf_totcf    = 34
+  integer(ik4) , parameter :: srf_wspd     = 35
+  integer(ik4) , parameter :: srf_taux     = 36
+  integer(ik4) , parameter :: srf_tauy     = 37
+  integer(ik4) , parameter :: srf_psl      = 38
+  integer(ik4) , parameter :: srf_evpot    = 39
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -303,16 +306,17 @@ module mod_ncout
   integer(ik4) , parameter :: sts_xlat    = 2
   integer(ik4) , parameter :: sts_mask    = 3
   integer(ik4) , parameter :: sts_topo    = 4
-  integer(ik4) , parameter :: sts_ps      = 5
-  integer(ik4) , parameter :: sts_tgmax   = 6
-  integer(ik4) , parameter :: sts_tgmin   = 7
-  integer(ik4) , parameter :: sts_pcpmax  = 8
-  integer(ik4) , parameter :: sts_pcpavg  = 9
-  integer(ik4) , parameter :: sts_sund    = 10
-  integer(ik4) , parameter :: sts_psmin   = 11
-  integer(ik4) , parameter :: sts_psavg   = 12
-  integer(ik4) , parameter :: sts_srunoff = 13
-  integer(ik4) , parameter :: sts_trunoff = 14
+  integer(ik4) , parameter :: sts_area    = 5
+  integer(ik4) , parameter :: sts_ps      = 6
+  integer(ik4) , parameter :: sts_tgmax   = 7
+  integer(ik4) , parameter :: sts_tgmin   = 8
+  integer(ik4) , parameter :: sts_pcpmax  = 9
+  integer(ik4) , parameter :: sts_pcpavg  = 10
+  integer(ik4) , parameter :: sts_sund    = 11
+  integer(ik4) , parameter :: sts_psmin   = 12
+  integer(ik4) , parameter :: sts_psavg   = 13
+  integer(ik4) , parameter :: sts_srunoff = 14
+  integer(ik4) , parameter :: sts_trunoff = 15
 
   integer(ik4) , parameter :: sts_t2max  = 1
   integer(ik4) , parameter :: sts_t2min  = 2
@@ -323,15 +327,16 @@ module mod_ncout
   integer(ik4) , parameter :: sub_xlat    = 2
   integer(ik4) , parameter :: sub_mask    = 3
   integer(ik4) , parameter :: sub_topo    = 4
-  integer(ik4) , parameter :: sub_ps      = 5
-  integer(ik4) , parameter :: sub_uvdrag  = 6
-  integer(ik4) , parameter :: sub_tg      = 7
-  integer(ik4) , parameter :: sub_tlef    = 8
-  integer(ik4) , parameter :: sub_evp     = 9
-  integer(ik4) , parameter :: sub_scv     = 10
-  integer(ik4) , parameter :: sub_sena    = 11
-  integer(ik4) , parameter :: sub_srunoff = 12
-  integer(ik4) , parameter :: sub_trunoff = 13
+  integer(ik4) , parameter :: sub_area    = 5
+  integer(ik4) , parameter :: sub_ps      = 6
+  integer(ik4) , parameter :: sub_uvdrag  = 7
+  integer(ik4) , parameter :: sub_tg      = 8
+  integer(ik4) , parameter :: sub_tlef    = 9
+  integer(ik4) , parameter :: sub_evp     = 10
+  integer(ik4) , parameter :: sub_scv     = 11
+  integer(ik4) , parameter :: sub_sena    = 12
+  integer(ik4) , parameter :: sub_srunoff = 13
+  integer(ik4) , parameter :: sub_trunoff = 14
 
   integer(ik4) , parameter :: sub_u10m   = 1
   integer(ik4) , parameter :: sub_v10m   = 2
@@ -343,23 +348,24 @@ module mod_ncout
   integer(ik4) , parameter :: rad_xlat   = 2
   integer(ik4) , parameter :: rad_mask   = 3
   integer(ik4) , parameter :: rad_topo   = 4
-  integer(ik4) , parameter :: rad_ps     = 5
-  integer(ik4) , parameter :: rad_p0     = 6
-  integer(ik4) , parameter :: rad_frsa   = 7
-  integer(ik4) , parameter :: rad_frla   = 8
-  integer(ik4) , parameter :: rad_clrst  = 9
-  integer(ik4) , parameter :: rad_clrss  = 10
-  integer(ik4) , parameter :: rad_clrlt  = 11
-  integer(ik4) , parameter :: rad_clrls  = 12
-  integer(ik4) , parameter :: rad_solin  = 13
-  integer(ik4) , parameter :: rad_solout = 14
-  integer(ik4) , parameter :: rad_totwv  = 15
-  integer(ik4) , parameter :: rad_totcl  = 16
-  integer(ik4) , parameter :: rad_totci  = 17
-  integer(ik4) , parameter :: rad_lwout  = 18
-  integer(ik4) , parameter :: rad_higcl  = 19
-  integer(ik4) , parameter :: rad_midcl  = 20
-  integer(ik4) , parameter :: rad_lowcl  = 21
+  integer(ik4) , parameter :: rad_area   = 5
+  integer(ik4) , parameter :: rad_ps     = 6
+  integer(ik4) , parameter :: rad_p0     = 7
+  integer(ik4) , parameter :: rad_frsa   = 8
+  integer(ik4) , parameter :: rad_frla   = 9
+  integer(ik4) , parameter :: rad_clrst  = 10
+  integer(ik4) , parameter :: rad_clrss  = 11
+  integer(ik4) , parameter :: rad_clrlt  = 12
+  integer(ik4) , parameter :: rad_clrls  = 13
+  integer(ik4) , parameter :: rad_solin  = 14
+  integer(ik4) , parameter :: rad_solout = 15
+  integer(ik4) , parameter :: rad_totwv  = 16
+  integer(ik4) , parameter :: rad_totcl  = 17
+  integer(ik4) , parameter :: rad_totci  = 18
+  integer(ik4) , parameter :: rad_lwout  = 19
+  integer(ik4) , parameter :: rad_higcl  = 20
+  integer(ik4) , parameter :: rad_midcl  = 21
+  integer(ik4) , parameter :: rad_lowcl  = 22
 
   integer(ik4) , parameter :: rad_pp     = 1
   integer(ik4) , parameter :: rad_pai    = 2
@@ -376,19 +382,20 @@ module mod_ncout
   integer(ik4) , parameter :: lak_xlat   = 2
   integer(ik4) , parameter :: lak_mask   = 3
   integer(ik4) , parameter :: lak_topo   = 4
-  integer(ik4) , parameter :: lak_ps     = 5
-  integer(ik4) , parameter :: lak_tg     = 6
-  integer(ik4) , parameter :: lak_tpr    = 7
-  integer(ik4) , parameter :: lak_scv    = 8
-  integer(ik4) , parameter :: lak_sena   = 9
-  integer(ik4) , parameter :: lak_flw    = 10
-  integer(ik4) , parameter :: lak_fsw    = 11
-  integer(ik4) , parameter :: lak_fld    = 12
-  integer(ik4) , parameter :: lak_sina   = 13
-  integer(ik4) , parameter :: lak_aldirs = 14
-  integer(ik4) , parameter :: lak_aldifs = 15
-  integer(ik4) , parameter :: lak_evp    = 16
-  integer(ik4) , parameter :: lak_ice    = 17
+  integer(ik4) , parameter :: lak_area   = 5
+  integer(ik4) , parameter :: lak_ps     = 6
+  integer(ik4) , parameter :: lak_tg     = 7
+  integer(ik4) , parameter :: lak_tpr    = 8
+  integer(ik4) , parameter :: lak_scv    = 9
+  integer(ik4) , parameter :: lak_sena   = 10
+  integer(ik4) , parameter :: lak_flw    = 11
+  integer(ik4) , parameter :: lak_fsw    = 12
+  integer(ik4) , parameter :: lak_fld    = 13
+  integer(ik4) , parameter :: lak_sina   = 14
+  integer(ik4) , parameter :: lak_aldirs = 15
+  integer(ik4) , parameter :: lak_aldifs = 16
+  integer(ik4) , parameter :: lak_evp    = 17
+  integer(ik4) , parameter :: lak_ice    = 18
 
   integer(ik4) , parameter :: lak_tlake  = 1
 
@@ -396,17 +403,18 @@ module mod_ncout
   integer(ik4) , parameter :: opt_xlat     = 2
   integer(ik4) , parameter :: opt_mask     = 3
   integer(ik4) , parameter :: opt_topo     = 4
-  integer(ik4) , parameter :: opt_ps       = 5
-  integer(ik4) , parameter :: opt_p0       = 6
-  integer(ik4) , parameter :: opt_acstoarf = 7
-  integer(ik4) , parameter :: opt_acstsrrf = 8
-  integer(ik4) , parameter :: opt_acstalrf = 9
-  integer(ik4) , parameter :: opt_acssrlrf = 10
-  integer(ik4) , parameter :: opt_aod      = 11
-  integer(ik4) , parameter :: opt_aastoarf = 12
-  integer(ik4) , parameter :: opt_aastsrrf = 13
-  integer(ik4) , parameter :: opt_aastalrf = 14
-  integer(ik4) , parameter :: opt_aassrlrf = 15
+  integer(ik4) , parameter :: opt_area     = 5
+  integer(ik4) , parameter :: opt_ps       = 6
+  integer(ik4) , parameter :: opt_p0       = 7
+  integer(ik4) , parameter :: opt_acstoarf = 8
+  integer(ik4) , parameter :: opt_acstsrrf = 9
+  integer(ik4) , parameter :: opt_acstalrf = 10
+  integer(ik4) , parameter :: opt_acssrlrf = 11
+  integer(ik4) , parameter :: opt_aod      = 12
+  integer(ik4) , parameter :: opt_aastoarf = 13
+  integer(ik4) , parameter :: opt_aastsrrf = 14
+  integer(ik4) , parameter :: opt_aastalrf = 15
+  integer(ik4) , parameter :: opt_aassrlrf = 16
 
   integer(ik4) , parameter :: opt_pp       = 1
   integer(ik4) , parameter :: opt_pai      = 2
@@ -421,15 +429,16 @@ module mod_ncout
   integer(ik4) , parameter :: che_xlat     = 2
   integer(ik4) , parameter :: che_mask     = 3
   integer(ik4) , parameter :: che_topo     = 4
-  integer(ik4) , parameter :: che_ps       = 5
-  integer(ik4) , parameter :: che_p0       = 6
-  integer(ik4) , parameter :: che_wdrflx   = 7
-  integer(ik4) , parameter :: che_wdcflx   = 8
-  integer(ik4) , parameter :: che_ddflx    = 9
-  integer(ik4) , parameter :: che_emflx    = 10
-  integer(ik4) , parameter :: che_ddvel    = 11
-  integer(ik4) , parameter :: che_burden   = 12
-  integer(ik4) , parameter :: che_pblten   = 13
+  integer(ik4) , parameter :: che_area     = 5
+  integer(ik4) , parameter :: che_ps       = 6
+  integer(ik4) , parameter :: che_p0       = 7
+  integer(ik4) , parameter :: che_wdrflx   = 8
+  integer(ik4) , parameter :: che_wdcflx   = 9
+  integer(ik4) , parameter :: che_ddflx    = 10
+  integer(ik4) , parameter :: che_emflx    = 11
+  integer(ik4) , parameter :: che_ddvel    = 12
+  integer(ik4) , parameter :: che_burden   = 13
+  integer(ik4) , parameter :: che_pblten   = 14
 
   integer(ik4) , parameter :: che_pp       = 1
   integer(ik4) , parameter :: che_pai      = 2
@@ -453,7 +462,8 @@ module mod_ncout
   integer(ik4) , parameter :: slab_xlat    = 2
   integer(ik4) , parameter :: slab_mask    = 3
   integer(ik4) , parameter :: slab_topo    = 4
-  integer(ik4) , parameter :: slab_ps      = 5
+  integer(ik4) , parameter :: slab_area    = 5
+  integer(ik4) , parameter :: slab_ps      = 6
 
   integer(ik4) , public , parameter :: slab_qflx    = 1
 
@@ -591,7 +601,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_atm,atm_xlon, &
-                  atm_xlat,atm_topo,atm_mask,atm_ps,atm_p0)
+                  atm_xlat,atm_topo,atm_mask,atm_area,atm_ps,atm_p0)
         if ( idynamic /= 2 ) enable_atm2d_vars(atm_p0) = .false.
 
         ! The following may be enabled/disabled
@@ -1145,7 +1155,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_shf,shf_xlon, &
-                  shf_xlat,shf_topo,shf_mask,shf_ps,-1)
+                  shf_xlat,shf_topo,shf_mask,shf_area,shf_ps,-1)
 
         if ( enable_shf_vars(shf_pcpavg) ) then
           call setup_var(v2dvar_shf,shf_pcpavg,vsize,'pr','kg m-2 s-1', &
@@ -1209,7 +1219,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_srf,srf_xlon, &
-                  srf_xlat,srf_topo,srf_mask,srf_ps,-1)
+                  srf_xlat,srf_topo,srf_mask,srf_area,srf_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -1556,7 +1566,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_sts,sts_xlon, &
-                  sts_xlat,sts_topo,sts_mask,sts_ps,-1)
+                  sts_xlat,sts_topo,sts_mask,sts_area,sts_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -1698,6 +1708,8 @@ module mod_ncout
           'Land Mask','land_binary_mask')
         call setup_var(v2dvar_sub,sub_topo,vsize,'topo','m', &
           'Surface Model Elevation','surface_altitude')
+        call setup_var(v2dvar_sub,sub_area,vsize,'areacella','m2', &
+          'Land Area Fraction','land_area_fraction')
         call setup_var(v2dvar_sub,sub_ps,vsize,'ps','hPa', &
           'Surface Pressure','surface_air_pressure',.true.,'time: mean')
 
@@ -1705,6 +1717,7 @@ module mod_ncout
         sub_xlat_out => v2dvar_sub(sub_xlat)%rval
         sub_mask_out => v2dvar_sub(sub_mask)%rval
         sub_topo_out => v2dvar_sub(sub_topo)%rval
+        sub_area_out => v2dvar_sub(sub_area)%rval
         sub_ps_out => v2dvar_sub(sub_ps)%rval
 
         ! The following may be enabled/disabled
@@ -1842,7 +1855,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_rad,rad_xlon, &
-                  rad_xlat,rad_topo,rad_mask,rad_ps,rad_p0)
+                  rad_xlat,rad_topo,rad_mask,rad_area,rad_ps,rad_p0)
         if ( idynamic /= 2 ) enable_rad2d_vars(rad_p0) = .false.
 
         ! The following may be enabled/disabled
@@ -2063,7 +2076,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_lak,lak_xlon, &
-                  lak_xlat,lak_topo,lak_mask,lak_ps,-1)
+                  lak_xlat,lak_topo,lak_mask,lak_area,lak_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -2184,7 +2197,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_slaboc,slab_xlon, &
-                  slab_xlat,slab_topo,slab_mask,slab_ps,-1)
+                  slab_xlat,slab_topo,slab_mask,slab_area,slab_ps,-1)
 
         vsize%k2 = 12
         v3dvar_slaboc(slab_qflx)%axis = 'xyM'
@@ -2237,7 +2250,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_opt,opt_xlon, &
-                  opt_xlat,opt_topo,opt_mask,opt_ps,opt_p0)
+                  opt_xlat,opt_topo,opt_mask,opt_area,opt_ps,opt_p0)
         if ( idynamic /= 2 ) enable_opt2d_vars(opt_p0) = .false.
 
         ! The following may be enabled/disabled
@@ -2416,7 +2429,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_che,che_xlon, &
-                  che_xlat,che_topo,che_mask,che_ps,che_p0)
+                  che_xlat,che_topo,che_mask,che_area,che_ps,che_p0)
         if ( idynamic /= 2 ) enable_che2d_vars(che_p0) = .false.
 
         ! The following may be enabled/disabled
@@ -3538,11 +3551,11 @@ module mod_ncout
     end do stream_loop_par
   end subroutine newoutfiles
 
-  subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,ps,ps0)
+  subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,area,ps,ps0)
     implicit none
     type(varspan) , intent(in) :: vsize
     type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
-    integer(ik4), intent(in) :: xlon , xlat , topo , mask , ps , ps0
+    integer(ik4), intent(in) :: xlon , xlat , topo , mask , area , ps , ps0
     if ( associated(xlon_out) ) then
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
         'Longitude on Cross Points','longitude',lgetspace=.false.)
@@ -3552,12 +3565,15 @@ module mod_ncout
         'Land Mask','land_binary_mask',lgetspace=.false.)
       call setup_var(var,topo,vsize,'topo','m', &
         'Surface Model Elevation','surface_altitude',lgetspace=.false.)
+      call setup_var(var,area,vsize,'areacella','m2', &
+        'Land Area Fraction','land_area_fraction',lgetspace=.false.)
       call setup_var(var,ps,vsize,'ps','Pa', &
         'Surface Pressure','surface_air_pressure',.true.,lgetspace=.false.)
       var(xlon)%rval => xlon_out
       var(xlat)%rval => xlat_out
       var(mask)%rval => mask_out
       var(topo)%rval => topo_out
+      var(area)%rval => area_out
       var(ps)%rval => ps_out
       if ( idynamic == 2 .and. ps0 > 0 ) then
         if ( associated(p0_out) ) then
@@ -3582,12 +3598,15 @@ module mod_ncout
         'Land Mask','land_binary_mask')
       call setup_var(var,topo,vsize,'topo','m', &
         'Surface Model Elevation','surface_altitude')
+      call setup_var(var,area,vsize,'areacella','m2', &
+        'Land Area Fraction','land_area_fraction')
       call setup_var(var,ps,vsize,'ps','Pa', &
         'Surface Air Pressure','surface_air_pressure',.true.)
       xlon_out => var(xlon)%rval
       xlat_out => var(xlat)%rval
       mask_out => var(mask)%rval
       topo_out => var(topo)%rval
+      area_out => var(area)%rval
       ps_out => var(ps)%rval
       if ( idynamic == 2 .and. ps0 > 0 ) then
         call setup_var(var,ps0,vsize,'p0','Pa', &

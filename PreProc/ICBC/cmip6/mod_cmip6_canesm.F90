@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cmip6_ecea
+module mod_cmip6_canesm
 
   use mod_intkinds
   use mod_realkinds
@@ -33,15 +33,14 @@ module mod_cmip6_ecea
 
   private
 
-  character(len=*) , parameter :: ecea_version = 'v20210324'
-  character(len=*) , parameter :: ecea_version1 = 'v20200310'
-  character(len=*) , parameter :: ecea_version2 = 'v20200918'
+  character(len=*) , parameter :: canesm_version = 'v20190429'
+  character(len=*) , parameter :: canesm_version1 = 'v20190429'
 
-  public :: read_3d_ecea , read_2d_ecea , read_fx_ecea , read_sst_ecea
+  public :: read_3d_canesm , read_2d_canesm , read_fx_canesm , read_sst_canesm
 
   contains
 
-    subroutine read_hcoord_ecea(ncid,lon,lat)
+    subroutine read_hcoord_canesm(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
@@ -55,8 +54,8 @@ module mod_cmip6_ecea
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_ecea:lon')
-      call getmem1d(lat,1,nlat,'cmip6_ecea:lat')
+      call getmem1d(lon,1,nlon,'cmip6_canesm:lon')
+      call getmem1d(lat,1,nlat,'cmip6_canesm:lat')
       istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -65,24 +64,24 @@ module mod_cmip6_ecea
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
-    end subroutine read_hcoord_ecea
+    end subroutine read_hcoord_canesm
 
-    subroutine read_hcoord_sst_ecea(ncid,lon,lat)
+    subroutine read_hcoord_sst_canesm(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlon , nlat
       istatus = nf90_inq_dimid(ncid,'i',idimid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find i dim')
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon i')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire i dim')
       istatus = nf90_inq_dimid(ncid,'j',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find j dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire j dim')
-      call getmem2d(lon,1,nlon,1,nlat,'cmip6_ecea:lon')
-      call getmem2d(lat,1,nlon,1,nlat,'cmip6_ecea:lat')
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_canesm:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_canesm:lat')
       istatus = nf90_inq_varid(ncid,'longitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -91,36 +90,31 @@ module mod_cmip6_ecea
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find latitude var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read latitude var')
-    end subroutine read_hcoord_sst_ecea
+    end subroutine read_hcoord_sst_canesm
 
-    subroutine read_vcoord_ecea(ncid,a,b,p0)
+    subroutine read_vcoord_canesm(ncid,ap,b)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
-      real(rkx) , intent(out) :: p0
+      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(a,1,nlev,'cmip6_ecea:a')
-      call getmem1d(b,1,nlev,'cmip6_ecea:b')
-      istatus = nf90_inq_varid(ncid,'a',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
-      istatus = nf90_get_var(ncid,ivarid,a)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read a var')
+      call getmem1d(ap,1,nlev,'cmip6_canesm:ap')
+      call getmem1d(b,1,nlev,'cmip6_canesm:b')
+      istatus = nf90_inq_varid(ncid,'ap',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find ap var')
+      istatus = nf90_get_var(ncid,ivarid,ap)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read ap var')
       istatus = nf90_inq_varid(ncid,'b',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(ncid,ivarid,b)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
-      istatus = nf90_inq_varid(ncid,'p0',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
-      istatus = nf90_get_var(ncid,ivarid,p0)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
-    end subroutine read_vcoord_ecea
+    end subroutine read_vcoord_canesm
 
-    recursive subroutine read_3d_ecea(idate,v,lonlyc)
+    recursive subroutine read_3d_canesm(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_3d_var) , pointer , intent(inout) :: v
@@ -131,12 +125,14 @@ module mod_cmip6_ecea
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
+        ver = canesm_version1
         write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'6hrLev',ecea_version1,v%vname)), &
-            year, '01010000-', year, '12311800.nc'
+          trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
+          year, '01010000-', year, '12311800.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -146,17 +142,17 @@ module mod_cmip6_ecea
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_ecea(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_canesm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%vcoord) ) then
         allocate(v%vcoord)
-        call read_vcoord_ecea(v%ncid,v%vcoord%ak,v%vcoord%bk,v%vcoord%p0)
+        call read_vcoord_canesm(v%ncid,v%vcoord%ak,v%vcoord%bk)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
         v%nk = size(v%vcoord%ak)
-        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:ecea:'//trim(v%vname))
+        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:canesm:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ', &
           v%ni,'x',v%nj,'x',v%nk
@@ -208,7 +204,7 @@ module mod_cmip6_ecea
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_3d_ecea(idate,v)
+        call read_3d_canesm(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -221,11 +217,12 @@ module mod_cmip6_ecea
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_3d_ecea
+    end subroutine read_3d_canesm
 
-    recursive subroutine read_2d_ecea(idate,v,lonlyc)
+    recursive subroutine read_2d_canesm(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_and_date) :: last_date
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
@@ -234,12 +231,14 @@ module mod_cmip6_ecea
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
+        ver = canesm_version1
         write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'6hrLev',ecea_version1,v%vname)), &
-            year,'01010000-',year,'12311800.nc'
+          trim(cmip6_path(year,'6hrLev',ver,v%vname)), &
+          year, '01010000-', year, '12311800.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -249,12 +248,12 @@ module mod_cmip6_ecea
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_ecea(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_canesm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
-        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:ecea:'//trim(v%vname))
+        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:canesm:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -305,7 +304,7 @@ module mod_cmip6_ecea
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_2d_ecea(idate,v)
+        call read_2d_canesm(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -316,14 +315,14 @@ module mod_cmip6_ecea
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_2d_ecea
+    end subroutine read_2d_canesm
 
-    recursive subroutine read_fx_ecea(v)
+    recursive subroutine read_fx_canesm(v)
       implicit none
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       integer(ik4) :: istatus
 
-      v%filename = trim(cmip6_fxpath(ecea_version,v%vname))
+      v%filename = trim(cmip6_fxpath(canesm_version,v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -331,10 +330,10 @@ module mod_cmip6_ecea
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error opening file '//trim(v%filename)//'.')
       allocate(v%hcoord)
-      call read_hcoord_ecea(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+      call read_hcoord_canesm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       v%ni = size(v%hcoord%lon1d)
       v%nj = size(v%hcoord%lat1d)
-      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:ecea:'//trim(v%vname))
+      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:canesm:'//trim(v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -348,15 +347,16 @@ module mod_cmip6_ecea
       istatus = nf90_close(v%ncid)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(v%filename)//'.')
-    end subroutine read_fx_ecea
+    end subroutine read_fx_canesm
 
-    recursive subroutine read_sst_ecea(idate,v,lat,lon)
+    recursive subroutine read_sst_canesm(idate,v,lat,lon)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , intent(inout) :: v
       real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
       integer(ik4) :: istatus , idimid , it , irec
       integer(ik4) :: year , month , day , hour
+      integer(ik4) :: y1 , y2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -364,9 +364,31 @@ module mod_cmip6_ecea
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'Oday',ecea_version2,v%vname)), &
-            year,'0101-',year,'1231.nc'
+        if ( year < 1861 ) then
+          y1 = 1850
+          y2 = 1860
+        else if ( year < 2015 ) then
+          y1 = ((year-1)/10)*10 + 1
+          if ( y1 == 2011 ) then
+            y2 = 2014
+          else
+            y2 = y1 + 9
+          end if
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(year,'Oday',canesm_version,v%vname)), &
+            y1,'0101-',y2,'1231.nc'
+        else
+          if ( year < 2021 ) then
+            y1 = 2015
+            y2 = 2020
+          else
+            y1 = (year-1)/10*10 + 1
+            y2 = y1 + 9
+          end if
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(year,'Oday',canesm_version,v%vname)), &
+            y1,'0101-',y2,'1231.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -376,12 +398,12 @@ module mod_cmip6_ecea
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_sst_ecea(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
+        call read_hcoord_sst_canesm(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
                                    v%hcoord%lat2d,v%hcoord%lon2d,lat,lon)
         call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
                             1,size(v%hcoord%lat2d,2), &
-                            'cmip6_ecea:'//trim(v%vname))
+                            'cmip6_canesm:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
@@ -423,7 +445,7 @@ module mod_cmip6_ecea
         v%ivar = -1
         v%nrec = -1
         irec = 1
-        call read_sst_ecea(idate,v,lat,lon)
+        call read_sst_canesm(idate,v,lat,lon)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -440,8 +462,8 @@ module mod_cmip6_ecea
       else where
         v%var = v%var + 273.15_rkx
       end where
-    end subroutine read_sst_ecea
+    end subroutine read_sst_canesm
 
-end module mod_cmip6_ecea
+end module mod_cmip6_canesm
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

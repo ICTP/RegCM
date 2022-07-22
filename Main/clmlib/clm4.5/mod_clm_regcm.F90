@@ -61,10 +61,12 @@ module mod_clm_regcm
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%area(lndcomm%linear_npoint_sg(myid+1)))
 
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%area1,adomain%area)
     adomain%topo = adomain%topo*regrav
 
     nextdate = rcmtimer%idate
@@ -74,6 +76,7 @@ module mod_clm_regcm
     call get_proc_bounds(begg,endg)
 
     deallocate(adomain%topo)
+    deallocate(adomain%area)
     deallocate(adomain%xlon)
     deallocate(adomain%xlat)
     allocate(adomain%snow(begg:endg))
@@ -82,6 +85,7 @@ module mod_clm_regcm
     allocate(adomain%iveg(begg:endg))
     allocate(adomain%itex(begg:endg))
     allocate(adomain%topo(begg:endg))
+    allocate(adomain%area(begg:endg))
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
@@ -89,6 +93,7 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%area1,adomain%area)
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     adomain%topo = adomain%topo*regrav
@@ -127,10 +132,12 @@ module mod_clm_regcm
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%area(lndcomm%linear_npoint_sg(myid+1)))
 
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%area1,adomain%area)
     adomain%topo = adomain%topo*regrav
 
     nextdate = rcmtimer%idate
@@ -140,6 +147,7 @@ module mod_clm_regcm
     call get_proc_bounds(begg,endg)
 
     deallocate(adomain%topo)
+    deallocate(adomain%area)
     deallocate(adomain%xlon)
     deallocate(adomain%xlat)
     allocate(adomain%snow(begg:endg))
@@ -148,6 +156,7 @@ module mod_clm_regcm
     allocate(adomain%iveg(begg:endg))
     allocate(adomain%itex(begg:endg))
     allocate(adomain%topo(begg:endg))
+    allocate(adomain%area(begg:endg))
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
@@ -155,6 +164,7 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%area1,adomain%area)
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     adomain%topo = adomain%topo*regrav

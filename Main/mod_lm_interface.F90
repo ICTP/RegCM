@@ -299,6 +299,7 @@ module mod_lm_interface
     call assignpnt(mddom%snowam,lm%snowam)
     call assignpnt(mddom%smoist,lm%smoist)
     call assignpnt(mddom%rmoist,lm%rmoist)
+    call assignpnt(mdsub%area,lm%area1)
     call assignpnt(mdsub%xlat,lm%xlat1)
     call assignpnt(mdsub%xlon,lm%xlon1)
     call assignpnt(mdsub%lndcat,lm%lndcat1)
@@ -466,7 +467,7 @@ module mod_lm_interface
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
 #endif
-!FAB  
+!FAB
     if ( islab_ocean == 1 ) call update_slabocean(xslabtime,lms)
 
     call vecocn(lm,lms)

@@ -732,10 +732,11 @@ program ncplot
     else
       istatus = nf90_get_att(ncid,i,'long_name', vardesc)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Inquire variable long_name')
+                      'Inquire variable '//trim(varname)//' long_name')
       istatus = nf90_get_att(ncid,i,'units', varunit)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Inquire variable units')
+      if ( istatus == nf90_noerr ) then
+        varunit = '1'
+      end if
     end if
 
     if (.not. lvarsplit) then
