@@ -54,9 +54,7 @@ module mod_cloud_tompkins
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) < minqc ) then
-            fcc(j,i,k) = d_zero
-          else
+          if ( qc(j,i,k) > dlowval ) then
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
             sig = p(j,i,k)/ps(j,i)
             kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
@@ -69,6 +67,8 @@ module mod_cloud_tompkins
             else
               fcc(j,i,k) = d_zero
             end if
+          else
+            fcc(j,i,k) = d_zero
           end if
         end do
       end do

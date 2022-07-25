@@ -34,7 +34,8 @@ module mod_cu_tiedtke
          hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
-  use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
+  use mod_runparams , only : rcrit
+  use mod_runparams , only : rprc_ocn , rprc_lnd , revap_lnd , revap_ocn
   use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
@@ -82,7 +83,6 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: rmfdeps = 0.3_rkx
 
   ! evaporation coefficient for kuo0
-  real(rkx) , pointer , dimension(:) :: cevapcu
   integer(ik4) , pointer , dimension(:,:) :: ilab
   integer(ik4) , pointer , dimension(:) :: ktype
   logical , pointer , dimension(:) :: ldland
@@ -126,7 +126,6 @@ module mod_cu_tiedtke
   subroutine allocate_mod_cu_tiedtke
     implicit none
     integer(ik4) :: i , j , ii
-    call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
     call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
     nipoi = 0
     do i = ici1 , ici2
@@ -213,7 +212,6 @@ module mod_cu_tiedtke
     end if
 
     ilab(:,:) = 2
-    cevapcu(:) = cevapu
 
     if ( ichem == 1 ) then
       do n = 1 , ntr
@@ -4235,9 +4233,15 @@ module mod_cu_tiedtke
       do jl = 1 , kproma
         if ( ldcum(jl) .and. jk >= kcbot(jl) .and. zpsubcl(jl) > almostzero ) then
           zrfl = zpsubcl(jl)
-          zrnew = (max(d_zero,sqrt(zrfl/zcucov)-cevapcu(jk)* &
-                   (paphp1(jl,jk+1)-paphp1(jl,jk))           &
-                  *max(d_zero,pqsen(jl,jk)-pqen(jl,jk))))**2*zcucov
+          if ( ldland(jl) ) then
+            zrnew = (max(d_zero,sqrt(zrfl/zcucov)-revap_lnd* &
+                     (paphp1(jl,jk+1)-paphp1(jl,jk))           &
+                    *max(d_zero,pqsen(jl,jk)-pqen(jl,jk))))**2*zcucov
+          else
+            zrnew = (max(d_zero,sqrt(zrfl/zcucov)-revap_ocn* &
+                     (paphp1(jl,jk+1)-paphp1(jl,jk))           &
+                    *max(d_zero,pqsen(jl,jk)-pqen(jl,jk))))**2*zcucov
+          end if
           zrmin = zrfl - zcucov*max(d_zero,0.80_rkx*pqsen(jl,jk)         &
                   -pqen(jl,jk))*zcons2*(paphp1(jl,jk+1)-paphp1(jl,jk))
           zrnew = max(zrnew,zrmin)

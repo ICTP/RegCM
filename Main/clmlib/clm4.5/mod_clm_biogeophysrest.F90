@@ -1159,6 +1159,9 @@ module mod_clm_biogeophysrest
       else
         call clm_readvar(ncid,'H2OSNO',cptr%cws%h2osno,gcomm_column)
       end if
+      where ( cptr%cws%h2osno < 1.0e-40_rk8 )
+        cptr%cws%h2osno = 0.0_rk8
+      end where
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'H2OSNO',cptr%cws%h2osno,gcomm_column)
     end if
@@ -1173,6 +1176,9 @@ module mod_clm_biogeophysrest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OSOI_LIQ',cptr%cws%h2osoi_liq,gcomm_column, switchdim=.true.)
+        where ( cptr%cws%h2osoi_liq < 1.0e-40_rk8 )
+          cptr%cws%h2osoi_liq = 0.0_rk8
+        end where
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'H2OSOI_LIQ',cptr%cws%h2osoi_liq,gcomm_column, switchdim=.true.)
@@ -1188,6 +1194,9 @@ module mod_clm_biogeophysrest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OSOI_ICE',cptr%cws%h2osoi_ice,gcomm_column, switchdim=.true.)
+        where ( cptr%cws%h2osoi_ice < 1.0e-40_rk8 )
+          cptr%cws%h2osoi_ice = 0.0_rk8
+        end where
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'H2OSOI_ICE',cptr%cws%h2osoi_ice,gcomm_column, switchdim=.true.)
@@ -2198,6 +2207,12 @@ module mod_clm_biogeophysrest
         if ( ltype(l) /= istdlak ) then
           ! This calculation is now done for lakes in initSLake.
           do j = 1 , nlevs
+            if ( cptr%cws%h2osoi_liq(c,j) < 1.0e-40_rk8 ) then
+              cptr%cws%h2osoi_liq(c,j) = 0.0_rk8
+            end if
+            if ( cptr%cws%h2osoi_ice(c,j) < 1.0e-40_rk8 ) then
+              cptr%cws%h2osoi_ice(c,j) = 0.0_rk8
+            end if
             cptr%cws%h2osoi_vol(c,j) = &
                     cptr%cws%h2osoi_liq(c,j)/(cptr%cps%dz(c,j)*denh2o) + &
                     cptr%cws%h2osoi_ice(c,j)/(cptr%cps%dz(c,j)*denice)

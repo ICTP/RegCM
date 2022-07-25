@@ -272,7 +272,7 @@ module mod_regcm_interface
       extime = extime + real(dtsec,rk8)
       if ( debug_level > 3 ) then
         if ( myid == italk ) then
-          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
+          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( )
         end if
       end if
 
@@ -329,7 +329,7 @@ module mod_regcm_interface
 #endif
 
     if ( myid == italk ) then
-      write(stdout,*) 'RegCM V4 simulation successfully reached end'
+      write(stdout,*) 'RegCM V5 simulation successfully reached end'
     end if
   end subroutine RCM_finalize
 

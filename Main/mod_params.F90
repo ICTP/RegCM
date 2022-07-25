@@ -71,7 +71,7 @@ module mod_params
     implicit none
     real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
                qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
-               xtop , xx , yy , mo_c1 , mo_c2 , dl
+               xtop , xx , yy , mo_c1 , mo_c2 , dl , minfrq
     real(rkx) , dimension(kzp1) :: fak , fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
@@ -118,8 +118,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_anu2 , mo_filterpai , mo_nadv , mo_nsound ,       &
-      mo_wmax , mo_nzfilt
+      mo_anu2 , mo_nadv , mo_nsound , mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -150,8 +149,9 @@ module mod_params
       entrpen_ocn , entrscv , entrmid , cprcon , detrpen_lnd ,       &
       detrpen_ocn , entshalp , rcuc_lnd , rcuc_ocn , rcpec_lnd ,     &
       rcpec_ocn , rhebc_lnd , rhebc_ocn , rprc_ocn , rprc_lnd ,      &
-      cmtcape , lmfpen , lmfmid , lmfdd , lepcld , lmfdudv ,         &
-      lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
+      revap_lnd , revap_ocn , cmtcape , lmfpen , lmfmid , lmfdd ,    &
+      lepcld , lmfdudv , lmfscv , lmfuvdis , lmftrac , lmfsmooth ,   &
+      lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate ,        &
@@ -340,10 +340,9 @@ module mod_params
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
     mo_nadv = 3
-    mo_nsound = 6
-    mo_anu2 = 0.6_rkx
+    mo_nsound = 5
+    mo_anu2 = 0.05_rkx
     mo_nzfilt = 0
-    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
@@ -491,6 +490,8 @@ module mod_params
                             ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
+    revap_lnd = 1.0e-5_rkx  ! coefficient for evaporation over land
+    revap_ocn = 1.0e-5_rkx  ! coefficient for evaporation over ocean
     cmtcape = 3600.0_rkx   ! CAPE adjustment timescale
     lmfpen    = .true.  ! penetrative conv is switched on
     lmfmid    = .true.  ! midlevel conv is switched on
@@ -1098,6 +1099,32 @@ module mod_params
 
       dt = check_against_outparams(dt,mindt)
 
+      minfrq = 86400.0_rkx
+
+      ! Check user input
+      if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
+      if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+      if ( radfrq <= 0.0_rkx ) radfrq = 6.0_rkx
+      if ( optfrq <= 0.0_rkx ) optfrq = 6.0_rkx
+      if ( lakfrq <= 0.0_rkx ) lakfrq = 6.0_rkx
+      if ( subfrq <= 0.0_rkx ) subfrq = 3.0_rkx
+      if ( chemfrq <= 0.0_rkx ) chemfrq = 6.0_rkx
+
+      if ( ifsrf ) minfrq = min(minfrq,max(srffrq*3600.0_rkx,dt))
+      if ( ifatm ) minfrq = min(minfrq,max(atmfrq*3600.0_rkx,dt))
+      if ( ifrad ) minfrq = min(minfrq,max(radfrq*3600.0_rkx,dt))
+      if ( ifopt ) minfrq = min(minfrq,max(optfrq*3600.0_rkx,dt))
+      if ( ifshf ) minfrq = min(minfrq,3600.0_rkx)
+      if ( ichem == 1 ) then
+        if ( ifchem ) minfrq = min(minfrq,max(chemfrq*3600.0_rkx,dt))
+      end if
+      if ( lakemod == 1 ) then
+        if ( iflak ) minfrq = min(minfrq,max(lakfrq*3600.0_rkx,dt))
+      end if
+      if ( nsg > 1 ) then
+        if ( ifsub ) minfrq = min(minfrq,max(subfrq*3600.0_rkx,dt))
+      end if
+
       if ( dtsrf <= 0.0_rkx ) dtsrf = 600.0_rkx
       if ( dtcum <= 0.0_rkx ) dtcum = 300.0_rkx
       if ( dtche <= 0.0_rkx ) dtche = 900.0_rkx
@@ -1119,31 +1146,25 @@ module mod_params
       if ( dtabem < dt ) dtabem = dt
 
       dtsrf = int(dtsrf / dt) * dt
-      if ( ifshf ) then
-        do while ( mod(3600.0_rkx,dtsrf) > d_zero )
-          dtsrf = dtsrf - dt
-        end do
-      else
-        do while ( mod(86400.0_rkx,dtsrf) > d_zero )
-          dtsrf = dtsrf - dt
-        end do
-      end if
-      dtsrf = int(dtsrf / dt) * dt
+      do while ( mod(minfrq,dtsrf) > d_zero )
+        dtsrf = dtsrf - dt
+      end do
 
       dtcum = int(dtcum / dt) * dt
-      do while ( mod(86400.0_rkx,dtcum) > d_zero )
+      do while ( mod(minfrq,dtcum) > d_zero )
         dtcum = dtcum - dt
       end do
-      dtcum = int(dtcum / dt) * dt
+      dtcum = max(int(dtcum / (0.5_rkx*dtsrf)),1) * (0.5_rkx*dtsrf)
 
       dtrad = int(dtrad / dt) * dt
-      do while ( mod(86400.0_rkx,dtrad) > d_zero )
+      do while ( mod(minfrq,dtrad) > d_zero )
         dtrad = dtrad - dt
       end do
-      dtrad = int(dtrad / dt) * dt
+      dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
+
+      dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 
       dtche = int(dtche / dt) * dt
-      dtabem = int(dtabem / dtrad) * dtrad
 
       if ( iseaice == 1 ) then
         select case (ssttyp)
@@ -1277,7 +1298,6 @@ module mod_params
       call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
-      call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
@@ -1609,6 +1629,8 @@ module mod_params
       call bcast(rhebc_ocn)
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
+      call bcast(revap_lnd)
+      call bcast(revap_ocn)
       call bcast(cmtcape)
       call bcast(lmfpen)
       call bcast(lmfmid)
@@ -1782,7 +1804,11 @@ module mod_params
     ! Calculate the time step in minutes.
     !
     dtsec = dt
-    dtbat = dt
+    if ( idynamic == 3 ) then
+      dtbat = dtsrf
+    else
+      dtbat = dt
+    end if
     rdt   = d_one/dt
     dtbdys = real(ibdyfrq,rkx)*secph
     !
@@ -1815,8 +1841,8 @@ module mod_params
     if ( ichem == 1 ) then
       alarm_out_che => rcm_alarm(rcmtimer,secph*chemfrq)
     end if
-      alarm_out_opt => rcm_alarm(rcmtimer,secph*optfrq)
-      if ( nsg > 1 ) then
+    alarm_out_opt => rcm_alarm(rcmtimer,secph*optfrq)
+    if ( nsg > 1 ) then
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
@@ -1835,8 +1861,6 @@ module mod_params
     if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
-
-    rsrffrq_sec = d_one/(srffrq*secph)
 
     if ( idynamic == 1 ) then
       do ns = 1 , nsplit
@@ -1911,7 +1935,8 @@ module mod_params
         base_state_ts0 = 288.15_rkx
       end if
     else
-      call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
+      call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,            &
+                            mddom%mask,mddom%area,                         &
                             mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
                             mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
                             mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
@@ -1920,7 +1945,6 @@ module mod_params
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
-      mo_filterpai = .false.
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
@@ -2135,7 +2159,7 @@ module mod_params
           'The idealized cases can run only with nsg == 1')
       end if
       call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
-               mdsub%xlat,mdsub%xlon,mdsub%dhlake)
+               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav
     else
       do i = ici1 , ici2
@@ -2146,6 +2170,7 @@ module mod_params
           mdsub%xlat(1,j,i) = mddom%xlat(j,i)
           mdsub%xlon(1,j,i) = mddom%xlon(j,i)
           mdsub%mask(1,j,i) = mddom%mask(j,i)
+          mdsub%area(1,j,i) = mddom%area(j,i)
         end do
       end do
       if ( lakemod == 1 ) then
@@ -2269,7 +2294,7 @@ module mod_params
     call init_radiation
     if ( islab_ocean == 1 ) then
       call allocate_mod_slabocean
-      call init_slabocean(sfs,mddom%lndcat,fsw,flw)
+      call init_slabocean(sfs,mddom%lndcat,fsw,flw,mddom%xlon,mddom%xlat)
     end if
     !
     ! Setup Boundary condition routines.
@@ -2284,7 +2309,7 @@ module mod_params
       call compute_moloch_static
     end if
 
-    if ( iboudy < 0 .or. iboudy > 5 ) then
+    if ( iboudy < 0 .or. iboudy > 6 ) then
       call fatal(__FILE__,__LINE__, &
                  'UNSUPPORTED BDY SCHEME.')
     end if
@@ -2619,7 +2644,6 @@ module mod_params
         write(stdout,'(a,f12.6)') &
           '  CAPE adjustment timescale         : ',cmtcape
       end if
-      cevapu = cevaplnd
     end if
     if ( any(icup == 6)  ) then
       if ( myid == italk ) then
@@ -2655,7 +2679,7 @@ module mod_params
     dsmalc = 10.0_rkx
     dxtemc = min(max(ds,dsmalc),dlargc)
     clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
-    clfrcv = min(clfrcv,d_one)
+    clfrcv = min(clfrcv,afracs)
     clfrcv = max(clfrcv,afracl)
     if ( myid == italk ) then
       write(stdout,*) &
@@ -2746,6 +2770,8 @@ module mod_params
         write(stdout,*) 'Sponge boundary conditions are used.'
       else if ( iboudy == 5 ) then
         write(stdout,*) 'Relaxation boundary conditions (exponential method)'
+      else if ( iboudy == 6 ) then
+        write(stdout,*) 'Relaxation boundary conditions (sinusoidal method)'
       end if
 
       if ( idynamic /= 3 ) then

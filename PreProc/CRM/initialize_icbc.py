@@ -240,7 +240,7 @@ def initialize_icbc(    icbc_directory, \
         vcrs._CoordinateTransformType = "Projection"
         vcrs._CoordinateAxisTypes = "GeoX GeoY"
 
-        fout.title = "ICTP Regional Climatic model V4"
+        fout.title = "ICTP Regional Climatic model V5"
         fout.institution = "ICTP"
         fout.source = "RegCM Model output file"
         fout.Conventions = "CF-1.4"

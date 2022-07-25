@@ -88,6 +88,7 @@ module mod_output
         xlon_out = mddom%xlon(jci1:jci2,ici1:ici2)
         xlat_out = mddom%xlat(jci1:jci2,ici1:ici2)
         mask_out = mddom%mask(jci1:jci2,ici1:ici2)
+        area_out = mddom%area(jci1:jci2,ici1:ici2)
         topo_out = mddom%ht(jci1:jci2,ici1:ici2)
         topo_out = topo_out*regrav
       end if
@@ -95,6 +96,7 @@ module mod_output
         call reorder_subgrid(mdsub%xlon,sub_xlon_out)
         call reorder_subgrid(mdsub%xlat,sub_xlat_out)
         call reorder_subgrid(mdsub%mask,sub_mask_out)
+        call reorder_subgrid(mdsub%area,sub_area_out)
         call reorder_subgrid(mdsub%ht,sub_topo_out)
         sub_topo_out = sub_topo_out*regrav
       end if
@@ -1156,12 +1158,12 @@ module mod_output
         if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
         if ( associated(srf_fld_out) ) srf_fld_out = d_zero
         if ( associated(srf_sina_out) ) srf_sina_out = d_zero
-        if ( associated(srf_sund_out) ) srf_sund_out = d_zero
         if ( associated(srf_taux_out) ) srf_taux_out = d_zero
         if ( associated(srf_tauy_out) ) srf_tauy_out = d_zero
         if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
-        if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
         if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
+        if ( associated(srf_sund_out) ) srf_sund_out = d_zero
+        if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
 
         rnsrf_for_srffrq = d_zero
         rnrad_for_srffrq = d_zero
@@ -1645,6 +1647,7 @@ module mod_output
           solvl_io = solvl
           solvld_io = solvld
           sabveg_io = sabveg
+          totcf_io = totcf
           flw_io = flw
           flwd_io = flwd
           fsw_io = fsw
@@ -1823,6 +1826,7 @@ module mod_output
           call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
           call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
           call grid_collect(sabveg,sabveg_io,jci1,jci2,ici1,ici2)
+          call grid_collect(totcf,totcf_io,jci1,jci2,ici1,ici2)
           call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
           call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
           call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)

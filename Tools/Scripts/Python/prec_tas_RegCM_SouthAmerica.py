@@ -106,7 +106,7 @@ norm_TAS     = colors.BoundaryNorm(boundaries=clev_TAS, ncolors=256)
 cmap_TAS     = plt.cm.bwr
 
 # Figure title
-plt.suptitle('Monthly AVG ('+year+'/'+month+'), RegCM4.7 (25 km)', fontsize=15)
+plt.suptitle('Monthly AVG ('+year+'/'+month+'), RegCM (25 km)', fontsize=15)
 
 # TAS: Raster plot 
 ax = fig_MAP.add_subplot(2,2,1)                   # Numbers specify: Nrows, Ncols, FigNum

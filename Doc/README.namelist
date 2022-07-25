@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------
 !
-! This README details namelist parameters for RegCM V4.7
+! This README details namelist parameters for RegCM V5.0
 !
 !-----------------------------------------------------------------------
 !
@@ -127,32 +127,68 @@
 ! CMIP6 model selection
 !
  &cmip6param
- cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
- ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
- ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
- ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
- ! cmip6_inp = 'https://esgf-data.ucar.edu/thredds/dodsC',
- ! cmip6_inp = 'https://esg-dn2.nsc.liu.se/thredds/dodsC',
  cmip6_model = 'MPI-ESM1-2-HR',
- ! cmip6_model = 'HadGEM3-GC31-MM',
- ! cmip6_model = 'NorESM2-MM',
- ! cmip6_model = 'CNRM-ESM2-1',
- ! cmip6_model = 'CESM2',
- ! cmip6_model = 'EC-Earth3',
+ cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
  cmip6_ssp = 'ssp585',
  cmip6_variant = 'r1i1p1f1',
- ! cmip6_variant = 'r1i1p1f3',
- ! cmip6_variant = 'r2i1p1f1',
- ! cmip6_variant = 'r1i1p1f2',
- ! cmip6_variant = 'r11i1p1f1',
- ! cmip6_variant = 'r1i1p1f1',
  cmip6_grid = 'gn',
- ! cmip6_grid = 'gn',
- ! cmip6_grid = 'gn',
- ! cmip6_grid = 'gr',
- ! cmip6_grid = 'gn',
- ! cmip6_grid = 'gr',
  /
+ ! &cmip6param
+ ! cmip6_model = 'HadGEM3-GC31-MM',
+ ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f3',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'NorESM2-MM',
+ ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r2i1p1f1',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'CNRM-ESM2-1',
+ ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f2',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'CESM2',
+ ! cmip6_inp = 'https://esgf-data.ucar.edu/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r11i1p1f1',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'EC-Earth3-Veg',
+ ! cmip6_inp = 'https://esg-dn3.nsc.liu.se/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r12i1p1f1',
+ ! cmip6_grid = 'gr',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'MIROC6',
+ ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f1',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'MIROC-ES2L',
+ ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f2',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'CanESM5',
+ ! cmip6_inp = 'https://crd-esgf-drc.ec.gc.ca/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p2f1',
+ ! cmip6_grid = 'gn',
+ ! /
 !
 ! Nesting control
 !
@@ -238,11 +274,12 @@
  &physicsparam
  iboudy  =          5,  ! Lateral Boundary conditions scheme
                         !   0 => Fixed
-                        !   1 => Relaxation, linear technique.
+                        !   1 => Relaxation, linear.
                         !   2 => Time-dependent
                         !   3 => Time and inflow/outflow dependent.
                         !   4 => Sponge (Perkey & Kreitzberg, MWR 1976)
-                        !   5 => Relaxation, exponential technique.
+                        !   5 => Relaxation, exponential.
+                        !   6 => Relaxation, sinusoidal.
  isladvec =         0,  ! Semilagrangian advection scheme for tracers and
                         ! humidity
                         !   0 => Disabled
@@ -389,10 +426,9 @@
  rayhd = 10000.0,   ! Damping scale depth
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop
- mo_nsound = 6,     ! Number of sound loops for advection loop
- mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
+ mo_nsound = 5,     ! Number of sound loops for advection loop
+ mo_anu2 = 0.05,    ! Moloch factor for divergence filtering
  mo_nzfilt = 0,     ! Number of top levels where W filter is active
- mo_filterpai = .F.,! Filter on Exner function tendencies activated
  /
 !
 ! Hydrostatic core option
@@ -585,6 +621,8 @@
  rhebc_ocn = 0.8,       ! Critical rh below cloud for evaporation iconv=4
  rprc_lnd = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
  rprc_ocn = 1.4e-3,     ! conversion coefficient from cloud water iconv=4
+ revap_lnd = 1.0e-5,    ! Raindrop evap rate coef land
+ revap_ocn = 1.0e-5,    ! Raindrop evap rate coef ocean
  entshalp = 2.0,        ! shallow entrainment factor for entrorg iconv=4
  cmtcape = 3600.0,      ! CAPE adjustment timescale iconv=[1,2,3]
  lmfpen    = .true.,    ! penetrative conv is switched on

@@ -58,16 +58,23 @@ module mod_micro_nogtom
   use mod_stdio
   use mod_mpmessage
   use mod_memutil
-  use mod_regcm_types
-  use mod_constants
   use mod_service
+  use mod_regcm_types
+  use mod_constants , only : d_zero , d_one , d_half , d_two , d_1000
+  use mod_constants , only : dlowval , mathpi
+  use mod_constants , only : tzero , rtice , rtwat_rtice_r
+  use mod_constants , only : c5alvcp , c5alscp , rhoh2o , rovcp
+  use mod_constants , only : wlhfocp , wlhsocp , wlhvocp
+  use mod_constants , only : rwat , wlhs , wlhv
+  use mod_constants , only : c5les , c5ies , c3ies , c3les , c4les , c4ies
+  use mod_constants , only : c2es , ep1
+  use mod_constants , only : egrav , regrav , ep1
   use mod_runparams , only : nqx
   use mod_runparams , only : iqqv => iqv !vapor
   use mod_runparams , only : iqql => iqc !liquid
   use mod_runparams , only : iqqr => iqr !rain
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
-  use mod_runparams , only : sigma
   use mod_runparams , only : dt , rdt
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
@@ -94,6 +101,8 @@ module mod_micro_nogtom
   real(rkx) , parameter :: autocrit_kessl = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
+  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
+  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
   real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
   real(rkx) , parameter :: siglow = 0.8_rkx
   ! Cloud fraction threshold that defines cloud top
@@ -117,8 +126,6 @@ module mod_micro_nogtom
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
-  real(rkx) , parameter :: rhcrit_lnd = 0.80_rkx
-  real(rkx) , parameter :: rhcrit_sea = 0.90_rkx
   !------------------------------------------------
   real(rkx) , parameter :: ciden13 = 8.87_rkx      ! ice density 700**0.333
   real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
@@ -355,10 +362,15 @@ module mod_micro_nogtom
     end do
   end subroutine init_nogtom
 
-  subroutine nogtom(mo2mc,ngs,mc2mo)
+#ifdef DEBUG
+  subroutine nogtom(mo2mc,mc2mo,ngs)
     implicit none
-    type(mod_2_micro) , intent(in) :: mo2mc
     type(nogtom_stats) , intent(inout) :: ngs
+#else
+  subroutine nogtom(mo2mc,mc2mo)
+    implicit none
+#endif
+    type(mod_2_micro) , intent(in) :: mo2mc
     type(micro_2_mod) , intent(out) :: mc2mo
     integer(ik4) :: i , j , k , kk , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud
@@ -776,13 +788,21 @@ module mod_micro_nogtom
 
           ldetr = ( abs(mo2mc%qdetr(j,i,k)) > activqx )
           totcond = qxfg(iqql)+qxfg(iqqi)
-          lconden = ( totcond > 2.0*activqx )
+          lconden = ( qxfg(iqql) > activqx .and. qxfg(iqqi) > activqx )
           if ( lconden ) then
             qliqfrac = qxfg(iqql)/totcond
             qicefrac = d_one-qliqfrac
           else
-            qliqfrac = d_zero
-            qicefrac = d_zero
+            if ( qxfg(iqql) > activqx ) then
+              qliqfrac = d_one
+              qicefrac = d_zero
+            else if ( qxfg(iqqi) > activqx ) then
+              qliqfrac = d_zero
+              qicefrac = d_one
+            else
+              qliqfrac = d_zero
+              qicefrac = d_zero
+            end if
           end if
 
           qicetot = d_zero
@@ -894,16 +914,16 @@ module mod_micro_nogtom
             !------------------------------------------------
 
             if ( qx0(iqql) < activqx ) then
-              qsexp(iqqv,iqql) =  qx0(iqql)
-              qsexp(iqql,iqqv) = -qx0(iqql)
+              qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + qx0(iqql)
+              qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - qx0(iqql)
               qxfg(iqql) = qxfg(iqql) - qx0(iqql)
-              qxfg(iqqv) = qxfg(iqql) + qx0(iqql)
+              qxfg(iqqv) = qxfg(iqqv) + qx0(iqql)
             end if
             if ( qx0(iqqi) < activqx ) then
-              qsexp(iqqv,iqqi) =  qx0(iqqi)
-              qsexp(iqqi,iqqv) = -qx0(iqqi)
+              qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + qx0(iqqi)
+              qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - qx0(iqqi)
               qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
-              qxfg(iqqv) = qxfg(iqqi) + qx0(iqqi)
+              qxfg(iqqv) = qxfg(iqqv) + qx0(iqqi)
             end if
 
             !------------------------------------------------------------------
@@ -930,9 +950,9 @@ module mod_micro_nogtom
               end if  !lfall
             end do ! n
 
-            !-----------..........--------------------------------------------
+            !-----------------------------------------------------------------
             !  ICE SUPERSATURATION ADJUSTMENT
-            !-..........------------------------------------------------------
+            !-----------------------------------------------------------------
             ! Note that the supersaturation adjustment is made with respect to
             ! liquid saturation:  when T > 0C
             ! ice saturation:     when T < 0C
@@ -1251,9 +1271,6 @@ module mod_micro_nogtom
                     chng = min(chng,xlcondlim)
                   end if
                   chng = max(chng,d_zero)
-                  if ( chng < activqx ) then
-                    chng = d_zero
-                  end if
                   !-------------------------------------------------------------
                   ! all increase goes into liquid unless so cold cloud
                   ! homogeneously freezes
@@ -1307,7 +1324,7 @@ module mod_micro_nogtom
             ! By considering sedimentation first and including the
             ! implicit loss term in the first guess of ice.
             !--------------------------------------------------------------
-            lactiv = qxfg(iqql) > activqx .and. ltklt0
+            lactiv = qx0(iqql) > activqx .and. ltklt0
             if ( lactiv ) then
               vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
@@ -1529,7 +1546,7 @@ module mod_micro_nogtom
             ! calculate sublimation latent heat
 
             chngmax = max((tzero-tk)*rldcp,d_zero)
-            if ( chngmax > d_zero .and. qxfg(iqqr) > activqx ) then
+            if ( chngmax > d_zero .and. qx0(iqqr) > activqx ) then
               chng = min(qxfg(iqqr),chngmax)
               chng = max(chng,d_zero)
               qsexp(iqqs,iqqr) = qsexp(iqqs,iqqr) + chng
@@ -1548,7 +1565,7 @@ module mod_micro_nogtom
             !-------------------
 
             chngmax = max((thomo-tk)*rldcp,d_zero)
-            if ( chngmax > d_zero .and. qxfg(iqql) > activqx ) then
+            if ( chngmax > d_zero .and. qx0(iqql) > activqx ) then
               chng = min(qxfg(iqql),chngmax)
               chng = max(chng,d_zero)
               qsexp(iqqi,iqql) = qsexp(iqqi,iqql) + chng
@@ -1592,7 +1609,7 @@ module mod_micro_nogtom
             lactiv = covpclr(j,i) > d_zero .and. &
                      covptot(j,i) > d_zero .and. &
                      qpretot > d_zero .and.      &
-                     qxfg(iqqr) > activqx .and.  &
+                     qx0(iqqr) > activqx .and.   &
                      qe < zrh*qsliq(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
@@ -1610,9 +1627,6 @@ module mod_micro_nogtom
                 denom = d_one + beta*dt*corqsliq
                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
-
-                ! AMT just evaporate all rain if the rainfall is very small
-                if ( qxfg(iqqr) < activqx ) dpevap = qxfg(iqqr)
 
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
@@ -1653,7 +1667,7 @@ module mod_micro_nogtom
             lactiv = covpclr(j,i) > d_zero .and. &
                      covptot(j,i) > d_zero .and. &
                      qpretot > d_zero .and.      &
-                     qxfg(iqqs) > activqx .and.  &
+                     qx0(iqqs) > activqx .and.   &
                      qe < zrh*qsice(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
@@ -1987,7 +2001,7 @@ module mod_micro_nogtom
               pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
               mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
-               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
+              pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
           end do
         end do

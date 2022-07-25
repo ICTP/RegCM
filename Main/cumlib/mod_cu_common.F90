@@ -46,9 +46,6 @@ module mod_cu_common
   integer(ik4) , pointer , public , dimension(:,:) :: cu_ktop
   integer(ik4) , pointer , public , dimension(:,:) :: cu_kbot
 
-  ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-  real(rkx) , public :: cevapu
-
   ! which scheme to use
   integer(ik4) , public , pointer , dimension(:,:) :: cuscheme
 

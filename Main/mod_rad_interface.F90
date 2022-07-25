@@ -23,6 +23,8 @@ module mod_rad_interface
   use mod_realkinds
   use mod_dynparam
   use mod_constants
+  use mod_stdio
+  use mod_mppparam , only : italk
   use mod_date
   use mod_memutil
   use mod_runparams
@@ -101,6 +103,10 @@ module mod_rad_interface
         kth  = n_hrehlev - kclimh + 1 + kz
         ktf  = kth + 1
         kclimf = kclimh + 1
+      end if
+      if ( myid == italk ) then
+        write(stdout,*) 'Total number of the half RRTM levels is ', kth
+        write(stdout,*) 'Total number of the full RRTM levels is ', ktf
       end if
     end if
 

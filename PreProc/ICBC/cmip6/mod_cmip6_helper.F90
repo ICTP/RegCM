@@ -54,26 +54,27 @@ module mod_cmip6_helper
     integer(ik4) :: ivar = -1
     integer(ik4) :: nrec = -1
     type(rcm_time_and_date) :: first_date
-    type(h_interpolator) , pointer , dimension(:) :: hint
+    type(h_interpolator) , pointer , dimension(:) :: hint => null( )
   end type cmip6_file
 
   type, extends(cmip6_file) :: cmip6_2d_var
     character(len=8) :: vname
     integer(ik4) :: ni , nj
-    real(rkx) , pointer , dimension(:,:) :: var
+    real(rkx) , pointer , dimension(:,:) :: var => null( )
     type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
   end type cmip6_2d_var
 
   type, extends(cmip6_file) :: cmip6_3d_var
     character(len=8) :: vname
     integer(ik4) :: ni , nj , nk
-    real(rkx) , pointer , dimension(:,:,:) :: var
+    real(rkx) , pointer , dimension(:,:,:) :: var => null( )
     type(cmip6_horizontal_coordinates) , pointer :: hcoord => null( )
     type(cmip6_vertical_coordinate) , pointer :: vcoord => null( )
   end type cmip6_3d_var
 
   public :: cmip6_2d_var , cmip6_3d_var
-  public :: cmip6_fxpath , cmip6_path , cmip6_error
+  public :: cmip6_fxpath , cmip6_path
+  public :: cmip6_error
 
   contains
 
@@ -127,6 +128,24 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'ssp370-lowNTCFCH4'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_ssp370-lowNTCFCH4_'
+        case ( 'CanESM5' )
+          fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'// &
+            pthsep//'AR6'//pthsep//'CMIP6'//pthsep//'CMIP'// &
+            pthsep//'CCCma'//pthsep//'CanESM5'//pthsep//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
+        case ( 'MIROC6' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+            pthsep//'MIROC6'//pthsep//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
+        case ( 'MIROC-ES2L')
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+            pthsep//'MIROC-ES2L'//pthsep//'historical'//pthsep
+          fx_variant = cmip6_variant
+          fx_experiment = '_historical_'
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
@@ -139,8 +158,8 @@ module mod_cmip6_helper
 
     character(len=1024) function cmip6_path(year,freq,ver,var) result(fpath)
       implicit none
-      character(len=*) , intent(in) :: var , freq , ver
       integer(ik4) , intent(in) :: year
+      character(len=*) , intent(in) :: var , freq , ver
       character(len=12) :: experiment
       character(len=4) :: grid
       select case ( cmip6_model )
@@ -238,6 +257,54 @@ module mod_cmip6_helper
           else
             grid = cmip6_grid
           end if
+        case ( 'CanESM5' )
+          if ( year < 2015 ) then
+            if ( var == 'tos' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgC_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            end if
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            if ( var == 'tos' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgD_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esgF_dataroot'//pthsep// &
+                'AR6'//pthsep//'CMIP6'//pthsep
+            end if
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'CCCma'//pthsep//'CanESM5'//pthsep
+          grid = cmip6_grid
+        case ( 'MIROC6' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
+            'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'MIROC'//pthsep//'MIROC6'//pthsep
+          grid = cmip6_grid
+        case ( 'MIROC-ES2L' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
+            'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'MIROC'//pthsep//'MIROC-ES2L'//pthsep
+          grid = cmip6_grid
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)

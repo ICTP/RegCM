@@ -98,10 +98,11 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .false.
-  logical :: do_filterpai = .false.
+  logical , parameter :: do_fulleq = .true.
+  logical , parameter :: do_filterpai = .false.
   logical , parameter :: do_vadvtwice = .true.
-  logical , parameter :: do_filterdiv = .true.
+  logical , parameter :: do_filterqx = .false.
+  logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -154,9 +155,8 @@ module mod_moloch
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
-    do_filterpai = mo_filterpai
     if ( do_fulleq ) then
-      if ( ipptls /= 1 ) then
+      if ( ipptls > 0 ) then
         call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
         call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
       end if
@@ -203,11 +203,6 @@ module mod_moloch
         call assignpnt(mo_atm%qx,qi,iqi)
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
-      else
-        if ( do_fulleq ) then
-          call assignpnt(mo_atm%qx,qwltot,iqc)
-          call assignpnt(mo_atm%qx,qwitot,iqc)
-        end if
       end if
     end if
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
@@ -230,7 +225,7 @@ module mod_moloch
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
-    ddamp = 0.2_rkx
+    ddamp = 0.25_rkx
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -240,7 +235,7 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt
+    real(rkx) :: tv , lrt , fice
     !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
@@ -294,6 +289,23 @@ module mod_moloch
             end do
           end do
         end do
+        if ( do_fulleq ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( t(j,i,k) >= tzero ) then
+                  qwltot(j,i,k) = qc(j,i,k)
+                else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
+                  qwitot(j,i,k) = qc(j,i,k)
+                else
+                  fice = (tzero-t(j,i,k))/20.0_rkx
+                  qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
+                  qwitot(j,i,k) = qc(j,i,k) * fice
+                end if
+              end do
+            end do
+          end do
+        end if
       end if
     else
       do k = 1 , kz
@@ -435,26 +447,6 @@ module mod_moloch
       end do
     end do
     !
-    ! Mass check
-    !
-    if ( debug_level > 0 ) call massck
-    !
-    ! Prepare fields to be used in physical parametrizations.
-    !
-    call mkslice
-    !
-    ! PHYSICS
-    !
-    if ( do_phys .and. moloch_realcase ) then
-      call physical_parametrizations
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk ) then
-          write(stdout,*) 'WARNING: Physical package disabled!!!'
-        end if
-      end if
-    end if
-    !
     ! Lateral/damping boundary condition
     !
     if ( do_bdy .and. moloch_realcase .and. irceideal == 0 ) then
@@ -474,6 +466,26 @@ module mod_moloch
         end if
       end if
     end if
+    !
+    ! Prepare fields to be used in physical parametrizations.
+    !
+    call mkslice
+    !
+    ! PHYSICS
+    !
+    if ( do_phys .and. moloch_realcase ) then
+      call physical_parametrizations
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical package disabled!!!'
+        end if
+      end if
+    end if
+    !
+    ! Mass check
+    !
+    if ( debug_level > 0 ) call massck
     !
     ! Diagnostic and end timestep
     !
@@ -502,7 +514,6 @@ module mod_moloch
         end if
       end if
     end if
-
     !
     ! Next timestep ready : increment elapsed forecast time
     !
@@ -542,7 +553,7 @@ module mod_moloch
           end if
         end if
 
-        if ( iboudy == 1 .or. iboudy == 5 ) then
+        if ( iboudy == 1 .or. iboudy >= 5 ) then
           call nudge(iboudy,pai,xpaib)
           call nudge(iboudy,ps,xpsb)
           call nudge(iboudy,t,xtb)
@@ -577,7 +588,7 @@ module mod_moloch
           end if
         end if
         if ( ichem == 1 ) then
-          if ( iboudy == 1 .or. iboudy == 5 ) then
+          if ( iboudy == 1 .or. iboudy >= 5 ) then
             call nudge_chi(trac)
           else if ( iboudy == 4 ) then
             ! Not implemented sponge_chi
@@ -587,23 +598,54 @@ module mod_moloch
           end if
         end if
         call uvstagtox(u,v,ux,vx)
+        if ( do_filterqx .and. ipptls > 0 ) then
+          call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
+          call filt4d(qx,mo_anu2,iqfrst,iqlst)
+        end if
       end subroutine boundary
 
-      subroutine filt3d
+      subroutine filt4d(p,nu,n1,n2)
         implicit none
+        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
+        integer(ik4) , intent(in) :: n1 , n2
+        integer(ik4) :: j , i , k , n
+
+        do n = n1 , n2
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
+                                        p(j,i-1,k,n) + p(j,i+1,k,n)) - &
+                           d_half   * p(j,i,k,n)
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
+              end do
+            end do
+          end do
+        end do
+      end subroutine filt4d
+
+      subroutine filt3d(p,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
         integer(ik4) :: j , i , k
 
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                      zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                         d_half   * zdiv2(j,i,k)
+              p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+                                      p(j,i-1,k) + p(j,i+1,k)) - &
+                         d_half   * p(j,i,k)
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * p2d(j,i)
+              p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
             end do
           end do
         end do
@@ -751,7 +793,7 @@ module mod_moloch
           end if
           call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
           call divdamp(dtsound)
-          if ( do_filterdiv ) call filt3d
+          if ( do_filterdiv ) call filt3d(zdiv2,mo_anu2)
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -1156,10 +1198,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = i+1
+                  ih = min(i+1,icross2)
                 end if
                 ihm1 = max(ih-1,icross1)
-                ih = min(ih,icross2)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1219,10 +1260,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = j+1
+                  jh = min(j+1,jcross2)
                 end if
                 jhm1 = max(jh-1,jcross1)
-                jh = min(jh,jcross2)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1290,10 +1330,10 @@ module mod_moloch
             end do
             !do i = ici1 , ici2
             !  do j = jci1 , jci2
-                !zdv = (v(j,i+1,k) * rmv(j,i+1) - &
-                !       v(j,i,k)   * rmv(j,i)   ) * zdtrdy * pp(j,i,k)
-                !p0(j,i,k) = wz(j,i,k) + &
-                !  mx2(j,i) * (zpby(j,i) - zpby(j,i+1) + zdv)
+            !    zdv = (v(j,i+1,k) * rmv(j,i+1) - &
+            !           v(j,i,k)   * rmv(j,i)   ) * zdtrdy * pp(j,i,k)
+            !    p0(j,i,k) = wz(j,i,k) + &
+            !      mx2(j,i) * (zpby(j,i) - zpby(j,i+1) + zdv)
             !  end do
             !end do
           end do
@@ -1533,7 +1573,8 @@ module mod_moloch
             write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
           end if
           call surface_model
-          if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+          !FAB now called in surface model
+          ! if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
         end if
         !
         !------------------------------------------------
@@ -1865,7 +1906,7 @@ module mod_moloch
     integer(ik4) :: i , j , k
     real(rkx) :: ddamp1
 
-    ddamp1 = ddamp*0.125_rkx*dx**2/dts
+    ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
     if ( lrotllr ) then
       do k = 1 , kz
         do i = ici1 , ici2

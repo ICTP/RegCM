@@ -141,6 +141,7 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: flwd_io
   real(rkx) , public , pointer , dimension(:,:) :: fsw_io
   real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
+  real(rkx) , public , pointer , dimension(:,:) :: totcf_io
   real(rkx) , public , pointer , dimension(:,:) :: sinc_io
   real(rkx) , public , pointer , dimension(:,:) :: solis_io
   real(rkx) , public , pointer , dimension(:,:) :: solvs_io
@@ -297,6 +298,7 @@ module mod_savefile
       call getmem2d(flwd_io,jci1,jci2,ici1,ici2,'flwd_io')
       call getmem2d(fsw_io,jci1,jci2,ici1,ici2,'fsw_io')
       call getmem2d(sabveg_io,jci1,jci2,ici1,ici2,'sabveg_io')
+      call getmem2d(totcf_io,jci1,jci2,ici1,ici2,'totcf_io')
       call getmem2d(sinc_io,jci1,jci2,ici1,ici2,'sinc_io')
       call getmem2d(solis_io,jci1,jci2,ici1,ici2,'solis_io')
       call getmem2d(solvs_io,jci1,jci2,ici1,ici2,'solvs_io')
@@ -468,6 +470,7 @@ module mod_savefile
       call getmem2d(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
       call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
       call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
+      call getmem2d(totcf_io,jcross1,jcross2,icross1,icross2,'totcf_io')
       call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
       call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
       call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
@@ -673,6 +676,7 @@ module mod_savefile
     call mygetvar(ncid,'solvl',solvl_io)
     call mygetvar(ncid,'solvld',solvld_io)
     call mygetvar(ncid,'sabveg',sabveg_io)
+    call mygetvar(ncid,'totcf',totcf_io,.true.)
     call mygetvar(ncid,'sw',sw_io)
     call mygetvar(ncid,'tlef',tlef_io)
     call mygetvar(ncid,'tgrd',tgrd_io)
@@ -936,6 +940,7 @@ module mod_savefile
     call savedefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'totcf',regcm_vartype,wrkdim,1,2,varids,ivcc)
     wrkdim(1) = dimids(idnnsg)
     wrkdim(2) = dimids(idjcross)
     wrkdim(3) = dimids(idicross)
@@ -1155,6 +1160,7 @@ module mod_savefile
     call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
     call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
     call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
+    call myputvar(ncid,'totcf',totcf_io,varids,ivcc)
     call myputvar(ncid,'sw',sw_io,varids,ivcc)
     call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
     call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
@@ -1363,7 +1369,7 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2dd
 
-  subroutine mygetvar2dd(ncid,str,var)
+  subroutine mygetvar2dd(ncid,str,var,skippable)
 #ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
@@ -1374,6 +1380,7 @@ module mod_savefile
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: var
+    logical , optional :: skippable
 #ifdef PNETCDF
     integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
 #else
@@ -1388,7 +1395,16 @@ module mod_savefile
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
-    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+    if ( present(skippable) ) then
+      if ( skippable ) then
+        var(:,:) = 0.0_rk8
+        return
+      else
+        call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+      end if
+    else
+      call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+    end if
   end subroutine mygetvar2dd
 
   subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)

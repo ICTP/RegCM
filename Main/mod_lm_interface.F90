@@ -33,6 +33,7 @@ module mod_lm_interface
   use mod_bats_common
   use mod_ocn_common
   use mod_stdio
+  use mod_slabocean
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -298,6 +299,7 @@ module mod_lm_interface
     call assignpnt(mddom%snowam,lm%snowam)
     call assignpnt(mddom%smoist,lm%smoist)
     call assignpnt(mddom%rmoist,lm%rmoist)
+    call assignpnt(mdsub%area,lm%area1)
     call assignpnt(mdsub%xlat,lm%xlat1)
     call assignpnt(mdsub%xlon,lm%xlon1)
     call assignpnt(mdsub%lndcat,lm%lndcat1)
@@ -465,6 +467,9 @@ module mod_lm_interface
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
 #endif
+!FAB
+    if ( islab_ocean == 1 ) call update_slabocean(xslabtime,lms)
+
     call vecocn(lm,lms)
     ! Fill land part of this output vars
     do i = ici1, ici2
@@ -861,7 +866,7 @@ module mod_lm_interface
         if ( associated(srf_scv_out) ) &
           srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
-          where( lm%swdir+lm%lwdir > 120.0_rkx )
+          where( lm%rswf > 120.0_rkx )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if

@@ -108,11 +108,7 @@ module mod_runparams
   ! Step counters to activate surface and radiation schemes
   real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
      rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_optfrq , &
-     rnrad_for_srffrq , rnrad_for_radfrq
-  ! Step of surface scheme in one atmosphere I/O interval
-  real(rkx) , public :: rnsrf_for_atmfrq
-  ! One over seconds in one surface I/O interval
-  real(rkx) , public :: rsrffrq_sec
+     rnrad_for_srffrq , rnrad_for_radfrq , rnsrf_for_atmfrq
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !
@@ -180,7 +176,6 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dzita , mo_anu2
   real(rkx) , public :: mo_wmax , mo_cflhmax , mo_cflsmax
-  logical , public :: mo_filterpai
   integer(ik4) , public :: mo_nzfilt
   integer(ik4) , public :: mo_nadv
   integer(ik4) , public :: mo_nsound
@@ -343,6 +338,8 @@ module mod_runparams
                                   ! cloud at which evaporation starts for ocean
   real(rkx) , public :: rprc_lnd  ! coeff for conversion from cloud water
   real(rkx) , public :: rprc_ocn  ! coeff for conversion from cloud water
+  real(rkx) , public :: revap_lnd ! coeff evaporation over land
+  real(rkx) , public :: revap_ocn ! coeff evaporation over ocean
   real(rkx) , public :: detrpen_lnd ! Detrainment rate for penetrative conv
   real(rkx) , public :: detrpen_ocn ! Detrainment rate for penetrative conv
   real(rkx) , public :: entshalp  ! shallow entrainment factor for entrorg

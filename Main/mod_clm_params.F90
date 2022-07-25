@@ -378,7 +378,8 @@ module mod_clm_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
+    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,            &
+                          mddom%mask,mddom%area,                         &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
                           mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
                           mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
@@ -424,7 +425,7 @@ module mod_clm_params
 
     if ( nsg > 1 ) then
       call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
-               mdsub%xlat,mdsub%xlon,mdsub%dhlake)
+               mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav
     else
       do i = ici1 , ici2
@@ -435,6 +436,7 @@ module mod_clm_params
           mdsub%xlat(1,j,i) = mddom%xlat(j,i)
           mdsub%xlon(1,j,i) = mddom%xlon(j,i)
           mdsub%mask(1,j,i) = mddom%mask(j,i)
+          mdsub%area(1,j,i) = mddom%area(j,i)
         end do
       end do
     end if

@@ -39,7 +39,7 @@ nlevs=${#level[@]}
 echo dset ^$file > $ctlfile
 echo dtype netcdf >> $ctlfile
 echo undef 1e+20_FillValue >> $ctlfile
-echo title ICTP Regional Climatic model V4 >> $ctlfile
+echo title ICTP Regional Climatic model V5 >> $ctlfile
 echo $pdefstr >> $ctlfile
 echo $xdefstr >> $ctlfile
 echo $ydefstr >> $ctlfile

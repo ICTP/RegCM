@@ -29,6 +29,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: xlat_out => null()
   real(rkx) , dimension(:,:) , pointer :: topo_out => null()
   real(rkx) , dimension(:,:) , pointer :: mask_out => null()
+  real(rkx) , dimension(:,:) , pointer :: area_out => null()
   real(rkx) , dimension(:,:) , pointer :: ps_out => null()
   real(rkx) , dimension(:,:) , pointer :: p0_out => null()
 
@@ -36,6 +37,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: sub_xlat_out => null()
   real(rkx) , dimension(:,:) , pointer :: sub_topo_out => null()
   real(rkx) , dimension(:,:) , pointer :: sub_mask_out => null()
+  real(rkx) , dimension(:,:) , pointer :: sub_area_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: sub_ps_out => null()
 

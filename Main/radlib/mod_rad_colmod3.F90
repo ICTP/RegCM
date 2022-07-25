@@ -21,7 +21,7 @@ module mod_rad_colmod3
   use mod_intkinds , only : ik4
   use mod_realkinds , only : rkx
   use mod_constants , only : amd , amdk , amo3 , mathpi
-  use mod_constants , only : rgasmol , rhoh2o
+  use mod_constants , only : rgasmol , rhoh2o , tzero
   use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , kz , kzp1
   use mod_dynparam , only : ntr , nspi
   use mod_memutil , only : getmem1d , getmem2d , getmem3d
@@ -227,6 +227,7 @@ module mod_rad_colmod3
     real(rkx) , parameter :: picemn = 0.4_rkx
     ! Temperatures in K (263.16 , 243.16)
     real(rkx) , parameter :: minus10 = 263.15_rkx
+    real(rkx) , parameter :: minus20 = 253.15_rkx
     real(rkx) , parameter :: minus30 = 243.15_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
@@ -644,15 +645,15 @@ module mod_rad_colmod3
     else
       do k = 1 , kz
         do n = rt%n1 , rt%n2
-          if ( rt%t(n,k) > minus10 ) then
+          if ( rt%t(n,k) >= tzero ) then
             rt%fice(n,k) = 0.0_rkx
-          else if ( rt%t(n,k) < minus30 ) then
+          else if ( rt%t(n,k) <= minus20 ) then
+            !  if colder than -20 degrees C then ice phase
             rt%fice(n,k) = 1.0_rkx
           else
-            ! if colder than -10 degrees C but warmer than -30 C mixed phase
+            ! if colder than 0 degrees C but warmer than -20 C mixed phase
             ! fice : fractional ice content within cloud
-            rt%fice(n,k) = (minus10-rt%t(n,k))/20.0_rkx
-            !  if colder than -30 degrees C then ice phase
+            rt%fice(n,k) = (tzero-rt%t(n,k))/20.0_rkx
           end if
         end do
       end do
