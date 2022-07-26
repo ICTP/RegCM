@@ -17,6 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+! XXX
 #ifdef OASIS
 
 module mod_oasis_debug
@@ -193,4 +194,5 @@ module mod_oasis_debug
 end module mod_oasis_debug
 !
 #endif
+! XXX
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
