@@ -4785,9 +4785,9 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
 #ifdef DEBUG
-      where ( abs(rval) < tiny(0.0) )
-        rval = 0.0
-      end where
+!      where ( abs(rval) < tiny(0.0) )
+!        rval = 0.0
+!      end where
 #endif
       istart(2) = nt
       istart(1) = 1
@@ -4823,9 +4823,9 @@ module mod_clm_nchelper
         end if
       end do
 #ifdef DEBUG
-      where ( abs(rval) < tiny(0.0) )
-        rval = 0.0
-      end where
+!      where ( abs(rval) < tiny(0.0) )
+!        rval = 0.0
+!      end where
 #endif
       istart(3) = nt
       istart(2) = 1
@@ -4878,9 +4878,9 @@ module mod_clm_nchelper
         end do
       end do
 #ifdef DEBUG
-      where ( abs(rval) < tiny(0.0) )
-        rval = 0.0
-      end where
+!      where ( abs(rval) < tiny(0.0) )
+!        rval = 0.0
+!      end where
 #endif
       istart(4) = nt
       istart(3) = 1
@@ -4934,13 +4934,13 @@ module mod_clm_nchelper
     end if
     if ( myid == iocpu ) then
 #ifdef DEBUG
-      where ( abs(rval) < tiny(0.0) )
-        rval = 0.0
-      end where
+!      where ( abs(rval) < tiny(0.0) )
+!        rval = 0.0
+!      end where
 #endif
-      where ( abs(rval) > huge(0.0) )
-        rval = huge(0.0)
-      end where
+!      where ( abs(rval) > huge(0.0) )
+!        rval = huge(0.0)
+!      end where
       where ( is_inf(rval) )
         rval = huge(0.0)
       end where
