@@ -375,7 +375,8 @@ module mod_lm_interface
 #endif
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
-      call assignpnt(dailyrnf,lm%dailyrnf)
+      call assignpnt(sfs%dsrnof,lm%dsrnof)
+      call assignpnt(sfs%dtrnof,lm%dtrnof)
     end if
 #ifdef CLM
     allocate(landmask(jx,iy))
@@ -627,8 +628,8 @@ module mod_lm_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk(j,i) == 1 ) then
-            expfie%rnof(j,i) = lm%dailyrnf(j,i,1)/runoffcount
-            expfie%snof(j,i) = lm%dailyrnf(j,i,2)/runoffcount
+            expfie%rnof(j,i) = lm%dtrnof(j,i)/runoffcount
+            expfie%snof(j,i) = lm%dsrnof(j,i)/runoffcount
           else
             expfie%rnof(j,i) = d_zero
             expfie%snof(j,i) = d_zero
@@ -636,7 +637,8 @@ module mod_lm_interface
         end do
       end do
       runoffcount = d_one
-      lm%dailyrnf(:,:,:) = d_zero
+      lm%dtrnof(:,:) = d_zero
+      lm%dsrnof(:,:) = d_zero
     end if
 
     contains
@@ -1144,8 +1146,8 @@ module mod_lm_interface
 
     if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       ! Fill for the RTM component
-      lm%dailyrnf(:,:,1) = lm%dailyrnf(:,:,1) + sum(lms%srnof,1)*rdnnsg
-      lm%dailyrnf(:,:,2) = lm%dailyrnf(:,:,2) + &
+      lm%dsrnof(:,:) = lm%dsrnof(:,:) + sum(lms%srnof,1)*rdnnsg
+      lm%dtrnof(:,:) = lm%dtrnof(:,:) + &
         (sum(lms%trnof,1)-sum(lms%srnof,1))*rdnnsg
       runoffcount = runoffcount + d_one
     end if

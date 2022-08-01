@@ -303,6 +303,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: vz0         ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: thz0        ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: qz0         ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: dsrnof      ! Daily srnof coupling
+    real(rkx) , pointer , dimension(:,:) :: dtrnof      ! Daily trnof coupling
   end type surfstate
 
   type slice
@@ -483,7 +485,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: sxlai2d
     real(rkx) , pointer , dimension(:,:,:) :: sw_vol
     real(rkx) , pointer , dimension(:,:,:) ::tsoi
-    real(rkx) , pointer , dimension(:,:,:) :: dailyrnf
     real(rkx) , pointer , dimension(:,:) :: xlat        ! mddom%xlat
     real(rkx) , pointer , dimension(:,:) :: xlon        ! mddom%xlon
     real(rkx) , pointer , dimension(:,:) :: lndcat      ! mddom%lndcat
@@ -526,6 +527,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: u10m        ! sfs%u10m
     real(rkx) , pointer , dimension(:,:) :: v10m        ! sfs%v10m
     real(rkx) , pointer , dimension(:,:) :: q2m         ! sfs%q2m
+    real(rkx) , pointer , dimension(:,:) :: dtrnof      ! sfs%dtrnof
+    real(rkx) , pointer , dimension(:,:) :: dsrnof      ! sfs%dsrnof
     real(rkx) , pointer , dimension(:,:) :: rhox        ! rhox2d
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
