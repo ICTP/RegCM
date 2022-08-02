@@ -72,7 +72,7 @@ header='# Point latitude='+str(alat[jj,ii])+', longitude='+str(alon[jj,ii])
 print(header)
 header='#      Time            temperature ('+ncfile.variables['tas'].units+')'
 print(header)
-for i in xrange(len(xtime)):
+for i in range(len(xtime)):
     print(times[i].strftime('%Y-%m-%dT%H:%M:%SZ')+' {0:8.2f}'.format(temp[i]))
 
 ncfile.close()

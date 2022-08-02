@@ -116,6 +116,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: rah_io
   real(rkx) , public , pointer , dimension(:,:) :: ustar_io
   real(rkx) , public , pointer , dimension(:,:) :: zo_io
+  real(rkx) , public , pointer , dimension(:,:) :: dsrnof_io
+  real(rkx) , public , pointer , dimension(:,:) :: dtrnof_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io
   real(rkx) , public , pointer , dimension(:,:,:) :: snag_io
@@ -258,6 +260,10 @@ module mod_savefile
       call getmem2d(rah_io,jci1,jci2,ici1,ici2,'rah_io')
       call getmem2d(ustar_io,jci1,jci2,ici1,ici2,'ustar_io')
       call getmem2d(zo_io,jci1,jci2,ici1,ici2,'zo_io')
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+        call getmem2d(dsrnof_io,jci1,jci2,ici1,ici2,'dsrnof_io')
+        call getmem2d(dtrnof_io,jci1,jci2,ici1,ici2,'dtrnof_io')
+      end if
 #ifdef CLM45
       if ( ichem == 1 ) then
         call getmem3d(tsoi_io,jci1,jci2,ici1,ici2, &
@@ -416,6 +422,10 @@ module mod_savefile
       call getmem2d(rah_io,jcross1,jcross2,icross1,icross2,'rah_io')
       call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
       call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+        call getmem2d(dsrnof_io,jcross1,jcross2,icross1,icross2,'dsrnof_io')
+        call getmem2d(dtrnof_io,jcross1,jcross2,icross1,icross2,'dtrnof_io')
+      end if
 
 #ifdef CLM45
       if ( ichem == 1 ) then
@@ -602,6 +612,10 @@ module mod_savefile
     call mygetvar(ncid,'rah',rah_io)
     call mygetvar(ncid,'ustar',ustar_io)
     call mygetvar(ncid,'zo',zo_io)
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      call mygetvar(ncid,'dsrnof',dsrnof_io)
+      call mygetvar(ncid,'dtrnof',dtrnof_io)
+    end if
     if ( any(icup == 4) ) then
       call mygetvar(ncid,'cbmf2d',cbmf2d_io)
     end if
@@ -1071,6 +1085,10 @@ module mod_savefile
     call myputvar(ncid,'rah',rah_io,varids,ivcc)
     call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
     call myputvar(ncid,'zo',zo_io,varids,ivcc)
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      call myputvar(ncid,'dsrnof',dsrnof_io,varids,ivcc)
+      call myputvar(ncid,'dtrnof',dtrnof_io,varids,ivcc)
+    end if
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
     end if
