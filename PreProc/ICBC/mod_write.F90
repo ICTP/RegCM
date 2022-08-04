@@ -47,7 +47,7 @@ module mod_write
   public :: qc4 , qi4 , z4 , pr , ssr , strd , clt
   public :: init_output , close_output , dispose_output , newfile , writef
   public :: init_houtput , newhfile , writehf
-  public :: init_outpgw , newpgwfile , writepwgf
+  public :: init_outpgw , newpgwfile , writepgwf
 
   type(nc_output_stream) , save :: ncout
   integer(ik4) :: nvar3d
@@ -580,7 +580,7 @@ module mod_write
     end do
   end subroutine writehf
 
-  subroutine writepwgf(idate)
+  subroutine writepgwf(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivar
@@ -593,7 +593,7 @@ module mod_write
     do ivar = 1 , nvar3d
       call outstream_writevar(ncout,v3dvar_icbc(ivar))
     end do
-  end subroutine writepwgf
+  end subroutine writepgwf
 
   subroutine writef(idate)
     implicit none
