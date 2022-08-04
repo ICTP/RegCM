@@ -2033,7 +2033,7 @@ module mod_ipcc_scenario
     2099.0_rkx , 926.665_rkx , 3743.213_rkx , 433.741_rkx , 26.84_rkx , 170.02_rkx , &
     2100.0_rkx , 935.874_rkx , 3750.685_rkx , 435.106_rkx , 25.98_rkx , 167.28_rkx ], &
       [6,251])
-        ctemp = cgas(:,max(min(ghg_year_const,2100),1850)1)
+        ctemp = cgas(:,max(min(ghg_year_const,2100),1850))
         do jj = 1850 , 2100
           cgas(1,jj) = jj
           cgas(2,jj) = ctemp(2)
