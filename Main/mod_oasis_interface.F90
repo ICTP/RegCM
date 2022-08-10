@@ -636,7 +636,7 @@ module mod_oasis_interface
   subroutine oasisxregcm_rcv_all(time)
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
-    logical :: l_act , l_import_enabled , l_restart_ok
+    logical :: l_act
 ! XXX
 #ifdef DEBUG
     character(len=*) , parameter :: sub_name = 'oasisxregcm_rcv_all'
@@ -663,14 +663,13 @@ module mod_oasis_interface
         ! fill the ocean parts: out array (2d or 3d with nsg dimension)
         !                       in array, mask, field grid
         call fill_ocean(sfs%tg,cpl_sst,mddom%lndcat,im_sst%grd)
+        call fill_ocean(sfs%tgbb,cpl_sst,mddom%lndcat,im_sst%grd)
 !      end if
     end if
     ! NOT IMPLEMENTED YET, BELOW IS A COPY OF THE PROCESS IN
     ! MOD_LM_INTERFACE.F90; IMPORT_DATA_INTO_SURFACE.
 !    if ( l_cpl_im_sit ) then ! sea ice thickness [m]
 !      call oasisxregcm_rcv(cpl_sit,im_sit,time,l_act)
-!      l_import_enabled = .true.
-!      l_restart_ok = l_restart_ok .and. l_act
 !!      if ( l_act ) then
 !        grd => im_sit%grd
 !        ! dans le mask
