@@ -25,7 +25,7 @@
 #DEST=$PWD
 
 netcdf_c_ver=4.9.0
-netcdf_f_ver=4.5.4
+netcdf_f_ver=4.6.0
 hdf5_ver=1.13.1
 zlib_ver=1.2.12
 ompi_ver=4.1.4
@@ -184,10 +184,10 @@ then
 fi
 echo ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
-  --disable-dap --enable-shared >> $DEST/logs/configure.log
+  --enable-dap --enable-shared >> $DEST/logs/configure.log
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
-  --disable-dap --enable-shared >> $DEST/logs/configure.log 2>&1
+  --enable-dap --enable-shared >> $DEST/logs/configure.log 2>&1
 $MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
