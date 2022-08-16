@@ -25,7 +25,7 @@
 #DEST=$PWD
 
 netcdf_c_ver=4.9.0
-netcdf_f_ver=4.6.0
+netcdf_f_ver=4.5.4
 hdf5_ver=1.13.1
 zlib_ver=1.2.12
 ompi_ver=4.1.4
