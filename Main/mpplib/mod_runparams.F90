@@ -297,6 +297,16 @@ module mod_runparams
   real(rkx) , public :: epmax_ocn
   real(rkx) , public :: epmax_lnd
   integer(ik4) , public :: minorig
+  integer(ik4) , public :: istochastic = 0
+
+  real(rkx) , public :: sigs_min
+  real(rkx) , public :: sigs_max
+  real(rkx) , public :: sigd_min
+  real(rkx) , public :: sigd_max
+  real(rkx) , public :: elcrit_lnd_min
+  real(rkx) , public :: elcrit_lnd_max
+  real(rkx) , public :: epmax_lnd_min
+  real(rkx) , public :: epmax_lnd_max
 
   ! Tiedtke cumulus scheme parameters
 

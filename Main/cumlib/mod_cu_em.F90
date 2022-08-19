@@ -26,10 +26,18 @@ module mod_cu_em
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &
-    damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs ,   &
-    tlcrit , iqv , ichem , clfrcv , ichcumtra , icup , dt
+  use mod_mppparam
+  use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,   &
+    damp , dtmax , entp , minorig , omtrain , omtsnow , tlcrit , iqv , &
+    ichem , clfrcv , ichcumtra , icup , dt
+  use mod_runparams , only : elcrit_ocn , elcrit_lnd , epmax_ocn , epmax_lnd
+  use mod_runparams , only : sigs , sigd
   use mod_runparams , only : k2_const , kfac_shal , kfac_deep
+  use mod_runparams , only : istochastic
+  use mod_runparams , only : sigs_min , sigs_max
+  use mod_runparams , only : sigd_min , sigd_max
+  use mod_runparams , only : epmax_lnd_min , epmax_lnd_max
+  use mod_runparams , only : elcrit_lnd_min , elcrit_lnd_max
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -47,8 +55,6 @@ module mod_cu_em
   real(rkx) , parameter :: clq = 2500.0_rkx
 
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
-  real(rkx) , public , pointer , dimension(:,:) :: elcrit2d
-  real(rkx) , public , pointer , dimension(:,:) :: epmax2d
 
   integer :: ncp , nap
 
@@ -58,21 +64,23 @@ module mod_cu_em
     qcup , qscup , tcup , ucup , vcup , zcup , cldfra , phcup , ppcp
   real(rkx) , pointer , dimension(:,:,:) :: ftra , tra
   integer(ik4) , pointer , dimension(:) :: iflag , kbase , ktop , &
-    imap , jmap
+    imap , jmap , ldmsk
 
   contains
 
   subroutine allocate_mod_cu_em
     implicit none
+    integer(ik4) :: i , nseed
+    integer(ik4) , dimension(:) , allocatable :: seed
+    integer(ik8) :: sclock
 
     ncp = (jci2-jci1+1) * (ici2-ici1+1)
 
     call getmem2d(cbmf2d,jci1,jci2,ici1,ici2,'emanuel:cbmf2d')
-    call getmem2d(elcrit2d,jci1,jci2,ici1,ici2,'emanuel:elcrit2d')
-    call getmem2d(epmax2d,jci1,jci2,ici1,ici2,'emanuel:epmax2d')
 
     call getmem1d(imap,1,ncp,'emanuel:imap')
     call getmem1d(jmap,1,ncp,'emanuel:jmap')
+    call getmem1d(ldmsk,1,ncp,'emanuel:ldmsk')
     call getmem1d(cbmf,1,ncp,'emanuel:cbmf')
     call getmem1d(pret,1,ncp,'emanuel:pret')
     call getmem1d(qprime,1,ncp,'emanuel:qprime')
@@ -101,6 +109,13 @@ module mod_cu_em
       call getmem3d(ftra,1,ncp,1,kz,1,ntr,'emanuel:ftra')
       call getmem3d(tra,1,ncp,1,kz,1,ntr,'emanuel:tra')
     end if
+    if ( istochastic == 1 ) then
+      call random_seed(size = nseed)
+      allocate(seed(nseed))
+      call system_clock(sclock)
+      seed = int(sclock) + 37*[(i-1,i=1,nseed)]
+      call random_seed(put = seed)
+    end if
   end subroutine allocate_mod_cu_em
   !
   ! **********************************************
@@ -111,11 +126,23 @@ module mod_cu_em
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     integer(ik4) :: i , j , k , n , kk
+    real(rkx) , dimension(4) :: rfacs
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupemandrv'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    if ( istochastic == 1 ) then
+      if ( myid == 0 ) then
+        call random_number(rfacs)
+      end if
+      call bcast(rfacs)
+      sigs = sigs_min + rfacs(1) * (sigs_max-sigs_min)
+      sigd = sigd_min + rfacs(2) * (sigd_max-sigd_min)
+      epmax_lnd = epmax_lnd_min + rfacs(3) * (epmax_lnd_max-epmax_lnd_min)
+      elcrit_lnd = elcrit_lnd_min + rfacs(4) * (elcrit_lnd_max-elcrit_lnd_min)
+    end if
 
     nap = 0
     do i = ici1 , ici2
@@ -124,6 +151,7 @@ module mod_cu_em
           nap = nap + 1
           imap(nap) = i
           jmap(nap) = j
+          ldmsk(nap) = m2c%ldmsk(j,i)
         end if
       end do
     end do
@@ -167,10 +195,13 @@ module mod_cu_em
     end do
 
     do n = 1 , nap
-      i = imap(n)
-      j = jmap(n)
-      elcrit(n) = elcrit2d(j,i)
-      epmax(n) = epmax2d(j,i)
+      if ( ldmsk(n) > 0 ) then
+        elcrit(n) = elcrit_lnd
+        epmax(n) = epmax_lnd
+      else
+        elcrit(n) = elcrit_ocn
+        epmax(n) = epmax_ocn
+      end if
       ! Past history
       cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
     end do
