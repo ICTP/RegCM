@@ -915,7 +915,7 @@ module mod_che_dust
                     fsoil(j,nt) = fsoil(j,nt) +  &
                                   srel(j,ns,nt)* &
                                   fclay(nt) * Cd * &
-                                  k1 * uth ** k2
+                                  k1 * uth ** k2 * rdstemfac
                   end if
                 end if
               end do

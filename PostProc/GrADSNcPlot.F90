@@ -345,8 +345,8 @@ program ncplot
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
-  rloninc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
+  rlatinc = max(rounder(ds/111000.0_rkx,.false.),0.01_rkx)
+  rloninc = max(rounder(ds/111000.0_rkx,.false.),0.01_rkx)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
     nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1
@@ -447,9 +447,9 @@ program ncplot
     write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
            ' bilin sequential binary-big ', trim(tmpcoord)
   end if
-  write(ip1, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc
-  write(ip1, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc
 
   if (.not. ldepth .and. kz /= 0) then
