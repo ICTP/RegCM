@@ -977,11 +977,11 @@ module mod_projections
     logical , intent(in) :: ltop
     integer(ik4) :: tmpval
     if ( ltop ) then
-      tmpval = ceiling(xval*100.0_rkx)
+      tmpval = ceiling(xval*1000.0_rkx)
     else
-      tmpval = floor(xval*100.0_rkx)
+      tmpval = floor(xval*1000.0_rkx)
     end if
-    rounder = tmpval/100.0_rkx
+    rounder = tmpval/1000.0_rkx
   end function rounder
 
   ! Arguments in radiants
