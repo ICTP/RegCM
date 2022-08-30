@@ -113,10 +113,17 @@ module mod_cmip6_helper
           fx_experiment = '_amip_'
           fx_model = cmip6_model
         case ( 'EC-Earth3-Veg' )
-          fpath = 'https://esg-dn2.nsc.liu.se/thredds/dodsC'//pthsep// &
-            'esg_dataroot1'//pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep// &
-            'CMIP'//pthsep//'EC-Earth-Consortium'// &
-            pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+          if ( cmip6_inp(1:8) == 'https://' ) then
+            fpath = 'https://esg-dn2.nsc.liu.se/thredds/dodsC'//pthsep// &
+              'esg_dataroot1'//pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep// &
+              'CMIP'//pthsep//'EC-Earth-Consortium'// &
+              pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+          else
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'//pthsep// &
+              'cmip6data'//pthsep//'CMIP6'//pthsep// &
+              'CMIP'//pthsep//'EC-Earth-Consortium'// &
+              pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+          end if
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
           fx_model = 'EC-Earth3'
@@ -232,14 +239,24 @@ module mod_cmip6_helper
               fpath = trim(cmip6_inp)//pthsep//'esg_dataroot6'// &
                 pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
             else
+              if ( cmip6_inp(1:8) == 'https://' ) then
+                fpath = &
+                  'https://esg-dn3.nsc.liu.se/thredds/dodsC/esg_dataroot2'// &
+                  pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+              else
+                fpath = trim(cmip6_inp)//pthsep//'cmip6data'// &
+                    pthsep//'CMIP6'//pthsep
+              end if
+            end if
+          else
+            if ( cmip6_inp(1:8) == 'https://' ) then
               fpath = &
                 'https://esg-dn3.nsc.liu.se/thredds/dodsC/esg_dataroot2'// &
                 pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'cmip6data'// &
+                  pthsep//'CMIP6'//pthsep
             end if
-          else
-            fpath = &
-              'https://esg-dn3.nsc.liu.se/thredds/dodsC/esg_dataroot2'// &
-              pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
           end if
           if ( year < 2015 ) then
             fpath = trim(fpath)//'CMIP'//pthsep
