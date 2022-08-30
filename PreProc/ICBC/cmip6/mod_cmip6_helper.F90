@@ -81,7 +81,7 @@ module mod_cmip6_helper
     character(len=1024) function cmip6_fxpath(ver,var) result(fpath)
       implicit none
       character(len=*) , intent(in) :: var , ver
-      character(len=12) :: fx_variant , fx_experiment
+      character(len=24) :: fx_variant , fx_experiment , fx_model
       select case ( cmip6_model )
         case ( 'MPI-ESM1-2-HR' )
           fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
@@ -89,6 +89,7 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'historical'//pthsep
           fx_variant = cmip6_variant
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'HadGEM3-GC31-MM' )
           fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
             pthsep//'CMIP6'//pthsep//'HighResMIP'//pthsep
@@ -96,31 +97,36 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'hist-1950'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_hist-1950_'
+          fx_model = cmip6_model
         case ( 'NorESM2-MM' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
             pthsep//'CMIP6'//pthsep//'CMIP/NCC'//pthsep//'NorESM2-MM'//pthsep
           fpath = trim(fpath)//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'CNRM-ESM2-1' )
           fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
             pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
           fpath = trim(fpath)//'amip'//pthsep
           fx_variant = 'r1i1p1f2'
           fx_experiment = '_amip_'
-        case ( 'EC-Earth3' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'// &
-            pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep//'CMIP'//&
-            pthsep//'EC-Earth-Consortium'// &
+          fx_model = cmip6_model
+        case ( 'EC-Earth3-Veg' )
+          fpath = 'https://esg-dn2.nsc.liu.se/thredds/dodsC'//pthsep// &
+            'esg_dataroot1'//pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep// &
+            'CMIP'//pthsep//'EC-Earth-Consortium'// &
             pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
+          fx_model = 'EC-Earth3'
         case ( 'CESM2' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
             pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCAR'// &
             pthsep//'CESM2'//pthsep//'historical'//pthsep
           fx_variant = 'r11i1p1f1'
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
             pthsep//'AerChemMIP'//pthsep
@@ -128,31 +134,35 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'ssp370-lowNTCFCH4'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_ssp370-lowNTCFCH4_'
+          fx_model = cmip6_model
         case ( 'CanESM5' )
           fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'// &
             pthsep//'AR6'//pthsep//'CMIP6'//pthsep//'CMIP'// &
             pthsep//'CCCma'//pthsep//'CanESM5'//pthsep//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'MIROC6' )
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
             pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
             pthsep//'MIROC6'//pthsep//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'MIROC-ES2L')
           fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
             pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
             pthsep//'MIROC-ES2L'//pthsep//'historical'//pthsep
           fx_variant = cmip6_variant
           fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case default
           call die(__FILE__, &
             'Unsupported cmip6 model: '//trim(cmip6_model),-1)
       end select
       fpath = trim(fpath)//trim(fx_variant)// &
         pthsep//'fx'//pthsep//trim(var)//pthsep//trim(cmip6_grid)// &
-        pthsep//trim(ver)//pthsep//trim(var)//'_fx_'//trim(cmip6_model)// &
+        pthsep//trim(ver)//pthsep//trim(var)//'_fx_'//trim(fx_model)// &
         trim(fx_experiment)//trim(fx_variant)//'_'//trim(cmip6_grid)//'.nc'
     end function cmip6_fxpath
 
@@ -213,9 +223,24 @@ module mod_cmip6_helper
           else
             grid = cmip6_grid
           end if
-        case ( 'EC-Earth3' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'// &
-            pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+        case ( 'EC-Earth3-Veg' )
+          if ( var == 'tos' ) then
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot6'// &
+              pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+          else if ( var == 'ps' ) then
+            if ( year < 2015 ) then
+              fpath = trim(cmip6_inp)//pthsep//'esg_dataroot6'// &
+                pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+            else
+              fpath = &
+                'https://esg-dn3.nsc.liu.se/thredds/dodsC/esg_dataroot2'// &
+                pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+            end if
+          else
+            fpath = &
+              'https://esg-dn3.nsc.liu.se/thredds/dodsC/esg_dataroot2'// &
+              pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep
+          end if
           if ( year < 2015 ) then
             fpath = trim(fpath)//'CMIP'//pthsep
             experiment = 'historical'
@@ -224,7 +249,7 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'EC-Earth-Consortium'//pthsep// &
-            'EC-Earth3'//pthsep
+            'EC-Earth3-Veg'//pthsep
           if ( var == 'tos' ) then
             grid = 'gn'
           else

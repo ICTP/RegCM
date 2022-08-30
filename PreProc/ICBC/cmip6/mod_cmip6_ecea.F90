@@ -33,9 +33,10 @@ module mod_cmip6_ecea
 
   private
 
-  character(len=*) , parameter :: ecea_version = 'v20210324'
-  character(len=*) , parameter :: ecea_version1 = 'v20200310'
-  character(len=*) , parameter :: ecea_version2 = 'v20200918'
+  character(len=*) , parameter :: ecea_version = 'v20211207'
+  character(len=*) , parameter :: ecea_version1 = 'v20200919'
+  character(len=*) , parameter :: ecea_version2 = 'v20210601'
+  character(len=*) , parameter :: ecea_version3 = 'v20210324'
 
   public :: read_3d_ecea , read_2d_ecea , read_fx_ecea , read_sst_ecea
 
@@ -93,31 +94,26 @@ module mod_cmip6_ecea
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read latitude var')
     end subroutine read_hcoord_sst_ecea
 
-    subroutine read_vcoord_ecea(ncid,a,b,p0)
+    subroutine read_vcoord_ecea(ncid,ap,b)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
-      real(rkx) , intent(out) :: p0
+      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(a,1,nlev,'cmip6_ecea:a')
+      call getmem1d(ap,1,nlev,'cmip6_ecea:ap')
       call getmem1d(b,1,nlev,'cmip6_ecea:b')
-      istatus = nf90_inq_varid(ncid,'a',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
-      istatus = nf90_get_var(ncid,ivarid,a)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read a var')
+      istatus = nf90_inq_varid(ncid,'ap',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find ap var')
+      istatus = nf90_get_var(ncid,ivarid,ap)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read ap var')
       istatus = nf90_inq_varid(ncid,'b',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(ncid,ivarid,b)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
-      istatus = nf90_inq_varid(ncid,'p0',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
-      istatus = nf90_get_var(ncid,ivarid,p0)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
     end subroutine read_vcoord_ecea
 
     recursive subroutine read_3d_ecea(idate,v,lonlyc)
@@ -135,7 +131,7 @@ module mod_cmip6_ecea
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
         write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'6hrLev',ecea_version1,v%vname)), &
+            trim(cmip6_path(year,'6hrLev',ecea_version2,v%vname)), &
             year, '01010000-', year, '12311800.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -150,7 +146,7 @@ module mod_cmip6_ecea
       end if
       if ( .not. associated(v%vcoord) ) then
         allocate(v%vcoord)
-        call read_vcoord_ecea(v%ncid,v%vcoord%ak,v%vcoord%bk,v%vcoord%p0)
+        call read_vcoord_ecea(v%ncid,v%vcoord%ak,v%vcoord%bk)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
@@ -237,9 +233,15 @@ module mod_cmip6_ecea
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'6hrLev',ecea_version1,v%vname)), &
-            year,'01010000-',year,'12311800.nc'
+        if ( year >= 2015 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(year,'6hrLev',ecea_version2,v%vname)), &
+              year,'01010000-',year,'12311800.nc'
+        else
+          write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(year,'6hrLev',ecea_version,v%vname)), &
+              year,'01010000-',year,'12311800.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -323,7 +325,7 @@ module mod_cmip6_ecea
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       integer(ik4) :: istatus
 
-      v%filename = trim(cmip6_fxpath(ecea_version,v%vname))
+      v%filename = trim(cmip6_fxpath(ecea_version3,v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -364,9 +366,15 @@ module mod_cmip6_ecea
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'Oday',ecea_version2,v%vname)), &
-            year,'0101-',year,'1231.nc'
+        if ( year >= 2015 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(year,'Oday',ecea_version1,v%vname)), &
+              year,'0101-',year,'1231.nc'
+        else
+          write(v%filename,'(a,i4,a,i4,a)') &
+              trim(cmip6_path(year,'Oday',ecea_version,v%vname)), &
+              year,'0101-',year,'1231.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
