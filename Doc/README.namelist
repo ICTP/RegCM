@@ -163,9 +163,9 @@
  ! /
  ! &cmip6param
  ! cmip6_model = 'EC-Earth3-Veg',
- ! cmip6_inp = 'https://esg-dn3.nsc.liu.se/thredds/dodsC',
+ ! cmip6_inp = 'https://esg-dn1.nsc.liu.se/thredds/dodsC',
  ! cmip6_ssp = 'ssp585',
- ! cmip6_variant = 'r12i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gr',
  ! /
  ! &cmip6param

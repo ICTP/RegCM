@@ -960,7 +960,7 @@ program interpinic
   subroutine set_colvals(c1,c2,cv)
     implicit none
     integer(ik4) , dimension(:) , intent(in) :: c1 , c2
-    integer(ik4) , pointer , dimension(:) , intent(out) :: cv
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: cv
     integer(ik4) :: i , mcol , ic , ic1 , ic2 , imax , imin
     integer(ik4) , dimension(:) , allocatable :: iv1 , iv2 , itemp , ival
 

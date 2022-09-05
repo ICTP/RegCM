@@ -59,7 +59,7 @@ module mod_cloud_echam5
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > dlowval ) then
+          if ( qc(j,i,k) > 1.0e-12_rkx ) then
             ! Relative humidity
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
             sig = ps(j,i)/p(j,i,k)

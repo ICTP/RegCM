@@ -549,6 +549,14 @@ module mod_che_ncio
         end do looprec
 
         if ( recc == 0 ) then
+          write(stderr,*) 'searching : ' , lyear , lmonth
+          tchdate = timeval2date(emtimeval(1),chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          write(stderr,*) 'In file first time : ', year , month
+          tchdate = timeval2date(emtimeval(chmnrec), &
+                                 chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          write(stderr,*) 'In file last time : ', year , month
           write(stderr,*) 'chem emission : time record not found emission file'
           call fatal(__FILE__,__LINE__, &
                         'IO ERROR in CHEM EMISSION')
@@ -721,7 +729,7 @@ module mod_che_ncio
       integer(ik4) , intent(out) :: ifreq
       real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
+      integer(ik4) :: n , ncid , itvar , idimid , chmnrec , sdim
       character(64) ::chemi_timeunits , chemi_timecal
       real(rkx) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount

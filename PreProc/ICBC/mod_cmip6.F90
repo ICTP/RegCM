@@ -479,7 +479,7 @@ module mod_cmip6
           call getmem3d(uah,1,jx,1,iy,1,nkin,'cmip6:miresl:uah')
           call getmem3d(vah,1,jx,1,iy,1,nkin,'cmip6:miresl:vah')
           call getmem3d(zgh,1,jx,1,iy,1,nkin,'cmip6:miresl:zgh')
-        case ( 'EC-Earth3-veg' )
+        case ( 'EC-Earth3-Veg' )
           allocate(ps,ua,va,ta,qa,zg,orog)
           ps%vname = 'ps'
           ua%vname = 'ua'
@@ -517,7 +517,6 @@ module mod_cmip6
           qa%hcoord => orog%hcoord
           zg%hcoord => orog%hcoord
           call read_2d_ecea(idate,ps,only_coord)
-          stop
           call read_3d_ecea(idate,ta,only_coord)
           ua%vcoord => ta%vcoord
           va%vcoord => ta%vcoord
@@ -707,6 +706,42 @@ module mod_cmip6
           call read_3d_mpihr(idate,ta)
 !$OMP SECTION
           call read_3d_mpihr(idate,qa)
+!$OMP END SECTIONS
+          call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
+          do k = 1 , ta%nk
+            do j = 1 , ta%nj
+              do i = 1 , ta%ni
+                pa_in(i,j,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * ps%var(i,j)
+              end do
+            end do
+          end do
+          pa_in = pa_in * 0.01_rkx
+!$OMP SECTIONS
+!$OMP SECTION
+          call intlin(uvar,ua%var,pa_in,ua%ni,ua%nj,ua%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(vvar,va%var,pa_in,va%ni,va%nj,va%nk,fplev,nkin)
+!$OMP SECTION
+          call intlog(tvar,ta%var,pa_in,ta%ni,ta%nj,ta%nk,fplev,nkin)
+!$OMP SECTION
+          call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
+!$OMP END SECTIONS
+          ps%var = ps%var * 0.01_rkx
+          call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
+          call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
+                      ta%ni,ta%nj,ta%nk,fplev,nkin)
+        case ( 'EC-Earth3-Veg' )
+!$OMP SECTIONS
+!$OMP SECTION
+          call read_2d_ecea(idate,ps)
+!$OMP SECTION
+          call read_3d_ecea(idate,ua)
+!$OMP SECTION
+          call read_3d_ecea(idate,va)
+!$OMP SECTION
+          call read_3d_ecea(idate,ta)
+!$OMP SECTION
+          call read_3d_ecea(idate,qa)
 !$OMP END SECTIONS
           call sph2mxr(qa%var,qa%ni,qa%nj,qa%nk)
           do k = 1 , ta%nk
