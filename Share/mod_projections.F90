@@ -269,21 +269,43 @@ module mod_projections
     end select
   end subroutine wind2_antirotate
 
-  function rotation_angle(pj) result(p)
+  subroutine rotation_angle(pj,lon,lat,p)
     implicit none
     class(regcm_projection) , intent(in) :: pj
-    real(rk8) , pointer , dimension(:,:) :: p
+    real(rk8) , dimension(:) , intent(in) :: lon
+    real(rk8) , dimension(:) , intent(in) :: lat
+    real(rk8) , dimension(:,:) , intent(out) :: p
+    integer(ik4) :: i , j , nlon , nlat
+    real(rk8) :: f1 , f2
+    nlon = size(lon)
+    nlat = size(lat)
+    if ( size(p,1) /= nlon .or. size(p,2) /= nlat ) then
+      return
+    end if
     select case (pj%p%code)
       case ('LAMCON')
-        p => pj%f3
+        do i = 1 , nlat
+          do j = 1 , nlon
+            p(j,i) = uvrot_lc(pj,lon(j))
+          end do
+        end do
       case ('ROTMER')
-        p => pj%f3
+        do i = 1 , nlat
+          do j = 1 , nlon
+            call uvrot_rc(pj,lat(i),lon(j),f1,f2)
+            p(j,i) = acos(f1)
+          end do
+        end do
       case ('POLSTR')
-        p => pj%f3
+        do i = 1 , nlat
+          do j = 1 , nlon
+            p(j,i) = uvrot_ps(pj,lon(j))
+          end do
+        end do
       case default
-        p => null( )
+        p(:,:) = 1.0_rk8
     end select
-  end function rotation_angle
+  end subroutine rotation_angle
 
   subroutine destruct(pj)
     implicit none
