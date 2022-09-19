@@ -25,6 +25,20 @@ module mod_sort
 
   private
 
+  interface sort
+    module procedure sort_int32
+    module procedure sort_int64
+    module procedure sort_real32
+    module procedure sort_real64
+  end interface sort
+
+  interface quicksort
+    module procedure quicksort_int32
+    module procedure quicksort_int64
+    module procedure quicksort_real32
+    module procedure quicksort_real64
+  end interface quicksort
+
   interface msi_index
     module procedure msi_r8
     module procedure msi_r4
@@ -37,9 +51,173 @@ module mod_sort
     module procedure argsort_i4
   end interface argsort
 
-  public :: argsort , msi_index
+  public :: sort , argsort , msi_index
 
   contains
+
+  subroutine sort_int32(x)
+    implicit none
+    integer(kind=ik4) , dimension(:) , intent(inout) :: x
+    integer :: istart, istop
+    istart = 1
+    istop = size(x)
+    if ( istop < 2 ) return
+    call quicksort_int32(x,istart,istop)
+  end subroutine sort_int32
+
+  subroutine sort_int64(x)
+    implicit none
+    integer(kind=ik8) , dimension(:) , intent(inout) :: x
+    integer :: istart, istop
+    istart = 1
+    istop = size(x)
+    if ( istop < 2 ) return
+    call quicksort_int64(x,istart,istop)
+  end subroutine sort_int64
+
+  subroutine sort_real32(x)
+    implicit none
+    real(kind=rk4) , dimension(:) , intent(inout) :: x
+    integer :: istart, istop
+    istart = 1
+    istop = size(x)
+    if ( istop < 2 ) return
+    call quicksort_real32(x,istart,istop)
+  end subroutine sort_real32
+
+  subroutine sort_real64(x)
+    implicit none
+    real(kind=rk8) , dimension(:) , intent(inout) :: x
+    integer :: istart, istop
+    istart = 1
+    istop = size(x)
+    if ( istop < 2 ) return
+    call quicksort_real64(x,istart,istop)
+  end subroutine sort_real64
+
+   recursive subroutine quicksort_int32(x,first,last)
+    implicit none
+    integer(kind=ik4) , dimension(:) , intent(inout) :: x
+    integer , intent(in) :: first, last
+    integer(kind=ik4) :: pivot, temp
+    integer :: left, right
+
+    if ( first >= last ) return
+    pivot = x((first+last)/2)
+    left = first
+    right = last
+
+    do while ( left <= right )
+      do while ( x(left) < pivot )
+        left = left + 1
+      end do
+      do while ( x(right) > pivot )
+        right = right - 1
+      end do
+      if ( left <= right ) then
+        temp = x(left)
+        x(left) = x(right)
+        x(right) = temp
+        left = left + 1
+        right = right - 1
+      end if
+      call quicksort_int32(x,first,right)
+      call quicksort_int32(x,left,last)
+    end do
+  end subroutine quicksort_int32
+
+  recursive subroutine quicksort_int64(x,first,last)
+    implicit none
+    integer(kind=ik8) , dimension(:) , intent(inout) :: x
+    integer , intent(in) :: first, last
+    integer(kind=ik8) :: pivot, temp
+    integer :: left, right
+
+    if ( first >= last ) return
+    pivot = x((first+last)/2)
+    left = first
+    right = last
+
+    do while ( left <= right )
+      do while ( x(left) < pivot )
+        left = left + 1
+      end do
+      do while ( x(right) > pivot )
+        right = right - 1
+      end do
+      if ( left <= right ) then
+        temp = x(left)
+        x(left) = x(right)
+        x(right) = temp
+        left = left + 1
+        right = right - 1
+      end if
+      call quicksort_int64(x,first,right)
+      call quicksort_int64(x,left,last)
+    end do
+  end subroutine quicksort_int64
+
+  recursive subroutine quicksort_real32(x,first,last)
+    implicit none
+    real(kind=rk4) , dimension(:) , intent(inout) :: x
+    integer , intent(in) :: first, last
+    real(kind=rk4) :: pivot, temp
+    integer :: left, right
+
+    if ( first >= last ) return
+    pivot = x((first+last)/2)
+    left = first
+    right = last
+
+    do while ( left <= right )
+      do while ( x(left) < pivot )
+        left = left + 1
+      end do
+      do while ( x(right) > pivot )
+        right = right - 1
+      end do
+      if ( left <= right ) then
+        temp = x(left)
+        x(left) = x(right)
+        x(right) = temp
+        left = left + 1
+        right = right - 1
+      end if
+      call quicksort_real32(x,first,right)
+      call quicksort_real32(x,left,last)
+    end do
+  end subroutine quicksort_real32
+
+  recursive subroutine quicksort_real64(x,first,last)
+    implicit none
+    real(kind=rk8) , dimension(:) , intent(inout) :: x
+    integer , intent(in) :: first, last
+    real(kind=rk8) :: pivot, temp
+    integer :: left, right
+
+    if ( first >= last ) return
+    pivot = x((first+last)/2)
+    left = first
+    right = last
+
+    do while ( left <= right )
+      do while ( x(left) < pivot )
+        left = left + 1
+      end do
+      do while ( x(right) > pivot )
+        right = right - 1
+      end do
+      if ( left <= right ) then
+        temp = x(left)
+        x(left) = x(right)
+        x(right) = temp
+        left = left + 1
+        right = right - 1
+      end if
+      call quicksort_real64(x,first,right)
+      call quicksort_real64(x,left,last)
+    end do
+  end subroutine quicksort_real64
 
   subroutine msi_r8(a,idx,jdx)
     implicit none
