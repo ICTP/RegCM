@@ -1597,7 +1597,7 @@ module mod_ncstream
           ncstat = nf90mpi_def_var(stream%id,var%vname,var%nctype, &
                                 id_dim(1:ndims),var%id)
 #else
-          ncstat = nf90_def_var(stream%id,var%vname,var%nctype, &
+          ncstat = nf90_def_var(stream%id,trim(var%vname),var%nctype, &
                                 id_dim(1:ndims),var%id)
 #endif
         end if

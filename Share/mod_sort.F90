@@ -61,6 +61,7 @@ module mod_sort
     integer :: istart, istop
     istart = 1
     istop = size(x)
+    if ( all(x == x(1)) ) return
     if ( istop < 2 ) return
     call quicksort_int32(x,istart,istop)
   end subroutine sort_int32
@@ -72,6 +73,7 @@ module mod_sort
     istart = 1
     istop = size(x)
     if ( istop < 2 ) return
+    if ( all(x == x(1)) ) return
     call quicksort_int64(x,istart,istop)
   end subroutine sort_int64
 
@@ -82,6 +84,7 @@ module mod_sort
     istart = 1
     istop = size(x)
     if ( istop < 2 ) return
+    if ( all(x == x(1)) ) return
     call quicksort_real32(x,istart,istop)
   end subroutine sort_real32
 
@@ -92,6 +95,7 @@ module mod_sort
     istart = 1
     istop = size(x)
     if ( istop < 2 ) return
+    if ( all(x == x(1)) ) return
     call quicksort_real64(x,istart,istop)
   end subroutine sort_real64
 
