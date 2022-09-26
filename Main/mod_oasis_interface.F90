@@ -29,7 +29,7 @@ module mod_oasis_interface
   use mod_message
   use mod_service
   use mod_mppparam
-  use mod_runparams , only : isocean
+  use mod_runparams , only : isocean , dtsec
   use mod_bats_common , only : rdnnsg
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
@@ -47,6 +47,7 @@ module mod_oasis_interface
   private
 
   public :: comp_name , comp_id ! -> mod_oasis_params
+  public :: oasis_lag           ! -> mod_oasis_params
 
   !--------------------------------------------------------------------
   ! for grid and partition activation
@@ -59,6 +60,7 @@ module mod_oasis_interface
   !--------------------------------------------------------------------
   ! below the namelist parameters (namelist oasisparam)
   public :: l_write_grids , write_restart_option ! -> mod_oasis_params
+  public :: oasis_sync_lag                       ! -> mod_oasis_params
   logical , public :: l_cpl_im_sst , &
 !                      l_cpl_im_sit , &
                       l_cpl_im_wz0 , &
@@ -156,6 +158,7 @@ module mod_oasis_interface
   public :: oasisxregcm_params , oasisxregcm_release
   public :: oasisxregcm_def
   public :: oasisxregcm_rcv_all , oasisxregcm_snd_all
+  public :: oasisxregcm_sync_wait
 
   contains
 
@@ -170,6 +173,7 @@ module mod_oasis_interface
     call checkpoint_enter(sub_name)
 #endif
 ! XXX
+    oasis_lag = 0
     ! states which grids have to be defined,
     ! depending on what field is activated.
     l_make_grdde   = .false.
@@ -1000,6 +1004,47 @@ module mod_oasis_interface
 #include <wlh.inc>
 
   end subroutine oasisxregcm_snd_all
+
+  ! wait during the time indicated through oasis_sync_lag
+  ! to make regcm model time not synchronised with
+  ! other coupled components
+  ! update oasis_lag such that
+  !   oasis time = regcm time + oasis lag
+  subroutine oasisxregcm_sync_wait(time)
+    implicit none
+    integer(ik4) , intent(in) :: time ! execution time
+    integer(ik4) :: local_time
+    !--------------------------------------------------------------------------
+    local_time = time
+    ! case number 1: oasis_sync_lag > 0
+    ! regcm actually starts oasis_sync_lag seconds after oasis
+    ! >> at the beginning of the run, oasis starts while regcm runs
+    ! dummy loops with oasis_lag increasing like 0 -> oasis_sync_lag
+    ! at the end of the run, oasis and regcm stop synchronously
+    if ( oasis_sync_lag > 0 ) then
+        do while ( oasis_lag < oasis_sync_lag ) 
+          call oasisxregcm_rcv_all(local_time + oasis_lag)
+          ! dummy loop
+          call oasisxregcm_snd_all(local_time + oasis_lag, .false.)
+          oasis_lag = oasis_lag + int(dtsec,ik4)
+        end do
+    ! case number 2: oasis_sync_lag < 0
+    ! regcm starts synchronously with oasis
+    ! however, some other components start with a lag
+    ! at the end of the run, oasis needs oasis_sync_lag seconds to run
+    ! with the other components while regcm has already finished
+    ! >> at the end, oasis keeps going while regcm runs dummy loops
+    ! with oasis_lag increasing like end_time + dt -> -oasis_sync_lag
+    else if ( oasis_sync_lag < 0 ) then
+        local_time = local_time + int(dtsec,ik4)
+        do while ( oasis_lag < -oasis_sync_lag )
+          call oasisxregcm_rcv_all(local_time + oasis_lag)
+          ! dummy loop
+          call oasisxregcm_snd_all(local_time + oasis_lag, .false.)
+          oasis_lag = oasis_lag + int(dtsec,ik4)
+        end do
+    end if
+  end subroutine oasisxregcm_sync_wait
 
   ! call all subroutines linked with some deallocation of variables used in
   ! the oasis coupling

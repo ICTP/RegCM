@@ -176,6 +176,7 @@ module mod_params
 
 #ifdef OASIS
     namelist /oasisparam/ l_write_grids , write_restart_option , &
+                          oasis_sync_lag , &
                           l_cpl_im_sst , &
 !                          l_cpl_im_sit , &
                           l_cpl_im_wz0 , &
@@ -611,6 +612,7 @@ module mod_params
     !
     write_restart_option = 0
     l_write_grids = .false.
+    oasis_sync_lag = 0
     l_cpl_im_sst  = .false.
 !    l_cpl_im_sit  = .false.
     l_cpl_im_wz0  = .false.
@@ -1394,6 +1396,7 @@ module mod_params
     if ( ioasiscpl == 1 ) then
       call bcast(write_restart_option)
       call bcast(l_write_grids)
+      call bcast(oasis_sync_lag)
       call bcast(l_cpl_im_sst)
 !      call bcast(l_cpl_im_sit)
       call bcast(l_cpl_im_wz0)
@@ -2850,6 +2853,7 @@ module mod_params
        write(stdout,*) 'OASIS COUPLING ENABLED!'
        write(stdout,*) 'Component name is: ' , comp_name
        write(stdout,"(A,I2)") ' Component id is: ' , comp_id
+       write(stdout,*) '      Sync lag is: ' , oasis_sync_lag
      end if
      if ( .not. l_cpl_im_sst  .and. &
 !          .not. l_cpl_im_sit  .and. &

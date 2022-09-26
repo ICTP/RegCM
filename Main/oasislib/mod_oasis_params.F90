@@ -47,6 +47,8 @@ module mod_oasis_params
 
   character(len=6) , parameter , public :: comp_name = 'REGCM5' ! component name
   integer(ik4) , public :: comp_id ! component identification
+  integer(ik4) , public :: oasis_lag ! model time lag to other components
+                                     ! (variable)
 
   ! before OASIS-related debug statements
   character(len=8) , parameter , public :: oasis_prefix = '[OASIS] '
@@ -54,6 +56,8 @@ module mod_oasis_params
   ! oasisparam namelist general parameters
   integer(ik4) , public :: write_restart_option
   logical , public :: l_write_grids 
+  integer(ik4) , public :: oasis_sync_lag ! model time lag to other components
+                                          ! (parameter)
 
   character(len=11), dimension(-2:14), parameter, public :: getput_status = & ! getput kinf string
   (/'NotDef', 'VarUncpl', 'Ok', '', '', 'Recvd', 'Sent', 'LocTrans', &
