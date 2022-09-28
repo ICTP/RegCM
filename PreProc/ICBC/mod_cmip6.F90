@@ -793,7 +793,6 @@ module mod_cmip6
           call intlin(qvar,qa%var,pa_in,qa%ni,qa%nj,qa%nk,fplev,nkin)
 !$OMP END SECTIONS
           ps%var = ps%var * 0.01_rkx
-          call htsig(zp_in,ta%var,pa_in,qa%var,ps%var,orog%var)
           call height(zvar,zp_in,ta%var,ps%var,pa_in,orog%var, &
                       ta%ni,ta%nj,ta%nk,fplev,nkin)
         case ( 'CNRM-ESM2-1' )

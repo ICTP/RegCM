@@ -91,8 +91,13 @@ module mod_cmip6_helper
           fx_experiment = '_historical_'
           fx_model = cmip6_model
         case ( 'HadGEM3-GC31-MM' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
-            pthsep//'CMIP6'//pthsep//'HighResMIP'//pthsep
+          if ( cmip6_inp(1:8) == 'https://' ) then
+            fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
+              pthsep//'CMIP6'//pthsep//'HighResMIP'//pthsep
+          else
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
+              'HighResMIP'//pthsep
+          end if
           fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
           fpath = trim(fpath)//'hist-1950'//pthsep
           fx_variant = 'r1i1p1f1'
@@ -193,7 +198,12 @@ module mod_cmip6_helper
           end if
           grid = cmip6_grid
         case ( 'HadGEM3-GC31-MM' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'//pthsep//'CMIP6'//pthsep
+          if ( cmip6_inp(1:8) == 'https://' ) then
+            fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
+              pthsep//'CMIP6'//pthsep
+          else
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
+          end if
           if ( year < 2015 ) then
             fpath = trim(fpath)//'CMIP'//pthsep
             experiment = 'historical'
