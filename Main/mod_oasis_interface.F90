@@ -649,7 +649,7 @@ module mod_oasis_interface
     !--------------------------------------------------------------------------
 ! XXX
     call checkpoint_enter(sub_name)
-    write(message,*) 'time: ', time
+    write(message,*) 'OASIS time: ', time
     call checkpoint_proc(sub_name, trim(message))
 #endif
 ! XXX
@@ -657,7 +657,7 @@ module mod_oasis_interface
     if ( time == 0 ) then
       write(ndebug,*) oasis_prefix, 'initialization:'
     else if ( debug_level > 0 ) then
-      write(ndebug,*) oasis_prefix, 'time: ', time
+      write(ndebug,*) oasis_prefix, 'OASIS time: ', time
     end if
 #endif
     !
@@ -1009,23 +1009,28 @@ module mod_oasis_interface
   ! to make regcm model time not synchronised with
   ! other coupled components
   ! update oasis_lag such that
-  !   oasis time = regcm time + oasis lag
+  !   oasis time = regcm time + oasis_lag
   subroutine oasisxregcm_sync_wait(time)
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
-    integer(ik4) :: local_time
     !--------------------------------------------------------------------------
-    local_time = time
     ! case number 1: oasis_sync_lag > 0
     ! regcm actually starts oasis_sync_lag seconds after oasis
     ! >> at the beginning of the run, oasis starts while regcm runs
     ! dummy loops with oasis_lag increasing like 0 -> oasis_sync_lag
     ! at the end of the run, oasis and regcm stop synchronously
     if ( oasis_sync_lag > 0 ) then
+#ifdef DEBUG
+        write(ndebug,*) oasis_prefix, 'RegCM is creating the lag ', &
+                                      'with the other components'
+#endif
         do while ( oasis_lag < oasis_sync_lag ) 
-          call oasisxregcm_rcv_all(local_time + oasis_lag)
+          call oasisxregcm_rcv_all(time + oasis_lag)
           ! dummy loop
-          call oasisxregcm_snd_all(local_time + oasis_lag, .false.)
+#ifdef DEBUG
+          write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
+#endif
+          call oasisxregcm_snd_all(time + oasis_lag, .false.)
           oasis_lag = oasis_lag + int(dtsec,ik4)
         end do
     ! case number 2: oasis_sync_lag < 0
@@ -1036,14 +1041,23 @@ module mod_oasis_interface
     ! >> at the end, oasis keeps going while regcm runs dummy loops
     ! with oasis_lag increasing like end_time + dt -> -oasis_sync_lag
     else if ( oasis_sync_lag < 0 ) then
-        local_time = local_time + int(dtsec,ik4)
+#ifdef DEBUG
+        write(ndebug,*) oasis_prefix, 'RegCM is catching up ', &
+                                      'with the other components'
+#endif
         do while ( oasis_lag < -oasis_sync_lag )
-          call oasisxregcm_rcv_all(local_time + oasis_lag)
+          call oasisxregcm_rcv_all(time + int(dtsec,ik4) + oasis_lag)
           ! dummy loop
-          call oasisxregcm_snd_all(local_time + oasis_lag, .false.)
+#ifdef DEBUG
+          write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
+#endif
+          call oasisxregcm_snd_all(time + int(dtsec,ik4) + oasis_lag, .false.)
           oasis_lag = oasis_lag + int(dtsec,ik4)
         end do
     end if
+#ifdef DEBUG
+    write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
+#endif
   end subroutine oasisxregcm_sync_wait
 
   ! call all subroutines linked with some deallocation of variables used in

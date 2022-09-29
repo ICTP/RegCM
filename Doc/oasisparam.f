@@ -7,10 +7,12 @@
                           ! 2 => write restart files at the last time
                           ! 3 => both 1 & 2
  l_write_grids = .true.   ! for writing grids.nc, areas.nc, masks.nc.
- oasis_sync_lag = 0       ! synchronisation lag in seconds
+ oasis_sync_lag = 3600    ! synchronisation lag in seconds
                           !   with other components
                           ! > 0 means regcm starts late
                           ! < 0 means regcm starts in advance
+                          ! should be a multipe of the coupling period
+                          !   in the namcouple
                           ! in the namcouple, RUNTIME must have the run
                           !   duration + oasis_sync_lag
                           !------ NAMCOUPLE FIELD ENTRIES ------
