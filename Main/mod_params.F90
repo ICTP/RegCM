@@ -2852,7 +2852,7 @@ module mod_params
      if ( myid == italk ) then
        write(stdout,*) 'OASIS COUPLING ENABLED!'
        write(stdout,*) 'Component name is: ' , comp_name
-       write(stdout,"(A,I2)") ' Component id is: ' , comp_id
+       write(stdout,"(A,I2)") '   Component id is: ' , comp_id
        write(stdout,*) '      Sync lag is: ' , oasis_sync_lag
      end if
      if ( .not. l_cpl_im_sst  .and. &
