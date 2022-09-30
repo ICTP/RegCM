@@ -655,7 +655,7 @@ module mod_oasis_interface
 ! XXX
 #ifdef DEBUG
     if ( time == 0 ) then
-      write(ndebug,*) oasis_prefix, 'initialization:'
+      write(ndebug,*) oasis_prefix, 'Initialization:'
     else if ( debug_level > 0 ) then
       write(ndebug,*) oasis_prefix, 'OASIS time: ', time
     end if
@@ -1020,19 +1020,22 @@ module mod_oasis_interface
     ! dummy loops with oasis_lag increasing like 0 -> oasis_sync_lag
     ! at the end of the run, oasis and regcm stop synchronously
     if ( oasis_sync_lag > 0 ) then
+      do while ( oasis_lag < oasis_sync_lag ) 
+        call oasisxregcm_rcv_all(time + oasis_lag)
+        ! dummy loop
 #ifdef DEBUG
-        write(ndebug,*) oasis_prefix, 'RegCM is creating the lag ', &
-                                      'with the other components'
+        if ( oasis_lag == 0 ) then
+          write(ndebug,*) oasis_prefix, 'RegCM is creating the lag ', &
+                                        'with the other components'
+          write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
+        end if
 #endif
-        do while ( oasis_lag < oasis_sync_lag ) 
-          call oasisxregcm_rcv_all(time + oasis_lag)
-          ! dummy loop
+        call oasisxregcm_snd_all(time + oasis_lag, .false.)
+        oasis_lag = oasis_lag + int(dtsec,ik4)
 #ifdef DEBUG
-          write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
+        write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
 #endif
-          call oasisxregcm_snd_all(time + oasis_lag, .false.)
-          oasis_lag = oasis_lag + int(dtsec,ik4)
-        end do
+      end do
     ! case number 2: oasis_sync_lag < 0
     ! regcm starts synchronously with oasis
     ! however, some other components start with a lag
@@ -1042,22 +1045,20 @@ module mod_oasis_interface
     ! with oasis_lag increasing like end_time + dt -> -oasis_sync_lag
     else if ( oasis_sync_lag < 0 ) then
 #ifdef DEBUG
-        write(ndebug,*) oasis_prefix, 'RegCM is catching up ', &
-                                      'with the other components'
+      write(ndebug,*) oasis_prefix, 'RegCM is catching up ', &
+                                    'with the other components'
+      write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
 #endif
-        do while ( oasis_lag < -oasis_sync_lag )
-          call oasisxregcm_rcv_all(time + int(dtsec,ik4) + oasis_lag)
-          ! dummy loop
+      do while ( oasis_lag < -oasis_sync_lag )
+        call oasisxregcm_rcv_all(time + int(dtsec,ik4) + oasis_lag)
+        ! dummy loop
+        call oasisxregcm_snd_all(time + int(dtsec,ik4) + oasis_lag, .false.)
+        oasis_lag = oasis_lag + int(dtsec,ik4)
 #ifdef DEBUG
-          write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
+        write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
 #endif
-          call oasisxregcm_snd_all(time + int(dtsec,ik4) + oasis_lag, .false.)
-          oasis_lag = oasis_lag + int(dtsec,ik4)
-        end do
+      end do
     end if
-#ifdef DEBUG
-    write(ndebug,*) oasis_prefix, 'oasis_lag = ', oasis_lag
-#endif
   end subroutine oasisxregcm_sync_wait
 
   ! call all subroutines linked with some deallocation of variables used in
