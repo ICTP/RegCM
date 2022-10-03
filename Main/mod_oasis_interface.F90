@@ -1014,6 +1014,10 @@ module mod_oasis_interface
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
     !--------------------------------------------------------------------------
+    if ( oasis_lag /= 0 ) then
+      write(stderr,*) 'error initiating the lag with OASIS'
+      call fatal(__FILE__,__LINE__,'SYNC WAIT')
+    end if
     ! case number 1: oasis_sync_lag > 0
     ! regcm actually starts oasis_sync_lag seconds after oasis
     ! >> at the beginning of the run, oasis starts while regcm runs

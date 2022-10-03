@@ -223,7 +223,7 @@ module mod_regcm_interface
 #ifdef OASIS
       if ( ioasiscpl == 1 ) then
         if ( oasis_sync_lag > 0 .and. int(extime,ik4) == 0 ) then
-          call oasisxregcm_sync_wait(int(extime,ik4)+oasis_lag)
+          call oasisxregcm_sync_wait(int(extime,ik4))
         end if
         call oasisxregcm_rcv_all(int(extime,ik4)+oasis_lag)
       end if
@@ -247,7 +247,7 @@ module mod_regcm_interface
       if ( ioasiscpl == 1 ) then
         call oasisxregcm_snd_all(int(extime,ik4)+oasis_lag,rcmtimer%reached_endtime)
         if ( oasis_sync_lag < 0 .and. rcmtimer%reached_endtime) then
-          call oasisxregcm_sync_wait(int(extime,ik4)+oasis_lag)
+          call oasisxregcm_sync_wait(int(extime,ik4))
         end if
       end if
 #endif
