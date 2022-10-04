@@ -61,7 +61,7 @@ module mod_oasis_generic
 
   contains
 
-  ! call initialization oasis subroutines  
+  ! call initialization OASIS subroutines  
   subroutine oasisxregcm_init(localComm)
     implicit none
     integer(ik4) , intent(out) :: localComm
@@ -81,7 +81,7 @@ module mod_oasis_generic
     end if
   end subroutine oasisxregcm_init
 
-  ! terminate oasis
+  ! terminate OASIS
   subroutine oasisxregcm_finalize
     implicit none
     character(len=*) , parameter :: sub_name = 'oasisxregcm_finalize'
@@ -203,11 +203,11 @@ module mod_oasis_generic
 ! XXX
   end subroutine oasisxregcm_deallocate_field
 
-  ! define an oasis partition
+  ! define an OASIS partition
   subroutine oasisxregcm_def_partition(grd)
     implicit none
     type(infogrd) , intent(inout) :: grd
-    integer , dimension(:) , allocatable :: il_paral ! oasis partition instructions
+    integer , dimension(:) , allocatable :: il_paral ! OASIS partition instructions
     character(len=*) , parameter :: sub_name = 'oasisxregcm_def_partition'
     !--------------------------------------------------------------------------
 #ifdef DEBUG
@@ -232,7 +232,7 @@ module mod_oasis_generic
 
   contains
 
-  ! fill the oasis partition instruction array in the case
+  ! fill the OASIS partition instruction array in the case
   ! of a 'box' partition:
   ! paral(1) = 2 indicates a box partition
   ! paral(2) is the global offset (here lower left)
@@ -345,7 +345,7 @@ module mod_oasis_generic
     srf_sqm = h * (a+b) / 2
   end function srf_sqm
 
-  ! give to oasis the information about a specific grid for writing
+  ! give to OASIS the information about a specific grid for writing
   subroutine oasisxregcm_write_oasisgrids(grd,lon,lat,clon,clat,srf,mask)
     implicit none
     type(infogrd) , intent(in) :: grd
@@ -434,7 +434,7 @@ module mod_oasis_generic
 ! XXX
   end subroutine oasisxregcm_deallocate_oasisgrids
 
-  ! define oasis variables to be used in the coupling
+  ! define OASIS variables to be used in the coupling
   subroutine oasisxregcm_def_field(fld, kinout)
     implicit none
     integer , intent(in) :: kinout ! OASIS_Out or OASIS_In

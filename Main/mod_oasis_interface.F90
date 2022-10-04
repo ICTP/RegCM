@@ -174,7 +174,7 @@ module mod_oasis_interface
 #endif
 ! XXX
     oasis_lag = 0
-    ! states which grids have to be defined,
+    ! state which grids have to be defined,
     ! depending on what field is activated.
     l_make_grdde   = .false.
     ! OASIS field +++
@@ -263,7 +263,7 @@ module mod_oasis_interface
 ! XXX
   end subroutine oasisxregcm_params
 
-  ! call all definition subroutines for setting up oasis
+  ! call all definition subroutines for setting up OASIS
   subroutine oasisxregcm_def
     implicit none
 ! XXX
@@ -300,7 +300,7 @@ module mod_oasis_interface
 #ifdef DEBUG
     write(ndebug,*) oasis_prefix, 'definition phase: fields'
 #endif
-    ! field variable, oasis integer for the direction:
+    ! field variable, OASIS integer for the direction:
     !                 importing(OASIS_In)/exporting(OASIS_Out)
     if ( l_cpl_im_sst )  call oasisxregcm_def_field(im_sst,  OASIS_In)
 !    if ( l_cpl_im_sit )  call oasisxregcm_def_field(im_sit,  OASIS_In)
@@ -345,7 +345,7 @@ module mod_oasis_interface
 
   contains
 
-  ! define oasis grids
+  ! define OASIS grids
   subroutine oasisxregcm_def_grid
     implicit none
     real(rkx) , pointer , dimension(:,:) :: dlon , dlat ! dot degree coordinates
@@ -357,7 +357,7 @@ module mod_oasis_interface
     ! note: 4 corners (always the case?) in the third dimension, counterclockwisely.
     real(rkx) , pointer , dimension(:,:) :: oasisgrid_srf ! surface of the grid meshes m2
     integer(ik4) , pointer , dimension(:,:) :: oasisgrid_mask ! mask, 0 = valid, 1 = mask
-    !                                                          (oasis convention)
+    !                                                          (OASIS convention)
     integer(ik4) :: il_flag ! flag for grid writing by proc 0
     integer(ik4) :: ierror
 #ifdef DEBUG
@@ -371,7 +371,7 @@ module mod_oasis_interface
     write(ndebug,*) oasis_prefix, 'start collecting grid data'
     write(ndebug,*) oasis_prefix, 'grids writing is done by the in/out cpu only'
 #endif
-    ! collect the domain definition information in regcm
+    ! collect the domain definition information in RegCM
     allocate(dlon(jx,iy),stat=ierror)
     if ( ierror /= 0 ) then
       write(stderr,*) 'error allocating dlon'
@@ -403,7 +403,7 @@ module mod_oasis_interface
     call grid_collect(mddom%xlat,xlat,jde1,jde2,ide1,ide2)
     call grid_collect(mddom%lndcat,lndcat,jde1,jde2,ide1,ide2)
     if ( myid == iocpu ) then
-      ! starts the grid writing process
+      ! start the grid writing process
 #ifdef DEBUG
       write(ndebug,*) oasis_prefix, 'start grids writing'
 #endif
@@ -442,7 +442,7 @@ module mod_oasis_interface
              oasisgrid_lon,oasisgrid_lat,oasisgrid_clon,oasisgrid_clat,oasisgrid_srf,oasisgrid_mask)
         !
       end if
-      ! terminates the grid writing process
+      ! terminate the grid writing process
 #ifdef DEBUG
       write(ndebug,*) oasis_prefix, 'terminate grids writing'
 #endif
@@ -635,7 +635,7 @@ module mod_oasis_interface
 
   end subroutine oasisxregcm_def
 
-  ! call all subroutines consisting of receiving oasis fields
+  ! call all subroutines consisting of receiving OASIS fields
   ! and optionally reworking them
   subroutine oasisxregcm_rcv_all(time)
     implicit none
@@ -747,7 +747,7 @@ module mod_oasis_interface
 ! XXX
   end subroutine oasisxregcm_rcv_all
 
-  ! call all subroutines consisting of sending oasis fields
+  ! call all subroutines consisting of sending OASIS fields
   ! with optional prior reworking
   subroutine oasisxregcm_snd_all(time,l_last_time)
     implicit none
@@ -1006,10 +1006,10 @@ module mod_oasis_interface
   end subroutine oasisxregcm_snd_all
 
   ! wait during the time indicated through oasis_sync_lag
-  ! to make regcm model time not synchronised with
+  ! to make RegCM model time not synchronised with
   ! other coupled components
   ! update oasis_lag such that
-  !   oasis time = regcm time + oasis_lag
+  !   OASIS time = RegCM time + oasis_lag
   subroutine oasisxregcm_sync_wait(time)
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
@@ -1019,10 +1019,10 @@ module mod_oasis_interface
       call fatal(__FILE__,__LINE__,'SYNC WAIT')
     end if
     ! case number 1: oasis_sync_lag > 0
-    ! regcm actually starts oasis_sync_lag seconds after oasis
-    ! >> at the beginning of the run, oasis starts while regcm runs
+    ! RegCM actually starts oasis_sync_lag seconds after OASIS
+    ! >> at the beginning of the run, OASIS starts while RegCM runs
     ! dummy loops with oasis_lag increasing like 0 -> oasis_sync_lag
-    ! at the end of the run, oasis and regcm stop synchronously
+    ! at the end of the run, OASIS and RegCM stop synchronously
     if ( oasis_sync_lag > 0 ) then
       do while ( oasis_lag < oasis_sync_lag ) 
         call oasisxregcm_rcv_all(time + oasis_lag)
@@ -1041,11 +1041,11 @@ module mod_oasis_interface
 #endif
       end do
     ! case number 2: oasis_sync_lag < 0
-    ! regcm starts synchronously with oasis
+    ! RegCM starts synchronously with OASIS
     ! however, some other components start with a lag
-    ! at the end of the run, oasis needs oasis_sync_lag seconds to run
-    ! with the other components while regcm has already finished
-    ! >> at the end, oasis keeps going while regcm runs dummy loops
+    ! at the end of the run, OASIS needs oasis_sync_lag seconds to run
+    ! with the other components while RegCM has already finished
+    ! >> at the end, OASIS keeps going while RegCM runs dummy loops
     ! with oasis_lag increasing like end_time + dt -> -oasis_sync_lag
     else if ( oasis_sync_lag < 0 ) then
 #ifdef DEBUG
@@ -1066,7 +1066,7 @@ module mod_oasis_interface
   end subroutine oasisxregcm_sync_wait
 
   ! call all subroutines linked with some deallocation of variables used in
-  ! the oasis coupling
+  ! the OASIS coupling
   subroutine oasisxregcm_release
     implicit none
 ! XXX
