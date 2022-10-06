@@ -228,8 +228,22 @@ module mod_che_ncio
           istart=istart,icount=icount)
         erodfc(jci1:jci2,ici1:ici2) = &
           max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        istart3(1) = jde1
+        istart3(2) = ide1
+        istart3(3) = 1
+        icount3(1) = jde2-jde1+1
+        icount3(2) = ide2-ide1+1
+        icount3(3) = 12
+        allocate(rspace3(jde1:jde2,ide1:ide2,1:12))
+        call read_var3d_static(idmin,'z0',rspace3, &
+          istart=istart3,icount=icount3)
+        aez0(jci1:jci2,ici1:ici2,1:12)= &
+          max(rspace3(jci1:jci2,ici1:ici2,1:12),d_zero)
+
         call closefile(idmin)
         deallocate(rspace)
+        deallocate(rspace3)
       else
         if ( myid == iocpu ) then
           call openfile_withname(dname,idmin)
