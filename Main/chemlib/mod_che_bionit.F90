@@ -126,7 +126,7 @@ contains
     real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wid10
     integer(ik4) , dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     ! local variables
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j, nt
 
     real(rkx) :: &
       canred        ,&    ! canopy reduction factor
@@ -220,8 +220,9 @@ contains
         ! cycle on sea points
         if ( ivegcov(j,i) == 0 ) cycle
         ! getting the soil sand percentage, pH and fert rate values
-        !sandper(j,i) = sandrow2(j,i) ! ABSOLUMENT A CHANGER
-        sandper(j,i) = 30 
+        do nt = 1, nats
+          sandper(j,i) = sandper(j,i)  + dustsotex(j,i,nt)*fsand(nt)*100_rkx 
+        end do 
         ! calculating water-filled pore space from soil moisture
         ! csw_vol voluletric soil moist (m3/m3)
         ! here consider second soil level / to be perhaps tested
@@ -246,6 +247,7 @@ contains
         end if
       end do
     end do
+
 #endif
 
     do i = ici1 , ici2

@@ -271,7 +271,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: che_emten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_chgact_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_ncon_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: che_massc_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: che_airden_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: slab_qflx_out => null()
 
