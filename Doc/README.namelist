@@ -764,6 +764,7 @@
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
                  ! 3 = use the the CLM4.5 dust emission module.
+ ichdustparam = 0! read dust emission scheme surface parameters
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
  ismoke = 0,     ! Consider emissions from fires (smoke tracer)
  idirect   = 0,  ! Choice to enable or not aerosol feedbacks on radiation and

@@ -145,9 +145,9 @@ module mod_cmip6_hadmm
           mp = 1
         end if
         if ( y > 2015 ) then
-          ver = hadmm_version3
-        else
           ver = hadmm_version2
+        else
+          ver = hadmm_version3
         end if
         write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
           trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
