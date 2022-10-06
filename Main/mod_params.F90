@@ -531,7 +531,7 @@ module mod_params
     ichdrdepo = 1     ! tracer dry deposition
     ichcumtra = 1     ! tracer convective transport
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
-    ichdustparam = 0  ! read dust emission scheme surface parameters
+    ichdustparam = 1  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     ichecold = 0      ! chemistry cold start (restart without chem data in SAV)
     idirect = 0       ! tracer direct effect
