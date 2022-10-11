@@ -202,7 +202,12 @@ module mod_cu_em
         elcrit(n) = elcrit_ocn
         epmax(n) = epmax_ocn
       end if
-      ! Past history
+    end do
+
+    ! Past history
+    do n = 1 , nap
+      i = imap(n)
+      j = jmap(n)
       cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
     end do
 
