@@ -667,9 +667,10 @@ module mod_dynparam
     else
       if ( i_band.eq.1 ) then
         ds = real((twopi*erkm)/real(jx,rk8),rkx)
-        iproj = 'NORMER'
-        clat  =   0.0_rkx
-        clon  = 180.0_rkx
+        ! FAB TEST         
+        !iproj = 'NORMER'
+        !clat  =   0.0_rkx
+        !clon  = 180.0_rkx
       end if
     end if
 

@@ -144,7 +144,7 @@ module mod_che_dust
   ! in each texture type.
   real(rkx) , pointer,  dimension(:) :: dustbed , soldust
   real(rkx) , pointer,  dimension(:) :: frac1 , frac2 , frac3 , frac
-  real(rkx) , pointer , dimension(:) :: fclay
+  real(rkx) , pointer , dimension(:) :: fclay, fsand
   real(rkx) , pointer , dimension(:,:) :: clayrow2 , dustbsiz
   real(rkx) , pointer , dimension(:,:,:,:) :: srel2d
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
@@ -166,7 +166,7 @@ module mod_che_dust
 
   public :: rhodust
   public :: soldust , dustbed , dustbsiz
-
+  public :: dustsotex, fsand
   integer(ik4) :: ilg
 
   public :: allocate_mod_che_dust , inidust , sfflux , clm_dust_tend
@@ -186,6 +186,7 @@ module mod_che_dust
       if ( ichem == 1 ) then
         call getmem3d(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
         call getmem1d(fclay,1,nats,'che_dust:fclay')
+        call getmem1d(fsand,1,nats,'che_dust:fsand')
         call getmem2d(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
         call getmem4d(srel2d,1,nsoil,1,nats, &
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
@@ -232,8 +233,6 @@ module mod_che_dust
     !
     subroutine inidust
       implicit none
-      real(rkx) , dimension(nats) :: bcly
-      ! real(rkx) , dimension(nats) :: bslt
       real(rkx) :: deldp , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr , ndi
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
@@ -272,8 +271,8 @@ module mod_che_dust
       data  texstd  / 1.6_rkx,   1.6_rkx,   1.8_rkx,  2.0_rkx, 1.50_rkx /
 
       ! specific table for clay component
-      bcly(:) = soiltexpc(4,:)
-
+      fclay(:) = soiltexpc(4,:)
+      fsand(:) = soiltexpc(1,:) + soiltexpc(2,:) 
 
       mmd = d_zero
       sigma = d_zero
@@ -320,14 +319,12 @@ module mod_che_dust
       end if
 
 ! calculation of srel2d
-      fclay     = d_zero
       clayrow2  = d_zero
       srel2d    = d_zero
 
       do i = ici1 , ici2
         do j = jci1 , jci2
           do nt = 1 , nats
-            fclay(nt) = bcly(nt)
             ! grid level clay fraction in percent
             clayrow2(j,i) = clayrow2(j,i) + dustsotex(j,i,nt)*fclay(nt)*100_rkx
           end do
@@ -611,7 +608,6 @@ module mod_che_dust
           end if
         end do
       end do
-
       if ( ieff > 0 ) then
         call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsnowfrac,xsurfwd, &
                          xftex,xclayrow,xroarow,fclay,xz0,xaez0, &
@@ -763,13 +759,12 @@ module mod_che_dust
         ! * no. d6, p6203-6209, 1998
         ustarns = ustarnd(j)*d_100 !cm.s-1
         utmin = (umin/(d_100*vonkar*rc(j)))*log(d_1000/srl(j))
-        if ( surfwd(j) >= utmin ) then
-          ustar(j) = ustarns + 0.3_rkx*(surfwd(j)-utmin)*(surfwd(j)-utmin)
+        if (surfwd(j) >= utmin ) then
+          ustar(j) = ustarns + 0.3_rkx*(surfwd(j)-utmin)**2
         else
           ustar(j) = ustarns
         end if
       end do       ! end i loop
-
       call emission(jl1,jl2,rhodust,ftex,fclay,uth,roarow,rc,utheff, &
                     ustar,srel,rsfrow,vegfrac,snowfrac)
 
@@ -896,7 +891,6 @@ module mod_che_dust
             if ( ftex(j,nt) < 1.e-10_rkx ) cycle
             if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
               do ns = 1 , nsoil
-                if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
                   utheffc = utheff(j,ns)/ rc(j)
                   uth =  utheffc / ustar(j)
                   usst =  utheffc * (roarow(j)/roa0)**0.5
@@ -917,7 +911,6 @@ module mod_che_dust
                                   fclay(nt) * Cd * &
                                   k1 * uth ** k2 * rdstemfac
                   end if
-                end if
               end do
             end if
           end do
