@@ -34,8 +34,7 @@ module mod_cmip6_cmcc
   private
 
   character(len=*) , parameter :: cmcc_version = 'v20210114'
-  character(len=*) , parameter :: cmcc_version1 = 'v20200528'
-  character(len=*) , parameter :: cmcc_version2 = 'v20200210'
+  character(len=*) , parameter :: cmcc_version1 = 'v20210126'
 
   public :: read_3d_cmcc , read_2d_cmcc , read_fx_cmcc , read_sst_cmcc
 
@@ -139,7 +138,11 @@ module mod_cmip6_cmcc
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
           y = y - 1
         end if
-        ver = cmcc_version
+        if ( y < 2015 ) then
+          ver = cmcc_version
+        else
+          ver = cmcc_version1
+        end if
         write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
           y, '01010600-', y+1, '01010000.nc'
@@ -248,9 +251,15 @@ module mod_cmip6_cmcc
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
           y = y - 5
         end if
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'6hrLev',cmcc_version,v%vname)), &
-          y, '01010600-', y+5, '01010000.nc'
+        if ( y < 2015 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',cmcc_version,v%vname)), &
+            y, '01010600-', y+5, '01010000.nc'
+        else
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',cmcc_version1,v%vname)), &
+            y, '01010600-', y+5, '01010000.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -393,7 +402,7 @@ module mod_cmip6_cmcc
             y2 = y1 + 9
           end if
           write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(year,'Oday',cmcc_version,v%vname)), &
+            trim(cmip6_path(year,'Oday',cmcc_version1,v%vname)), &
             y1,'0101-',y2,'1231.nc'
         end if
 #ifdef DEBUG
