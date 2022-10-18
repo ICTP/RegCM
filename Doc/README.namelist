@@ -189,6 +189,13 @@
  ! cmip6_variant = 'r1i1p2f1',
  ! cmip6_grid = 'gn',
  ! /
+ ! &cmip6param
+ ! cmip6_model = 'CMCC-ESM2',
+ ! cmip6_inp = 'https://esgf-node2.cmcc.it/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f1',
+ ! cmip6_grid = 'gn',
+ ! /
 !
 ! Nesting control
 !

@@ -9,7 +9,7 @@ libcmip6_a_SOURCES = mod_cmip6_helper.F90 mod_cmip6_cnrm.F90 \
                      mod_cmip6_hadmm.F90 mod_cmip6_normm.F90 \
                      mod_cmip6_mpihr.F90 mod_cmip6_ecea.F90 \
                      mod_cmip6_gfdl.F90 mod_cmip6_miresl.F90 \
-                     mod_cmip6_canesm.F90
+                     mod_cmip6_canesm.F90 mod_cmip6_cmcc.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
@@ -26,6 +26,7 @@ clean-local:
 mod_cmip6_helper.o : mod_cmip6_helper.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_date.o mod_message.o mod_dynparam.o mod_kdinterp.o mod_stdio.o
 mod_cmip6_canesm.o : mod_cmip6_canesm.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
 mod_cmip6_cesm.o : mod_cmip6_cesm.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
+mod_cmip6_cmcc.o : mod_cmip6_cmcc.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
 mod_cmip6_cnrm.o : mod_cmip6_cnrm.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
 mod_cmip6_ecea.o : mod_cmip6_ecea.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
 mod_cmip6_gfdl.o : mod_cmip6_gfdl.F90 mod_cmip6_helper.o mod_realkinds.o mod_intkinds.o mod_message.o mod_date.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_kdinterp.o
