@@ -139,6 +139,13 @@ module mod_cmip6_helper
           fx_variant = 'r11i1p1f1'
           fx_experiment = '_historical_'
           fx_model = cmip6_model
+        case ( 'CMCC-ESM2' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'CMCC'// &
+            pthsep//'CMCC-ESM2'//pthsep//'historical'//pthsep
+          fx_variant = 'r1i1p1f1'
+          fx_experiment = '_historical_'
+          fx_model = cmip6_model
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
             pthsep//'AerChemMIP'//pthsep
@@ -293,6 +300,18 @@ module mod_cmip6_helper
             experiment = trim(cmip6_ssp)
           end if
           fpath = trim(fpath)//'NCAR'//pthsep//'CESM2'//pthsep
+          grid = cmip6_grid
+        case ( 'CMCC-ESM2' )
+          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
+            'CMIP6'//pthsep
+          if ( year < 2015 ) then
+            fpath = trim(fpath)//'CMIP'//pthsep
+            experiment = 'historical'
+          else
+            fpath = trim(fpath)//'ScenarioMIP'//pthsep
+            experiment = trim(cmip6_ssp)
+          end if
+          fpath = trim(fpath)//'CMCC'//pthsep//'CMCC-ESM2'//pthsep
           grid = cmip6_grid
         case ( 'GFDL-ESM4' )
           fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'//pthsep
