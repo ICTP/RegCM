@@ -39,6 +39,7 @@ module mod_sst_cmip6
   use mod_cmip6_miresl
   use mod_cmip6_mpihr
   use mod_cmip6_normm
+  use mod_cmip6_cmcc
   use netcdf
 
   implicit none
@@ -132,6 +133,15 @@ module mod_sst_cmip6
             call die('sst','Calendar mismatch',1)
           end if
           read_func => read_sst_cesm
+          sst%vname = 'tos'
+          step = 86400
+          nsteps = int(tohours(tdif))/24 + 1
+        case ( 'CMCC-ESM2' )
+          if ( calendar /= 'noleap' ) then
+            write(stderr,*) 'CMCC-ESM2 requires noleap calendar.'
+            call die('sst','Calendar mismatch',1)
+          end if
+          read_func => read_sst_cmcc
           sst%vname = 'tos'
           step = 86400
           nsteps = int(tohours(tdif))/24 + 1

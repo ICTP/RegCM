@@ -143,7 +143,12 @@ module mod_params
 
     namelist /emanparam/ minorig , elcrit_ocn , elcrit_lnd , tlcrit , &
       entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
-      betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
+      betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd ,         &
+      istochastic
+
+    namelist /emanstochastic/ epmax_lnd_min , epmax_lnd_max , &
+      elcrit_lnd_min , elcrit_lnd_max ,                       &
+      sigs_min , sigs_max , sigd_min , sigd_max
 
     namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen_lnd , &
       entrpen_ocn , entrscv , entrmid , cprcon , detrpen_lnd ,       &
@@ -565,7 +570,7 @@ module mod_params
     ichdrdepo = 1     ! tracer dry deposition
     ichcumtra = 1     ! tracer convective transport
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
-    ichdustparam = 0  ! read dust emission scheme surface parameters
+    ichdustparam = 1  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     ichecold = 0      ! chemistry cold start (restart without chem data in SAV)
     idirect = 0       ! tracer direct effect
@@ -878,6 +883,19 @@ module mod_params
         else
           write(stdout,*) 'Read emanparam OK'
 #endif
+        end if
+        if ( istochastic == 1 ) then
+          rewind(ipunit)
+          read (ipunit, nml=emanstochastic, iostat=iretval, err=111)
+          if ( iretval /= 0 ) then
+            write(stdout,*) 'No emanstochastic namelist.'
+            write(stdout,*) 'Setting Emanuel to deterministic.'
+            istochastic = 0
+#ifdef DEBUG
+          else
+            write(stdout,*) 'Activate Emanuel Stochastic parameterization.'
+#endif
+          end if
         end if
       end if
       if ( any(icup == 5) ) then
@@ -1610,6 +1628,17 @@ module mod_params
       call bcast(damp)
       call bcast(epmax_ocn)
       call bcast(epmax_ocn)
+      call bcast(istochastic)
+      if ( istochastic == 1 ) then
+        call bcast(sigs_min)
+        call bcast(sigs_max)
+        call bcast(sigd_min)
+        call bcast(sigd_max)
+        call bcast(epmax_lnd_min)
+        call bcast(epmax_lnd_max)
+        call bcast(elcrit_lnd_min)
+        call bcast(elcrit_lnd_max)
+      end if
     end if
 
     if ( any(icup == 5) ) then
@@ -2728,22 +2757,6 @@ module mod_params
             ricr(j,i) = ricr_lnd
           else
             ricr(j,i) = ricr_ocn
-          end if
-        end do
-      end do
-    end if
-    !
-    ! Setup Land/Ocean MIT autoconversion
-    !
-    if ( any(icup == 4) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( isocean(mddom%lndcat(j,i)) ) then
-            elcrit2d(j,i) = elcrit_lnd
-            epmax2d(j,i) = epmax_lnd
-          else
-            elcrit2d(j,i) = elcrit_ocn
-            epmax2d(j,i) = epmax_ocn
           end if
         end do
       end do

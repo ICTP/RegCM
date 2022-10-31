@@ -54,7 +54,7 @@ module mod_cloud_xuran
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > dlowval ) then
+          if ( qc(j,i,k) > 1.0e-12_rkx ) then
             qcld = qc(j,i,k)
             rhrng = max(rhmin,min(rhmax,rh(j,i,k)))
             if ( rhrng > 0.99999 ) then

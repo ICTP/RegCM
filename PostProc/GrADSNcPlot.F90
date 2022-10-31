@@ -67,13 +67,13 @@ program ncplot
   integer(ik4) :: ivarid , idimid , xtype , ip1 , ip2
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rkx) :: alat , alon
+  real(rk8) , dimension(:) , allocatable :: alon , alat
+  real(rkx) :: flon , flat
   integer(ik4) :: i , j
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
-  real(rk8) , dimension(:,:) , pointer :: pntp
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj
@@ -345,8 +345,8 @@ program ncplot
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
-  rloninc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
+  rlatinc = max(rounder(ds/111000.0_rkx,.false.),0.01_rkx)
+  rloninc = max(rounder(ds/111000.0_rkx,.false.),0.01_rkx)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
     nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1
@@ -394,11 +394,12 @@ program ncplot
   pjpara%rotparam = .true.
   call pj%initialize(pjpara)
 
+  allocate(alon(nlon),alat(nlat))
   if ( iproj == 'ROTLLR' ) then
-    call pj%rl00(alat,alon)
+    call pj%rl00(flat,flon)
     write(ip1, '(a,i8,i8,a,6f8.2)') 'pdef ', jx , iy ,   &
            ' rotll ',plon, plat, raddeg*ds/earthrad, &
-           raddeg*ds/earthrad,alon,alat
+           raddeg*ds/earthrad,flon,flat
   else
     allocate(rin(nlon,nlat), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__, &
@@ -419,19 +420,18 @@ program ncplot
     call checkalloc(istatus,__FILE__,__LINE__, &
                     'r4uv')
     do ilon = 1 , nlon
-      alon = minlon + (ilon-1) * rloninc
+      alon(ilon) = minlon + (ilon-1) * rloninc
+    end do
+    do ilat = 1 , nlat
+      alat(ilat) = minlat + (ilat-1) * rlatinc
+    end do
+    do ilon = 1 , nlon
       do ilat = 1 , nlat
-        alat = minlat + (ilat-1) * rlatinc
-        call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
+        call pj%llij(alat(ilat),alon(ilon),rin(ilon,ilat),rjn(ilon,ilat))
       end do
     end do
-    if ( iproj == 'ROTMER' .or. &
-         iproj == 'POLSTR' .or. &
-         iproj == 'LAMCON' ) then
-      pntp => pj%rotation_angle( )
-      ruv(:,:) = pntp(:,:)
-    else
-      ruv(:,:) = 1.0
+    if ( iproj /= 'ROTLLR' ) then
+      call pj%rotation_angle(alon,alat,ruv)
     end if
     r4in = real(rin)
     r4jn = real(rjn)
@@ -447,9 +447,9 @@ program ncplot
     write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
            ' bilin sequential binary-big ', trim(tmpcoord)
   end if
-  write(ip1, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc
-  write(ip1, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f8.3)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc
 
   if (.not. ldepth .and. kz /= 0) then
@@ -809,6 +809,7 @@ program ncplot
 
   command = 'grads -l -c temp.gs'
 
+  deallocate(alon,alat)
   call system(command)
 
   call memory_destroy( )

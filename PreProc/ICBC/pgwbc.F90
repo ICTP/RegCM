@@ -130,7 +130,7 @@ program pgwbc
 
   do nnn = 1 , nsteps
     call get_pgw(nnn)
-    call writepwgf(idate)
+    call writepgwf(idate)
     idate = nextmon(idate)
   end do
 

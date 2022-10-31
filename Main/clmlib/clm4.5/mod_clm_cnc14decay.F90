@@ -5,6 +5,7 @@ module mod_clm_cnc14decay
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_date
   use mod_clm_nchelper
   use mod_mpmessage
   use mod_runparams

@@ -42,8 +42,7 @@ module mod_cu_interface
       pmean , nmctop
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , cldefi
-  use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d ,        &
-      elcrit2d , epmax2d
+  use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d
   use mod_cu_kuo , only : allocate_mod_cu_kuo , cupara , twght , vqflx , k700
   use mod_cu_grell , only : allocate_mod_cu_grell , cuparan , mincld2d ,   &
       shrmax2d , shrmin2d , edtmax2d , edtmin2d ,  edtmaxo2d , edtmaxx2d , &
@@ -81,8 +80,6 @@ module mod_cu_interface
   public :: htmax2d
   public :: htmin2d
   public :: dtauc2d
-  public :: elcrit2d
-  public :: epmax2d
   public :: k700
   public :: total_precip_points
 

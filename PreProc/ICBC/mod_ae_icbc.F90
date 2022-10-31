@@ -91,7 +91,7 @@ module mod_ae_icbc
         case ( '85' )
           iscen = 4
         case default
-          iscen = 1
+          iscen = 2
       end select
     end if
     write(aefilename,'(a,i0.4,a,i0.4,a)') &

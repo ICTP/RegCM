@@ -164,7 +164,6 @@ module mod_atm_interface
   real(rkx) , public , pointer , dimension(:,:,:) :: drydepflx
 
   ! Coupling
-  real(rkx) , public , pointer , dimension(:,:,:) :: dailyrnf
   integer(ik4) , public , pointer , dimension(:,:) :: cplmsk
 
   integer(ik4) :: ix1 , ix2 , jx1 , jx2
@@ -904,6 +903,10 @@ module mod_atm_interface
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+        call getmem2d(sfs%dsrnof,jci1,jci2,ici1,ici2,'surf:dsrnof')
+        call getmem2d(sfs%dtrnof,jci1,jci2,ici1,ici2,'surf:dtrnof')
+      end if
       call getmem2d(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
       call getmem2d(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
       call getmem2d(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
@@ -1097,7 +1100,6 @@ module mod_atm_interface
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
         cplmsk(:,:) = 0
-        call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'storage:dailyrnf')
       end if
       call getmem2d(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
       call getmem2d(prnca,jci1,jci2,ici1,ici2,'storage:prnca')

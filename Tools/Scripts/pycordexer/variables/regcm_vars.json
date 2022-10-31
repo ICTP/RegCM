@@ -27,5 +27,6 @@
   "rsut": ["rsut", "rsnt"],
   "rsus": ["rsus"],
   "rlds": ["rlds", "rsdl"],
-  "rlus": ["rlus"]
+  "rlus": ["rlus"],
+  "zo" : ["zo"]
 }

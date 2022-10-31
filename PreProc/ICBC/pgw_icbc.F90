@@ -345,17 +345,20 @@ program pgw_icbc
 
   do n = 1 , nsteps
 
-    write(stdout,* ) 'Processing time record ', n
-
     if ( n < int(hm) ) then
-      w1 = (hm-n)/fm
-      w2 = (hm+n)/fm
+      w1 = 0.5_rkx - (n-1)/fm
+      w2 = 1.0_rkx - w1
       w3 = 0.0_rkx
     else
       w1 = 0.0_rkx
-      w2 = (fm-n)/fm
-      w3 = (n-hm)/fm
+      w2 = 1.0_rkx - (n-hm)/fm
+      w3 = 1.0_rkx - w2
     end if
+
+    write(stdout,* ) 'Processing time record ', n
+    write(stdout,* ) 'Weights : ',w1,w2,w3
+    write(stdout,* ) 'pieces : ',n,hm,fm
+
     bps = w1*ps1 + w2*ps2 + w3*ps3
     bts = w1*ts1 + w2*ts2 + w3*ts3
     bu = w1*u1 + w2*u2 + w3*u3

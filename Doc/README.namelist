@@ -163,9 +163,9 @@
  ! /
  ! &cmip6param
  ! cmip6_model = 'EC-Earth3-Veg',
- ! cmip6_inp = 'https://esg-dn3.nsc.liu.se/thredds/dodsC',
+ ! cmip6_inp = 'https://esg-dn1.nsc.liu.se/thredds/dodsC',
  ! cmip6_ssp = 'ssp585',
- ! cmip6_variant = 'r12i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gr',
  ! /
  ! &cmip6param
@@ -187,6 +187,13 @@
  ! cmip6_inp = 'https://crd-esgf-drc.ec.gc.ca/thredds/dodsC',
  ! cmip6_ssp = 'ssp585',
  ! cmip6_variant = 'r1i1p2f1',
+ ! cmip6_grid = 'gn',
+ ! /
+ ! &cmip6param
+ ! cmip6_model = 'CMCC-ESM2',
+ ! cmip6_inp = 'https://esgf-node2.cmcc.it/thredds/dodsC',
+ ! cmip6_ssp = 'ssp585',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
 !
@@ -764,6 +771,7 @@
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
                  ! 3 = use the the CLM4.5 dust emission module.
+ ichdustparam = 0! read dust emission scheme surface parameters
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
  ismoke = 0,     ! Consider emissions from fires (smoke tracer)
  idirect   = 0,  ! Choice to enable or not aerosol feedbacks on radiation and

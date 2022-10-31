@@ -260,8 +260,6 @@ module mod_write
       v3dvar_base(6)%axis = 'xyz'
     end if
 
-    call getmem2d(v2dvar_base(12)%rval,1,jx,1,iy,'mod_write:areacella')
-
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
@@ -301,6 +299,8 @@ module mod_write
     type(ncoutstream_params) :: opar
     real(rkx) :: dx
     integer(ik4) :: ivar
+
+    allocate(v2dvar_base(12)%rval(size(xlat,1), size(xlat,2)))
 
     opar%fname = fname
     opar%pname = 'terrain'
@@ -434,6 +434,7 @@ module mod_write
       call outstream_writevar(ncout,v2dvar_lake)
     end if
     call outstream_dispose(ncout)
+    deallocate(v2dvar_base(12)%rval)
   end subroutine write_domain
 
 end module mod_write

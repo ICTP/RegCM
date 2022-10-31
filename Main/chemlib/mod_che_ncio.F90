@@ -228,8 +228,22 @@ module mod_che_ncio
           istart=istart,icount=icount)
         erodfc(jci1:jci2,ici1:ici2) = &
           max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        istart3(1) = jde1
+        istart3(2) = ide1
+        istart3(3) = 1
+        icount3(1) = jde2-jde1+1
+        icount3(2) = ide2-ide1+1
+        icount3(3) = 12
+        allocate(rspace3(jde1:jde2,ide1:ide2,1:12))
+        call read_var3d_static(idmin,'z0',rspace3, &
+          istart=istart3,icount=icount3)
+        aez0(jci1:jci2,ici1:ici2,1:12)= &
+          max(rspace3(jci1:jci2,ici1:ici2,1:12),d_zero)
+
         call closefile(idmin)
         deallocate(rspace)
+        deallocate(rspace3)
       else
         if ( myid == iocpu ) then
           call openfile_withname(dname,idmin)
@@ -549,6 +563,14 @@ module mod_che_ncio
         end do looprec
 
         if ( recc == 0 ) then
+          write(stderr,*) 'searching : ' , lyear , lmonth
+          tchdate = timeval2date(emtimeval(1),chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          write(stderr,*) 'In file first time : ', year , month
+          tchdate = timeval2date(emtimeval(chmnrec), &
+                                 chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          write(stderr,*) 'In file last time : ', year , month
           write(stderr,*) 'chem emission : time record not found emission file'
           call fatal(__FILE__,__LINE__, &
                         'IO ERROR in CHEM EMISSION')
@@ -721,7 +743,7 @@ module mod_che_ncio
       integer(ik4) , intent(out) :: ifreq
       real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
+      integer(ik4) :: n , ncid , itvar , idimid , chmnrec , sdim
       character(64) ::chemi_timeunits , chemi_timecal
       real(rkx) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount

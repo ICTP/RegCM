@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cmip6_hadmm
+module mod_cmip6_cmcc
 
   use mod_intkinds
   use mod_realkinds
@@ -33,17 +33,14 @@ module mod_cmip6_hadmm
 
   private
 
-  character(len=*) , parameter :: hadmm_version = 'v20191207'
-  character(len=*) , parameter :: hadmm_version1 = 'v20210331'
-  character(len=*) , parameter :: hadmm_version2 = 'v20201019'
-  character(len=*) , parameter :: hadmm_version3 = 'v20201113'
-  character(len=*) , parameter :: hadmm_version4 = 'v20200515'
+  character(len=*) , parameter :: cmcc_version = 'v20210114'
+  character(len=*) , parameter :: cmcc_version1 = 'v20210126'
 
-  public :: read_3d_hadmm , read_2d_hadmm , read_fx_hadmm , read_sst_hadmm
+  public :: read_3d_cmcc , read_2d_cmcc , read_fx_cmcc , read_sst_cmcc
 
   contains
 
-    subroutine read_hcoord_hadmm(ncid,lon,lat)
+    subroutine read_hcoord_cmcc(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:) , intent(inout) :: lon , lat
@@ -57,8 +54,8 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem1d(lon,1,nlon,'cmip6_mpi:lon')
-      call getmem1d(lat,1,nlat,'cmip6_mpi:lat')
+      call getmem1d(lon,1,nlon,'cmip6_cmcc:lon')
+      call getmem1d(lat,1,nlat,'cmip6_cmcc:lat')
       istatus = nf90_inq_varid(ncid,'lon',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -67,24 +64,24 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read lat var')
-    end subroutine read_hcoord_hadmm
+    end subroutine read_hcoord_cmcc
 
-    subroutine read_hcoord_sst_hadmm(ncid,lon,lat)
+    subroutine read_hcoord_sst_cmcc(ncid,lon,lat)
       implicit none
       integer(ik4) , intent(in) :: ncid
       real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlon , nlat
-      istatus = nf90_inq_dimid(ncid,'i',idimid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lon')
-      istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lon dim')
       istatus = nf90_inq_dimid(ncid,'j',idimid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lat')
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find j dim')
+      istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire j dim')
+      istatus = nf90_inq_dimid(ncid,'i',idimid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find i dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lat dim')
-      call getmem2d(lon,1,nlon,1,nlat,'cmip6_had:lon')
-      call getmem2d(lat,1,nlon,1,nlat,'cmip6_had:lat')
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire i dim')
+      call getmem2d(lon,1,nlon,1,nlat,'cmip6_cmcc:lon')
+      call getmem2d(lat,1,nlon,1,nlat,'cmip6_cmcc:lat')
       istatus = nf90_inq_varid(ncid,'longitude',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find longitude var')
       istatus = nf90_get_var(ncid,ivarid,lon)
@@ -93,37 +90,42 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find latitude var')
       istatus = nf90_get_var(ncid,ivarid,lat)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read latitude var')
-    end subroutine read_hcoord_sst_hadmm
+    end subroutine read_hcoord_sst_cmcc
 
-    subroutine read_vcoord_hadmm(ncid,ap,b)
+    subroutine read_vcoord_cmcc(ncid,a,b,p0)
       implicit none
       integer(ik4) , intent(in) :: ncid
-      real(rkx) , pointer , dimension(:) , intent(inout) :: ap , b
+      real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
+      real(rkx) , intent(out) :: p0
       integer(ik4) :: istatus , idimid , ivarid
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
       istatus = nf90_inquire_dimension(ncid,idimid,len=nlev)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error inquire lev dim')
-      call getmem1d(ap,1,nlev,'cmip6_mpi:lev')
-      call getmem1d(b,1,nlev,'cmip6_mpi:b')
-      istatus = nf90_inq_varid(ncid,'lev',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev var')
-      istatus = nf90_get_var(ncid,ivarid,ap)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read lev var')
+      call getmem1d(a,1,nlev,'cmip6_cmcc:a')
+      call getmem1d(b,1,nlev,'cmip6_cmcc:b')
+      istatus = nf90_inq_varid(ncid,'a',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
+      istatus = nf90_get_var(ncid,ivarid,a)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read a var')
       istatus = nf90_inq_varid(ncid,'b',ivarid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(ncid,ivarid,b)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
-    end subroutine read_vcoord_hadmm
+      istatus = nf90_inq_varid(ncid,'p0',ivarid)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
+      istatus = nf90_get_var(ncid,ivarid,p0)
+      call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
+    end subroutine read_vcoord_cmcc
 
-    recursive subroutine read_3d_hadmm(idate,v,lonlyc)
+    recursive subroutine read_3d_cmcc(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_3d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y , yp , m , mp
+      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -133,25 +135,17 @@ module mod_cmip6_hadmm
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
         y = year
-        m = month / 3 * 3 + 1
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
           y = y - 1
-          m = 10
         end if
-        yp = y
-        mp = m + 3
-        if ( mp > 12 ) then
-          yp = yp + 1
-          mp = 1
-        end if
-        if ( y > 2015 ) then
-          ver = hadmm_version2
+        if ( y < 2015 ) then
+          ver = cmcc_version
         else
-          ver = hadmm_version3
+          ver = cmcc_version1
         end if
-        write(v%filename,'(a,i4,i0.2,a,i4,i0.2,a)') &
+        write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
-          y, m, '010600-', yp, mp, '010000.nc'
+          y, '01010600-', y+1, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -161,17 +155,17 @@ module mod_cmip6_hadmm
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_cmcc(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%vcoord) ) then
         allocate(v%vcoord)
-        call read_vcoord_hadmm(v%ncid,v%vcoord%ak,v%vcoord%bk)
+        call read_vcoord_cmcc(v%ncid,v%vcoord%ak,v%vcoord%bk,v%vcoord%p0)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
         v%nk = size(v%vcoord%ak)
-        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:hadmm:'//trim(v%vname))
+        call getmem3d(v%var,1,v%ni,1,v%nj,1,v%nk,'cmip6:cmcc:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ', &
           v%ni,'x',v%nj,'x',v%nk
@@ -223,7 +217,7 @@ module mod_cmip6_hadmm
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_3d_hadmm(idate,v)
+        call read_3d_cmcc(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -236,15 +230,16 @@ module mod_cmip6_hadmm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_3d_hadmm
+    end subroutine read_3d_cmcc
 
-    recursive subroutine read_2d_hadmm(idate,v,lonlyc)
+    recursive subroutine read_2d_cmcc(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
+      integer(ik4) :: y
+      integer(ik4) :: year , month , day , hour
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -252,47 +247,18 @@ module mod_cmip6_hadmm
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( year >= 2015 .and. year < 2020 ) then
-          if ( year == 2015 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,a,a)') &
-              trim(cmip6_path(2010,'6hrLev',hadmm_version2,v%vname)), &
-              '201001010600-', '201501010000.nc'
-          else
-            write(v%filename,'(a,a,a)') &
-              trim(cmip6_path(2015,'6hrLev',hadmm_version3,v%vname)), &
-              '201501010600-', '202001010000.nc'
-          end if
-        else if ( year == 2020 .and. month == 1 .and. &
-                 day == 1 .and. hour == 0 ) then
-          write(v%filename,'(a,a,a)') &
-            trim(cmip6_path(2015,'6hrLev',hadmm_version3,v%vname)), &
-            '201501010600-', '202001010000.nc'
-        else if ( year >= 2010 .and. year < 2015 ) then
-          if ( year == 2010 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            write(v%filename,'(a,a,a)') &
-              trim(cmip6_path(2000,'6hrLev',hadmm_version2,v%vname)), &
-              '200001010600-', '201001010000.nc'
-          else
-            write(v%filename,'(a,a,a)') &
-              trim(cmip6_path(2010,'6hrLev',hadmm_version2,v%vname)), &
-              '201001010600-', '201501010000.nc'
-          end if
+        y = (year / 5) * 5
+        if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
+          y = y - 5
+        end if
+        if ( y < 2015 ) then
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',cmcc_version,v%vname)), &
+            y, '01010600-', y+5, '01010000.nc'
         else
-          y = (year / 10) * 10
-          if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-            y = y - 10
-          end if
-          if ( y > 2015 ) then
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version3,v%vname)), &
-              y, '01010600-', y+10, '01010000.nc'
-          else
-            write(v%filename,'(a,i4,a,i4,a)') &
-              trim(cmip6_path(y,'6hrLev',hadmm_version2,v%vname)), &
-              y, '01010600-', y+10, '01010000.nc'
-          end if
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(y,'6hrLev',cmcc_version1,v%vname)), &
+            y, '01010600-', y+5, '01010000.nc'
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -303,12 +269,12 @@ module mod_cmip6_hadmm
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+        call read_hcoord_cmcc(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       end if
       if ( .not. associated(v%var) ) then
         v%ni = size(v%hcoord%lon1d)
         v%nj = size(v%hcoord%lat1d)
-        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
+        call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:cmcc:'//trim(v%vname))
 #ifdef DEBUG
         write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -359,7 +325,7 @@ module mod_cmip6_hadmm
 #ifdef DEBUG
         write(stderr, *) 'Closed file, switching to the next in series...'
 #endif
-        call read_2d_hadmm(idate,v)
+        call read_2d_cmcc(idate,v)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -370,14 +336,14 @@ module mod_cmip6_hadmm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-    end subroutine read_2d_hadmm
+    end subroutine read_2d_cmcc
 
-    recursive subroutine read_fx_hadmm(v)
+    recursive subroutine read_fx_cmcc(v)
       implicit none
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       integer(ik4) :: istatus
 
-      v%filename = trim(cmip6_fxpath(hadmm_version1,v%vname))
+      v%filename = trim(cmip6_fxpath(cmcc_version,v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -385,10 +351,10 @@ module mod_cmip6_hadmm
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error opening file '//trim(v%filename)//'.')
       allocate(v%hcoord)
-      call read_hcoord_hadmm(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
+      call read_hcoord_cmcc(v%ncid,v%hcoord%lon1d,v%hcoord%lat1d)
       v%ni = size(v%hcoord%lon1d)
       v%nj = size(v%hcoord%lat1d)
-      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:hadmm:'//trim(v%vname))
+      call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:cmcc:'//trim(v%vname))
 #ifdef DEBUG
       write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
 #endif
@@ -402,15 +368,15 @@ module mod_cmip6_hadmm
       istatus = nf90_close(v%ncid)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(v%filename)//'.')
-    end subroutine read_fx_hadmm
+    end subroutine read_fx_cmcc
 
-    recursive subroutine read_sst_hadmm(idate,v,lat,lon)
+    recursive subroutine read_sst_cmcc(idate,v,lat,lon)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       type(cmip6_2d_var) , intent(inout) :: v
-      real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: lon , lat
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
+      integer(ik4) :: year , month , day , hour, y1, y2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -418,25 +384,42 @@ module mod_cmip6_hadmm
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = (year / 5) * 5
-        write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'Oday',hadmm_version4,v%vname)), &
-          y, '0101-', y+4, '1230.nc'
+        if ( year < 2015 ) then
+          y1 = (year/10)*10
+          if ( y1 == 2010 ) then
+            y2 = 2014
+          else
+            y2 = y1 + 9
+          end if
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(year,'Oday',cmcc_version,v%vname)), &
+            y1,'0101-',y2,'1231.nc'
+        else
+          y1 = (year-2015)/10*10 + 2015
+          if ( y1 == 2095 ) then
+            y2 = 2100
+          else
+            y2 = y1 + 9
+          end if
+          write(v%filename,'(a,i4,a,i4,a)') &
+            trim(cmip6_path(year,'Oday',cmcc_version1,v%vname)), &
+            y1,'0101-',y2,'1231.nc'
+        end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
-        istatus = nf90_open(v%filename,nf90_nowrite,v%ncid)
+        istatus = nf90_open(trim(v%filename),nf90_nowrite,v%ncid)
         call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error opening file '//trim(v%filename)//'.')
       end if
       if ( .not. associated(v%hcoord) ) then
         allocate(v%hcoord)
-        call read_hcoord_sst_hadmm(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
+        call read_hcoord_sst_cmcc(v%ncid,v%hcoord%lon2d,v%hcoord%lat2d)
         call h_interpolator_create(v%hint(1), &
                                    v%hcoord%lat2d,v%hcoord%lon2d,lat,lon)
         call getmem2d(v%var,1,size(v%hcoord%lon2d,1), &
                             1,size(v%hcoord%lat2d,2), &
-                            'cmip6_had:'//trim(v%vname))
+                            'cmip6_cmcc:'//trim(v%vname))
       end if
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
@@ -478,7 +461,7 @@ module mod_cmip6_hadmm
         v%ivar = -1
         v%nrec = -1
         irec = 1
-        call read_sst_hadmm(idate,v,lat,lon)
+        call read_sst_cmcc(idate,v,lat,lon)
       end if
       istart(1) = 1
       istart(2) = 1
@@ -495,8 +478,8 @@ module mod_cmip6_hadmm
       else where
         v%var = v%var + 273.15_rkx
       end where
-    end subroutine read_sst_hadmm
+    end subroutine read_sst_cmcc
 
-end module mod_cmip6_hadmm
+end module mod_cmip6_cmcc
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
