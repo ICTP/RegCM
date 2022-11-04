@@ -983,7 +983,7 @@ module mod_output
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out*srffac
         if ( associated(srf_uflw_out) ) &
-          srf_uflw_out = srf_fld_out - srf_flw_out
+          srf_uflw_out = srf_fld_out + srf_flw_out
         if ( associated(srf_ufsw_out) ) &
           srf_ufsw_out = srf_sina_out - srf_fsw_out
         if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
