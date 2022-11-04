@@ -459,7 +459,7 @@ module mod_pbl_uwtcm
             !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
             rvls = pfwsat(temps,preshl(k))
             cpoxlv = cp(k)*orlv(k)
-            do iteration = 1 , 2
+            do iteration = 1 , 3
               deltat = ((templ-temps)*cpoxlv + qwx(k)-rvls) / &
                 (cpoxlv + ep2*rlv(k)*rvls/rgas/templ/templ)
               if ( abs(deltat) < 0.01_rkx ) exit
