@@ -54,7 +54,7 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: qsmax = 0.5_rkx
   real(rkx) , parameter :: cwdrag = (3.0_rkx/8.0_rkx)*0.506_rkx/0.200_rkx
 
-  real(rkx) :: rtau
+  real(rkx) :: rtau , dtau
   real(rkx) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: nk350 , nk060 , nk950
 
@@ -212,6 +212,7 @@ module mod_cu_tiedtke
     end if
 
     ilab(:,:) = 2
+    dtau = dtcum
 
     if ( ichem == 1 ) then
       do n = 1 , ntr
@@ -399,40 +400,34 @@ module mod_cu_tiedtke
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do ii = 1 , nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)
-          end if
+          i = imap(ii)
+          j = jmap(ii)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)
         end do
       end do
     else
       do k = 1 , kz
         do ii = 1 , nipoi
-          if ( ktype(ii) > 0 ) then
-            i = imap(ii)
-            j = jmap(ii)
-            cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-            ! Tendency in specific humidity to mixing ratio tendency.
-            cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
-                                 m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
-          end if
+          i = imap(ii)
+          j = jmap(ii)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
         end do
       end do
     end if
     do k = 1 , kz
       do ii = 1 , nipoi
-        if ( ktype(ii) > 0 ) then
-          i = imap(ii)
-          j = jmap(ii)
-          cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
-          cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
-          cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
-          cu_raincc(j,i,k) = pmflxr(ii,k)
-        end if
+        i = imap(ii)
+        j = jmap(ii)
+        cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
+        cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
+        cu_qdetr(j,i,k) = zlude(ii,k)*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
+        cu_raincc(j,i,k) = pmflxr(ii,k)
       end do
     end do
 
@@ -440,25 +435,21 @@ module mod_cu_tiedtke
       if ( idynamic == 3 ) then
         do k = 1 , kz
           do ii = 1 , nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
           end do
         end do
       else
         do k = 1 , kz
           do ii = 1 , nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
-                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-              cu_qten(j,i,k,iqi) = pxite(ii,k) - &
-                  m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = pxlte(ii,k) - &
+                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - &
+                m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
           end do
         end do
       end if
@@ -466,25 +457,21 @@ module mod_cu_tiedtke
       if ( idynamic == 3 ) then
         do k = 1 , kz
           do ii = 1 , nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
-                  m2c%qxten(j,i,k,iqc)
-              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = (pxlte(ii,k)+pxite(ii,k)) - &
+                m2c%qxten(j,i,k,iqc)
+            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
           end do
         end do
       else
         do k = 1 , kz
           do ii = 1 , nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
-                  m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-              cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
-            end if
+            i = imap(ii)
+            j = jmap(ii)
+            cu_qten(j,i,k,iqc) = (pxlte(ii,k) + pxite(ii,k)) - &
+                m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+            cu_tten(j,i,k) = cu_tten(j,i,k) + pxite(ii,k)*wlhf/cpd
           end do
         end do
       end if
@@ -496,11 +483,9 @@ module mod_cu_tiedtke
         do n = 1 , ntr
           do k = 1 , kz
             do ii = 1 , nipoi
-              if ( ktype(ii) > 0 ) then
-                i = imap(ii)
-                j = jmap(ii)
-                cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
-              end if
+              i = imap(ii)
+              j = jmap(ii)
+              cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
             end do
           end do
         end do
@@ -508,12 +493,10 @@ module mod_cu_tiedtke
         do n = 1 , ntr
           do k = 1 , kz
             do ii = 1 , nipoi
-              if ( ktype(ii) > 0 ) then
-                i = imap(ii)
-                j = jmap(ii)
-                cu_chiten(j,i,k,n) = pxtte(ii,k,n) - &
-                            m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-              end if
+              i = imap(ii)
+              j = jmap(ii)
+              cu_chiten(j,i,k,n) = pxtte(ii,k,n) - &
+                          m2c%chiten(j,i,k,n)/m2c%psb(j,i)
             end do
           end do
         end do
@@ -647,12 +630,12 @@ module mod_cu_tiedtke
     if ( iconv /= 4 ) then
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtau
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtau)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtau)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtau)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtau
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtau
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -675,12 +658,12 @@ module mod_cu_tiedtke
     else
       do jk = 1 , klev
         do jl = 1 , kproma
-          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
-          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtau
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtau)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtau)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtau)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtau
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtau
           zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         end do
       end do
@@ -689,7 +672,7 @@ module mod_cu_tiedtke
     do jt = 1 , ktrac
       do jk = 1 , klev
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtau)
         end do
       end do
     end do
@@ -938,7 +921,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dtau)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1415,7 +1398,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dtau)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1842,7 +1825,7 @@ module mod_cu_tiedtke
     ! -----------------------------------
     !
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dtau)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2360,7 +2343,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dtau)
     ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
@@ -2847,7 +2830,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dtau)
     ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -4111,8 +4094,8 @@ module mod_cu_tiedtke
     !
     ! SPECIFY CONSTANTS
     !
-    zcons1 = cpd/(wlhf*egrav*dtcum)
-    zcons2 = d_one/(egrav*dtcum)
+    zcons1 = cpd/(wlhf*egrav*dtau)
+    zcons2 = d_one/(egrav*dtau)
     zcucov = 0.050_rkx
     ztmelp2 = tzero + 2.0_rkx
     !
@@ -4777,8 +4760,8 @@ module mod_cu_tiedtke
     !------------------------------------
     ! 1. Specify constants and parameters
     ! -----------------------------------
-    cons2 = rmfcfl/(egrav*dtcum)
-    cons = d_one/(egrav*dtcum)
+    cons2 = rmfcfl/(egrav*dtau)
+    cons = d_one/(egrav*dtau)
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
@@ -4973,7 +4956,7 @@ module mod_cu_tiedtke
         rheat(n) = max(1.e-4_rkx,rheat(n))
         tau(n) = (geof(n,ik)-geof(n,ikb)) / &
                    ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
-        tau(n) = max(dtcum,min(10800.0_rkx,tau(n)))
+        tau(n) = max(dtau,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
         mfub1(n) = max(mfub1(n),0.001_rkx)
@@ -5179,7 +5162,7 @@ module mod_cu_tiedtke
     do k = 2 , nk
       do n = n1 , n2
         if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
-          dz = dtcum*egrav/(pf(n,k+1)-pf(n,k))
+          dz = dtau*egrav/(pf(n,k+1)-pf(n,k))
           mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
                 mful(n,k+1) - mful(n,k) + dmfup(n,k)
           mfa = (mfa-lude(n,k))*dz
@@ -5906,7 +5889,7 @@ module mod_cu_tiedtke
       !----------------------
       ! 1. Specify parameters
       ! ---------------------
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dtau)
       facbuo = d_half/(d_one+d_half)
       cldmax = 5.e-3_rkx
       cwifrac = d_half
@@ -6719,10 +6702,10 @@ module mod_cu_tiedtke
           do n = n1 , n2
             llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
             if ( llcumbas(n,k) ) then
-              zp = rmfsoltq*dp(n,k)*dtcum
+              zp = rmfsoltq*dp(n,k)*dtau
               xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dtdt(n,k) = dtdt(n,k)*dtcum + t(n,k)
-              dqdt(n,k) = dqdt(n,k)*dtcum + q(n,k)
+              dtdt(n,k) = dtdt(n,k)*dtau + t(n,k)
+              dqdt(n,k) = dqdt(n,k)*dtau + q(n,k)
               if ( k < nk ) then
                 bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
               else
@@ -6737,9 +6720,9 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtcum
-              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtcum
-              penth(n,k) = (r1(n,k)-t(n,k))/dtcum
+              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))/dtau
+              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))/dtau
+              penth(n,k) = (r1(n,k)-t(n,k))/dtau
             end if
           end do
         end do
@@ -6870,10 +6853,10 @@ module mod_cu_tiedtke
           do n = n1 , n2
             llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
             if ( llcumbas(n,k) ) then
-              zp = rmfsoluv*dp(n,k)*dtcum
+              zp = rmfsoluv*dp(n,k)*dtau
               mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dudt(n,k) = dudt(n,k)*dtcum + uen(n,k)
-              dvdt(n,k) = dvdt(n,k)*dtcum + ven(n,k)
+              dudt(n,k) = dudt(n,k)*dtau + uen(n,k)
+              dvdt(n,k) = dvdt(n,k)*dtau + ven(n,k)
               if ( k < nk ) then
                 bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
               else
@@ -6887,8 +6870,8 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtcum
-              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtcum
+              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))/dtau
+              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))/dtau
             end if
           end do
         end do
@@ -6918,7 +6901,7 @@ module mod_cu_tiedtke
       ! 0. Setup constants
       ! ------------------
       cons1a = cpd/(wlhf*egrav*rtaumel)
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dtau)
       !-------------------------------------
       ! 1. Determine final convective fluxes
       ! ------------------------------------
@@ -7665,11 +7648,11 @@ module mod_cu_tiedtke
           if ( lddraf(n) ) then
             posi = -dp(n,k) *(mfu(n,k)*cu(n,k,nt) + &
               mfd(n,k)*cd(n,k,nt)-(mfu(n,k)+mfd(n,k))*qtrac(n,ik,nt))
-            if ( qtrac(n,k,nt)+posi*dtcum < d_zero ) then
+            if ( qtrac(n,k,nt)+posi*dtau < d_zero ) then
               mfa = d_one/min(-cmfcmin,mfd(n,k))
               cd(n,k,nt) = ((mfu(n,k)+mfd(n,k))*qtrac(n,ik,nt) - &
                 mfu(n,k)*cu(n,k,nt)+qtrac(n,k,nt) / &
-                (dtcum*dp(n,k)))*mfa
+                (dtau*dp(n,k)))*mfa
             end if
           end if
         end do
@@ -7737,9 +7720,9 @@ module mod_cu_tiedtke
             do n = n1 , n2
               llcumbas(n,k) = llcumask(n,k)
               if ( llcumbas(n,k) ) then
-                zp = rmfsolct*dp(n,k)*dtcum
+                zp = rmfsolct*dp(n,k)*dtau
                 mfc(n,k,nt) = -zp*(mfu(n,k)+mfd(n,k))
-                xtenc(n,k,nt) = xtenc(n,k,nt)*dtcum + qtrac(n,k,nt)
+                xtenc(n,k,nt) = xtenc(n,k,nt)*dtau + qtrac(n,k,nt)
                 ! for implicit solution including tendency source term
                 if ( k < nk ) then
                   bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
@@ -7754,9 +7737,9 @@ module mod_cu_tiedtke
           do k = 2 , nk
             do n = n1 , n2
               !  for implicit solution including tendency source term
-              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtcum
+              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))/dtau
               if ( llcumbas(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtcum
+                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))/dtau
               end if
             end do
           end do
