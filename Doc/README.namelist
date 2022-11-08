@@ -730,12 +730,20 @@
                !        and the optical depths due to water clouds are computed
                !        as in Hu and Stamnes, J., Clim., 6, 728-742, (1993).
  inflglw  = 2, ! Flag for cloud optical properties as above but for LW
+               ! Use 2: Separate treatement of ice clouds and water clouds.
  iceflglw = 3, ! Flag for ice particle specification as above but for LW
+               ! Use 3: ice particle generalized effective size is limited
+               ! to 5.0 to 140.0 microns
  liqflglw = 1, ! Flag for liquid droplet specification as above but for LW
- icld  = 2,    ! Cloud Overlap hypothesis
+               ! Same as liqflgsw
+ icld  = 1,    ! Cloud Overlap hypothesis
+               ! icld = 0, clear only
+               ! icld = 1, with clouds using random cloud overlap
+               ! icld = 2, with clouds using maximum/random cloud overlap
+               ! icld = 3, with clouds using maximum cloud overlap (McICA only) 
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
- nradfo = 4,   !
+ nradfo = 4,   ! Radiative forcing syncronization
  /
 !
 ! Chemical control parameter

@@ -319,7 +319,7 @@ module mod_params
     inflglw  = 2
     iceflglw = 3
     liqflglw = 1
-    icld  = 2
+    icld  = 1
     imcica = 1
     irng = 1
     nradfo = 4
