@@ -380,201 +380,205 @@ module mod_savefile
       call getmem3d(lwdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwdiralb')
       call getmem3d(lwdifalb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwdifalb')
       return
-    end if
-
-    if ( myid == iocpu ) then
-      if ( idynamic == 3 ) then
-        call getmem3d(atm_u_io,jdot1,jdot2,icross1,icross2,1,kz,'atm_u_io')
-        call getmem3d(atm_v_io,jcross1,jcross2,idot1,idot2,1,kz,'atm_v_io')
-        call getmem3d(atm_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm_t_io')
-        call getmem3d(atm_pai_io,jcross1,jcross2, &
-                                 icross1,icross2,1,kz,'atm_pai_io')
-        call getmem3d(atm_w_io,jcross1,jcross2, &
-                               icross1,icross2,1,kzp1,'atm_w_io')
-        call getmem4d(atm_qx_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,1,nqx,'atm_qx_io')
-        if ( ibltyp == 2 ) then
-          call getmem3d(atm_tke_io,jcross1,jcross2, &
-                        icross1,icross2,1,kzp1,'atm_tke_io')
+    else
+      if ( myid == iocpu ) then
+        if ( idynamic == 3 ) then
+          call getmem3d(atm_u_io,jdot1,jdot2,icross1,icross2,1,kz,'atm_u_io')
+          call getmem3d(atm_v_io,jcross1,jcross2,idot1,idot2,1,kz,'atm_v_io')
+          call getmem3d(atm_t_io,jcross1,jcross2, &
+                                 icross1,icross2,1,kz,'atm_t_io')
+          call getmem3d(atm_pai_io,jcross1,jcross2, &
+                                   icross1,icross2,1,kz,'atm_pai_io')
+          call getmem3d(atm_w_io,jcross1,jcross2, &
+                                 icross1,icross2,1,kzp1,'atm_w_io')
+          call getmem4d(atm_qx_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,nqx,'atm_qx_io')
+          if ( ibltyp == 2 ) then
+            call getmem3d(atm_tke_io,jcross1,jcross2, &
+                          icross1,icross2,1,kzp1,'atm_tke_io')
+          end if
+          call getmem2d(ps_io,jcross1,jcross2,icross1,icross2,'ps_io')
+        else
+          call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
+          call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
+          call getmem3d(atm1_t_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,'atm1_t_io')
+          call getmem4d(atm1_qx_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
+          call getmem3d(atm2_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_u_io')
+          call getmem3d(atm2_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_v_io')
+          call getmem3d(atm2_t_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,'atm2_t_io')
+          call getmem4d(atm2_qx_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
+          if ( ibltyp == 2 ) then
+            call getmem3d(atm1_tke_io,jcross1,jcross2, &
+                          icross1,icross2,1,kzp1,'atm1_tke_io')
+            call getmem3d(atm2_tke_io,jcross1,jcross2, &
+                          icross1,icross2,1,kzp1,'atm2_tke_io')
+          end if
+          call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
+          call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
         end if
-        call getmem2d(ps_io,jcross1,jcross2,icross1,icross2,'ps_io')
-      else
-        call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
-        call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
-        call getmem3d(atm1_t_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'atm1_t_io')
-        call getmem4d(atm1_qx_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
-        call getmem3d(atm2_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_u_io')
-        call getmem3d(atm2_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_v_io')
-        call getmem3d(atm2_t_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'atm2_t_io')
-        call getmem4d(atm2_qx_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
-        if ( ibltyp == 2 ) then
-          call getmem3d(atm1_tke_io,jcross1,jcross2, &
-                        icross1,icross2,1,kzp1,'atm1_tke_io')
-          call getmem3d(atm2_tke_io,jcross1,jcross2, &
-                        icross1,icross2,1,kzp1,'atm2_tke_io')
+        if ( ibltyp == 4 ) then
+          call getmem3d(tke_pbl_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,'tke_pbl_io')
         end if
-        call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
-        call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
-      end if
-      if ( ibltyp == 4 ) then
-        call getmem3d(tke_pbl_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'tke_pbl_io')
-      end if
-      if ( idynamic == 2 ) then
-        call getmem3d(atm1_w_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'atm1_w_io')
-        call getmem3d(atm2_w_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'atm2_w_io')
-        call getmem3d(atm1_pp_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'atm1_pp_io')
-        call getmem3d(atm2_pp_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'atm2_pp_io')
-      end if
-      call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
-      call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
-      call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
-      call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
-      call getmem2d(q2m_io,jcross1,jcross2,icross1,icross2,'q2m_io')
-      call getmem2d(u10m_io,jcross1,jcross2,icross1,icross2,'u10m_io')
-      call getmem2d(v10m_io,jcross1,jcross2,icross1,icross2,'v10m_io')
-      call getmem2d(w10m_io,jcross1,jcross2,icross1,icross2,'w10m_io')
-      call getmem2d(br_io,jcross1,jcross2,icross1,icross2,'br_io')
-      call getmem2d(ram_io,jcross1,jcross2,icross1,icross2,'ram_io')
-      call getmem2d(rah_io,jcross1,jcross2,icross1,icross2,'rah_io')
-      call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
-      call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
-      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-        call getmem2d(dsrnof_io,jcross1,jcross2,icross1,icross2,'dsrnof_io')
-        call getmem2d(dtrnof_io,jcross1,jcross2,icross1,icross2,'dtrnof_io')
-      end if
+        if ( idynamic == 2 ) then
+          call getmem3d(atm1_w_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'atm1_w_io')
+          call getmem3d(atm2_w_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'atm2_w_io')
+          call getmem3d(atm1_pp_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,'atm1_pp_io')
+          call getmem3d(atm2_pp_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,'atm2_pp_io')
+        end if
+        call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
+        call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
+        call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
+        call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
+        call getmem2d(q2m_io,jcross1,jcross2,icross1,icross2,'q2m_io')
+        call getmem2d(u10m_io,jcross1,jcross2,icross1,icross2,'u10m_io')
+        call getmem2d(v10m_io,jcross1,jcross2,icross1,icross2,'v10m_io')
+        call getmem2d(w10m_io,jcross1,jcross2,icross1,icross2,'w10m_io')
+        call getmem2d(br_io,jcross1,jcross2,icross1,icross2,'br_io')
+        call getmem2d(ram_io,jcross1,jcross2,icross1,icross2,'ram_io')
+        call getmem2d(rah_io,jcross1,jcross2,icross1,icross2,'rah_io')
+        call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
+        call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
+        if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+          call getmem2d(dsrnof_io,jcross1,jcross2,icross1,icross2,'dsrnof_io')
+          call getmem2d(dtrnof_io,jcross1,jcross2,icross1,icross2,'dtrnof_io')
+        end if
 
 #ifdef CLM45
-      if ( ichem == 1 ) then
-        call getmem3d(tsoi_io,jcross1,jcross2,icross1,icross2, &
-                            1,num_soil_layers,'tsoi_io')
-        call getmem3d(swvol_io,jcross1,jcross2,icross1,icross2, &
-                            1,num_soil_layers,'swvol_io')
-      end if
+        if ( ichem == 1 ) then
+          call getmem3d(tsoi_io,jcross1,jcross2,icross1,icross2, &
+                              1,num_soil_layers,'tsoi_io')
+          call getmem3d(swvol_io,jcross1,jcross2,icross1,icross2, &
+                              1,num_soil_layers,'swvol_io')
+        end if
 #else
-      call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
-      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
-      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
+        call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
+        call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
+        call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
 #endif
-      call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
-      call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
-      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
-      call getmem4d(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
-                          1,num_soil_layers,'sw_io')
-      call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
-      call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
-      call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
-      call getmem3d(emisv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emisv_io')
-      call getmem3d(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
-      call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
-      call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
-      call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
-      call getmem2d(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
-      call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
-      call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
-      call getmem2d(totcf_io,jcross1,jcross2,icross1,icross2,'totcf_io')
-      call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
-      call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
-      call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
-      call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
-      call getmem2d(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
-      call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
-      if ( ibltyp == 2 ) then
-        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
-      else if ( ibltyp == 4 ) then
-        call getmem2d(myjsf_uz0_io,jcross1,jcross2, &
-                                   icross1,icross2,'myjsf_uz0_io')
-        call getmem2d(myjsf_vz0_io,jcross1,jcross2, &
-                                   icross1,icross2,'myjsf_vz0_io')
-        call getmem2d(myjsf_thz0_io,jcross1,jcross2, &
-                                    icross1,icross2,'myjsf_thz0_io')
-        call getmem2d(myjsf_qz0_io,jcross1,jcross2, &
-                                   icross1,icross2,'myjsf_qz0_io')
-        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
-      end if
-      if ( idcsst == 1 ) then
-        call getmem3d(sst_io,1,nnsg,jcross1,jcross2, &
-                                    icross1,icross2,'sst_io')
-        call getmem3d(tskin_io,1,nnsg,jcross1,jcross2, &
-                                      icross1,icross2,'tskin_io')
-        call getmem3d(deltas_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'deltas_io')
-        call getmem3d(tdeltas_io,1,nnsg,jcross1,jcross2, &
-                                        icross1,icross2,'tdeltas_io')
-      end if
+        call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
+        call getmem3d(sfice_io,1,nnsg,jcross1,jcross2, &
+                                      icross1,icross2,'sfice_io')
+        call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
+        call getmem4d(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                            1,num_soil_layers,'sw_io')
+        call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
+        call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2, &
+                                      icross1,icross2,'tgbrd_io')
+        call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
+        call getmem3d(emisv_io,1,nnsg,jcross1,jcross2, &
+                                      icross1,icross2,'emisv_io')
+        call getmem3d(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
+        call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
+        call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
+        call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
+        call getmem2d(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
+        call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
+        call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
+        call getmem2d(totcf_io,jcross1,jcross2,icross1,icross2,'totcf_io')
+        call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
+        call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
+        call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
+        call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
+        call getmem2d(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
+        call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
+        if ( ibltyp == 2 ) then
+          call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+        else if ( ibltyp == 4 ) then
+          call getmem2d(myjsf_uz0_io,jcross1,jcross2, &
+                                     icross1,icross2,'myjsf_uz0_io')
+          call getmem2d(myjsf_vz0_io,jcross1,jcross2, &
+                                     icross1,icross2,'myjsf_vz0_io')
+          call getmem2d(myjsf_thz0_io,jcross1,jcross2, &
+                                      icross1,icross2,'myjsf_thz0_io')
+          call getmem2d(myjsf_qz0_io,jcross1,jcross2, &
+                                     icross1,icross2,'myjsf_qz0_io')
+          call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+        end if
+        if ( idcsst == 1 ) then
+          call getmem3d(sst_io,1,nnsg,jcross1,jcross2, &
+                                      icross1,icross2,'sst_io')
+          call getmem3d(tskin_io,1,nnsg,jcross1,jcross2, &
+                                        icross1,icross2,'tskin_io')
+          call getmem3d(deltas_io,1,nnsg,jcross1,jcross2, &
+                                         icross1,icross2,'deltas_io')
+          call getmem3d(tdeltas_io,1,nnsg,jcross1,jcross2, &
+                                          icross1,icross2,'tdeltas_io')
+        end if
 
-      if ( any(icup == 4) ) then
-        call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
-      end if
-      if ( ipptls > 0 ) then
-        call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
-      end if
+        if ( any(icup == 4) ) then
+          call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
+        end if
+        if ( ipptls > 0 ) then
+          call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
+        end if
 
-      if ( idynamic == 1 ) then
-        call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
-        call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
-      end if
+        if ( idynamic == 1 ) then
+          call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
+          call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
+        end if
 
-      if ( irrtm == 0 ) then
-        call getmem4d(gasabsnxt_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,1,4,'gasabsnxt_io')
-        call getmem4d(gasabstot_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,1,kzp1,'gasabstot_io')
-        call getmem3d(gasemstot_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'gasemstot_io')
-      end if
+        if ( irrtm == 0 ) then
+          call getmem4d(gasabsnxt_io,jcross1,jcross2, &
+                        icross1,icross2,1,kz,1,4,'gasabsnxt_io')
+          call getmem4d(gasabstot_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,1,kzp1,'gasabstot_io')
+          call getmem3d(gasemstot_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'gasemstot_io')
+        end if
 
-      call getmem3d(heatrt_io,jcross1,jcross2, &
-                    icross1,icross2,1,kz,'heatrt_io')
-      call getmem3d(o3prof_io,jcross1,jcross2, &
-                    icross1,icross2,1,kzp1,'o3prof_io')
+        call getmem3d(heatrt_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'heatrt_io')
+        call getmem3d(o3prof_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'o3prof_io')
 
-      if ( islab_ocean == 1 .and. do_restore_sst ) then
-        call getmem3d(qflux_restore_sst_io,jcross1,jcross2, &
-                      icross1,icross2,1,12,'qflux_restore_sst_io')
-      end if
+        if ( islab_ocean == 1 .and. do_restore_sst ) then
+          call getmem3d(qflux_restore_sst_io,jcross1,jcross2, &
+                        icross1,icross2,1,12,'qflux_restore_sst_io')
+        end if
 
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
-      end if
-      if ( any(icup == 3) ) then
-        call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
-      end if
-      if ( any(icup == 6) .or. any(icup == 5) ) then
-        call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
-                                   icross1,icross2,1,kz,'cu_avg_ww_io')
-      end if
+        if ( iocnflx == 2 .or. ibltyp == 3 ) then
+          call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+        end if
+        if ( any(icup == 3) ) then
+          call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
+        end if
+        if ( any(icup == 6) .or. any(icup == 5) ) then
+          call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
+                                     icross1,icross2,1,kz,'cu_avg_ww_io')
+        end if
 #ifdef CLM
-      if ( imask == 2 ) then
-        call getmem2d(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
-      end if
+        if ( imask == 2 ) then
+          call getmem2d(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
+        end if
 #else
-      if ( lakemod == 1 ) then
-        call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
-        call getmem3d(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2,'hi_io')
-        call getmem4d(tlak_io,1,nnsg,jcross1,jcross2, &
-                              icross1,icross2,1,ndpmax,'tlak_io')
-      end if
+        if ( lakemod == 1 ) then
+          call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
+          call getmem3d(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2,'hi_io')
+          call getmem4d(tlak_io,1,nnsg,jcross1,jcross2, &
+                                icross1,icross2,1,ndpmax,'tlak_io')
+        end if
 #endif
-      call getmem3d(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
-      call getmem3d(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
-      call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'swdiralb')
-      call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'swdifalb')
-      call getmem3d(lwdiralb_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'lwdiralb')
-      call getmem3d(lwdifalb_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'lwdifalb')
-    endif
+        call getmem3d(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
+        call getmem3d(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
+        call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
+                                         icross1,icross2,'swdiralb')
+        call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
+                                         icross1,icross2,'swdifalb')
+        call getmem3d(lwdiralb_io,1,nnsg,jcross1,jcross2, &
+                                         icross1,icross2,'lwdiralb')
+        call getmem3d(lwdifalb_io,1,nnsg,jcross1,jcross2, &
+                                         icross1,icross2,'lwdifalb')
+      endif
+    end if
   end subroutine allocate_mod_savefile
 
   subroutine read_savefile(idate)
@@ -1887,7 +1891,11 @@ module mod_savefile
 #endif
 #endif
 #else
-    imode = iomode
+#ifdef NETCDF_CDF5
+    imode = ior(nf90_clobber, nf90_cdf5)
+#else
+    imode = nf90_clobber
+#endif
 #endif
     if ( do_parallel_save ) then
 #ifdef PNETCDF
