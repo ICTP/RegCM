@@ -16,7 +16,7 @@ AC_DEFUN([AX_PROG_NF_CONFIG], [
   AC_REQUIRE([AC_PROG_EGREP])
 
   AC_CACHE_CHECK([if nf-config program is present],[ax_cv_prog_nf_config],[
-  AS_IF([nf-config --version 2>/dev/null | egrep -q '^netCDF-Fortran'],
+  AS_IF([nf-config --version 2>/dev/null | egrep -q '.*'],
         [ax_cv_prog_nf_config=yes], [ax_cv_prog_nf_config=no])
       ])
   AS_IF([test "$ax_cv_prog_nf_config" = "yes"], [[$1]], [[$2]])
