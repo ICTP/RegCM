@@ -36,7 +36,8 @@ AC_LANG([Fortran])
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
             [Path to NetCDF installation (default: NETCDF environment)]),
-  [NC_PREFIX="$withval"; NFAUTO="no"; NCAUTO="no"], [FAKE="no"]
+  [NC_PREFIX="$withval"; NF_PREFIX="$withval"; NFAUTO="no"; NCAUTO="no"],
+  [FAKE="no"]
 )
 
 AC_ARG_WITH([hdf5],
@@ -276,8 +277,8 @@ NC_INCLUDES=""
 NC_LDFLAGS=""
 NC_LIBS=""
 
-AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
-                  [NC_PREFIX="${NETCDF}"; NFAUTO="no"])
+AX_PROG_NF_CONFIG([NF_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
+                  [NF_PREFIX="${NETCDF}"; NFAUTO="no"])
 
 AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
                   [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
@@ -285,18 +286,18 @@ AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
 if eval "test x$NFAUTO = xyes"; then
   if eval "test x$NCAUTO = xyes"; then
     NC_INCLUDES="`nc-config --cflags` `nf-config --fflags`"
-    NC_LDFLAGS=""
+    NC_LDFLAGS="-L`nf-config --prefix`/lib -L`nc-config --prefix`/lib"
     NC_LIBS="`nc-config --libs` `nf-config --flibs`"
   else
-    NC_INCLUDES="`nf-config --fflags`"
-    NC_LDFLAGS=""
-    NC_LIBS="`nf-config --flibs`"
+    NC_INCLUDES="-I$NC_PREFIX/include `nf-config --fflags`"
+    NC_LDFLAGS="-L$NC_PREFIX/lib -L`nc-config --prefix`/lib"
+    NC_LIBS="-L$NC_PREFIX/lib `nf-config --flibs`"
   fi
 else
   if eval "test x$NCAUTO = xno"; then
-    NC_INCLUDES="-I$NC_PREFIX/include"
-    NC_LDFLAGS="-L$NC_PREFIX/lib"
-    NC_LIBS="-lnetcdf"
+    NC_INCLUDES="-I$NC_PREFIX/include -I$NF_PREFIX/include"
+    NC_LDFLAGS="-L$NC_PREFIX/lib -L$NF_PREFIX/lib"
+    NC_LIBS="-lnetcdff -lnetcdf"
   else
     NCVER=`nc-config --version | cut -d " " -f 2`
     if eval "test x$NCVER = x4.0.1"; then
@@ -305,34 +306,39 @@ else
       # new netcdf library has this
       NC_INCLUDES="-I`nc-config --includedir`"
     fi
-    NC_LDFLAGS=""
+    NC_LDFLAGS="-L`nc-config --prefix`/lib"
     NC_LIBS="`nc-config --libs`"
   fi
 fi
 
-if eval "test x$PNETCDF = x1"; then
-  AX_PROG_PNETCDF_CONFIG([NC_PREFIX=`pnetcdf-config --prefix`; NCAUTO="yes"],
-                         [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
-  echo $NCAUTO
+AC_SUBST(NC_PREFIX)
+AC_SUBST(NF_PREFIX)
+AC_SUBST(NC_INCLUDES)
+AC_SUBST(NC_LDFLAGS)
+AC_SUBST(NC_LIBS)
 
-  if eval "test x$NCAUTO = xno"; then
-    NC_INCLUDES="$NC_INCLUDES -I$NC_PREFIX/include"
-    NC_LDFLAGS="$NC_LDFLAGS -L$NC_PREFIX/lib"
-    NC_LIBS="$NC_LIBS -lpnetcdf"
-  else
+if eval "test x$PNETCDF = x1"; then
+  AX_PROG_PNETCDF_CONFIG([NCP_PREFIX=`pnetcdf-config --prefix`; NCPAUTO="yes"],
+                         [NCP_PREFIX="${NETCDF}"; NCPAUTO="no"])
+  echo $NCPAUTO
+
+  if eval "test x$NCPAUTO = xyes"; then
     CC=`pnetcdf-config --cc`
     AC_SUBST(CC)
     NCVER=`pnetcdf-config --version | cut -d " " -f 2`
     NC_INCLUDES="$NC_INCLUDES -I`pnetcdf-config --includedir`"
     NC_LDFLAGS="$NC_LDFLAGS -L`pnetcdf-config --libdir`"
-    NC_LIBS="$NC_LIBS -lpnetcdf"
+    NC_LIBS="$NC_LIBS -L`pnetcdf-config --libdir` -lpnetcdf"
+  else
+    NC_INCLUDES="$NC_INCLUDES -I$NCP_PREFIX/include"
+    NC_LDFLAGS="$NC_LDFLAGS -L$NCP_PREFIX/lib"
+    NC_LIBS="$NC_LIBS -L$NCP_PREFIX/lib -lpnetcdf"
   fi
 fi
 
-AC_SUBST(NC_PREFIX)
 AC_SUBST(NC_INCLUDES)
-AC_SUBST(NC_LIBS)
 AC_SUBST(NC_LDFLAGS)
+AC_SUBST(NC_LIBS)
 
 AC_LANG_PUSH([C])
 AC_C_BIGENDIAN
@@ -360,6 +366,7 @@ if eval "test x$PNETCDF = x0"; then
   RR_PATH_NETCDF_F90
   RR_CDF5
 else
+  RR_PATH_NETCDF_F90
   RR_PATH_PNETCDF
 fi
 
@@ -448,7 +455,7 @@ if test -z "$COMPILER_GNU_TRUE"; then
 #      exit 1
 #    fi
 #  fi
-  FCFLAGS="-fconvert=big-endian -fno-range-check -fPIC"
+  FCFLAGS="$FCFLAGS -fconvert=big-endian -fno-range-check -fPIC"
   OMPFLAGS="-fopenmp"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
@@ -475,7 +482,7 @@ if test -z "$COMPILER_GNU_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
-  FCFLAGS="-convert big_endian -assume byterecl \
+  FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
            -heap-arrays -fPIC"
   IFORTVER=`ifort --version | grep IFORT | cut -d " " -f 3 | cut -d "." -f 1`
   if test $IFORTVER -ge 17; then
@@ -510,21 +517,21 @@ if test -z "$COMPILER_INTEL_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_G95_TRUE"; then
-  FCFLAGS="-fendian=big -fmultiple-save"
+  FCFLAGS="$FCFLAGS -fendian=big -fmultiple-save"
   OMPFLAGS=""
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_PGI_TRUE"; then
-  FCFLAGS="-byteswapio"
+  FCFLAGS="$FCFLAGS -byteswapio"
   OMPFLAGS="-mp"
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
-  FCFLAGS="-WF,-DIBM"
+  FCFLAGS="$FCFLAGS -WF,-DIBM"
   OMPFLAGS="-qsmp=omp"
   CPRDEF="XLF"
   AC_SUBST(FCFLAGS)
@@ -536,7 +543,7 @@ if test -x "$COMPILER_SUN_TRUE"; then
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_CRAY_TRUE"; then
-  FCFLAGS=""
+  FCFLAGS="$FCFLAGS"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
@@ -546,7 +553,7 @@ AC_SUBST(CPRDEF)
 # Set debug/production flags
 if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_G95_TRUE"; then
-    FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
+    FCFLAGS="$FCFLAGS -O0 -g -Wall -Wextra -fbounds-check -ftrace=full"
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
