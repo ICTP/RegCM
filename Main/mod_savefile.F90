@@ -873,6 +873,10 @@ module mod_savefile
     call savedefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      call savedefvar(ncid,'dsrnof',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'dtrnof',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
     wrkdim(3) = dimids(idkh)
     if ( any(icup == 6) .or. any(icup == 5) ) then
       call savedefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
