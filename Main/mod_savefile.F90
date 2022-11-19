@@ -929,6 +929,10 @@ module mod_savefile
     call savedefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      call savedefvar(ncid,'dsrnof',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'dtrnof',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
     wrkdim(3) = dimids(idkh)
     if ( any(icup == 3) ) then
       call savedefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
