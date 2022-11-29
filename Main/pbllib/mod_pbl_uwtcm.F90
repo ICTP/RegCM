@@ -938,7 +938,7 @@ module mod_pbl_uwtcm
       do k = 1 , kzp1
         bbls(k) = d_zero
       end do
-      do k = 2 , kzp1
+      do k = 2 , kz
         if ( nsquar(k) <= d_zero ) then
           if ( istabl == 1 ) then
             kpbconv = kpbconv + 1
