@@ -607,7 +607,8 @@ else
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    NOOPTFC="-finline-functions $FCFLAGS"
+    # The GNU compiler works with -O2
+    NOOPTFC="-O2 -finline-functions $FCFLAGS" # -fno-var-tracking-assignments
     if test -z "${osname##Linux}"; then
       FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then

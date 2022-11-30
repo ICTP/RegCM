@@ -1385,6 +1385,11 @@ module mod_pbl_holtbl
         end do
       end do
 
+      xfmt = d_zero
+      xfht = d_zero
+      wsc = d_zero
+      fak2 = d_zero
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
