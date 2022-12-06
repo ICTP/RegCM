@@ -39,11 +39,13 @@ module mod_mpi_regcm
   integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
   integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
 
-  public :: regcm_mpi_initialize
+  public :: rcmpi
+  public :: rcm_mpi_init
   public :: rcm_bcast
   public :: rcm_true
   public :: rcm_sum , rcm_max , rcm_min , rcm_mean
-  public :: rcm_exch , rcm_exch_lrbt
+  public :: rcm_exch , rcm_exch_lrbt , rcm_exch_lr , rcm_exch_bt
+  public :: rcm_exch_lb , rcm_exch_rt , rcm_exch_bdy_lr , rcm_exch_bdy_bt
 
   type regcm_mpi
     type(mpi_comm) :: globalcom
@@ -58,7 +60,7 @@ module mod_mpi_regcm
     integer :: west  = mpi_proc_null
     integer , dimension(2) :: pdims = [0,0]
     integer , dimension(2) :: pplace = [0,0]
-    logical , dimension(2) :: period = [.true.,.true.]
+    logical , dimension(2) :: period = [.false.,.false.]
   end type regcm_mpi
 
   type(regcm_mpi) :: rcmpi
@@ -134,9 +136,55 @@ module mod_mpi_regcm
                      real4_4d_exchange_lrbt
   end interface rcm_exch_lrbt
 
+  interface rcm_exch_lr
+    module procedure real8_2d_exchange_lr, &
+                     real8_3d_exchange_lr, &
+                     real8_4d_exchange_lr, &
+                     real4_2d_exchange_lr, &
+                     real4_3d_exchange_lr, &
+                     real4_4d_exchange_lr
+  end interface rcm_exch_lr
+
+  interface rcm_exch_bt
+    module procedure real8_2d_exchange_bt, &
+                     real8_3d_exchange_bt, &
+                     real8_4d_exchange_bt, &
+                     real4_2d_exchange_bt, &
+                     real4_3d_exchange_bt, &
+                     real4_4d_exchange_bt
+  end interface rcm_exch_bt
+
+  interface rcm_exch_lb
+    module procedure real8_2d_exchange_lb, &
+                     real8_3d_exchange_lb, &
+                     real8_4d_exchange_lb, &
+                     real4_2d_exchange_lb, &
+                     real4_3d_exchange_lb, &
+                     real4_4d_exchange_lb
+  end interface rcm_exch_lb
+
+  interface rcm_exch_rt
+    module procedure real8_2d_exchange_rt, &
+                     real8_3d_exchange_rt, &
+                     real8_4d_exchange_rt, &
+                     real4_2d_exchange_rt, &
+                     real4_3d_exchange_rt, &
+                     real4_4d_exchange_rt
+  end interface rcm_exch_rt
+
+  interface rcm_exch_bdy_lr
+    module procedure real8_exchange_bdy_lr, &
+                     real4_exchange_bdy_lr
+  end interface rcm_exch_bdy_lr
+
+  interface rcm_exch_bdy_bt
+    module procedure real8_exchange_bdy_bt, &
+                     real4_exchange_bdy_bt
+  end interface rcm_exch_bdy_bt
+
   contains
 
-  subroutine regcm_mpi_initialize(startcomm)
+  subroutine rcm_mpi_init(startcomm)
     implicit none
     type(mpi_comm), intent(in) :: startcomm
 
@@ -159,7 +207,7 @@ module mod_mpi_regcm
     call mpi_cart_shift(rcmpi%cartcom, 0, 1, rcmpi%west, rcmpi%east)
     call mpi_cart_shift(rcmpi%cartcom, 1, 1, rcmpi%south, rcmpi%north)
 
-  end subroutine regcm_mpi_initialize
+  end subroutine rcm_mpi_init
 
   subroutine bcast_logical(x)
     implicit none
@@ -238,16 +286,16 @@ module mod_mpi_regcm
   subroutine bcast_rcm_time_and_date(x)
     implicit none
     type (rcm_time_and_date) , intent(inout) :: x
-    call bcast(x%calendar)
-    call bcast(x%days_from_reference)
-    call bcast(x%second_of_day)
+    call rcm_bcast(x%calendar)
+    call rcm_bcast(x%days_from_reference)
+    call rcm_bcast(x%second_of_day)
   end subroutine bcast_rcm_time_and_date
   subroutine bcast_arr_rcm_time_and_date(x)
     implicit none
     type (rcm_time_and_date) , dimension(:) , intent(inout) :: x
     integer(ik4) :: n
     do n = 1 , size(x)
-      call bcast(x(n))
+      call rcm_bcast(x(n))
     end do
   end subroutine bcast_arr_rcm_time_and_date
 
@@ -367,20 +415,26 @@ module mod_mpi_regcm
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ndy , lb , rb , nx , ny , tx , ty , sizex , sizey
+    integer :: nx , ny
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
-    ndx = 2*nex*ny
-    ndy = 2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+tb+bb
     ty = nx+lb+rb
     sizex = nex*tx
     sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -398,17 +452,17 @@ module mod_mpi_regcm
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
     end do
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
         rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
 
@@ -419,13 +473,13 @@ module mod_mpi_regcm
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
+           ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
+          ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
 
     ib2 = 0
@@ -470,21 +524,27 @@ module mod_mpi_regcm
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ndy , lb , rb , nx , ny , nk , tx , ty , sizex , sizey
+    integer :: nx , ny , nk
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
-    ndx = nk*2*nex*ny
-    ndy = nk*2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb+tb
     ty = nx+lb+rb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -503,7 +563,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
       end do
     end do
     do k = k1 , k2
@@ -511,12 +571,12 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
       end do
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
         rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
 
@@ -528,7 +588,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
+             ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
     do k = k1 , k2
@@ -536,7 +596,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
+            ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
 
@@ -590,22 +650,28 @@ module mod_mpi_regcm
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ndy , lb , rb , nx , ny , nk , nn , tx , ty , sizex , sizey
+    integer :: nx , ny , nk , nn
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
-    ndx = nn*nk*2*nex*ny
-    ndy = nn*nk*2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb+tb
     ty = nx+lb+rb
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -625,7 +691,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+              sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
         end do
       end do
     end do
@@ -635,13 +701,13 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
         end do
       end do
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
         rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
 
@@ -654,7 +720,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
+               ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
         end do
       end do
     end do
@@ -664,7 +730,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
+              ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
         end do
       end do
     end do
@@ -727,20 +793,26 @@ module mod_mpi_regcm
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
-    integer :: ndx , ndy , lb , rb , nx , ny , tx , ty , sizex , sizey
+    integer :: nx , ny
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
-    ndx = 2*nex*ny
-    ndy = 2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+tb+bb
     ty = nx+lb+rb
     sizex = nex*tx
     sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -758,17 +830,17 @@ module mod_mpi_regcm
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%west /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
     end do
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
 
@@ -779,13 +851,13 @@ module mod_mpi_regcm
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
        if ( rcmpi%west /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
+           ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
       if ( rcmpi%east /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
+          ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
     end do
 
     ib2 = 0
@@ -830,21 +902,27 @@ module mod_mpi_regcm
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer :: ndx , ndy , lb , rb , nx , ny , nk , tx , ty , sizex , sizey
+    integer :: nx , ny , nk
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
-    ndx = nk*2*nex*ny
-    ndy = nk*2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb+tb
     ty = nx+lb+rb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -863,7 +941,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%west /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
       end do
     end do
     do k = k1 , k2
@@ -871,12 +949,12 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
       end do
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
 
@@ -888,7 +966,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
          if ( rcmpi%west /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
+             ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
     do k = k1 , k2
@@ -896,7 +974,7 @@ module mod_mpi_regcm
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( rcmpi%east /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
+            ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
       end do
     end do
 
@@ -950,22 +1028,28 @@ module mod_mpi_regcm
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ndy , lb , rb , nx , ny , nk , nn , tx , ty , sizex , sizey
+    integer :: nx , ny , nk , nn
+    integer :: lb , rb , tb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
-    ndx = nn*nk*2*nex*ny
-    ndy = nn*nk*2*nex*(nx+2*nex)
     lb = nex
     rb = nex
-    if ( rcmpi%west == mpi_proc_null ) lb = 0
-    if ( rcmpi%east == mpi_proc_null ) rb = 0
-    tx = ny
+    tb = 0
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb+tb
     ty = nx+lb+rb
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -985,7 +1069,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%west /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+              sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
         end do
       end do
     end do
@@ -995,13 +1079,13 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
         end do
       end do
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
-    displs = [ 0, sizex, sizex, sizex ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
     call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
         rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
 
@@ -1014,7 +1098,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
            if ( rcmpi%west /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
+               ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
         end do
       end do
     end do
@@ -1024,7 +1108,7 @@ module mod_mpi_regcm
           ib1 = ib2 + 1
           ib2 = ib1 + tx - 1
           if ( rcmpi%east /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
+              ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
         end do
       end do
     end do
@@ -1091,12 +1175,12 @@ module mod_mpi_regcm
 
     nx = j2-j1+1
     ny = i2-i1+1
-    ndx = 2*nex*ny
-    ndy = 2*nex*nx
     tx = ny
     ty = nx
     sizex = nex*tx
     sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1179,12 +1263,12 @@ module mod_mpi_regcm
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
-    ndx = 2*nex*ny*nk
-    ndy = 2*nex*nx*nk
     tx = ny
     ty = nx
     sizex = nex*tx*nk
     sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1284,12 +1368,12 @@ module mod_mpi_regcm
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
-    ndx = 2*nex*ny*nk*nn
-    ndy = 2*nex*nx*nk*nn
     tx = ny
     ty = nx
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1403,12 +1487,12 @@ module mod_mpi_regcm
 
     nx = j2-j1+1
     ny = i2-i1+1
-    ndx = 2*nex*ny
-    ndy = 2*nex*nx
     tx = ny
     ty = nx
     sizex = nex*tx
     sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1491,12 +1575,12 @@ module mod_mpi_regcm
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
-    ndx = 2*nex*ny*nk
-    ndy = 2*nex*nx*nk
     tx = ny
     ty = nx
     sizex = nex*tx*nk
     sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1596,12 +1680,12 @@ module mod_mpi_regcm
     ny = i2-i1+1
     nk = k2-k1+1
     nn = n2-n1+1
-    ndx = 2*nex*ny*nk*nn
-    ndy = 2*nex*nx*nk*nn
     tx = ny
     ty = nx
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
 
     transmit : block
 
@@ -1706,6 +1790,2086 @@ module mod_mpi_regcm
     end block transmit
 
   end subroutine real4_4d_exchange_lrbt
+
+  subroutine real8_2d_exchange_lr(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: ndx , ny , tx , sizex
+
+    ny = i2-i1+1
+    tx = ny
+    sizex = nex*tx
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdata
+    real(rk8), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%west /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( rcmpi%west /= mpi_proc_null ) &
+           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real8_2d_exchange_lr
+
+  subroutine real8_3d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: ndx , ny , nk , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    sizex = nex*tx*nk
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdata
+    real(rk8), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%west /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( rcmpi%west /= mpi_proc_null ) &
+             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_3d_exchange_lr
+
+  subroutine real8_4d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ndx , ny , nk , nn , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    sizex = nex*tx*nk*nn
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdata
+    real(rk8), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+           if ( rcmpi%west /= mpi_proc_null ) &
+               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_4d_exchange_lr
+
+  subroutine real4_2d_exchange_lr(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: ndx , ny , tx , sizex
+
+    ny = i2-i1+1
+    tx = ny
+    sizex = nex*tx
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdata
+    real(rk4), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%west /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( rcmpi%west /= mpi_proc_null ) &
+           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real4_2d_exchange_lr
+
+  subroutine real4_3d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: ndx , ny , nk , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    sizex = nex*tx*nk
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdata
+    real(rk4), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%west /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( rcmpi%west /= mpi_proc_null ) &
+             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_3d_exchange_lr
+
+  subroutine real4_4d_exchange_lr(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ndx , ny , nk , nn , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    sizex = nex*tx*nk*nn
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdata
+    real(rk4), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+           if ( rcmpi%west /= mpi_proc_null ) &
+               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_4d_exchange_lr
+
+  subroutine real8_2d_exchange_bt(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: ndy , nx , ty , sizey
+
+    nx = j2-j1+1
+    ty = nx
+    sizey = nex*ty
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndy), asynchronous :: sdata
+    real(rk8), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real8_2d_exchange_bt
+
+  subroutine real8_3d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: ndy , nx , nk , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    ty = nx
+    sizey = nex*ty*nk
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndy), asynchronous :: sdata
+    real(rk8), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+      end do
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_3d_exchange_bt
+
+  subroutine real8_4d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ndy , nx , nk , nn , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    ty = nx
+    sizey = nex*ty*nk*nn
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndy), asynchronous :: sdata
+    real(rk8), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_4d_exchange_bt
+
+  subroutine real4_2d_exchange_bt(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: ndy , nx , ty , sizey
+
+    nx = j2-j1+1
+    ty = nx
+    sizey = nex*ty
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndy), asynchronous :: sdata
+    real(rk4), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real4_2d_exchange_bt
+
+  subroutine real4_3d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: ndy , nx , nk , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    ty = nx
+    sizey = nex*ty*nk
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndy), asynchronous :: sdata
+    real(rk4), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+      end do
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_3d_exchange_bt
+
+  subroutine real4_4d_exchange_bt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: ndy , nx , nk , nn , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    ty = nx
+    sizey = nex*ty*nk*nn
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndy), asynchronous :: sdata
+    real(rk4), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_4d_exchange_bt
+
+  subroutine real8_2d_exchange_lb(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: nx , ny
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = sizex
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( rcmpi%west /= mpi_proc_null ) &
+           ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
+    end do
+
+    ib2 = sizey
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+          sdatay(ib1:ib2) = ml(:j2,i2-(iex-1))
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          ml(:j2,i1-iex) = rdatay(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real8_2d_exchange_lb
+
+  subroutine real8_3d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: nx , ny , nk
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = sizex
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( rcmpi%west /= mpi_proc_null ) &
+             ml(j1-iex,i1-bb:i2,k) = rdatax(ib1:ib2)
+      end do
+    end do
+
+    ib2 = sizey
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+            sdatay(ib1:ib2) = ml(:j2,i2-(iex-1),k)
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            ml(:j2,i1-iex,k) = rdatay(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_3d_exchange_lb
+
+  subroutine real8_4d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: nx , ny , nk , nn
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = sizex
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              ml(j1-iex,i1-bb:i2,k,n) = rdatax(ib1:ib2)
+        end do
+      end do
+    end do
+
+    ib2 = sizey
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+              sdatay(ib1:ib2) = ml(:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              ml(:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_4d_exchange_lb
+
+  subroutine real4_2d_exchange_lb(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: nx , ny
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = sizex
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( rcmpi%west /= mpi_proc_null ) &
+           ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
+    end do
+
+    ib2 = sizey
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+          sdatay(ib1:ib2) = ml(:j2,i2-(iex-1))
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          ml(:j2,i1-iex) = rdatay(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real4_2d_exchange_lb
+
+  subroutine real4_3d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: nx , ny , nk
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = sizex
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( rcmpi%west /= mpi_proc_null ) &
+             ml(j1-iex,i1-bb:i2,k) = rdatax(ib1:ib2)
+      end do
+    end do
+
+    ib2 = sizey
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+            sdatay(ib1:ib2) = ml(:j2,i2-(iex-1),k)
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            ml(:j2,i1-iex,k) = rdatay(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_3d_exchange_lb
+
+  subroutine real4_4d_exchange_lb(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: nx , ny , nk , nn
+    integer :: lb , bb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    lb = nex
+    bb = 0
+    if ( rcmpi%west == mpi_proc_null ) lb = 1
+    if ( rcmpi%south == mpi_proc_null ) bb = 1
+    tx = ny+bb
+    ty = nx+lb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = sizex
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              ml(j1-iex,i1-bb:i2,k,n) = rdatax(ib1:ib2)
+        end do
+      end do
+    end do
+
+    ib2 = sizey
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+              sdatay(ib1:ib2) = ml(:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              ml(:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_4d_exchange_lb
+
+  subroutine real8_2d_exchange_rt(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: nx , ny
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%west /= mpi_proc_null ) &
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2+tb) = rdatax(ib1:ib2)
+    end do
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          sdatay(ib1:ib2) = ml(j1:,i1+(iex-1))
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+         ml(j1:,i2+iex) = rdatay(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real8_2d_exchange_rt
+
+  subroutine real8_3d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: nx , ny , nk
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%west /= mpi_proc_null ) &
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2+tb,k) = rdatax(ib1:ib2)
+      end do
+    end do
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            sdatay(ib1:ib2) = ml(j1:,i1+(iex-1),k)
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+           ml(j1:,i2+iex,k) = rdatay(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_3d_exchange_rt
+
+  subroutine real8_4d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: nx , ny , nk , nn
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdatax
+    real(rk8), dimension(ndx), asynchronous :: rdatax
+    real(rk8), dimension(ndy), asynchronous :: sdatay
+    real(rk8), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2+tb,k,n) = rdatax(ib1:ib2)
+        end do
+      end do
+    end do
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              sdatay(ib1:ib2) = ml(j1:,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+             ml(j1:,i2+iex,k,n) = rdatay(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real8_4d_exchange_rt
+
+  subroutine real4_2d_exchange_rt(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer :: nx , ny
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%west /= mpi_proc_null ) &
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb)
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( rcmpi%east /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2+tb) = rdatax(ib1:ib2)
+    end do
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%south /= mpi_proc_null ) &
+          sdatay(ib1:ib2) = ml(j1:,i1+(iex-1))
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( rcmpi%north /= mpi_proc_null ) &
+         ml(j1:,i2+iex) = rdatay(ib1:ib2)
+    end do
+
+    end block transmit
+
+  end subroutine real4_2d_exchange_rt
+
+  subroutine real4_3d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer :: nx , ny , nk
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%west /= mpi_proc_null ) &
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( rcmpi%east /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2+tb,k) = rdatax(ib1:ib2)
+      end do
+    end do
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%south /= mpi_proc_null ) &
+            sdatay(ib1:ib2) = ml(j1:,i1+(iex-1),k)
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( rcmpi%north /= mpi_proc_null ) &
+           ml(j1:,i2+iex,k) = rdatay(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_3d_exchange_rt
+
+  subroutine real4_4d_exchange_rt(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer :: nx , ny , nk , nn
+    integer :: rb , tb
+    integer :: ndx , ndy , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    rb = nex
+    tb = 0
+    if ( rcmpi%east == mpi_proc_null ) rb = 1
+    if ( rcmpi%north == mpi_proc_null ) tb = 1
+    tx = ny+tb
+    ty = nx+rb
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdatax
+    real(rk4), dimension(ndx), asynchronous :: rdatax
+    real(rk4), dimension(ndy), asynchronous :: sdatay
+    real(rk4), dimension(ndy), asynchronous :: rdatay
+    type(mpi_request) :: mrequestx, mrequesty
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%west /= mpi_proc_null ) &
+              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, rcmpi%cartcom, mrequestx)
+
+    call mpi_wait(mrequestx,mstatus)
+
+    ib2 = sizex
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( rcmpi%east /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2+tb,k,n) = rdatax(ib1:ib2)
+        end do
+      end do
+    end do
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%south /= mpi_proc_null ) &
+              sdatay(ib1:ib2) = ml(j1:,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, rcmpi%cartcom, mrequesty)
+
+    call mpi_wait(mrequesty,mstatus)
+
+    ib2 = sizey
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( rcmpi%north /= mpi_proc_null ) &
+             ml(j1:,i2+iex,k,n) = rdatay(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+  end subroutine real4_4d_exchange_rt
+
+  subroutine real8_exchange_bdy_lr(ml,j1,j2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: j1 , j2 , k1 , k2
+    integer :: ndx , nk , tx , sizex
+
+    nk = k2-k1+1
+    tx = nk
+    sizex = tx
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndx), asynchronous :: sdata
+    real(rk8), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2
+
+    ib1 = 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%west /= mpi_proc_null ) sdata(ib1:ib2) = ml(j1,:)
+    ib1 = ib2 + 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%east /= mpi_proc_null ) sdata(ib1:ib2) = ml(j2,:)
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib1 = 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%west /= mpi_proc_null ) ml(j1-1,:) = rdata(ib1:ib2)
+    ib1 = ib2 + 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%east /= mpi_proc_null ) ml(j2+1,:) = rdata(ib1:ib2)
+
+    end block transmit
+
+  end subroutine real8_exchange_bdy_lr
+
+  subroutine real4_exchange_bdy_lr(ml,j1,j2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: j1 , j2 , k1 , k2
+    integer :: ndx , nk , tx , sizex
+
+    nk = k2-k1+1
+    tx = nk
+    sizex = tx
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndx), asynchronous :: sdata
+    real(rk4), dimension(ndx), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2
+
+    ib1 = 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%west /= mpi_proc_null ) sdata(ib1:ib2) = ml(j1,:)
+    ib1 = ib2 + 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%east /= mpi_proc_null ) sdata(ib1:ib2) = ml(j2,:)
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib1 = 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%west /= mpi_proc_null ) ml(j1-1,:) = rdata(ib1:ib2)
+    ib1 = ib2 + 1
+    ib2 = ib1 + tx - 1
+    if ( rcmpi%east /= mpi_proc_null ) ml(j2+1,:) = rdata(ib1:ib2)
+
+    end block transmit
+
+  end subroutine real4_exchange_bdy_lr
+
+  subroutine real8_exchange_bdy_bt(ml,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: i1 , i2 , k1 , k2
+    integer :: ndy , nk , ty , sizey
+
+    nk = k2-k1+1
+    ty = nk
+    sizey = ty
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk8), dimension(ndy), asynchronous :: sdata
+    real(rk8), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2
+
+    ib2 = 0
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%south /= mpi_proc_null ) sdata(ib1:ib2) = ml(i1,:)
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%north /= mpi_proc_null ) sdata(ib1:ib2) = ml(i2,:)
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%south /= mpi_proc_null ) ml(i1-1,:) = rdata(ib1:ib2)
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%north /= mpi_proc_null ) ml(i2+1,:) = rdata(ib1:ib2)
+
+    end block transmit
+
+  end subroutine real8_exchange_bdy_bt
+
+  subroutine real4_exchange_bdy_bt(ml,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: i1 , i2 , k1 , k2
+    integer :: ndy , nk , ty , sizey
+
+    nk = k2-k1+1
+    ty = nk
+    sizey = ty
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer, dimension(4), asynchronous :: counts, displs
+    real(rk4), dimension(ndy), asynchronous :: sdata
+    real(rk4), dimension(ndy), asynchronous :: rdata
+    type(mpi_request) :: mrequest
+    type(mpi_status) :: mstatus
+    integer :: ib1 , ib2
+
+    ib2 = 0
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%south /= mpi_proc_null ) sdata(ib1:ib2) = ml(i1,:)
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%north /= mpi_proc_null ) sdata(ib1:ib2) = ml(i2,:)
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, rcmpi%cartcom, mrequest)
+
+    call mpi_wait(mrequest,mstatus)
+
+    ib2 = 0
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%south /= mpi_proc_null ) ml(i1-1,:) = rdata(ib1:ib2)
+    ib1 = ib2 + 1
+    ib2 = ib1 + ty - 1
+    if ( rcmpi%north /= mpi_proc_null ) ml(i2+1,:) = rdata(ib1:ib2)
+
+    end block transmit
+
+  end subroutine real4_exchange_bdy_bt
 
 end module mod_mpi_regcm
 
