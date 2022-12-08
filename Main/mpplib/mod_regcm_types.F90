@@ -18,13 +18,13 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_regcm_types
-!
   use mod_realkinds
   use mod_intkinds
 
   implicit none
 
   public
+
 !
 ! Storage for all the 3d prognostic variables in two
 ! timesteps and all the 2d variables and constants
