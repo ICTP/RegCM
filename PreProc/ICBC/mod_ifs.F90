@@ -269,7 +269,7 @@ module mod_ifs
     !
     ! Read data at idate
     !
-    call ifs6hour(idate,globidate1)
+    call ifs6hour(idate)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
@@ -368,9 +368,9 @@ module mod_ifs
     end if
   end subroutine get_ifs
 
-  subroutine ifs6hour(idate,idate0)
+  subroutine ifs6hour(idate)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate , idate0
+    type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: k , it , iv , istatus
     character(len=64) :: inname
     character(len=256) :: pathaddname
