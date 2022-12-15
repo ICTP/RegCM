@@ -244,6 +244,10 @@ module mod_micro_interface
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
     end select
 
+    if ( ipptls == 1 ) then
+      rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-cldfra),1.0e-5_rkx)**2
+    end if
+
     !------------------------------------------
     ! 1a. Determine Marine stratocumulus clouds
     !------------------------------------------
@@ -372,11 +376,6 @@ module mod_micro_interface
           end do
         end do
       end if
-    end if
-
-    if ( ipptls == 1 ) then
-      rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
-      rh0adj = max(0.0_rkx,min(rh0adj,0.99999_rkx))
     end if
 
     contains
