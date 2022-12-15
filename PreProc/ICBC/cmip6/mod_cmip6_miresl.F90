@@ -127,7 +127,7 @@ module mod_cmip6_miresl
       type(cmip6_3d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
+      integer(ik4) :: year , month , day , hour , y1 , y2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -239,11 +239,10 @@ module mod_cmip6_miresl
     recursive subroutine read_2d_miresl(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-      type(rcm_time_and_date) :: last_date
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y1 ,  m1 , y2 , m2
+      integer(ik4) :: year , month , day , hour , y1 , y2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -383,11 +382,9 @@ module mod_cmip6_miresl
       real(rkx) , pointer , dimension(:,:) , intent(in) :: lat , lon
       integer(ik4) :: istatus , idimid , it , irec
       integer(ik4) :: year , month , day , hour
-      integer(ik4) :: y1 , y2
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
-      type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
