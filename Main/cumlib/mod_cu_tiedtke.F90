@@ -89,7 +89,7 @@ module mod_cu_tiedtke
   real(rkx) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
   real(rkx) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
-        pmflxr , pccn
+        pmflxr , pccn,zcvrout
   real(rkx) , pointer , dimension(:) :: prsfc , pssfc , &
         ptopmax , xphfx , xpqfx
   real(rkx) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
@@ -177,6 +177,7 @@ module mod_cu_tiedtke
     if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
       call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
     end if
+    call getmem2d(zcvrout,1,nipoi,1,kz,'mod_cu_tiedtke:zcvrout')
     call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
     call getmem1d(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
@@ -258,8 +259,7 @@ module mod_cu_tiedtke
     else
       pxtm1(:,:,:) = d_zero ! tracers input profiles
       pxtte(:,:,:) = d_zero ! tracer tendencies
-    end if
-
+    end if    
     do ii = 1 , nipoi
       ! AMT NOTE: This is used in the switch between deep and shallow
       ! convection. The simpler switch on pressure difference still
@@ -377,7 +377,7 @@ module mod_cu_tiedtke
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
                 xpgh,prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,kctop,&
-                kcbot,ptopmax,pccn)
+                kcbot,ptopmax,pccn,zcvrout)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -436,7 +436,9 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-
+    if (ichem == 1) then 
+       
+    end if 
     if ( ipptls > 1 ) then
       if ( idynamic == 3 ) then
         do k = 1 , kz
@@ -519,16 +521,14 @@ module mod_cu_tiedtke
           end do
         end do
       end if
-      ! build for chemistry 3d table of precipitation rate
-      ! from the surface to the top of the convection
+      ! build for chemistry 3d table of conv. precipitation
+      ! tend. Kg/kg/s 
       do k = 1 , kz
         do ii = 1 , nipoi
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            if ( k > kctop(ii) ) then
-              cu_convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
-            end if
+               cu_convpr(j,i,k) = zcvrout(ii,k)/dtc 
           end if
         end do
       end do
@@ -605,7 +605,7 @@ module mod_cu_tiedtke
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
                     prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,  &
-                    kctop,kcbot,ptopmax,pccn)
+                    kctop,kcbot,ptopmax,pccn,zcvrout)
     implicit none
     integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
     integer(ik4) , dimension(kbdim,klev) :: ilab
@@ -628,7 +628,7 @@ module mod_cu_tiedtke
     integer(ik4) :: ilevmin , it , jk , jl , jt
     logical , dimension(kbdim) :: locum
     real(rkx) , dimension(kbdim,klev) :: zlu , zmfd , zqp1 , zqsat , zqu , &
-      zqude , ztp1 , ztu , ztvp1 , zup1 , zvp1 , zxp1
+      zqude , ztp1 , ztu , ztvp1 , zup1 , zvp1 , zxp1, zcvrout
     real(rkx) , dimension(kbdim) :: zrain , ztopmax
     real(rkx) :: zxip1 , zxlp1
     integer(ik4) , dimension(kbdim) :: kbotsc
@@ -790,7 +790,7 @@ module mod_cu_tiedtke
                     locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                     zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                     pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
-                    pxtte,pccn)
+                    pxtte,pccn,zcvrout)
       prsfc = pmflxr(:,klev+1)*1.e3_rkx
       pssfc = pmflxs(:,klev+1)*1.e3_rkx
     case default
@@ -4593,7 +4593,7 @@ module mod_cu_tiedtke
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,          &
                       tu,qu,lu,mflxr,mflxs,rain,mfu,mfd,            &
                       lude,mfude_rate,mfdde_rate,cape,              &
-                      ntrac,qtrac,tenc,ccn)
+                      ntrac,qtrac,tenc,ccn,cvrainout)
     implicit none
     integer(ik4) , intent(in) :: np    ! number of points
     integer(ik4) , intent(in) :: nk    ! number of levels
@@ -4670,6 +4670,8 @@ module mod_cu_tiedtke
     real(rkx) , dimension(np,nk) , intent(out) :: qu
     ! Updraft Cloud Liquid Water mixing ratio kg/kg
     real(rkx) , dimension(np,nk) , intent(out) :: lu
+    ! rainfall Production in updraft
+    real(rkx) , dimension(np,nk) , intent(out) :: cvrainout 
     ! Rain Mass Flux kg/(m^2*s)
     real(rkx) , dimension(np,nk+1) , intent(out) :: mflxr
     ! Snow Mass Flux kg/(m^2*s)
@@ -5659,6 +5661,7 @@ module mod_cu_tiedtke
           vu(n,k) = v(n,ik)
           vd(n,k) = v(n,ik)
           ilab(n,k) = 0
+          cvrainout(n,k) = d_zero
         end do
       end do
     end subroutine initcum
@@ -6239,6 +6242,8 @@ module mod_cu_tiedtke
                 dmfup(n,k) = precip(n)*mfu(n,k)
                 xrain(n,k) = xrain(n,k) + precip(n)
                 lu(n,k) = lnew
+                !FAB  save precip water (kg/kg) created from autoconverson in updraft
+                if(ichem == 1) cvrainout(n,k) = precip(n)
               end if
             end if
           end do

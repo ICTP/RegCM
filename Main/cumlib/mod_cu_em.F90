@@ -295,12 +295,16 @@ module mod_cu_em
             kk = kzp1 - k
             cu_chiten(j,i,kk,:) = ftra(n,k,:)
           end do
-          ! Build for chemistry 3d table of constant precipitation rate
+          ! Build for chemistry rainout/washout.Recalculate a precipitation 
+          ! prod. tendency (kg/kg/s) from the rainrate pcp. Find out
+          ! source/sink of rain at level k by difference with level above .If
+          ! negative (due torain  evap)   set to zero  
           ! from the surface to the top of the convection
           do k = 1 , ktop(n)-1
             kk = kzp1 - k
-            cu_convpr(j,i,kk) = ppcp(n,k)
+            cu_convpr(j,i,kk) = max(ppcp(n,k)-ppcp(n,k+1),d_zero)
           end do
+            cu_convpr(j,i,:) = cu_convpr(j,i,:) / ( m2c%rhoas(j,i,:) *m2c%dzq(j,i,:))
         end if
       end do
     end if
