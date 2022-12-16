@@ -1455,6 +1455,10 @@ module mod_micro_nogtom
                 end if
               end if
 #endif
+! save the precip production for chem. wet. dep.
+              if ( ichem == 1 )  then
+                 mc2mo%remrat(j,i,k) = rainaut/dt
+              end if
             end if ! appreciable liquid cloud
 
             !------------
@@ -1880,19 +1884,6 @@ module mod_micro_nogtom
       end do
     end if
     !
-    ! calculate the rain out kin constat remrat (s-1) for chemical scavenging
-    ! here taken as rain water tendency divided by cloud liquid water mixing
-    ! ratio
-    if ( ichem == 1 )  then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-             mc2mo%remrat(j,i,k) = qxtendc(iqqr,j,i,k) / qx(iqql,j,i,k)
-          end do
-        end do
-      end do
-    end if
-
     !-------------------------------------
     ! Final enthalpy and total water diagnostics
     !-------------------------------------
@@ -2008,6 +1999,11 @@ module mod_micro_nogtom
         end do
       end do
     end do
+    !
+    if (ichem ==1) then          
+      ! save the 3D precip for chemical washout 
+      mc2mo%rembc =  mc2mo%rainls  
+    end if 
     !--------------------------------------------------------------
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
