@@ -241,6 +241,7 @@ module mod_micro_nogtom
   real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
+  real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   abstract interface
     subroutine voidsub
@@ -422,7 +423,7 @@ module mod_micro_nogtom
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
-    real(rkx) :: sqmix , ccover , lccover
+    real(rkx) :: qsmixv , ccover , lccover
     real(rkx) :: tk , tc , dens , pbot , ccn
     real(rkx) :: snowp , rainp
 
@@ -653,7 +654,7 @@ module mod_micro_nogtom
           !--------------------------------------------
           phases = qliq(j,i,k)
           eewmt(j,i,k) = eeliq(j,i,k)*phases + eeice(j,i,k)*(d_one-phases)
-          eewmt(j,i,k) = min(eewmt(j,i,k)/mo2mc%phs(j,i,k),d_half)
+          eewmt(j,i,k) = min(eewmt(j,i,k)/mo2mc%phs(j,i,k),maxsat)
           qsmix(j,i,k) = eewmt(j,i,k)
           ! ep1 = rwat/rgas - d_one
           qsmix(j,i,k) = qsmix(j,i,k)/(d_one-ep1*qsmix(j,i,k))
@@ -663,9 +664,9 @@ module mod_micro_nogtom
           !--------------------------------------------
           eew(j,i,k) = (zdelta*eeliq(j,i,k) + &
                (d_one-zdelta)*eeice(j,i,k))/mo2mc%phs(j,i,k)
-          eew(j,i,k) = min(d_half,eew(j,i,k))
+          eew(j,i,k) = min(eew(j,i,k),maxsat)
           !ice water saturation
-          qsice(j,i,k) = min(eeice(j,i,k)/mo2mc%phs(j,i,k),d_half)
+          qsice(j,i,k) = min(eeice(j,i,k)/mo2mc%phs(j,i,k),maxsat)
           qsice(j,i,k) = qsice(j,i,k)/(d_one-ep1*qsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
@@ -673,7 +674,7 @@ module mod_micro_nogtom
           !eeliq is the saturation vapor pressure es(T)
           !the saturation mixing ratio is ws = es(T)/p *0.622
           !ws = ws/(-(d_one/eps - d_one)*ws)
-          eeliqt(j,i,k) = min(eeliq(j,i,k)/mo2mc%phs(j,i,k),d_half)
+          eeliqt(j,i,k) = min(eeliq(j,i,k)/mo2mc%phs(j,i,k),maxsat)
           qsliq(j,i,k) = eeliqt(j,i,k)
           qsliq(j,i,k) = qsliq(j,i,k)/(d_one-ep1*qsliq(j,i,k))
         end do
@@ -818,7 +819,7 @@ module mod_micro_nogtom
           tk       = tx(j,i,k)
           tc       = tk - tzero
           dens     = mo2mc%rho(j,i,k)
-          sqmix    = qsmix(j,i,k)
+          qsmixv   = qsmix(j,i,k)
           ccover   = mc2mo%fcc(j,i,k)
           ccover   = min(max(ccover,zerocf),onecf)
 
@@ -862,12 +863,12 @@ module mod_micro_nogtom
           alfaw    = qliq(j,i,k)
           facl     = alfaw*facw + (d_one - alfaw)*faci
           corr     = d_one/(d_one - ep1*eewmt(j,i,k))
-          dqsmixdt = facl*corr*sqmix
+          dqsmixdt = facl*corr*qsmixv
           corqsmix = d_one/(d_one + eldcpm(tk)*dqsmixdt)
           !--------------------------------
           ! evaporation/sublimation limits
           !--------------------------------
-          evaplimmix = max((sqmix-qxfg(iqqv))*corqsmix,d_zero)
+          evaplimmix = max((qsmixv-qxfg(iqqv))*corqsmix,d_zero)
 
           !--------------------------------
           ! in-cloud consensate amount
@@ -988,9 +989,9 @@ module mod_micro_nogtom
             ! Moreover the RH is clipped to the limit of
             ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
             !------------------------------------------------------------------
-            supsat = max((qxfg(iqqv)-facl*sqmix)*corqsmix,d_zero)
+            supsat = max((qxfg(iqqv)-facl*qsmixv)*corqsmix,d_zero)
             ! e < esi, because for e > esi ice still present
-            subsat = min((qxfg(iqqv)-facl*sqmix)*corqsmix,d_zero)
+            subsat = min((qxfg(iqqv)-facl*qsmixv)*corqsmix,d_zero)
             if ( supsat > dlowval ) then
               if ( ltkgthomo ) then
                 ! turn supersaturation into liquid water
@@ -1087,7 +1088,7 @@ module mod_micro_nogtom
             ldifdt = rcldiff*dt
             !Increase by factor of 5 for convective points
             if ( lconden ) then
-              leros = ccover * ldifdt * max(sqmix-qxfg(iqqv),d_zero)
+              leros = ccover * ldifdt * max(qsmixv-qxfg(iqqv),d_zero)
               leros = min(leros,evaplimmix)
               leros = min(leros,totcond)
               facl = qliqfrac*leros
@@ -1124,7 +1125,7 @@ module mod_micro_nogtom
             ! for now we set it to zero and the functions are the same.
             ! In RegCM not all convection schemes provide such info.
             dtforc = dtdp*wtot*dt + dtdiab
-            qold   = sqmix
+            qold   = qsmixv
             tcond  = tk + dtforc
             tcond  = max(tcond,160.0_rkx)
             ! the goal is to produce dqs = qsmix - qold, where qsmix is
@@ -1134,23 +1135,23 @@ module mod_micro_nogtom
                        tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
             ! saturation mixing ratio ws
             qsat = eewm(tcond,phases) * qp
-            qsat = min(d_half,qsat)          ! ws < 0.5        WHY?
+            qsat = min(qsat,maxsat)          ! ws < 0.5        WHY?
             corr  = d_one/(d_one-ep1*qsat)
             qsat = qsat*corr
-            cond = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
+            cond = (qsmixv-qsat)/(d_one + qsat*edem(tcond,phases))
             tcond = tcond + eldcpm(tcond)*cond
             phases = max(min(d_one,((max(rtice,min(tzero, &
                        tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
-            sqmix = sqmix - cond
+            qsmixv = qsmixv - cond
             qsat = eewm(tcond,phases) * qp
-            qsat = min(d_half,qsat)
+            qsat = min(qsat,maxsat)
             corr = d_one/(d_one-ep1*qsat)
             qsat = qsat*corr
-            cond1 = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
+            cond1 = (qsmixv-qsat)/(d_one + qsat*edem(tcond,phases))
             tcond = tcond + eldcpm(tcond)*cond1
-            sqmix = sqmix - cond1
-            dqs = sqmix - qold
-            sqmix = qold
+            qsmixv = qsmixv - cond1
+            dqs = qsmixv - qold
+            qsmixv = qold
 
             !----------------------------------------------------------------
             ! dqs > 0:  evaporation of clouds
@@ -1162,7 +1163,7 @@ module mod_micro_nogtom
               !levap = C*min( dqs/dt , (qi+ql)/C )
               levap = ccover*min(dqs,qli_incld)
               levap = min(levap,evaplimmix)
-              levap = min(levap,max(sqmix-qxfg(iqqv),d_zero))
+              levap = min(levap,max(qsmixv-qxfg(iqqv),d_zero))
               facl = qliqfrac*levap
               faci = qicefrac*levap
               qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + facl
@@ -1188,10 +1189,10 @@ module mod_micro_nogtom
                 ! old limiter
                 !  (significantly improves upper tropospheric humidity rms)
                 if ( locast ) then
-                  corr = d_one/(d_one-ep1*sqmix)
-                  cdmax = (qxfg(iqqv)-sqmix)/(d_one+corr*sqmix*edem(tk,alfaw))
+                  corr = d_one/(d_one-ep1*qsmixv)
+                  cdmax = (qxfg(iqqv)-qsmixv)/(d_one+corr*qsmixv*edem(tk,alfaw))
                 else
-                  cdmax = (qxfg(iqqv)-ccover*sqmix)/ccover
+                  cdmax = (qxfg(iqqv)-ccover*qsmixv)/ccover
                 end if
                 chng = min(chng,cdmax)
                 chng = ccover*chng
@@ -1251,11 +1252,11 @@ module mod_micro_nogtom
                   ! ice supersaturation
                   facl = koop(j,i,k)
                 end if
-                if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
+                if ( qexc >= rhc*qsmixv*facl .and. qexc < qsmixv*facl ) then
                   ! note: not **2 on 1-a term if qe is used.
                   ! added correction term fac to numerator 15/03/2010
                   acond = -(d_one-ccover)*facl*dqs / &
-                          max(d_two*(facl*sqmix-qexc),dlowval)
+                          max(d_two*(facl*qsmixv-qexc),dlowval)
                   acond = min(acond,d_one-ccover) ! put the limiter back
                   ! linear term:
                   ! added correction term fac 15/03/2010
@@ -1263,11 +1264,11 @@ module mod_micro_nogtom
                   ! new limiter formulation
                   ! qsice(j,i,k)-qexc) /
                   tmpa = d_one-ccover
-                  zdl = d_two*(facl*sqmix-qexc) / tmpa
+                  zdl = d_two*(facl*qsmixv-qexc) / tmpa
                   ! added correction term fac 15/03/2010
                   if ( facl*dqs < -zdl ) then
                     ! qsice(j,i,k)+qvnow
-                    xlcondlim = (ccover-d_one)*facl*dqs-facl*sqmix+qxfg(iqqv)
+                    xlcondlim = (ccover-d_one)*facl*dqs-facl*qsmixv+qxfg(iqqv)
                     chng = min(chng,xlcondlim)
                   end if
                   chng = max(chng,d_zero)
@@ -1490,7 +1491,7 @@ module mod_micro_nogtom
               if ( qicetot > d_zero ) then
                 ! Calculate subsaturation
                 ! qsice(j,i,k)-qxfg(iqqv),d_zero)
-                subsat = max(sqmix-qxfg(iqqv),d_zero)
+                subsat = max(qsmixv-qxfg(iqqv),d_zero)
                 ! Calculate difference between dry-bulb (t)  and the temperature
                 ! at which the wet-bulb = 0degC
                 ! Melting only occurs if the wet-bulb temperature >0
@@ -2061,7 +2062,7 @@ module mod_micro_nogtom
 
     subroutine nss_tompkins
       implicit none
-      qexc = max((qxfg(iqqv)-ccover*sqmix)/(d_one-ccover),d_zero)
+      qexc = max((qxfg(iqqv)-ccover*qsmixv)/(d_one-ccover),d_zero)
     end subroutine nss_tompkins
 
     subroutine nss_lohmann_and_karcher
