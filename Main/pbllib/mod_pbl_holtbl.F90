@@ -1372,7 +1372,7 @@ module mod_pbl_holtbl
           ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
           ! latitude value for f so that c = 0.07/f = 700.
           !phpblm = 700.0_rkx*ustr(j,i)
-          phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
+          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
           if ( p2m%zpbl(j,i) < phpblm ) then
             p2m%zpbl(j,i) = phpblm
           end if

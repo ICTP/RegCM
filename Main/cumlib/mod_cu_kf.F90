@@ -100,13 +100,14 @@ module mod_cu_kf
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
   real(rkx) , parameter :: c3 = 0.810_rkx
-  real(rkx) , parameter :: dpmin = 5.0e3_rkx
+  real(rkx) , parameter :: dpmin = 2.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
+  real(rkx) , parameter :: xlv0 = 3.147e6_rkx
+  real(rkx) , parameter :: xlv1 = 2369.0_rkx
 
-  real(rkx) , parameter :: u00 = 0.75_rkx
+  real(rkx) , parameter :: u00 = 0.80_rkx
+  real(rkx) , parameter :: u01 = 0.98_rkx
 
   contains
 
@@ -254,7 +255,7 @@ module mod_cu_kf
           i = imap(np)
           j = jmap(np)
           tke(k,np) = min(d_half*(m2c%tkeas(j,i,kk) + &
-                                  m2c%tkeas(j,i,kk+1)),10.0_rkx)
+                                  m2c%tkeas(j,i,kk+1)),5.0_rkx)
         end do
       end do
     else
@@ -629,9 +630,9 @@ module mod_cu_kf
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= u00 .and. rhlcl <= 0.95_rkx ) then
+          if ( rhlcl >= u00 .and. rhlcl <= u01 ) then
             dtrh = (d_one-u00)*(rhlcl-u00)*qmix/dqssdt
-          else if ( rhlcl > 0.95_rkx ) then
+          else if ( rhlcl > u01 ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
           else
             dtrh = d_zero
