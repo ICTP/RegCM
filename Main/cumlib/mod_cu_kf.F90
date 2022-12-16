@@ -100,7 +100,7 @@ module mod_cu_kf
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
   real(rkx) , parameter :: c3 = 0.810_rkx
-  real(rkx) , parameter :: dpmin = 2.0e3_rkx
+  real(rkx) , parameter :: dpmin = 3.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
   real(rkx) , parameter :: xlv0 = 3.147e6_rkx
