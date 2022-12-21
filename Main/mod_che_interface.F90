@@ -133,7 +133,8 @@ module mod_che_interface
 
     call assignpnt(sfs%ustar,custar)
     call assignpnt(sfs%w10m,cw10m)
-
+    call assignpnt(sfs%ram1,cra)
+    call assignpnt(sfs%zo,czo)
     call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)
     call assignpnt(cldfra,ccldfra)
@@ -182,6 +183,7 @@ module mod_che_interface
 #if (defined CLM45)
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
+    call assignpnt(ddepv_clm,cddepv_clm)
     call assignpnt(sw_vol,csw_vol)
     call assignpnt(tsoi,ctsoi)
 #endif

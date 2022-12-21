@@ -155,6 +155,7 @@ module mod_atm_interface
   ! real(rkx) , public , pointer , dimension(:,:) :: ustar
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
+  real(rkx) , public , pointer , dimension(:,:,:) :: ddepv_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: sw_vol
   real(rkx) , public , pointer , dimension(:,:,:) :: tsoi
 #endif
@@ -1086,10 +1087,14 @@ module mod_atm_interface
                                  ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem3d(dustflx_clm,jci1,jci2, &
                                   ici1,ici2,1,4,'storage:dustflx_clm')
+        call getmem3d(ddepv_clm,jci1,jci2, &
+                                  ici1,ici2,1,ntr,'storage:ddepv_clm')
         call getmem3d(sw_vol,jci1,jci2, &
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem3d(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
+
+
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')

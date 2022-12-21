@@ -470,7 +470,7 @@ module mod_regcm_types
 #ifdef CLM45
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
-    real(rkx) , pointer , dimension(:,:,:,:) :: drydepvels
+    real(rkx) , pointer , dimension(:,:,:,:) :: ddepv
     real(rkx) , pointer , dimension(:,:,:,:) :: sw_vol
     real(rkx) , pointer , dimension(:,:,:,:) :: tsoi
 #endif

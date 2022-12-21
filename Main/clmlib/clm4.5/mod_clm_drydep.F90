@@ -469,13 +469,13 @@ module mod_clm_drydep
   !
   ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
   ! land-atmosphere communications.
-  !
-  subroutine seq_drydep_read(NLFilename, seq_drydep_fields)
+  !FAB 
+  !subroutine seq_drydep_read(NLFilename, seq_drydep_fields)
+  subroutine seq_drydep_read(NLFilename)
     implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
-    character(len=*), intent(out) :: seq_drydep_fields
-
+  ! character(len=*), intent(out) :: seq_drydep_fields
     integer(ik4) :: i                ! Indices
     integer(ik4) :: unitn            ! namelist unit number
     integer(ik4) :: ierr             ! error code
@@ -501,7 +501,7 @@ module mod_clm_drydep
     if ( exists ) then
       unitn = file_getUnit()
       open( unitn, file=trim(NLFilename), status='old' )
-      if ( debug_level > 0 ) write(stdout,F00) &
+      if ( debug_level >= 0 ) write(stdout,F00) &
         'Read in drydep_inparm namelist from: ', trim(NLFilename)
       ierr = 1
       do while ( ierr /= 0 )
@@ -518,19 +518,18 @@ module mod_clm_drydep
     n_drydep = 0
 
     !--- Loop over species to fill list of fields to communicate for drydep ---
-    seq_drydep_fields = ' '
+    !seq_drydep_fields = ' '
     do i = 1 , maxspc
       if ( len_trim(drydep_list(i))==0 ) exit
       ! Need to explicitly add Sl_ based on naming convention
       write(token,"('Sl_dd',i3.3)") i
-      seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
+    !  seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
       if ( i == 1 ) then
-        seq_drydep_fields = trim(token)
+     !   seq_drydep_fields = trim(token)
         drydep_fields_token = trim(token)
       end if
       n_drydep = n_drydep+1
     end do
-
     !--- Make sure method is valid and determine if land is
     !--- passing drydep fields ---
     lnd_drydep = n_drydep>0 .and. drydep_method == DD_XLND
