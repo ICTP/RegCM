@@ -77,11 +77,11 @@
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
       real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
-       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
+       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf 
       real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
-      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: ustar
-      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: xra
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: ustar
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: xra
       real(rkx) , dimension(ntr) :: xrho
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
@@ -120,18 +120,16 @@
             rho(j,k,i)  = crhob3d(j,i,k)
             wl(j,k,i)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
             ttb(j,k,i)  = ctb3d(j,i,k)
-            ! 3D precipiation flux is a required variable for aerosol washout
-            ! For strat.prec  is directly taken as rembc (saved in microphy routine) in mm/hr !
-            prec(j,k,i) = crembc(j,i,k) !passed in mm/s, grid cell 
-            ! For convective prec and washout, recalculate grid cell precip from 
-            ! conv. rain prod. tend. (used for rainout) coming from cumlib 
-            if (k > 1) then 
-               convprec(j,k,i) = convprec(j,k-1,i)+ cconvpr(j,i,k)*crhob3d(j,i,k) &
-                                 *cdzq(j,i,k) * convcldfra (j,i,k) ! in mm/s
-            end if 
+            ! precipiation rate is a rquired variable for deposition routines.
+            ! It is directly taken as rembc (saved in precip routine) in mm/hr !
+            ncpc(j,i,k) =  crembc(j,i,k) / 3600._rkx !passed in mm/s
+            prec(j,k,i) = ncpc(j,i,k)
+            !and the quivalent for convective prec
+            convprec(j,k,i) = cconvpr(j,i,k) ! already in mm/s
           end do
         end do
       end do
+
       if ( count(icarb > 0) > 0 .and. carb_aging_control ) then
         call carb_prepare( )
       end if
@@ -197,85 +195,17 @@
         end do
       end do
       ! Roughness lenght, 10 m wind           !
-#ifndef CLM45
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( ivegcov(j,i) /= 0 ) then
-            facv = log(cza(j,i,kz)/d_10) / &
-                   log(cza(j,i,kz)/crough(ivegcov(j,i)))
-            facb = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zlnd)
-            facs = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zsno)
-            fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + &
-                   csfracs2d(j,i)*facs
-            !
-            ! grid level effective roughness lenght (linear averaging for now)
-            zeff(j,i) = crough(ivegcov(j,i))*csfracv2d(j,i) + &
-                       zlnd * csfracb2d(j,i) + zsno * csfracs2d(j,i)
-          else
-            ! water surface
-            fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zoce)
-            zeff(j,i) = zoce
-          end if
-          ! 10 m wind
-          u10 = (cubx3d(j,i,kz))*(d_one-fact)
-          v10 = (cvbx3d(j,i,kz))*(d_one-fact)
-          wid10(j,i) = sqrt(u10**2+v10**2)
-          ! 10 m air temperature
-          temp10(j,i) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
-          ! specific  humidity at 10m
-          shu10 = cqxb3d(j,i,kz,iqv)/(d_one+cqxb3d(j,i,kz,iqv)) - &
-                  csdelqk2d(j,i)*fact
-          ! back to mixing ratio
-          shu10 = shu10/(d_one-shu10)
-          ! saturation mixing ratio at 10m
-          pres10 = psurf(j,i) - 98.0_rkx
-          qsat10 = pfwsat(temp10(j,i),pres10)
-          ! relative humidity at 10m
-          rh10(j,i) = d_zero
-          if ( qsat10 > d_zero ) rh10(j,i) = shu10/qsat10
-          !
-          ! cssw2da is the soil water amount in kg/m2 of the 10 cm
-          ! superficial layer
-          ! depuv converted from mm to m. soil density assumed tp be 2650 kg/m3
-          ! Fecan parametrisation for dust is expecting gravimetric
-          ! soil water content in kg/kg
-          soilw(j,i) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
-                       1.e-3_rkx/(2650.0_rkx * &
-                       (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
-          ! surface temperature
-          ! over land recalculated from the BATS as deltk air/ surface
-          ! temperature account for a composite temperature between
-          ! bare ground and vegetation
-          if ( ivegcov(j,i) /= 0 ) then
-            tsurf(j,i) = ctb3d(j,i,kz) - csdeltk2d(j,i)
-          else
-            ! ocean temperature in this case
-            tsurf(j,i) = ctg(j,i)
-          end if
-        end do
-      end do
-# endif
-#ifdef CLM45
-      ! FAB note rather than passing directly cw10m and custar which vary
-      ! at the CLM45 frequency to the dust emisison code
-      ! We recalculate here an effective roughness lenght zeff from custar
-      ! and cw10m
-      ! This roughness lenght is then used as input for the dust module and
-      ! 10 m wind is recalculated from it  at the dynamical time step
-      ! ( instead of CLM45 frequency) - similarly to bats case.
-      ! if we want dust emssion fully consistent with CLM45 , consider using
-      ! ichdstem = 3
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( ivegcov(j,i) /= 0 .and. custar(j,i) > 0_rkx ) then
-            zeff(j,i) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
+            zeff(j,i) = czo(j,i) 
           else
             zeff(j,i) = zoce
           end if
-          fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(j,i))
-          u10 = (cubx3d(j,i,kz))*(d_one-fact)
-          v10 = (cvbx3d(j,i,kz))*(d_one-fact)
-          wid10(j,i) = sqrt(u10**2+v10**2)
+          ustar(j,i) = custar(j,i)
+          xra(j,i) = cra(j,i)
+          wid10(j,i) = cw10m(j,i)
           tsurf(j,i) = ctg(j,i)
           ! use simplifcations to approximate t and hr at 10 m from
           ! first model level
@@ -290,9 +220,9 @@
           soilw(j,i) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
                        1.e-3_rkx/(2650.0_rkx * &
                        (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
+          !
         end do
       end do
-#endif
       !
       ! END of preliminary calculations
       !
@@ -318,13 +248,12 @@
         call aging_carb
       end if
       !
-      ! Compute aerodynamic resistance
-      !
-      ! FAB TEST
-
-      call aerodyresis(zeff,wid10,temp10,tsurf, &
-                       rh10,srad,ivegcov,ustar,xra)
-
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+        ! if ( ivegcov(j,i) == 8) print*, 'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i) 
+     !FAB TEST
+        end do
+      end do
       !
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero
@@ -385,8 +314,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,  &
-                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),&
-                           xra(:,:,i))
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,i),&
+                           xra(:,i))
         end do
         ! mineralogical tracers
         if ( nmine > 0 ) then
@@ -396,8 +325,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),            &
                            temp10(:,i),tsurf(:,i),srad(:,i),           &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,     &
-                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),   &
-                           xra(:,:,i))
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,i),   &
+                           xra(:,i))
 
             end do
           end do
@@ -409,8 +338,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),ssltbed,  &
-                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),&
-                           xra(:,:,i))
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,i),&
+                           xra(:,i))
         end do
       end if
       if ( icarb(1) > 0 .and. ichdrdepo > 0 ) then
@@ -421,7 +350,7 @@
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),          &
                            carbed(1:ibin),pdepv(:,:,:,i),           &
-                           ddepa(:,:,i),ustar(:,:,i),xra(:,:,i))
+                           ddepa(:,:,i),ustar(:,i),xra(:,i))
         end do
       end if
       if ( ipollen > 0 .and. ichdrdepo > 0 ) then
@@ -434,7 +363,7 @@
                            temp10(:,i),tsurf(:,i),srad(:,i),     &
                            rh10(:,i),wid10(:,i),zeff(:,i),       &
                            polrftab,pdepv(:,:,:,i),ddepa(:,:,i), &
-                           ustar(:,:,i),xra(:,:,i))
+                           ustar(:,i),xra(:,i))
         end do
       end if
       !
@@ -446,8 +375,8 @@
         do i = ici1 , ici2
           call drydep_gas(i,lmonth,lday,ivegcov(:,i),rh10(:,i), &
                           srad(:,i),tsurf(:,i),prec(:,kz,i),    &
-                          temp10(:,i),wid10(:,i),zeff(:,i),     &
-                          ustar(:,:,i),xra(:,:,i))
+                          temp10(:,i),cxlai2d(:,i),     &
+                          ustar(:,i),xra(:,i))
         end do
       end if
       !

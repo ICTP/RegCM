@@ -300,13 +300,14 @@ module mod_clm_staticecosysdyn
     call clm_check_dims(ncid,ni,nj)
     ns = ni*nj
 
-    if ( ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj ) then
-      write(stderr,*)trim(subname), 'ldomain and input file do not match dims '
-      write(stderr,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
-      write(stderr,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
-      write(stderr,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
+!FAB obsolete check ??
+!    if ( ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj ) then
+!      write(stderr,*)trim(subname), 'ldomain and input file do not match dims '
+!      write(stderr,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
+!      write(stderr,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
+!      write(stderr,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
+!      call fatal(__FILE__,__LINE__,'clm now stopping')
+!    end if
     if ( .not. clm_check_dimlen(ncid,'lsmpft',numpft+1) ) then
       call fatal(__FILE__,__LINE__, &
               trim(subname)//' ERROR: lsmpft not equal to numpft+1')

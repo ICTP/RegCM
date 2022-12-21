@@ -417,6 +417,7 @@ end subroutine init_atm2lnd_type
     ! The following converts g of C to kg of CO2
     real(rk8) , parameter :: convertgC2kgCO2 = 1.0e-3_rk8 * (amCO2/amC)
     real(rk8) , allocatable , dimension(:,:) :: tmpc
+    real(rk8) , allocatable , dimension(:) :: tmp
 
     ! Set pointers into derived type
 
@@ -430,6 +431,7 @@ end subroutine init_atm2lnd_type
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
     allocate(tmpc(begc:endc,nlevsoi))
+    allocate(tmp(begp:endp))
 
     ! Compute gridcell averages.
 
@@ -555,16 +557,22 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+!FAB: for roughness lenght perform a ln averaging instead of linear
+      tmp = pptr%pps%z0mv 
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               pptr%pps%z0mv,clm_l2a%zom,               &
+               tmp,clm_l2a%zom,               &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      !clm_l2a%zom = exp(clm_l2a%zom)
+      !tmp = log(pptr%pps%z0hv)
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               pptr%pps%z0hv,clm_l2a%zoh,               &
+               tmp,clm_l2a%zoh,               &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      !clm_l2a%zoh = exp(clm_l2a%zoh) 
+!
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &
                pptr%pef%eflx_lh_tot,clm_l2a%eflx_lh_tot, &
                p2c_scale_type='unity',                   &
@@ -621,16 +629,22 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+!FAB for resistance perform conductance linear average
+      tmp = 1._rkx/pptr%pps%ram1
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               pptr%pps%ram1,clm_l2a%ram1,              &
+               tmp,clm_l2a%ram1,              &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      clm_l2a%ram1 = 1._rkx/clm_l2a%ram1
+      tmp = 1._rkx/pptr%pps%rah1
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-               pptr%pps%rah1,clm_l2a%rah1,              &
+               tmp,clm_l2a%rah1,              &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
+      clm_l2a%rah1 = 1._rkx/clm_l2a%rah1
+!
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                pptr%pps%br1,clm_l2a%br1,                &
                p2c_scale_type='unity',                  &
@@ -674,6 +688,7 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
     end if
     deallocate(tmpc)
+    deallocate(tmp)
   end subroutine clm_map2gcell
 
 end module mod_clm_atmlnd
