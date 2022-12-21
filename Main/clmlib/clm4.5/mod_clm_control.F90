@@ -293,8 +293,11 @@ module mod_clm_control
     call Hydrology1_readnl(    namelistfile )
     call SoilHydrology_readnl( namelistfile )
 
-    call seq_drydep_read(namelistfile)
-    call seq_drydep_init()
+    ! Fabien? Missing this namelist?
+    if ( .false. ) then
+      call seq_drydep_read(namelistfile)
+      call seq_drydep_init()
+    end if
 
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
