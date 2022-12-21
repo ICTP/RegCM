@@ -432,7 +432,7 @@ module mod_rrtmg_driver
       clwp_int(:,kj) = clwp(:,k)
     end do
 
-    kmaxcld = 1+ncld
+    kmaxcld = 2
     kmincld = kz-ncld
     cld_int(:,:) = d_zero
     do k = kmaxcld , kmincld
@@ -885,7 +885,7 @@ module mod_rrtmg_driver
     !
     ! qc   = gary's mods for clouds/radiation tie-in to exmois
     !
-    kmaxcld = 1+ncld
+    kmaxcld = 2
     kmincld = kz-ncld
     cldf = d_zero
     clwp = d_zero
