@@ -120,16 +120,18 @@
             rho(j,k,i)  = crhob3d(j,i,k)
             wl(j,k,i)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
             ttb(j,k,i)  = ctb3d(j,i,k)
-            ! precipiation rate is a rquired variable for deposition routines.
-            ! It is directly taken as rembc (saved in precip routine) in mm/hr !
-            ncpc(j,i,k) =  crembc(j,i,k) / 3600._rkx !passed in mm/s
-            prec(j,k,i) = ncpc(j,i,k)
-            !and the quivalent for convective prec
-            convprec(j,k,i) = cconvpr(j,i,k) ! already in mm/s
+            ! 3D precipiation flux is a required variable for aerosol washout
+            ! For strat.prec  is directly taken as rembc (saved in microphy routine) in mm/hr !
+            prec(j,k,i) = crembc(j,i,k) !passed in mm/s, grid cell 
+            ! For convective prec and washout, recalculate grid cell precip from 
+            ! conv. rain prod. tend. (used for rainout) coming from cumlib 
+            if (k > 1) then 
+               convprec(j,k,i) = convprec(j,k-1,i)+ cconvpr(j,i,k)*crhob3d(j,i,k) &
+                                 *cdzq(j,i,k) * convcldfra (j,i,k) ! in mm/s
+            end if 
           end do
         end do
       end do
-
       if ( count(icarb > 0) > 0 .and. carb_aging_control ) then
         call carb_prepare( )
       end if
@@ -509,14 +511,8 @@
       ! Wet Deposition for gasphase species
       !
       if ( igaschem == 1 .and. ichremlsc == 1 ) then
-        ! fix the interface for this variable
-        ! no effect of cumulus scavenging now
-        ! checum = d_zero
-        chevap = d_zero
         do i = ici1 , ici2
-          call sethet(i,hgt(:,:,i),hsurf(:,i),ttb(:,:,i),        &
-                      prec(:,:,i),convprec(:,:,i),chevap(:,:,i), &
-                      dt,rho(:,:,i),bchi(:,:,:,i),psurf(:,i))
+          call sethet(i,bchi(:,:,:,i), dt,psurf(:,i))
         end do
       end if
       !
