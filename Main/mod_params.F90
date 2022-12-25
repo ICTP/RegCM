@@ -1089,8 +1089,8 @@ module mod_params
         select case (ssttyp)
           case ('EIN15','EIN75','EIXXX')
             icetriggert = 271.465_rkx
-          case ('ERA5 ')
-            icetriggert = 273.0_rkx
+          case ('ERA5 ','ERA5D')
+            icetriggert = 272.0_rkx
           case default
             icetriggert = 271.355_rkx
         end select
