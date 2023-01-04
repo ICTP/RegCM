@@ -661,15 +661,19 @@ module mod_dynparam
     nveg = 22
 
     if ( i_crm == 1 ) then
-      iproj = 'NORMER'
-      clat  =   0.0_rkx
-      clon  = 180.0_rkx
-    else
-      if ( i_band.eq.1 ) then
-        ds = real((twopi*erkm)/real(jx,rk8),rkx)
+      if ( iproj == 'EQBAND' ) then
         iproj = 'NORMER'
         clat  =   0.0_rkx
         clon  = 180.0_rkx
+      end if
+    else
+      if ( i_band.eq.1 ) then
+        ds = real((twopi*erkm)/real(jx,rk8),rkx)
+        if ( iproj == 'EQBAND' ) then
+          iproj = 'NORMER'
+          clat  =   0.0_rkx
+          clon  = 180.0_rkx
+        end if
       end if
     end if
 
