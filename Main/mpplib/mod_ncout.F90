@@ -2996,8 +2996,10 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
         end if
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('diffusion_scheme',idiffu))
+        if ( idynamic /= 3 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('diffusion_scheme',idiffu))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         if ( all(icup > 0) ) then

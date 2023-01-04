@@ -509,7 +509,7 @@ module mod_pbl_holtbl
       !   temporary work space tpred
       !
       do i = idii1 , idii2
-        do j = jdii1 , jdii2
+        do j = jci1 , jci2
           tpred2(j,i,kz) = coeff2(j,i,kz)
         end do
       end do
@@ -527,7 +527,7 @@ module mod_pbl_holtbl
       !
       do k = 1 , kz
         do i = idii1 , idii2
-          do j = jdii1 , jdii2
+          do j = jci1 , jci2
             p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
                           (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt
           end do
