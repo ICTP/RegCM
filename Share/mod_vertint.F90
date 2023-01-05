@@ -114,6 +114,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,1)
               cycle
             end if
+            kx = 2
             do k = 2 , kp
               kx = k
               if ( sig(k) < sigp ) exit
@@ -141,6 +142,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,kp)
               cycle
             end if
+            kx = 2
             do k = 2 , kp
               kx = k
               if ( sig(k) > sigp ) exit
@@ -261,6 +263,7 @@ module mod_vertint
               fp(i,j,n) = f(1)
               cycle
             end if
+            kx = 2
             do k = 2 , kp
               kx = k
               if ( sig(k) < sigp ) exit
@@ -288,6 +291,7 @@ module mod_vertint
               fp(i,j,n) = f(kp)
               cycle
             end if
+            kx = 2
             do k = 2 , kp
               kx = k
               if ( sig(k) > sigp ) exit
@@ -336,6 +340,7 @@ module mod_vertint
             else if ( sigp >= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) < sigp ) exit
@@ -363,6 +368,7 @@ module mod_vertint
             else if ( sigp >= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) > sigp ) exit
@@ -402,6 +408,7 @@ module mod_vertint
             else if ( sigp >= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) < sigp ) exit
@@ -429,6 +436,7 @@ module mod_vertint
             else if ( sigp >= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) > sigp ) exit
@@ -606,6 +614,7 @@ module mod_vertint
               fz(i,j,n) = f(i,j,1)
               cycle
             end if
+            kx = 2
             do k = 2 , km
               kx = k
               if ( z(n) < hz(i,j,k) ) exit
@@ -628,6 +637,7 @@ module mod_vertint
               fz(i,j,n) = f(i,j,km)
               cycle
             end if
+            kx = 2
             do k = 2 , km
               kx = k
               if ( hz(i,j,k) < z(n) ) exit
@@ -661,6 +671,7 @@ module mod_vertint
               fz(i,j,n) = f(i,j,1)
               cycle
             end if
+            kx = 2
             do k = 2 , km
               kx = k
               if ( z(n) < hz(i,j,k) ) exit
@@ -683,6 +694,7 @@ module mod_vertint
               fz(i,j,n) = f(i,j,km)
               cycle
             end if
+            kx = 2
             do k = 2 , km
               kx = k
               if ( hz(i,j,k) < z(n) ) exit
@@ -800,6 +812,7 @@ module mod_vertint
               fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
                         dexp(rglrog*dlog(sigp/sig(1)))
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) < sigp ) exit
@@ -828,6 +841,7 @@ module mod_vertint
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
                         dexp(rglrog*dlog(sigp/sig(km)))
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) > sigp ) exit
@@ -869,6 +883,7 @@ module mod_vertint
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(1)))
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) < sigp ) exit
@@ -897,6 +912,7 @@ module mod_vertint
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(km)))
             else
+              kx = 2
               do k = 2 , km
                 kx = k
                 if ( sig(k) > sigp ) exit
@@ -1450,6 +1466,7 @@ module mod_vertint
             write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
             psrcm(i,j) = missl
           else
+            kb = 1
             do k = 1 , nz - 1
               if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
                    zrcm(i,j) > zp(i,j,k) ) then
@@ -1492,6 +1509,7 @@ module mod_vertint
             write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
             psrcm(i,j) = missl
           else
+            kb = nz
             do k = nz , 2 , -1
               if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
                    zrcm(i,j) > zp(i,j,k) ) then
