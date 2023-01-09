@@ -138,22 +138,21 @@ module mod_cmip6_normm
       integer :: ncid_next , ivar_next , icloseme
       real(rkx) , dimension(:,:,:) , allocatable :: v1
 
+      previdate = idate
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( idate <= 2015010100 ) then
+        if ( idate < 2015010112 ) then
           tdif = rcm_time_interval(3,uhrs)
           previdate = idate - tdif
           call split_idate(previdate, year, month, day, hour)
-        else
-          previdate = idate
         end if
-        if ( previdate < 2010010106 ) then
+        if ( idate < 2010010106 ) then
           y = (year / 10) * 10
           if ( y == year ) y = y - 10
           write(v%filename,'(a,i4,a,i4,a)') &
             trim(cmip6_path(y,'6hrLev',normm_version,v%vname)), &
             y, '01010300-', y+9, '12312100.nc'
-          if ( year >= 2010 ) then
+          if ( idate >= 2010010100 ) then
             seqfile = &
               trim(cmip6_path(y,'6hrLev',normm_version,v%vname)) // &
               '201001010300-201412312100.nc'
@@ -162,7 +161,7 @@ module mod_cmip6_normm
               trim(cmip6_path(y,'6hrLev',normm_version,v%vname)), &
               y+10, '01010300-', y+19, '12312100.nc'
           end if
-        else if ( previdate < 2015010106 ) then
+        else if ( idate < 2015010106 ) then
           y = 2010
           v%filename = trim(cmip6_path(y,'6hrLev',normm_version,v%vname)) // &
             '201001010300-201412312100.nc'
@@ -300,7 +299,7 @@ module mod_cmip6_normm
         if ( icloseme > 0 ) then
           istatus = nf90_close(ncid_next)
           call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error close file '//trim(seqfile)//'.')
+            'Error close file '//trim(seqfile)//'.')
         end if
         deallocate(v1)
       end if
@@ -322,22 +321,22 @@ module mod_cmip6_normm
       integer :: ncid_next , ivar_next , icloseme
       real(rkx) , dimension(:,:) , allocatable :: v1
 
+      previdate = idate
+
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( idate <= 2015010100 ) then
+        if ( idate < 2015010112 ) then
           tdif = rcm_time_interval(3,uhrs)
           previdate = idate - tdif
           call split_idate(previdate, year, month, day, hour)
-        else
-          previdate = idate
         end if
-        if ( previdate < 2010010106 ) then
+        if ( idate < 2010010106 ) then
           y = (year / 10) * 10
           if ( y == year ) y = y - 10
           write(v%filename,'(a,i4,a,i4,a)') &
             trim(cmip6_path(y,'6hrLev',normm_version,v%vname)), &
             y, '01010300-', y+9, '12312100.nc'
-          if ( year >= 2010 ) then
+          if ( idate >= 2010010100 ) then
             seqfile = &
               trim(cmip6_path(y,'6hrLev',normm_version,v%vname)) // &
               '201001010300-201412312100.nc'
@@ -346,7 +345,7 @@ module mod_cmip6_normm
               trim(cmip6_path(y,'6hrLev',normm_version,v%vname)), &
               y+10, '01010300-', y+19, '12312100.nc'
           end if
-        else if ( previdate < 2015010106 ) then
+        else if ( idate < 2015010106 ) then
           y = 2010
           v%filename = trim(cmip6_path(y,'6hrLev',normm_version,v%vname)) // &
             '201001010300-201412312100.nc'
@@ -445,6 +444,7 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
+
       if ( year < 2015 ) then
         if ( irec+1 <= v%nrec ) then
           ncid_next = v%ncid
@@ -477,7 +477,7 @@ module mod_cmip6_normm
         if ( icloseme > 0 ) then
           istatus = nf90_close(ncid_next)
           call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error close file '//trim(seqfile)//'.')
+            'Error close file '//trim(seqfile)//'.')
         end if
         deallocate(v1)
       end if
