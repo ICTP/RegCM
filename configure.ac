@@ -736,6 +736,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/ocnlib/Makefile Main/clmlib/clm4.5/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ_NEW/Makefile \
+                 Main/chemlib/SALSA/Makefile \
                  Main/cumlib/Makefile Main/microlib/Makefile \
                  Main/radlib/Makefile Main/radlib/RRTMG/Makefile \
                  Main/pbllib/Makefile Main/cloudlib/Makefile \

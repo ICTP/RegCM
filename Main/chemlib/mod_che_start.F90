@@ -40,6 +40,7 @@ module mod_che_start
   use mod_che_molwg
   use mod_che_bionit
   use mod_cbmz_hvread
+  use mod_che_salsa
 
   implicit none
 
@@ -418,7 +419,10 @@ module mod_che_start
       open(newunit=ipunit,file='TUVGRID2', status='old', err=900)
       call hvread(ipunit)
     end if
-
+    if (1==1) then 
+     call init_salsa()
+     print*,'salsa_init done' 
+    end if
     call init_mod_che_ncio(chemsimtype)
     call che_init_bdy
 

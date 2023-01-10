@@ -19,12 +19,13 @@
 
 include $(REGCM_ROOT)/makeinc
 
-vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ_NEW/:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ_NEW/:SALSA/:.
 vpath %.inc $(REGCM_ROOT)/Share:.
 
-SUBDIRS = GAS_CBMZ_NEW
+SUBDIRS = GAS_CBMZ_NEW SALSA
 
 CBMZLIB = GAS_CBMZ_NEW/libcbmz.a
+SALSALIB= SALSA/libsalsa.a
 
 noinst_LIBRARIES = libchem.a
 libchem_a_SOURCES = mod_che_param.F90 mod_che_common.F90 mod_che_mppio.F90 \
@@ -36,7 +37,8 @@ libchem_a_SOURCES = mod_che_param.F90 mod_che_common.F90 mod_che_mppio.F90 \
                     mod_che_chemistry.F90 mod_che_isorropia.F90 \
                     mod_che_common_isorropia.F90 mod_che_bdyco.F90 \
                     mod_che_output.F90 mod_che_pollen.F90 mod_che_bionit.F90 \
-                    mod_che_ccn.F90 mod_che_linox.F90
+                    mod_che_ccn.F90 mod_che_linox.F90 mod_che_salsa.F90
+                    
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -48,9 +50,9 @@ FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
 if COMPILER_SUN
-  CPPFLAGS += -MGAS_CBMZ_NEW
+  CPPFLAGS += -MGAS_CBMZ_NEW -MSALSA
 else
-  CPPFLAGS += -IGAS_CBMZ_NEW
+  CPPFLAGS += -IGAS_CBMZ_NEW -ISALSA
 endif
 
 %.o: %.F90
@@ -90,4 +92,4 @@ mod_che_common_isorropia.o : mod_che_common_isorropia.F90 mod_realkinds.o mod_in
 mod_che_isorropia.o : mod_che_isorropia.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o mod_che_indices.o mod_che_species.o mod_che_common_isorropia.o mod_che_molwg.o
 mod_che_molwg.o: mod_che_molwg.F90 mod_che_indices.o mod_intkinds.o mod_realkinds.o
 mod_che_linox.o: mod_che_linox.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_che_common.o mod_dynparam.o
-
+mod_che_salsa.o: mod_che_salsa.F90 mo_submctl.o mo_salsa.o mo_salsa_properties.o class_componentIndex.o mo_salsa_init.o

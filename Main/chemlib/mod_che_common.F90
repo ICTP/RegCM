@@ -98,8 +98,9 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:) :: bndp0 , bndp1
   real(rkx) , pointer , dimension(:,:,:) :: tvirt0 , tvirt1
   real(rkx) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d ,  &
-         crhob3d , cpb3d , cpf3d , cfcc , cza , czq , cdzq , ccldfra , &
-         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx
+         crhob3d , cpb3d , cpf3d , cfcc , cza , czq , cdzq , ccldfra , &      
+         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx, &
+         cqsb3d , cwpx3d
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &

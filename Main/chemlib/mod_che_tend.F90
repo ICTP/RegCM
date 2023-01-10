@@ -45,6 +45,7 @@
   use mod_che_bionit
   use mod_che_ccn
   use mod_che_linox
+  use mod_che_salsa
   implicit none
 
   private
@@ -502,6 +503,11 @@
       end do
       ! calculate ccn number for use in precip autoconversion
       ! calculation ( 2nd indirect effect)
+
+      !FAB SALSA
+
+      call run_salsa
+
       if ( iindirect > 0 .and. iaerosol == 1 ) then
         call ccn
       end if
