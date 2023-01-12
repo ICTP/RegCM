@@ -203,6 +203,8 @@ module mod_date
         ndaypm = mlen(m)
       case (y360)
         ndaypm = 30
+      case default
+        ndaypm = 0
     end select
   end function ndaypm
 
@@ -1958,6 +1960,8 @@ module mod_date
       case (y360)
         id = id + 30*(d%month-1)
         yearpoint = real(id,rk8)
+      case default
+        yearpoint = 0.0
     end select
   end function yearpoint
 
@@ -2259,6 +2263,8 @@ module mod_date
     else
       write(stderr,*) 'Unrecognized unit of measure for time string.'
       write(stderr,*) 'Offending timeunit string :',trim(string)
+      ires = 0
+      return
     end if
 
     if ( len_trim(string(ip:)) >= 6 ) then

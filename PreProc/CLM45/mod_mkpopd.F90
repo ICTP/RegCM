@@ -54,17 +54,13 @@ module mod_mkpopd
     integer(ik4) , intent(in) :: it
     integer(ik4) :: i , j
     call gfread(gfile,varname,popd,it,h_missing_value)
+    call bestaround(popd,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           popd(j,i) = h_missing_value
         else
-          if ( popd(j,i) > h_missing_value ) then
-            popd(j,i) = max(d_zero,popd(j,i))
-          else
-            call bestaround(popd,i,j)
-            popd(j,i) = max(d_zero,popd(j,i))
-          end if
+          popd(j,i) = max(d_zero,popd(j,i))
         end if
       end do
     end do

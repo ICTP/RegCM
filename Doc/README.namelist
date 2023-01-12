@@ -144,7 +144,7 @@
  ! cmip6_model = 'NorESM2-MM',
  ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
  ! cmip6_ssp = 'ssp585',
- ! cmip6_variant = 'r2i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param

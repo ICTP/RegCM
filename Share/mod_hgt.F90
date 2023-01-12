@@ -761,7 +761,7 @@ module mod_hgt
     real(rk4) :: tstar , hstar , alpha , sraval
 
     ! Follow Kallen 1996
-    alpha = real(lrate*rgas/egrav)
+    alpha = real(lrate*rgas/egrav,rk4)
     do j = 1 , jm
       do i = 1 , im
         tstar = t(i,j,kz)

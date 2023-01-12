@@ -49,17 +49,14 @@ module mod_mkgdp
     call gfread(gfile,varname,gdp,h_missing_value)
     call gfclose(gfile)
 
+    call bestaround(gdp,h_missing_value)
+
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           gdp(j,i) = h_missing_value
         else
-          if ( gdp(j,i) > h_missing_value ) then
-            gdp(j,i) = max(d_zero,gdp(j,i))
-          else
-            call bestaround(gdp,i,j)
-            gdp(j,i) = max(d_zero,gdp(j,i))
-          end if
+          gdp(j,i) = max(d_zero,gdp(j,i))
         end if
       end do
     end do

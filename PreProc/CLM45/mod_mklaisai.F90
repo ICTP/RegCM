@@ -71,21 +71,19 @@ module mod_mklaisai
         implicit none
         real(rkx) , dimension(:,:,:,:) , intent(inout) :: f
         real(rkx) , intent(in) :: mi , ma
-        integer :: i , j , n
+        integer :: i , j , p , n
         do n = 1 , nm
-          do i = 1 , iysg
-            do j = 1 , jxsg
-              if ( mask(j,i) < 0.5_rkx ) then
-                f(j,i,:,n) = h_missing_value
-              else
-                if ( f(j,i,1,n) > h_missing_value ) then
-                  f(j,i,:,n) = real(int(f(j,i,:,n)*100),rkx)/d_100
+          do p = 1, np
+            call bestaround(f(:,:,p,n),h_missing_value)
+            do i = 1 , iysg
+              do j = 1 , jxsg
+                if ( mask(j,i) < 0.5_rkx ) then
+                  f(j,i,p,n) = h_missing_value
                 else
-                  call bestaround(f(:,:,:,n),i,j)
-                  f(j,i,:,n) = real(int(f(j,i,:,n)*100),rkx)/d_100
+                  f(j,i,p,n) = real(int(f(j,i,p,n)*100),rkx)/d_100
+                  f(j,i,p,n) = min(ma,max(mi,f(j,i,p,n)))
                 end if
-                f(j,i,:,n) = min(ma,max(mi,f(j,i,:,n)))
-              end if
+              end do
             end do
           end do
         end do

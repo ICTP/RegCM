@@ -31,7 +31,7 @@ module mod_mksoitex
   public :: mksoitex
 
   character(len=16) , parameter :: mapname = 'MAPUNITS'
-  character(len=24) , parameter :: mapdim = 'number_of_mapunits'
+  character(len=24) , parameter :: mapdim = 'max_value_mapunit'
   character(len=16) , parameter :: varname1 = 'PCT_SAND'
   character(len=16) , parameter :: varname2 = 'PCT_CLAY'
 
@@ -55,26 +55,23 @@ module mod_mksoitex
     call gfread(gfile,varname1,mapdim,mapname,sand,.false.,h_missing_value)
     call gfread(gfile,varname2,mapdim,mapname,clay,.false.,h_missing_value)
 
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) > 0.5_rkx ) then
-          do n = 1 , nc
-            tsum = clay(j,i,n) + sand(j,i,n)
-            if ( tsum > 100.0_rkx ) then
-              if ( clay(j,i,n) > sand(j,i,n) ) then
-                clay(j,i,n) = clay(j,i,n) + (100.0_rkx - tsum)
-              else
-                sand(j,i,n) = sand(j,i,n) + (100.0_rkx - tsum)
-              end if
-            else if ( tsum < 2.0_rkx ) then
-              clay(j,i,n) = 1.0_rkx
-              sand(j,i,n) = 1.0_rkx
+    do n = 1 , nc
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            sand(j,i,n) = h_missing_value
+            clay(j,i,n) = h_missing_value
+          else
+            sand(j,i,n) = int(sand(j,i,n))
+            clay(j,i,n) = int(clay(j,i,n))
+            if ( sand(j,i,n) < 1.0 .and. clay(j,i,n) < 100.0 ) then
+              sand(j,i,n) = 1.0
             end if
-          end do
-        else
-          sand(j,i,:) = h_missing_value
-          clay(j,i,:) = h_missing_value
-        end if
+            if ( clay(j,i,n) < 1.0 .and. sand(j,i,n) < 100.0 ) then
+              clay(j,i,n) = 1.0
+            end if
+          end if
+        end do
       end do
     end do
 

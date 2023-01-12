@@ -188,18 +188,15 @@ module mod_mkurban
           i4 = ip2d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban3d(:,:,:,i4),.true.,h_missing_value)
+          where ( urban3d(:,:,:,i4) < d_zero )
+            urban3d(:,:,:,i4) = h_missing_value
+          end where
           do n1 = 1 , size(urban3d,3)
+            call bestaround(urban3d(:,:,n1,i4),h_missing_value)
             do i = 1 , iysg
               do j = 1 , jxsg
                 if ( mask(j,i) < 0.5_rkx ) then
                   urban3d(j,i,n1,i4) = h_missing_value
-                else
-                  if ( urban3d(j,i,n1,i4) <= h_missing_value ) then
-                    call bestaround(urban3d(:,:,n1,i4),i,j)
-                  end if
-                  if ( urban3d(j,i,n1,i4) < d_zero ) then
-                    urban3d(j,i,n1,i4) = h_missing_value
-                  end if
                 end if
               end do
             end do
@@ -208,19 +205,16 @@ module mod_mkurban
           i5 = ip3d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban4d(:,:,:,:,i5),.true.,h_missing_value)
+          where ( urban4d(:,:,:,:,i5) < d_zero )
+            urban4d(:,:,:,:,i5) = h_missing_value
+          end where
           do n2 = 1 , size(urban4d,4)
             do n1 = 1 , size(urban4d,3)
+              call bestaround(urban4d(:,:,n1,n2,i5),h_missing_value)
               do i = 1 , iysg
                 do j = 1 , jxsg
                   if ( mask(j,i) < 0.5_rkx ) then
                     urban4d(j,i,n1,n2,i5) = h_missing_value
-                  else
-                    if ( urban4d(j,i,n1,n2,i5) <= h_missing_value ) then
-                      call bestaround(urban4d(:,:,n1,n2,i5),i,j)
-                    end if
-                    if ( urban4d(j,i,n1,n2,i5) < d_zero ) then
-                      urban4d(j,i,n1,n2,i5) = h_missing_value
-                    end if
                   end if
                 end do
               end do
@@ -230,20 +224,17 @@ module mod_mkurban
           i6 = ip4d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban5d(:,:,:,:,:,i6),.true.,h_missing_value)
+          where ( urban5d(:,:,:,:,:,i6) < d_zero )
+            urban5d(:,:,:,:,:,i6) = h_missing_value
+          end where
           do n3 = 1 , size(urban5d,5)
             do n2 = 1 , size(urban5d,4)
               do n1 = 1 , size(urban5d,3)
+                call bestaround(urban5d(:,:,n1,n2,n3,i6),h_missing_value)
                 do i = 1 , iysg
                   do j = 1 , jxsg
                     if ( mask(j,i) < 0.5_rkx ) then
                       urban5d(j,i,n1,n2,n3,i6) = h_missing_value
-                    else
-                      if ( urban5d(j,i,n1,n2,n3,i6) <= h_missing_value ) then
-                        call bestaround(urban5d(:,:,n1,n2,n3,i6),i,j)
-                      end if
-                      if ( urban5d(j,i,n1,n2,n3,i6) < d_zero ) then
-                        urban5d(j,i,n1,n2,n3,i6) = h_missing_value
-                      end if
                     end if
                   end do
                 end do
