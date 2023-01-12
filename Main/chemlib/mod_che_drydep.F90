@@ -871,9 +871,6 @@ module mod_che_drydep
 
         !FAB try out wesely from CLM 
       !  drydepvg(jci1:jci2,io3) = cddepv_clm(jci1:jci2,i,4)  
-
-
-
       end if
 
       ! Finally : gas phase dry dep tendency calculation
@@ -885,7 +882,7 @@ module mod_che_drydep
             if ( idynamic == 3 ) then
               kav = max(chemt(j,i,kz,n),d_zero)*rdt
             else
-              kav = max(chib(j,i,kz,n),d_zero)*rdt
+              kav = max(chib3d(j,i,kz,n),d_zero)*rdt
             end if
             if ( kd*dt < 25.0_rkx ) then
               ! dry dep removal tendency (+)
@@ -898,11 +895,12 @@ module mod_che_drydep
             ! diag dry dep tendency
             if ( ichdiag > 0 ) then
                cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                               ddrem(j) * cfdout
+                                               ddrem(j) *  cfdout
             end if
             ! drydep flux diagnostic (accumulated between two outputs time
-            ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
-            remdrd(j,i,n) = remdrd(j,i,n) + ddrem(j)/cpsb(j,i) * cfdout
+            ! step) ! flux is in kg/m2/s-1.
+            remdrd(j,i,n) = remdrd(j,i,n) + max(chemt(j,i,kz,n),d_zero) &
+                                          * crhob3d(j,i,kz)*drydepvg(j,n)* cfdout
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
             drydepv(j,i,n) = d_zero
@@ -915,8 +913,7 @@ module mod_che_drydep
             if ( idynamic == 3 ) then
               chifxuw(j,i,n) = chifxuw(j,i,n) - chemt(j,i,kz,n) * drydepvg(j,n)
             else
-              chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
-                                  cpsb(j,i)) * drydepvg(j,n)
+              chifxuw(j,i,n) = chifxuw(j,i,n) - chib3d(j,i,kz,n)* drydepvg(j,n)
             end if
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
