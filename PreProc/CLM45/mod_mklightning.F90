@@ -53,17 +53,13 @@ module mod_mklightning
     integer(ik4) , intent(in) :: it
     integer(ik4) :: i , j
     call gfread(gfile,varname,lightning,it,h_missing_value)
+    call bestaround(lightning,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           lightning(j,i) = h_missing_value
         else
-          if ( lightning(j,i) > h_missing_value ) then
-            lightning(j,i) = max(d_zero,lightning(j,i))
-          else
-            call bestaround(lightning,i,j)
-            lightning(j,i) = max(d_zero,lightning(j,i))
-          end if
+          lightning(j,i) = max(d_zero,lightning(j,i))
         end if
       end do
     end do

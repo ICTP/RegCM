@@ -51,17 +51,13 @@ module mod_mksoilph
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,soilph,vmin)
     call gfclose(gfile)
+    call bestaround(soilph,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           soilph(j,i) = h_missing_value
         else
-          if ( soilph(j,i) > h_missing_value ) then
-            soilph(j,i) = max(d_zero,soilph(j,i))
-          else
-            call bestaround(soilph,i,j)
-            soilph(j,i) = max(d_zero,soilph(j,i))
-          end if
+          soilph(j,i) = max(d_zero,soilph(j,i))
         end if
       end do
     end do

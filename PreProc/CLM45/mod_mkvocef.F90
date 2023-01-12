@@ -56,17 +56,13 @@ module mod_mkvocef
     call gfclose(gfile)
 
     do n = 1 , nvocs
+      call bestaround(vocef(:,:,n),h_missing_value)
       do i = 1 , iysg
         do j = 1 , jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             vocef(j,i,n) = h_missing_value
           else
-            if ( vocef(j,i,n) > h_missing_value ) then
-              vocef(j,i,n) = max(d_zero,vocef(j,i,n))
-            else
-              call bestaround(vocef(:,:,n),i,j)
-              vocef(j,i,n) = max(d_zero,vocef(j,i,n))
-            end if
+            vocef(j,i,n) = max(d_zero,vocef(j,i,n))
           end if
         end do
       end do
