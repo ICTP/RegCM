@@ -109,10 +109,10 @@ module mod_ocn_zeng
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
-      tsurf = (tgrd(i) + 10.0_rkx/z995 * (tatm(i)-tgrd(i)))
+      tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
       rlv = wlh(tsurf)
       cpm = cpd*(d_one-q995) + cpv*q995
-      zi = max(z995,hpbl(i))
+      zi = hpbl(i)
       hu = z995
       zh = z995
       hq = z995
@@ -120,14 +120,14 @@ module mod_ocn_zeng
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.98_rkx
+      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
       thv = th*(d_one+ep1*qs)
       dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
       ! density
-      xdens = sfps(i)/(rgas*tatm(i)*(d_one+ep1*q995))
+      xdens = sfps(i)/(rgas*tsurf*(d_one+ep1*qs))
       ! J/kg
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
@@ -176,7 +176,7 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      do nconv = 1 , 2
+      do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         if ( flag2 ) then
           ustar = vonkar*um/log(hu/zo)
@@ -191,7 +191,6 @@ module mod_ocn_zeng
         zeta = max(-100.0_rkx,min(zeta,-minz))
       end if
       obu = hu/zeta
-      wc = ustar * (max(-zi*vonkar/obu,d_zero))**onet
       !
       ! main iterations (2-10 iterations would be fine)
       !
@@ -381,7 +380,7 @@ module mod_ocn_zeng
       v10m(i) = vsw(i)*uv10/uv995
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
-      t2m(i)  = t995 + tzero - (dth * (sfps(i)/p00)**rovcp) * facttq
+      t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
       q2m(i)  = q995 - dqh*facttq
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       ! We need specific humidity in output
