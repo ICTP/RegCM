@@ -45,7 +45,6 @@ module mod_bats_common
   private
 
   public :: dtbat
-  public :: ldesseas
   public :: allocate_mod_bats_internal
   public :: interf , initbats , vecbats , albedobats
 
