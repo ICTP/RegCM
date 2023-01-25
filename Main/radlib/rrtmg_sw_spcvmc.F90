@@ -52,13 +52,18 @@
 ! ---------------------------------------------------------------------------
       subroutine spcvmc_sw &
             (nlayers, istart, iend, icpr, idelm, iout, &
-             palbd, palbp, pcldfmc, ptaucmc, pasycmc, pomgcmc, ptaormc,&
-             ptaua, pasya, pomga, prmu0, adjflux, laytrop, jp, jt, jt1,&
-             colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
-             fac00, fac01, fac10, fac11, selffac, selffrac, indself, &
-             forfac, forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu, &
-             puvfd, puvcd, pnifd, pnicd, pbbfddir, pbbcddir, puvfddir, &
-             puvcddir, pnifddir, pnicddir, pvsfd)
+             pavel, tavel, pz, tz, tbound, palbd, palbp, &
+             pcldfmc, ptaucmc, pasycmc, pomgcmc, ptaormc, &
+             ptaua, pasya, pomga, prmu0, coldry, wkl, adjflux, &
+             isolvar, svar_f, svar_s, svar_i, &
+             svar_f_bnd, svar_s_bnd, svar_i_bnd, &
+             laytrop, layswtch, laylow, jp, jt, jt1, &
+             co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
+             fac00, fac01, fac10, fac11, &
+             selffac, selffrac, indself, forfac, forfrac, indfor, &
+             pbbfd, pbbfu, pbbcd, pbbcu, puvfd, puvcd, pnifd, pnicd, &
+             pbbfddir, pbbcddir, puvfddir, puvcddir, pnifddir, &
+             pnicddir, pvsfd)
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes,
@@ -104,10 +109,12 @@
                                               ! [1 = direct and diffuse fluxes are scaled]
       integer(kind=im), intent(in) :: iout
       integer(kind=im), intent(in) :: laytrop
+      integer(kind=im), intent(in) :: layswtch
+      integer(kind=im), intent(in) :: laylow
 
-      integer(kind=im) :: indfor(:)
+      integer(kind=im), intent(in) :: indfor(:)
                                                                !   Dimensions: (nlayers)
-      integer(kind=im) :: indself(:)
+      integer(kind=im), intent(in) :: indself(:)
                                                                !   Dimensions: (nlayers)
       integer(kind=im), intent(in) :: jp(:)
                                                                !   Dimensions: (nlayers)
@@ -116,18 +123,31 @@
       integer(kind=im), intent(in) :: jt1(:)
                                                                !   Dimensions: (nlayers)
 
+      real(kind=rb), intent(in) :: pavel(:)                    ! layer pressure (hPa, mb)
+                                                               !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: tavel(:)                    ! layer temperature (K)
+                                                               !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: pz(0:)                      ! level (interface) pressure (hPa, mb)
+                                                               !   Dimensions: (0:nlayers)
+      real(kind=rb), intent(in) :: tz(0:)                      ! level temperatures (hPa, mb)
+                                                               !   Dimensions: (0:nlayers)
+      real(kind=rb), intent(in) :: tbound                      ! surface temperature (K)
+      real(kind=rb), intent(in) :: wkl(:,:)                    ! molecular amounts (mol/cm2)
+                                                               !   Dimensions: (mxmol,nlayers)
+      real(kind=rb), intent(in) :: coldry(:)                   ! dry air column density (mol/cm2)
+                                                               !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colmol(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: adjflux(:)                  ! Earth/Sun distance adjustment
                                                                !   Dimensions: (jpband)
 ! Solar variability
-      integer(kind=im) :: isolvar                  ! Flag for solar variability method
-      real(kind=rb) :: svar_f                      ! Solar variability facular multiplier
-      real(kind=rb) :: svar_s                      ! Solar variability sunspot multiplier
-      real(kind=rb) :: svar_i                      ! Solar variability baseline irradiance multiplier
-      real(kind=rb) :: svar_f_bnd(jpband)          ! Solar variability facular multiplier (by band)
-      real(kind=rb) :: svar_s_bnd(jpband)          ! Solar variability sunspot multiplier (by band)
-      real(kind=rb) :: svar_i_bnd(jpband)          ! Solar variability baseline irradiance multiplier (by band)
+      integer(kind=im), intent(in) :: isolvar                  ! Flag for solar variability method
+      real(kind=rb), intent(in) :: svar_f                      ! Solar variability facular multiplier
+      real(kind=rb), intent(in) :: svar_s                      ! Solar variability sunspot multiplier
+      real(kind=rb), intent(in) :: svar_i                      ! Solar variability baseline irradiance multiplier
+      real(kind=rb), intent(in) :: svar_f_bnd(jpband)          ! Solar variability facular multiplier (by band)
+      real(kind=rb), intent(in) :: svar_s_bnd(jpband)          ! Solar variability sunspot multiplier (by band)
+      real(kind=rb), intent(in) :: svar_i_bnd(jpband)          ! Solar variability baseline irradiance multiplier (by band)
 
       real(kind=rb), intent(in) :: palbd(:)                    ! surface albedo (diffuse)
                                                                !   Dimensions: (nbndsw)
@@ -157,6 +177,8 @@
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colch4(:)
                                                                !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: co2mult(:)
+                                                               !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo3(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo2(:)
@@ -164,9 +186,9 @@
       real(kind=rb), intent(in) :: coln2o(:)
                                                                !   Dimensions: (nlayers)
 
-      real(kind=rb) :: forfac(:)
+      real(kind=rb), intent(in) :: forfac(:)
                                                                !   Dimensions: (nlayers)
-      real(kind=rb) :: forfrac(:)
+      real(kind=rb), intent(in) :: forfrac(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: selffac(:)
                                                                !   Dimensions: (nlayers)
@@ -215,8 +237,8 @@
       logical :: lrtchkclr(nlayers),lrtchkcld(nlayers)
 
       integer(kind=im)  :: klev
-      integer(kind=im) :: ib1, ib2, ibm, igt, ikl, ikp, ikx
-      integer(kind=im) :: iw, jb, jg, jl, jk
+      integer(kind=im) :: ib1, ib2, ibm, igt, ikl
+      integer(kind=im) :: iw, jb, jg, jk
 !      integer(kind=im), parameter :: nuv = ??
 !      integer(kind=im), parameter :: nvs = ??
       integer(kind=im) :: itind
@@ -224,24 +246,22 @@
       real(kind=rb) :: tblind, ze1
       real(kind=rb) :: zclear, zcloud
       real(kind=rb) :: zdbt(nlayers+1), zdbt_nodel(nlayers+1)
-      real(kind=rb) :: zgc(nlayers), zgcc(nlayers), zgco(nlayers)
-      real(kind=rb) :: zomc(nlayers), zomcc(nlayers), zomco(nlayers)
+      real(kind=rb) :: zgcc(nlayers), zgco(nlayers)
+      real(kind=rb) :: zomcc(nlayers), zomco(nlayers)
       real(kind=rb) :: zrdnd(nlayers+1), zrdndc(nlayers+1)
       real(kind=rb) :: zref(nlayers+1), zrefc(nlayers+1), zrefo(nlayers+1)
       real(kind=rb) :: zrefd(nlayers+1), zrefdc(nlayers+1), zrefdo(nlayers+1)
       real(kind=rb) :: zrup(nlayers+1), zrupd(nlayers+1)
       real(kind=rb) :: zrupc(nlayers+1), zrupdc(nlayers+1)
-      real(kind=rb) :: zs1(nlayers+1)
       real(kind=rb) :: ztauc(nlayers), ztauo(nlayers)
-      real(kind=rb) :: ztdn(nlayers+1), ztdnd(nlayers+1), ztdbt(nlayers+1)
-      real(kind=rb) :: ztoc(nlayers), ztor(nlayers)
+      real(kind=rb) :: ztdbt(nlayers+1)
       real(kind=rb) :: ztra(nlayers+1), ztrac(nlayers+1), ztrao(nlayers+1)
       real(kind=rb) :: ztrad(nlayers+1), ztradc(nlayers+1), ztrado(nlayers+1)
       real(kind=rb) :: zdbtc(nlayers+1), ztdbtc(nlayers+1)
       real(kind=rb) :: zincflx(ngptsw), zdbtc_nodel(nlayers+1)
       real(kind=rb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
-      real(kind=rb) :: zdbtmc, zdbtmo, zf, zgw, zreflect
+      real(kind=rb) :: zdbtmc, zdbtmo, zf
       real(kind=rb) :: zwf, tauorig, repclc
 !     real(kind=rb) :: zincflux                                   ! inactive
 
@@ -272,7 +292,6 @@
       klev = nlayers
       iw = 0
       repclc = 1.e-12_rb
-      isolvar = -1
 !      zincflux = 0.0_rb
 
       do jk=1,klev+1
@@ -298,9 +317,10 @@
 
       call taumol_sw(klev, &
                      colh2o, colco2, colch4, colo2, colo3, colmol, &
-                     laytrop, jp, jt, jt1, fac00, fac01, fac10, fac11, &
-                     selffac, selffrac, indself, forfac, forfrac, &
-                     indfor, isolvar, svar_f, svar_s, svar_i, &
+                     laytrop, jp, jt, jt1, &
+                     fac00, fac01, fac10, fac11, &
+                     selffac, selffrac, indself, forfac, forfrac, indfor, &
+                     isolvar, svar_f, svar_s, svar_i, &
                      svar_f_bnd, svar_s_bnd, svar_i_bnd, &
                      ssi, zsflxzen, ztaug, ztaur)
 
@@ -440,7 +460,7 @@
                      zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = int(tblint * tblind + 0.5_rb)
+                     itind = int(tblint * tblind + 0.5_rb,im)
                      zdbtmc = exp_tbl(itind)
                   endif
 
@@ -457,7 +477,7 @@
                      zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = int(tblint * tblind + 0.5_rb)
+                     itind = int(tblint * tblind + 0.5_rb,im)
                      zdbtmo = exp_tbl(itind)
                   endif
 
@@ -540,15 +560,15 @@
                   zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zdbtmc = exp_tbl(itind)
                endif
 
                zdbtc(jk) = zdbtmc
-               if ( zdbtc(jk) > 1.0e-20 .and. ztdbtc(jk) > 1.0e-20 ) then
-                 ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
+               if ( all([zdbtc(jk),ztdbtc(jk)] <= 1.0e-20_rb) ) then
+                  ztdbtc(jk+1) = 0.0_rb
                else
-                 ztdbtc(jk+1) = 1.0e-20
+                  ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
                end if
 
 ! Clear + Cloud
@@ -561,15 +581,15 @@
                   zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zdbtmo = exp_tbl(itind)
                endif
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               if ( zdbt(jk) > 1.0e-20 .and. ztdbt(jk) > 1.0e-20 ) then
-                 ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+               if ( all([zdbt(jk),ztdbt(jk)] <= 1.0e-20_rb) ) then
+                  ztdbt(jk+1) = 0.0_rb
                else
-                 ztdbt(jk+1) = 1.0e-20
+                  ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
                end if
 
             enddo
@@ -622,8 +642,8 @@
                   puvfd(ikl) = puvfd(ikl) + zincflx(iw)*zfd(jk,iw)
                   ! FAB RegCM
                   if ( ibm == 10 ) then
-                     pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
-                  endif
+                    pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
+                  end if
                   if (idelm .eq. 0) then
                      puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
@@ -655,5 +675,6 @@
       end subroutine spcvmc_sw
 
       end module rrtmg_sw_spcvmc
+
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

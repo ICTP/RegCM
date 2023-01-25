@@ -26,4 +26,5 @@
       real(kind=rb) , dimension(59) :: tref
 
       end module rrsw_ref
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

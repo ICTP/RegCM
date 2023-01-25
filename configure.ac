@@ -162,6 +162,7 @@ AC_ARG_ENABLE(clm,
   [USECLM="1"],
 )
 AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
+AM_CONDITIONAL(RRTM_NC, [true])
 
 AC_ARG_ENABLE(megan,
   AC_HELP_STRING([--enable-megan],

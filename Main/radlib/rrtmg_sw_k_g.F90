@@ -56,7 +56,7 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl, &
                             irradnceo, facbrghto, snsptdrko
-      use rrsw_vsn, only: hvrkg, hnamkg
+      use rrsw_vsn, only: hvrkg
 
       implicit none
       save
@@ -62439,7 +62439,7 @@
                             irradnceo, facbrghto, snsptdrko
 
       implicit none
-      real :: irradscl
+      real(rb) :: irradscl
       save
 
 ! Kurucz solar source function
