@@ -312,7 +312,7 @@ module mod_rrtmg_driver
       idirect = 2
     end if
 
-    juldat = julianday(iyear, imonth, iday)
+    juldat = int(julianday(iyear, imonth, iday),ik4)
     alpha(:,:) = 0.0_rkx
     if ( icld == 4 .or. icld == 5 ) then
       idcor = 1
@@ -625,19 +625,12 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp2 , ktf
-      do n = 1 , npr
-        plev(n,k) = stdplevf(kclimf+k-kzp2)
-      end do
+    do n = 1 , npr
+      plev(n,ktf) = 1.0e-4_rkx
     end do
-    ! smooth transition from top to climate at kzp1
-    if ( kth > kz ) then
-      do k = kzp1 , kth
-        do n = 1 , npr
-          play(n,k) = stdplevh(kclimh+k-kzp1)
-        end do
-      end do
-    end if
+    do n = 1 , npr
+      play(n,kth) = 0.5_rkx * plev(n,ktf-1)
+    end do
     !
     ! ground temperature
     !
@@ -661,14 +654,8 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
-          n = n + 1
-        end do
-      end do
+    do n = 1 , npr
+      tlay(n,kth) = tlay(n,kz)
     end do
     !
     ! deltaz
@@ -683,10 +670,11 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
-        deltaz(n,k) = (stdhlevf(kclimf+k-kzp1) - &
-                       stdhlevf(kclimf+k-kzp1-1)) * d_1000
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        deltaz(n,kth) = 100000_rkx - m2r%zq(j,i,1)
+        n = n+1
       end do
     end do
     !
@@ -717,10 +705,9 @@ module mod_rrtmg_driver
         end do
       end do
     end if
-    do k = kzp1 , ktf
-      do n = 1 , npr
-        tlev(n,k) = stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk)
-      end do
+    do n = 1 , npr
+      tlev(n,kzp1) = tlay(n,kz)
+      tlev(n,ktf) = 0.5_rkx * (tlev(n,ktf-1)+tlev(n,ktf-2))
     end do
 
     if ( ipptls > 1 ) then
@@ -735,11 +722,9 @@ module mod_rrtmg_driver
           end do
         end do
       end do
-      do k = kzp1 , kth
-        do n = 1 , npr
-          ql1(n,k) = d_zero
-          qi1(n,k) = d_zero
-        end do
+      do n = 1 , npr
+        ql1(n,kth) = d_zero
+        qi1(n,kth) = d_zero
       end do
     end if
     !
@@ -756,11 +741,9 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
-        h2ommr(n,k) = 1.0e-10_rkx
-        h2ovmr(n,k) = h2ommr(n,k) * rep2
-      end do
+    do n = 1 , npr
+      h2ommr(n,kth) = 1.0e-12_rkx
+      h2ovmr(n,kth) = h2ommr(n,k) * rep2
     end do
     !
     ! o3 volume mixing ratio
@@ -775,12 +758,8 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    do k = kzp1 , kth
-      do n = 1 , npr
-        o3vmr(n,k) = &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
-      end do
+    do n = 1 , npr
+      o3vmr(n,kth) = o3vmr(n,kz)
     end do
     !
     ! cgas is in ppm , ppb , ppt
@@ -796,7 +775,7 @@ module mod_rrtmg_driver
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
 
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         co2vmrk(n,k) = co2vmr(n)
       end do
@@ -864,8 +843,8 @@ module mod_rrtmg_driver
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
       do i = 1 , nbndsw
-        do k = 1 , kth
-          kj = kth + 1 - k
+        do k = 1 , kz
+          kj = kzp1 - k
           do n = 1 , npr
             ecaer(n,k,i)  = 0.78_rkx ! not used
             tauaer(n,k,i) = tauxar3d(n,kj,i)
@@ -919,11 +898,9 @@ module mod_rrtmg_driver
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
-    do k = kzp1 , kth
-      do n = 1 , npr
-        cldf(n,k) = d_zero
-        clwp(n,k) = d_zero
-      end do
+    do n = 1 , npr
+      cldf(n,kth) = d_zero
+      clwp(n,kth) = d_zero
     end do
     !
     ! CLOUD Properties:
@@ -935,11 +912,15 @@ module mod_rrtmg_driver
     ! partition of total water path betwwen liquide and ice.
     ! now clwp is liquide only !
     !
-    do k = 1 , kth
+    do k = 1 , kz
       do n = 1 , npr
         ciwp(n,k) =  clwp(n,k) * fice(n,k)
         clwp(n,k) =  clwp(n,k) * (d_one - fice(n,k))
       end do
+    end do
+    do n = 1 , npr
+      ciwp(n,kth) = 0.0_rkx
+      clwp(n,kth) = 0.0_rkx
     end do
     !
     ! Cloud optical properties(tau,ssa,g,f) :
@@ -1128,7 +1109,7 @@ module mod_rrtmg_driver
       end do
     end do
     if ( ipptls > 1 ) then
-      do k = 1 , kth
+      do k = 1 , kz
         do n = 1 , npr
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
@@ -1138,7 +1119,7 @@ module mod_rrtmg_driver
         end do
       end do
     else
-      do k = 1 , kth
+      do k = 1 , kz
         do n = 1 , npr
           if ( t(n,k) > minus10 ) then
             ! if warmer than -10 degrees C then water phase
@@ -1155,6 +1136,9 @@ module mod_rrtmg_driver
         end do
       end do
     end if
+    do n = 1 , npr
+      fice(n,kth) = d_zero
+    end do
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver

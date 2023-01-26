@@ -87,23 +87,12 @@ module mod_rad_interface
     ktf = kzp1
 
     if ( irrtm == 1 ) then
-      if ( idynamic /= 3 ) then
-        do k = 1 , n_prehlev
-          kclimh = k
-          if ( ptop*d_10 > stdplevh(k) ) exit
-        end do
-        kth = n_prehlev - kclimh + 1 + kz
-        ktf = kth + 1
-        kclimf = kclimh + 1
-      else
-        do k = 1 , n_hrehlev
-          kclimh = k
-          if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
-        end do
-        kth  = n_hrehlev - kclimh + 1 + kz
-        ktf  = kth + 1
-        kclimf = kclimh + 1
-      end if
+      !
+      ! Add an extra layer on top of RRTM at very low pressure to have
+      ! better TOA fluxes. See inatm subroutines in RRTMG.
+      !
+      kth  = kth + 1
+      ktf  = kth + 1
       if ( myid == italk ) then
         write(stdout,*) 'Total number of the half RRTM levels is ', kth
         write(stdout,*) 'Total number of the full RRTM levels is ', ktf

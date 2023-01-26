@@ -492,7 +492,7 @@ module mod_micro_interface
           rlv = wlh(tmp3)
           cpm = cpd*(d_one-qvcs) + cpv*qvcs
           r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
-          rhc = min(max(qvcs/qvs,d_zero),d_one)
+          rhc = min(max(qvcs/qvs,rhmin),rhmax)
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
             dqv = conf * (qvcs - qvs)
