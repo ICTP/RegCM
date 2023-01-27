@@ -551,7 +551,7 @@ module mod_params
     carb_aging_control = .false.
 
     ntr = 0
-    nbin = 0
+    ndbin = 0
     igaschem = 0
     iaerosol = 0
     iisoropia = 0

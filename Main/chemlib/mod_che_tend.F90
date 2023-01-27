@@ -263,7 +263,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( nbin > 0 .and. ichsursrc == 1 ) then
+      if ( ndbin > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
                 call sfflux(lmonth,ivegcov,vegfrac,snowfrac,ustar,zeff, &
                             soilw,wid10,crho2d,dustbsiz)
@@ -309,9 +309,9 @@
       pdepv(:,:,:,:) = d_zero
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
-      if ( nbin > 0 .and. ichdrdepo > 0 ) then
+      if ( ndbin > 0 .and. ichdrdepo > 0 ) then
         do i = ici1 , ici2
-          call drydep_aero(i,nbin,idust,rhodust,ivegcov(:,i),       &
+          call drydep_aero(i,ndbin,idust,rhodust,ivegcov(:,i),       &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,  &
@@ -322,7 +322,7 @@
         if ( nmine > 0 ) then
           do n = 1 , nmine
             do i = ici1 , ici2
-              call drydep_aero(i,nbin,imine(:,n),rhodust,ivegcov(:,i), &
+              call drydep_aero(i,ndbin,imine(:,n),rhodust,ivegcov(:,i), &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),            &
                            temp10(:,i),tsurf(:,i),srad(:,i),           &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,     &
@@ -383,20 +383,20 @@
       !
       ! WET deposition (rainout and washout) for aerosol
       !
-      if ( nbin > 0 .and. ichremlsc == 1 ) then
-        xrho(1:nbin) = rhodust
+      if ( ndbin > 0 .and. ichremlsc == 1 ) then
+        xrho(1:ndbin) = rhodust
         do i = ici1 , ici2
-          call wetdepa(i,nbin,idust,dustbed,xrho(1:nbin),ttb(:,:,i), &
+          call wetdepa(i,ndbin,idust,dustbed,xrho(1:ndbin),ttb(:,:,i), &
                        wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),      &
                        psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),     &
                        convprec(:,:,i), pdepv(:,:,:,i))
         end do
         ! mineralogical tracers
         if ( nmine > 0 ) then
-          xrho(1:nbin) = rhodust
+          xrho(1:ndbin) = rhodust
           do n = 1 , nmine
             do i = ici1 , ici2
-              call wetdepa(i,nbin,imine(:,n),dustbed,xrho(1:nbin),ttb(:,:,i), &
+              call wetdepa(i,ndbin,imine(:,n),dustbed,xrho(1:ndbin),ttb(:,:,i), &
                            wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),           &
                            psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),          &
                            convprec(:,:,i), pdepv(:,:,:,i))

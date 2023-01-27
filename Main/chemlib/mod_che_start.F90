@@ -406,7 +406,7 @@ module mod_che_start
         'ichdustemd == 3 valid only if CLM45 is active.')
     end if
 #endif
-    if ( nbin > 0 .or. ichbion == 1 ) then
+    if ( ndbin > 0 .or. ichbion == 1 ) then
       ! activate dust initialization
       if ( myid == italk ) write(stdout,'(a)',advance='no') ' Calling inidust'
       call inidust

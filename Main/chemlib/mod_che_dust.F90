@@ -190,15 +190,15 @@ module mod_che_dust
         call getmem2d(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
         call getmem4d(srel2d,1,nsoil,1,nats, &
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
-        call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
+        call getmem2d(dustbsiz,1,ndbin,1,2,'che_dust:dustbsiz')
         call getmem2d(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
         call getmem3d(aez0,jci1,jci2,ici1,ici2,1,12,'che_dust:aez0')
-        call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
-        call getmem1d(soldust,1,nbin,'che_dust:soldust')
-        call getmem1d(frac1,1,nbin,'che_dust:frac1')
-        call getmem1d(frac2,1,nbin,'che_dust:frac2')
-        call getmem1d(frac3,1,nbin,'che_dust:frac3')
-        call getmem1d(frac,1,nbin,'che_dust:frac')
+        call getmem1d(dustbed,1,ndbin,'che_dust:dustbed')
+        call getmem1d(soldust,1,ndbin,'che_dust:soldust')
+        call getmem1d(frac1,1,ndbin,'che_dust:frac1')
+        call getmem1d(frac2,1,ndbin,'che_dust:frac2')
+        call getmem1d(frac3,1,ndbin,'che_dust:frac3')
+        call getmem1d(frac,1,ndbin,'che_dust:frac')
         if ( nmine > 0 ) then
           call getmem3d(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
           call getmem3d(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
@@ -337,7 +337,7 @@ module mod_che_dust
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
 
-      if ( nbin == 4 ) then
+      if ( ndbin == 4 ) then
         ndi = ndi_4
       else
         ndi = ndi_12
@@ -411,7 +411,7 @@ module mod_che_dust
           exp1 = (alogdi-amean1)**2/(d_two*asigma1**2)
           exp2 = (alogdi-amean2)**2/(d_two*asigma2**2)
           exp3 = (alogdi-amean3)**2/(d_two*asigma3**2)
-          do n = 1 , nbin
+          do n = 1 , ndbin
             if ( di(ns) > dustbsiz(n,1) .and. &
                  di(ns) <= dustbsiz(n,2) ) then
               ! the independant variable is diameter so going from
@@ -451,7 +451,7 @@ module mod_che_dust
           ! kok 2011
           term = d_one/cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
                      log(sigmas)))*exp(-(di(ns)/lambda)**3)
-          do n = 1 , nbin
+          do n = 1 , ndbin
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
                 frac(n) = frac(n) + term
              end if
@@ -562,10 +562,10 @@ module mod_che_dust
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: snowfrac
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: z0
       real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: ustarnd
-      real(rkx) , intent(in) , dimension(nbin,2) :: trsize
+      real(rkx) , intent(in) , dimension(ndbin,2) :: trsize
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
                 xsurfwd , xvegfrac , xz0 , xaez0 , xustarnd , xsnowfrac
-      real(rkx) , dimension(ilg,nbin) :: xrsfrow
+      real(rkx) , dimension(ilg,ndbin) :: xrsfrow
       real(rkx) , dimension(ilg,nats) :: xftex
       real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
       integer(ik4) :: i , j , ieff , n , ns , m
@@ -616,7 +616,7 @@ module mod_che_dust
 
       ! put back the dust flux on the right grid
 
-      do n = 1 , nbin
+      do n = 1 , ndbin
         ieff = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -656,7 +656,7 @@ module mod_che_dust
 
       if ( nmine > 0 ) then
         do m = 1 , nmine
-          do n = 1 , nbin
+          do n = 1 , ndbin
             ieff = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -690,11 +690,11 @@ module mod_che_dust
       integer(ik4) :: jl1 , jl2
       real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                             vegfrac , z0 , ustarnd , snowfrac , aez0
-      real(rkx) , dimension(ilg,nbin) :: rsfrow
+      real(rkx) , dimension(ilg,ndbin) :: rsfrow
       real(rkx) , dimension(ilg,nats) :: ftex
       real(rkx), dimension(nats)      :: fclay
       real(rkx) , dimension(ilg,nsoil,nats) :: srel
-      real(rkx) , dimension(nbin,2) :: trsize
+      real(rkx) , dimension(ndbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
 
       real(rkx) , dimension(ilg) :: hc , rc , srl , wprim
@@ -793,7 +793,7 @@ module mod_che_dust
       integer(ik4) :: jl1 , jl2
       real(rkx) :: rhodust , uth
       real(rkx) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
-      real(rkx) , dimension(ilg,nbin) :: rsfrow
+      real(rkx) , dimension(ilg,ndbin) :: rsfrow
       real(rkx) , dimension(ilg,nats) :: ftex
       real(rkx) , dimension(nats) :: fclay
       real(rkx) , dimension(ilg,nsoil,nats) :: srel
@@ -804,7 +804,7 @@ module mod_che_dust
       real(rkx) :: p1 , p2 , p3 , dec , ec , fdp1 , fdp2
       real(rkx) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: j , k , n , nt , ns
-      real(rkx), dimension(ilg,nbin,nats):: rsfrowt
+      real(rkx), dimension(ilg,ndbin,nats):: rsfrowt
 
       real(rkx) , parameter :: beta = 16300.0_rkx
 
@@ -923,7 +923,7 @@ module mod_che_dust
       rsfrowt(:,:,:) = d_zero
       if ( ichdustemd == 1 ) then
         do nt = 1 , nats
-          do n = 1 , nbin
+          do n = 1 , ndbin
             do j = jl1 , jl2
               rsfrowt(j,n,nt) = fsoil1(j,nt)*frac1(n) + &
                                 fsoil2(j,nt)*frac2(n) + &
@@ -933,7 +933,7 @@ module mod_che_dust
         end do
       else if ( ichdustemd == 2 ) then
         do nt = 1 , nats
-          do n = 1 , nbin
+          do n = 1 , ndbin
             do j = jl1 , jl2
               rsfrowt(j,n,nt) = fsoil(j,nt)*frac(n)
             end do
@@ -949,7 +949,7 @@ module mod_che_dust
       !
 
       rsfrow(:,:) = d_zero
-      do k = 1 , nbin
+      do k = 1 , ndbin
         do nt = 1 , nats
           do j = jl1 , jl2
 #ifdef CLM45
@@ -987,7 +987,7 @@ module mod_che_dust
         end do
       end do
 
-      do n = 1 , nbin
+      do n = 1 , ndbin
         ib = idust(n)
         if ( ichdrdepo == 1 ) then
           if ( idynamic == 3 ) then

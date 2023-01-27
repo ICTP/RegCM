@@ -32,6 +32,7 @@ module mod_che_common
   use mod_che_indices
   use mod_cbmz_global , only : xr , xrin , xrout , c
   use mod_cbmz_parameters , only : nfix
+  use mo_submctl , only : nbins
 
   implicit none
 
@@ -153,13 +154,13 @@ module mod_che_common
                   'che_common:washout')
     call getmem3d(remdrd,jci1,jci2,ici1,ici2,1,ntr,'che_common:remdrd')
     call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
-    call getmem1d(idust,1,nbin,'mod_che_common:idust')
+    call getmem1d(idust,1,ndbin,'mod_che_common:idust')
     call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
     call getmem1d(icarb,1,cbin,'mod_che_common:icarb')
-    call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
+    call getmem2d(chtrsize,1,ndbin,1,2,'mod_che_common:chtrsize')
 
     if ( nmine > 0 ) then
-      call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
+      call getmem2d(imine,1,ndbin,1,nmine,'mod_che_common:imine')
     end if
     if ( igaschem == 1 .and. ichsolver > 0 ) then
       call getmem4d(chemall,jci1,jci2,ici1,ici2, &
@@ -210,23 +211,23 @@ module mod_che_common
     ! Define here the possible types of simulation and fix the dimension
     ! of relevant tracer dimension and parameters
     ntr = 0
-    nbin = 0
+    ndbin = 0
     nmine = 0
     igaschem = 0
     iaerosol = 0
     iisoropia = 0
     ioxclim = 0
     if ( chemsimtype(1:4) == 'DUST' ) then
-      nbin = 4
-      ntr = nbin
-      allocate(chtrname(nbin))
+      ndbin = 4
+      ntr = ndbin
+      allocate(chtrname(ndbin))
       chtrname(1:ntr)(1:6) = ['DUST01','DUST02','DUST03','DUST04']
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST simulation'
     else if ( chemsimtype(1:4) == 'DU12' ) then
-      nbin = 12
-      ntr = nbin
-      allocate(chtrname(nbin))
+      ndbin = 12
+      ntr = ndbin
+      allocate(chtrname(ndbin))
       chtrname(1:ntr)(1:6) = ['DUST01','DUST02','DUST03','DUST04',&
                               'DUST05','DUST06','DUST07','DUST08',&
                               'DUST09','DUST10','DUST11','DUST12' ]
@@ -234,8 +235,8 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
     else if (chemsimtype(1:4) == 'MINE') then
       nmine = 13
-      nbin = 4
-      ntr =  nbin * (nmine + 1)
+      ndbin = 4
+      ntr =  ndbin * (nmine + 1)
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['DUST01', 'DUST02', 'DUST03', 'DUST04' ,&
                               'IRON01', 'IRON02', 'IRON03', 'IRON04' ,&
@@ -260,8 +261,8 @@ module mod_che_common
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'SSLT simulation'
     else if ( chemsimtype(1:4) == 'DUSS' ) then
-      nbin = 4
-      ntr = sbin + nbin
+      ndbin = 4
+      ntr = sbin + ndbin
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['DUST01','DUST02','DUST03','DUST04', &
                               'SSLT01','SSLT02']
@@ -311,7 +312,7 @@ module mod_che_common
       ioxclim  = 1
       if ( myid == italk ) write(stdout,*) 'SUCE simulation'
     else if ( chemsimtype(1:4) == 'AERO' ) then
-      nbin = 4
+      ndbin = 4
       iaerosol = 1
       ioxclim = 1
       if ( ismoke == 1 ) then
@@ -330,7 +331,7 @@ module mod_che_common
       end if
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'AERE' ) then
-      nbin = 4
+      ndbin = 4
       iaerosol = 1
       ioxclim = 1
       ntr = 16
@@ -341,7 +342,7 @@ module mod_che_common
                               'DUST03','DUST04','SSLT01','SSLT02' ]
       if ( myid == italk ) write(stdout,*) 'AERE simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
-      nbin = 4
+      ndbin = 4
       if ( ismoke == 1 ) then
         ntr = 52
         allocate(chtrname(ntr))
@@ -401,6 +402,13 @@ module mod_che_common
       chtrname(1:ntr)(1:6) = ['POLLEN' ]
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
+
+    else if ( chemsimtype(1:6) == 'SALSA ' ) then
+      ! FAB sans gaz pour l'instant
+      ntr  = 8*17 + 17 
+      allocate(chtrname(ntr))
+      print*, nbins
+      
     else
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'

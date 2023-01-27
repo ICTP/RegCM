@@ -197,7 +197,7 @@ module mod_runparams
   ! usefull flags for chemistry
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia
   character(len=6) , pointer , dimension(:) , public :: chtrname
-  integer(ik4) , public :: nbin = 1
+  integer(ik4) , public :: ndbin = 1
   integer(ik4) , public :: nmine = 1
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out

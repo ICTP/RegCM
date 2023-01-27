@@ -1162,11 +1162,11 @@ module mod_rad_aerosol
       call getmem1d(wssm1,1,nband,'aerosol:wssm1')
       call getmem1d(wssm2,1,nband,'aerosol:wssm2')
 
-      call getmem2d(gsdust,1,nband,1,nbin,'aerosol:gsdust')
-      call getmem2d(ksdust,1,nband,1,nbin,'aerosol:ksdust')
-      call getmem2d(wsdust,1,nband,1,nbin,'aerosol:wsdust')
+      call getmem2d(gsdust,1,nband,1,ndbin,'aerosol:gsdust')
+      call getmem2d(ksdust,1,nband,1,ndbin,'aerosol:ksdust')
+      call getmem2d(wsdust,1,nband,1,ndbin,'aerosol:wsdust')
       ! op propert lw for rrtm
-      call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
+      call getmem2d(ksdust_lw,1,nbndlw,1,ndbin,'aerosol:ksdust_lw')
 
       call getmem2d(path,1,npoints,1,kz,'aerosol:path')
       call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
@@ -1277,12 +1277,12 @@ module mod_rad_aerosol
           kssm2 = kssm2_rrtm
           wssm2 = wssm2_rrtm
         end if
-        if ( nbin == 4 ) then
+        if ( ndbin == 4 ) then
           gsdust =  gsdust_rrtm
           ksdust =  ksdust_rrtm
           wsdust =  wsdust_rrtm
           ksdust_lw = ksdust_rrtm_lw
-        else if ( nbin == 12 ) then
+        else if ( ndbin == 12 ) then
           gsdust =  gsdust12_rrtm
           ksdust =  ksdust12_rrtm
           wsdust =  wsdust12_rrtm
@@ -1301,11 +1301,11 @@ module mod_rad_aerosol
         wsbc_hl = wsbc_hl_stand
         wsoc_hb = wsoc_hb_stand
         wsoc_hl = wsoc_hl_stand
-        if ( nbin == 4 ) then
+        if ( ndbin == 4 ) then
           gsdust =  gsdust_stand
           ksdust =  ksdust_stand
           wsdust =  wsdust_stand
-        else if (nbin == 12) then
+        else if (ndbin == 12) then
           gsdust =  gsdust12_stand
           ksdust =  ksdust12_stand
           wsdust =  wsdust12_stand
@@ -1321,7 +1321,7 @@ module mod_rad_aerosol
       if ( iclimaaer /= 1 ) return
 
       ntr = aerclima_ntr
-      nbin = aerclima_nbin
+      ndbin = aerclima_nbin
       allocate(chtrname(ntr))
       do itr = 1 , ntr
         chtrname(itr) = aerclima_chtr(itr)
