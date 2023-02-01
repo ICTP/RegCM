@@ -187,7 +187,6 @@ module mod_cmip6_normm
       type(cmip6_3d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -293,7 +292,7 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-      if ( year < 2015 ) then
+      if ( idate < 2015010112 ) then
         if ( irec+1 <= v%nrec ) then
           ncid_next = v%ncid
           ivar_next = v%ivar
@@ -338,7 +337,6 @@ module mod_cmip6_normm
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -436,7 +434,7 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-      if ( year < 2015 ) then
+      if ( idate < 2015010112 ) then
         if ( irec+1 <= v%nrec ) then
           ncid_next = v%ncid
           ivar_next = v%ivar

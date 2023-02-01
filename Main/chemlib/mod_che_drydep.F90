@@ -387,7 +387,7 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2,mbin) :: rs
       real(rkx), dimension(jci1:jci2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
-      integer(ik4) :: j , k , lcov , l , n , ib
+      integer(ik4) :: j , k , lcov , n , ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
       integer(ik4) , save :: idindx = 0
@@ -796,11 +796,11 @@ module mod_che_drydep
       integer(ik4), intent(in) :: lmonth , lday
       integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
       real(rkx) , intent(in) , dimension(jci1:jci2) :: rh10 , srad , tsurf , &
-                                            prec, temp10, xlai 
+                                            prec, temp10, xlai
       real(rkx) , dimension(jci1:jci2) , intent(in) :: ustar , resa
       real(rkx),  dimension(jci1:jci2,ntr) :: drydepvg
 
-      integer(ik4) :: n , j , im , l , lcov
+      integer(ik4) :: n , j , lcov
       real(rkx) , dimension(ngasd,jci1:jci2) :: resb, resc
       real(rkx) , dimension(ngasd,jci1:jci2) :: vdg
       real(rkx) , dimension(jci1:jci2) :: icz , ddrem
@@ -835,10 +835,10 @@ module mod_che_drydep
 !        if ( lai_f(j) < d_zero) lai_f(j) = d_zero
         laimin(j) = lai(lcov,14)
         laimax(j) = lai(lcov,15)
-! FAB use interactive LAI by default,laimin and laimax are kept for further scaling. 
-        lai_f(j)  = xlai(j)  
+! FAB use interactive LAI by default,laimin and laimax are kept for further scaling.
+        lai_f(j)  = xlai(j)
       end do
-     
+
 
       snow(:) = d_zero
       icz(:) = czen(:,i)
@@ -869,8 +869,8 @@ module mod_che_drydep
         drydepvg(jci1:jci2,iald2) =  vdg(15,jci1:jci2)!*0.5
         drydepvg(jci1:jci2,ich3oh)  =  vdg(23,jci1:jci2)!*0.5
 
-        !FAB try out wesely from CLM 
-      !  drydepvg(jci1:jci2,io3) = cddepv_clm(jci1:jci2,i,4)  
+        !FAB try out wesely from CLM
+      !  drydepvg(jci1:jci2,io3) = cddepv_clm(jci1:jci2,i,4)
       end if
 
       ! Finally : gas phase dry dep tendency calculation
@@ -938,7 +938,7 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: zeff
       real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(out) :: ustar
       real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(out) :: ra
-      integer(ik4) :: i , j , l
+      integer(ik4) :: i , j
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
       real(rkx) :: ptemp2 , es , qs
@@ -1114,7 +1114,7 @@ module mod_che_drydep
       real(rkx) , intent(in) , dimension(jci1:jci2) :: ustar
       real(rkx) , intent(out) , dimension(igas,jci1:jci2) :: rb , rc
 
-      integer(ik4) :: j , l , lcov , ig
+      integer(ik4) :: j , lcov , ig
       real(rkx) :: rst, wst , rac , rgs_f
       real(rkx) :: rdu , rdv , rgo_f
       real(rkx) :: rcuto_f , rcuts_f
@@ -1131,7 +1131,7 @@ module mod_che_drydep
       real(rkx) :: coedew , dq , usmin
       real(rkx) :: fsnow , rsnows
       real(rkx) :: dgas , di , vi
-      real(rkx) :: dvh2o, rstom 
+      real(rkx) :: dvh2o, rstom
       real(rkx) :: rcut , rg , xp
       logical :: is_dew , is_rain
       real(rkx) , parameter :: dair = 0.369_rkx * 29.0_rkx + 6.29_rkx
@@ -1288,7 +1288,7 @@ module mod_che_drydep
 !           print *, 'dew==='
 !           print *, 'NO dew, NO rain ==='
           end if
-!FAB TEST 
+!FAB TEST
            !is_rain = .false.
            !is_dew = .false.
 
