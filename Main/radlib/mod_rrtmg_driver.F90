@@ -305,7 +305,7 @@ module mod_rrtmg_driver
     ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
-    elseif ( iclimaaer > 0 ) then
+    else if ( iclimaaer > 0 ) then
       ldirect = 2
     end if
 
@@ -432,7 +432,7 @@ module mod_rrtmg_driver
       clwp_int(:,kj) = clwp(:,k)
     end do
 
-    kmaxcld = 1+ncld
+    kmaxcld = 2
     kmincld = kz-ncld
     cld_int(:,:) = d_zero
     do k = kmaxcld , kmincld
@@ -602,7 +602,7 @@ module mod_rrtmg_driver
     !
     do k = 1 , kzp1
       n = 1
-      kj = kzp1-k+1
+      kj = kzp2-k
       do i = ici1 , ici2
         do j = jci1 , jci2
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
@@ -671,7 +671,7 @@ module mod_rrtmg_driver
     tlev(:,1) = tsfc(:)
     if ( idynamic /= 3 ) then
       do k = 2 , kz
-        kj = kzp1-k+1
+        kj = kzp2-k
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -686,7 +686,7 @@ module mod_rrtmg_driver
       end do
     else
       do k = 2 , kz
-        kj = kzp1-k+1
+        kj = kzp2-k
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -816,8 +816,8 @@ module mod_rrtmg_driver
     !
     if ( ichem == 1 ) then
       do itr = 1 , ntr
-        kj = kzp1-k+1
         do k = 1 , kz
+          kj = kzp1-k
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -831,7 +831,7 @@ module mod_rrtmg_driver
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
         n = 1
-        kj = kz-k+1
+        kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
             rh(n,k) = m2r%rhatms(j,i,kj)
@@ -841,7 +841,7 @@ module mod_rrtmg_driver
       end do
       do k = 1 , kzp1
         n = 1
-        kj = kzp1-k+1
+        kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
             pint(n,k) = m2r%pfatms(j,i,kj)
@@ -885,7 +885,7 @@ module mod_rrtmg_driver
     !
     ! qc   = gary's mods for clouds/radiation tie-in to exmois
     !
-    kmaxcld = 1+ncld
+    kmaxcld = 2
     kmincld = kz-ncld
     cldf = d_zero
     clwp = d_zero

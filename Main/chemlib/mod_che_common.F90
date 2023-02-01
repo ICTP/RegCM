@@ -103,7 +103,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon
+         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon, cra,czo 
   real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1 , crho2d
   real(rkx) , pointer , dimension(:,:) :: czen
   real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld
@@ -112,6 +112,7 @@ module mod_che_common
   integer(ik4) , pointer , dimension(:) :: bvoc_trmask
   real(rkx) , pointer , dimension(:,:,:) :: cvoc_em_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
+  real(rkx) , pointer , dimension(:,:,:) :: cddepv_clm
   real(rkx) , pointer , dimension(:,:,:) :: csw_vol
   real(rkx) , pointer , dimension(:,:,:) :: ctsoi
 #endif

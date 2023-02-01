@@ -20,7 +20,6 @@
 all : version
 
 version :
-	@$(shell [ -f tag ] && cat tag > $@ || \
-            git describe --abbrev=4 --dirty --always --tags > $@)
+	@echo '5.0.0' > version
 
 SUBDIRS = external Share PreProc Main PostProc

@@ -156,10 +156,11 @@ module mod_lm_interface
 #ifdef CLM45
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
+    call getmem4d(lms%ddepv,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:ddepv')
     call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
                                     ici1,ici2,1,num_soil_layers,'lm:sw_vol')
     call getmem4d(lms%tsoi,1,nnsg,jci1,jci2, &
-                                  ici1,ici2,1,num_soil_layers,'lm:tsoi')
+                                    ici1,ici2,1,num_soil_layers,'lm:tsoi')
 #endif
 
 #ifdef CLM
@@ -286,7 +287,6 @@ module mod_lm_interface
 
     if ( idcsst   == 1 ) ldcsst   = .true.
     if ( lakemod  == 1 ) llake    = .true.
-    if ( idesseas == 1 ) ldesseas = .true.
     if ( iseaice  == 1 ) lseaice  = .true.
     if ( iocncpl  == 1 ) lcoup    = .true.
     call assignpnt(mddom%xlat,lm%xlat)
@@ -427,7 +427,7 @@ module mod_lm_interface
 
   subroutine surface_model
 #ifdef CLM45
-    use mod_atm_interface , only : voc_em_clm , dustflx_clm
+    use mod_atm_interface , only : voc_em_clm , dustflx_clm, ddepv_clm 
 #endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr
@@ -447,7 +447,7 @@ module mod_lm_interface
 #else
 #ifdef CLM45
     if ( irceideal == 0 ) call runclm45(lm,lms)
-    !coupling of biogenic VOC from CLM45 to chemistry
+    !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
     if ( ichem == 1 ) then
       do n = 1 , ntr
         do i = ici1 , ici2
@@ -460,6 +460,13 @@ module mod_lm_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
+          end do
+        end do
+      end do
+      do n = 1 , ntr
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
           end do
         end do
       end do

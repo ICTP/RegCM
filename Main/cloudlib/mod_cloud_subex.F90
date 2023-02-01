@@ -61,12 +61,18 @@ module mod_cloud_subex
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( qc(j,i,k) > 1.0e-12_rkx ) then
+            ! Use Pal et al. formula
+            ! rhrng = rh(j,i,k)
             ! Adjusted relative humidity threshold
             rhrng = min(max(rh(j,i,k),rhmin),1.0_rkx)
             if ( t(j,i,k) > tc0 ) then
               rh0adj = rh0(j,i)
             else ! high cloud (less subgrid variability)
-              rh0adj = 0.99999_rkx - &
+              ! Use Pal et al. formula
+              !rh0adj = rhmax - &
+              !    (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+              ! Adjusted for Sundqvist
+              rh0adj = d_one - &
                   (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
             end if
             if ( rhrng <= rh0adj ) then
@@ -74,6 +80,8 @@ module mod_cloud_subex
             else if ( rhrng > 0.99999_rkx ) then
               fcc(j,i,k) = d_one
             else
+              ! Use Pal et al. (2000) formula
+              ! fcc(j,i,k) = sqrt((rhrng-rh0adj)/(rhmax-rh0adj))
               ! Use Sundqvist (1989) formula
               fcc(j,i,k) = d_one-sqrt((d_one-rhrng)/(d_one-rh0adj))
             end if

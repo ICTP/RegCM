@@ -302,6 +302,7 @@ Module mod_clm_drydepvelocity
         ! 5 - Transitional spring with partially green short annuals
 
         !mlaidiff=jan-feb
+         
         minlai = minval(annlai(:,pi))
         maxlai = maxval(annlai(:,pi))
 
@@ -395,7 +396,6 @@ Module mod_clm_drydepvelocity
         !*******************************************************
         call seq_drydep_setHCoeff( sfc_temp, heff(:n_drydep) )
         !*********************************************************
-
         species_loop1: do ispec=1, n_drydep
           if ( mapping(ispec) <= 0 ) cycle
 

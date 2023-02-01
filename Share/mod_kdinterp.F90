@@ -70,10 +70,10 @@ module mod_kdinterp
   end interface compwgt_genlin
 
   ! Need at least three point to triangulate
-  integer(ik4) , parameter :: minp = 4
+  integer(ik4) , parameter :: minp = 3
 
   ! If resolution is decreased, try not to chocke memory...
-  integer(ik4) , parameter :: maxp = 64
+  integer(ik4) , parameter :: maxp = 8
 
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl

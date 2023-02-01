@@ -2996,8 +2996,10 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
         end if
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('diffusion_scheme',idiffu))
+        if ( idynamic /= 3 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('diffusion_scheme',idiffu))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         if ( all(icup > 0) ) then
@@ -3045,13 +3047,7 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('ocean_precipitaion_cooling_effect',ipcpcool))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('ocean_albedo_from_whitecapping',iwhitecap))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('simple_sea_ice_scheme',iseaice))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('seasonal_desert_albedo',idesseas))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
         call outstream_addatt(outstream(i)%ncout(j), &

@@ -750,8 +750,11 @@ module mod_ocn_lake
         exit
       end if
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( abs(t2-t1) < 0.001_rkx .or. t2 > 0.0_rkx .or. &
-           icount == maxiter ) then
+      if ( t2 > 0.0_rkx ) then
+        t2 = 0.0_rkx
+        exit
+      end if
+      if ( abs(t2-t1) < 0.01_rkx .or. icount == maxiter ) then
         exit
       end if
       t0 = t1

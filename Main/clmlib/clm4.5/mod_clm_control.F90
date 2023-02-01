@@ -89,6 +89,7 @@ module mod_clm_control
   use mod_clm_hydrology1 , only : Hydrology1_readnl
   use mod_clm_soilhydrology , only : SoilHydrology_readnl
   use mod_clm_megan, only : shr_megan_readnl , shr_megan_mechcomps_n
+  use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init
   implicit none
 
   private
@@ -115,7 +116,6 @@ module mod_clm_control
     character(len=32) :: hostname = '?'
     character(len=32) :: user = '?'
     integer(ik4) :: hostnm
-
     ! ----------------------------------------------------------------------
     ! Namelist Variables
     ! ----------------------------------------------------------------------
@@ -292,6 +292,12 @@ module mod_clm_control
 
     call Hydrology1_readnl(    namelistfile )
     call SoilHydrology_readnl( namelistfile )
+
+    ! Fabien? Missing this namelist?
+    if ( .false. ) then
+      call seq_drydep_read(namelistfile)
+      call seq_drydep_init()
+    end if
 
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate

@@ -202,7 +202,7 @@ program mksurfdata
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   write (stdout,  &
-     "(/,2x,'This is mksurfdata part of RegCM package version 4')")
+     "(/,2x,'This is mksurfdata part of RegCM package version 5')")
   write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
 
 #ifdef IBM
@@ -346,13 +346,13 @@ program mksurfdata
   call add_common_global_params(ncid,'mksurfdata',.false.)
   ndim = 1
   call define_basic_dimensions(ncid,jxsg,iysg,kzp1,ndim,idims)
-  call add_dimension(ncid,'nmon',nmon,ndim,idims)
-  call add_dimension(ncid,'lsmpft',npft,ndim,idims)
-  call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
-  call add_dimension(ncid,'gridcell',ngcells,ndim,idims)
-  call add_dimension(ncid,'numurbl',numurbl,ndim,idims)
-  call add_dimension(ncid,'nlevurb',nlurb,ndim,idims)
-  call add_dimension(ncid,'numrad',nrad,ndim,idims)
+  call add_dimension(ncid,'nmon',nmon,ndim,idims)           ! 4
+  call add_dimension(ncid,'lsmpft',npft,ndim,idims)         ! 5
+  call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)       ! 6
+  call add_dimension(ncid,'gridcell',ngcells,ndim,idims)    ! 7
+  call add_dimension(ncid,'numurbl',numurbl,ndim,idims)     ! 8
+  call add_dimension(ncid,'nlevurb',nlurb,ndim,idims)       ! 9
+  call add_dimension(ncid,'numrad',nrad,ndim,idims)         ! 10
 #ifdef CN
   call add_dimension(ncid,'noleap_3h',noleap_yday_3h,ndim,idims)
   call add_dimension(ncid,'year',nyears,ndim,idims)
@@ -475,54 +475,54 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
 
   istatus = nf90_def_var(ncid, 'slope', regcm_vartype, ivdims(1:2), islope2d)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var mxc_2d')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
   istatus = nf90_put_att(ncid, islope2d, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add mxc_2d Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope Fill Value')
 
   istatus = nf90_def_var(ncid, 'stddv', regcm_vartype, ivdims(1:2), istddev2d)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var mxc_2d')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var stddv')
   istatus = nf90_put_att(ncid, istddev2d, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add mxc_2d Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add stddv Fill Value')
 
   istatus = nf90_def_var(ncid, 'glc_2d', regcm_vartype, ivdims(1:2), iglc2dvar)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glc_2d')
   istatus = nf90_put_att(ncid, iglc2dvar, 'long_name','percent glacier')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d long_name')
   istatus = nf90_put_att(ncid, iglc2dvar, 'units','%')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d units')
   istatus = nf90_put_att(ncid, iglc2dvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d Fill Value')
 
   istatus = nf90_def_var(ncid, 'wet_2d', regcm_vartype, ivdims(1:2), iwet2dvar)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wetland')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wet_2d')
   istatus = nf90_put_att(ncid, iwet2dvar, 'long_name','percent wetland')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d long_name')
   istatus = nf90_put_att(ncid, iwet2dvar, 'units','%')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d units')
   istatus = nf90_put_att(ncid, iwet2dvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d Fill Value')
 
   istatus = nf90_def_var(ncid, 'lak_2d', regcm_vartype, ivdims(1:2), ilake2dvar)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lake')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lak_2d')
   istatus = nf90_put_att(ncid, ilake2dvar, 'long_name','percent lake')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d long_name')
   istatus = nf90_put_att(ncid, ilake2dvar, 'units','%')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d units')
   istatus = nf90_put_att(ncid, ilake2dvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d Fill Value')
 
   ivdims(1) = idims(1)
   ivdims(2) = idims(2)
   ivdims(3) = idims(8)
   istatus = nf90_def_var(ncid, 'urb_2d', regcm_vartype, &
                          ivdims(1:3), iurban2dvar)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urb_2d')
   istatus = nf90_put_att(ncid, iurban2dvar, 'long_name','percent urban')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d long_name')
   istatus = nf90_put_att(ncid, iurban2dvar, 'units','%')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban units')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d units')
   istatus = nf90_put_att(ncid, iurban2dvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban Fill Value')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d Fill Value')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)

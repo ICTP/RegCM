@@ -509,7 +509,7 @@ module mod_pbl_holtbl
       !   temporary work space tpred
       !
       do i = idii1 , idii2
-        do j = jdii1 , jdii2
+        do j = jci1 , jci2
           tpred2(j,i,kz) = coeff2(j,i,kz)
         end do
       end do
@@ -527,7 +527,7 @@ module mod_pbl_holtbl
       !
       do k = 1 , kz
         do i = idii1 , idii2
-          do j = jdii1 , jdii2
+          do j = jci1 , jci2
             p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
                           (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt
           end do
@@ -1372,7 +1372,7 @@ module mod_pbl_holtbl
           ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
           ! latitude value for f so that c = 0.07/f = 700.
           !phpblm = 700.0_rkx*ustr(j,i)
-          phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
+          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
           if ( p2m%zpbl(j,i) < phpblm ) then
             p2m%zpbl(j,i) = phpblm
           end if
@@ -1384,6 +1384,11 @@ module mod_pbl_holtbl
           end do
         end do
       end do
+
+      xfmt = d_zero
+      xfht = d_zero
+      wsc = d_zero
+      fak2 = d_zero
 
       do i = ici1 , ici2
         do j = jci1 , jci2

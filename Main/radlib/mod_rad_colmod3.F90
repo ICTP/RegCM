@@ -521,7 +521,7 @@ module mod_rad_colmod3
     !
     rt%cld  = 0.0_rkx
     rt%clwp = 0.0_rkx
-    kmaxcld = 1 + ncld
+    kmaxcld = 2
     kmincld = kz - ncld
     do k = kmaxcld , kmincld
       n = 1

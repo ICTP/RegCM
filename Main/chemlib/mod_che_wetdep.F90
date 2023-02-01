@@ -39,7 +39,7 @@ module mod_che_wetdep
   !
   ! Calculate the total wet deposition rate for each species that is able to be
   ! washed/rained out (1/s).
-  !  This module was originally from MOZART4 but has been adapted to work
+  ! This module was originally from MOZART4 but has been adapted to work
   ! within the RegCM4.1-chem framework.
   ! note: the press array is in pascals and must be
   ! mutiplied by 10 to yield dynes/cm**2.
@@ -58,38 +58,22 @@ module mod_che_wetdep
   !          23. hyac        24. hydrald
   !          25. ch3cho      26. isopno3
   !
-  subroutine sethet(i,zmid1,phis,tfld,strappt,convppt, &
-                    nevapr1,delt,xhnm1,qin,ps2)
+  subroutine sethet(i,qin,delt,ps2)
     implicit none
-    integer, intent(in) :: i               ! longitude index
-    ! surf geopotential (m2/s2)
-    real(rkx), dimension(jci1:jci2) , intent(in) :: phis
-    ! midpoint geopot convert (m) to (km)
-    real(rkx), dimension(jci1:jci2,kz) , intent(in) :: zmid1
-    ! temperature (K)
-    real(rkx), dimension(jci1:jci2,kz) , intent(in) :: tfld
-    ! dq/dt for convection (kg/kg/s) converted to (1/s) below
-    ! real(rkx), dimension(jci1:jci2,kz) , intent(in) :: cmfdqr1
-    ! rainwater formation tendency kg/kg/s1 converted to (1/s) :
-    !          PASSED by cremrat already
-    !real(rkx), dimension(jci1:jci2,kz) , intent(in) :: nrain1
-    ! precip rate mm/s (=kg/m2/s), stratif and convec / grid level already,
-    ! converted next to 1/s
-    real(rkx), dimension(jci1:jci2,kz) , intent(in) :: strappt, convppt
-    ! evaporation (kg/kg/s) convert to (1/s) below
-    real(rkx), dimension(jci1:jci2,kz) , intent(in) :: nevapr1
+    integer, intent(in) :: i               
     ! time step ( s )
     real(rkx), intent(in) :: delt
-    ! total atms density (kg/m3) convert to (#/cm^3) below
-    real(rkx), dimension(jci1:jci2,kz) , intent(in) :: xhnm1
     ! exported species ( mmr )
     real(rkx), dimension(jci1:jci2,kz,ntr) , intent(in) :: qin
     ! Pressure ( cb )
     real(rkx), dimension(jci1:jci2) , intent(in) :: ps2
+    !
+    ! Local variable from MOZART/sethet
+    real(rkx) :: tfld(jci1:jci2,kz)     ! air temperature (K)
     real(rkx) :: zmid(jci1:jci2,kz)     ! midpoint geopot convert (m) to (km)
-    real(rkx) :: cmfdqr(jci1:jci2,kz)   ! dq/dt for convection (1/s)
-    real(rkx) :: nrain(jci1:jci2,kz)    ! stratoform precip (1/s)
-    real(rkx) :: nevapr(jci1:jci2,kz)   ! evaporation (1/s)
+    real(rkx) :: cmfdqr(jci1:jci2,kz)   ! dq/dt for convection (kg/kg/s)
+    real(rkx) :: nrain(jci1:jci2,kz)    ! dq/dt autovonv stratoform precip (kg/kg/s)
+    real(rkx) :: nevapr(jci1:jci2,kz)   ! evaporation (kg/kg/s)
     real(rkx) :: xhnm(jci1:jci2,kz)     ! total atms density (#/cm^3)
     real(rkx) :: temp_dep(jci1:jci2)    ! temp var of wet dep rate
                                         ! (centibars_tracer/sec)
@@ -183,27 +167,23 @@ module mod_che_wetdep
     !-----------------------------------------------------------------
     !  Perform a few conversion for xhnm, zmid, nevap, cmfdqr
     !-----------------------------------------------------------------
-
-    ! nrain(jci1:jci2,:)  = nrain1(jci1:jci2,:) * (xhnm1(jci1:jci2,:)/rhoh2o)
+    !FAB : here we are considering removal at grid cell level
+    !could be refined considering in cloud approach for strat and conv 
+    !strat. precip. autoconv. tendency,cremrat(from microphysics, grid cell level) in s-1, 
+    !nrain should in Kg/Kg/s in cloud
+    nrain(jci1:jci2,:) = cremrat(jci1:jci2,i,:) * cqxb3d(jci1:jci2,i,:,iqc) 
+                        
+    !convective precip. directly from conv scheme cloud level to grid cell level  
+    cmfdqr(jci1:jci2,:) =  cconvpr(jci1:jci2,i,:) * convcldfra(jci1:jci2,i,:)
     !
-    !FOR NOW LARGE SCALE ONLY
-    ! already in s-1 / only large scale precip tendency
-    nrain(jci1:jci2,:) = cremrat(jci1:jci2,i,:)
-
-    cmfdqr(:,:) = d_zero
     nevapr(:,:) = d_zero
-    !FAB:  improve that by calculating or passing a grid level conversion
-    ! rate for convective processes
-    ![kg_h2o/kg_air/s -> 1/s]
-    !cmfdqr(jci1:jci2,:) = cmfdqr1(jci1:jci2,:)*(xhnm1(jci1:jci2,:)/rhoh2o)
-    ![kg_h2o/kg_air/s -> 1/s]
-    ! nevapr(jci1:jci2,:) = nevapr1(jci1:jci2,:)*(xhnm1(jci1:jci2,:)/rhoh2o)
-
+    !
+    tfld(jci1:jci2,:) = ctb3d(jci1:jci2,i,:)
+    !cfcc(j,i,k)
     ![m     -> km]
-    zmid(jci1:jci2,:) = zmid1(jci1:jci2,:)*m2km
-    ![kg/m3 -> #/cm3]
-    xhnm(jci1:jci2,:) = xhnm1(jci1:jci2,:)*navgdr*cm3_2_m3/( amd*d_1000)
-
+    zmid(jci1:jci2,:) =cza(jci1:jci2,i,:)*m2km
+    ![kg/m3 -> #/cm3] 
+    xhnm(jci1:jci2,:) = crhob3d(jci1:jci2,i,:)*1E3/amd*navgdr* cm3_2_m3
 
     !-----------------------------------------------------------------
     !	... the 2 and .6 multipliers are from a formula by frossling (1938)
@@ -214,7 +194,6 @@ module mod_che_wetdep
     do k = ktop + 1 , kz
 
       precip(:,k) = cmfdqr(:,k) + nrain(:,k) - nevapr(:,k)
-
       rain(:,k)   = mass_air*precip(:,k)*xhnm(:,k) / mass_h2o
 
       ! Note : xliq calculated from cloud to rain convesrion rate, shouldn't it
@@ -228,7 +207,6 @@ module mod_che_wetdep
       ! follows the original mozart code here
       ! xliq is ig g (rainwater fromed during dt) / m3
       xliq(:,k)   = precip(:,k) * delt * xhnm(:,k) / navgdr*mass_air * m3_2_cm3
-
       !---------------------------------------
       ! convert from cb_X to mass mixing ratio
       !---------------------------------------
@@ -256,11 +234,12 @@ module mod_che_wetdep
       xh2o2(:,:)  = d_zero
     end if
 
-    zsurf(:) = m2km * phis(:) * regrav
+    zsurf(:) = czq(:,i,kz+1)*m2km 
     do k = ktop + 1 , kz - 1
-      delz(:,k) = abs( (zmid(:,k) - zmid(:,k+1))*km2cm )
+       delz(:,k) = abs( (zmid(:,k) - zmid(:,k+1))*km2cm )
     end do
     delz(:,kz) = abs( (zmid(:,kz) - zsurf(:) )*km2cm )
+ 
 
     !-----------------------------------------------------------------
     ! ... part 0b,  for temperature dependent of henrys
@@ -325,7 +304,7 @@ module mod_che_wetdep
           all2 = d_zero
           stay = ((zmid(j,kk) - zsurf(j))*km2cm)/(xum*delt)
           stay = min(stay,d_one)
-          !-----------------------------------------------------------
+  !-----------------------------------------------------------
           !  calculate the saturation concentration eqca
           !-----------------------------------------------------------
           do k = kk , kz ! cal washout below cloud
@@ -575,7 +554,6 @@ module mod_che_wetdep
     ! for RegCM4.1  : chiten(:,k,j,ihcho)  = chiten + work3(:) * chib
     ! FAB: add diagnostic
     !-----------------------------------------------------------------
-
     do k = 1 , kz
       do itr = 1 , ntr
         do j = jci1 , jci2
@@ -603,8 +581,8 @@ module mod_che_wetdep
             temp_rain(j) = temp_dep(j)
             temp_wash(j) = d_zero
           end if
-          rainout(j,i,k,itr) = rainout(j,i,k,itr) - temp_rain(j)*cfdout
-          washout(j,i,k,itr) = washout(j,i,k,itr) - temp_wash(j)*cfdout
+          rainout(j,i,k,itr) = rainout(j,i,k,itr) - temp_rain(j)/delt*cfdout
+          washout(j,i,k,itr) = washout(j,i,k,itr) - temp_wash(j)/delt*cfdout
         end do
       end do
     end do
@@ -806,30 +784,9 @@ module mod_che_wetdep
       end do
     end do
 
-    ! convppt is a pseudo-3d array of con prec rate conatining constant rate
-    ! (equals to surface cumul precipi) from surface to cumtop.
-    ! inside the cloud, need itnterpolate linearly between the prec rate and
-    ! o ( top of the cloud). Consider that half of the convective
-    ! column is cloud .. improve this in the future !
-    totppt(:,:) = d_zero
-    do j =  jci1 , jci2
-      if ( kcumtop(j,i) > 0 ) then
-        nk = kcumbot(j,i) - kcumtop(j,i) + 1
-        n = 1
-        do k =  kcumtop(j,i) , kz
-          nkh = nk / 2
-          if ( n <= nkh ) then
-            totppt(j,k) = (real(n,rkx) / real(nkh,rkx)) * convppt(j,kz)
-          else
-            totppt(j,k)  = convppt(j,kz)
-          end if
-          n = n + 1
-        end do
-      end if
-    end do
     ! add the contribution of strat prec
     if (ichremcvc == 1 .and. ichremlsc == 1) then
-      totppt(:,:) = strappt(:,:) + totppt(:,:)
+      totppt(:,:) = strappt(:,:) + convppt(:,:)
     elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
       totppt(:,:) = strappt(:,:)
     end if

@@ -202,11 +202,9 @@ module mod_pbl_uwtcm
         zqx(kzp2) = d_zero
 
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k)*pfac
-          qx(k)  = max(m2p%qxatm(j,i,k,iqv) + &
-                       p2m%qxten(j,i,k,iqv)*pfac,1.0e-8_rkx)
-          qcx(k) = max(m2p%qxatm(j,i,k,iqc) + &
-                       p2m%qxten(j,i,k,iqc)*pfac,d_zero)
+          tx(k)  = m2p%tatm(j,i,k)
+          qx(k)  = m2p%qxatm(j,i,k,iqv)
+          qcx(k) = m2p%qxatm(j,i,k,iqc)
         end do
 
         do k = 1 , kz
@@ -223,8 +221,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = max(m2p%qxatm(j,i,k,iqi) + &
-                         p2m%qxten(j,i,k,iqi)*pfac,d_zero)
+            qix(k) = m2p%qxatm(j,i,k,iqi)
           end do
         end if
 
@@ -251,7 +248,7 @@ module mod_pbl_uwtcm
           ! Virtual temperature and potential temperature
           tvcon = d_one + ep1*qx(k)-qcx(k)
           tvx(k) = tx(k)*tvcon ! virtual temperature
-          uthvx(k) = thx(k)*tvcon
+          uthvx(k) = thx(k)*tvcon ! vitual potential temperature
           ! Liquid water potential temperature (accounting for ice)
           thlx(k) = thx(k) - rlv(k)*qcx(k)*ocp(k)*rexnerhl(k)
         end do
@@ -330,13 +327,13 @@ module mod_pbl_uwtcm
         !else
           !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
           !         exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
-          q0s = pfwsat(tskx,presfl(kzp1))
+          q0s = 0.98_rkx * pfwsat(tskx,presfl(kzp1))
           tvfac = d_one + ep1*q0s
         !end if
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
-        thv0 = thgb * (d_one + tvfac)
+        thv0 = thgb * tvfac
         ! Calculate the change in virtual potential temperature from
         ! the surface to the first interface
         dthv = uthvx(kz) - thv0
@@ -347,11 +344,11 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
+        ! ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
         ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
 
 !*******************************************************************************
@@ -579,7 +576,7 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = sqrt(max(uflxp*uflxp+vflxp*vflxp,1.0e-2_rkx))
+        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
@@ -647,7 +644,7 @@ module mod_pbl_uwtcm
           if ( k == kz ) then
             cimp(k-1) = d_zero
             ! account for implicit part of flux between level kz and surface
-            if ( bbls(k) > d_zero ) then
+            if ( abs(bbls(k)) > d_zero ) then
               bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
                           ( sqrt(tke(k))*rczero/bbls(k) +         &
                           (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
@@ -658,7 +655,7 @@ module mod_pbl_uwtcm
           else
             cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*kethl(k)*dt*rdzq(k)*rdza(k)
             tbbls = max(bbls(k),bbls(k+1))
-            if ( tbbls > d_zero ) then
+            if ( abs(tbbls) > d_zero ) then
               bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + &
                            dt * sqrt(tke(k))*rczero/tbbls
             else
@@ -790,9 +787,9 @@ module mod_pbl_uwtcm
         rvls = pfwsat(temps,presfl(k))
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + ocp(k)*rlv(k)*rcldb(k)) * &
-                (d_one + ep1*(qwx(k)-rcldb(k))-rcldb(k))
+                (d_one + ep1*(qwxin(k)-rcldb(k))-rcldb(k))
         ! tempv = (templ + wlhvocp*rcldb(k)) * &
-        !   (d_one + ep1*(qwx(k)-rcldb(k))-rcldb(k))
+        !   (d_one + ep1*(qwxin(k)-rcldb(k))-rcldb(k))
         tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
@@ -806,7 +803,7 @@ module mod_pbl_uwtcm
         !tempv = (templ + wlhvocp*rcld) *    &
         !        (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
         tempv = (templ + ocp(k)*rlv(k)*rcld) * &
-                (d_one + ep1*(qwx(k-1)-rcld) - rcld)
+                (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
         tvab = tempv*rexnerfl(k)
 
         thvxfl = d_half * (tvab+tvbl)
@@ -824,8 +821,8 @@ module mod_pbl_uwtcm
       real(rkx) , parameter :: a1 = 0.92_rkx , c1 = 0.08_rkx , &
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
-      real(rkx) , parameter :: kthmax = 1.0e3_rkx
-      real(rkx) , parameter :: kzmmax = 1.0e3_rkx
+      real(rkx) , parameter :: kthmax = 1.0e4_rkx
+      real(rkx) , parameter :: kzmmax = 1.0e4_rkx
       real(rkx) , dimension(kzp1) :: sm , sh
 
       a1ob1 = a1/b1
@@ -902,12 +899,14 @@ module mod_pbl_uwtcm
             ! kthmax = 1.0e4_rkx
             kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
                      max(bbls(k),bbls(k+1)))
+            kth(k) = min(kth(k),kthmax)
             ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
             ! Smoothly limit kth to a maximum value
             ! kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
             ! prandtl number from layer below
             ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
             kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
+            kzm(k) = min(kzm(k),kzmmax)
           end if
         end if
       end do conv
@@ -939,7 +938,7 @@ module mod_pbl_uwtcm
       do k = 1 , kzp1
         bbls(k) = d_zero
       end do
-      do k = 2 , kzp1
+      do k = 2 , kz
         if ( nsquar(k) <= d_zero ) then
           if ( istabl == 1 ) then
             kpbconv = kpbconv + 1

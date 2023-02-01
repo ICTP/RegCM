@@ -24,6 +24,7 @@ module mod_clm_regcm
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
+  use mod_clm_drydep , only : n_drydep 
   use netcdf
 
   private
@@ -820,6 +821,17 @@ module mod_clm_regcm
         lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
       end if
 #endif
+     !FAB : test  drydep velocities for gas , based on w98 / improve by passing the real indices 
+      if (n_drydep > 0) then
+        do k = 1 , n_drydep 
+          emis2d = 0.0_rk8
+          if (4 > 0 ) then
+            clm_l2a%notused(:) = clm_l2a%ddvel(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%ddepv(:,:,:,4) = real(emis2d,rkx)
+          end if 
+        end do
+      end if 
     end if
     !--------------------------------------------------
     ! Will fix
@@ -828,7 +840,6 @@ module mod_clm_regcm
     !clm_l2a%nee
     !clm_l2a%rofliq
     !clm_l2a%rofice
-    !clm_l2a%flxdst
     !clm_l2a%ddvel
   end subroutine land_to_atmosphere
 

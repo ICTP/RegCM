@@ -376,6 +376,9 @@ module mod_projections
         pj%ijll => ijll_rl
         pj%uvrotate2 => rotate2_rl
         pj%uvrotate3 => rotate3_rl
+        pj%uvbkrotate2 => backrotate2_rl
+        pj%uvbkrotate3 => backrotate3_rl
+        pj%mapfac => mapfac_ll
         pj%mapfac => mapfac_rl
       case default
         call setup_ll(pj,pjpara%clon,pjpara%clat,ci,cj,pjpara%ds)
@@ -491,20 +494,13 @@ module mod_projections
           phi = degrad*lat
           dlam = lam - pj%p%lam0
           if ( .not. pj%p%skiprot ) then
-            if ( abs(rotlam) < 1.0e-7 ) then
-              if ( lam > halfpi .or. lam < -halfpi ) then
-                pj%f1(i,j) = -1.0_rk8
-                pj%f2(i,j) = 0.0_rk8
-                pj%f3(i,j) = 0.0_rk8
-                pj%f4(i,j) = -1.0_rk8
-              else
-                pj%f1(i,j) = 1.0_rk8
-                pj%f2(i,j) = 0.0_rk8
-                pj%f3(i,j) = 0.0_rk8
-                pj%f4(i,j) = 1.0_rk8
-              end if
+            if ( abs(rotlam) < 1.0e-5 ) then
+              pj%f1(i,j) = 1.0_rk8
+              pj%f2(i,j) = 0.0_rk8
+              pj%f3(i,j) = 0.0_rk8
+              pj%f4(i,j) = 1.0_rk8
             else
-              pj%f1(i,j) = sin(dlam)*sin(pj%p%phi0) / cos(rotphi)
+              pj%f1(i,j) = (sin(dlam)*sin(pj%p%phi0))/cos(rotphi)
               pj%f2(i,j) = (cos(dlam)*sin(phi)*sin(pj%p%phi0) + &
                             cos(pj%p%phi0)*cos(phi)) / &
                             cos(rotphi)
@@ -515,11 +511,11 @@ module mod_projections
             end if
             if ( abs(cos(phi)) > 1.0e-7_rk8 ) then
               if ( abs(sin(dlam)) > 1.0e-7_rk8 ) then
-                pj%f5(i,j) = -sin(pj%p%phi0)*sin(rotlam)/cos(phi)
+                pj%f5(i,j) = -(sin(pj%p%phi0)*sin(rotlam))/cos(phi)
                 pj%f6(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
                               sin(pj%p%phi0)*sin(rotphi)*cos(rotlam))/cos(phi)
                 pj%f7(i,j) = cos(rotphi)/(sin(dlam)*sin(pj%p%phi0))
-                pj%f8(i,j) = (cos(dlam)*sin(pj%p%phi0)*sin(phi) + &
+                pj%f8(i,j) = -(cos(dlam)*sin(pj%p%phi0)*sin(phi) + &
                               cos(pj%p%phi0)*cos(phi))/cos(rotphi)
               else
                 if ( dlam < -halfpi .or. dlam > halfpi ) then
@@ -1512,7 +1508,7 @@ module mod_projections
       do i = i1 , i2
         if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
           tmp1 = pj%f5(i,j) * u(i,j) + pj%f6(i,j) * v(i,j)
-          tmp2 = pj%f7(i,j) * (v(i,j)-tmp1*pj%f8(i,j))
+          tmp2 = pj%f7(i,j) * (v(i,j) + tmp1*pj%f8(i,j))
           u(i,j) = real(tmp2,rkx)
           v(i,j) = real(tmp1,rkx)
         else
@@ -1580,7 +1576,7 @@ module mod_projections
         do i = i1 , i2
           if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
             tmp1 = pj%f5(i,j) * u(i,j,k) + pj%f6(i,j) * v(i,j,k)
-            tmp2 = pj%f7(i,j) * (v(i,j,k) - tmp1*pj%f8(i,j))
+            tmp2 = pj%f7(i,j) * (v(i,j,k) + tmp1*pj%f8(i,j))
             u(i,j,k) = real(tmp2,rkx)
             v(i,j,k) = real(tmp1,rkx)
           else

@@ -18,13 +18,13 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_regcm_types
-!
   use mod_realkinds
   use mod_intkinds
 
   implicit none
 
   public
+
 !
 ! Storage for all the 3d prognostic variables in two
 ! timesteps and all the 2d variables and constants
@@ -470,7 +470,7 @@ module mod_regcm_types
 #ifdef CLM45
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
-    real(rkx) , pointer , dimension(:,:,:,:) :: drydepvels
+    real(rkx) , pointer , dimension(:,:,:,:) :: ddepv
     real(rkx) , pointer , dimension(:,:,:,:) :: sw_vol
     real(rkx) , pointer , dimension(:,:,:,:) :: tsoi
 #endif

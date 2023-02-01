@@ -71,6 +71,7 @@ module mod_rdldtr
   interface bestaround
     module procedure bestaround2d
     module procedure bestaround3d
+    module procedure bestaround4d
   end interface
 
   contains
@@ -1175,7 +1176,7 @@ module mod_rdldtr
     real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:) , allocatable :: vread
-    real(rkx) , dimension(:,:) , allocatable :: temp
+    real(rk4) , dimension(:,:) , allocatable :: temp
     integer(ik4) , dimension(:,:) , allocatable :: mpu
     integer(ik4) :: nlat , nlon , nlev , nmpu , i , j , n
     integer(ik4) :: itile , ivar , ilook , impud , iti , itf
@@ -1361,7 +1362,7 @@ module mod_rdldtr
     real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:) , allocatable :: vread
-    real(rkx) , dimension(:,:,:) , allocatable :: temp
+    real(rk4) , dimension(:,:,:) , allocatable :: temp
     integer(ik4) , dimension(:,:) , allocatable :: mpu
     integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nmpu
     integer(ik4) :: i , j , n1 , n2
@@ -1567,7 +1568,7 @@ module mod_rdldtr
     real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
-    real(rkx) , dimension(:,:,:,:) , allocatable :: temp
+    real(rk4) , dimension(:,:,:,:) , allocatable :: temp
     integer(ik4) , dimension(:,:) , allocatable :: mpu
     integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nlev3 , nmpu
     integer(ik4) :: i , j , n1 , n2 , n3
@@ -1714,50 +1715,58 @@ module mod_rdldtr
     end if
   end subroutine gfclose
 
-  subroutine bestaround2d(grid,i,j)
+  subroutine bestaround2d(grid,flagval)
     implicit none
-    integer(ik4) , intent(in) :: i , j
     real(rkx) , dimension(:,:) , intent(inout) :: grid
-    integer(ik4) :: ii , jj , js , is , il
+    real(rkx) , intent(in) :: flagval
+    integer(ik4) :: i , j , ii , jj , js , is , il
     integer(ik4) :: iis , jjs , iie , jje
     integer , parameter :: maxil = 10
+    real(rkx) , dimension(:,:) , allocatable :: destgrid
 
     jjs = lbound(grid,1)
     iis = lbound(grid,2)
     jje = ubound(grid,1)
     iie = ubound(grid,2)
 
-    il = 1
-    do
-      do ii = i - il , i + il
-        do jj = j - il , j + il
-          is = ii
-          js = jj
-          if ( js < jjs ) js = jjs-js
-          if ( js > jje ) js = 2*jje-js
-          if ( is < iis ) is = iis-is
-          if ( is > iie ) is = 2*iie - is
-          if ( grid(js,is) > h_missing_value ) then
-            grid(j,i) = grid(js,is)
-            return
-          end if
-        end do
+    allocate(destgrid(jjs:jje,iis:iie))
+    destgrid = grid
+    do i = iis , iie
+      do j = jjs , jje
+        il = 1
+        if ( grid(j,i) >= flagval ) then
+          findloop: do
+            do ii = i - il , i + il
+              is = min(max(ii,iis),iie)
+              do jj = j - il , j + il
+                js = min(max(jj,jjs),jje)
+                if ( grid(js,is) > h_missing_value ) then
+                  destgrid(j,i) = grid(js,is)
+                  exit findloop
+                end if
+              end do
+            end do
+            il = il + 1
+            if ( il == maxil ) then
+              destgrid(j,i) = h_missing_value
+              exit findloop
+            end if
+          end do findloop
+        end if
       end do
-      il = il + 1
-      if ( il == maxil ) then
-        grid(j,i) = h_missing_value
-        return
-      end if
     end do
+    grid = destgrid
+    deallocate(destgrid)
   end subroutine bestaround2d
 
-  subroutine bestaround3d(grid,i,j)
+  subroutine bestaround3d(grid,flagval)
     implicit none
-    integer(ik4) , intent(in) :: i , j
     real(rkx) , dimension(:,:,:) , intent(inout) :: grid
-    integer(ik4) :: ii , jj , js , is , n , il
+    real(rkx) , intent(in) :: flagval
+    integer(ik4) :: i , j , k , ii , jj , js , is , il
     integer(ik4) :: iis , jjs , iie , jje , kks , kke
     integer , parameter :: maxil = 10
+    integer(ik4) , dimension(:,:) , allocatable :: igrid , jgrid
 
     jjs = lbound(grid,1)
     iis = lbound(grid,2)
@@ -1766,33 +1775,115 @@ module mod_rdldtr
     iie = ubound(grid,2)
     kke = ubound(grid,3)
 
-    il = 1
-    do
-      do ii = i - il , i + il
-        do jj = j - il , j + il
-          is = ii
-          js = jj
-          if ( js < jjs ) js = jjs-js
-          if ( js > jje ) js = 2*jje - js
-          if ( is < iis ) is = iis-is
-          if ( is > iie ) is = 2*iie - is
-          if ( grid(js,is,kks) > h_missing_value ) then
-            do n = kks , kke
-              grid(j,i,n) = grid(js,is,n)
+    allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
+    igrid = -1
+    jgrid = -1
+    do i = iis , iie
+      do j = jjs , jje
+        il = 1
+        if ( grid(j,i,kks) >= flagval ) then
+          findloop: do
+            do ii = i - il , i + il
+              is = min(max(ii,iis),iie)
+              do jj = j - il , j + il
+                js = min(max(jj,jjs),jje)
+                if ( grid(js,is,kks) > h_missing_value ) then
+                  jgrid(j,i) = js
+                  igrid(j,i) = is
+                  exit findloop
+                end if
+              end do
             end do
-            return
+            il = il + 1
+            if ( il == maxil ) then
+              jgrid(j,i) = -2
+              igrid(j,i) = -2
+              exit findloop
+            end if
+          end do findloop
+        end if
+      end do
+    end do
+    do k = kks , kke
+      do i = iis , iie
+        do j = jjs , jje
+          if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
+            grid(j,i,k) = grid(jgrid(j,i),igrid(j,i),k)
+          else
+            if ( jgrid(j,i) < -1 .and. igrid(j,i) < -1 ) then
+              grid(j,i,k) = h_missing_value
+            end if
           end if
         end do
       end do
-      il = il + 1
-      if ( il == maxil ) then
-        do n = kks , kke
-          grid(j,i,n) = h_missing_value
-        end do
-        return
-      end if
     end do
+    deallocate(igrid,jgrid)
   end subroutine bestaround3d
+
+  subroutine bestaround4d(grid,flagval)
+    implicit none
+    real(rkx) , dimension(:,:,:,:) , intent(inout) :: grid
+    real(rkx) , intent(in) :: flagval
+    integer(ik4) :: i , j , k , n , ii , jj , js , is , il
+    integer(ik4) :: iis , jjs , iie , jje , kks , kke , nns , nne
+    integer , parameter :: maxil = 10
+    integer(ik4) , dimension(:,:) , allocatable :: igrid , jgrid
+
+    jjs = lbound(grid,1)
+    iis = lbound(grid,2)
+    kks = lbound(grid,3)
+    nns = lbound(grid,4)
+    jje = ubound(grid,1)
+    iie = ubound(grid,2)
+    kke = ubound(grid,3)
+    nne = lbound(grid,4)
+
+    allocate(igrid(jjs:jje,iis:iie),jgrid(jjs:jje,iis:iie))
+    igrid = -1
+    jgrid = -1
+    do i = iis , iie
+      do j = jjs , jje
+        il = 1
+        if ( grid(j,i,kks,nns) >= flagval ) then
+          findloop: do
+            do ii = i - il , i + il
+              is = min(max(ii,iis),iie)
+              do jj = j - il , j + il
+                js = min(max(jj,jjs),jje)
+                if ( grid(js,is,kks,nns) > h_missing_value ) then
+                  jgrid(j,i) = js
+                  igrid(j,i) = is
+                  exit findloop
+                end if
+              end do
+            end do
+            il = il + 1
+            if ( il == maxil ) then
+              jgrid(j,i) = -2
+              igrid(j,i) = -2
+              exit findloop
+            end if
+          end do findloop
+        end if
+      end do
+    end do
+    do n = nns , nne
+      do k = kks , kke
+        do i = iis , iie
+          do j = jjs , jje
+            if ( jgrid(j,i) > 0 .and. igrid(j,i) > 0 ) then
+              grid(j,i,k,n) = grid(jgrid(j,i),igrid(j,i),k,n)
+            else
+              if ( jgrid(j,i) < -1 .and. igrid(j,i) < -1 ) then
+                grid(j,i,k,n) = h_missing_value
+              end if
+            end if
+          end do
+        end do
+      end do
+    end do
+    deallocate(igrid,jgrid)
+  end subroutine bestaround4d
 
 end module mod_rdldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

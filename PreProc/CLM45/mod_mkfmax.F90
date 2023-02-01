@@ -50,17 +50,14 @@ module mod_mkfmax
     call gfread(gfile,varname,fmax,h_missing_value)
     call gfclose(gfile)
 
+    call bestaround(fmax,h_missing_value)
+
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           fmax(j,i) = h_missing_value
         else
-          if ( fmax(j,i) > h_missing_value ) then
-            fmax(j,i) = max(d_zero,min(d_one,fmax(j,i)))
-          else
-            call bestaround(fmax,i,j)
-            fmax(j,i) = max(d_zero,min(d_one,fmax(j,i)))
-          end if
+          fmax(j,i) = max(d_zero,min(d_one,fmax(j,i)))
         end if
       end do
     end do

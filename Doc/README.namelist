@@ -144,7 +144,7 @@
  ! cmip6_model = 'NorESM2-MM',
  ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
  ! cmip6_ssp = 'ssp585',
- ! cmip6_variant = 'r2i1p1f1',
+ ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
@@ -298,8 +298,6 @@
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
-                        !   3 => GFS 2011
-                        !   4 => MYJ
  idiffu   =          1, ! Diffusion scheme
                         !   0 => No diffusion
                         !   1 => MM5 4th order interior/ 2nd order boundary
@@ -309,7 +307,6 @@
  icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo
                         !   2 => Grell
-                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
@@ -325,6 +322,8 @@
                         !   1 => Coupling activated
  icopcpl =          0,  ! Export data for COP component (RegESM)
                         !   1 => Coupling activated
+ ioasiscpl =        0,  ! Use of OASIS3_MCT5.0 (last update: 2023-02-01)
+			!   1 => Coupling activated
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
@@ -350,19 +349,11 @@
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
- ipcpcool =          0, ! Precipitation cooling effect over ocean surface
- iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- iconvlwp =          0, ! Use convective algo for lwp in the large-scale
-                        ! This is reset to zero if using ipptls = 2
+ iconvlwp =          1, ! Use convective algo for lwp in the large-scale
  icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
-                        !   2 : Thompson scheme
-                        !   3 : Gultepe-Isaac scheme
-                        !   4 : Texeira scheme
-                        !   5 : Tompkins linearized scheme
-                        !   6 : Echam5 like scheme
  icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
@@ -730,12 +721,20 @@
                !        and the optical depths due to water clouds are computed
                !        as in Hu and Stamnes, J., Clim., 6, 728-742, (1993).
  inflglw  = 2, ! Flag for cloud optical properties as above but for LW
+               ! Use 2: Separate treatement of ice clouds and water clouds.
  iceflglw = 3, ! Flag for ice particle specification as above but for LW
+               ! Use 3: ice particle generalized effective size is limited
+               ! to 5.0 to 140.0 microns
  liqflglw = 1, ! Flag for liquid droplet specification as above but for LW
- icld  = 2,    ! Cloud Overlap hypothesis
+               ! Same as liqflgsw
+ icld  = 1,    ! Cloud Overlap hypothesis
+               ! icld = 0, clear only
+               ! icld = 1, with clouds using random cloud overlap
+               ! icld = 2, with clouds using maximum/random cloud overlap
+               ! icld = 3, with clouds using maximum cloud overlap (McICA only) 
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
- nradfo = 4,   !
+ nradfo = 4,   ! Radiative forcing syncronization
  /
 !
 ! Chemical control parameter
@@ -885,5 +884,52 @@
  &debugparam
  debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
  dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
+ /
+!
+! OASIS parameters
+!
+ &oasisparam
+ write_restart_option = 2, ! 0 => no restart file writing
+                           ! 1 => write restart files at the first time
+                           ! 2 => write restart files at the last time
+                           ! 3 => both 1 & 2
+ l_write_grids = .true.,   ! For writing grids.nc, areas.nc, masks.nc.
+ oasis_sync_lag = 0,       ! Synchronisation lag with other components (sec)
+                           ! > 0 => Regcm starts late
+                           ! < 0 => Regcm starts in advance
+                           ! Should be a multipe of the coupling period
+                           !   in the namcouple.
+                           ! In the namcouple, RUNTIME must have
+                           !   the run duration + oasis_sync_lag.
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+                           ! field    | grid
+                           !-------------------------------------
+ l_cpl_im_sst  = .false.,  ! RCM_SST  | rcim     
+ l_cpl_im_wz0  = .false.,  ! RCM_WZ0  | rcim     
+ l_cpl_im_wust = .false.,  ! RCM_WUST | rcim     
+ l_cpl_ex_u10m = .false.,  ! RCM_U10M | rcin/rcim
+ l_cpl_ex_v10m = .false.,  ! RCM_V10M | rcin/rcim
+ l_cpl_ex_wspd = .false.,  ! RCM_WSPD | rcin/rcim
+ l_cpl_ex_wdir = .false.,  ! RCM_WDIR | rcin/rcim
+ l_cpl_ex_t2m  = .false.,  ! RCM_T2M  | rcin/rcim
+ l_cpl_ex_q2m  = .false.,  ! RCM_Q2M  | rcin/rcim
+ l_cpl_ex_slp  = .false.,  ! RCM_SLP  | rcen/rcem
+ l_cpl_ex_taux = .false.,  ! RCM_TAUX | rcin/rcim
+ l_cpl_ex_tauy = .false.,  ! RCM_TAUY | rcin/rcim
+ l_cpl_ex_z0   = .false.,  ! RCM_Z0   | rcin/rcim
+ l_cpl_ex_ustr = .false.,  ! RCM_USTR | rcin/rcim
+ l_cpl_ex_evap = .false.,  ! RCM_EVAP | rcin/rcim
+ l_cpl_ex_prec = .false.,  ! RCM_PREC | rcin/rcim
+ l_cpl_ex_nuwa = .false.,  ! RCM_NUWA | rcin/rcim
+ l_cpl_ex_ulhf = .false.,  ! RCM_ULHF | rcin/rcim
+ l_cpl_ex_ushf = .false.,  ! RCM_USHF | rcin/rcim
+ l_cpl_ex_uwlw = .false.,  ! RCM_UWLW | rcin/rcim
+ l_cpl_ex_dwlw = .false.,  ! RCM_DWLW | rcin/rcim
+ l_cpl_ex_nulw = .false.,  ! RCM_NULW | rcin/rcim
+ l_cpl_ex_uwsw = .false.,  ! RCM_UWSW | rcin/rcim
+ l_cpl_ex_dwsw = .false.,  ! RCM_DWSW | rcin/rcim
+ l_cpl_ex_ndsw = .false.,  ! RCM_NDSW | rcin/rcim
+ l_cpl_ex_rhoa = .false.,  ! RCM_RHOA | rcin/rcim
+                           !------ NAMCOUPLE FIELD ENTRIES ------
  /
 ! ####################################################################

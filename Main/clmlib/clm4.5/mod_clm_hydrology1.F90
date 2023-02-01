@@ -218,7 +218,8 @@ module mod_clm_hydrology1
     integer(ik4)  :: g     ! gridcell index
     integer(ik4)  :: newnode ! flag when new snow node is set, (1=yes, 0=no)
     real(rk8) :: h2ocanmx  ! maximum allowed water on canopy [mm]
-    real(rk8) :: fpi       ! coefficient of interception
+    real(rk8) :: fpiliq    ! coefficient of interception
+    real(rk8) :: fpisnow   ! coefficient of interception
     real(rk8) :: xrun      ! excess water that exceeds the leaf capacity [mm/s]
     ! layer thickness rate change due to precipitation [mm/s]
     real(rk8) :: dz_snowf
@@ -370,17 +371,19 @@ module mod_clm_hydrology1
             ! Coefficient of interception
             ! Norman and Campbell (1983)
             if ( 0.5_rk8*(elai(p) + esai(p)) > 25.0_rk8 ) then
-              fpi = 0.25_rk8
+              fpiliq = 0.25_rk8
+              fpisnow = 1.0_rk8
             else
-              fpi = 0.25_rk8*(1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+              fpiliq = 0.25_rk8*(1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+              fpisnow = 1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p)))
             end if
 
             ! Direct throughfall
-            qflx_through_snow(p) = forc_snow(g) * (1._rk8-fpi)
-            qflx_through_rain(p) = forc_rain(g) * (1._rk8-fpi)
+            qflx_through_snow(p) = forc_snow(g) * (1._rk8-fpisnow)
+            qflx_through_rain(p) = forc_rain(g) * (1._rk8-fpiliq)
 
             ! Intercepted precipitation [mm/s]
-            qflx_prec_intr(p) = (forc_snow(g) + forc_rain(g)) * fpi
+            qflx_prec_intr(p) = (forc_snow(g)*fpisnow + forc_rain(g)*fpiliq)
 
             ! Water storage of intercepted precipitation and dew
             h2ocan(p) = max(0._rk8, h2ocan(p) + dtsrf*qflx_prec_intr(p))
