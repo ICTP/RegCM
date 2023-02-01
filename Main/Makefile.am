@@ -184,6 +184,7 @@ mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o m
 else
 mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cu_interface.o mod_domain.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_sldepparam.o mod_slice.o mod_split.o mod_tendency.o mod_nhinterp.o mod_sound.o mod_diffusion.o mod_sladvection.o mod_timer.o mod_moloch.o mod_zita.o
 endif
+endif
 mod_pbl_interface.o : mod_pbl_interface.F90 mod_atm_interface.o mod_che_common.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
 mod_micro_interface.o : mod_micro_interface.F90 mod_realkinds.o mod_service.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_regcm_types.o mod_runparams.o mod_micro_nogtom.o mod_micro_subex.o mod_micro_wsm5.o mod_cloud_subex.o mod_cloud_xuran.o pfesat.inc pfwsat.inc clwfromt.inc mod_atm_interface.o mod_che_interface.o mod_stdio.o
 mod_massck.o : mod_massck.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_runparams.o mod_mppparam.o mod_atm_interface.o mod_stdio.o
