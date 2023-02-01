@@ -323,7 +323,7 @@
  icopcpl =          0,  ! Export data for COP component (RegESM)
                         !   1 => Coupling activated
  ioasiscpl =        0,  ! Use of OASIS3_MCT5.0 (last update: 2023-02-01)
-			!   1 => Coupling activated
+                        !   1 => Coupling activated
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
