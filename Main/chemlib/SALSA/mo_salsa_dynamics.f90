@@ -1045,6 +1045,8 @@ CONTAINS
          ztstep2, zsubtime, ztstep_pre,zthno3,ztnh3,zph2o,zphno3,zpnh3,zaw
 
     REAL(dp) :: zrh(kbdim,klev)
+! FAB introduce this variable for vector.
+    REAL(dp) :: zzbeta(kbdim,klev,fn2b) , zzbetaca(kbdim,klev,ncld),zzbetapa(kbdim,klev,nprc)
     
    ! REAL(dp) :: zbetann(kbdim,klev,nbins) ! Correction factor for nitrate calculations
 
@@ -1290,8 +1292,10 @@ CONTAINS
 
     END DO ! klev
 
-    ii = kproma
-    jj = klev
+!    ii = kproma
+!    jj = klev
+!
+!  FAB :vectorize
     
     ztstep2=0._dp
     zsubtime = 0._dp
@@ -1308,6 +1312,10 @@ CONTAINS
 !                      paero, pcloud, pprecp,   &
 !                      ptemp,ppres,prs,prv,     &
 !                      ztstep2)
+! FAB vector.
+    DO jj = 1,klev
+       DO ii = 1,kproma
+
 
     zvisc  = (7.44523e-3_dp*ptemp(ii,jj)**1.5_dp)/(5093._dp*(ptemp(ii,jj)+110.4_dp))! viscosity of air [kg/(m s)] 
     zdfvap = 5.1111e-10_dp*ptemp(ii,jj)**1.75_dp*pstand/ppres(ii,jj)                ! diffusion coefficient [m2/s]
@@ -1331,19 +1339,22 @@ CONTAINS
     zknpa(1:nprc) = 2._dp*zmfp/pprecp(ii,jj,1:nprc)%dwet          ! Knudsen number for gases on rain drops
     
     !-- transitional correction factor
-    zbeta = (zknud + 1.)/(0.377_dp*zknud+1._dp+4._dp/ &     ! Aerosol + gas
+    zzbeta(ii,jj,:) = (zknud + 1.)/(0.377_dp*zknud+1._dp+4._dp/ &     ! Aerosol + gas
          (3._dp*massacc)*(zknud+zknud**2))  
     
-    zbetaca = 1._dp + zknca*( 1.33_dp + (0.71_dp/zknca) )/( 1._dp + (1._dp/zknca) ) ! Hydrometeor + gas
-    zbetaca = 1._dp/zbetaca
+    zzbetaca(ii,jj,:) = 1._dp + zknca*( 1.33_dp + (0.71_dp/zknca) )/( 1._dp + (1._dp/zknca) ) ! Hydrometeor + gas
+    zzbetaca(ii,jj,:) = 1._dp/zzbetaca(ii,jj,:)
     
-    zbetapa = 1._dp + zknpa*( 1.33_dp + (0.71_dp/zknpa) )/( 1._dp + (1._dp/zknpa) ) ! Rain drop + gas
-    zbetapa = 1._dp/zbetapa
+    zzbetapa(ii,jj,:) = 1._dp + zknpa*( 1.33_dp + (0.71_dp/zknpa) )/( 1._dp + (1._dp/zknpa) ) ! Rain drop + gas
+    zzbetapa(ii,jj,:) = 1._dp/zzbetapa(ii,jj,:)
     
     ! -- 5.4) Partitioning of H2O, HNO3, and NH3
 
+    end do
+    end do
+
     CALL partitioning(kproma,kbdim,klev,krow,ppres,ptemp,paero,pcloud,   &
-         pprecp,pchno3,pcnh3,prv,prs,zbeta,zbetaca,zbetapa,ztstep2     )
+         pprecp,pchno3,pcnh3,prv,prs,zzbeta,zzbetaca,zzbetapa,ztstep2     )
 
 !    write(15,*) time,paero(1,1,in1a:fn2a)%volc(7)/(mnh/rhonh)+0.4399_dp*paero(1,1,in1a:fn2a)%volc(1)/(mnh/rhonh)/&
 !         (log((paero(1,1,in1a:fn2a)%vhilim/pi6)**1._dp/3._dp)- &
@@ -1734,8 +1745,9 @@ CONTAINS
     REAL(dp), INTENT(in) :: ptemp(kbdim,klev), ppres(kbdim,klev)
     REAL(dp), INTENT(in) :: prs(kbdim,klev)
     REAL(dp), INTENT(in) :: pbeta(kbdim,klev,nbins)
-    REAL(dp), INTENT(in) :: pbetaca(ncld)
-    REAL(dp), INTENT(in) :: pbetapa(nprc)
+! FAB modif vectoris. 
+    REAL(dp), INTENT(in) :: pbetaca(kbdim,klev,ncld)
+    REAL(dp), INTENT(in) :: pbetapa(kbdim,klev,nprc)
 
     TYPE(t_section), INTENT(inout) :: paero(kbdim,klev,nbins),   &
          pcloud(kbdim,klev,ncld),   &
@@ -1943,7 +1955,7 @@ CONTAINS
 
              IF (pcloud(ii,jj,cc)%numc > nlim) THEN
 
-                zDp_cd(cc) = zdfh2o*pbetaca(cc)
+                zDp_cd(cc) = zdfh2o*pbetaca(ii,jj,cc)
                 zDeff_cd(cc) = zDp_cd(cc) /                                              & ! (16.55)
                      (mwa*zDp_cd(cc)*alv*zkelwacd(cc)*zcgwaeqcd(cc)/                     &
                      (zthcond*ptemp(ii,jj))*(alv*mwa/(rg*ptemp(ii,jj)) - 1._dp) + 1._dp)
@@ -1980,7 +1992,7 @@ CONTAINS
 
              IF (pprecp(ii,jj,cc)%numc > prlim) THEN
 
-                zDp_pd(cc) = zdfh2o*pbetapa(cc)
+                zDp_pd(cc) = zdfh2o*pbetapa(ii,jj,cc)
                 zDeff_pd(cc) = zDp_pd(cc) /                                              & ! (16.55)
                      (mwa*zDp_pd(cc)*alv*zkelwapd(cc)*zcgwaeqpd(cc)/                     &
                      (zthcond*ptemp(ii,jj))*(alv*mwa/(rg*ptemp(ii,jj)) - 1._dp) + 1._dp)
@@ -2132,7 +2144,7 @@ CONTAINS
                 IF(zcgno3eqcd(cc) > 0._dp) zHp_cd(cc,1) = zcno3ccd(cc)/zcgno3eqcd(cc) ! (17.99)
 
                 zmtno3cd(cc) = 2._dp*pi*pcloud(ii,jj,cc)%dwet *  &
-                     zdfvap*pcloud(ii,jj,cc)%numc*pbetaca(cc)
+                     zdfvap*pcloud(ii,jj,cc)%numc*pbetaca(ii,jj,cc)
 
                 zhlp3 = max(-200._dp,-adt*zkelno3cd(cc)*zmtno3cd(cc)/zHp_cd(cc,1))
 
@@ -2155,7 +2167,7 @@ CONTAINS
                 IF(zcgno3eqpd(cc) > 0._dp) zHp_pd(cc,1) = zcno3cpd(cc)/zcgno3eqpd(cc) ! (17.99)
 
                 zmtno3pd(cc) = 2._dp*pi*pprecp(ii,jj,cc)%dwet *  &
-                     zdfvap*pprecp(ii,jj,cc)%numc*pbetapa(cc)
+                     zdfvap*pprecp(ii,jj,cc)%numc*pbetapa(ii,jj,cc)
 
                 zhlp3 = max(-200._dp,-adt*zkelno3pd(cc)*zmtno3pd(cc)/zHp_pd(cc,1))           
 
@@ -2257,7 +2269,7 @@ CONTAINS
                 IF(zcgnh3eqcd(cc) > 0._dp) zHp_cd(cc,2) = zcnh3ccd(cc)/zcgnh3eqcd(cc)   ! (17.99)
 
                 zmtnh3cd(cc) = 2._dp*pi*pcloud(ii,jj,cc)%dwet *  &
-                     zdfvap*pcloud(ii,jj,cc)%numc*pbetaca(cc)
+                     zdfvap*pcloud(ii,jj,cc)%numc*pbetaca(ii,jj,cc)
 
                 zhlp3 = max(-200._dp,-adt*zkelnh3cd(cc)*zmtnh3cd(cc)/zHp_cd(cc,2))
 
@@ -2280,7 +2292,7 @@ CONTAINS
                 IF(zcgnh3eqpd(cc) > 0._dp) zHp_pd(cc,2) = zcnh3cpd(cc)/zcgnh3eqpd(cc)   ! (17.99)
 
                 zmtnh3pd(cc) = 2._dp*pi*pprecp(ii,jj,cc)%dwet *  &
-                     zdfvap*pprecp(ii,jj,cc)%numc*pbetapa(cc)
+                     zdfvap*pprecp(ii,jj,cc)%numc*pbetapa(ii,jj,cc)
 
                 zhlp3 = max(-200._dp,-adt*zkelnh3pd(cc)*zmtnh3pd(cc)/zHp_pd(cc,2))
 

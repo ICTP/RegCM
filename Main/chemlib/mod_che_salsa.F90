@@ -1,3 +1,4 @@
+
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !    This file is part of ICTP RegCM.
@@ -51,13 +52,13 @@ module mod_che_salsa
   TYPE(t_section), ALLOCATABLE, SAVE :: aero(:,:,:)  ! Aerosol properties
   TYPE(t_section), ALLOCATABLE, SAVE :: precp(:,:,:) ! Precipitation properties
   TYPE(t_section), ALLOCATABLE       :: actd(:,:,:)  ! activated droplet
+  TYPE(t_section), ALLOCATABLE       :: aero_old(:,:,:) 
   REAL(rkx), allocatable :: ini_aero(:,:,:), ini_rh(:,:)
   TYPE(ComponentIndex) :: prtcl ! Contains "getIndex" which gives the index for a
                                 ! aerosol component name, i.e. 1:SO4, 2:OC, 3:BC, 4:DU,
                                 ! 5:SS, 6:NO, 7:NH, 8:H2O
 
   real(rkx) ::ssigmag(nmode),sdpg(nmode),sng(nmode)   
-  CHARACTER(len=3) :: complist(n4)
 
   ! -- Local gas compound tracers [# m-3]
   REAL(rkx), allocatable :: zgso4(:,:),   &
@@ -86,16 +87,6 @@ module mod_che_salsa
     klev = kz 
     krow = 1 ! ca sert pas
 
-!FAB TEST
-    kproma = 1
-    kbdim = kproma
-    klev =  1 
-
-    ! FAB setup chemical components, no organics for now but could be 
-    complist(1)='SO4'
-    complist(2)='NO'
-    complist(3)='NH'
-    complist(4)='H2O'
 
     CALL ComponentIndexConstructor(prtcl, n4, 4, complist)
 
@@ -110,9 +101,7 @@ module mod_che_salsa
     allocate(zgnh3(1:kbdim,1:klev))   
     allocate(zgocnv(1:kbdim,1:klev))  
     allocate(zgocsv(1:kbdim,1:klev))  
-   
-    
-   
+     
     call salsa_initialize()
 
   ! FAB :This part is to inititialize particle size distribution 
@@ -127,7 +116,7 @@ module mod_che_salsa
 
     allocate(ini_aero(kbdim,klev,fn2b))   
     allocate(ini_rh(kbdim,klev))
-
+    allocate(aero_old(kbdim,klev,fn2b))
 
     CALL size_distribution(kproma, kbdim,  klev,   &
        sng, sdpg, ssigmag, ini_aero)
@@ -900,12 +889,12 @@ module mod_che_salsa
 
     implicit none
     
-    integer(ik4) :: i,j,k,n,nc,vc
+    integer(ik4) :: i,j,k,n,nc,vc,offset
     logical, parameter :: dbg = .FALSE.
     integer(rk4) :: pruntime
 ! set input
 
- IF(1 == 2) THEN   
+
    do k = 1 , kz
     n = 1
     do i = ici1 , ici2
@@ -925,6 +914,50 @@ module mod_che_salsa
         zgocnv(n,k)= d_zero
         zgocsv(n,k)= d_zero 
 
+        n = n + 1
+      end do
+    end do
+   end do
+
+
+
+
+! Set aerosol bins volume concentration in volume mixing ratio.
+! Very important :  since the mechanisms are hard coded in salsa
+! the value of vc is fixed in function of a determined aerosol mixture 
+! respecting the indexing : 
+! 1:SO4, 2:OC, 3:BC, 4:DU, 5:SS, 6:NO, 7:NH, 8:H2O
+! You can define a subset of these components as tracer effectively used,
+! and this is defined through  prtcl. The GetIndex will adjust accordingly
+! for stacking in the tracer table chib3d.    
+
+       offset = 0
+       if (IsUsed(prtcl,'SO4')) THEN
+            nc = GetIndex(prtcl,'SO4')
+            print*,'FAB dans is used', nc
+            vc = 1
+            call trac2salsa_mass(vc,nc,offset,rhosu)
+       end if
+
+
+
+
+
+
+!                str = (nc-1)*ncld+1
+!                end = nc*ncld
+!                cloud(1,1,1:ncld)%volc(vc) =
+!pa_vcloudp(kk,ii,jj,str:end)*pdn(kk,ii,jj)/rhosu
+!                vcloud_old(kk,ii,jj,str:end) = cloud(1,1,1:ncld)%volc(vc)
+
+!                str = (nc-1)*nprc+1
+!                end = nc*nprc
+!                precp(1,1,1:nprc)%volc(vc) =
+!pa_vprecpp(kk,ii,jj,str:end)*pdn(kk,ii,jj)/rhosu
+!                vprecp_old(kk,ii,jj,str:end) = precp(1,1,1:nprc)%volc(vc)
+
+
+
 
 ! aero%numc lorsque traceurs actives  aero(n,k,1:nbins)%numc devra etre converty de kg/kg à 
 ! #/m3 
@@ -933,16 +966,7 @@ module mod_che_salsa
 ! aero%volc(vc) should be in m3/m3 , convertir les traceurs de kg/kg à m3/m3
 !ini_aero en #/m3 
         
-        n = n + 1
-      end do
-    end do
-   end do
-  END IF
 
-
-!FAB
-!!! if first call and not restart !!!
-   print*, 'salsa_firstcall',salsa_firstcall
    if (salsa_firstcall) then
      pruntime = 1
      salsa_firstcall = .false.
@@ -950,32 +974,6 @@ module mod_che_salsa
      pruntime = 3
    end if
 
-
-
-! TEST  appel non vecteur
-
-   do k = 1 , kz
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        in_t(1,1) = ctb3d(j,i,k)
-        in_p(1,1) = cpb3d(j,i,k)
-        in_rv(1,1)= cqxb3d(j,i,k,iqv)
-        in_rs(1,1) =  cqsb3d(j,i,k) 
-        in_w(1,1) = cwpx3d(j,i,k) 
-! FAB délicat !!
-!
-! for the gas convert to #/m3
-
-        zgso4(1,1) = d_zero
-        zghno3(1,1)= 8.4682e-15_rkx*avog*1.e6_rkx
-        zgnh3(1,1) = d_zero
-        zgocnv(1,1)= d_zero
-        zgocsv(1,1)= d_zero 
-
-
-! aero%numc lorsque traceurs actives  aero(n,k,1:nbins)%numc devra etre converty de kg/kg à 
-! #/m3 
-!
 ! aero%volc(vc) should be in m3/m3 , convertir les traceurs de kg/kg à m3/m3
 !ini_aero en #/m3 
         
@@ -990,26 +988,49 @@ module mod_che_salsa
                         zgnh3,  aero,   cloud,  precp,         &
                         actd,   in_w,   dbg,   prtcl          )
 
-    if ( k == 15 .and. i==10 .and. j==10 ) then
-    print*, "pruntime",pruntime
-    print*, "ncld",ncld
-    print*, " ca a pas planté ? " , aero(1,1,1:nbins)%volc(1)
-    print*, " nitrate " , aero(1,1,1:nbins)%volc(6)
-    print*, " number ", aero(1,1,1:nbins)%numc
-    print*, " actd ", actd(1,1,1:ncld)%numc
-    print*, " cloud",cloud(1,1,1:ncld)%volc(6)
-    end if 
-!TEST vecteur
-  end do
-  end do 
-  end do
-  
 
 
 
+
+
+
+
+
+
+
+print*, " ca a pas planté ? " , aero(15,50,1:nbins)%volc(1)
+print*, " nitrate " , aero(15,50,1:nbins)%volc(6)
+print*, " number ", aero(15,50,1:nbins)%numc
 
 
   end subroutine run_salsa
+
+  subroutine trac2salsa_mass(vc,nc,offset,rhop)
+     implicit none
+  integer(ik4) , intent(in) :: vc,nc,offset
+  real(rkx) , intent(in) :: rhop
+  integer(ik4) :: i,j,k,n,str,end
+
+
+   str = offset + (nc-1)*nbins+1
+   end = offset + nc*nbins
+   print*, 'str', str, end
+       
+    do k = 1 , kz
+      n = 1
+       do i = ici1 , ici2
+         do j = jci1 , jci2
+    
+   
+       aero(n,k,1:nbins)%volc(vc) = chib3d(j,i,k,str:end) * crhob3d(j,i,k) /rhop
+       aero_old(n,k,1:nbins)%volc(vc) = aero(n,k,1:nbins)%volc(vc)
+
+      n = n + 1
+      end do
+    end do
+   end do
+
+  end subroutine trac2salsa_mass
 
 end module mod_che_salsa
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

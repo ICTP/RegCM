@@ -32,7 +32,8 @@ module mod_che_common
   use mod_che_indices
   use mod_cbmz_global , only : xr , xrin , xrout , c
   use mod_cbmz_parameters , only : nfix
-  use mo_submctl , only : nbins
+  use mo_submctl , only : nbins,in1a,in2a, nbin,fn1a,fn2a,fn2b 
+      
 
   implicit none
 
@@ -119,6 +120,8 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:) :: ctsoi
 #endif
 
+  !FAB temporar  salsa com list
+  CHARACTER(len=3), allocatable :: complist(:) 
   contains
 
   subroutine allocate_mod_che_common
@@ -208,6 +211,8 @@ module mod_che_common
 
   subroutine chem_config
     implicit none
+    integer(ik4) :: n,c,ind
+    character(len=6) :: str 
     ! Define here the possible types of simulation and fix the dimension
     ! of relevant tracer dimension and parameters
     ntr = 0
@@ -405,10 +410,47 @@ module mod_che_common
 
     else if ( chemsimtype(1:6) == 'SALSA ' ) then
       ! FAB sans gaz pour l'instant
-      ntr  = 8*17 + 17 
+      ! define salsa conf determining nbins size bins  for aerosol 
+      in1a = 1
+      in2a = in1a + nbin(1)
+      fn1a = in2a - 1
+      fn2a = fn1a + nbin(2)
+      fn2b = fn2a + nbin(2)
+      nbins = fn2b
+      ! nspec = 4 
+      ! complist names are slightly modified compared to SALSA driver. It does
+      ! not matter as long as vc is set properly according to chemical nature. 
+      allocate (complist(4)) 
+      complist(1)='SO4'
+      complist(2)='NO3'
+      complist(3)='NH4'
+      complist(4)='H2O'
+
+      ntr = (4 + 1)*nbins 
       allocate(chtrname(ntr))
-      print*, nbins
-      
+! aerosol species mass distributions  
+      ind = 1 ! + eventually nGAS
+      do c =1,4 !nspecs
+        do n=1,nbins 
+           if (n < 10) then
+            write(str,"(A5,I1)"), trim(complist(c)//"b0"),n
+           else
+            write(str,"(A4,I2)"), trim(complist(c)//"b"),n
+           endif
+           chtrname(ind) = str
+           ind=ind+1
+        end do
+      end do 
+! aerosol number distribution 
+      do n=1,nbins
+           if (n < 10) then
+            write(str,"(A5,I1)"), "ANU"//"b0",n
+           else
+            write(str,"(A4,I2)"), "ANU"//"b",n
+           endif
+           chtrname(4*nbins +n ) = str
+      end do
+
     else
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'
