@@ -138,13 +138,13 @@ module mod_ocn_zeng
       !
       ! initial values of u* and convective velocity
       !
-      ustar = 0.06_rkx
       wc = 0.5_rkx
       if ( dthv >= d_zero ) then
         um = uv995
       else
         um = sqrt(uv995*uv995+wc*wc)
       end if
+      ustar = um/25.0_rkx
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo
@@ -176,7 +176,7 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      do nconv = 1 , 5
+      do nconv = 1 , 2
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         if ( flag2 ) then
           ustar = vonkar*um/log(hu/zo)
