@@ -156,7 +156,7 @@ module aerosol_thermodynamics
 
      real(kind=dp),dimension(7)::ions,ions_mol
 
-     real(kind=dp),dimension(7) :: mols_out  ! Juha: put out ion molalities
+     real(kind=dp),dimension(:) :: mols_out  ! Juha: put out ion molalities
 
      real(kind=dp)::charge_sum, nitric_acid, hydrochloric_acid, sulphuric_acid,&
           &ammonium_sulphate, ammonium_nitrate, ammonium_chloride, sodium_sulphate,&

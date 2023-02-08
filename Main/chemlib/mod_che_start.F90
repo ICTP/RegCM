@@ -419,10 +419,6 @@ module mod_che_start
       open(newunit=ipunit,file='TUVGRID2', status='old', err=900)
       call hvread(ipunit)
     end if
-    if (1==1) then 
-     call init_salsa()
-     print*,'salsa_init done' 
-    end if
     call init_mod_che_ncio(chemsimtype)
     call che_init_bdy
 
@@ -457,6 +453,13 @@ module mod_che_start
         end do
       end if
     end if
+! FAB init_salsa will overwrite chemt for now. will change with proper CHBC 
+    if (1==1) then
+     call init_salsa()
+     print*,'salsa_init done'
+    end if
+
+
 
     return
 

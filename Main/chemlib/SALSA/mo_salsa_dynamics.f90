@@ -1899,11 +1899,11 @@ CONTAINS
           ! Get the equilibrium concentrations before condensation of water
 
           ! aerosols
-          CALL thermoequil(paero(ii,jj,:),nbins,nlim,ptemp(ii,jj), zcgno3eqae, zcgnh3eqae, zcgwaeqae)
+          CALL thermoequil(paero(ii,jj,1:nbins),nbins,nlim,ptemp(ii,jj), zcgno3eqae, zcgnh3eqae, zcgwaeqae)
           ! cloud droplets
-          CALL thermoequil(pcloud(ii,jj,:),ncld,nlim,ptemp(ii,jj), zcgno3eqcd, zcgnh3eqcd, zcgwaeqcd)
+          CALL thermoequil(pcloud(ii,jj,1:ncld),ncld,nlim,ptemp(ii,jj), zcgno3eqcd, zcgnh3eqcd, zcgwaeqcd)
           ! precipitation
-          CALL thermoequil(pprecp(ii,jj,:),nprc,prlim,ptemp(ii,jj), zcgno3eqpd, zcgnh3eqpd, zcgwaeqpd)
+          CALL thermoequil(pprecp(ii,jj,1:nprc),nprc,prlim,ptemp(ii,jj), zcgno3eqpd, zcgnh3eqpd, zcgwaeqpd)
 
           ! 1) Condensation / evaporation of water
           zdfh2o = ( 5._dp/(16._dp*avog*zrhoair*1.e-3_dp*(3.11e-8_dp)**2) ) * &
@@ -2626,7 +2626,7 @@ CONTAINS
     REAL(dp), INTENT(out) :: chno3g(nb), &
                              cnh3g(nb),  &
                              ch2og(nb)   
-    TYPE(t_section), INTENT(in) :: ppart(nb)
+    TYPE(t_section), INTENT(in) :: ppart(:)
     
     REAL(dp) :: zKr,               & ! Equilibrium constants (see 
                 zKeq,              & ! Jacobson (1999),  Atmos Environ 33, 3635 - 3649), Table 3
@@ -2694,7 +2694,7 @@ CONTAINS
              zcwl = ppart(cc)%volc(8)*rhowa/mwa
 
              ! calculate thermodynamical equilibrium in the particle phase
-             CALL inorganic_pdfite(0.9_dp,ptemp,zions,zcwl,chno3g(cc),chcl,cnh3g(cc),zgammas,pmols(cc,:))
+             CALL inorganic_pdfite(0.9_dp,ptemp,zions,zcwl,chno3g(cc),chcl,cnh3g(cc),zgammas,pmols(cc,1:7))
 
              chno3g(cc)=chno3g(cc)/(rg*ptemp)
              cnh3g(cc) =cnh3g(cc)/(rg*ptemp)

@@ -42,7 +42,7 @@ module mod_che_salsa
   INTEGER(ik4)  :: kbdim 
   INTEGER(ik4)  :: klev 
   INTEGER(ik4)  :: krow
-  integer(ik4), parameter  :: n4 = 4
+  integer(ik4), parameter  :: nsalsp = 4
   integer(ik4), parameter  :: nmode = 7
 
   !
@@ -52,7 +52,8 @@ module mod_che_salsa
   TYPE(t_section), ALLOCATABLE, SAVE :: aero(:,:,:)  ! Aerosol properties
   TYPE(t_section), ALLOCATABLE, SAVE :: precp(:,:,:) ! Precipitation properties
   TYPE(t_section), ALLOCATABLE       :: actd(:,:,:)  ! activated droplet
-  TYPE(t_section), ALLOCATABLE       :: aero_old(:,:,:) 
+  TYPE(t_section), ALLOCATABLE       :: aero_old(:,:,:),aero_ten(:,:,:) 
+  
   REAL(rkx), allocatable :: ini_aero(:,:,:), ini_rh(:,:)
   TYPE(ComponentIndex) :: prtcl ! Contains "getIndex" which gives the index for a
                                 ! aerosol component name, i.e. 1:SO4, 2:OC, 3:BC, 4:DU,
@@ -78,7 +79,7 @@ module mod_che_salsa
 
   subroutine init_salsa()
     implicit none
-    integer(ik4) ::i,j,k,n,nc,vc 
+    integer(ik4) ::i,j,k,n,nc,vc,str,end ,offset
     
 
 
@@ -88,7 +89,7 @@ module mod_che_salsa
     krow = 1 ! ca sert pas
 
 
-    CALL ComponentIndexConstructor(prtcl, n4, 4, complist)
+    CALL ComponentIndexConstructor(prtcl, nsalsp, 4, complist)
 
 
     allocate(in_t(1:kbdim,1:klev))    
@@ -117,14 +118,14 @@ module mod_che_salsa
     allocate(ini_aero(kbdim,klev,fn2b))   
     allocate(ini_rh(kbdim,klev))
     allocate(aero_old(kbdim,klev,fn2b))
+    allocate(aero_ten(kbdim,klev,fn2b))
 
     CALL size_distribution(kproma, kbdim,  klev,   &
        sng, sdpg, ssigmag, ini_aero)
 
 
-! aero%numc  in 
-       aero(1:kproma,1:klev,1:nbins)%numc  = ini_aero(1:kproma,1:klev,1:nbins)
-!
+    offset = 0
+       
 !initialise les masses maintenant hypothese just sulfate 
        if (IsUsed(prtcl,'SO4')) THEN
           nc = GetIndex(prtcl,'SO4')
@@ -133,8 +134,41 @@ module mod_che_salsa
 !ini_aero en #/m3 
           aero(1:kproma,1:klev,1:nbins)%volc(vc) = ini_aero(1:kproma,1:klev,1:nbins) &
                                                       * pi6*aero(1:kproma,1:klev,1:nbins)%dmid**3
-       end if
-  
+! 
+          aero_old(1:kproma,1:klev,1:nbins)%volc(vc) = aero(1:kproma,1:klev,1:nbins)%volc(vc)
+! 
+! need to initialize also tracers : to be refined with CHBC
+         
+          str = offset + (nc-1)*nbins+1
+          end = offset + nc*nbins
+          do k = 1 , kz
+          n = 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+              !back from m3/m3 to kg/kg
+                chemt(j,i,k,str:end) = aero(n,k,1:nbins)%volc(vc)/crhob3d(j,i,k)*rhosu
+                n = n + 1
+           end do
+           end do
+           end do
+     end if
+     
+ !intialise number 
+       aero(1:kproma,1:klev,1:nbins)%numc  = ini_aero(1:kproma,1:klev,1:nbins)
+       aero_old(1:kproma,1:klev,1:nbins)%numc = aero_old(1:kproma,1:klev,1:nbins)%numc
+       str = offset + (nsalsp)*nbins+1
+       end = offset + (nsalsp+1)*nbins
+       do k = 1 , kz
+          n = 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+              !back from #/m3 to #/kg
+                chemt(j,i,k,str:end) = aero(n,k,1:nbins)%numc/crhob3d(j,i,k)
+                n = n + 1
+            end do
+           end do
+        end do
+
 
     ini_rh(:,:) = 0.3_rkx
 
@@ -919,31 +953,6 @@ module mod_che_salsa
     end do
    end do
 
-
-
-
-! Set aerosol bins volume concentration in volume mixing ratio.
-! Very important :  since the mechanisms are hard coded in salsa
-! the value of vc is fixed in function of a determined aerosol mixture 
-! respecting the indexing : 
-! 1:SO4, 2:OC, 3:BC, 4:DU, 5:SS, 6:NO, 7:NH, 8:H2O
-! You can define a subset of these components as tracer effectively used,
-! and this is defined through  prtcl. The GetIndex will adjust accordingly
-! for stacking in the tracer table chib3d.    
-
-       offset = 0
-       if (IsUsed(prtcl,'SO4')) THEN
-            nc = GetIndex(prtcl,'SO4')
-            print*,'FAB dans is used', nc
-            vc = 1
-            call trac2salsa_mass(vc,nc,offset,rhosu)
-       end if
-
-
-
-
-
-
 !                str = (nc-1)*ncld+1
 !                end = nc*ncld
 !                cloud(1,1,1:ncld)%volc(vc) =
@@ -979,58 +988,174 @@ module mod_che_salsa
         
      if (pruntime==1) call equilibration(kproma,kbdim,klev, ini_rh,in_t,aero,.TRUE.)
 
+
+! Set aerosol bins volume concentration in volume mixing ratio.
+! Very important :  since the mechanisms are hard coded in salsa
+! the value of vc is fixed in function of a determined aerosol mixture 
+! respecting the indexing : 
+! 1:SO4, 2:OC, 3:BC, 4:DU, 5:SS, 6:NO, 7:NH, 8:H2O
+! You can define a subset of these components as tracer effectively used,
+! and this is defined through  prtcl. The GetIndex will adjust accordingly
+! for stacking in the tracer table chib3d.    
+     offset = 0
+
+     if (pruntime >1 ) then 
+
+
+       if (IsUsed(prtcl,'SO4')) THEN
+            nc = GetIndex(prtcl,'SO4')
+            vc = 1
+            call trac2salsa('mass',vc,nc,offset,rhosu)
+       end if
+       if (IsUsed(prtcl,'NO3')) THEN
+            nc = GetIndex(prtcl,'NO3')
+            vc = 6 ! cf what I was saying before
+            call trac2salsa('mass',vc,nc,offset,rhono)
+       end if
+       if (IsUsed(prtcl,'NH4')) THEN
+            nc = GetIndex(prtcl,'NO3')
+            vc = 7 ! cf what I was saying before
+            call trac2salsa('mass',vc,nc,offset,rhonh)
+       end if
+       ! H2O is always is the mixture
+       nc = GetIndex(prtcl,'H2O')
+       vc = 8 ! cf what I was saying before
+       call trac2salsa('mass',vc,nc,offset,rhoh2o)
+
+      ! set number distribution  
+       nc =nsalsp +1
+       vc = 0 ! not used 
+       call trac2salsa('numb',vc,nc,offset,d_zero)
+
+     end if ! pruntime  
+
+
      call set_salsa_runtime(pruntime) 
 
 !
+     if(1==0) then
      call salsa(kproma, kbdim,  klev,   krow,                  &
-                        in_p,   in_rv,  in_rs,  in_t, dtche,   &
+                        in_p,   in_rv,  in_rs,  in_t, dt,   &
                         zgso4,  zgocnv, zgocsv, zghno3,        &
                         zgnh3,  aero,   cloud,  precp,         &
                         actd,   in_w,   dbg,   prtcl          )
+     end if
+! ladies and gentlemen it is time to calculate the tendencies ..
 
+       if (IsUsed(prtcl,'SO4')) THEN
+            nc = GetIndex(prtcl,'SO4')
+            vc = 1
+            call salsa2tractend('mass',vc,nc,offset,rhosu)
+       end if
+       if (IsUsed(prtcl,'NO3')) THEN
+            nc = GetIndex(prtcl,'NO3')
+            vc = 6 ! cf what I was saying before
+            call salsa2tractend('mass',vc,nc,offset,rhono)
+       end if
+       if (IsUsed(prtcl,'NH4')) THEN
+            nc = GetIndex(prtcl,'NO3')
+            vc = 7 ! cf what I was saying before
+            call salsa2tractend('mass',vc,nc,offset,rhonh)
+       end if
+       ! H2O is always is the mixture
+       nc = GetIndex(prtcl,'H2O')
+       vc = 8 ! cf what I was saying before
+       call salsa2tractend('mass',vc,nc,offset,rhoh2o)
 
+      ! set number distribution   
+       nc = nsalsp + 1
+       vc = 0
+       call salsa2tractend('numb',vc,nc,offset,d_zero)
 
+end subroutine run_salsa
 
-
-
-
-
-
-
-
-print*, " ca a pas planté ? " , aero(15,50,1:nbins)%volc(1)
-print*, " nitrate " , aero(15,50,1:nbins)%volc(6)
-print*, " number ", aero(15,50,1:nbins)%numc
-
-
-  end subroutine run_salsa
-
-  subroutine trac2salsa_mass(vc,nc,offset,rhop)
+  subroutine trac2salsa(typ,vc,nc,offset,rhop)
      implicit none
   integer(ik4) , intent(in) :: vc,nc,offset
+  character(len=4),intent(in) :: typ
+  real(rkx) , intent(in) :: rhop
+  integer(ik4) :: i,j,k,n,str,end
+
+   if (typ  == "mass") then 
+   str = offset + (nc-1)*nbins+1
+   end = offset + nc*nbins       
+   do k = 1 , kz
+      n = 1
+       do i = ici1 , ici2
+         do j = jci1 , jci2   
+           aero(n,k,1:nbins)%volc(vc) = chib3d(j,i,k,str:end) * crhob3d(j,i,k) /rhop
+           aero_old(n,k,1:nbins)%volc(vc) = aero(n,k,1:nbins)%volc(vc)
+           n = n + 1
+      end do
+    end do
+   end do
+   else if( typ == "numb") then
+   str = offset + (nc-1)*nbins+1
+   end = offset + nc*nbins
+   do k = 1 , kz
+      n = 1
+       do i = ici1 , ici2
+         do j = jci1 , jci2
+           aero(n,k,1:nbins)%numc = chib3d(j,i,k,str:end) * crhob3d(j,i,k) 
+           aero_old(n,k,1:nbins)%numc = aero(n,k,1:nbins)%numc
+           n = n + 1
+      end do
+    end do
+   end do
+   end if
+  end subroutine trac2salsa
+
+
+
+  subroutine salsa2tractend(typ,vc,nc,offset,rhop)
+     implicit none
+  integer(ik4) , intent(in) :: vc,nc,offset
+  character(len=4),intent(in) :: typ
   real(rkx) , intent(in) :: rhop
   integer(ik4) :: i,j,k,n,str,end
 
 
+   if (typ  == "mass") then
    str = offset + (nc-1)*nbins+1
    end = offset + nc*nbins
-   print*, 'str', str, end
-       
-    do k = 1 , kz
+   do k = 1 , kz
       n = 1
        do i = ici1 , ici2
          do j = jci1 , jci2
-    
-   
-       aero(n,k,1:nbins)%volc(vc) = chib3d(j,i,k,str:end) * crhob3d(j,i,k) /rhop
-       aero_old(n,k,1:nbins)%volc(vc) = aero(n,k,1:nbins)%volc(vc)
+           aero_ten(n,k,1:nbins)%volc(vc) = (aero(n,k,1:nbins)%volc(vc) - &
+                                             aero_old(n,k,1:nbins)%volc(vc)) / dt
 
-      n = n + 1
+
+           !back from m3/m3 to kg/kg
+           chiten(j,i,k,str:end) = chiten(j,i,k,str:end) +  &
+                                   aero_ten(n,k,1:nbins)%volc(vc)/crhob3d(j,i,k) *rhop
+
+           n = n + 1
       end do
     end do
    end do
+   else if( typ == "numb") then
+   str = offset + (nc-1)*nbins+1
+   end = offset + nc*nbins
+   do k = 1 , kz
+      n = 1
+       do i = ici1 , ici2
+         do j = jci1 , jci2
+           aero_ten(n,k,1:nbins)%numc = (aero(n,k,1:nbins)%numc - &
+                                         aero_old(n,k,1:nbins)%numc) / dt
+           !back from #/m3 to #/kg
+           chiten(j,i,k,str:end) = chiten(j,i,k,str:end) +  &
+                                   aero_ten(n,k,1:nbins)%volc(vc) * crhob3d(j,i,k)
 
-  end subroutine trac2salsa_mass
+           n = n + 1
+      end do
+    end do
+   end do
+   end if
+  end subroutine salsa2tractend
+
+
+
 
 end module mod_che_salsa
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
