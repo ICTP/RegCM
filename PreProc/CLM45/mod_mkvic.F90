@@ -53,17 +53,13 @@ module mod_mkvic
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nvic
       call gfread(gfile,varname(n),vic(:,:,n),h_missing_value)
+      call bestaround(vic(:,:,n),h_missing_value)
       do i = 1 , iysg
         do j = 1 , jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             vic(j,i,n) = h_missing_value
           else
-            if ( vic(j,i,n) > h_missing_value ) then
-              vic(j,i,n) = max(d_zero,vic(j,i,n))
-            else
-              call bestaround(vic(:,:,n),i,j)
-              vic(j,i,n) = max(d_zero,vic(j,i,n))
-            end if
+            vic(j,i,n) = max(d_zero,vic(j,i,n))
           end if
         end do
       end do

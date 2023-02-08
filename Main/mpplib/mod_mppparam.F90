@@ -625,54 +625,66 @@ module mod_mppparam
     implicit none
     logical , intent(inout) :: lval
     call mpi_bcast(lval,1,mpi_logical,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_logical
 
   subroutine bcast_int4(ival)
     implicit none
     integer(ik4) , intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_int4
 
   subroutine bcast_int8(ival)
     implicit none
     integer(rk8) , intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_int8
 
   subroutine bcast_real4(rval)
     implicit none
     real(rk4) , intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_real4
 
   subroutine bcast_real8(rval)
     implicit none
     real(rk8) , intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_real8
 
   subroutine bcast_arr_logical(lval)
     implicit none
     logical , dimension(:) , intent(inout) :: lval
     call mpi_bcast(lval,size(lval),mpi_logical,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_logical
 
   subroutine bcast_arr_character(cval,is)
@@ -680,9 +692,11 @@ module mod_mppparam
     character(len=*) , intent(inout) :: cval
     integer(ik4) , intent(in) :: is
     call mpi_bcast(cval,is,mpi_character,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_character
 
   subroutine bcast_arr_text_list(cval,is)
@@ -690,45 +704,55 @@ module mod_mppparam
     character(len=*) , intent(inout) , dimension(:) :: cval
     integer(ik4) , intent(in) :: is
     call mpi_bcast(cval,is*size(cval),mpi_character,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_text_list
 
   subroutine bcast_arr_int4(ival)
     implicit none
     integer(ik4) , dimension(:) , intent(inout) :: ival
     call mpi_bcast(ival,size(ival),mpi_integer4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_int4
 
   subroutine bcast_arr_int8(ival)
     implicit none
     integer(rk8) , dimension(:) , intent(inout) :: ival
     call mpi_bcast(ival,size(ival),mpi_integer8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_int8
 
   subroutine bcast_arr_real4(rval)
     implicit none
     real(rk4) , dimension(:) , intent(inout) :: rval
     call mpi_bcast(rval,size(rval),mpi_real4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_real4
 
   subroutine bcast_arr_real8(rval)
     implicit none
     real(rk8) , dimension(:) , intent(inout) :: rval
     call mpi_bcast(rval,size(rval),mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_arr_real8
 
   subroutine bcast_matr_real8(rval)
@@ -736,9 +760,11 @@ module mod_mppparam
     real(rk8) , dimension(:,:) , intent(inout) :: rval
     call mpi_bcast(rval,size(rval,1)*size(rval,2), &
                    mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_matr_real8
 
   subroutine bcast_matr_real4(rval)
@@ -746,9 +772,11 @@ module mod_mppparam
     real(rk4) , dimension(:,:) , intent(inout) :: rval
     call mpi_bcast(rval,size(rval,1)*size(rval,2), &
                    mpi_real4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine bcast_matr_real4
 
   subroutine bcast_arr_rcm_time_and_date(x)
@@ -775,9 +803,11 @@ module mod_mppparam
     logical , intent(in) :: rlval
     logical , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine trueforall
 
 #ifdef QUAD_PRECISION
@@ -786,9 +816,11 @@ module mod_mppparam
     real(rk16) , intent(in) :: rlval
     real(rk16) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real16,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine sumall_real16
 #endif
 
@@ -797,9 +829,11 @@ module mod_mppparam
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine sumall_real8
 
   subroutine sumall_real4(rlval,rtval)
@@ -807,9 +841,11 @@ module mod_mppparam
     real(rk4) , intent(in) :: rlval
     real(rk4) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine sumall_real4
 
   subroutine maxall_real8(rlval,rtval)
@@ -817,9 +853,11 @@ module mod_mppparam
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_max,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine maxall_real8
 
   subroutine maxall_real4(rlval,rtval)
@@ -827,9 +865,11 @@ module mod_mppparam
     real(rk4) , intent(in) :: rlval
     real(rk4) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_max,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine maxall_real4
 
   subroutine maxall_integer4(rlval,rtval)
@@ -837,9 +877,11 @@ module mod_mppparam
     integer(ik4) , intent(in) :: rlval
     integer(ik4) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_max,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine maxall_integer4
 
   subroutine meanall_real8(rlval,rtval)
@@ -847,9 +889,11 @@ module mod_mppparam
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
     rtval = rtval/real(nproc,rk8)
   end subroutine meanall_real8
 
@@ -869,9 +913,11 @@ module mod_mppparam
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_min,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine minall_real8
 
   subroutine minall_real4(rlval,rtval)
@@ -879,9 +925,11 @@ module mod_mppparam
     real(rk4) , intent(in) :: rlval
     real(rk4) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_min,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine minall_real4
 
   subroutine minall_integer4(rlval,rtval)
@@ -889,9 +937,11 @@ module mod_mppparam
     integer(ik4) , intent(in) :: rlval
     integer(ik4) , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_integer4,mpi_min,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine minall_integer4
 
   subroutine sumall_int4(ilval,itval)
@@ -899,9 +949,11 @@ module mod_mppparam
     integer(ik4) , intent(in) :: ilval
     integer(ik4) , intent(out) :: itval
     call mpi_allreduce(ilval,itval,1,mpi_integer4,mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine sumall_int4
 
   subroutine sumall_int4_array(ilval,itval)
@@ -910,9 +962,11 @@ module mod_mppparam
     integer(ik4) , dimension(:) , intent(out) :: itval
     call mpi_allreduce(ilval,itval,size(itval),mpi_integer4, &
                        mpi_sum,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
+#endif
   end subroutine sumall_int4_array
 
   subroutine send_array_logical(lval,isize,icpu,itag,req)
@@ -922,10 +976,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_isend(lval,isize,mpi_logical,icpu,itag, &
                   cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine send_array_logical
 
   subroutine send_array_int4(ival,isize,icpu,itag,req)
@@ -935,10 +991,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_isend(ival,isize,mpi_integer4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine send_array_int4
 
   subroutine send_array_real4(rval,isize,icpu,itag,req)
@@ -948,10 +1006,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_isend(rval,isize,mpi_real4,icpu,itag, &
                   cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine send_array_real4
 
   subroutine send_array_real8(rval,isize,icpu,itag,req)
@@ -961,10 +1021,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_isend(rval,isize,mpi_real8,icpu,itag, &
                   cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine send_array_real8
 
   subroutine recv_array_logical(lval,isize,icpu,itag,req)
@@ -974,10 +1036,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_irecv(lval,isize,mpi_logical,icpu,itag, &
                    cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
   end subroutine recv_array_logical
 
   subroutine recv_array_int4(ival,isize,icpu,itag,req)
@@ -987,10 +1051,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_irecv(ival,isize,mpi_integer4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
   end subroutine recv_array_int4
 
   subroutine recv_array_real4(rval,isize,icpu,itag,req)
@@ -1000,10 +1066,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real4,icpu,itag, &
                    cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
   end subroutine recv_array_real4
 
   subroutine recv_array_real8(rval,isize,icpu,itag,req)
@@ -1013,10 +1081,12 @@ module mod_mppparam
     integer(ik4) , intent(out) :: req
     call mpi_irecv(rval,isize,mpi_real8,icpu,itag, &
                    cartesian_communicator,req,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
   end subroutine recv_array_real8
 
   subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
@@ -1027,14 +1097,18 @@ module mod_mppparam
     integer(ik4) , intent(out) :: srq , rrq
     call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
     call mpi_isend(rv1,isize,mpi_real8,icpu,tag2, &
                   cartesian_communicator,srq,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine exchange_array_r8
 
   subroutine exchange_array_r4(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
@@ -1045,14 +1119,18 @@ module mod_mppparam
     integer(ik4) , intent(out) :: srq , rrq
     call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+#endif
     call mpi_isend(rv1,isize,mpi_real4,icpu,tag2, &
                   cartesian_communicator,srq,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
+#endif
   end subroutine exchange_array_r4
 
   subroutine cyclic_exchange_array_r8(rv1,rv2,isize,icpu1,icpu2,itag)
@@ -1063,10 +1141,12 @@ module mod_mppparam
     call mpi_sendrecv(rv1,isize,mpi_real8,icpu1,itag, &
                       rv2,isize,mpi_real8,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
     end if
+#endif
   end subroutine cyclic_exchange_array_r8
 
   subroutine cyclic_exchange_array_r4(rv1,rv2,isize,icpu1,icpu2,itag)
@@ -1077,10 +1157,12 @@ module mod_mppparam
     call mpi_sendrecv(rv1,isize,mpi_real4,icpu1,itag, &
                       rv2,isize,mpi_real4,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
       call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
     end if
+#endif
   end subroutine cyclic_exchange_array_r4
 
   subroutine set_nproc
@@ -1118,9 +1200,11 @@ module mod_mppparam
       jxp =  jx
       iyp =  iy
       call mpi_comm_dup(mycomm,cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
+#endif
       ma%location(1) = 0
       ma%location(2) = 0
 
@@ -1221,31 +1305,43 @@ module mod_mppparam
 
       call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,lreorder, &
                            cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_create error.')
       end if
+#endif
       call mpi_comm_rank(cartesian_communicator,ccid,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
       end if
+#endif
       call mpi_cart_coords(cartesian_communicator,ccid,2,ma%location,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
       end if
+#endif
       !call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
       !                         0, mpi_info_null,node_local_communicator, &
       !                         mpierr)
+#ifdef DEBUG
       !if ( mpierr /= mpi_success ) then
       !  call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
       !end if
+#endif
       !call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
+#ifdef DEBUG
       !if ( mpierr /= mpi_success ) then
       !  call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
       !end if
+#endif
       !call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
+#ifdef DEBUG
       !if ( mpierr /= mpi_success ) then
       !  call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
       !end if
+#endif
 
       if ( myid == iocpu ) ccio = ccid
 
@@ -1256,69 +1352,85 @@ module mod_mppparam
       isearch(2) = ma%location(2)+1
       if ( ma%crmflag .or. ( isearch(2) < cpus_per_dim(2) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)
       isearch(2) = ma%location(2)-1
       if ( ma%crmflag .or. ( isearch(2) >= 0 ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottom,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)
       if ( ma%bandflag .or. ( isearch(1) >= 0 ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%left,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)
       if ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)+1
       if ( ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) .and. &
            ( ma%crmflag  .or. ( isearch(2) < cpus_per_dim(2) ) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)+1
       if ( ( ma%bandflag .or. ( isearch(1) >= 0 ) ) .and. &
            ( ma%crmflag  .or. ( isearch(2) < cpus_per_dim(2) ) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)-1
       if ( ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) .and. &
            ( ma%crmflag  .or. ( isearch(2) >= 0 ) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)-1
       if ( ( ma%bandflag .or. ( isearch(1) >= 0 ) ) .and. &
            ( ma%crmflag  .or. ( isearch(2) >= 0 ) ) ) then
         call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
+#endif
       end if
 
       ma%has_bdytop    = (ma%top    == mpi_proc_null)
@@ -1581,9 +1693,11 @@ module mod_mppparam
     window(4) = window(3)+jsize-1
     call mpi_gather(window,4,mpi_integer4, &
                     windows,4,mpi_integer4,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gather error.')
     end if
+#endif
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -1624,9 +1738,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
                       r8vector2,tsize,mpi_real8,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -1664,9 +1780,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
                       r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -1704,9 +1822,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
                       i4vector2,tsize,mpi_integer4,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -1744,9 +1864,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(lvector1,wincount,windispl,mpi_logical, &
                       lvector2,tsize,mpi_logical,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -1975,9 +2097,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
                       r8vector2,tsize,mpi_real8,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     if ( present(mask) ) then
       do i = i1 , i2
@@ -2043,9 +2167,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
                       r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     if ( present(mask) ) then
       do i = i1 , i2
@@ -2111,9 +2237,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
                       i4vector2,tsize,mpi_integer4,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     if ( present(mask) ) then
       do i = i1 , i2
@@ -2179,9 +2307,11 @@ module mod_mppparam
     end if
     call mpi_scatterv(lvector1,wincount,windispl,mpi_logical, &
                       lvector2,tsize,mpi_logical,ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     ib = 1
     if ( present(mask) ) then
       do i = i1 , i2
@@ -2323,9 +2453,11 @@ module mod_mppparam
     call mpi_gatherv(r8vector2,tsize,mpi_real8, &
                      r8vector1,wincount,windispl,mpi_real8, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2364,9 +2496,11 @@ module mod_mppparam
     call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2405,9 +2539,11 @@ module mod_mppparam
     call mpi_gatherv(i4vector2,tsize,mpi_integer4, &
                      i4vector1,wincount,windispl,mpi_integer4, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2446,9 +2582,11 @@ module mod_mppparam
     call mpi_gatherv(lvector2,tsize,mpi_logical, &
                      lvector1,wincount,windispl,mpi_logical, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2713,9 +2851,11 @@ module mod_mppparam
     call mpi_gatherv(r8vector2,tsize,mpi_real8, &
                      r8vector1,wincount,windispl,mpi_real8, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2760,9 +2900,11 @@ module mod_mppparam
     call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2807,9 +2949,11 @@ module mod_mppparam
     call mpi_gatherv(i4vector2,tsize,mpi_integer4, &
                      i4vector1,wincount,windispl,mpi_integer4, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2854,9 +2998,11 @@ module mod_mppparam
     call mpi_gatherv(lvector2,tsize,mpi_logical, &
                      lvector1,wincount,windispl,mpi_logical, &
                      ccio,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -3098,9 +3244,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -3267,9 +3415,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -3455,9 +3605,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -3614,9 +3766,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -3783,9 +3937,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -3971,9 +4127,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -4132,9 +4290,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -4302,9 +4462,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -4491,9 +4653,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -4652,9 +4816,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -4822,9 +4988,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -5011,9 +5179,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ib = ipos
@@ -5267,9 +5437,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -5546,9 +5718,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -5999,9 +6173,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -6489,9 +6665,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -6837,9 +7015,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -7348,9 +7528,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -7740,9 +7922,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -8060,9 +8244,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -8571,9 +8757,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -9185,9 +9373,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -9593,9 +9783,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(8,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -10163,9 +10355,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -10467,9 +10661,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -10683,9 +10879,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -10919,9 +11117,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -11160,9 +11360,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -11412,9 +11614,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -11671,9 +11875,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%left /= mpi_proc_null ) then
           ib = ipos
@@ -11897,9 +12103,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
@@ -12110,9 +12318,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
@@ -12340,9 +12550,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
@@ -12576,9 +12788,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
@@ -12829,9 +13043,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize*nsize
@@ -13088,9 +13304,11 @@ module mod_mppparam
     if ( irc /= 0 ) then
       ipos = 1
       call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize*nsize
@@ -13212,9 +13430,11 @@ module mod_mppparam
       end if
       if ( irc /= 0 ) then
         call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_waitall error.')
         end if
+#endif
         ipos = 1
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -13307,9 +13527,11 @@ module mod_mppparam
       end if
       if ( irc /= 0 ) then
         call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_waitall error.')
         end if
+#endif
         ipos = 1
         if ( ma%right /= mpi_proc_null) then
           ib = ipos
@@ -13376,9 +13598,11 @@ module mod_mppparam
     end if
     if ( irc /= 0 ) then
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       ipos = 1
       if ( ma%top /= mpi_proc_null) then
         ib = ipos
@@ -13444,9 +13668,11 @@ module mod_mppparam
     end if
     if ( irc /= 0 ) then
       call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
+#endif
       ipos = 1
       if ( ma%top /= mpi_proc_null) then
         ib = ipos
@@ -13488,9 +13714,11 @@ module mod_mppparam
     b(jx,iy) = b(jx-2,iy-2)
     b(jx-1,iy-1) = b(jx-2,iy-2)
     call mpi_bcast(b,iy*jx,mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine real8_2d_grid_fill_extend1
 
   subroutine real4_2d_grid_fill_extend1(a,b)
@@ -13514,9 +13742,11 @@ module mod_mppparam
     b(jx,iy) = b(jx-2,iy-2)
     b(jx-1,iy-1) = b(jx-2,iy-2)
     call mpi_bcast(b,iy*jx,mpi_real4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine real4_2d_grid_fill_extend1
 
   subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
@@ -13526,9 +13756,11 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)
     call mpi_bcast(b,product(shape(b)),mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine real8_2d_grid_fill_extend2
 
   subroutine real4_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
@@ -13538,9 +13770,11 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)
     call mpi_bcast(b,product(shape(b)),mpi_real4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
+#endif
   end subroutine real4_2d_grid_fill_extend2
 
   subroutine uvtentotenx(u,v,ux,vx)
@@ -14289,9 +14523,11 @@ module mod_mppparam
     tmp(1) = f_sub
     call mpi_gather(tmp,      1,mpi_real8, &
                     f_collect,1,mpi_real8,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_gather!!')
     end if
+#endif
   end subroutine gather_r
 
   subroutine gather_i(i_collect,i_sub)
@@ -14302,9 +14538,11 @@ module mod_mppparam
     tmp(1) = i_sub
     call mpi_gather(tmp,      1,mpi_integer4, &
                     i_collect,1,mpi_integer4,iocpu,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_gather!!')
     end if
+#endif
   end subroutine gather_i
 
   subroutine allgather_r(f_collect,f_sub)
@@ -14315,9 +14553,11 @@ module mod_mppparam
     tmp(1) = f_sub
     call mpi_allgather(tmp,      1,mpi_real8, &
                        f_collect,1,mpi_real8,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
     end if
+#endif
   end subroutine allgather_r
 
   subroutine allgather_i(i_collect,i_sub)
@@ -14328,9 +14568,11 @@ module mod_mppparam
     tmp(1) = i_sub
     call mpi_allgather(tmp,      1,mpi_integer4, &
                        i_collect,1,mpi_integer4,mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
     end if
+#endif
   end subroutine allgather_i
 
   subroutine reorder_add_subgrid_2d_real8(var3,var2,mask)
@@ -14952,9 +15194,11 @@ module mod_mppparam
   subroutine allsync
     implicit none
     call mpi_barrier(mycomm,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_barrier error.')
     end if
+#endif
   end subroutine allsync
 
   subroutine clset(ncart_tot_g,ncart_tot_sg,cl)
@@ -14967,9 +15211,11 @@ module mod_mppparam
     call mpi_allgather(tmp,1,mpi_integer4,                   &
                        cl%cartesian_npoint_g,1,mpi_integer4, &
                        cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allgather error.')
     end if
+#endif
     cl%cartesian_displ_g(:) = 0
     do np = 2 , nproc
       cl%cartesian_displ_g(np) = cl%cartesian_displ_g(np-1) + &
@@ -15004,9 +15250,11 @@ module mod_mppparam
       call mpi_allgather(tmp,1,mpi_integer4,                    &
                          cl%cartesian_npoint_sg,1,mpi_integer4, &
                          cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_allgather error.')
       end if
+#endif
       cl%cartesian_displ_sg(:) = 0
       do np = 2 , nproc
         cl%cartesian_displ_sg(np) = cl%cartesian_displ_sg(np-1) + &
@@ -15067,9 +15315,11 @@ module mod_mppparam
     integer(ik4) :: ncart_tot_g , ncart_tot_sg
     if ( .not. associated(cl%linear_npoint_g) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
+#endif
       call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
       call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
       call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
@@ -15111,9 +15361,11 @@ module mod_mppparam
     integer(ik4) :: ncart_tot_g , ncart_tot_sg
     if ( .not. associated(cl%linear_npoint_g) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
+#endif
       call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
       call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
       call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
@@ -15164,15 +15416,19 @@ module mod_mppparam
     call mpi_gatherv(lvector1,nval,mpi_logical,                             &
                      lvector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_logical,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(lvector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_logical,vector,npt,mpi_logical,              &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine cartesian_to_linear_logical_subgrid_subgrid
 
   subroutine linear_to_cartesian_logical_subgrid_subgrid(cl,vector,matrix)
@@ -15190,16 +15446,20 @@ module mod_mppparam
     call mpi_gatherv(vector,npt,mpi_logical,                          &
                      lvector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_logical,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(lvector2,cl%cartesian_npoint_sg,   &
                       cl%cartesian_displ_sg,mpi_logical, &
                       lvector1,nval,mpi_logical,         &
                       ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     if ( nval > 0 ) then
       call myunpack(cl,lvector1,matrix)
     end if
@@ -15223,15 +15483,19 @@ module mod_mppparam
     call mpi_gatherv(i4vector1,nval,mpi_integer4,                            &
                      i4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_integer4,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(i4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_integer4,vector,npt,mpi_integer4,             &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine cartesian_to_linear_integer_subgrid_subgrid
 
   subroutine linear_to_cartesian_integer_subgrid_subgrid(cl,vector,matrix)
@@ -15249,16 +15513,20 @@ module mod_mppparam
     call mpi_gatherv(vector,npt,mpi_integer4,                          &
                      i4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_integer4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(i4vector2,cl%cartesian_npoint_sg,   &
                       cl%cartesian_displ_sg,mpi_integer4, &
                       i4vector1,nval,mpi_integer4,        &
                       ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     if ( nval > 0 ) then
       call myunpack(cl,i4vector1,matrix)
     end if
@@ -15284,15 +15552,19 @@ module mod_mppparam
       call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
                        r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                        mpi_real8,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call mpi_scatterv(r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real8,vector(:,k),npt,mpi_real8,              &
                         iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
     end do
   end subroutine cartesian_to_linear_real8_subgrid_subgrid_4d
 
@@ -15316,15 +15588,19 @@ module mod_mppparam
       call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
                        r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                        mpi_real4,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real4,vector(:,k),npt,mpi_real4,              &
                         iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
     end do
   end subroutine cartesian_to_linear_real4_subgrid_subgrid_4d
 
@@ -15345,16 +15621,20 @@ module mod_mppparam
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg, &
                         cl%cartesian_displ_sg,mpi_real8,  &
                         r8vector1,nval,mpi_real8,         &
                         ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
       if ( nval > 0 ) then
         call myunpack(cl,r8vector1,matrix,k)
       end if
@@ -15378,16 +15658,20 @@ module mod_mppparam
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
                         cl%cartesian_displ_sg,mpi_real4,  &
                         r4vector1,nval,mpi_real4,         &
                         ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
       if ( nval > 0 ) then
         call myunpack(cl,r4vector1,matrix,k)
       end if
@@ -15412,15 +15696,19 @@ module mod_mppparam
     call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
                      r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_real8,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real8,vector,npt,mpi_real8,                   &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine cartesian_to_linear_real8_subgrid_subgrid
 
   subroutine cartesian_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
@@ -15441,15 +15729,19 @@ module mod_mppparam
     call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
                      r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_real4,ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real4,vector,npt,mpi_real4,                   &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine cartesian_to_linear_real4_subgrid_subgrid
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid(cl,vector,matrix)
@@ -15467,16 +15759,20 @@ module mod_mppparam
     call mpi_gatherv(vector,npt,mpi_real8,                             &
                      r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg, &
                       cl%cartesian_displ_sg,mpi_real8,  &
                       r8vector1,nval,mpi_real8,         &
                       ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     if ( nval > 0 ) then
       call myunpack(cl,r8vector1,matrix)
     end if
@@ -15497,16 +15793,20 @@ module mod_mppparam
     call mpi_gatherv(vector,npt,mpi_real4,                             &
                      r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
                       cl%cartesian_displ_sg,mpi_real4,  &
                       r4vector1,nval,mpi_real4,         &
                       ccio,cartesian_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
     if ( nval > 0 ) then
       call myunpack(cl,r4vector1,matrix)
     end if
@@ -15593,9 +15893,11 @@ module mod_mppparam
     call mpi_scatterv(lvector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_logical,vector,npt,mpi_logical,              &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine global_to_linear_logical_subgrid_subgrid
 
   subroutine linear_to_global_logical_subgrid_subgrid(cl,vector,matrix)
@@ -15610,9 +15912,11 @@ module mod_mppparam
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_logical,  &
                      lvector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_logical,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call myunpack_global(cl,lvector1,global_lsubgrid)
     call subgrid_distribute(global_lsubgrid,matrix, &
                             jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15634,9 +15938,11 @@ module mod_mppparam
     call mpi_scatterv(i4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_integer4,vector,npt,mpi_integer4,             &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine global_to_linear_integer_subgrid_subgrid
 
   subroutine linear_to_global_integer_subgrid_subgrid(cl,vector,matrix)
@@ -15651,9 +15957,11 @@ module mod_mppparam
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_integer4,  &
                      i4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_integer4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call myunpack_global(cl,i4vector1,global_i4subgrid)
     call subgrid_distribute(global_i4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15675,9 +15983,11 @@ module mod_mppparam
     call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real8,vector,npt,mpi_real8,                   &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine global_to_linear_real8_subgrid_subgrid
 
   subroutine global_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
@@ -15696,9 +16006,11 @@ module mod_mppparam
     call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real4,vector,npt,mpi_real4,                   &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine global_to_linear_real4_subgrid_subgrid
 
   subroutine global_to_linear_real4_real8_subgrid_subgrid(cl,matrix,vector)
@@ -15717,9 +16029,11 @@ module mod_mppparam
     call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                       mpi_real8,vector,npt,mpi_real8,                   &
                       iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
+#endif
   end subroutine global_to_linear_real4_real8_subgrid_subgrid
 
   subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
@@ -15734,9 +16048,11 @@ module mod_mppparam
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real8,  &
                      r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call myunpack_global(cl,r8vector1,global_r8subgrid)
     call subgrid_distribute(global_r8subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15754,9 +16070,11 @@ module mod_mppparam
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real4,  &
                      r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call myunpack_global(cl,r4vector1,global_r4subgrid)
     call subgrid_distribute(global_r4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15774,9 +16092,11 @@ module mod_mppparam
     call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real8,     &
                      r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
+#endif
     call myunpack_global(cl,r8vector1,global_r4subgrid)
     call subgrid_distribute(global_r4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15801,9 +16121,11 @@ module mod_mppparam
       call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real8,vector(:,k),npt,mpi_real8,                   &
                         iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
     end do
   end subroutine global_to_linear_real8_subgrid_subgrid_4d
 
@@ -15826,9 +16148,11 @@ module mod_mppparam
       call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real4,vector(:,k),npt,mpi_real4,              &
                         iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
     end do
   end subroutine global_to_linear_real4_subgrid_subgrid_4d
 
@@ -15851,9 +16175,11 @@ module mod_mppparam
       call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                         mpi_real8,vector(:,k),npt,mpi_real8,              &
                         iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
+#endif
     end do
   end subroutine global_to_linear_real4_real8_subgrid_subgrid_4d
 
@@ -15873,9 +16199,11 @@ module mod_mppparam
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call myunpack_global(cl,r8vector1,global_r8subgrid)
       call subgrid_distribute(global_r8subgrid,r8subgrid, &
               jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15901,9 +16229,11 @@ module mod_mppparam
       call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
                        r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real4,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call myunpack_global(cl,r4vector1,global_r4subgrid)
       call subgrid_distribute(global_r4subgrid,r4subgrid, &
               jci1,jci2,ici1,ici2,cl%sgmask)
@@ -15929,9 +16259,11 @@ module mod_mppparam
       call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
                        r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
                        mpi_real8,iocpu,cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
+#endif
       call myunpack_global(cl,r8vector1,global_r4subgrid)
       call subgrid_distribute(global_r4subgrid,r4subgrid, &
               jci1,jci2,ici1,ici2,cl%sgmask)
@@ -16038,9 +16370,11 @@ module mod_mppparam
       call relmem2d(cl%global_gmask)
       call relmem3d(cl%global_sgmask)
       call mpi_comm_free(cl%linear_communicator,mpierr)
+#ifdef DEBUG
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_free error.')
       end if
+#endif
     end if
   end subroutine cl_dispose
 

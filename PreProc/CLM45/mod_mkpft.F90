@@ -59,17 +59,19 @@ module mod_mkpft
     !
     ! Mask and fill grid
     !
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 0.5_rkx ) then
-          pft(j,i,:) = h_missing_value
-        else
-          if ( pft(j,i,1) < d_zero ) then
-            call bestaround(pft,i,j)
+    where ( pft < d_zero )
+      pft = h_missing_value
+    end where
+    do n = 1 , npft
+      call bestaround(pft(:,:,n),h_missing_value)
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            pft(j,i,n) = h_missing_value
           else
-            pft(j,i,:) = min(max(0,nint(pft(j,i,:))),100)
+            pft(j,i,n) = min(max(0,nint(pft(j,i,n))),100)
           end if
-        end if
+        end do
       end do
     end do
     !

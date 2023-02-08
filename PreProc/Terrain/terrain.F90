@@ -621,6 +621,13 @@ program terrain
   end do
   deallocate(tmptex)
 
+#ifdef CLM45
+  if ( lclm45lake ) then
+    where ( lndout > 13.5_rkx .and. lndout < 14.5_rkx )
+      lndout = 8.0_rkx
+    end where
+  end if
+#endif
   where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx .and. htgrid < 0.0_rkx )
     htgrid = 0.0_rkx
   end where
@@ -715,6 +722,13 @@ program terrain
   write(stdout,*) 'Fudging data (if requested) succeeded'
 
   if ( nsg > 1 ) then
+#ifdef CLM45
+    if ( lclm45lake ) then
+      where ( lndout_s > 13.5_rkx .and. lndout_s < 14.5_rkx )
+        lndout_s = 8.0_rkx
+      end where
+    end if
+#endif
     where ( lndout_s > 14.5_rkx .and. &
             lndout_s < 15.5_rkx .and. &
             htgrid_s < 0.0_rkx )
