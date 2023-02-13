@@ -156,10 +156,8 @@ module mod_moloch
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
     if ( do_fulleq ) then
-      if ( ipptls > 0 ) then
-        call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
-        call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
-      end if
+      call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
+      call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
     end if
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -880,8 +878,8 @@ module mod_moloch
                   end do
                 end do
               end do
-              call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
             end if
+            call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
           end if
 
           ! horizontal momentum equations

@@ -222,8 +222,8 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! counter gradient terms for heat and moisture
-          cgh(j,i,k) = d_zero
-          cgs(j,i,k) = d_zero
+          cgs(j,i,k) = 0.00015_rkx
+          cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
           ! eddy diffusivities for momentum, heat and moisture
           kvm(j,i,k) = kzm(j,i,k)
           kvh(j,i,k) = kzm(j,i,k)
