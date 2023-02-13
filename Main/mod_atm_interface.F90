@@ -1141,7 +1141,7 @@ module mod_atm_interface
       end if
 
       if ( ipptls == 2 ) then
-        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kzp1,'storage:rain_ls')
+        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz,'storage:rain_ls')
       end if
       if ( idynamic == 2 ) then
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
