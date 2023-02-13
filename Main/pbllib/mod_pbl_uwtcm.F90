@@ -1072,6 +1072,7 @@ module mod_pbl_uwtcm
         end if
       else
         ! Lowermost layer
+        kmix2dx = kz
         pblx = (0.07_rkx*ustx)/pfcor
         do k = kz-1 , 1 , -1
           if ( zqx(k) > pblx ) exit

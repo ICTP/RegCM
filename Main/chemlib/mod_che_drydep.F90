@@ -895,12 +895,12 @@ module mod_che_drydep
             ! diag dry dep tendency
             if ( ichdiag > 0 ) then
                cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                               ddrem(j) *  cfdout
+                                      ddrem(j) *  cfdout
             end if
             ! drydep flux diagnostic (accumulated between two outputs time
             ! step) ! flux is in kg/m2/s-1.
-            remdrd(j,i,n) = remdrd(j,i,n) + max(chemt(j,i,kz,n),d_zero) &
-                                          * crhob3d(j,i,kz)*drydepvg(j,n)* cfdout
+            remdrd(j,i,n) = remdrd(j,i,n) + &
+                            kav*dt*crhob3d(j,i,kz)*drydepvg(j,n)*cfdout
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
             drydepv(j,i,n) = d_zero
@@ -1347,33 +1347,53 @@ module mod_che_drydep
             rcuts_f = 1.e25_rkx
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_rain ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j)
-            rcuts_f = 50.0_rkx/sqrt(lai_f(j))/ustar(j)
-            rcuts_f = max(rcuts_f, 20._rkx)
+            if ( lai_f(j) > 0.0_rkx ) then
+              rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j)
+              rcuts_f = 50.0_rkx/sqrt(lai_f(j))/ustar(j)
+              rcuts_f = max(rcuts_f, 20._rkx)
+            else
+              rcuto_f = 20._rkx
+              rcuts_f = 20._rkx
+            end if
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_dew ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j)
-            rcuts_f = 100.0_rkx/sqrt(lai_f(j))/ustar(j)
-            rcuts_f = max(rcuts_f, 20._rkx)
+            if ( lai_f(j) > 0.0_rkx ) then
+              rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j)
+              rcuts_f = 100.0_rkx/sqrt(lai_f(j))/ustar(j)
+              rcuts_f = max(rcuts_f, 20._rkx)
+            else
+              rcuto_f = 20._rkx
+              rcuts_f = 20._rkx
+            end if
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if (ts(j) < 272.156_rkx ) then
-            ryx = exp(0.2_rkx * (272.156_rkx - ts(j) ))
-            rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(j))/     &
-                      lai_f(j)**0.25_rkx/ustar(j)
-            rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(j))/     &
-                      lai_f(j)**0.25_rkx/ustar(j)
-            rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
-            rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
-            rcuto_f = max(rcuto_f,100._rkx)
-            rcuts_f = max(rcuts_f,100._rkx)
+            if ( lai_f(j) > 0.0_rkx ) then
+              ryx = exp(0.2_rkx * (272.156_rkx - ts(j) ))
+              rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(j))/     &
+                        lai_f(j)**0.25_rkx/ustar(j)
+              rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(j))/     &
+                        lai_f(j)**0.25_rkx/ustar(j)
+              rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
+              rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
+              rcuto_f = max(rcuto_f,100._rkx)
+              rcuts_f = max(rcuts_f,100._rkx)
+            else
+              rcuto_f = 100._rkx
+              rcuts_f = 100._rkx
+            end if
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else
-            rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(j)) / &
-                      lai_f(j)**0.25_rkx/ustar(j)
-            rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(j)) / &
-                      lai_f(j)**0.25_rkx/ustar(j)
-            rcuto_f = max(rcuto_f, 100._rkx)
-            rcuts_f = max(rcuts_f, 100._rkx)
+            if ( lai_f(j) > 0.0_rkx ) then
+              rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(j)) / &
+                        lai_f(j)**0.25_rkx/ustar(j)
+              rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(j)) / &
+                        lai_f(j)**0.25_rkx/ustar(j)
+              rcuto_f = max(rcuto_f, 100._rkx)
+              rcuts_f = max(rcuts_f, 100._rkx)
+            else
+              rcuto_f = 100._rkx
+              rcuts_f = 100._rkx
+            end if
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           end if
           !================================================================

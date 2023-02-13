@@ -1253,7 +1253,6 @@ module mod_bdycod
       call exchange_bdy_bt(wve,1,kz)
       call exchange_bdy_bt(wvi,1,kz)
     end if
-
     if ( ma%has_bdyright ) then
       call exchange_bdy_bt(eue,1,kz)
       call exchange_bdy_bt(eui,1,kz)
