@@ -215,26 +215,6 @@ module mod_pbl_holtbl
     !
     ! Holtslag pbl
     !
-    ! Initialize bl diffusion coefficients and counter-gradient terms
-    ! with free atmosphere values
-    !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! counter gradient terms for heat and moisture
-          cgs(j,i,k) = 0.00015_rkx
-          cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
-          ! eddy diffusivities for momentum, heat and moisture
-          kvm(j,i,k) = kzm(j,i,k)
-          kvh(j,i,k) = kzm(j,i,k)
-          kvq(j,i,k) = kzm(j,i,k)
-          if ( ichem == 1 ) then
-            kvc(j,i,k) = kzm(j,i,k)
-          end if
-        end do
-      end do
-    end do
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         ! compute friction velocity
@@ -249,6 +229,26 @@ module mod_pbl_holtbl
         xqfx(j,i) = m2p%qfx(j,i)*rrho
         ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
         hfxv(j,i) = xhfx(j,i) + 0.61_rkx * m2p%thatm(j,i,kz) * xqfx(j,i)
+      end do
+    end do
+    !
+    ! Initialize bl diffusion coefficients and counter-gradient terms
+    ! with free atmosphere values
+    !
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ! counter gradient terms for heat and moisture
+          cgs(j,i,k) = -sign(1.0_rkx,xhfx(j,i))*7.0e-4_rkx
+          cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+          ! eddy diffusivities for momentum, heat and moisture
+          kvm(j,i,k) = kzm(j,i,k)
+          kvh(j,i,k) = kzm(j,i,k)
+          kvq(j,i,k) = kzm(j,i,k)
+          if ( ichem == 1 ) then
+            kvc(j,i,k) = kzm(j,i,k)
+          end if
+        end do
       end do
     end do
     !
