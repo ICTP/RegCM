@@ -718,13 +718,10 @@ module mod_moloch
 
         do jsound = 1 , nsound
 
+          call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+
           ! partial definition of the generalized vertical velocity
-
-          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
-
-          ud(:,:,1:kz) = u(jde1ga:jde2ga,ice1ga:ice2ga,1:kz)
-          vd(:,:,1:kz) = v(jce1ga:jce2ga,ide1ga:ide2ga,1:kz)
 
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -894,6 +891,9 @@ module mod_moloch
 
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
+
+          ud(:,:,1:kz) = u(jde1ga:jde2ga,ice1ga:ice2ga,1:kz)
+          vd(:,:,1:kz) = v(jce1ga:jce2ga,ide1ga:ide2ga,1:kz)
 
           if ( lrotllr ) then
 
