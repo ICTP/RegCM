@@ -530,17 +530,25 @@ module mod_moloch
 
       subroutine boundary
         implicit none
-
+#ifdef USE_MPI3
+        type(commdata_real) :: comm1 , comm2 , comm3
+#else
         call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-        if ( ichem == 1 ) then
+        if ( is_present_qc( ) ) then
+          call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( is_present_qi( ) ) then
+          call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
           call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
-
+#endif
         if ( idiag > 0 ) then
           ten0 = t(jci1:jci2,ici1:ici2,:)
           qen0 = qv(jci1:jci2,ici1:ici2,:)
@@ -552,12 +560,55 @@ module mod_moloch
         end if
 
         if ( iboudy == 1 .or. iboudy >= 5 ) then
-          call nudge(iboudy,pai,xpaib)
+#ifdef USE_MPI3
+          call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
+          call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call nudge(iboudy,ps,xpsb)
+          call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call nudge(iboudy,u,v,xub,xvb)
+          call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call nudge(iboudy,t,xtb)
+          call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call nudge(iboudy,qv,xqb)
+          call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call nudge(iboudy,pai,xpaib)
+
+          if ( ichem == 1 ) then
+            call exchange_lrbt_pre(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr,comm1)
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_pre(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_pre(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+          if ( ichem == 1 ) then
+            call exchange_lrbt_post(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr,comm1)
+            call nudge_chi(trac)
+            if ( ichdiag > 0 ) then
+              cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+            end if
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+            call nudge(iboudy,qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+            call nudge(iboudy,qi,xib)
+          end if
+#else
+          call nudge(iboudy,ps,xpsb)
+          call nudge(iboudy,u,v,xub,xvb)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
-          call nudge(iboudy,u,v,xub,xvb)
-
+          call nudge(iboudy,pai,xpaib)
           if ( idiag > 0 ) then
             tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
@@ -568,38 +619,72 @@ module mod_moloch
           if ( is_present_qi( ) ) then
             call nudge(iboudy,qi,xib)
           end if
+          if ( ichem == 1 ) then
+            call nudge_chi(trac)
+            if ( ichdiag > 0 ) then
+              cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+            end if
+          end if
+#endif
         else if ( iboudy == 4 ) then
+#ifdef USE_MPI3
+          call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
+          call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call sponge(ps,xpsb)
+          call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call sponge(u,v,xub,xvb)
+          call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call sponge(t,xtb)
+          call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call sponge(qv,xqb)
+          call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call sponge(pai,xpaib)
+
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_pre(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_pre(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+            call sponge(qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+            call sponge(qi,xib)
+          end if
+#else
+          call sponge(ps,xpsb)
+          call sponge(u,v,xub,xvb)
           call sponge(t,xtb)
           call sponge(qv,xqb)
-          call sponge(u,v,xub,xvb)
-          if ( idiag > 0 ) then
-            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
-          end if
+          call sponge(pai,xpaib)
           if ( is_present_qc( ) ) then
             call sponge(qc,xlb)
           end if
           if ( is_present_qi( ) ) then
             call sponge(qi,xib)
           end if
-        end if
-        if ( ichem == 1 ) then
-          if ( iboudy == 1 .or. iboudy >= 5 ) then
-            call nudge_chi(trac)
-          else if ( iboudy == 4 ) then
-            ! Not implemented sponge_chi
-          end if
-          if ( ichdiag > 0 ) then
-            cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+#endif
+          if ( idiag > 0 ) then
+            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
         end if
+
         call uvstagtox(u,v,ux,vx)
         if ( do_filterqx .and. ipptls > 0 ) then
           call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
           call filt4d(qx,mo_anu2,iqfrst,iqlst)
         end if
+
       end subroutine boundary
 
       subroutine filt4d(p,nu,n1,n2)
@@ -705,7 +790,7 @@ module mod_moloch
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 #ifdef USE_MPI3
-        type(commdata_real8) :: comm1, comm2
+        type(commdata_real) :: comm1, comm2
 #endif
 
         zdtrdx = dts/dx
@@ -1451,7 +1536,7 @@ module mod_moloch
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
 #ifdef USE_MPI3
-        type(commdata_real8) :: comm1, comm2
+        type(commdata_real) :: comm1, comm2
 #endif
 
         real(rkx) , parameter :: wlow  = 0.0_rkx
@@ -2182,7 +2267,62 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     integer(ik4) :: i , j , k
+#ifdef USE_MPI3
+    type(commdata_real) :: comm1, comm2
 
+    call exchange_lr_pre(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_pre(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
+
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
+        end do
+      end do
+    end if
+
+    call exchange_lr_post(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_post(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
+
+    ! Back to wind points: U/V (fourth order)
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
+        end do
+      end do
+    end do
+#else
     call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
 
@@ -2234,6 +2374,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine xtouvstag
 
   subroutine uvstagtox(u,v,ux,vx)
@@ -2241,7 +2382,63 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     integer(ik4) :: i , j , k
+#ifdef USE_MPI3
+    type(commdata_real) :: comm1, comm2
 
+    call exchange_lr_pre(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_pre(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
+
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
+        end do
+      end do
+    end if
+
+    call exchange_lr_post(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_post(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
+
+    ! Compute U-wind on T points
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jci1 , jci2
+          ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                      0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
+        end do
+      end do
+    end do
+    ! Compute V-wind on T points
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jce1 , jce2
+          vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                      0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
+        end do
+      end do
+    end do
+#else
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
 
@@ -2291,6 +2488,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine uvstagtox
 
   subroutine divdamp(dts)

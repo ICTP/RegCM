@@ -227,37 +227,51 @@ module mod_mppparam
 
 #ifdef USE_MPI3
 
-  type commdata_real8
+  type commdata_real
     integer, dimension(1) :: mreq
-    real(rk8) , dimension(:) , allocatable :: sdata
-    real(rk8) , dimension(:) , allocatable :: rdata
-  end type commdata_real8
+    real(rkx) , dimension(:) , allocatable :: sdata
+    real(rkx) , dimension(:) , allocatable :: rdata
+  end type commdata_real
 
   interface exchange_lrbt_pre
-    module procedure real8_3d_exchange_left_right_bottom_top_pre
+    module procedure real8_2d_exchange_left_right_bottom_top_pre , &
+                     real8_3d_exchange_left_right_bottom_top_pre , &
+                     real8_4d_exchange_left_right_bottom_top_pre , &
+                     real4_2d_exchange_left_right_bottom_top_pre , &
+                     real4_3d_exchange_left_right_bottom_top_pre , &
+                     real4_4d_exchange_left_right_bottom_top_pre
   end interface exchange_lrbt_pre
 
   interface exchange_bt_pre
-    module procedure real8_3d_exchange_bottom_top_pre
+    module procedure real8_3d_exchange_bottom_top_pre , &
+                     real4_3d_exchange_bottom_top_pre
   end interface exchange_bt_pre
 
   interface exchange_lr_pre
-    module procedure real8_3d_exchange_left_right_pre
+    module procedure real8_3d_exchange_left_right_pre , &
+                     real4_3d_exchange_left_right_pre
   end interface exchange_lr_pre
 
   interface exchange_lrbt_post
-    module procedure real8_3d_exchange_left_right_bottom_top_post
+    module procedure real8_2d_exchange_left_right_bottom_top_post , &
+                     real8_3d_exchange_left_right_bottom_top_post , &
+                     real8_4d_exchange_left_right_bottom_top_post , &
+                     real4_2d_exchange_left_right_bottom_top_post , &
+                     real4_3d_exchange_left_right_bottom_top_post , &
+                     real4_4d_exchange_left_right_bottom_top_post
   end interface exchange_lrbt_post
 
   interface exchange_bt_post
-    module procedure real8_3d_exchange_bottom_top_post
+    module procedure real8_3d_exchange_bottom_top_post , &
+                     real4_3d_exchange_bottom_top_post
   end interface exchange_bt_post
 
   interface exchange_lr_post
-    module procedure real8_3d_exchange_left_right_post
+    module procedure real8_3d_exchange_left_right_post , &
+                     real4_3d_exchange_left_right_post
   end interface exchange_lr_post
 
-  public :: commdata_real8
+  public :: commdata_real
   public :: exchange_lrbt_pre , exchange_lrbt_post
   public :: exchange_bt_pre , exchange_bt_post
   public :: exchange_lr_pre , exchange_lr_post
@@ -4115,21 +4129,19 @@ module mod_mppparam
 
   end subroutine real8_2d_exchange_left_right_bottom_top
 
-  subroutine real8_3d_exchange_left_right_bottom_top_pre(ml, &
-                                     nex,j1,j2,i1,i2,k1,k2,rc)
+  subroutine real8_2d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2,i1,i2,rc)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    type(commdata_real8) , intent(inout) :: rc
-    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
-    nk = k2-k1+1
     tx = ny
     ty = nx
-    sizex = nex*tx*nk
-    sizey = nex*ty*nk
+    sizex = nex*tx
+    sizey = nex*ty
     ndx = 2*sizex
     ndy = 2*sizey
 
@@ -4139,40 +4151,32 @@ module mod_mppparam
     transmit : block
 
     integer(ik4), dimension(4), asynchronous :: counts, displs
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%left /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%right /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%bottom /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%top /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
     end do
 
     counts = [ sizex, sizex, sizey, sizey ]
@@ -4185,32 +4189,29 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
     end if
 #endif
-
     end block transmit
 
-  end subroutine real8_3d_exchange_left_right_bottom_top_pre
+  end subroutine real8_2d_exchange_left_right_bottom_top_pre
 
-  subroutine real8_3d_exchange_left_right_bottom_top_post(ml, &
-                                     nex,j1,j2,i1,i2,k1,k2,rc)
+  subroutine real8_2d_exchange_left_right_bottom_top_post(ml,nex,j1,j2,i1,i2,rc)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    type(commdata_real8) , intent(inout) :: rc
-    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
-    nk = k2-k1+1
     tx = ny
     ty = nx
-    sizex = nex*tx*nk
-    sizey = nex*ty*nk
+    sizex = nex*tx
+    sizey = nex*ty
     ndx = 2*sizex
     ndy = 2*sizey
 
     transmit : block
 
-    integer(ik4) :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1 , ib2 , iex
 
     call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
 #ifdef DEBUG
@@ -4220,45 +4221,37 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( ma%left /= mpi_proc_null ) &
+           ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%right /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%bottom /= mpi_proc_null ) &
+          ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
     end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
-      end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%top /= mpi_proc_null ) &
+         ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
     end do
 
     end block transmit
 
-    deallocate(rc%sdata)
     deallocate(rc%rdata)
+    deallocate(rc%sdata)
     rc%mreq = -1
-  end subroutine real8_3d_exchange_left_right_bottom_top_post
+  end subroutine real8_2d_exchange_left_right_bottom_top_post
 
   subroutine real8_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
@@ -4372,6 +4365,151 @@ module mod_mppparam
     end block transmit
 
   end subroutine real8_3d_exchange_left_right_bottom_top
+
+  subroutine real8_3d_exchange_left_right_bottom_top_pre(ml, &
+                                     nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    allocate(rc%sdata(ndx+ndy))
+    allocate(rc%rdata(ndx+ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%left /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, sizey, sizey ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real8, &
+        rc%rdata, counts, displs, mpi_real8, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+
+    end block transmit
+
+  end subroutine real8_3d_exchange_left_right_bottom_top_pre
+
+  subroutine real8_3d_exchange_left_right_bottom_top_post(ml, &
+                                     nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( ma%left /= mpi_proc_null ) &
+             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real8_3d_exchange_left_right_bottom_top_post
 
   subroutine real8_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
@@ -4504,6 +4642,169 @@ module mod_mppparam
 
   end subroutine real8_4d_exchange_left_right_bottom_top
 
+  subroutine real8_4d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2, &
+                                                     i1,i2,k1,k2,n1,n2,rc)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    allocate(rc%rdata(ndx+ndy))
+    allocate(rc%sdata(ndx+ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%left /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%right /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%bottom /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%top /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, sizey, sizey ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real8, &
+        rc%rdata, counts, displs, mpi_real8, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+
+    end block transmit
+
+  end subroutine real8_4d_exchange_left_right_bottom_top_pre
+
+  subroutine real8_4d_exchange_left_right_bottom_top_post(ml,nex,j1,j2, &
+                                                     i1,i2,k1,k2,n1,n2,rc)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex , k , n
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+           if ( ma%left /= mpi_proc_null ) &
+               ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%right /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%bottom /= mpi_proc_null ) &
+              ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%top /= mpi_proc_null ) &
+             ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real8_4d_exchange_left_right_bottom_top_post
+
   subroutine real4_2d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -4599,6 +4900,130 @@ module mod_mppparam
     end block transmit
 
   end subroutine real4_2d_exchange_left_right_bottom_top
+
+  subroutine real4_2d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2,i1,i2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    allocate(rc%sdata(ndx+ndy))
+    allocate(rc%rdata(ndx+ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%left /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%right /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%bottom /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%top /= mpi_proc_null ) &
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+    end do
+
+    counts = [ sizex, sizex, sizey, sizey ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real4, &
+        rc%rdata, counts, displs, mpi_real4, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+    end block transmit
+
+  end subroutine real4_2d_exchange_left_right_bottom_top_pre
+
+  subroutine real4_2d_exchange_left_right_bottom_top_post(ml,nex,j1,j2,i1,i2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: ndx , ndy , nx , ny , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx
+    sizey = nex*ty
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+       if ( ma%left /= mpi_proc_null ) &
+           ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      if ( ma%right /= mpi_proc_null ) &
+          ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%bottom /= mpi_proc_null ) &
+          ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
+    end do
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      if ( ma%top /= mpi_proc_null ) &
+         ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
+    end do
+
+    end block transmit
+
+    deallocate(rc%rdata)
+    deallocate(rc%sdata)
+    rc%mreq = -1
+  end subroutine real4_2d_exchange_left_right_bottom_top_post
 
   subroutine real4_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
@@ -4712,6 +5137,151 @@ module mod_mppparam
     end block transmit
 
   end subroutine real4_3d_exchange_left_right_bottom_top
+
+  subroutine real4_3d_exchange_left_right_bottom_top_pre(ml, &
+                                     nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    allocate(rc%sdata(ndx+ndy))
+    allocate(rc%rdata(ndx+ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%left /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, sizey, sizey ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real4, &
+        rc%rdata, counts, displs, mpi_real4, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+
+    end block transmit
+
+  end subroutine real4_3d_exchange_left_right_bottom_top_pre
+
+  subroutine real4_3d_exchange_left_right_bottom_top_post(ml, &
+                                     nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk
+    sizey = nex*ty*nk
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( ma%left /= mpi_proc_null ) &
+             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real4_3d_exchange_left_right_bottom_top_post
 
   subroutine real4_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
                                                      i1,i2,k1,k2,n1,n2)
@@ -4843,6 +5413,169 @@ module mod_mppparam
     end block transmit
 
   end subroutine real4_4d_exchange_left_right_bottom_top
+
+  subroutine real4_4d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2, &
+                                                     i1,i2,k1,k2,n1,n2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    allocate(rc%rdata(ndx+ndy))
+    allocate(rc%sdata(ndx+ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex , k , n
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%left /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%right /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%bottom /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%top /= mpi_proc_null ) &
+              rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
+
+    counts = [ sizex, sizex, sizey, sizey ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real4, &
+        rc%rdata, counts, displs, mpi_real4, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+
+    end block transmit
+
+  end subroutine real4_4d_exchange_left_right_bottom_top_pre
+
+  subroutine real4_4d_exchange_left_right_bottom_top_post(ml,nex,j1,j2, &
+                                                     i1,i2,k1,k2,n1,n2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: ndx , ndy , nx , ny , nk , nn , tx , ty , sizex , sizey
+
+    nx = j2-j1+1
+    ny = i2-i1+1
+    nk = k2-k1+1
+    nn = n2-n1+1
+    tx = ny
+    ty = nx
+    sizex = nex*tx*nk*nn
+    sizey = nex*ty*nk*nn
+    ndx = 2*sizex
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex , k , n
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+           if ( ma%left /= mpi_proc_null ) &
+               ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          if ( ma%right /= mpi_proc_null ) &
+              ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%bottom /= mpi_proc_null ) &
+              ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          if ( ma%top /= mpi_proc_null ) &
+             ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+        end do
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real4_4d_exchange_left_right_bottom_top_post
 
   subroutine real8_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
     implicit none
@@ -4992,7 +5725,7 @@ module mod_mppparam
   subroutine real8_3d_exchange_left_right_pre(ml,nex,j1,j2,i1,i2,k1,k2,rc)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    type(commdata_real8) , intent(inout) :: rc
+    type(commdata_real) , intent(inout) :: rc
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: ndx , ny , nk , tx , sizex
 
@@ -5046,7 +5779,7 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    type(commdata_real8) , intent(inout) :: rc
+    type(commdata_real) , intent(inout) :: rc
     integer(ik4) :: ndx , ny , nk , tx , sizex
 
     ny = i2-i1+1
@@ -5244,6 +5977,108 @@ module mod_mppparam
     end block transmit
 
   end subroutine real4_2d_exchange_left_right
+
+  subroutine real4_3d_exchange_left_right_pre(ml,nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: ndx , ny , nk , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    sizex = nex*tx*nk
+    ndx = 2*sizex
+
+    allocate(rc%sdata(ndx))
+    allocate(rc%rdata(ndx))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%left /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
+
+    counts = [ sizex, sizex, 0, 0 ]
+    displs = [ 0, sizex, 2*sizex, 2*sizex ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real4, &
+        rc%rdata, counts, displs, mpi_real4, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+    end block transmit
+
+  end subroutine real4_3d_exchange_left_right_pre
+
+  subroutine real4_3d_exchange_left_right_post(ml,nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndx , ny , nk , tx , sizex
+
+    ny = i2-i1+1
+    nk = k2-k1+1
+    tx = ny
+    sizex = nex*tx*nk
+    ndx = 2*sizex
+
+    transmit : block
+
+    integer :: ib1 , ib2 , iex , k
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+         if ( ma%left /= mpi_proc_null ) &
+             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        if ( ma%right /= mpi_proc_null ) &
+            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real4_3d_exchange_left_right_post
 
   subroutine real4_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
@@ -5479,7 +6314,7 @@ module mod_mppparam
   subroutine real8_3d_exchange_bottom_top_pre(ml,nex,j1,j2,i1,i2,k1,k2,rc)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
-    type(commdata_real8) , intent(inout) :: rc
+    type(commdata_real) , intent(inout) :: rc
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: ndy , nx , nk , ty , sizey
 
@@ -5533,7 +6368,7 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    type(commdata_real8) , intent(inout) :: rc
+    type(commdata_real) , intent(inout) :: rc
     integer(ik4) :: ndy , nx , nk , ty , sizey
 
     nx = j2-j1+1
@@ -5808,6 +6643,108 @@ module mod_mppparam
     end block transmit
 
   end subroutine real4_2d_exchange_bottom_top
+
+  subroutine real4_3d_exchange_bottom_top_pre(ml,nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: ndy , nx , nk , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    ty = nx
+    sizey = nex*ty*nk
+    ndy = 2*sizey
+
+    allocate(rc%sdata(ndy))
+    allocate(rc%rdata(ndy))
+
+    transmit : block
+
+    integer(ik4), dimension(4), asynchronous :: counts, displs
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+      end do
+    end do
+
+    counts = [ 0, 0, sizey, sizey ]
+    displs = [ 0, 0, 0, sizey ]
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real4, &
+        rc%rdata, counts, displs, mpi_real4, cartesian_communicator,  &
+        rc%mreq(1), mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
+    end if
+#endif
+    end block transmit
+
+  end subroutine real4_3d_exchange_bottom_top_pre
+
+  subroutine real4_3d_exchange_bottom_top_post(ml,nex,j1,j2,i1,i2,k1,k2,rc)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    type(commdata_real) , intent(inout) :: rc
+    integer(ik4) :: ndy , nx , nk , ty , sizey
+
+    nx = j2-j1+1
+    nk = k2-k1+1
+    ty = nx
+    sizey = nex*ty*nk
+    ndy = 2*sizey
+
+    transmit : block
+
+    integer(ik4) :: ib1 , ib2 , iex , k
+
+    call mpi_waitall(1,rc%mreq,mpi_statuses_ignore,mpierr)
+#ifdef DEBUG
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+    end if
+#endif
+
+    ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%bottom /= mpi_proc_null ) &
+            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        if ( ma%top /= mpi_proc_null ) &
+           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+      end do
+    end do
+
+    end block transmit
+
+    deallocate(rc%sdata)
+    deallocate(rc%rdata)
+    rc%mreq = -1
+  end subroutine real4_3d_exchange_bottom_top_post
 
   subroutine real4_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
