@@ -229,6 +229,7 @@ module mod_mppparam
 
   type commdata_real8
     integer, dimension(1) :: mreq
+    real(rk8) , dimension(:) , allocatable :: sdata
     real(rk8) , dimension(:) , allocatable :: rdata
   end type commdata_real8
 
@@ -4132,20 +4133,21 @@ module mod_mppparam
     ndx = 2*sizex
     ndy = 2*sizey
 
+    allocate(rc%sdata(ndx+ndy))
+    allocate(rc%rdata(ndx+ndy))
+
     transmit : block
 
     integer(ik4), dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx+ndy), asynchronous :: sdata
     integer(ik4) :: ib1 , ib2 , iex , k
 
-    allocate(rc%rdata(ndx+ndy))
     ib2 = 0
     do k = k1 , k2
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
     do k = k1 , k2
@@ -4153,7 +4155,7 @@ module mod_mppparam
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
     do k = k1 , k2
@@ -4161,7 +4163,7 @@ module mod_mppparam
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
     do k = k1 , k2
@@ -4169,13 +4171,13 @@ module mod_mppparam
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
       end do
     end do
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real8, &
         rc%rdata, counts, displs, mpi_real8, cartesian_communicator,  &
         rc%mreq(1), mpierr)
 #ifdef DEBUG
@@ -4253,6 +4255,7 @@ module mod_mppparam
 
     end block transmit
 
+    deallocate(rc%sdata)
     deallocate(rc%rdata)
     rc%mreq = -1
   end subroutine real8_3d_exchange_left_right_bottom_top_post
@@ -4999,20 +5002,21 @@ module mod_mppparam
     sizex = nex*tx*nk
     ndx = 2*sizex
 
+    allocate(rc%sdata(ndx))
+    allocate(rc%rdata(ndx))
+
     transmit : block
 
     integer(ik4), dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdata
     integer :: ib1 , ib2 , iex , k
 
-    allocate(rc%rdata(ndx))
     ib2 = 0
     do k = k1 , k2
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
       end do
     end do
     do k = k1 , k2
@@ -5020,13 +5024,13 @@ module mod_mppparam
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
       end do
     end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real8, &
         rc%rdata, counts, displs, mpi_real8, cartesian_communicator,  &
         rc%mreq(1), mpierr)
 #ifdef DEBUG
@@ -5082,6 +5086,7 @@ module mod_mppparam
 
     end block transmit
 
+    deallocate(rc%sdata)
     deallocate(rc%rdata)
     rc%mreq = -1
   end subroutine real8_3d_exchange_left_right_post
@@ -5484,20 +5489,21 @@ module mod_mppparam
     sizey = nex*ty*nk
     ndy = 2*sizey
 
+    allocate(rc%sdata(ndy))
+    allocate(rc%rdata(ndy))
+
     transmit : block
 
     integer(ik4), dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndy), asynchronous :: sdata
     integer(ik4) :: ib1 , ib2 , iex , k
 
-    allocate(rc%rdata(ndy))
     ib2 = 0
     do k = k1 , k2
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
       end do
     end do
     do k = k1 , k2
@@ -5505,13 +5511,13 @@ module mod_mppparam
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
       end do
     end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+    call mpi_ineighbor_alltoallv(rc%sdata, counts, displs, mpi_real8, &
         rc%rdata, counts, displs, mpi_real8, cartesian_communicator,  &
         rc%mreq(1), mpierr)
 #ifdef DEBUG
@@ -5567,6 +5573,7 @@ module mod_mppparam
 
     end block transmit
 
+    deallocate(rc%sdata)
     deallocate(rc%rdata)
     rc%mreq = -1
   end subroutine real8_3d_exchange_bottom_top_post
