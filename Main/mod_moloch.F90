@@ -705,7 +705,7 @@ module mod_moloch
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 #ifdef USE_MPI3
-        type(commdata_real8) :: comm1, comm2
+        type(commdata_real) :: comm1, comm2
 #endif
 
         zdtrdx = dts/dx
@@ -1451,7 +1451,7 @@ module mod_moloch
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
 #ifdef USE_MPI3
-        type(commdata_real8) :: comm1, comm2
+        type(commdata_real) :: comm1, comm2
 #endif
 
         real(rkx) , parameter :: wlow  = 0.0_rkx
