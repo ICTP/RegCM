@@ -718,6 +718,7 @@ module mod_moloch
         real(rkx) , intent(in) :: nu
         integer(ik4) :: j , i , k
 
+        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -790,7 +791,7 @@ module mod_moloch
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 #ifdef USE_MPI3
-        type(commdata_real) :: comm1, comm2
+        type(commdata_real) :: comm1, comm2 , comm3
 #endif
 
         zdtrdx = dts/dx
@@ -800,13 +801,18 @@ module mod_moloch
 
         !  sound waves
 
+#ifndef USE_MPI3
         if ( .not. do_fulleq ) then
           call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
+#endif
 
         do jsound = 1 , nsound
 
 #ifdef USE_MPI3
+          if ( jsound == 1 .and. .not. do_fulleq ) then
+            call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm2)
 
@@ -1047,7 +1053,12 @@ module mod_moloch
           end if
 
 #endif
-          call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
+#ifdef USE_MPI3
+          if ( jsound == 1 .and. .not. do_fulleq ) then
+            call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+#endif
           call divdamp(dtsound)
           if ( do_filterdiv ) call filt3d(zdiv2,mo_anu2)
           do k = 1 , kz
@@ -1137,7 +1148,11 @@ module mod_moloch
                 end do
               end do
             end if
+#ifdef USE_MPI3
+            call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+#else
             call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+#endif
           end if
 
           ! horizontal momentum equations
@@ -1156,6 +1171,10 @@ module mod_moloch
 #ifdef USE_MPI3
           call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_pre(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1,comm2)
+
+          if ( do_fulleq ) then
+            call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
 
           if ( lrotllr ) then
             do k = 1 , kz
@@ -2496,8 +2515,78 @@ module mod_moloch
     real(rkx) , intent(in) :: dts
     integer(ik4) :: i , j , k
     real(rkx) :: ddamp1
+#ifdef USE_MPI3
+    type(commdata_real) :: comm
+#endif
 
     ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
+#ifdef USE_MPI3
+    call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+    if ( lrotllr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1+1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1+1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1+1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1+1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    end if
+    call exchange_lrbt_post(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+    if ( lrotllr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = u(jdi1,i,k) + &
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+        end do
+      end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = v(j,idi1,k) + &
+              ddamp1/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = u(jdi1,i,k) + &
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+        end do
+      end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = v(j,idi1,k) + &
+              ddamp1/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+        end do
+      end do
+    end if
+#else
+    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
     if ( lrotllr ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -2533,6 +2622,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine divdamp
 
 end module mod_moloch
