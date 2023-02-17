@@ -253,8 +253,7 @@ module mod_micro_interface
 
     select case ( icldfrac )
       case (1)
-        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qvn, &
-                           mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
         call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn, &
                            totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
