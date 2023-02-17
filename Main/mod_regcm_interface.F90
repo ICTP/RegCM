@@ -89,10 +89,12 @@ module mod_regcm_interface
       call fatal(__FILE__,__LINE__,'mpi_comm_size Failure!')
     end if
 #ifndef MPI_SERIAL
+#ifdef DEBUG
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__,'mpi_comm_set_errhandler Failure!')
     end if
+#endif
 #endif
 
     call whoami(myid)

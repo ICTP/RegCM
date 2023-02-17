@@ -54,17 +54,13 @@ module mod_mkch4topm
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nlch4
       call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
+      call bestaround(lch4(:,:,n),h_missing_value)
       do i = 1 , iysg
         do j = 1 , jxsg
           if ( mask(j,i) < 0.5_rkx ) then
             lch4(j,i,n) = h_missing_value
           else
-            if ( lch4(j,i,n) > h_missing_value ) then
-              lch4(j,i,n) = max(d_zero,lch4(j,i,n))
-            else
-              call bestaround(lch4(:,:,n),i,j)
-              lch4(j,i,n) = max(d_zero,lch4(j,i,n))
-            end if
+            lch4(j,i,n) = max(d_zero,lch4(j,i,n))
           end if
         end do
       end do

@@ -272,7 +272,7 @@ module mod_che_dust
 
       ! specific table for clay component
       fclay(:) = soiltexpc(4,:)
-      fsand(:) = soiltexpc(1,:) + soiltexpc(2,:) 
+      fsand(:) = soiltexpc(1,:) + soiltexpc(2,:)
 
       mmd = d_zero
       sigma = d_zero
@@ -757,10 +757,14 @@ module mod_che_dust
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998
-        ustarns = ustarnd(j)*d_100 !cm.s-1
-        utmin = (umin/(d_100*vonkar*rc(j)))*log(d_1000/srl(j))
-        if (surfwd(j) >= utmin ) then
-          ustar(j) = ustarns + 0.3_rkx*(surfwd(j)-utmin)**2
+        ustarns = max(ustarnd(j),0.0001_rkx)*d_100 !cm.s-1
+        if ( rc(j) > d_zero ) then
+          utmin = (umin/(d_100*vonkar*rc(j)))*log(d_1000/srl(j))
+          if ( surfwd(j) >= utmin ) then
+            ustar(j) = ustarns + 0.3_rkx*(surfwd(j)-utmin)**2
+          else
+            ustar(j) = ustarns
+          end if
         else
           ustar(j) = ustarns
         end if

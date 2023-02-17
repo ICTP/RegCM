@@ -48,18 +48,13 @@ module mod_mkpeatf
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,peatf,h_missing_value)
     call gfclose(gfile)
-
+    call bestaround(peatf,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           peatf(j,i) = h_missing_value
         else
-          if ( peatf(j,i) > h_missing_value ) then
-            peatf(j,i) = max(d_zero,peatf(j,i))
-          else
-            call bestaround(peatf,i,j)
-            peatf(j,i) = max(d_zero,peatf(j,i))
-          end if
+          peatf(j,i) = max(d_zero,peatf(j,i))
         end if
       end do
     end do

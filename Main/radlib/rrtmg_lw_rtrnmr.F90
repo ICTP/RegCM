@@ -140,14 +140,12 @@
 
 ! ----- Local -----
 ! Declarations for radiative transfer
-      real(kind=rb) :: abscld(nlayers,nbndlw)
       real(kind=rb) :: atot(nlayers)
       real(kind=rb) :: atrans(nlayers)
       real(kind=rb) :: bbugas(nlayers)
       real(kind=rb) :: bbutot(nlayers)
       real(kind=rb) :: clrurad(0:nlayers)
       real(kind=rb) :: clrdrad(0:nlayers)
-      real(kind=rb) :: efclfrac(nlayers,nbndlw)
       real(kind=rb) :: uflux(0:nlayers)
       real(kind=rb) :: dflux(0:nlayers)
       real(kind=rb) :: urad(0:nlayers)
@@ -159,7 +157,7 @@
       real(kind=rb) :: secdiff(nbndlw)                 ! secant of diffusivity angle
       real(kind=rb) :: a0(nbndlw),a1(nbndlw),a2(nbndlw)! diffusivity angle adjustment coefficients
       real(kind=rb) :: wtdiff, rec_6
-      real(kind=rb) :: transcld, radld, radclrd, plfrac, blay, dplankup, dplankdn
+      real(kind=rb) :: radld, radclrd, plfrac, blay, dplankup, dplankdn
       real(kind=rb) :: odepth, odtot, odepth_rec, odtot_rec, gassrc, ttot
       real(kind=rb) :: tblind, tfactot, bbd, bbdtot, tfacgas, transc, tausfac
       real(kind=rb) :: rad0, reflect, radlu, radclru
@@ -218,7 +216,6 @@
 
 ! local
 !    atrans                       ! gaseous absorptivity
-!    abscld                       ! cloud absorptivity
 !    atot                         ! combined gaseous and cloud absorptivity
 !    odclr                        ! clear sky (gaseous) optical depth
 !    odcld                        ! cloud optical depth
@@ -230,7 +227,6 @@
 !    bbdtot                       ! gas and cloud planck function for downward rt
 !    bbutot                       ! gas and cloud planck function for upward calc.
 !    gassrc                       ! source radiance due to gas only
-!    efclfrac                     ! effective cloud fraction
 !    radlu                        ! spectrally summed upward radiance
 !    radclru                      ! spectrally summed clear sky upward radiance
 !    urad                         ! upward radiance by layer
@@ -300,6 +296,15 @@
 
       hvrrtx = '$Revision$'
 
+      rad = 0.0_rb
+      rat1 = 0.0_rb
+      rat2 = 0.0_rb
+      d_radlu_dt = 0.0_rb
+      d_radclru_dt = 0.0_rb
+      clrradu = 0.0_rb
+      cldradu = 0.0_rb
+      clrradd = 0.0_rb
+      cldradd = 0.0_rb
       urad(0) = 0.0_rb
       drad(0) = 0.0_rb
       totuflux(0) = 0.0_rb
@@ -417,9 +422,9 @@
                endif
             endif
             if (istcld(lev).ne.1) then
-                faccmb1(lev+1) = max(0.,min(cldfrac(lev+1)-cldfrac(lev), &
+              faccmb1(lev+1) = max(0.0_rb,min(cldfrac(lev+1)-cldfrac(lev), &
                     cldfrac(lev-1)-cldfrac(lev)))
-                faccmb2(lev+1) = max(0.,min(cldfrac(lev)-cldfrac(lev+1), &
+              faccmb2(lev+1) = max(0.0_rb,min(cldfrac(lev)-cldfrac(lev+1), &
                     cldfrac(lev)-cldfrac(lev-1)))
             endif
          else
@@ -495,9 +500,9 @@
                endif
             endif
             if (istcldd(lev).ne.1) then
-                faccmb1d(lev-1) = max(0.,min(cldfrac(lev+1)-cldfrac(lev), &
-                    cldfrac(lev-1)-cldfrac(lev)))
-                faccmb2d(lev-1) = max(0.,min(cldfrac(lev)-cldfrac(lev+1), &
+              faccmb1d(lev-1) = max(0.0_rb,min(cldfrac(lev+1)-cldfrac(lev), &
+                cldfrac(lev-1)-cldfrac(lev)))
+              faccmb2d(lev-1) = max(0.0_rb,min(cldfrac(lev)-cldfrac(lev+1), &
                     cldfrac(lev)-cldfrac(lev-1)))
             endif
          else
@@ -511,6 +516,7 @@
 
 ! Reinitialize g-point counter for each band if output for each band is requested.
          if (iout.gt.0.and.iband.ge.2) igc = ngs(iband-1)+1
+         ib = 0
          if (ncbands .eq. 1) then
             ib = ipat(iband,0)
          elseif (ncbands .eq.  5) then
@@ -560,7 +566,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -570,7 +576,7 @@
                      bbutot(lev) = plfrac * (blay + tfactot * dplankup)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itgas = int(tblint*tblind+0.5_rb)
+                     itgas = int(tblint*tblind+0.5_rb,im)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -578,7 +584,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
@@ -622,7 +628,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = int(tblint*tblind+0.5_rb)
+                     itr = int(tblint*tblind+0.5_rb,im)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

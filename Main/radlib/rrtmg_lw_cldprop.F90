@@ -171,6 +171,8 @@
       hvrcld = '$Revision$'
 
       ncbands = 1
+      liqind = 0
+      iceind = 0
       tauctot(:) = 0._rb
 
       do lay = 1, nlayers
@@ -230,7 +232,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 43) index = 42
-                     fint = factor - real(index,kind=rb)
+                     fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                             absice2(index,ib) + fint * &
@@ -246,7 +248,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 46) index = 45
-                     fint = factor - real(index,kind=rb)
+                     fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                           absice3(index,ib) + fint * &
@@ -274,7 +276,7 @@
                   index = int(radliq - 1.5_rb)
                   if (index .eq. 0) index = 1
                   if (index .eq. 58) index = 57
-                  fint = radliq - 1.5_rb - real(index,kind=rb)
+                  fint = radliq - 1.5_rb - real(index)
                   ncbands = 16
                   do ib = 1, ncbands
                      abscoliq(ib) = &
@@ -295,5 +297,4 @@
       end subroutine cldprop
 
       end module rrtmg_lw_cldprop
-
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

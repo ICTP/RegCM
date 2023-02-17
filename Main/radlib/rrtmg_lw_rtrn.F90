@@ -287,6 +287,8 @@
          endif
       enddo
 
+      d_radlu_dt = 0.0_rb
+      d_radclru_dt = 0.0_rb
       urad(0) = 0.0_rb
       drad(0) = 0.0_rb
       totuflux(0) = 0.0_rb
@@ -340,6 +342,7 @@
 
 ! Reinitialize g-point counter for each band if output for each band is requested.
          if (iout.gt.0.and.iband.ge.2) igc = ngs(iband-1)+1
+         ib = 0
          if (ncbands .eq. 1) then
             ib = ipat(iband,0)
          elseif (ncbands .eq.  5) then
@@ -394,7 +397,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -412,7 +415,7 @@
                   else
 
                      tblind = odepth/(bpade+odepth)
-                     itgas = int(tblint*tblind+0.5_rb)
+                     itgas = int(tblint*tblind+0.5_rb,im)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -420,7 +423,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
@@ -443,7 +446,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = int(tblint*tblind+0.5_rb)
+                     itr = int(tblint*tblind+0.5_rb,im)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

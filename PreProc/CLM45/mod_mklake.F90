@@ -48,17 +48,13 @@ module mod_mklake
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,lake,h_missing_value)
     call gfclose(gfile)
+    call bestaround(lake,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           lake(j,i) = h_missing_value
         else
-          if ( lake(j,i) > h_missing_value ) then
-            lake(j,i) = max(d_zero,lake(j,i))
-          else
-            call bestaround(lake,i,j)
-            lake(j,i) = max(d_zero,lake(j,i))
-          end if
+          lake(j,i) = max(d_zero,lake(j,i))
         end if
       end do
     end do

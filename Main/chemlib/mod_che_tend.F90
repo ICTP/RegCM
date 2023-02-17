@@ -68,7 +68,6 @@
 #ifndef CLM45
       real(rkx) :: facb , facs , facv , pres10 , qsat10 , shu10
 #endif
-      real(rkx) :: fact , u10 , v10
       real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: rho , ttb,  wl , prec , &
                                                       convprec
       real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: hgt , ph
@@ -77,7 +76,7 @@
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
       real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
-       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf 
+       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
       real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: ustar
@@ -199,7 +198,7 @@
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( ivegcov(j,i) /= 0 ) then
-            zeff(j,i) = czo(j,i) 
+            zeff(j,i) = czo(j,i)
           else
             zeff(j,i) = zoce
           end if
@@ -250,7 +249,7 @@
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-        ! if ( ivegcov(j,i) == 8) print*, 'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i) 
+        ! if ( ivegcov(j,i) == 8) print*, 'HE desert',custar(j,i),ustar(j,i), wid10(j,i), cw10m(j,i)
      !FAB TEST
         end do
       end do

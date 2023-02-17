@@ -280,6 +280,8 @@
          endif
       enddo
 
+      d_radlu_dt = 0.0_rb
+      d_radclru_dt = 0.0_rb
       urad(0) = 0.0_rb
       drad(0) = 0.0_rb
       totuflux(0) = 0.0_rb
@@ -317,7 +319,11 @@
             if (cldfmc(ig,lay) .eq. 1._rb) then
                ib = ngb(ig)
                odcld(lay,ig) = secdiff(ib) * taucmc(ig,lay)
-               transcld = exp(-odcld(lay,ig))
+               if ( odcld(lay,ig) > 30.0_rb ) then
+                 transcld = 0.0_rb
+               else
+                 transcld = exp(-odcld(lay,ig))
+               end if
                abscld(lay,ig) = 1._rb - transcld
                efclfrac(lay,ig) = abscld(lay,ig) * cldfmc(ig,lay)
                icldlyr(lay) = 1
@@ -383,7 +389,7 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -401,7 +407,7 @@
                   else
 
                      tblind = odepth/(bpade+odepth)
-                     itgas = int(tblint*tblind+0.5_rb)
+                     itgas = int(tblint*tblind+0.5_rb,im)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -409,19 +415,19 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
                      atot(lev) = 1._rb - exp_tbl(ittot)
 
-                  radld = radld - radld * (atrans(lev) + &
-                    efclfrac(lev,igc) * (1._rb - atrans(lev))) + &
-                    gassrc + cldfmc(igc,lev) * &
-                    (bbdtot * atot(lev) - gassrc)
-                  drad(lev-1) = drad(lev-1) + radld
-                  bbugas(lev) = plfrac * (blay + tfacgas * dplankup)
-                  bbutot(lev) = plfrac * (blay + tfactot * dplankup)
+                    radld = radld - radld * (atrans(lev) + &
+                      efclfrac(lev,igc) * (1._rb - atrans(lev))) + &
+                      gassrc + cldfmc(igc,lev) * &
+                      (bbdtot * atot(lev) - gassrc)
+                    drad(lev-1) = drad(lev-1) + radld
+                    bbugas(lev) = plfrac * (blay + tfacgas * dplankup)
+                    bbutot(lev) = plfrac * (blay + tfactot * dplankup)
                   endif
 !  Clear layer
                else
@@ -432,7 +438,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = int(tblint*tblind+0.5_rb)
+                     itr = int(tblint*tblind+0.5_rb,im)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

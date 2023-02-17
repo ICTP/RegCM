@@ -1,20 +1,39 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_lw/src/rrtmg_lw_rad.nomcica.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.11 $
-!     created:   $Date: 2009/11/12 20:52:25 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
 
-module rrtmg_lw_rad_nomcica
+       module rrtmg_lw_rad_nomcica
 
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)
+!----------------------------------------------------------------------------
 !
 ! ****************************************************************************
 ! *                                                                          *
@@ -67,7 +86,7 @@ module rrtmg_lw_rad_nomcica
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: rrtmg_lw_nomcica
+      public :: rrtmg_lw_nomcica, inatm_nomcica
 
 !------------------------------------------------------------------
       contains
@@ -77,15 +96,14 @@ module rrtmg_lw_rad_nomcica
 ! Public subroutines
 !------------------------------------------------------------------
 
-       subroutine rrtmg_lw_nomcica &
-            (ncol    ,nlay    ,icld    ,idrv    , &
-             play    ,plev    ,tlay    ,tlev    ,tsfc    , &
-             h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
-             cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr ,emis    , &
-             inflglw ,iceflglw,liqflglw,cldfr   , &
-             taucld  ,cicewp  ,cliqwp  ,reice   ,reliq   , &
-             tauaer  , &
-             uflx    ,dflx    ,hr      ,uflxc   ,dflxc,  hrc, &
+      subroutine rrtmg_lw_nomcica &
+            (ncol    ,nlay    ,icld    ,idrv    ,lradfor  ,idirect   , &
+             play    ,plev    ,tlay    ,tlev    ,tsfc     ,h2ovmr    , &
+             o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr    ,cfc11vmr  , &
+             cfc12vmr,cfc22vmr,ccl4vmr ,emis    ,inflglw  ,iceflglw  , &
+             liqflglw,cldfr   ,taucld  ,cicewp  ,cliqwp   ,reice     , &
+             reliq   ,tauaer  ,uflx    ,dflx    ,hr       ,uflxc     , &
+             dflxc   ,hrc     ,aerfolw ,aerfoslw,asaerfolw,asaerfoslw, &
              duflx_dt,duflxc_dt )
 
 ! -------- Description --------
@@ -195,6 +213,9 @@ module rrtmg_lw_rad_nomcica
                                                       !    0: Normal forward calculation
                                                       !    1: Normal forward calculation with
                                                       !       duflx_dt and duflxc_dt output
+      logical, intent(in) :: lradfor          !FAB
+
+      integer(kind=im), intent(in) :: idirect !flag for computing aerosol radiative forcing
 
       real(kind=rb), intent(in) :: play(:,:)          ! Layer pressures (hPa, mb)
                                                       !    Dimensions: (ncol,nlay)
@@ -289,16 +310,19 @@ module rrtmg_lw_rad_nomcica
                                                       !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out) :: hrc(:,:)          ! Clear sky longwave radiative heating rate (K/d)
                                                       !    Dimensions: (ncol,nlay)
+      ! FAB for regcm save rad forcing
+      real(kind=rb), intent(out) :: aerfolw(:), aerfoslw(:), &
+        asaerfolw(:), asaerfoslw(:)
 
 ! ----- Optional Output -----
       real(kind=rb), intent(out), optional :: duflx_dt(:,:)
                                                       ! change in upward longwave flux (w/m2/k)
                                                       ! with respect to surface temperature
-                                                      !    Dimensions: (ncol,nlay)
+                                                      !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out), optional :: duflxc_dt(:,:)
                                                       ! change in clear sky upward longwave flux (w/m2/k)
                                                       ! with respect to surface temperature
-                                                      !    Dimensions: (ncol,nlay)
+                                                      !    Dimensions: (ncol,nlay+1)
 
 ! ----- Local -----
 
@@ -309,9 +333,10 @@ module rrtmg_lw_rad_nomcica
       integer(kind=im) :: iout                ! output option flag (inactive)
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: iplon               ! column loop index
-!     integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
+      !integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
       integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ig                  ! g-point loop index
+      integer(kind=im) :: n, nlwcall          ! added for rad calculation double call in regcm
 
 ! Atmosphere
       real(kind=rb) :: pavel(nlay+1)          ! layer pressures (mb)
@@ -455,7 +480,7 @@ module rrtmg_lw_rad_nomcica
 !  Prepare atmospheric profile from GCM for use in RRTMG, and define
 !  other input parameters.
 
-         call inatm (iplon, nlay, icld, iaer, &
+         call inatm_nomcica (iplon, nlay, icld, iaer, &
               play, plev, tlay, tlev, tsfc, h2ovmr, &
               o3vmr, co2vmr, ch4vmr, n2ovmr, o2vmr, cfc11vmr, cfc12vmr, &
               cfc22vmr, ccl4vmr, emis, inflglw, iceflglw, liqflglw, &
@@ -505,40 +530,121 @@ module rrtmg_lw_rad_nomcica
                      fracs, taug)
 
 ! Combine gaseous and aerosol optical depths, if aerosol active
-         if (iaer .eq. 0) then
+         !if (iaer .eq. 0) then
             do k = 1, nlayers
                do ig = 1, ngptlw
                   taut(k,ig) = taug(k,ig)
                enddo
             enddo
-         elseif (iaer .eq. 10) then
-            do k = 1, nlayers
-               do ig = 1, ngptlw
-                  taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
-               enddo
-            enddo
-         endif
+         !elseif (iaer .eq. 10) then
+         !   do k = 1, nlayers
+         !      do ig = 1, ngptlw
+         !         taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
+         !      enddo
+         !   enddo
+         !endif
+
+         ! FAB : double call to rad scheme forcomputing radiative forcing
+         if ( idirect == 0 .or. .not. lradfor ) then
+           nlwcall = 1
+         else if (idirect > 0 .and. lradfor ) then
+           nlwcall = 2
+         end if
+         do n = 1 , nlwcall
+           if ( idirect == 1 ) then
+             if ( n == 1 .and. lradfor)  then
+               do k = 1, nlayers
+                 do ig = 1, ngptlw
+                   taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
+                 end do
+               end do
+             else if ( n == 2 .or. .not.lradfor) then
+               do k = 1, nlayers
+                 do ig = 1, ngptlw
+                   taut(k,ig) = taug(k,ig)
+                 end do
+               end do
+             else if ( idirect == 2 ) then
+               if ( n == 1 .and. lradfor ) then
+                 do k = 1, nlayers
+                   do ig = 1, ngptlw
+                     taut(k,ig) = taug(k,ig)
+                   end do
+                 end do
+               else if ( n == 2 .or. .not. lradfor ) then
+                 do k = 1, nlayers
+                   do ig = 1, ngptlw
+                     taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
+                   end do
+                 end do
+               end if
+             end if
+           end if
 
 ! Call the radiative transfer routine.
 ! Either routine can be called to do clear sky calculation.  If clouds
 ! are present, then select routine based on cloud overlap assumption
 ! to be used.  Clear sky calculation is done simultaneously.
 
-        if (icld .eq. 1) then
-           call rtrn(nlayers, istart, iend, iout, pz, semiss, ncbands, &
-                  cldfrac, taucloud, planklay, planklev, plankbnd, &
-                  pwvcm, fracs, taut, &
-                  totuflux, totdflux, fnet, htr, &
-                  totuclfl, totdclfl, fnetc, htrc, &
-                  idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
-        else
-           call rtrnmr(nlayers, istart, iend, iout, pz, semiss, ncbands, &
-                  cldfrac, taucloud, planklay, planklev, plankbnd, &
-                  pwvcm, fracs, taut, &
-                  totuflux, totdflux, fnet, htr, &
-                  totuclfl, totdclfl, fnetc, htrc, &
-                  idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
-        endif
+           if (icld .eq. 1) then
+             call rtrn(nlayers, istart, iend, iout, pz, semiss, ncbands, &
+                    cldfrac, taucloud, planklay, planklev, plankbnd, &
+                    pwvcm, fracs, taut, &
+                    totuflux, totdflux, fnet, htr, &
+                    totuclfl, totdclfl, fnetc, htrc, &
+                    idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
+           else
+             call rtrnmr(nlayers, istart, iend, iout, pz, semiss, ncbands, &
+                    cldfrac, taucloud, planklay, planklev, plankbnd, &
+                    pwvcm, fracs, taut, &
+                    totuflux, totdflux, fnet, htr, &
+                    totuclfl, totdclfl, fnetc, htrc, &
+                    idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
+           endif
+
+           ! FAB save aerosol rad for
+           if ( idirect == 1 .and. lradfor ) then
+             ! first call save the NET flux in  aerfo
+             if ( n == 1 ) then
+               aerfolw (iplon) =    totdclfl(nlayers) - totuclfl(nlayers)
+               aerfoslw (iplon) =   totdclfl(0) -  totuclfl(0)
+               asaerfolw (iplon) =    totdflux(nlayers) - totuflux(nlayers)
+               asaerfoslw (iplon) =    totdflux(0) - totuflux(0)
+             else if ( n == 2 ) then
+               ! calculate rad. for (with aer - without)
+               aerfolw (iplon) =  aerfolw(iplon) - &
+                 ( totdclfl(nlayers) - totuclfl(nlayers) )
+               aerfoslw (iplon) =  aerfoslw(iplon) - &
+                 ( totdclfl(0) -  totuclfl(0))
+               asaerfolw (iplon) =  asaerfolw(iplon) - &
+                 ( totdflux(nlayers) - totuflux(nlayers) )
+               asaerfoslw (iplon) =  asaerfoslw(iplon) - &
+                 (  totdflux(0) - totuflux(0)  )
+             end if
+           else if ( idirect == 2 .and. lradfor )  then
+             if ( n == 1 ) then
+               aerfolw (iplon) = totdclfl(nlayers) - totuclfl(nlayers)
+               aerfoslw (iplon) = totdclfl(0) -  totuclfl(0)
+               asaerfolw (iplon) = totdflux(nlayers) - totuflux(nlayers)
+               asaerfoslw (iplon) = totdflux(0) - totuflux(0)
+             else if ( n == 2 ) then
+               ! calculate rad. for (with aer- without)
+               aerfolw(iplon) = (totdclfl(nlayers) - totuclfl(nlayers)) - &
+                 aerfolw(iplon)
+               aerfoslw(iplon) = (totdclfl(0) - totuclfl(0)) - &
+                 aerfoslw(iplon)
+               asaerfolw(iplon) = (totdflux(nlayers) - totuflux(nlayers)) - &
+                 asaerfolw(iplon)
+               asaerfoslw(iplon) = (totdflux(0) - totuflux(0)) - &
+                 asaerfoslw(iplon)
+             end if
+           else
+             aerfolw(iplon) = 0._rb
+             aerfoslw(iplon) = 0._rb
+             asaerfolw(iplon) = 0._rb
+             asaerfoslw(iplon) = 0._rb
+           end if
+         end do ! end loop on nlw call
 
 !  Transfer up and down fluxes and heating rate to output arrays.
 !  Vertical indexing goes from bottom to top; reverse here for GCM if necessary.
@@ -569,7 +675,7 @@ module rrtmg_lw_rad_nomcica
       end subroutine rrtmg_lw_nomcica
 
 !***************************************************************************
-      subroutine inatm (iplon, nlay, icld, iaer, &
+      subroutine inatm_nomcica (iplon, nlay, icld, iaer, &
               play, plev, tlay, tlev, tsfc, h2ovmr, &
               o3vmr, co2vmr, ch4vmr, n2ovmr, o2vmr, cfc11vmr, cfc12vmr, &
               cfc22vmr, ccl4vmr, emis, inflglw, iceflglw, liqflglw, &
@@ -586,7 +692,7 @@ module rrtmg_lw_rad_nomcica
 
 ! --------- Modules ----------
 
-      use parrrtm, only : nbndlw, nmol, maxxsec
+      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec, mxmol
       use rrlw_con, only: grav, avogad
       use rrlw_wvn, only: ixindx
 
@@ -713,14 +819,14 @@ module rrtmg_lw_rad_nomcica
 
 ! Set molecular weight ratios (for converting mmr to vmr)
 !  e.g. h2ovmr = h2ommr * amdw)
-!      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
-!      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
-!      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
-!      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
-!      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
-!      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
-!      real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
-!      real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
+      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
+      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
+      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
+      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
+      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
+      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
+      real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
+      real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
 
       integer(kind=im) :: l, ix, n, imol, ib       ! Loop indices
       real(kind=rb) :: amm, amttl, wvttl, wvsh, summol
@@ -897,8 +1003,8 @@ module rrtmg_lw_rad_nomcica
 
       endif
 
-    end subroutine inatm
+      end subroutine inatm_nomcica
 
-end module rrtmg_lw_rad_nomcica
+      end module rrtmg_lw_rad_nomcica
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

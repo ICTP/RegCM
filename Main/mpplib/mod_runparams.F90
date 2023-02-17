@@ -589,19 +589,22 @@ module mod_runparams
     ncin(1) = high_nudge
     ncin(2) = medium_nudge
     ncin(3) = low_nudge
-    if ( idynamic == 3 ) then
-      zcin(1) = 0.0_rkx
-      zcin(2) = 0.5_rkx
-      zcin(3) = 1.0_rkx
-    else
-      zcin(1) = sigma(1)
-      zcin(2) = (sigma(kzp1)-sigma(1))*0.5_rkx
-      zcin(3) = sigma(kzp1)
-    end if
+    zcin(1) = sigma(1)
+    zcin(2) = sigma(findwhere(0.40_rkx))
+    zcin(3) = sigma(kzp1)
     call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
     if ( myid == 0 ) then
       call vprntv(nudge,kz,'Nudging coefficient profile')
     end if
+    contains
+    integer(ik4) function findwhere(val) result(k)
+      implicit none
+      real(rkx) , intent(in) :: val
+      do k = 2 , kz
+        if ( sigma(k) > val ) exit
+      end do
+    end function findwhere
+
   end subroutine exponential_nudging
 
 end module mod_runparams

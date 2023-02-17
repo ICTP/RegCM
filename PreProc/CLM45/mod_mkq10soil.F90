@@ -52,17 +52,13 @@ module mod_mkq10soil
     call gfread(gfile,varname,q10soil,h_missing_value)
     call gfclose(gfile)
 
+    call bestaround(q10soil,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           q10soil(j,i) = h_missing_value
         else
-          if ( q10soil(j,i) > h_missing_value ) then
-            q10soil(j,i) = max(d_zero,q10soil(j,i))
-          else
-            call bestaround(q10soil,i,j)
-            q10soil(j,i) = max(d_zero,q10soil(j,i))
-          end if
+          q10soil(j,i) = max(d_zero,q10soil(j,i))
         end if
       end do
     end do

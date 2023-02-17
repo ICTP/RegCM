@@ -458,6 +458,7 @@ module mod_dynparam
   real(rkx) , public :: perturb_frac_u
   real(rkx) , public :: perturb_frac_v
 
+  logical , public :: lclm45lake = .false.
 #ifdef CLM45
   logical , public :: enable_megan_emission = .false.
   logical , public :: enable_urban_landunit = .true.
@@ -486,7 +487,7 @@ module mod_dynparam
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
-      inpter , moist_filename , tersrc , smsrc , roidem
+      inpter , moist_filename , tersrc , smsrc , roidem , lclm45lake
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge , bdy_nm , bdy_dm

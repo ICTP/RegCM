@@ -52,17 +52,14 @@ module mod_mkndep
     call gfread(gfile,varname,ndep,h_missing_value)
     call gfclose(gfile)
 
+    call bestaround(ndep,h_missing_value)
+
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           ndep(j,i) = h_missing_value
         else
-          if ( ndep(j,i) > h_missing_value ) then
-            ndep(j,i) = max(d_zero,ndep(j,i))
-          else
-            call bestaround(ndep,i,j)
-            ndep(j,i) = max(d_zero,ndep(j,i))
-          end if
+          ndep(j,i) = max(d_zero,ndep(j,i))
         end if
       end do
     end do

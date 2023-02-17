@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-AC_INIT([RegCM], [4.9.0], [ggiulian@ictp.it])
+AC_INIT([RegCM], [5.0.0], [ggiulian@ictp.it])
 
 AC_SUBST([PACKAGE_URL], ["https://github.com/ICTP/RegCM"])
 
@@ -162,6 +162,7 @@ AC_ARG_ENABLE(clm,
   [USECLM="1"],
 )
 AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
+AM_CONDITIONAL(RRTM_NC, [true])
 
 AC_ARG_ENABLE(megan,
   AC_HELP_STRING([--enable-megan],

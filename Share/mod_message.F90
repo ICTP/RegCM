@@ -102,15 +102,23 @@ module mod_message
     call die(filename,trim(cline),1)
   end subroutine fatal
 
+#ifdef DEBUG
   subroutine checkalloc(ival,filename,line,arg)
+#else
+  pure subroutine checkalloc(ival,filename,line,arg)
+#endif
     implicit none
     integer(ik4) , intent(in) :: ival , line
     character(*) , intent(in) :: filename , arg
+#ifdef DEBUG
     if ( ival /= 0 ) then
       write (cline,'(i8)') line
       write (stderr,*) 'Memory error in allocating ', arg
       call die(filename,trim(cline),ival)
     end if
+#else
+    return
+#endif
   end subroutine checkalloc
 
   subroutine die0(msg)

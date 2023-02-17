@@ -33,15 +33,74 @@ module mod_cmip6_normm
 
   private
 
+  integer(ik4) , parameter :: nhistory = 7
+  integer(ik4) , parameter :: nscenario = 9
+  integer(ik4) , parameter :: nfiles = nhistory + nscenario
+
+  integer(ik8) , parameter , dimension(nfiles) :: nrmm_start = [ &
+   195001010300, 196001010300, 197001010300, 198001010300,  &
+   199001010300, 200001010300, 201001010300, 201501010600,  &
+   202101010600, 203101010600, 204101010600, 205101010600,  &
+   206101010600, 207101010600, 208101010600, 209101010600 ]
+  integer(ik8) , parameter , dimension(nfiles) :: nrmm_end = [   &
+   195912312100, 196912312100, 197912312100, 198912312100,  &
+   199912312100, 200912312100, 201412312100, 202101010000,  &
+   203101010000, 204101010000, 205101010000, 206101010000,  &
+   207101010000, 208101010000, 209101010000, 210101010000 ]
+
   character(len=*) , parameter :: normm_version = 'v20191108'
-  character(len=*) , parameter :: normm_version1 = 'v20210319'
-  character(len=*) , parameter :: normm_version2 = 'v20200702'
-  character(len=*) , parameter :: normm_version3 = 'v20200218'
-  character(len=*) , parameter :: normm_version4 = 'v20210319'
+  character(len=*) , parameter :: normm_version1 = 'v20200218'
+  character(len=*) , parameter :: normm_version2 = 'v20210319'
 
   public :: read_3d_normm , read_2d_normm , read_fx_normm , read_sst_normm
 
   contains
+
+    integer(ik4) function isequence(icode) result(ic)
+      implicit none
+      integer(ik8) , intent(in) :: icode
+      integer(ik4) :: i
+      do i = 1 , nfiles
+        ic = i
+        if ( icode >= nrmm_start(ic) .and. icode < nrmm_end(ic) ) exit
+      end do
+    end function isequence
+
+    character(len=1024) function fname(vname,idate,offset)
+      implicit none
+      character(len=*) , intent(in) :: vname
+      type(rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_interval) , intent(in) , optional :: offset
+      type(rcm_time_and_date) :: hdate
+      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: iseq
+      integer(ik8) :: icode
+
+      if ( present(offset) ) then
+        hdate = idate + offset
+      else
+        hdate = idate
+      end if
+      call split_idate(hdate, year, month, day, hour)
+      icode = int(year,8)*100000000 + int(month,8)*1000000 + &
+              int(day,8)*10000 + int(hour,8)*100
+      iseq = isequence(icode)
+      if ( idate < 2015010112 ) then
+        write(fname,'(a,i12,a,i12,a)') &
+              trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+                              '6hrLev',normm_version,vname)), &
+              nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
+      else
+        !write(fname,'(a,i12,a,i12,a)') &
+        !      trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+        !                      '6hrLev',normm_version1,vname)), &
+        !      nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
+        write(fname,'(a,i12,a,i12,a)') &
+              trim(cmip6_path(int(nrmm_start(iseq)/100000000),&
+                              '6hrLev',normm_version2,vname)), &
+              nrmm_start(iseq), '-', nrmm_end(iseq), '.nc'
+      end if
+    end function fname
 
     subroutine read_hcoord_normm(ncid,lon,lat)
       implicit none
@@ -128,32 +187,20 @@ module mod_cmip6_normm
       type(cmip6_3d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=1024) :: seqfile
+      integer :: ncid_next , ivar_next , icloseme
+      real(rkx) , dimension(:,:,:) , allocatable :: v1
 
+      tdif = rcm_time_interval(3,uhrs)
       if ( v%ncid == -1 ) then
-        call split_idate(idate, year, month, day, hour)
-        if ( idate < 2010010106 ) then
-          y = (year / 10) * 10
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'6hrLev',normm_version3,v%vname)), &
-            y, '01010600-', y+10, '01010000.nc'
-        else if ( idate < 2015010106 ) then
-          y = 2010
-          v%filename = trim(cmip6_path(y,'6hrLev',normm_version3,v%vname)) // &
-            '201001010600-201501010000.nc'
-        else if ( idate < 2022010106 ) then
-          y = 2015
-          v%filename = trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)) // &
-            '201501010600-202101010000.nc'
+        if ( idate < 2015010112 ) then
+          v%filename = fname(v%vname,idate,rcm_time_interval(3,uhrs))
         else
-          y = (year-2021)/10*10 + 2021
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)), &
-            y, '01010600-', y+10, '01010000.nc'
+          v%filename = fname(v%vname,idate)
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -186,7 +233,7 @@ module mod_cmip6_normm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)//' var in file '// &
+          'Error searching '//trim(v%vname)//' var in file '// &
           trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then
@@ -212,8 +259,14 @@ module mod_cmip6_normm
         v%first_date = timeval2date(times(1),timeunit,timecal)
       end if
 
-      tdif = idate - v%first_date
-      irec = nint(tohours(tdif)/6.0) + 1
+      if ( idate > 2015010106 ) then
+        tdif = idate - v%first_date
+        irec = nint(tohours(tdif)/6.0) + 1
+      else
+        allocate(v1,source=v%var)
+        tdif = idate - v%first_date
+        irec = int(tohours(tdif)/6.0) + 1
+      end if
 
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
@@ -239,6 +292,43 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
+      if ( idate < 2015010112 ) then
+        if ( irec+1 <= v%nrec ) then
+          ncid_next = v%ncid
+          ivar_next = v%ivar
+          istart(4) = irec + 1
+          seqfile = v%filename
+          icloseme = 0
+        else
+          seqfile = fname(v%vname,idate,rcm_time_interval(9,uhrs))
+#ifdef DEBUG
+          write(stderr,*) 'Opening ',trim(seqfile)
+#endif
+          istatus = nf90_open(seqfile,nf90_nowrite,ncid_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error opening file '//trim(seqfile)//'.')
+          istatus = nf90_inq_varid(ncid_next,v%vname,ivar_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error searching '//trim(v%vname)//' var in file '// &
+            trim(v%filename)//'.')
+          istart(4) = 1
+          icloseme = 1
+        end if
+        istatus = nf90_get_var(ncid_next,ivar_next,v1,istart,icount)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error read variable '//v%vname//' from '//trim(seqfile)//'.')
+        if ( idate /= 2015010100 ) then
+          v%var = 0.5 * (v%var + v1)
+        else
+          v%var = 0.4 * v%var + 0.6 * v1
+        end if
+        if ( icloseme > 0 ) then
+          istatus = nf90_close(ncid_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error close file '//trim(seqfile)//'.')
+        end if
+        deallocate(v1)
+      end if
     end subroutine read_3d_normm
 
     recursive subroutine read_2d_normm(idate,v,lonlyc)
@@ -247,32 +337,20 @@ module mod_cmip6_normm
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
+      character(len=1024) :: seqfile
+      integer :: ncid_next , ivar_next , icloseme
+      real(rkx) , dimension(:,:) , allocatable :: v1
 
+      tdif = rcm_time_interval(3,uhrs)
       if ( v%ncid == -1 ) then
-        call split_idate(idate, year, month, day, hour)
-        if ( idate < 2010010106 ) then
-          y = (year / 10) * 10
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'6hrLev',normm_version1,v%vname)), &
-            y, '01010600-', y+10, '01010000.nc'
-        else if ( idate < 2015010106 ) then
-          y = 2010
-          v%filename = trim(cmip6_path(y,'6hrLev',normm_version1,v%vname)) // &
-            '201001010600-201501010000.nc'
-        else if ( idate < 2021010106 ) then
-          y = 2015
-          v%filename = trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)) // &
-            '201501010600-202101010000.nc'
+        if ( idate < 2015010112 ) then
+          v%filename = fname(v%vname,idate,rcm_time_interval(3,uhrs))
         else
-          y = (year-2021)/10*10 + 2021
-          write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'6hrLev',normm_version2,v%vname)), &
-            y, '01010600-', y+10, '01010000.nc'
+          v%filename = fname(v%vname,idate)
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
@@ -290,7 +368,7 @@ module mod_cmip6_normm
         v%nj = size(v%hcoord%lat1d)
         call getmem2d(v%var,1,v%ni,1,v%nj,'cmip6:normm:'//trim(v%vname))
 #ifdef DEBUG
-        write(stderr,*) 'Input shape for ',trim(v%vname),' = ',v%ni,'x',v%nj
+        write(stderr,*) 'Input shape for ',trim(v%vname),' = ', v%ni,'x',v%nj
 #endif
         if ( present(lonlyc) ) then
           if ( lonlyc ) return
@@ -299,7 +377,7 @@ module mod_cmip6_normm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)//' var in file '// &
+          'Error searching '//trim(v%vname)//' var in file '// &
           trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then
@@ -325,8 +403,14 @@ module mod_cmip6_normm
         v%first_date = timeval2date(times(1),timeunit,timecal)
       end if
 
-      tdif = idate - v%first_date
-      irec = nint(tohours(tdif)/6.0) + 1
+      if ( idate > 2015010106 ) then
+        tdif = idate - v%first_date
+        irec = nint(tohours(tdif)/6.0) + 1
+      else
+        allocate(v1,source=v%var)
+        tdif = idate - v%first_date
+        irec = int(tohours(tdif)/6.0) + 1
+      end if
 
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
@@ -350,6 +434,43 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
+      if ( idate < 2015010112 ) then
+        if ( irec+1 <= v%nrec ) then
+          ncid_next = v%ncid
+          ivar_next = v%ivar
+          istart(3) = irec + 1
+          seqfile = v%filename
+          icloseme = 0
+        else
+          seqfile = fname(v%vname,idate,rcm_time_interval(9,uhrs))
+#ifdef DEBUG
+          write(stderr,*) 'Opening ',trim(seqfile)
+#endif
+          istatus = nf90_open(seqfile,nf90_nowrite,ncid_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error opening file '//trim(seqfile)//'.')
+          istatus = nf90_inq_varid(ncid_next,v%vname,ivar_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error searching '//trim(v%vname)//' var in file '// &
+            trim(v%filename)//'.')
+          istart(3) = 1
+          icloseme = 1
+        end if
+        istatus = nf90_get_var(ncid_next,ivar_next,v1,istart,icount)
+        call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error read variable '//v%vname//' from '//trim(seqfile)//'.')
+        if ( idate /= 2015010100 ) then
+          v%var = 0.5 * (v%var + v1)
+        else
+          v%var = 0.4 * v%var + 0.6 * v1
+        end if
+        if ( icloseme > 0 ) then
+          istatus = nf90_close(ncid_next)
+          call cmip6_error(istatus,__FILE__,__LINE__, &
+            'Error close file '//trim(seqfile)//'.')
+        end if
+        deallocate(v1)
+      end if
     end subroutine read_2d_normm
 
     recursive subroutine read_fx_normm(v)
@@ -374,7 +495,7 @@ module mod_cmip6_normm
 #endif
       istatus = nf90_inq_varid(v%ncid,v%vname,v%ivar)
       call cmip6_error(istatus,__FILE__,__LINE__, &
-        'Error searchong '//trim(v%vname)//' var in file '// &
+        'Error searching '//trim(v%vname)//' var in file '// &
         trim(v%filename)//'.')
       istatus = nf90_get_var(v%ncid,v%ivar,v%var)
       call cmip6_error(istatus,__FILE__,__LINE__, &
@@ -401,20 +522,20 @@ module mod_cmip6_normm
         if ( year < 2010 ) then
           y = (year / 10) * 10
           write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'Oday',normm_version3,v%vname)), &
+            trim(cmip6_path(y,'Oday',normm_version,v%vname)), &
             y, '0101-', y+9, '1231.nc'
         else if ( year >= 2010 .and. year < 2015 ) then
           write(v%filename,'(a,a,a)') &
-            trim(cmip6_path(year,'Oday',normm_version3,v%vname)), &
+            trim(cmip6_path(year,'Oday',normm_version,v%vname)), &
             '20100101-', '20141231.nc'
         else if ( year >= 2015 .and. year < 2021 ) then
           write(v%filename,'(a,a,a)') &
-            trim(cmip6_path(year,'Oday',normm_version2,v%vname)), &
+            trim(cmip6_path(year,'Oday',normm_version,v%vname)), &
             '20150101-', '20201231.nc'
         else
           y = ((year-1) / 10) * 10 + 1
           write(v%filename,'(a,i4,a,i4,a)') &
-            trim(cmip6_path(y,'Oday',normm_version2,v%vname)), &
+            trim(cmip6_path(y,'Oday',normm_version,v%vname)), &
             y, '0101-', y+9, '1231.nc'
         end if
 #ifdef DEBUG
@@ -436,7 +557,7 @@ module mod_cmip6_normm
       if ( v%ivar == -1 ) then
         istatus = nf90_inq_varid(v%ncid,trim(v%vname),v%ivar)
         call cmip6_error(istatus,__FILE__,__LINE__, &
-          'Error searchong '//trim(v%vname)// &
+          'Error searching '//trim(v%vname)// &
           ' var in file '//trim(v%filename)//'.')
       end if
       if ( v%nrec == -1 ) then
