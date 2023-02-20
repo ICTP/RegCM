@@ -1478,7 +1478,7 @@ program mksurfdata
       call model_zitah(zita)
       ax = md_ak(zita)
       bx = md_bk(zita)
-      call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
+      call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
     end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)
     ipnt = 1
