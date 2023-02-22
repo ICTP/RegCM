@@ -99,6 +99,9 @@ module mod_regcm_interface
 
     call whoami(myid)
     call setup_mesg(myid)
+#ifdef OPENACC
+    call setup_openacc(myid)
+#endif
 
 #ifdef DEBUG
     call activate_debug()
@@ -280,6 +283,20 @@ module mod_regcm_interface
       write(stdout,*) 'RegCM V5 simulation successfully reached end'
     end if
   end subroutine RCM_finalize
+
+#ifdef OPENACC
+  subroutine setup_openacc(mpi_rank)
+    use openacc, only: acc_device_default, &
+      acc_get_device_type, acc_get_num_devices, acc_set_device_num
+    implicit none
+    integer, intent(in) :: mpi_rank
+    integer :: idev, ndev
+
+    ndev = acc_get_num_devices(acc_device_default)
+    idev = mod(mpi_rank, ndev)
+    call acc_set_device_num(idev, acc_get_device_type())
+  end subroutine setup_openacc
+#endif
 
 end module mod_regcm_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -108,7 +108,127 @@ module mod_slice
     integer(ik4) :: i , j , k , n
 
     if ( idynamic == 3 ) then
-
+#ifdef OPENACC
+!$acc parallel present(atms, atms%pf3d, atms%ps2d)
+!$acc loop collapse(2)
+      do i = ice1, ice2
+        do j = jce1, jce2
+          atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%pf3d, mo_atm, mo_atm%pai)
+!$acc loop collapse(3)
+      do k = 2, kz
+        do i = ice1, ice2
+          do j = jce1, jce2
+            atms%pf3d(j,i,k) = p00 * &
+                (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%pf3d, atms%pb3d, atms%rhob3d, &
+!$acc&  atms%zq, atms%za)
+!$acc loop collapse(2)
+      do i = ice1, ice2
+        do j = jce1, jce2
+          atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
+            (atms%zq(j,i,1)-atms%za(j,i,1))
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%rhox2d, atms%ps2d, atms%tb3d, &
+!$acc&  atms%tp2d, atms%pb3d)
+!$acc loop collapse(2)
+      do i = ici1, ici2
+        do j = jci1, jci2
+        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
+        atms%tp2d(j,i) = atms%tb3d(j,i,kz) * &
+                            (atms%ps2d(j,i)/atms%pb3d(j,i,kz))**rovcp
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%th3d, atms%tb3d, atms%pb3d)
+!$acc loop collapse(3)
+      do k = 1, kz
+        do i = ice1, ice2
+          do j = jce1, jce2
+            atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
+                            (p00/atms%pb3d(j,i,k))**rovcp
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%qxb3d)
+!$acc loop collapse(3)
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
+            atms%qxb3d(j,i,k,iqv) = max(atms%qxb3d(j,i,k,iqv),minqq)
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%qxb3d)
+!$acc loop collapse(4)
+      do n = iqfrst, iqlst
+        do k = 1, kz
+          do i = ici1, ici2
+            do j = jci1, jci2
+              atms%qxb3d(j,i,k,n) = max(atms%qxb3d(j,i,k,n),d_zero)
+            end do
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%rhb3d, atms%qxb3d, atms%qsb3d)
+!$acc loop collapse(3)
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
+            atms%rhb3d(j,i,k) = min(max(atms%qxb3d(j,i,k,iqv) / &
+                                atms%qsb3d(j,i,k),rhmin),rhmax)
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(atms, atms%wpx3d, atms%rhob3d, mo_atm, mo_atm%w)
+!$acc loop collapse(2)
+      do k = 1, kz
+        do i = ici1, ici2
+          do j = jci1, jci2
+            atms%wpx3d(j,i,k) = -egrav*atms%rhob3d(j,i,k) * &
+                                d_half*(mo_atm%w(j,i,k+1)+mo_atm%w(j,i,k))
+          end do
+        end do
+      end do
+!$acc end parallel
+      !
+      ! Find 700 mb theta
+      !
+      if ( icldmstrat == 1 ) then
+!$acc parallel present(atms, atms%th700, atms%th3d, atms%pb3d)
+!$acc loop collapse(2)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%th700(j,i) = atms%th3d(j,i,kz)
+!$acc loop seq
+            do k = 2 , kz-1
+              if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
+                w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
+                    (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
+                w2 = d_one - w1
+                atms%th700(j,i) = atms%th3d(j,i,k-1) * w1 + &
+                                  atms%th3d(j,i,k) * w2
+                exit
+              end if
+            end do
+          end do
+        end do
+!$acc end parallel
+      end if
+#else
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
       end do
@@ -164,6 +284,7 @@ module mod_slice
           end do
         end do
       end if
+#endif
 
     else
 
@@ -339,9 +460,14 @@ module mod_slice
     !
     ! Find tropopause hgt.
     !
+!$acc kernels present(ktrop)
     ktrop(:,:) = 1
+!$acc end kernels
+!$acc parallel present(atms, atms%pb3d, ptrop, ktrop)
+!$acc loop collapse(2)
     do i = ici1 , ici2
       do j = jci1 , jci2
+!$acc loop seq
         do k = kz , 1 , -1
           if ( atms%pb3d(j,i,k) < ptrop(j,i) ) then
             ktrop(j,i) = k
@@ -350,14 +476,21 @@ module mod_slice
         end do
       end do
     end do
+!$acc end parallel
     if ( ibltyp == 1 ) then
+!$acc kernels present(kmxpbl)
       kmxpbl(:,:) = kz
+!$acc end kernels
+!$acc parallel present(atms, atms%za, kmxpbl)
+!$acc loop collapse(2)
       do i = ici1 , ici2
         do j = jci1 , jci2
+!$acc loop seq
           do k = kzm1 , 2 , -1
             if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
+!$acc end parallel
         end do
       end do
     end if

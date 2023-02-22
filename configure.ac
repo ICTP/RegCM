@@ -131,6 +131,40 @@ if eval "test x"$USE_SKL" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+USE_OPENACC="0"
+# TODO: make this configurable
+PGI_GPU_ARCH="cc80"
+
+AC_ARG_ENABLE(openacc,
+  AC_HELP_STRING([--enable-openacc],
+                 [Compile OpenACC directives (only for PGI fortran compilation)]),
+                 [USE_OPENACC="1"]
+)
+if eval "test x"$USE_OPENACC" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(openacc-debug,
+  AC_HELP_STRING([--enable-openacc-debug],
+                 [Compile OpenACC directives with autocompare (only for PGI fortran compilation)]),
+                 [USE_OPENACC="2"]
+)
+if eval "test x"$USE_OPENACC" = x2"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(openacc-managed,
+  AC_HELP_STRING([--enable-openacc-managed],
+                 [Compile OpenACC directives with managed memory (only for PGI fortran compilation)]),
+                 [USE_OPENACC="3"]
+)
+if eval "test x"$USE_OPENACC" = x3"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -434,7 +468,9 @@ AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
 AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
-                                    -z "${FCPROG##pgfortran*}" ] )
+                                    -z "${FCPROG##nvf9*}" -o \
+                                    -z "${FCPROG##pgfortran*}" -o \
+                                    -z "${FCPROG##nvfortran*}" ] )
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
@@ -586,9 +622,12 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
-    FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
-             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
+    FCFLAGS="-Mbounds -Mcache_align -Mchkstk -Mdalign \
+             -Miomutex -Mrecursive -Ktrap=divz -O0 -g \
              -gopt -traceback $FCFLAGS"
+    if test "test x$USE_OPENACC = x1"; then
+      FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -658,7 +697,23 @@ else
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     NOOPTFC="-O1 $FCFLAGS"
-    FCFLAGS="-fastsse $FCFLAGS"
+    FCFLAGS="-O3 -fast -fastsse $FCFLAGS"
+    if eval "test x"$USE_OPENACC" = x1"; then
+      FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x2"; then
+      FCFLAGS="$NOOPTFC -acc=gpu \
+          -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu \
+          -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x3"; then
+      FCFLAGS="$FCFLAGS -acc=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+    fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi

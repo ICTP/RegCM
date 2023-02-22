@@ -62,6 +62,7 @@ module mod_pbl_interface
     if ( ibltyp == 1 ) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
       call getmem2d(kmxpbl,jci1,jci2,ici1,ici2,'pbl_common:kmxpbl')
+!$acc enter data create(kmxpbl)
       call allocate_mod_pbl_holtbl
     else if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstate)

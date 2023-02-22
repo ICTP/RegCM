@@ -1491,76 +1491,118 @@ module mod_bdycod
       ! fixed boundary conditions:
       !
       if ( idynamic == 1 .or. idynamic == 3 ) then
+!!$acc data copyin(xpsb, xpsb%b0) if(ma%has_bdyleft &
+!!$acc&.or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0)
+!!$acc loop
           do i = ici1 , ici2
             sfs%psa(jce1,i) = xpsb%b0(jce1,i)
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0)
+!!$acc loop
           do i = ici1 , ici2
             sfs%psa(jce2,i) = xpsb%b0(jce2,i)
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0)
+!!$acc loop
           do j = jce1 , jce2
             sfs%psa(j,ice1) = xpsb%b0(j,ice1)
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0)
+!!$acc loop
           do j = jce1 , jce2
             sfs%psa(j,ice2) = xpsb%b0(j,ice2)
           end do
+!!$acc end parallel
         end if
+!!$acc end data
       end if
       if ( idynamic == 3 ) then
+!!$acc data copyin(xub, xub%b0, xvb, xvb%b0) if(ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ice1 , ice2
               mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k)
             end do
           end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ide1 , ide2
               mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ice1 , ice2
               mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k)
             end do
           end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ide1 , ide2
               mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jde1 , jde2
               mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k)
             end do
           end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jde1 , jde2
               mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k)
             end do
           end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k)
             end do
           end do
+!!$acc end parallel
         end if
+!!$acc end data
       else
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
@@ -1600,68 +1642,117 @@ module mod_bdycod
       ! time-dependent boundary conditions:
       !
       if ( idynamic == 1 .or. idynamic == 3 ) then
+!!$acc data copyin(xpsb, xpsb%b0, xpsb%bt) if(ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0, xpsb%bt)
+!!$acc loop
           do i = ici1 , ici2
             sfs%psa(jce1,i) = xpsb%b0(jce1,i) + xt*xpsb%bt(jce1,i)
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0, xpsb%bt)
+!!$acc loop
           do i = ici1 , ici2
             sfs%psa(jce2,i) = xpsb%b0(jce2,i) + xt*xpsb%bt(jce2,i)
           end do
         end if
+!!$acc end parallel
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0, xpsb%bt)
+!!$acc loop
           do j = jce1 , jce2
             sfs%psa(j,ice1) = xpsb%b0(j,ice1) + xt*xpsb%bt(j,ice1)
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(sfs, sfs%psa, xpsb, xpsb%b0, xpsb%bt)
+!!$acc loop
           do j = jce1 , jce2
             sfs%psa(j,ice2) = xpsb%b0(j,ice2) + xt*xpsb%bt(j,ice2)
           end do
+!!$acc end parallel
         end if
       end if
       if ( idynamic == 3 ) then
+!!$acc data copyin(xub, xub%b0, xub%bt, xvb, xvb%b0, xvb%bt) if(ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0, xub%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ice1 , ice2
               mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
             end do
+          end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0, xvb%bt)
+!!$acc loop collapse(2)
+          do k = 1 , kz
             do i = ide1 , ide2
               mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0, xub%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ice1 , ice2
               mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
             end do
+          end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0, xvb%bt)
+!!$acc loop collapse(2)
+          do k = 1 , kz
             do i = ide1 , ide2
               mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0, xub%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jde1 , jde2
               mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k) + xt*xub%bt(j,ice1,k)
             end do
+          end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0, xvb%bt)
+!!$acc loop collapse(2)
+          do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
             end do
           end do
+!!$acc end parallel
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(mo_atm, mo_atm%u, xub, xub%b0, xub%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jde1 , jde2
               mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k) + xt*xub%bt(j,ice2,k)
             end do
+          end do
+!!$acc end parallel
+!!$acc parallel present(mo_atm, mo_atm%v, xvb, xvb%b0, xvb%bt)
+!!$acc loop collapse(2)
+          do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
             end do
           end do
+!!$acc end parallel
         end if
+!!$acc end data
       else
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
@@ -1698,6 +1789,9 @@ module mod_bdycod
       end if
     end if
 
+!$acc update device(sfs%psa, mo_atm%u, mo_atm%v) async(2) if(ma%has_bdyleft&
+!$acc .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
+
     if ( idynamic /= 3 ) call bdyuv(xt)
 
     !
@@ -1709,7 +1803,17 @@ module mod_bdycod
       ! fixed boundary conditions:
       !
       if ( idynamic == 3 ) then
+!!$acc data copyin(xtb, xtb%b0, xqb, xqb%b0, xpaib, xpaib%b0) if(ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
+!!$acc data copyin(xlb, xlb%b0) if(present_qc .and. (ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop))
+!!$acc data copyin(xib, xib%b0) if(present_qi .and. ipptls > 1 .and.&
+!!$acc& (ma%has_bdyleft .or. ma%has_bdyright .or. ma%has_bdybottom .or.&
+!!$acc& ma%has_bdytop))
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xqb, xqb%b0, xpaib, xpaib%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
@@ -1717,22 +1821,32 @@ module mod_bdycod
               mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xib, xib%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xqb, xqb%b0, xpaib, xpaib%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
@@ -1740,22 +1854,32 @@ module mod_bdycod
               mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xib, xib%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xqb, xqb%b0, xpaib, xpaib%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
@@ -1763,22 +1887,32 @@ module mod_bdycod
               mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xib, xib%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xqb, xqb%b0, xpaib, xpaib%b0)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
@@ -1786,21 +1920,31 @@ module mod_bdycod
               mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xib, xib%b0)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
+!!$acc end data
+!!$acc end data
+!!$acc end data
       else
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
@@ -1944,7 +2088,19 @@ module mod_bdycod
       ! time-dependent boundary conditions:
       !
       if ( idynamic == 3 ) then
+!!$acc data copyin(xtb, xtb%b0, xtb%bt, xqb, xqb%b0, xqb%bt, xpaib,&
+!!$acc& xpaib%b0, xpaib%bt) if(ma%has_bdyleft .or. ma%has_bdyright .or.&
+!!$acc& ma%has_bdybottom .or. ma%has_bdytop)
+!!$acc data copyin(xlb, xlb%b0, xlb%bt) if(present_qc .and. (ma%has_bdyleft&
+!!$acc& .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop))
+!!$acc data copyin(xib, xib%b0, xib%bt) if(present_qi .and.&
+!!$acc& ipptls > 1 .and. (ma%has_bdyleft .or. ma%has_bdyright .or&
+!!$acc&. ma%has_bdybottom .or. ma%has_bdytop))
         if ( ma%has_bdyleft ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai,&
+!!$acc& xtb, xtb%b0, xtb%bt, xqb, xqb%b0, xqb%bt,&
+!!$acc& xpaib, xpaib%b0, xpaib%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
@@ -1952,22 +2108,32 @@ module mod_bdycod
               mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce1,i,k,iqc) = xlb%b0(jce1,i,k) + xt*xlb%bt(jce1,i,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xib, xlb%b0, xib%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce1,i,k,iqi) = xib%b0(jce1,i,k) + xt*xib%bt(jce1,i,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdyright ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xtb%bt, xqb, xqb%b0, xqb%bt, xpaib, xpaib%b0, xpaib%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
@@ -1975,22 +2141,32 @@ module mod_bdycod
               mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce2,i,k,iqc) = xlb%b0(jce2,i,k) + xt*xlb%bt(jce2,i,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2
                 mo_atm%qx(jce2,i,k,iqi) = xib%b0(jce2,i,k) + xt*xib%bt(jce2,i,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdybottom ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xtb%bt, xqb, xqb%b0, xqb%bt, xpaib, xpaib%b0, xpaib%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
@@ -1998,22 +2174,32 @@ module mod_bdycod
               mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice1,k,iqc) = xlb%b0(j,ice1,k) + xt*xlb%bt(j,ice1,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice1,k,iqi) = xib%b0(j,ice1,k) + xt*xib%bt(j,ice1,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
         if ( ma%has_bdytop ) then
+!!$acc parallel present(mo_atm, mo_atm%t, mo_atm%qx, mo_atm%pai, xtb,&
+!!$acc& xtb%b0, xtb%bt, xqb, xqb%b0, xqb%bt, xpaib, xpaib%b0, xpaib%bt)
+!!$acc loop collapse(2)
           do k = 1 , kz
             do j = jce1 , jce2
               mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
@@ -2021,21 +2207,31 @@ module mod_bdycod
               mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
             end do
           end do
+!!$acc end parallel
           if ( present_qc ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice2,k,iqc) = xlb%b0(j,ice2,k) + xt*xlb%bt(j,ice2,k)
               end do
             end do
+!!$acc end parallel
           end if
           if ( present_qi .and. ipptls > 1 ) then
+!!$acc parallel present(mo_atm, mo_atm%qx, xlb, xlb%b0, xlb%bt)
+!!$acc loop collapse(2)
             do k = 1 , kz
               do j = jce1 , jce2
                 mo_atm%qx(j,ice2,k,iqi) = xib%b0(j,ice2,k) + xt*xib%bt(j,ice2,k)
               end do
             end do
+!!$acc end parallel
           end if
         end if
+!!$acc end data
+!!$acc end data
+!!$acc end data
       else
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
@@ -2209,6 +2405,8 @@ module mod_bdycod
       ! determine QV boundary values depends on inflow/outflow:
       !
       if ( idynamic == 3 ) then
+!$acc wait(2) if(ma%has_bdyleft .or. ma%has_bdyright&
+!$acc& .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
@@ -2357,6 +2555,8 @@ module mod_bdycod
     ! west boundary:
     if ( idynamic == 3 ) then
       if ( bdyflow ) then
+!$acc wait(2) if(ma%has_bdyleft .or. ma%has_bdyright&
+!$acc& .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
@@ -2639,6 +2839,9 @@ module mod_bdycod
       end if
     end if
 
+!$acc update device(mo_atm%t, mo_atm%qx, mo_atm%pai) async(2) if(ma%has_bdyleft&
+!$acc .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
+
     if ( ibltyp == 2 ) then
       if ( idynamic == 3 ) then
         if ( rcmtimer%start( ) ) then
@@ -2663,6 +2866,8 @@ module mod_bdycod
           ! west boundary:
           !
           if ( bdyflow ) then
+!$acc wait(2) if(ma%has_bdyleft .or. ma%has_bdyright&
+!$acc& .or. ma%has_bdybottom .or. ma%has_bdytop)
             if ( ma%has_bdyleft ) then
               mo_atm%tke(jce1,:,1) = tkemin ! West boundary
               do k = 2 , kz
@@ -2772,6 +2977,8 @@ module mod_bdycod
             end if
           end if
         end if
+!$acc update device(mo_atm%tke) async(2) if(ma%has_bdyleft&
+!$acc .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
       else
         if ( rcmtimer%start( ) ) then
           if ( ma%has_bdyleft ) then
@@ -2922,6 +3129,8 @@ module mod_bdycod
         call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
       end if
     end if
+
+!$acc wait(2)
 
     xbctime = xbctime + dtsec
 
