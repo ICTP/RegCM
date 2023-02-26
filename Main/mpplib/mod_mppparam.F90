@@ -8910,7 +8910,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
-              b = j + (i - 1) * nex + (k - k1) * nex * nex
+              ib = j + (i - 1) * nex + (k - k1) * nex * nex
               r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
             end do
           end do
