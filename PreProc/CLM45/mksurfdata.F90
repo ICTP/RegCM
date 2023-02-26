@@ -252,26 +252,32 @@ program mksurfdata
     p1 = 'dynamic'
     p2 = '.'
     write(cy,'(i0.4)') y1
-    if ( y1 > 2005 ) then
-      select case (dattyp(4:5))
-        case ('RF')
-          continue
-        case ('26')
-          p2 = 'SCENARIO'//pthsep//'RCP2.6'
-        case ('45')
-          p2 = 'SCENARIO'//pthsep//'RCP4.5'
-        case ('60')
-          p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85', '15')
-          p2 = 'SCENARIO'//pthsep//'RCP8.5'
-        case default
-          if ( dattyp /= "EIN15" .and. &
-               dattyp(1:4) /= "NNRP" .and. &
-               dattyp /= "JRA55" ) then
-            call die(__FILE__, &
-              'Dynamic landuse only supported for CMIP5',__LINE__)
-          end if
-      end select
+    if ( dattyp == 'CMIP6' ) then
+      if ( y1 > 2015 ) then
+        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_ssp(4:6)
+      end if
+    else
+      if ( y1 > 2005 ) then
+        select case (dattyp(4:5))
+          case ('RF')
+            continue
+          case ('26')
+            p2 = 'SCENARIO'//pthsep//'RCP2.6'
+          case ('45')
+            p2 = 'SCENARIO'//pthsep//'RCP4.5'
+          case ('60')
+            p2 = 'SCENARIO'//pthsep//'RCP6.0'
+          case ('85', '15')
+            p2 = 'SCENARIO'//pthsep//'RCP8.5'
+          case default
+            if ( dattyp /= "EIN15" .and. &
+                 dattyp(1:4) /= "NNRP" .and. &
+                 dattyp /= "JRA55" ) then
+              call die(__FILE__, &
+                'Dynamic landuse only supported for CMIP5',__LINE__)
+            end if
+        end select
+      end if
     end if
     pftfile = trim(p1)//pthsep//trim(p2)//pthsep//'mksrf_landuse_'//cy//'.nc'
 #else
@@ -1472,7 +1478,7 @@ program mksurfdata
       call model_zitah(zita)
       ax = md_ak(zita)
       bx = md_bk(zita)
-      call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
+      call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
     end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)
     ipnt = 1

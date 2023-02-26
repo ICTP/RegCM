@@ -977,6 +977,7 @@ module mod_init
         end do
       end do
     end if
+!$acc update device(mo_atm%pf, mo_atm%tvirt, mo_atm%p, mo_atm%rho, mo_atm%qs)
     !
     ! pressure of tropopause
     !
@@ -989,6 +990,7 @@ module mod_init
         end do
       end do
     end if
+!$acc update device(ptrop)
 
     if ( .not. ifrest ) then
       if ( any(icup == 6)  .or. any(icup == 5) ) then
@@ -1046,6 +1048,7 @@ module mod_init
         ffilt(:) = d_zero
       end if
     end if
+!$acc update device(ffilt)
     call initialize_surface_model
     if ( idynamic /= 3 ) then
       call initialize_diffusion

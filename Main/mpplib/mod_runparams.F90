@@ -551,6 +551,7 @@ module mod_runparams
       call getmem1d(zita,1,kzp1,'mod_runparams:zita')
       call getmem1d(zitah,1,kz,'mod_runparams:zitah')
       call getmem1d(ffilt,1,kz,'mod_runparams:ffilt')
+!$acc enter data create(ffilt)
       call getmem1d(ak,1,kz,'mod_runparams:ak')
       call getmem1d(bk,1,kz,'mod_runparams:bk')
     end if

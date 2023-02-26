@@ -37,7 +37,8 @@ module mod_slabocean
 
   private
 
-  real(rkx) :: mlcp , dtocean
+  !real(rkx) :: mlcp
+  real(rkx) :: dtocean
 
   ! the actual prognotic sst pointing on tg2
   real(rkx) , pointer , dimension(:,:) :: sstemp

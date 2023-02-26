@@ -87,7 +87,7 @@ module mod_mkdynpft
     !
     ! Mask and fill grid
     !
-    where (pft < d_zero
+    where ( pft < d_zero )
       pft = h_missing_value
     end where
     do n = 1 , npft

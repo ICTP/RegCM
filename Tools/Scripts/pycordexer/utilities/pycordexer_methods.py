@@ -2502,7 +2502,14 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             LOGGER.debug('Plat is %s', plat)
         else:
             plat = None
-        LOGGER.debug('Plat not found: missing attribute')
+            LOGGER.debug('Plat not found: missing attribute')
+
+        if 'grid_size_in_meters' in regcm_file.attributes:
+            ds = float(regcm_file.attributes['grid_size_in_meters'])
+            LOGGER.debug('ds is %s', ds)
+        else:
+            ds = None
+            LOGGER.debug('Ds not found: missing attribute')
 
         # This is the function that computes the coefficients for the rotation
         def compute_rotation_coefficients(lat_lon_slice):
@@ -2515,7 +2522,8 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 regcm_file.map_projection_latitude_origin,
                 cone,
                 plon,
-                plat
+                plat,
+                ds
             )
 
             if self.direction == 'eastward':

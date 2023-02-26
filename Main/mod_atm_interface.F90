@@ -576,6 +576,7 @@ module mod_atm_interface
     subroutine allocate_atmosphere(atm)
       implicit none
       type(atmosphere) , intent(inout) :: atm
+!$acc enter data create(atm)
       call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
       call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
@@ -586,6 +587,7 @@ module mod_atm_interface
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
       call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
       call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
@@ -600,6 +602,7 @@ module mod_atm_interface
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
         call getmem3d(atm%tketen,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tketen')
+!$acc enter data create(atm%tke)
       end if
       if ( ichem == 1 ) then
         call getmem4d(atm%trac,jce1ga,jce2ga, &
@@ -609,6 +612,9 @@ module mod_atm_interface
       end if
       call getmem3d(atm%fmz,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:fmz')
       call getmem3d(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
+!$acc enter data create(atm%u, atm%v, atm%ux, atm%vx, atm%w, atm%pai, atm%p,&
+!$acc& atm%rho, atm%pf, atm%t, atm%tvirt, atm%tetav, atm%zeta, atm%zetaf,&
+!$acc& atm%dz, atm%qs, atm%qx, atm%fmz, atm%fmzf)
     end subroutine allocate_atmosphere
 
     subroutine allocate_atmstate_a(atm)
@@ -812,6 +818,7 @@ module mod_atm_interface
     subroutine allocate_domain(dom)
       implicit none
       type(domain) , intent(out) :: dom
+!$acc enter data create(dom)
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -833,6 +840,8 @@ module mod_atm_interface
         call getmem2d(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
         call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
         call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
+!$acc enter data create(dom%msfx, dom%msfu, dom%msfv, dom%hx, dom%hy,&
+!$acc& dom%xlat, dom%xlon, dom%ht)
       else
         call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
@@ -885,8 +894,10 @@ module mod_atm_interface
       type(surfstate) , intent(out) :: sfs
       call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       if ( idynamic == 3 ) then
+!$acc enter data create(sfs)
         call assignpnt(sfs%psa,sfs%psb)
         call assignpnt(sfs%psa,sfs%psc)
+!$acc enter data create(sfs%psa, sfs%psb)
       else
         call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
         call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
@@ -929,15 +940,19 @@ module mod_atm_interface
       type(slice) , intent(out) :: ax
       type(reference_atmosphere) , intent(in) :: a0
       if ( idynamic == 3 ) then
+!$acc enter data create(ax)
         call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
         call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
         call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
+!$acc enter data create(ax%rhb3d)
         if ( icldmstrat == 1 ) then
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
+!$acc enter data create(ax%th700)
         end if
         if ( ibltyp == 4 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+!$acc enter data create(ax%tkepbl)
         end if
       else
         call getmem3d(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
@@ -981,6 +996,7 @@ module mod_atm_interface
       call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
       call getmem2d(ax%tp2d,jci1,jci2,ici1,ici2,'slice:tp2d')
+!$acc enter data create(ax%th3d, ax%rhox2d, ax%tp2d) if (idynamic == 3)
     end subroutine allocate_slice
 
     subroutine allocate_nhbh(nhbh)
@@ -1149,6 +1165,7 @@ module mod_atm_interface
       end if
       call getmem2d(crrate,jci1,jci2,ici1,ici2,'storage:crrate')
       call getmem2d(ncrrate,jci1,jci2,ici1,ici2,'storage:ncrrate')
+!$acc enter data create(ptrop,ktrop,omega) if (idynamic == 3)
     end subroutine allocate_mod_atm_interface
 
     subroutine export_data_from_atm(expfie)
