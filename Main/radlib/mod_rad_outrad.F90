@@ -259,7 +259,36 @@ module mod_rad_outrad
       end if
     end if
 
+    if ( ifmrd ) then
+      rnmrd_for_rmdfrq = rnmrd_for_mrdfrq + 1.0_rkx
+      call copyadd2d(frsa,mrd_frsa_out)
+      call copyadd2d(frla,mrd_frla_out)
+      call copyadd2d(clrst,mrd_clrst_out)
+      call copyadd2d(clrss,mrd_clrss_out)
+      call copyadd2d(clrlt,mrd_clrlt_out)
+      call copyadd2d(clrls,mrd_clrls_out)
+      call copyadd2d(solin,mrd_solin_out)
+      call copyadd2d(solout,mrd_solout_out)
+      call copyadd2d(lwout,mrd_lwout_out)
+    endif
+
   end subroutine radout
+
+  subroutine copyadd2d(a,b)
+    implicit none
+    real(rkx) , pointer , intent(in) , dimension(:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
+    integer(ik4) :: i , j , n
+    if ( associated(b) ) then
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          b(j,i) = b(j,i) + a(n)
+          n = n + 1
+        end do
+      end do
+    end if
+  end subroutine copyadd2d
 
   subroutine copy2d(a,b)
     implicit none

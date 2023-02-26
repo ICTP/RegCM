@@ -84,6 +84,10 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
+  integer(ik4) , parameter :: nmrdvars = 9 + nbase
+
+  integer(ik4) , parameter :: nobsvars = 1 + nbase
+
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
   integer(ik4) , parameter :: nopt3dvars = 8
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
@@ -125,6 +129,10 @@ module mod_ncout
   type(ncvariable4d_mixed) , save , pointer , &
     dimension(:) :: v4dvar_rad => null()
   type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_mrd => null()
+  type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_obs => null()
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_opt => null()
@@ -146,6 +154,8 @@ module mod_ncout
   integer(ik4) , public :: srf_stream = -1
   integer(ik4) , public :: sub_stream = -1
   integer(ik4) , public :: rad_stream = -1
+  integer(ik4) , public :: mrd_stream = -1
+  integer(ik4) , public :: obs_stream = -1
   integer(ik4) , public :: lak_stream = -1
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
@@ -161,6 +171,8 @@ module mod_ncout
   logical , public , dimension(nsubvars) :: enable_sub_vars
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
+  logical , public , dimension(nmrdvars) :: enable_mrd_vars
+  logical , public , dimension(nobsvars) :: enable_obs_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
 
@@ -378,6 +390,30 @@ module mod_ncout
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
 
+  integer(ik4) , parameter :: mrd_xlon   = 1
+  integer(ik4) , parameter :: mrd_xlat   = 2
+  integer(ik4) , parameter :: mrd_mask   = 3
+  integer(ik4) , parameter :: mrd_topo   = 4
+  integer(ik4) , parameter :: mrd_area   = 5
+  integer(ik4) , parameter :: mrd_ps     = 6
+  integer(ik4) , parameter :: mrd_frsa   = 7
+  integer(ik4) , parameter :: mrd_frla   = 8
+  integer(ik4) , parameter :: mrd_clrst  = 9 
+  integer(ik4) , parameter :: mrd_clrss  = 10
+  integer(ik4) , parameter :: mrd_clrlt  = 11
+  integer(ik4) , parameter :: mrd_clrls  = 12
+  integer(ik4) , parameter :: mrd_solin  = 13
+  integer(ik4) , parameter :: mrd_solout = 14
+  integer(ik4) , parameter :: mrd_lwout  = 15
+
+  integer(ik4) , parameter :: obs_xlon   = 1
+  integer(ik4) , parameter :: obs_xlat   = 2
+  integer(ik4) , parameter :: obs_mask   = 3
+  integer(ik4) , parameter :: obs_topo   = 4
+  integer(ik4) , parameter :: obs_area   = 5
+  integer(ik4) , parameter :: obs_ps     = 6
+  integer(ik4) , parameter :: obs_wspd   = 7
+
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
   integer(ik4) , parameter :: lak_mask   = 3
@@ -556,6 +592,14 @@ module mod_ncout
     if ( ifrad ) then
       nstream = nstream+1
       rad_stream = nstream
+    end if
+    if ( ifmrd ) then
+      nstream = nstream+1
+      mrd_stream = nstream
+    end if
+    if ( ifobs ) then
+      nstream = nstream+1
+      obs_stream = nstream
     end if
     if ( ifchem ) then
       nstream = nstream+1
@@ -2066,6 +2110,135 @@ module mod_ncout
         outstream(rad_stream)%ig2 = iout2
       end if
 
+      if ( nstream == mrd_stream ) then
+
+        allocate(v2dvar_mrd(nmrdvars))
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_mrd,mrd_xlon, &
+                  mrd_xlat,mrd_topo,mrd_mask,mrd_area,mrd_ps,-1)
+
+        ! The following may be enabled/disabled
+
+        if ( enable_mrd_vars(mrd_frsa) ) then
+          call setup_var(v2dvar_mrd,mrd_frsa,vsize,'rsns','W m-2', &
+            'Surface Net Downward Shortwave Flux', &
+            'surface_net_downward_shortwave_flux', .true.,'time: mean')
+          mrd_frsa_out => v2dvar_mrd(mrd_frsa)%rval
+        end if
+        if ( enable_mrd_vars(mrd_frla) ) then
+          call setup_var(v2dvar_mrd,mrd_frla,vsize,'rsnl','W m-2', &
+            'Surface Net Upward Longwave Flux', &
+            'surface_net_upward_longwave_flux', .true.,'time: mean')
+          mrd_frla_out => v2dvar_mrd(mrd_frla)%rval
+        end if
+        if ( enable_mrd_vars(mrd_clrst) ) then
+          call setup_var(v2dvar_mrd,mrd_clrst,vsize,'rtnscl','W m-2', &
+            'Clearsky TOA Net Downward Shortwave Flux', &
+            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
+          mrd_clrst_out => v2dvar_mrd(mrd_clrst)%rval
+        end if
+        if ( enable_mrd_vars(mrd_clrss) ) then
+          call setup_var(v2dvar_mrd,mrd_clrss,vsize,'rsnscl','W m-2', &
+            'Clearsky Surface Net Downward Shortwave Flux', &
+            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
+          mrd_clrss_out => v2dvar_mrd(mrd_clrss)%rval
+        end if
+        if ( enable_mrd_vars(mrd_clrlt) ) then
+          call setup_var(v2dvar_mrd,mrd_clrlt,vsize,'rtnlcl','W m-2', &
+            'Clearsky TOA Net Upward Longwave Flux', &
+            'toa_net_upward_longwave_flux_assuming_clear_sky',.true.,'time: mean')
+          mrd_clrlt_out => v2dvar_mrd(mrd_clrlt)%rval
+        end if
+        if ( enable_mrd_vars(mrd_clrls) ) then
+          call setup_var(v2dvar_mrd,mrd_clrls,vsize,'rlntpcs','W m-2', &
+            'Clearsky Net Surface Upward Longwave Flux', &
+            'net_upward_longwave_flux_in_air_assuming_clear_sky',.true.,'time: mean')
+          mrd_clrls_out => v2dvar_mrd(mrd_clrls)%rval
+        end if
+        if ( enable_mrd_vars(mrd_solin) ) then
+          call setup_var(v2dvar_mrd,mrd_solin,vsize,'rsdt','W m-2', &
+            'TOA Incident Shortwave Radiation', &
+            'toa_incoming_shortwave_flux',.true.,'time: mean')
+          mrd_solin_out => v2dvar_mrd(mrd_solin)%rval
+        end if
+        if ( enable_mrd_vars(mrd_solout) ) then
+          call setup_var(v2dvar_mrd,mrd_solout,vsize,'rsut','W m-2', &
+            'TOA Outgoing Shortwave Radiation', &
+            'toa_outgoing_shortwave_flux',.true.,'time: mean')
+          mrd_solout_out => v2dvar_mrd(mrd_solout)%rval
+        end if
+        if ( enable_mrd_vars(mrd_lwout) ) then
+          call setup_var(v2dvar_mrd,mrd_lwout,vsize,'rlut','W m-2', &
+            'TOA Outgoing Longwave Radiation', &
+            'toa_outgoing_longwave_flux',.true.,'time: mean')
+          mrd_lwout_out => v2dvar_mrd(mrd_lwout)%rval
+        end if
+
+        outstream(mrd_stream)%nvar = countvars(enable_mrd_vars,nmrdvars)
+        allocate(outstream(mrd_stream)%ncvars%vlist(outstream(mrd_stream)%nvar))
+        outstream(mrd_stream)%nfiles = 1
+        allocate(outstream(mrd_stream)%ncout(outstream(mrd_stream)%nfiles))
+        allocate(outstream(mrd_stream)%cname_base(outstream(mrd_stream)%nfiles))
+        outstream(mrd_stream)%cname_base(1) = 'MRD'
+
+        vcount = 1
+        do i = 1 , nmrdvars
+          if ( enable_mrd_vars(i) ) then
+            outstream(mrd_stream)%ncvars%vlist(vcount)%vp => v2dvar_mrd(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(mrd_stream)%jl1 = vsize%j1
+        outstream(mrd_stream)%jl2 = vsize%j2
+        outstream(mrd_stream)%il1 = vsize%i1
+        outstream(mrd_stream)%il2 = vsize%i2
+        outstream(mrd_stream)%jg1 = jout1
+        outstream(mrd_stream)%jg2 = jout2
+        outstream(mrd_stream)%ig1 = iout1
+        outstream(mrd_stream)%ig2 = iout2
+      end if
+
+      if ( nstream == obs_stream ) then
+
+        allocate(v2dvar_obs(nobsvars))
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_obs,obs_xlon, &
+                  obs_xlat,obs_topo,obs_mask,obs_area,obs_ps,-1)
+
+        if ( enable_obs_vars(obs_wspd) ) then
+          call setup_var(v2dvar_obs,obs_wspd,vsize,'sfcWind','m/s', &
+            'Near-Surface Wind Speed','wind_speed',.true.)
+          obs_wspd_out => v2dvar_obs(obs_wspd)%rval
+        end if
+
+        outstream(obs_stream)%nvar = countvars(enable_obs_vars,nobsvars)
+        allocate(outstream(obs_stream)%ncvars%vlist(outstream(obs_stream)%nvar))
+        outstream(obs_stream)%nfiles = 1
+        allocate(outstream(obs_stream)%ncout(outstream(obs_stream)%nfiles))
+        allocate(outstream(obs_stream)%cname_base(outstream(obs_stream)%nfiles))
+        outstream(obs_stream)%cname_base(1) = 'OBS'
+
+        vcount = 1
+        do i = 1 , nobsvars
+          if ( enable_obs_vars(i) ) then
+            outstream(obs_stream)%ncvars%vlist(vcount)%vp => v2dvar_obs(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(obs_stream)%jl1 = vsize%j1
+        outstream(obs_stream)%jl2 = vsize%j2
+        outstream(obs_stream)%il1 = vsize%i1
+        outstream(obs_stream)%il2 = vsize%i2
+        outstream(obs_stream)%jg1 = jout1
+        outstream(obs_stream)%jg2 = jout2
+        outstream(obs_stream)%ig1 = iout1
+        outstream(obs_stream)%ig2 = iout2
+      end if
+
       if ( nstream == lak_stream ) then
 
         allocate(v2dvar_lak(nlak2dvars))
@@ -2704,7 +2877,8 @@ module mod_ncout
           kkz = max(12,kkz)
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
-             che_stream > 0 .or. opt_stream > 0 ) then
+             che_stream > 0 .or. opt_stream > 0 .or. &
+             mrd_stream > 0 .or. obs_stream > 0) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -3766,6 +3940,8 @@ module mod_ncout
     if ( associated(v2dvar_rad) ) deallocate(v2dvar_rad)
     if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
     if ( associated(v4dvar_rad) ) deallocate(v4dvar_rad)
+    if ( associated(v2dvar_mrd) ) deallocate(v2dvar_mrd)
+    if ( associated(v2dvar_obs) ) deallocate(v2dvar_obs)
     if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)

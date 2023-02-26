@@ -855,6 +855,10 @@ module mod_lm_interface
       if ( ifrad ) then
         rnrad_for_srffrq = rnrad_for_srffrq + 1.0_rkx
       end if
+      if ( ifobs ) then
+        if ( associated(obs_wspd_out) ) &
+          obs_wspd_out = sqrt(lm%u10m**2 + lm%v10m**2)
+      end if
       if ( ifatm ) then
         rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
         if ( associated(atm_tsw_out) ) &

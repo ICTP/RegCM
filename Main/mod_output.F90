@@ -66,6 +66,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
+    logical :: ldomrd , ldoobs
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -73,6 +74,7 @@ module mod_output
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
     real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
+    real(rkx) :: mrdfac , obsfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -133,6 +135,8 @@ module mod_output
     ldolak = .false.
     ldosub = .false.
     ldorad = .false.
+    ldomrd = .false.
+    ldoobs = .false.
     ldoopt = .false.
     ldoche = .false.
     ldosav = .false.
@@ -190,6 +194,12 @@ module mod_output
       end if
       if ( alarm_out_rad%act( ) ) then
         ldorad = .true.
+      end if
+      if ( alarm_out_mrd%act( ) ) then
+        ldomrd = .true.
+      end if
+      if ( alarm_out_obs%act( ) ) then
+        ldoobs = .true.
       end if
       if ( ichem == 1 ) then
         if ( alarm_out_che%act( ) ) then
@@ -1488,6 +1498,77 @@ module mod_output
         if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
         if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
         rnrad_for_radfrq = d_zero
+      end if
+    end if
+
+    if ( mrd_stream > 0 ) then
+      if ( ldomrd ) then
+        mrdfac = d_one / rnmrd_for_mrdfrq
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+
+        if ( associated(mrd_frsa_out) ) &
+          mrd_frsa_out = mrd_frsa_out*mrdfac
+        if ( associated(mrd_frla_out) ) &
+          mrd_frla_out = mrd_frla_out*mrdfac
+        if ( associated(mrd_clrst_out) ) &
+          mrd_clrst_out = mrd_clrst_out*mrdfac
+        if ( associated(mrd_clrss_out) ) &
+          mrd_clrss_out = mrd_clrss_out*mrdfac
+        if ( associated(mrd_clrlt_out) ) &
+          mrd_clrlt_out = mrd_clrlt_out*mrdfac
+        if ( associated(mrd_clrls_out) ) &
+          mrd_clrls_out = mrd_clrls_out*mrdfac
+        if ( associated(mrd_solin_out) ) &
+          mrd_solin_out = mrd_solin_out*mrdfac
+        if ( associated(mrd_solout_out) ) &
+          mrd_solout_out = mrd_solout_out*mrdfac
+        if ( associated(mrd_lwout_out) ) &
+          mrd_lwout_out = mrd_lwout_out*mrdfac
+        call write_record_output_stream(mrd_stream,alarm_out_mrd%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'MRD variables written at ' , rcmtimer%str( )
+
+        if ( associated(mrd_frsa_out) ) mrd_frsa_out = d_zero
+        if ( associated(mrd_frla_out) ) mrd_frla_out = d_zero
+        if ( associated(mrd_clrst_out) ) mrd_clrst_out = d_zero
+        if ( associated(mrd_clrss_out) ) mrd_clrss_out = d_zero
+        if ( associated(mrd_clrlt_out) ) mrd_clrlt_out = d_zero
+        if ( associated(mrd_clrls_out) ) mrd_clrls_out = d_zero
+        if ( associated(mrd_solin_out) ) mrd_solin_out = d_zero
+        if ( associated(mrd_solout_out) ) mrd_solout_out = d_zero
+        if ( associated(mrd_lwout_out) ) mrd_lwout_out = d_zero
+        rnmrd_for_mrdfrq = d_zero
+      end if
+    end if
+
+    if ( obs_stream > 0 ) then
+      if ( ldoobs ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        call write_record_output_stream(obs_stream,alarm_out_obs%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'OBS variables written at ' , rcmtimer%str( )
       end if
     end if
 
