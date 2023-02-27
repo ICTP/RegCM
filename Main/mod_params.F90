@@ -93,9 +93,9 @@ module mod_params
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
     namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
-      ifmrd , ifobs                                                       &
+      ifmrd , ifobs ,                                                     &
       iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
-      mrdfrq , obsfrq                                                     &
+      mrdfrq , obsfrq ,                                                   &
       srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout ,       &
       uvrotate , enable_atm_vars , enable_srf_vars , enable_rad_vars ,    &
       enable_mrd_vars , enable_obs_vars ,                                 &
@@ -1274,8 +1274,6 @@ module mod_params
     ! Reset the NEEDED 2D vars.
     enable_atm_vars(1:6) = .true.
     enable_rad_vars(1:6) = .true.
-    enable_mrd_vars(1:6) = .true.
-    enable_obs_vars(1:6) = .true.
     enable_opt_vars(1:6) = .true.
     enable_che_vars(1:6) = .true.
     ! These do not have p0, no vertical field.
@@ -1284,6 +1282,8 @@ module mod_params
     enable_sub_vars(1:5) = .true.
     enable_sts_vars(1:5) = .true.
     enable_lak_vars(1:5) = .true.
+    enable_mrd_vars(1:5) = .true.
+    enable_obs_vars(1:5) = .true.
 
     call bcast(gnu1)
     call bcast(gnu2)
