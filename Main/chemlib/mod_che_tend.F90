@@ -84,7 +84,7 @@
       real(rkx) , dimension(ntr) :: xrho
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
+!     real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
 !     real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: checum
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab

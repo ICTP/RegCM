@@ -97,7 +97,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer(ik4) :: npr
+  integer(ik4) :: npr , npj
 
   integer(ik4) :: permuteseed = 1 , mypid
 
@@ -114,7 +114,8 @@ module mod_rrtmg_driver
 #if defined ( IBM )
     integer , external :: getpid_
 #endif
-    npr = (jci2-jci1+1)*(ici2-ici1+1)
+    npj = (jci2-jci1+1)
+    npr = npj*(ici2-ici1+1)
 
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
@@ -322,16 +323,15 @@ module mod_rrtmg_driver
     end if
 
     if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           asdir(n) = m2r%aldirs(j,i)
           asdif(n) = m2r%aldifs(j,i)
           aldir(n) = m2r%aldirl(j,i)
           aldif(n) = m2r%aldifl(j,i)
           czen(n)  = m2r%coszrs(j,i)
           if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
-          n = n + 1
         end do
       end do
       if ( imcica == 1 ) then
@@ -454,15 +454,14 @@ module mod_rrtmg_driver
 
     cld_int(:,:) = d_zero
     do k = 1 , kz
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           if ( clwp_int(n,k) > d_zero ) then
             cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                           (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
             cld_int(n,k) = min(cld_int(n,k),cftotmax)
           end if
-          n = n + 1
         end do
       end do
     end do
@@ -584,31 +583,27 @@ module mod_rrtmg_driver
 
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = j+(i-1)*npj
         dlat(n) = m2r%xlat(j,i)
         ioro(n) = m2r%ldmsk(j,i)
-        n = n + 1
       end do
     end do
-
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = j+(i-1)*npj
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
-        n = n + 1
       end do
     end do
 
     do k = 1 , kz
-      n = 1
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           play(n,k) = m2r%phatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
     end do
@@ -616,29 +611,32 @@ module mod_rrtmg_driver
     ! convert pressures from Pa to mb and define interface pressures:
     !
     do k = 1 , kzp1
-      n = 1
       kj = kzp2-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
     end do
-    do n = 1 , npr
-      plev(n,ktf) = 1.0e-4_rkx
+    do k = kzp2 , ktf
+      do n = 1 , npr
+        plev(n,k) = stdplevf(kclimf+k-kzp2)
+      end do
     end do
-    do n = 1 , npr
-      play(n,kth) = 0.5_rkx * plev(n,ktf-1)
+    ! smooth transition from top to climate at kzp1
+    do k = kzp1 , kth
+      do n = 1 , npr
+        play(n,k) = stdplevh(kclimh+k-kzp1)
+      end do
     end do
     !
     ! ground temperature
     !
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = j+(i-1)*npj
         tsfc(n) = m2r%tg(j,i)
-        n = n + 1
       end do
     end do
     !
@@ -646,35 +644,38 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1-k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           tlay(n,k) = m2r%tatms(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
-    do n = 1 , npr
-      tlay(n,kth) = tlay(n,kz)
+    do k = kzp1 , kth
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
+          n = n + 1
+        end do
+      end do
     end do
     !
     ! deltaz
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           deltaz(n,k) = m2r%deltaz(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        deltaz(n,kth) = 100000_rkx - m2r%zq(j,i,1)
-        n = n+1
+    do k = kzp1 , kth
+      do n = 1 , npr
+        deltaz(n,k) = (stdhlevf(kclimf+k-kzp1) - &
+                       stdhlevf(kclimf+k-kzp1-1)) * d_1000
       end do
     end do
     !
@@ -686,15 +687,14 @@ module mod_rrtmg_driver
     if ( idynamic /= 3 ) then
       do k = 2 , kz
         kj = kzp2-k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = j+(i-1)*npj
             p1 = (plev(n,k)/play(n,k-1))**c287
             p2 = (plev(n,k)/play(n,k))**c287
             w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
             w2 = (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
             tlev(n,k) = w1 * tlay(n,k-1) * p1 + w2 * tlay(n,k) * p2
-            n = n + 1
           end do
         end do
       end do
@@ -705,26 +705,28 @@ module mod_rrtmg_driver
         end do
       end do
     end if
-    do n = 1 , npr
-      tlev(n,kzp1) = tlay(n,kz)
-      tlev(n,ktf) = 0.5_rkx * (tlev(n,ktf-1)+tlev(n,ktf-2))
+    do k = kzp1 , ktf
+      do n = 1 , npr
+        tlev(n,k) = stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk)
+      end do
     end do
 
     if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = j+(i-1)*npj
             ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
             qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
-            n = n + 1
           end do
         end do
       end do
-      do n = 1 , npr
-        ql1(n,kth) = d_zero
-        qi1(n,kth) = d_zero
+      do k = kzp1 , kth
+        do n = 1 , npr
+          ql1(n,k) = d_zero
+          qi1(n,k) = d_zero
+        end do
       end do
     end if
     !
@@ -732,34 +734,38 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
           h2ovmr(n,k) = h2ommr(n,k) * rep2
-          n = n + 1
         end do
       end do
     end do
-    do n = 1 , npr
-      h2ommr(n,kth) = 1.0e-12_rkx
-      h2ovmr(n,kth) = h2ommr(n,k) * rep2
+    do k = kzp1 , kth
+      do n = 1 , npr
+        h2ommr(n,k) = 1.0e-12_rkx
+        h2ovmr(n,k) = h2ommr(n,k) * rep2
+      end do
     end do
     !
     ! o3 volume mixing ratio
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
-          n = n + 1
         end do
       end do
     end do
-    do n = 1 , npr
-      o3vmr(n,kth) = o3vmr(n,kz)
+    do k = kzp1 , kth
+      do n = 1 , npr
+        o3vmr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+      end do
     end do
     !
     ! cgas is in ppm , ppb , ppt
@@ -775,7 +781,7 @@ module mod_rrtmg_driver
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
 
-    do k = 1 , kth
+    do k = 1 , kz
       do n = 1 , npr
         co2vmrk(n,k) = co2vmr(n)
       end do
@@ -821,30 +827,28 @@ module mod_rrtmg_driver
     end if
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
-        n = 1
         kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = j+(i-1)*npj
             rh(n,k) = m2r%rhatms(j,i,kj)
-            n = n + 1
           end do
         end do
       end do
       do k = 1 , kzp1
-        n = 1
         kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = j+(i-1)*npj
             pint(n,k) = m2r%pfatms(j,i,kj)
-            n = n + 1
           end do
         end do
       end do
       call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
       do i = 1 , nbndsw
-        do k = 1 , kz
-          kj = kzp1 - k
+        do k = 1 , kth
+          kj = kth + 1 - k
           do n = 1 , npr
             ecaer(n,k,i)  = 0.78_rkx ! not used
             tauaer(n,k,i) = tauxar3d(n,kj,i)
@@ -880,7 +884,6 @@ module mod_rrtmg_driver
     clwp = d_zero
     do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           !
@@ -889,18 +892,20 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on bottom/toa grid
           !
+          n = j+(i-1)*npj
           cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          n = n + 1
         end do
       end do
     end do
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
-    do n = 1 , npr
-      cldf(n,kth) = d_zero
-      clwp(n,kth) = d_zero
+    do k = kzp1 , kth
+      do n = 1 , npr
+        cldf(n,k) = d_zero
+        clwp(n,k) = d_zero
+      end do
     end do
     !
     ! CLOUD Properties:
@@ -912,15 +917,11 @@ module mod_rrtmg_driver
     ! partition of total water path betwwen liquide and ice.
     ! now clwp is liquide only !
     !
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         ciwp(n,k) =  clwp(n,k) * fice(n,k)
         clwp(n,k) =  clwp(n,k) * (d_one - fice(n,k))
       end do
-    end do
-    do n = 1 , npr
-      ciwp(n,kth) = 0.0_rkx
-      clwp(n,kth) = 0.0_rkx
     end do
     !
     ! Cloud optical properties(tau,ssa,g,f) :
@@ -941,11 +942,10 @@ module mod_rrtmg_driver
     emis_surf(:,:) = 1.0_rkx
 #else
     do k = 1 , nbndlw
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = j+(i-1)*npj
           emis_surf(n,k) = m2r%emiss(j,i)
-          n = n + 1
         end do
       end do
     end do
@@ -1109,7 +1109,7 @@ module mod_rrtmg_driver
       end do
     end do
     if ( ipptls > 1 ) then
-      do k = 1 , kz
+      do k = 1 , kth
         do n = 1 , npr
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
@@ -1119,7 +1119,7 @@ module mod_rrtmg_driver
         end do
       end do
     else
-      do k = 1 , kz
+      do k = 1 , kth
         do n = 1 , npr
           if ( t(n,k) > minus10 ) then
             ! if warmer than -10 degrees C then water phase
@@ -1136,9 +1136,6 @@ module mod_rrtmg_driver
         end do
       end do
     end if
-    do n = 1 , npr
-      fice(n,kth) = d_zero
-    end do
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver
