@@ -1697,14 +1697,12 @@ module mod_rad_aerosol
             call readvar3d(ncid,'GTOT',xasy2)
             call readvar3d(ncid,'DELP',xdelp2)
 
-            xext1  = max(xext1,d_zero)
-            xssa1  = min(max(xssa1,d_zero),d_one)
-            xasy1  = min(max(xasy1,d_zero),d_one)
-            xdelp1 = max(xdelp1,d_zero)
-            xext2  = max(xext2,d_zero)
-            xssa2  = min(max(xssa2,d_zero),d_one)
-            xasy2  = min(max(xasy2,d_zero),d_one)
-            xdelp2 = max(xdelp2,d_zero)
+            call remove_nans(xext1,d_zero)
+            call remove_nans(xext2,d_zero)
+            call remove_nans(xssa1,d_one)
+            call remove_nans(xssa2,d_one)
+            call remove_nans(xasy1,0.2_rkx)
+            call remove_nans(xasy2,0.2_rkx)
 
             call h_interpolate_cont(hint,xext1,yext)
             call h_interpolate_cont(hint,xssa1,yssa)
@@ -1890,23 +1888,19 @@ module mod_rad_aerosol
       character(len=*) , intent(in) :: vname
       real(rkx) , intent(out) , dimension(:,:,:) :: val
       integer(ik4) , save :: icvar
-      integer(ik4) , save , dimension(4) :: istart , icount
-      integer(ik4) :: iret , irec
+      integer(ik4) , save , dimension(3) :: istart , icount
+      integer(ik4) :: iret
       data icvar /-1/
-      data istart  /  1 ,  1 ,  1 ,  1/
+      data istart  /  1 ,  1 ,  1/
 
       icount(1) = clnlon
       icount(2) = clnlat
       icount(3) = clnlev
-      icount(4) = 1
-      ! irec = ((iyear-cliyear)*12+imon)-1
-      irec = 1
       iret = nf90_inq_varid(ncid,vname,icvar)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM AEROPPCLIM FILE')
       end if
-      istart(4) = irec
       iret = nf90_get_var(ncid,icvar,val,istart,icount)
       if ( iret /= nf90_noerr ) then
         write (stderr, *) nf90_strerror(iret)
@@ -2558,6 +2552,15 @@ module mod_rad_aerosol
       call check_ok(__FILE__,__LINE__, &
          'Error reading dimension lat in file '//trim(infile),'OPP FILE')
     end subroutine getfile
+
+    subroutine remove_nans(val,set)
+      implicit none
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: val
+      real(rkx) , intent(in) :: set
+      where ( is_nan(val) )
+        val = set
+      end where
+    end subroutine remove_nans
 
 end module mod_rad_aerosol
 
