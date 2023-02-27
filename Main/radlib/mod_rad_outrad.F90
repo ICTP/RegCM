@@ -260,7 +260,7 @@ module mod_rad_outrad
     end if
 
     if ( ifmrd ) then
-      rnmrd_for_rmdfrq = rnmrd_for_mrdfrq + 1.0_rkx
+      rnmrd_for_mrdfrq = rnmrd_for_mrdfrq + 1.0_rkx
       call copyadd2d(frsa,mrd_frsa_out)
       call copyadd2d(frla,mrd_frla_out)
       call copyadd2d(clrst,mrd_clrst_out)
