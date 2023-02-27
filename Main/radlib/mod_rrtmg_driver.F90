@@ -325,7 +325,7 @@ module mod_rrtmg_driver
     if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           asdir(n) = m2r%aldirs(j,i)
           asdif(n) = m2r%aldifs(j,i)
           aldir(n) = m2r%aldirl(j,i)
@@ -456,7 +456,7 @@ module mod_rrtmg_driver
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           if ( clwp_int(n,k) > d_zero ) then
             cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                           (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
@@ -585,14 +585,14 @@ module mod_rrtmg_driver
     ! RRTM SW takes pressure in mb,hpa
     do i = ici1 , ici2
       do j = jci1 , jci2
-        n = j+(i-1)*npj
+        n = (j-jci1+1)+(i-ici1)*npj
         dlat(n) = m2r%xlat(j,i)
         ioro(n) = m2r%ldmsk(j,i)
       end do
     end do
     do i = ici1 , ici2
       do j = jci1 , jci2
-        n = j+(i-1)*npj
+        n = (j-jci1+1)+(i-ici1)*npj
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
       end do
@@ -602,7 +602,7 @@ module mod_rrtmg_driver
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           play(n,k) = m2r%phatms(j,i,kj)*d_r100
         end do
       end do
@@ -614,7 +614,7 @@ module mod_rrtmg_driver
       kj = kzp2-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
         end do
       end do
@@ -635,7 +635,7 @@ module mod_rrtmg_driver
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        n = j+(i-1)*npj
+        n = (j-jci1+1)+(i-ici1)*npj
         tsfc(n) = m2r%tg(j,i)
       end do
     end do
@@ -646,17 +646,16 @@ module mod_rrtmg_driver
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           tlay(n,k) = m2r%tatms(j,i,kj)
         end do
       end do
     end do
     do k = kzp1 , kth
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
-          n = n + 1
         end do
       end do
     end do
@@ -667,7 +666,7 @@ module mod_rrtmg_driver
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           deltaz(n,k) = m2r%deltaz(j,i,kj)
         end do
       end do
@@ -689,7 +688,7 @@ module mod_rrtmg_driver
         kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            n = j+(i-1)*npj
+            n = (j-jci1+1)+(i-ici1)*npj
             p1 = (plev(n,k)/play(n,k-1))**c287
             p2 = (plev(n,k)/play(n,k))**c287
             w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
@@ -716,7 +715,7 @@ module mod_rrtmg_driver
         kj = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            n = j+(i-1)*npj
+            n = (j-jci1+1)+(i-ici1)*npj
             ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
             qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
           end do
@@ -736,7 +735,7 @@ module mod_rrtmg_driver
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
           h2ovmr(n,k) = h2ommr(n,k) * rep2
         end do
@@ -755,7 +754,7 @@ module mod_rrtmg_driver
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
         end do
       end do
@@ -815,11 +814,10 @@ module mod_rrtmg_driver
       do itr = 1 , ntr
         do k = 1 , kz
           kj = kzp1-k
-          n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
+              n = (j-jci1+1)+(i-ici1)*npj
               aermmr(n,k,itr) = m2r%chiatms(j,i,kj,itr)
-              n = n + 1
             end do
           end do
         end do
@@ -830,7 +828,7 @@ module mod_rrtmg_driver
         kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            n = j+(i-1)*npj
+            n = (j-jci1+1)+(i-ici1)*npj
             rh(n,k) = m2r%rhatms(j,i,kj)
           end do
         end do
@@ -839,7 +837,7 @@ module mod_rrtmg_driver
         kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            n = j+(i-1)*npj
+            n = (j-jci1+1)+(i-ici1)*npj
             pint(n,k) = m2r%pfatms(j,i,kj)
           end do
         end do
@@ -892,7 +890,7 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on bottom/toa grid
           !
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
         end do
@@ -944,7 +942,7 @@ module mod_rrtmg_driver
     do k = 1 , nbndlw
       do i = ici1 , ici2
         do j = jci1 , jci2
-          n = j+(i-1)*npj
+          n = (j-jci1+1)+(i-ici1)*npj
           emis_surf(n,k) = m2r%emiss(j,i)
         end do
       end do
