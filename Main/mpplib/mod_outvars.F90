@@ -216,6 +216,18 @@ module mod_outvars
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_taucl_out => null()
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_tauci_out => null()
 
+  real(rkx) , dimension(:,:) , pointer :: mrd_frsa_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_frla_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_clrst_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_clrss_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_clrls_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_clrlt_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_solin_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_solout_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_lwout_out => null()
+
+  real(rkx) , dimension(:,:) , pointer :: obs_wspd_out => null()
+
   real(rkx) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_tpr_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_scv_out => null()
