@@ -490,9 +490,9 @@ module mod_slice
             if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
-!$acc end parallel
         end do
       end do
+!$acc end parallel
     end if
 
     contains
