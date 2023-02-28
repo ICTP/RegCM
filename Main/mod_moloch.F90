@@ -114,10 +114,10 @@ module mod_moloch
   contains
 
 #include <wlh.inc>
+!$acc routine seq
 #include <pfesat.inc>
 !$acc routine seq
 #include <pfwsat.inc>
-!$acc routine seq
 
   subroutine allocate_moloch
     implicit none
