@@ -66,7 +66,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
-    logical :: ldomrd , ldoobs
+    logical :: ldomrd , ldocyg
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -74,7 +74,7 @@ module mod_output
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
     real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
-    real(rkx) :: mrdfac , obsfac
+    real(rkx) :: mrdfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -136,7 +136,7 @@ module mod_output
     ldosub = .false.
     ldorad = .false.
     ldomrd = .false.
-    ldoobs = .false.
+    ldocyg = .false.
     ldoopt = .false.
     ldoche = .false.
     ldosav = .false.
@@ -198,8 +198,8 @@ module mod_output
       if ( alarm_out_mrd%act( ) ) then
         ldomrd = .true.
       end if
-      if ( alarm_out_obs%act( ) ) then
-        ldoobs = .true.
+      if ( alarm_out_cyg%act( ) ) then
+        ldocyg = .true.
       end if
       if ( ichem == 1 ) then
         if ( alarm_out_che%act( ) ) then
@@ -1552,8 +1552,8 @@ module mod_output
       end if
     end if
 
-    if ( obs_stream > 0 ) then
-      if ( ldoobs ) then
+    if ( cyg_stream > 0 ) then
+      if ( ldocyg ) then
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1566,9 +1566,9 @@ module mod_output
         else
           ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
-        call write_record_output_stream(obs_stream,alarm_out_obs%idate)
+        call write_record_output_stream(cyg_stream,alarm_out_cyg%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'OBS variables written at ' , rcmtimer%str( )
+          write(stdout,*) 'CYG variables written at ' , rcmtimer%str( )
       end if
     end if
 

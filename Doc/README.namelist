@@ -236,10 +236,12 @@
  atmfrq  =     6.,   ! Frequency in hours to write to ATM
  ifrad   = .true. ,  ! Output RAD ?
  radfrq  =     6.,   ! Frequency in hours to write to RAD
- ifmrd   = .true.,   ! Output MRD ?
+ ifmrd   = .true. ,  ! Output MRD ?
  mrdfrq  =    24.,   ! Frequency in hours to write to MRD
- ifobs   = .true.,   ! Output OBS ?
- obsfrq  =     .5,   ! Frequency in hours to write to OBS
+ ifcyg   = .true. ,  ! Output CYG (frequence is hourly,
+                     !             offset is 30 minutes) ?
+                     ! Warning: the CYG output will not work
+                     !   properly if dt is not a divisor of 30 minutes
  ifsrf   = .true. ,  ! Output SRF ?
  srffrq  =     3.,   ! Frequency in hours to write to SRF
  ifsts   = .true. ,  ! Output STS (frequence is daily) ?
@@ -255,7 +257,7 @@
  enable_srf_vars = 46*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_mrd_vars = 15*.true., ! Mask to eventually disable variables MRD
- enable_obs_vars =  7*.true., ! Mask to eventually disable variables OBS
+ enable_cyg_vars = 7*.true.,  ! Mask to eventually disable variables CYG
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
  enable_shf_vars = 8*.true.,  ! Mask to eventually disable variables SHF

@@ -86,7 +86,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nmrdvars = 9 + nbase
 
-  integer(ik4) , parameter :: nobsvars = 1 + nbase
+  integer(ik4) , parameter :: ncygvars = 1 + nbase
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
   integer(ik4) , parameter :: nopt3dvars = 8
@@ -131,7 +131,7 @@ module mod_ncout
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_mrd => null()
   type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_obs => null()
+    dimension(:) :: v2dvar_cyg => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_mixed) , save , pointer , &
@@ -155,7 +155,7 @@ module mod_ncout
   integer(ik4) , public :: sub_stream = -1
   integer(ik4) , public :: rad_stream = -1
   integer(ik4) , public :: mrd_stream = -1
-  integer(ik4) , public :: obs_stream = -1
+  integer(ik4) , public :: cyg_stream = -1
   integer(ik4) , public :: lak_stream = -1
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
@@ -172,7 +172,7 @@ module mod_ncout
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
   logical , public , dimension(nmrdvars) :: enable_mrd_vars
-  logical , public , dimension(nobsvars) :: enable_obs_vars
+  logical , public , dimension(ncygvars) :: enable_cyg_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
 
@@ -406,13 +406,13 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_solout = 14
   integer(ik4) , parameter :: mrd_lwout  = 15
 
-  integer(ik4) , parameter :: obs_xlon   = 1
-  integer(ik4) , parameter :: obs_xlat   = 2
-  integer(ik4) , parameter :: obs_mask   = 3
-  integer(ik4) , parameter :: obs_topo   = 4
-  integer(ik4) , parameter :: obs_area   = 5
-  integer(ik4) , parameter :: obs_ps     = 6
-  integer(ik4) , parameter :: obs_wspd   = 7
+  integer(ik4) , parameter :: cyg_xlon   = 1
+  integer(ik4) , parameter :: cyg_xlat   = 2
+  integer(ik4) , parameter :: cyg_mask   = 3
+  integer(ik4) , parameter :: cyg_topo   = 4
+  integer(ik4) , parameter :: cyg_area   = 5
+  integer(ik4) , parameter :: cyg_ps     = 6
+  integer(ik4) , parameter :: cyg_wspd   = 7
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -597,9 +597,9 @@ module mod_ncout
       nstream = nstream+1
       mrd_stream = nstream
     end if
-    if ( ifobs ) then
+    if ( ifcyg ) then
       nstream = nstream+1
-      obs_stream = nstream
+      cyg_stream = nstream
     end if
     if ( ifchem ) then
       nstream = nstream+1
@@ -2200,43 +2200,43 @@ module mod_ncout
         outstream(mrd_stream)%ig2 = iout2
       end if
 
-      if ( nstream == obs_stream ) then
+      if ( nstream == cyg_stream ) then
 
-        allocate(v2dvar_obs(nobsvars))
+        allocate(v2dvar_cyg(ncygvars))
 
         ! This variables are always present
 
-        call setup_common_vars(vsize,v2dvar_obs,obs_xlon, &
-                  obs_xlat,obs_topo,obs_mask,obs_area,obs_ps,-1)
+        call setup_common_vars(vsize,v2dvar_cyg,cyg_xlon, &
+                  cyg_xlat,cyg_topo,cyg_mask,cyg_area,cyg_ps,-1)
 
-        if ( enable_obs_vars(obs_wspd) ) then
-          call setup_var(v2dvar_obs,obs_wspd,vsize,'sfcWind','m/s', &
+        if ( enable_cyg_vars(cyg_wspd) ) then
+          call setup_var(v2dvar_cyg,cyg_wspd,vsize,'sfcWind','m/s', &
             'Near-Surface Wind Speed','wind_speed',.true.)
-          obs_wspd_out => v2dvar_obs(obs_wspd)%rval
+          cyg_wspd_out => v2dvar_cyg(cyg_wspd)%rval
         end if
 
-        outstream(obs_stream)%nvar = countvars(enable_obs_vars,nobsvars)
-        allocate(outstream(obs_stream)%ncvars%vlist(outstream(obs_stream)%nvar))
-        outstream(obs_stream)%nfiles = 1
-        allocate(outstream(obs_stream)%ncout(outstream(obs_stream)%nfiles))
-        allocate(outstream(obs_stream)%cname_base(outstream(obs_stream)%nfiles))
-        outstream(obs_stream)%cname_base(1) = 'OBS'
+        outstream(cyg_stream)%nvar = countvars(enable_cyg_vars,ncygvars)
+        allocate(outstream(cyg_stream)%ncvars%vlist(outstream(cyg_stream)%nvar))
+        outstream(cyg_stream)%nfiles = 1
+        allocate(outstream(cyg_stream)%ncout(outstream(cyg_stream)%nfiles))
+        allocate(outstream(cyg_stream)%cname_base(outstream(cyg_stream)%nfiles))
+        outstream(cyg_stream)%cname_base(1) = 'CYG'
 
         vcount = 1
-        do i = 1 , nobsvars
-          if ( enable_obs_vars(i) ) then
-            outstream(obs_stream)%ncvars%vlist(vcount)%vp => v2dvar_obs(i)
+        do i = 1 , ncygvars
+          if ( enable_cyg_vars(i) ) then
+            outstream(cyg_stream)%ncvars%vlist(vcount)%vp => v2dvar_cyg(i)
             vcount = vcount + 1
           end if
         end do
-        outstream(obs_stream)%jl1 = vsize%j1
-        outstream(obs_stream)%jl2 = vsize%j2
-        outstream(obs_stream)%il1 = vsize%i1
-        outstream(obs_stream)%il2 = vsize%i2
-        outstream(obs_stream)%jg1 = jout1
-        outstream(obs_stream)%jg2 = jout2
-        outstream(obs_stream)%ig1 = iout1
-        outstream(obs_stream)%ig2 = iout2
+        outstream(cyg_stream)%jl1 = vsize%j1
+        outstream(cyg_stream)%jl2 = vsize%j2
+        outstream(cyg_stream)%il1 = vsize%i1
+        outstream(cyg_stream)%il2 = vsize%i2
+        outstream(cyg_stream)%jg1 = jout1
+        outstream(cyg_stream)%jg2 = jout2
+        outstream(cyg_stream)%ig1 = iout1
+        outstream(cyg_stream)%ig2 = iout2
       end if
 
       if ( nstream == lak_stream ) then
@@ -2878,7 +2878,7 @@ module mod_ncout
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
              che_stream > 0 .or. opt_stream > 0 .or. &
-             mrd_stream > 0 .or. obs_stream > 0) then
+             mrd_stream > 0 .or. cyg_stream > 0) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -3941,7 +3941,7 @@ module mod_ncout
     if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
     if ( associated(v4dvar_rad) ) deallocate(v4dvar_rad)
     if ( associated(v2dvar_mrd) ) deallocate(v2dvar_mrd)
-    if ( associated(v2dvar_obs) ) deallocate(v2dvar_obs)
+    if ( associated(v2dvar_cyg) ) deallocate(v2dvar_cyg)
     if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)

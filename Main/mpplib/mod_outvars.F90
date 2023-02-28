@@ -226,7 +226,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: mrd_solout_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_lwout_out => null()
 
-  real(rkx) , dimension(:,:) , pointer :: obs_wspd_out => null()
+  real(rkx) , dimension(:,:) , pointer :: cyg_wspd_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_tpr_out => null()

@@ -60,7 +60,7 @@ module mod_runparams
   type(rcm_alarm) , save , public , pointer :: alarm_out_atm
   type(rcm_alarm) , save , public , pointer :: alarm_out_rad
   type(rcm_alarm) , save , public , pointer :: alarm_out_mrd
-  type(rcm_alarm) , save , public , pointer :: alarm_out_obs
+  type(rcm_alarm) , save , public , pointer :: alarm_out_cyg
   type(rcm_alarm) , save , public , pointer :: alarm_out_srf
   type(rcm_alarm) , save , public , pointer :: alarm_out_shf
   type(rcm_alarm) , save , public , pointer :: alarm_out_sts

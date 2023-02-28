@@ -274,13 +274,22 @@ module mod_timer
     end if
   end function syncro_willact
 
-  function init_alarm(t,dt,act0)
+  ! Note: I (Quentin Desmet) have added the offset argument
+  !   to allow an alarm to act first at (dt + offset)
+  !   then to act for the nth time at (n*dt + offset).
+  !   E.g. with dt = 3600; offset = -1800 the alarm will
+  !   will act at 1800, 5400, 9000, etc.
+  !   It is not possible to trigger an alarm at the beginning
+  !   of the simulation.
+  function init_alarm(t,dt,act0,offset)
     implicit none
     type(rcm_alarm) , pointer :: init_alarm
     type(rcm_timer) , pointer , intent(inout) :: t
     real(rkx) , intent(in) :: dt
     logical , intent(in) , optional :: act0
+    real(rkx) , intent(in) , optional :: offset
     logical :: lact0
+    integer(ik8) :: off
     type(rcm_alarm) , pointer :: alarm
     allocate(alarm)
     alarm%timer => null( )
@@ -288,11 +297,14 @@ module mod_timer
       alarm%timer => t
       lact0 = .false.
       if ( present(act0) ) lact0 = act0
+      off = int(0.0_rkx,ik8)
+      if ( present(offset) ) off = int(offset,ik8)
+      if ( off < 0_ik8 ) lact0 = .false.
       alarm%dt = dt
-      alarm%idate = alarm%timer%idate
+      alarm%idate = alarm%timer%idate + rcm_time_interval(off,usec)
       alarm%intalm = rcm_time_interval(int(dt,ik8),usec)
       alarm%actint = int(dt,ik8)
-      alarm%lastact = alarm%timer%model_internal_time
+      alarm%lastact = alarm%timer%model_internal_time + off
       alarm%triggered = lact0
       alarm%timer%nalarm = alarm%timer%nalarm + 1
       alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
@@ -312,8 +324,17 @@ module mod_timer
     t1 = real(alarm%timer%model_internal_time,rkx)
     t2 = real(alarm%lastact+alarm%actint,rkx)
     if ( t1 >= t2 ) then
-      alarm%lastact = ((alarm%timer%model_internal_time) / &
-      alarm%actint)*alarm%actint
+      ! Note: I (Quentin Desmet) have introduced this condition
+      !   to make an offset alarm work. An offset alarm would not
+      !   work if the model time step is not a divisor of both
+      !   the absolute value of the offset and the alarm period.
+      if ( alarm%lastact + alarm%actint == &
+           alarm%timer%model_internal_time ) then
+        alarm%lastact = alarm%timer%model_internal_time
+      else 
+        alarm%lastact = ((alarm%timer%model_internal_time) / &
+        alarm%actint)*alarm%actint
+      end if
       alarm%triggered = .true.
     end if
     if ( alarm%triggered ) then

@@ -423,7 +423,7 @@ module mod_dynparam
   logical , public :: ifshf
   logical , public :: ifrad
   logical , public :: ifmrd ! output for mean variables of RAD
-  logical , public :: ifobs ! output for fitting observations
+  logical , public :: ifcyg ! output for fitting CYGNSS L3 observations
   logical , public :: ifsrf
   logical , public :: ifsub
   logical , public :: ifsts
@@ -436,7 +436,6 @@ module mod_dynparam
   real(rkx) , public :: atmfrq
   real(rkx) , public :: radfrq
   real(rkx) , public :: mrdfrq
-  real(rkx) , public :: obsfrq
   real(rkx) , public :: lakfrq
   real(rkx) , public :: subfrq
   real(rkx) , public :: srffrq
