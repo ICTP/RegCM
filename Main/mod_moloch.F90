@@ -115,7 +115,9 @@ module mod_moloch
 
 #include <wlh.inc>
 #include <pfesat.inc>
+!$acc routine seq
 #include <pfwsat.inc>
+!$acc routine seq
 
   subroutine allocate_moloch
     implicit none
@@ -410,8 +412,8 @@ module mod_moloch
 !$acc end kernels
     end if
     if ( do_fulleq ) then
-!$acc kernels present(tf, tetav)
       if ( do_filtertheta ) then
+!$acc kernels present(tf, tetav)
         tf = tetav(jce1:jce2,ice1:ice2,:)
 !$acc end kernels
       end if
