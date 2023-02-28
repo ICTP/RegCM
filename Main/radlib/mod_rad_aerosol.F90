@@ -1767,10 +1767,9 @@ module mod_rad_aerosol
             call readvar3d(ncid,'GTOT',xasy2)
             call readvar3d(ncid,'DELP',xdelp2)
 
-            xext2 = max(xext2,d_zero)
-            xssa2 = min(max(xssa2,d_zero),d_one)
-            xasy2 = min(max(xasy2,d_zero),d_one)
-            xdelp2= max(xdelp2,d_zero)
+            call remove_nans(xext2,d_zero)
+            call remove_nans(xssa2,d_one)
+            call remove_nans(xasy2,0.2_rkx)
 
             call h_interpolate_cont(hint,xext2,yext)
             call h_interpolate_cont(hint,xssa2,yssa)
