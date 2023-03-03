@@ -503,6 +503,7 @@ module mod_ncstream
 #endif
       character(len=16) , dimension(8) :: tempstr
       real(rkx) :: xds , x0
+      real(rk8) :: rlat0 , rlon0
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
@@ -1002,9 +1003,9 @@ module mod_ncstream
         call outstream_writevar(ncout,stvar%iy_var,nocopy)
       else
         xds = xds/erkm*raddeg
-        buffer%doublebuff(1) = &
-          -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
-                    xds,rk8)
+        call compute_zero_rotated(rlat0,rlon0)
+        buffer%doublebuff(1) = rlon0 - &
+          real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two)*xds,rk8)
         do i = 2 , stream%len_dims(jx_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
@@ -1016,9 +1017,8 @@ module mod_ncstream
           buffer%doublebuff = 360.0_rk8 + buffer%doublebuff
         end where
         call outstream_writevar(ncout,stvar%jx_var,nocopy)
-        buffer%doublebuff(1) = &
-          -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
-                    xds,rk8)
+        buffer%doublebuff(1) = rlat0 - &
+          real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two)*xds,rk8)
         do i = 2 , stream%len_dims(iy_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
@@ -1103,6 +1103,64 @@ module mod_ncstream
         buffer%doublebuff(8) = 0.00000400_rk8
         call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
+      contains
+
+      subroutine compute_zero_rotated(rlat0,rlon0)
+        implicit none
+        real(rk8) , intent(out) :: rlat0 , rlon0
+        real(rk8) :: pphi , plam
+        real(rk8) :: cphi , clam
+        pphi = degrad*plat
+        plam = degrad*plon
+        if ( plam < 0.0_rk8 ) then
+          plam = plam + mathpi
+        else if ( plam > 0.0_rk8 ) then
+          plam = plam - mathpi
+        else
+          plam = 0.0_rk8
+        end if
+        if ( pphi > 0.0_rk8 ) then
+          pphi = halfpi-pphi
+        else if ( pphi < 0.0_rk8 ) then
+          pphi = -(halfpi+pphi)
+        else
+          pphi = 0.0_rk8
+        end if
+        if ( clat >  deg90 ) then
+          cphi = degrad*(deg90 - clat)
+        else if ( clat < -deg90 ) then
+          cphi = degrad*(clat + deg90)
+        else
+          cphi = degrad*clat
+        end if
+        if ( clon >  deg180 ) then
+          clam = degrad*(clon - deg360)
+        else if ( clon < -deg180 ) then
+          clam = degrad*(clon + deg360)
+        else
+          clam = degrad*clon
+        end if
+        rlat0 = asin(-cos(cphi)*sin(pphi)*cos(clam-plam) + &
+                    sin(cphi)*cos(pphi))
+        if ( abs(abs(rlat0)-halfpi) > 1.0e-7_rk8 .and. &
+             abs(pphi) > 1.0e-7_rk8 ) then
+          rlon0 = (sin(cphi)-cos(pphi)*sin(rlat0)) / &
+                  (sin(pphi)*cos(rlat0))
+          if ( rlon0 < -1.0_rk8 .and. &
+               rlon0 > -1.00001_rk8 ) rlon0 = -1.0_rk8
+          if ( rlon0 >  1.0_rk8 .and. &
+               rlon0 <  1.00001_rk8 ) rlon0 =  1.0_rk8
+          rlon0 = acos(rlon0)
+          if ( clam < plam ) then
+            rlon0 = -rlon0
+          end if
+        else
+          rlon0 = clam
+        end if
+        rlat0 = raddeg*rlat0
+        rlon0 = raddeg*rlon0
+      end subroutine compute_zero_rotated
+
     end subroutine outstream_enable
 
     subroutine outstream_sync(ncout)
