@@ -23,33 +23,76 @@ def get_x(lon, clon, cone):
         return np.radians(clon - lon) * cone
 
 
-def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None, plon=None,
-                           plat=None, ds=None):
+def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None,
+                           plon=None, plat=None, ds=None):
     if proj == 'NORMER':
         return 1, 0
 
     elif proj == 'ROTLLR':
-        drot = np.rad2deg(ds/6371229.0)
-        zphi = np.radians(lat)
-        zrla = np.radians(lon)
-        zrla = np.where(abs(lat) > 89.99999, 0.0, zrla)
-        lam0 = 0.0
-        phi0 = 0.0
-        if plon < 0.0:
-            lam0 = plon + np.pi
-        elif plon > 0.0:
-            lam0 = plon - np.pi
-        if plat > 0.0:
-            phi0 = np.pi*0.5 - plat
-        elif plat < 0.0:
-            phi0 = - (np.pi*0.5 + plat)
-        rotlam = np.radians(lam0)
+        drot = ds/6371229.0
+        plam = 0.0
+        pphi = 0.0
+        if np.radians(plon) < 0.0:
+            plam = np.radians(plon) + np.pi
+        elif np.radians(plon) > 0.0:
+            plam = np.radians(plon) - np.pi
+        if np.radians(plat) > 0.0:
+            pphi = np.pi*0.5 - np.radians(plat)
+        elif np.radians(plat) < 0.0:
+            pphi = - (np.pi*0.5 + np.radians(plat))
+        if clat > 90.0:
+            cphi = np.radians(90.0-clat)
+        elif clat < -90.0:
+            cphi = np.radians(clat+90.0)
+        else:
+            cphi = np.radians(clat)
+        if clon > 180.0:
+            clam = np.radians(clon-360.0)
+        elif clon < -180.0:
+            clam = np.radians(clon+360.0)
+        else:
+            clam = np.radians(clon)
+        rphi0 = np.arcsin(-np.cos(cphi)*np.sin(pphi)*np.cos(clam-plam) +
+                           np.sin(cphi)*np.cos(pphi))
+        if np.abs(np.abs(rphi0)-np.pi*0.5) > 1.0e-7 and np.abs(pphi) > 1.0e-7:
+            rlam0 = ((np.sin(cphi)-np.cos(pphi)*np.sin(rphi0)) /
+                     (np.sin(pphi)*np.cos(rphi0)))
+            if rlam0 < -1.0 and rlam0 > -1.00001:
+                rlam0 = -1.0
+            if rlam0 > 1.0 and rlam0 < 1.00001:
+                rlam0 = 1.0
+            rlam0 = np.arccos(rlam0)
+            if clam < plam:
+                rlam0 = -rlam0
+        else:
+            rlam0 = clam
+        phi = np.radians(lat)
+        lam = np.where(abs(lat)>89.99999, 0.0, np.radians(lon))
+        ny, nx = np.shape(lat)
+        yy = np.arange(-ny/2+0.5,ny/2)
+        xx = np.tile(np.array([ x 
+                        for x in np.arange(-nx/2+0.5,nx/2)] ),(ny,1))
+        yy = np.tile(np.array([[y 
+                        for y in np.arange(-ny/2+0.5,ny/2)]]).transpose(),nx)
+        rotlam = xx * drot + rlam0
+        rotphi = yy * drot + rphi0
+        dlam = lam - plam
+        f5 = np.where(np.abs(np.cos(phi))>1.0e-7,
+              -(np.sin(pphi)*np.sin(rotlam))/np.cos(phi), np.nan)
+        f6 = np.where(np.abs(np.cos(phi))>1.0e-7,
+              (np.cos(pphi)*np.cos(rotphi) -
+              np.sin(pphi)*np.sin(rotphi)*np.cos(rotlam))/np.cos(phi),np.nan)
+        f7 = np.where(np.abs(np.sin(dlam))>0.075e-1,
+              np.cos(rotphi)/(np.sin(dlam)*np.sin(pphi)),np.nan)
+        f8 = np.where(np.abs(np.cos(rotphi))>1.0e-7,
+              -(np.cos(dlam)*np.sin(pphi)*np.sin(phi) +
+               np.cos(pphi)*np.cos(phi))/np.cos(rotphi),np.nan)
+        return f5, f6, f7, f8
 
     elif proj == 'ROTMER':
         zphi = np.radians(lat)
         zrla = np.radians(lon)
         zrla = np.where(abs(lat) > 89.99999, 0.0, zrla)
-
         if plat > 0.0:
             pollam = plon + 180.0
             polphi = 90.0 - plat

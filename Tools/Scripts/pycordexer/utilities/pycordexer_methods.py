@@ -2514,7 +2514,7 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
         # This is the function that computes the coefficients for the rotation
         def compute_rotation_coefficients(lat_lon_slice):
             LOGGER.debug('Computing transformation coefficients')
-            c1, c2 = grid_to_earth_uvrotate(
+            ff = grid_to_earth_uvrotate(
                 regcm_file.map_projection,
                 regcm_file.xlon[lat_lon_slice],
                 regcm_file.xlat[lat_lon_slice],
@@ -2525,13 +2525,15 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 plat,
                 ds
             )
-
-            if self.direction == 'eastward':
-                return c1, c2
-            elif self.direction == 'northward':
-                return -c2, c1
+            if ( regcm_file.map_projection == 'ROTLLR' ):
+                return ff[0], ff[1], ff[2], ff[3]
             else:
-                raise ValueError('Invalid direction: {}'.format(self.direction))
+                if self.direction == 'eastward':
+                    return ff[0], ff[1]
+                elif self.direction == 'northward':
+                    return -ff[1], ff[0]
+                else:
+                    raise ValueError('Invalid direction: {}'.format(self.direction))
 
         # Avoid repetition with the same slice
         compute_rotation_coefficients = Repeater(compute_rotation_coefficients)
@@ -2555,9 +2557,16 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 SliceStr(lat_lon_slice)
             )
 
-            c1, c2 = compute_rotation_coefficients(lat_lon_slice)
-
-            return c1 * x + c2 * y
+            ff = compute_rotation_coefficients(lat_lon_slice)
+            if regcm_file.map_projection == 'ROTLLR':
+                vs = ff[0] * x + ff[1] * y
+                us = ff[2] * (y + ff[3]*vs)
+                if self.direction == 'eastward':
+                    return np.where(us!=us,x,us)
+                else:
+                    return np.where(vs!=vs,y,vs)
+            else:
+                return ff[0] * x + ff[1] * y
 
         # Return the variable that uses the previous function to compute
         # its data
