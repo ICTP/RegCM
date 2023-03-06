@@ -1010,10 +1010,10 @@ module mod_ncstream
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
         end do
-        where ( buffer%doublebuff > 180.0 )
+        where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) > 180.0 )
           buffer%doublebuff = 360.0_rk8 - buffer%doublebuff
         end where
-        where ( buffer%doublebuff < -180.0 )
+        where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) < -180.0 )
           buffer%doublebuff = 360.0_rk8 + buffer%doublebuff
         end where
         call outstream_writevar(ncout,stvar%jx_var,nocopy)
