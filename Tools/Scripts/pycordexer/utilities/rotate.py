@@ -29,7 +29,7 @@ def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None,
         return 1, 0
 
     elif proj == 'ROTLLR':
-        if plam - 90.0 < 0.0001:
+        if np.abs(plat - 90.0) < 0.001:
             return 1, 0
         plam = np.radians(plon)
         pphi = np.radians(plat)
