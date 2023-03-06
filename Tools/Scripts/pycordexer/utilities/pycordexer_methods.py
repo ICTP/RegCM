@@ -2504,13 +2504,6 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             plat = None
             LOGGER.debug('Plat not found: missing attribute')
 
-        if 'grid_size_in_meters' in regcm_file.attributes:
-            ds = float(regcm_file.attributes['grid_size_in_meters'])
-            LOGGER.debug('ds is %s', ds)
-        else:
-            ds = None
-            LOGGER.debug('Ds not found: missing attribute')
-
         # This is the function that computes the coefficients for the rotation
         def compute_rotation_coefficients(lat_lon_slice):
             LOGGER.debug('Computing transformation coefficients')
@@ -2522,18 +2515,14 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 regcm_file.map_projection_latitude_origin,
                 cone,
                 plon,
-                plat,
-                ds
+                plat
             )
-            if ( regcm_file.map_projection == 'ROTLLR' ):
-                return ff[0], ff[1], ff[2], ff[3]
+            if self.direction == 'eastward':
+                return ff[0], ff[1]
+            elif self.direction == 'northward':
+                return -ff[1], ff[0]
             else:
-                if self.direction == 'eastward':
-                    return ff[0], ff[1]
-                elif self.direction == 'northward':
-                    return -ff[1], ff[0]
-                else:
-                    raise ValueError('Invalid direction: {}'.format(self.direction))
+                raise ValueError('Invalid direction: {}'.format(self.direction))
 
         # Avoid repetition with the same slice
         compute_rotation_coefficients = Repeater(compute_rotation_coefficients)
@@ -2557,16 +2546,8 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 SliceStr(lat_lon_slice)
             )
 
-            ff = compute_rotation_coefficients(lat_lon_slice)
-            if regcm_file.map_projection == 'ROTLLR':
-                vs = ff[0] * x + ff[1] * y
-                us = ff[2] * (y + ff[3]*vs)
-                if self.direction == 'eastward':
-                    return np.where(us!=us,x,us)
-                else:
-                    return np.where(vs!=vs,y,vs)
-            else:
-                return ff[0] * x + ff[1] * y
+            f1, f2 = compute_rotation_coefficients(lat_lon_slice)
+            return f1 * x + f2 * y
 
         # Return the variable that uses the previous function to compute
         # its data
