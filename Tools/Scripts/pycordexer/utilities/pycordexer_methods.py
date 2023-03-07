@@ -2428,6 +2428,9 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             self.need_time_bounds
         )
 
+        if "grid_" not in reference_var.attributes['standard_name']:
+            return reference_var
+
         attributes = copy(reference_var.attributes)
 
         if self.new_attributes is not None:
