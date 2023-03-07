@@ -1934,8 +1934,8 @@ module mod_output
 
     contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
+#include <pfesat_acc.inc>
+#include <pfwsat_acc.inc>
 
   end subroutine output
 
