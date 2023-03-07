@@ -65,7 +65,7 @@ __credits__ = ["Alberto Chiusole", "Stefano Piani"]
 
 _GLOB_MASKS = ["*_ATM.??????????.nc", "*_SRF.??????????.nc",
                "*_STS.??????????.nc", "*_RAD.??????????.nc",
-               "*.??????????.txt"]
+               "*_SHF.??????????.nc", "*.??????????.txt"]
 _SLEEP_TIMER = 10
 
 # A flag to stop the execution of this software as soon as possible
@@ -672,6 +672,14 @@ def _create_input_parser():
                         'names as "v0" or "v1". This argument is ignored if '
                         '--regcm-version is not submitted and it is mandatory '
                         'otherwise', type=int, default=None)
+    parser.add_argument('--regcm_nest_tag', help='For the FPS where the model '
+                        'is nested into a previous RegCM run, we can provide '
+                        'here the information on the nesting. Usually this is '
+                        'a string like fpsconv-x2yn2-v1. Read the experiment '
+                        'protocol documentation to find correct format. This '
+                        'argument is ignored if --regcm-version is not '
+                        'submitted and it is mandatory otherwise',
+                        type=str, default=None)
     return parser
 
 
@@ -873,17 +881,21 @@ def _read_pycordexer_options(args):
     regcm_version = args['regcm_version']
     if regcm_version is None:
         regcm_version_id = None
+        regcm_nest_tag = None
     else:
         regcm_version_id = args['regcm_version_id']
-        if regcm_version_id is None:
+        regcm_nest_tag = args['regcm_nest_tag']
+        if regcm_version_id is None and regcm_nest_tag is None:
             raise ValueError(
-                'If --regcm-version is submitted, the --regcm-version-id is '
-                'mandatory and must be an integer'
+                'If --regcm-version is submitted, then one in the couple '
+                '--regcm-version-id,--regcm_nest_tag is mandatory and must '
+                'be specified.'
             )
 
     if regcm_version is not None:
         pycordexer_options['regcm_version'] = regcm_version
         pycordexer_options['regcm_version_id'] = regcm_version_id
+        pycordexer_options['regcm_nest_tag'] = regcm_nest_tag
 
     return pycordexer_options, input_dir
 
