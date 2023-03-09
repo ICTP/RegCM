@@ -160,6 +160,12 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: srf_ua100_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_va100_out => null()
 
+  real(rkx) , dimension(:,:) , pointer :: msf_u10m_out => null()
+  real(rkx) , dimension(:,:) , pointer :: msf_v10m_out => null()
+  real(rkx) , dimension(:,:) , pointer :: msf_wspd_out => null()
+
+  real(rkx) , dimension(:,:) , pointer :: cyg_wspd_out => null()
+
   real(rkx) , dimension(:,:) , pointer :: sts_tgmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_tgmin_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_pcpmax_out => null()
@@ -225,8 +231,10 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: mrd_solin_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_solout_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_lwout_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_prw_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_clwp2d_out => null()
 
-  real(rkx) , dimension(:,:) , pointer :: cyg_wspd_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mrd_clwp_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_tpr_out => null()

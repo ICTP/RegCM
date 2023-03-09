@@ -149,6 +149,9 @@ module mod_rad_outrad
     if ( ifrad ) then
       rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
     end if
+    if ( ifmrd ) then
+      rnmrd_for_mrdfrq = rnmrd_for_mrdfrq + 1.0_rkx
+    end if
     if ( ifopt ) then
       rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
     end if
@@ -194,6 +197,21 @@ module mod_rad_outrad
         end do
       end do
     end if
+
+    if ( ifmrd ) then
+      call copy2d_add(frsa,mrd_frsa_out)
+      call copy2d_add(frla,mrd_frla_out)
+      call copy2d_add(clrst,mrd_clrst_out)
+      call copy2d_add(clrss,mrd_clrss_out)
+      call copy2d_add(clrlt,mrd_clrlt_out)
+      call copy2d_add(clrls,mrd_clrls_out)
+      call copy2d_add(solin,mrd_solin_out)
+      call copy2d_add(solout,mrd_solout_out)
+      call copy2d_add(lwout,mrd_lwout_out)
+      call copy2d_add(totwv,mrd_totwv_out)
+      call copy3d_add_integrate_from3(clwp,mrd_clwp2d_out)
+      call copy3d_add(clwp,mrd_clwp_out)
+    endif
 
     if ( rcmtimer%start( ) ) return
 
@@ -259,36 +277,7 @@ module mod_rad_outrad
       end if
     end if
 
-    if ( ifmrd ) then
-      rnmrd_for_mrdfrq = rnmrd_for_mrdfrq + 1.0_rkx
-      call copyadd2d(frsa,mrd_frsa_out)
-      call copyadd2d(frla,mrd_frla_out)
-      call copyadd2d(clrst,mrd_clrst_out)
-      call copyadd2d(clrss,mrd_clrss_out)
-      call copyadd2d(clrlt,mrd_clrlt_out)
-      call copyadd2d(clrls,mrd_clrls_out)
-      call copyadd2d(solin,mrd_solin_out)
-      call copyadd2d(solout,mrd_solout_out)
-      call copyadd2d(lwout,mrd_lwout_out)
-    endif
-
   end subroutine radout
-
-  subroutine copyadd2d(a,b)
-    implicit none
-    real(rkx) , pointer , intent(in) , dimension(:) :: a
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) :: i , j , n
-    if ( associated(b) ) then
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          b(j,i) = b(j,i) + a(n)
-          n = n + 1
-        end do
-      end do
-    end if
-  end subroutine copyadd2d
 
   subroutine copy2d(a,b)
     implicit none
@@ -495,6 +484,24 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy2d_add
+
+  subroutine copy2d_add_integrate_from3(a,b)
+    implicit none
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
+    integer(ik4) :: i , j , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i) = b(j,i) + a(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy2d_add_integrate_from3
 
   subroutine copy3d_add(a,b)
     implicit none

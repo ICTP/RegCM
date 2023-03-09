@@ -855,10 +855,6 @@ module mod_lm_interface
       if ( ifrad ) then
         rnrad_for_srffrq = rnrad_for_srffrq + 1.0_rkx
       end if
-      if ( ifcyg ) then
-        if ( associated(cyg_wspd_out) ) &
-          cyg_wspd_out = sqrt(lm%u10m**2 + lm%v10m**2)
-      end if
       if ( ifatm ) then
         rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
         if ( associated(atm_tsw_out) ) &
@@ -931,6 +927,13 @@ module mod_lm_interface
             end do
           end do
         end if
+      end if
+      if ( ifmsf ) then
+        rnmsf_for_msffrq = rnmsf_for_msffrq + 1.0_rkx
+        if ( associated(msf_u10m_out) ) &
+          msf_u10m_out = msf_u10m_out + lm%u10m
+        if ( associated(msf_v10m_out) ) &
+          msf_v10m_out = msf_v10m_out + lm%v10m
       end if
       if ( ifsub ) then
         rnsrf_for_subfrq = rnsrf_for_subfrq + 1.0_rkx
@@ -1154,6 +1157,15 @@ module mod_lm_interface
 #endif
 
     end if ! IF output time
+      
+    if ( alarm_out_cyg%will_act(dtsrf) ) then
+
+      if ( ifcyg ) then
+        if ( associated(cyg_wspd_out) ) &
+          cyg_wspd_out = sqrt(lm%u10m**2 + lm%v10m**2)
+      end if
+
+    end if
 
     if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       ! Fill for the RTM component

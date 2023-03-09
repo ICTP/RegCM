@@ -66,7 +66,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
-    logical :: ldomrd , ldocyg
+    logical :: ldomrd , ldomsf , ldocyg
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -74,7 +74,7 @@ module mod_output
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
     real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
-    real(rkx) :: mrdfac
+    real(rkx) :: mrdfac , msffac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -132,11 +132,12 @@ module mod_output
     lnewf = .false.
     ldoatm = .false.
     ldosrf = .false.
+    ldomsf = .false.
+    ldocyg = .false.
     ldolak = .false.
     ldosub = .false.
     ldorad = .false.
     ldomrd = .false.
-    ldocyg = .false.
     ldoopt = .false.
     ldoche = .false.
     ldosav = .false.
@@ -176,6 +177,12 @@ module mod_output
       if ( alarm_out_srf%act( ) ) then
         ldosrf = .true.
       end if
+      if ( alarm_out_msf%act( ) ) then
+        ldomsf = .true.
+      end if
+      if ( alarm_out_cyg%act( ) ) then
+        ldocyg = .true.
+      end if
       if ( alarm_out_sts%act( ) ) then
         ldosts = .true.
       end if
@@ -197,9 +204,6 @@ module mod_output
       end if
       if ( alarm_out_mrd%act( ) ) then
         ldomrd = .true.
-      end if
-      if ( alarm_out_cyg%act( ) ) then
-        ldocyg = .true.
       end if
       if ( ichem == 1 ) then
         if ( alarm_out_che%act( ) ) then
@@ -1178,6 +1182,64 @@ module mod_output
       end if
     end if
 
+    if ( msf_stream > 0 ) then
+      if ( ldomsf ) then
+        msffac = d_one / rnmsf_for_msffrq
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+
+        if ( associated(msf_u10m_out) ) &
+          msf_u10m_out = msf_u10m_out*msffac
+        if ( associated(msf_v10m_out) ) &
+          msf_v10m_out = msf_v10m_out*msffac
+        if ( associated(msf_u10m_out) .and. associated(msf_v10m_out) ) then
+          if ( associated(msf_wspd_out) ) &
+            msf_wspd_out = sqrt(msf_u10m_out**2 + msf_v10m_out**2)
+          if ( uvrotate ) then
+            call uvrot(msf_u10m_out,msf_v10m_out)
+          end if
+        end if
+        call write_record_output_stream(msf_stream,alarm_out_msf%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'MSF variables written at ' , rcmtimer%str( )
+
+        if ( associated(msf_u10m_out) ) msf_u10m_out = d_zero
+        if ( associated(msf_v10m_out) ) msf_v10m_out = d_zero
+        if ( associated(msf_wspd_out) ) msf_wspd_out = d_zero
+        rnmsf_for_msffrq = d_zero
+      end if
+    end if
+
+    if ( cyg_stream > 0 ) then
+      if ( ldocyg ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        call write_record_output_stream(cyg_stream,alarm_out_cyg%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'CYG variables written at ' , rcmtimer%str( )
+      end if
+    end if
+
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
         subfac = d_one / rnsrf_for_subfrq
@@ -1535,6 +1597,12 @@ module mod_output
           mrd_solout_out = mrd_solout_out*mrdfac
         if ( associated(mrd_lwout_out) ) &
           mrd_lwout_out = mrd_lwout_out*mrdfac
+        if ( associated(mrd_prw_out) ) &
+          mrd_prw_out = mrd_prw_out*mrdfac
+        if ( associated(mrd_clwp2d_out) ) &
+          mrd_clwp2d_out = mrd_clwp2d_out*mrdfac
+        if ( associated(mrd_clwp_out) ) &
+          mrd_clwp_out = mrd_clwp_out*mrdfac
         call write_record_output_stream(mrd_stream,alarm_out_mrd%idate)
         if ( myid == italk ) &
           write(stdout,*) 'MRD variables written at ' , rcmtimer%str( )
@@ -1548,27 +1616,10 @@ module mod_output
         if ( associated(mrd_solin_out) ) mrd_solin_out = d_zero
         if ( associated(mrd_solout_out) ) mrd_solout_out = d_zero
         if ( associated(mrd_lwout_out) ) mrd_lwout_out = d_zero
+        if ( associated(mrd_prw_out) ) mrd_prw_out = d_zero
+        if ( associated(mrd_clwp2d_out) ) mrd_clwp2d_out = d_zero
+        if ( associated(mrd_clwp_out) ) mrd_clwp_out = d_zero
         rnmrd_for_mrdfrq = d_zero
-      end if
-    end if
-
-    if ( cyg_stream > 0 ) then
-      if ( ldocyg ) then
-        if ( idynamic == 1 ) then
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        else if ( idynamic == 2 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
-                atm1%pp(j,i,kz)/sfs%psa(j,i)
-            end do
-          end do
-        else
-          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
-        end if
-        call write_record_output_stream(cyg_stream,alarm_out_cyg%idate)
-        if ( myid == italk ) &
-          write(stdout,*) 'CYG variables written at ' , rcmtimer%str( )
       end if
     end if
 

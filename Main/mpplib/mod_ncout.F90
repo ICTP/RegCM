@@ -67,6 +67,10 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
+  integer(ik4) , parameter :: nmsfvars = 3 + nbase
+
+  integer(ik4) , parameter :: ncygvars = 1 + nbase
+
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
   integer(ik4) , parameter :: nsts3dvars = 4
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
@@ -84,9 +88,9 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nmrdvars = 9 + nbase
-
-  integer(ik4) , parameter :: ncygvars = 1 + nbase
+  integer(ik4) , parameter :: nmrd2dvars = 11 + nbase
+  integer(ik4) , parameter :: nmrd3dvars = 1
+  integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
   integer(ik4) , parameter :: nopt3dvars = 8
@@ -111,6 +115,10 @@ module mod_ncout
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_srf => null()
   type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_msf => null()
+  type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_cyg => null()
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_sts => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_sts => null()
@@ -130,8 +138,8 @@ module mod_ncout
     dimension(:) :: v4dvar_rad => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_mrd => null()
-  type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_cyg => null()
+  type(ncvariable3d_mixed) , save , pointer , &
+    dimension(:) :: v3dvar_mrd => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_mixed) , save , pointer , &
@@ -152,10 +160,11 @@ module mod_ncout
   integer(ik4) , public :: atm_stream = -1
   integer(ik4) , public :: shf_stream = -1
   integer(ik4) , public :: srf_stream = -1
+  integer(ik4) , public :: msf_stream = -1
+  integer(ik4) , public :: cyg_stream = -1
   integer(ik4) , public :: sub_stream = -1
   integer(ik4) , public :: rad_stream = -1
   integer(ik4) , public :: mrd_stream = -1
-  integer(ik4) , public :: cyg_stream = -1
   integer(ik4) , public :: lak_stream = -1
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
@@ -167,12 +176,13 @@ module mod_ncout
   logical , public , dimension(natmvars) :: enable_atm_vars
   logical , public , dimension(nshfvars) :: enable_shf_vars
   logical , public , dimension(nsrfvars) :: enable_srf_vars
+  logical , public , dimension(nmsfvars) :: enable_msf_vars
+  logical , public , dimension(ncygvars) :: enable_cyg_vars
   logical , public , dimension(nstsvars) :: enable_sts_vars
   logical , public , dimension(nsubvars) :: enable_sub_vars
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
   logical , public , dimension(nmrdvars) :: enable_mrd_vars
-  logical , public , dimension(ncygvars) :: enable_cyg_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
 
@@ -314,6 +324,24 @@ module mod_ncout
   integer(ik4) , parameter :: srf_ua100  = 8
   integer(ik4) , parameter :: srf_va100  = 9
 
+  integer(ik4) , parameter :: msf_xlon   = 1
+  integer(ik4) , parameter :: msf_xlat   = 2
+  integer(ik4) , parameter :: msf_mask   = 3
+  integer(ik4) , parameter :: msf_topo   = 4
+  integer(ik4) , parameter :: msf_area   = 5
+  integer(ik4) , parameter :: msf_ps     = 6
+  integer(ik4) , parameter :: msf_u10m   = 7
+  integer(ik4) , parameter :: msf_v10m   = 8
+  integer(ik4) , parameter :: msf_wspd   = 9 
+
+  integer(ik4) , parameter :: cyg_xlon   = 1
+  integer(ik4) , parameter :: cyg_xlat   = 2
+  integer(ik4) , parameter :: cyg_mask   = 3
+  integer(ik4) , parameter :: cyg_topo   = 4
+  integer(ik4) , parameter :: cyg_area   = 5
+  integer(ik4) , parameter :: cyg_ps     = 6
+  integer(ik4) , parameter :: cyg_wspd   = 7
+
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
   integer(ik4) , parameter :: sts_mask    = 3
@@ -405,14 +433,10 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_solin  = 13
   integer(ik4) , parameter :: mrd_solout = 14
   integer(ik4) , parameter :: mrd_lwout  = 15
+  integer(ik4) , parameter :: mrd_prw    = 16
+  integer(ik4) , parameter :: mrd_clwp2d = 17
 
-  integer(ik4) , parameter :: cyg_xlon   = 1
-  integer(ik4) , parameter :: cyg_xlat   = 2
-  integer(ik4) , parameter :: cyg_mask   = 3
-  integer(ik4) , parameter :: cyg_topo   = 4
-  integer(ik4) , parameter :: cyg_area   = 5
-  integer(ik4) , parameter :: cyg_ps     = 6
-  integer(ik4) , parameter :: cyg_wspd   = 7
+  integer(ik4) , parameter :: mrd_clwp   = 1
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -538,6 +562,8 @@ module mod_ncout
     logical , dimension(nrad2dvars) :: enable_rad2d_vars
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
     logical , dimension(nrad4dvars) :: enable_rad4d_vars
+    logical , dimension(nmrd2dvars) :: enable_mrd2d_vars
+    logical , dimension(nmrd3dvars) :: enable_mrd3d_vars
     logical , dimension(nopt2dvars) :: enable_opt2d_vars
     logical , dimension(nopt3dvars) :: enable_opt3d_vars
     logical , dimension(nche2dvars) :: enable_che2d_vars
@@ -577,6 +603,14 @@ module mod_ncout
       nstream = nstream+1
       srf_stream = nstream
     end if
+    if ( ifmsf ) then
+      nstream = nstream+1
+      msf_stream = nstream
+    end if
+    if ( ifcyg ) then
+      nstream = nstream+1
+      cyg_stream = nstream
+    end if
     if ( ifsts ) then
       nstream = nstream+1
       sts_stream = nstream
@@ -596,10 +630,6 @@ module mod_ncout
     if ( ifmrd ) then
       nstream = nstream+1
       mrd_stream = nstream
-    end if
-    if ( ifcyg ) then
-      nstream = nstream+1
-      cyg_stream = nstream
     end if
     if ( ifchem ) then
       nstream = nstream+1
@@ -1600,6 +1630,107 @@ module mod_ncout
         outstream(srf_stream)%ig2 = iout2
       end if
 
+      if ( nstream == msf_stream ) then
+
+        allocate(v2dvar_msf(nmsfvars))
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_msf,msf_xlon, &
+                  msf_xlat,msf_topo,msf_mask,msf_area,msf_ps,-1)
+
+        ! The following may be enabled/disabled
+
+        if ( enable_msf_vars(msf_u10m) ) then
+          if ( uvrotate ) then
+            call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
+              'Eastward Near-Surface Wind','eastward_wind',.true.)
+          else
+            call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
+              'Grid Eastward Near-Surface Wind','grid_eastward_wind',.true.)
+          end if
+          msf_u10m_out => v2dvar_msf(msf_u10m)%rval
+        end if
+        if ( enable_msf_vars(msf_v10m) ) then
+          if ( uvrotate ) then
+            call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
+              'Northward Near-Surface Wind','northward_wind',.true.)
+          else
+            call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
+              'Grid Northward Near-Surface Wind','grid_northward_wind',.true.)
+          end if
+          msf_v10m_out => v2dvar_msf(msf_v10m)%rval
+        end if
+        if ( enable_msf_vars(msf_wspd) ) then
+          call setup_var(v2dvar_msf,msf_wspd,vsize,'sfcWind','m/s', &
+            'Near-Surface Wind Speed', &
+            'wind_speed',.true.,'time: mean')
+          msf_wspd_out => v2dvar_msf(msf_wspd)%rval
+        end if
+
+        outstream(msf_stream)%nvar = countvars(enable_msf_vars,nmsfvars)
+        allocate(outstream(msf_stream)%ncvars%vlist(outstream(msf_stream)%nvar))
+        outstream(msf_stream)%nfiles = 1
+        allocate(outstream(msf_stream)%ncout(outstream(msf_stream)%nfiles))
+        allocate(outstream(msf_stream)%cname_base(outstream(msf_stream)%nfiles))
+        outstream(msf_stream)%cname_base(1) = 'MSF'
+
+        vcount = 1
+        do i = 1 , nmsfvars
+          if ( enable_msf_vars(i) ) then
+            outstream(msf_stream)%ncvars%vlist(vcount)%vp => v2dvar_msf(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(msf_stream)%jl1 = vsize%j1
+        outstream(msf_stream)%jl2 = vsize%j2
+        outstream(msf_stream)%il1 = vsize%i1
+        outstream(msf_stream)%il2 = vsize%i2
+        outstream(msf_stream)%jg1 = jout1
+        outstream(msf_stream)%jg2 = jout2
+        outstream(msf_stream)%ig1 = iout1
+        outstream(msf_stream)%ig2 = iout2
+      end if
+
+      if ( nstream == cyg_stream ) then
+
+        allocate(v2dvar_cyg(ncygvars))
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_cyg,cyg_xlon, &
+                  cyg_xlat,cyg_topo,cyg_mask,cyg_area,cyg_ps,-1)
+
+        if ( enable_cyg_vars(cyg_wspd) ) then
+          call setup_var(v2dvar_cyg,cyg_wspd,vsize,'sfcWind','m/s', &
+            'Near-Surface Wind Speed','wind_speed',.true.)
+          cyg_wspd_out => v2dvar_cyg(cyg_wspd)%rval
+        end if
+
+        outstream(cyg_stream)%nvar = countvars(enable_cyg_vars,ncygvars)
+        allocate(outstream(cyg_stream)%ncvars%vlist(outstream(cyg_stream)%nvar))
+        outstream(cyg_stream)%nfiles = 1
+        allocate(outstream(cyg_stream)%ncout(outstream(cyg_stream)%nfiles))
+        allocate(outstream(cyg_stream)%cname_base(outstream(cyg_stream)%nfiles))
+        outstream(cyg_stream)%cname_base(1) = 'CYG'
+
+        vcount = 1
+        do i = 1 , ncygvars
+          if ( enable_cyg_vars(i) ) then
+            outstream(cyg_stream)%ncvars%vlist(vcount)%vp => v2dvar_cyg(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(cyg_stream)%jl1 = vsize%j1
+        outstream(cyg_stream)%jl2 = vsize%j2
+        outstream(cyg_stream)%il1 = vsize%i1
+        outstream(cyg_stream)%il2 = vsize%i2
+        outstream(cyg_stream)%jg1 = jout1
+        outstream(cyg_stream)%jg2 = jout2
+        outstream(cyg_stream)%ig1 = iout1
+        outstream(cyg_stream)%ig2 = iout2
+      end if
+
       if ( nstream == sts_stream ) then
 
         allocate(v2dvar_sts(nsts2dvars))
@@ -2112,7 +2243,10 @@ module mod_ncout
 
       if ( nstream == mrd_stream ) then
 
-        allocate(v2dvar_mrd(nmrdvars))
+        allocate(v2dvar_mrd(nmrd2dvars))
+        allocate(v3dvar_mrd(nmrd3dvars))
+        enable_mrd2d_vars = enable_mrd_vars(1:nmrd2dvars)
+        enable_mrd3d_vars = enable_mrd_vars(nmrd2dvars+1:nmrdvars)
 
         ! This variables are always present
 
@@ -2121,61 +2255,81 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_mrd_vars(mrd_frsa) ) then
+        if ( enable_mrd2d_vars(mrd_frsa) ) then
           call setup_var(v2dvar_mrd,mrd_frsa,vsize,'rsns','W m-2', &
             'Surface Net Downward Shortwave Flux', &
             'surface_net_downward_shortwave_flux', .true.,'time: mean')
           mrd_frsa_out => v2dvar_mrd(mrd_frsa)%rval
         end if
-        if ( enable_mrd_vars(mrd_frla) ) then
+        if ( enable_mrd2d_vars(mrd_frla) ) then
           call setup_var(v2dvar_mrd,mrd_frla,vsize,'rsnl','W m-2', &
             'Surface Net Upward Longwave Flux', &
             'surface_net_upward_longwave_flux', .true.,'time: mean')
           mrd_frla_out => v2dvar_mrd(mrd_frla)%rval
         end if
-        if ( enable_mrd_vars(mrd_clrst) ) then
+        if ( enable_mrd2d_vars(mrd_clrst) ) then
           call setup_var(v2dvar_mrd,mrd_clrst,vsize,'rtnscl','W m-2', &
             'Clearsky TOA Net Downward Shortwave Flux', &
             'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
           mrd_clrst_out => v2dvar_mrd(mrd_clrst)%rval
         end if
-        if ( enable_mrd_vars(mrd_clrss) ) then
+        if ( enable_mrd2d_vars(mrd_clrss) ) then
           call setup_var(v2dvar_mrd,mrd_clrss,vsize,'rsnscl','W m-2', &
             'Clearsky Surface Net Downward Shortwave Flux', &
             'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
           mrd_clrss_out => v2dvar_mrd(mrd_clrss)%rval
         end if
-        if ( enable_mrd_vars(mrd_clrlt) ) then
+        if ( enable_mrd2d_vars(mrd_clrlt) ) then
           call setup_var(v2dvar_mrd,mrd_clrlt,vsize,'rtnlcl','W m-2', &
             'Clearsky TOA Net Upward Longwave Flux', &
             'toa_net_upward_longwave_flux_assuming_clear_sky',.true.,'time: mean')
           mrd_clrlt_out => v2dvar_mrd(mrd_clrlt)%rval
         end if
-        if ( enable_mrd_vars(mrd_clrls) ) then
+        if ( enable_mrd2d_vars(mrd_clrls) ) then
           call setup_var(v2dvar_mrd,mrd_clrls,vsize,'rlntpcs','W m-2', &
             'Clearsky Net Surface Upward Longwave Flux', &
             'net_upward_longwave_flux_in_air_assuming_clear_sky',.true.,'time: mean')
           mrd_clrls_out => v2dvar_mrd(mrd_clrls)%rval
         end if
-        if ( enable_mrd_vars(mrd_solin) ) then
+        if ( enable_mrd2d_vars(mrd_solin) ) then
           call setup_var(v2dvar_mrd,mrd_solin,vsize,'rsdt','W m-2', &
             'TOA Incident Shortwave Radiation', &
             'toa_incoming_shortwave_flux',.true.,'time: mean')
           mrd_solin_out => v2dvar_mrd(mrd_solin)%rval
         end if
-        if ( enable_mrd_vars(mrd_solout) ) then
+        if ( enable_mrd2d_vars(mrd_solout) ) then
           call setup_var(v2dvar_mrd,mrd_solout,vsize,'rsut','W m-2', &
             'TOA Outgoing Shortwave Radiation', &
             'toa_outgoing_shortwave_flux',.true.,'time: mean')
           mrd_solout_out => v2dvar_mrd(mrd_solout)%rval
         end if
-        if ( enable_mrd_vars(mrd_lwout) ) then
+        if ( enable_mrd2d_vars(mrd_lwout) ) then
           call setup_var(v2dvar_mrd,mrd_lwout,vsize,'rlut','W m-2', &
             'TOA Outgoing Longwave Radiation', &
             'toa_outgoing_longwave_flux',.true.,'time: mean')
           mrd_lwout_out => v2dvar_mrd(mrd_lwout)%rval
         end if
+        if ( enable_mrd2d_vars(mrd_prw) ) then
+          call setup_var(v2dvar_mrd,mrd_prw,vsize,'prw','kg m-2', &
+            'Water Vapor Path', &
+            'atmosphere_water_vapor_content',.true.,'time: mean')
+          mrd_prw_out => v2dvar_mrd(mrd_prw)%rval
+        end if
+        if ( enable_mrd3d_vars(mrd_clwp2d) ) then
+          call setup_var(v2dvar_mrd,mrd_clwp2d,vsize,'clwp2d','mm', &
+            'Vertically-integrated in-cloud liquid water path', &
+            'column_thickness_of_liquid_water_cloud',.true.,'time: mean')
+          mrd_clwp2d_out => v3dvar_mrd(mrd_clwp2d)%rval
+        end if
+        if ( enable_mrd3d_vars(mrd_clwp) ) then
+          call setup_var(v2dvar_mrd,mrd_clwp,vsize,'clwp','mm', &
+            'In-cloud liquid water path', &
+            'thickness_of_liquid_water_cloud',.true.,'time: mean')
+          mrd_clwp_out => v3dvar_mrd(mrd_clwp)%rval
+        end if
 
+        enable_mrd_vars(1:nmrd2dvars) = enable_mrd2d_vars
+        enable_mrd_vars(nmrd2dvars+1:nmrdvars) = enable_mrd3d_vars
         outstream(mrd_stream)%nvar = countvars(enable_mrd_vars,nmrdvars)
         allocate(outstream(mrd_stream)%ncvars%vlist(outstream(mrd_stream)%nvar))
         outstream(mrd_stream)%nfiles = 1
@@ -2184,12 +2338,19 @@ module mod_ncout
         outstream(mrd_stream)%cname_base(1) = 'MRD'
 
         vcount = 1
-        do i = 1 , nmrdvars
+        do i = 1 , nmrd2dvars
           if ( enable_mrd_vars(i) ) then
             outstream(mrd_stream)%ncvars%vlist(vcount)%vp => v2dvar_mrd(i)
             vcount = vcount + 1
           end if
         end do
+        do i = 1 , nmrd3dvars
+          if ( enable_mrd_vars(i+nmrd2dvars) ) then
+            outstream(mrd_stream)%ncvars%vlist(vcount)%vp => v3dvar_mrd(i)
+            vcount = vcount + 1
+          end if
+        end do
+
         outstream(mrd_stream)%jl1 = vsize%j1
         outstream(mrd_stream)%jl2 = vsize%j2
         outstream(mrd_stream)%il1 = vsize%i1
@@ -2198,45 +2359,6 @@ module mod_ncout
         outstream(mrd_stream)%jg2 = jout2
         outstream(mrd_stream)%ig1 = iout1
         outstream(mrd_stream)%ig2 = iout2
-      end if
-
-      if ( nstream == cyg_stream ) then
-
-        allocate(v2dvar_cyg(ncygvars))
-
-        ! This variables are always present
-
-        call setup_common_vars(vsize,v2dvar_cyg,cyg_xlon, &
-                  cyg_xlat,cyg_topo,cyg_mask,cyg_area,cyg_ps,-1)
-
-        if ( enable_cyg_vars(cyg_wspd) ) then
-          call setup_var(v2dvar_cyg,cyg_wspd,vsize,'sfcWind','m/s', &
-            'Near-Surface Wind Speed','wind_speed',.true.)
-          cyg_wspd_out => v2dvar_cyg(cyg_wspd)%rval
-        end if
-
-        outstream(cyg_stream)%nvar = countvars(enable_cyg_vars,ncygvars)
-        allocate(outstream(cyg_stream)%ncvars%vlist(outstream(cyg_stream)%nvar))
-        outstream(cyg_stream)%nfiles = 1
-        allocate(outstream(cyg_stream)%ncout(outstream(cyg_stream)%nfiles))
-        allocate(outstream(cyg_stream)%cname_base(outstream(cyg_stream)%nfiles))
-        outstream(cyg_stream)%cname_base(1) = 'CYG'
-
-        vcount = 1
-        do i = 1 , ncygvars
-          if ( enable_cyg_vars(i) ) then
-            outstream(cyg_stream)%ncvars%vlist(vcount)%vp => v2dvar_cyg(i)
-            vcount = vcount + 1
-          end if
-        end do
-        outstream(cyg_stream)%jl1 = vsize%j1
-        outstream(cyg_stream)%jl2 = vsize%j2
-        outstream(cyg_stream)%il1 = vsize%i1
-        outstream(cyg_stream)%il2 = vsize%i2
-        outstream(cyg_stream)%jg1 = jout1
-        outstream(cyg_stream)%jg2 = jout2
-        outstream(cyg_stream)%ig1 = iout1
-        outstream(cyg_stream)%ig2 = iout2
       end if
 
       if ( nstream == lak_stream ) then
@@ -2878,7 +3000,8 @@ module mod_ncout
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
              che_stream > 0 .or. opt_stream > 0 .or. &
-             mrd_stream > 0 .or. cyg_stream > 0) then
+             mrd_stream > 0 .or. msf_stream > 0 .or. &
+             cyg_stream > 0) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -3935,13 +4058,15 @@ module mod_ncout
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
     if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
     if ( associated(v3dvar_srf) ) deallocate(v3dvar_srf)
+    if ( associated(v2dvar_msf) ) deallocate(v2dvar_msf)
+    if ( associated(v2dvar_cyg) ) deallocate(v2dvar_cyg)
     if ( associated(v2dvar_sts) ) deallocate(v2dvar_sts)
     if ( associated(v3dvar_sts) ) deallocate(v3dvar_sts)
     if ( associated(v2dvar_rad) ) deallocate(v2dvar_rad)
     if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
     if ( associated(v4dvar_rad) ) deallocate(v4dvar_rad)
     if ( associated(v2dvar_mrd) ) deallocate(v2dvar_mrd)
-    if ( associated(v2dvar_cyg) ) deallocate(v2dvar_cyg)
+    if ( associated(v3dvar_mrd) ) deallocate(v3dvar_mrd)
     if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)

@@ -60,8 +60,9 @@ module mod_runparams
   type(rcm_alarm) , save , public , pointer :: alarm_out_atm
   type(rcm_alarm) , save , public , pointer :: alarm_out_rad
   type(rcm_alarm) , save , public , pointer :: alarm_out_mrd
-  type(rcm_alarm) , save , public , pointer :: alarm_out_cyg
   type(rcm_alarm) , save , public , pointer :: alarm_out_srf
+  type(rcm_alarm) , save , public , pointer :: alarm_out_msf
+  type(rcm_alarm) , save , public , pointer :: alarm_out_cyg
   type(rcm_alarm) , save , public , pointer :: alarm_out_shf
   type(rcm_alarm) , save , public , pointer :: alarm_out_sts
   type(rcm_alarm) , save , public , pointer :: alarm_out_che
@@ -110,7 +111,7 @@ module mod_runparams
   ! Step counters to activate surface and radiation schemes
   real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
      rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_optfrq , &
-     rnmrd_for_mrdfrq , &
+     rnmrd_for_mrdfrq , rnmsf_for_msffrq , &
      rnrad_for_srffrq , rnrad_for_radfrq , rnsrf_for_atmfrq
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
