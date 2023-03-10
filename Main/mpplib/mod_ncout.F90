@@ -424,17 +424,18 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_topo   = 4
   integer(ik4) , parameter :: mrd_area   = 5
   integer(ik4) , parameter :: mrd_ps     = 6
-  integer(ik4) , parameter :: mrd_frsa   = 7
-  integer(ik4) , parameter :: mrd_frla   = 8
-  integer(ik4) , parameter :: mrd_clrst  = 9 
-  integer(ik4) , parameter :: mrd_clrss  = 10
-  integer(ik4) , parameter :: mrd_clrlt  = 11
-  integer(ik4) , parameter :: mrd_clrls  = 12
-  integer(ik4) , parameter :: mrd_solin  = 13
-  integer(ik4) , parameter :: mrd_solout = 14
-  integer(ik4) , parameter :: mrd_lwout  = 15
-  integer(ik4) , parameter :: mrd_prw    = 16
-  integer(ik4) , parameter :: mrd_clwp2d = 17
+  integer(ik4) , parameter :: mrd_p0     = 7
+  integer(ik4) , parameter :: mrd_frsa   = 8
+  integer(ik4) , parameter :: mrd_frla   = 9
+  integer(ik4) , parameter :: mrd_clrst  = 10 
+  integer(ik4) , parameter :: mrd_clrss  = 11
+  integer(ik4) , parameter :: mrd_clrlt  = 12
+  integer(ik4) , parameter :: mrd_clrls  = 13
+  integer(ik4) , parameter :: mrd_solin  = 14
+  integer(ik4) , parameter :: mrd_solout = 15
+  integer(ik4) , parameter :: mrd_lwout  = 16
+  integer(ik4) , parameter :: mrd_totwv  = 17
+  integer(ik4) , parameter :: mrd_clwp2d = 18
 
   integer(ik4) , parameter :: mrd_clwp   = 1
 
@@ -2251,7 +2252,8 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_mrd,mrd_xlon, &
-                  mrd_xlat,mrd_topo,mrd_mask,mrd_area,mrd_ps,-1)
+                  mrd_xlat,mrd_topo,mrd_mask,mrd_area,mrd_ps,mrd_p0)
+        if ( idynamic /= 2 ) enable_mrd2d_vars(mrd_p0) = .false.
 
         ! The following may be enabled/disabled
 
@@ -2309,17 +2311,17 @@ module mod_ncout
             'toa_outgoing_longwave_flux',.true.,'time: mean')
           mrd_lwout_out => v2dvar_mrd(mrd_lwout)%rval
         end if
-        if ( enable_mrd2d_vars(mrd_prw) ) then
-          call setup_var(v2dvar_mrd,mrd_prw,vsize,'prw','kg m-2', &
+        if ( enable_mrd2d_vars(mrd_totwv) ) then
+          call setup_var(v2dvar_mrd,mrd_totwv,vsize,'prw','kg m-2', &
             'Water Vapor Path', &
             'atmosphere_water_vapor_content',.true.,'time: mean')
-          mrd_prw_out => v2dvar_mrd(mrd_prw)%rval
+          mrd_totwv_out => v2dvar_mrd(mrd_totwv)%rval
         end if
-        if ( enable_mrd3d_vars(mrd_clwp2d) ) then
-          call setup_var(v2dvar_mrd,mrd_clwp2d,vsize,'clwp2d','mm', &
+        if ( enable_mrd2d_vars(mrd_clwp2d) ) then
+          call setup_var(v2dvar_mrd,mrd_clwp2d,vsize,'clwpvi','mm', &
             'Vertically-integrated in-cloud liquid water path', &
             'column_thickness_of_liquid_water_cloud',.true.,'time: mean')
-          mrd_clwp2d_out => v3dvar_mrd(mrd_clwp2d)%rval
+          mrd_clwp2d_out => v2dvar_mrd(mrd_clwp2d)%rval
         end if
         if ( enable_mrd3d_vars(mrd_clwp) ) then
           call setup_var(v2dvar_mrd,mrd_clwp,vsize,'clwp','mm', &

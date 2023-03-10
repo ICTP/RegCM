@@ -209,7 +209,7 @@ module mod_rad_outrad
       call copy2d_add(solout,mrd_solout_out)
       call copy2d_add(lwout,mrd_lwout_out)
       call copy2d_add(totwv,mrd_totwv_out)
-      call copy3d_add_integrate_from3(clwp,mrd_clwp2d_out)
+      call copy2d_add_integrate_from3(clwp,mrd_clwp2d_out)
       call copy3d_add(clwp,mrd_clwp_out)
     endif
 
@@ -489,7 +489,7 @@ module mod_rad_outrad
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:) :: a
     real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       do k = 1 , kz
         n = 1
