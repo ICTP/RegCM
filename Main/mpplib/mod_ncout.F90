@@ -61,6 +61,10 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 62
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
+  integer(ik4) , parameter :: nmat2dvars = 1 + nbase
+  integer(ik4) , parameter :: nmat3dvars = 2
+  integer(ik4) , parameter :: nmatvars = nmat2dvars+nmat3dvars
+
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
@@ -108,6 +112,8 @@ module mod_ncout
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_atm => null()
+  type(ncvariable3d_mixed) , save , pointer , &
+    dimension(:) :: v3dvar_mat => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_shf => null()
   type(ncvariable2d_mixed) , save , pointer , &
@@ -158,6 +164,7 @@ module mod_ncout
   logical :: parallel_out
 
   integer(ik4) , public :: atm_stream = -1
+  integer(ik4) , public :: mat_stream = -1
   integer(ik4) , public :: shf_stream = -1
   integer(ik4) , public :: srf_stream = -1
   integer(ik4) , public :: msf_stream = -1
@@ -174,6 +181,7 @@ module mod_ncout
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
   logical , public , dimension(natmvars) :: enable_atm_vars
+  logical , public , dimension(nmatvars) :: enable_mat_vars
   logical , public , dimension(nshfvars) :: enable_shf_vars
   logical , public , dimension(nsrfvars) :: enable_srf_vars
   logical , public , dimension(nmsfvars) :: enable_msf_vars
@@ -262,6 +270,17 @@ module mod_ncout
   integer(ik4) , parameter :: atm_ccnnum       = 60
   integer(ik4) , parameter :: atm_qincl        = 61
   integer(ik4) , parameter :: atm_autoconvr    = 62
+
+  integer(ik4) , parameter :: mat_xlon  = 1
+  integer(ik4) , parameter :: mat_xlat  = 2
+  integer(ik4) , parameter :: mat_mask  = 3
+  integer(ik4) , parameter :: mat_topo  = 4
+  integer(ik4) , parameter :: mat_area  = 5
+  integer(ik4) , parameter :: mat_ps    = 6
+  integer(ik4) , parameter :: mat_p0    = 7
+
+  integer(ik4) , parameter :: mat_u = 1
+  integer(ik4) , parameter :: mat_v = 2
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -553,6 +572,8 @@ module mod_ncout
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
     logical , dimension(natm3dvars) :: enable_atm3d_vars
+    logical , dimension(nmat2dvars) :: enable_mat2d_vars
+    logical , dimension(nmat3dvars) :: enable_mat3d_vars
     logical , dimension(nsrf2dvars) :: enable_srf2d_vars
     logical , dimension(nsrf3dvars) :: enable_srf3d_vars
     logical , dimension(nsts2dvars) :: enable_sts2d_vars
@@ -596,6 +617,10 @@ module mod_ncout
     if ( ifatm ) then
       nstream = nstream+1
       atm_stream = nstream
+    end if
+    if ( ifmat ) then
+      nstream = nstream+1
+      mat_stream = nstream
     end if
     if ( ifshf ) then
       nstream = nstream+1
@@ -1224,6 +1249,79 @@ module mod_ncout
         outstream(atm_stream)%ig2 = iout2
       end if
 
+      if ( nstream == mat_stream ) then
+
+        allocate(v2dvar_mat(nmat2dvars))
+        allocate(v3dvar_mat(nmat3dvars))
+        enable_mat2d_vars = enable_mat_vars(1:nmat2dvars)
+        enable_mat3d_vars = enable_mat_vars(nmat2dvars+1:nmatvars)
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_mat,mat_xlon, &
+                  mat_xlat,mat_topo,mat_mask,mat_area,mat_ps,mat_p0)
+        if ( idynamic /= 2 ) enable_mat2d_vars(mat_p0) = .false.
+
+        ! The following may be enabled/disabled
+
+        vsize%k2 = kz
+        if ( enable_mat3d_vars(mat_u) ) then
+          if ( uvrotate ) then
+            call setup_var(v3dvar_mat,mat_u,vsize,'ua','m s-1', &
+              'Eastward Wind', &
+              'eastward_wind',.true.,'time: mean')
+          else
+            call setup_var(v3dvar_mat,mat_u,vsize,'ua','m s-1', &
+              'Grid Eastward Wind', &
+              'grid_eastward_wind',.true.,'time: mean')
+          end if
+          mat_u_out => v3dvar_mat(mat_u)%rval
+        end if
+        if ( enable_mat3d_vars(mat_v) ) then
+          if ( uvrotate ) then
+            call setup_var(v3dvar_mat,mat_v,vsize,'va','m s-1', &
+              'Northward Wind', &
+              'northward_wind',.true.,'time: mean')
+          else
+            call setup_var(v3dvar_mat,mat_v,vsize,'va','m s-1', &
+              'Grid Northward Wind', &
+              'grid_northward_wind',.true.,'time: mean')
+          end if
+          mat_v_out => v3dvar_mat(mat_v)%rval
+        end if
+
+        enable_mat_vars(1:nmat2dvars) = enable_mat2d_vars
+        enable_mat_vars(nmat2dvars+1:nmatvars) = enable_mat3d_vars
+        outstream(mat_stream)%nvar = countvars(enable_mat_vars,nmatvars)
+        allocate(outstream(mat_stream)%ncvars%vlist(outstream(mat_stream)%nvar))
+        outstream(mat_stream)%nfiles = 1
+        allocate(outstream(mat_stream)%ncout(outstream(mat_stream)%nfiles))
+        allocate(outstream(mat_stream)%cname_base(outstream(mat_stream)%nfiles))
+        outstream(mat_stream)%cname_base(1) = 'MAT'
+
+        vcount = 1
+        do i = 1 , nmat2dvars
+          if ( enable_mat_vars(i) ) then
+            outstream(mat_stream)%ncvars%vlist(vcount)%vp => v2dvar_mat(i)
+            vcount = vcount + 1
+          end if
+        end do
+        do i = 1 , nmat3dvars
+          if ( enable_mat_vars(i+nmat2dvars) ) then
+            outstream(mat_stream)%ncvars%vlist(vcount)%vp => v3dvar_mat(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(mat_stream)%jl1 = vsize%j1
+        outstream(mat_stream)%jl2 = vsize%j2
+        outstream(mat_stream)%il1 = vsize%i1
+        outstream(mat_stream)%il2 = vsize%i2
+        outstream(mat_stream)%jg1 = jout1
+        outstream(mat_stream)%jg2 = jout2
+        outstream(mat_stream)%ig1 = iout1
+        outstream(mat_stream)%ig2 = iout2
+      end if
+
       if ( nstream == shf_stream ) then
 
         allocate(v2dvar_shf(nshfvars))
@@ -1712,6 +1810,8 @@ module mod_ncout
 
         call setup_common_vars(vsize,v2dvar_cyg,cyg_xlon, &
                   cyg_xlat,cyg_topo,cyg_mask,cyg_area,cyg_ps,-1)
+
+        ! The following may be enabled/disabled
 
         if ( enable_cyg_vars(cyg_wspd) ) then
           call setup_var(v2dvar_cyg,cyg_wspd,vsize,'sfcWind','m/s', &
@@ -2334,6 +2434,8 @@ module mod_ncout
             'column_thickness_of_liquid_water_cloud',.true.,'time: mean')
           mrd_clwpvi_out => v2dvar_mrd(mrd_clwpvi)%rval
         end if
+
+        vsize%k2 = kz
         if ( enable_mrd3d_vars(mrd_clwp) ) then
           call setup_var(v2dvar_mrd,mrd_clwp,vsize,'clwp','mm', &
             'In-cloud liquid water path', &
@@ -3014,7 +3116,7 @@ module mod_ncout
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
              che_stream > 0 .or. opt_stream > 0 .or. &
              mrd_stream > 0 .or. msf_stream > 0 .or. &
-             cyg_stream > 0) then
+             cyg_stream > 0 .or. mat_stream > 0) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -4069,6 +4171,8 @@ module mod_ncout
     integer(ik4) :: nstream , nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
+    if ( associated(v2dvar_mat) ) deallocate(v2dvar_mat)
+    if ( associated(v3dvar_mat) ) deallocate(v3dvar_mat)
     if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
     if ( associated(v3dvar_srf) ) deallocate(v3dvar_srf)
     if ( associated(v2dvar_msf) ) deallocate(v2dvar_msf)

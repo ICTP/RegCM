@@ -111,6 +111,9 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocc_out => null()
 
+  real(rkx) , dimension(:,:,:) , pointer :: mat_u_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mat_v_out => null()
+
   real(rkx) , dimension(:,:) , pointer :: shf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_twetb_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_pcpavg_out => null()

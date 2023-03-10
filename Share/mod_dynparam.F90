@@ -420,6 +420,7 @@ module mod_dynparam
 
   logical , public :: ifsave
   logical , public :: ifatm
+  logical , public :: ifmat ! output for mean variables of ATM
   logical , public :: ifshf
   logical , public :: ifrad
   logical , public :: ifmrd ! output for mean variables of RAD

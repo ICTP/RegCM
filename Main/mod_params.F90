@@ -93,12 +93,13 @@ module mod_params
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
     namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
-      ifmrd , ifmsf , ifcyg ,                                             &
+      ifmrd , ifmsf , ifcyg , ifmat ,                                     &
       iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
-      mrdfrq , msffrq ,                                                   &
+      mrdfrq , msffrq , matfrq ,                                          &
       srffrq , subfrq , lakfrq , radfrq , chemfrq ,optfrq, dirout ,       &
       uvrotate , enable_atm_vars , enable_srf_vars , enable_rad_vars ,    &
       enable_mrd_vars , enable_msf_vars , enable_cyg_vars ,               &
+      enable_mat_vars ,                                                   &
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
       lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
@@ -252,6 +253,7 @@ module mod_params
     prestr = ''
     ifsave = .true.
     ifatm  = .true.
+    ifmat  = .false.
     ifrad  = .true.
     ifmrd  = .false.
     ifsrf  = .true.
@@ -266,6 +268,7 @@ module mod_params
     outnwf  = 0.0_rkx ! Frequency in days to open new files.
     savfrq  = 0.0_rkx ! time interval for disposing sav output (days)
     atmfrq  = 6.0_rkx ! time interval for disposing atm output (hrs)
+    matfrq  = 24.0_rkx ! time interval for disposing mat output (hrs)
     radfrq  = 6.0_rkx ! time interval for disposing rad output (hrs)
     mrdfrq  = 24.0_rkx ! time interval for disposing mrd output (hrs)
     srffrq  = 3.0_rkx ! time interval for disposing srf output (hrs)
@@ -275,6 +278,7 @@ module mod_params
     chemfrq = 6.0_rkx ! time interval for disposing chem output (hrs)
     optfrq =  6.0_rkx ! time interval for disposing opt output (hrs)
     enable_atm_vars(:) = .true.
+    enable_mat_vars(:) = .true.
     enable_srf_vars(:) = .true.
     enable_msf_vars(:) = .true.
     enable_cyg_vars(:) = .true.
@@ -1130,6 +1134,7 @@ module mod_params
       if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
       if ( msffrq <= 0.0_rkx ) msffrq = 24.0_rkx
       if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+      if ( matfrq <= 0.0_rkx ) matfrq = 24.0_rkx
       if ( radfrq <= 0.0_rkx ) radfrq = 6.0_rkx
       if ( mrdfrq <= 0.0_rkx ) mrdfrq = 24.0_rkx
       if ( optfrq <= 0.0_rkx ) optfrq = 6.0_rkx
@@ -1141,6 +1146,7 @@ module mod_params
       if ( ifmsf ) minfrq = min(minfrq,max(msffrq*3600.0_rkx,dt))
       if ( ifcyg ) minfrq = min(minfrq,3600.0_rkx)
       if ( ifatm ) minfrq = min(minfrq,max(atmfrq*3600.0_rkx,dt))
+      if ( ifmat ) minfrq = min(minfrq,max(matfrq*3600.0_rkx,dt))
       if ( ifrad ) minfrq = min(minfrq,max(radfrq*3600.0_rkx,dt))
       if ( ifmrd ) minfrq = min(minfrq,max(mrdfrq*3600.0_rkx,dt))
       if ( ifopt ) minfrq = min(minfrq,max(optfrq*3600.0_rkx,dt))
@@ -1229,6 +1235,7 @@ module mod_params
     call bcast(prestr,64)
     call bcast(ifsave)
     call bcast(ifatm)
+    call bcast(ifmat)
     call bcast(ifrad)
     call bcast(ifmrd)
     call bcast(ifshf)
@@ -1243,6 +1250,7 @@ module mod_params
     call bcast(outnwf)
     call bcast(savfrq)
     call bcast(atmfrq)
+    call bcast(matfrq)
     call bcast(radfrq)
     call bcast(mrdfrq)
     call bcast(srffrq)
@@ -1252,6 +1260,7 @@ module mod_params
     call bcast(chemfrq)
     call bcast(optfrq)
     call bcast(enable_atm_vars)
+    call bcast(enable_mat_vars)
     call bcast(enable_rad_vars)
     call bcast(enable_mrd_vars)
     call bcast(enable_srf_vars)
@@ -1278,6 +1287,7 @@ module mod_params
 
     ! Reset the NEEDED 2D vars.
     enable_atm_vars(1:6) = .true.
+    enable_mat_vars(1:6) = .true.
     enable_rad_vars(1:6) = .true.
     enable_mrd_vars(1:6) = .true.
     enable_opt_vars(1:6) = .true.
@@ -1883,6 +1893,7 @@ module mod_params
       alarm_out_sav => null( )
     end if
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
+    alarm_out_mat => rcm_alarm(rcmtimer,secph*matfrq)
     alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
     alarm_out_mrd => rcm_alarm(rcmtimer,secph*mrdfrq)
     alarm_out_srf => rcm_alarm(rcmtimer,secph*srffrq)
@@ -2111,6 +2122,7 @@ module mod_params
     if ( myid == italk ) then
       write(stdout,*) 'Create SAV files : ' , ifsave
       write(stdout,*) 'Create ATM files : ' , ifatm
+      write(stdout,*) 'Create MAT files : ' , ifmat
       write(stdout,*) 'Create RAD files : ' , ifrad
       write(stdout,*) 'Create MRD files : ' , ifmrd
       write(stdout,*) 'Create SRF files : ' , ifsrf
@@ -2138,6 +2150,7 @@ module mod_params
         write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , -savfrq
       end if
       write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
+      write(stdout,'(a,f6.1)') ' Frequency in hours to create MAT : ' , matfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create MRD : ' , mrdfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create SRF : ' , srffrq

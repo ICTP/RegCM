@@ -66,7 +66,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
-    logical :: ldomrd , ldomsf , ldocyg
+    logical :: ldomrd , ldomsf , ldocyg , ldomat
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -74,7 +74,7 @@ module mod_output
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
     real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
-    real(rkx) :: mrdfac , msffac
+    real(rkx) :: mrdfac , msffac , matfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -131,6 +131,7 @@ module mod_output
 
     lnewf = .false.
     ldoatm = .false.
+    ldomat = .false.
     ldosrf = .false.
     ldomsf = .false.
     ldocyg = .false.
@@ -173,6 +174,9 @@ module mod_output
       end if
       if ( alarm_out_atm%act( ) ) then
         ldoatm = .true.
+      end if
+      if ( alarm_out_mat%act( ) ) then
+        ldomat = .true.
       end if
       if ( alarm_out_srf%act( ) ) then
         ldosrf = .true.
@@ -926,6 +930,77 @@ module mod_output
       end if
     end if
 
+    if ( mat_stream > 0 ) then
+
+      ! Fill accumulators
+
+      if ( .not. lstartup ) then
+        rnmat_for_matfrq = rnmat_for_matfrq + 1.0_rkx
+        if ( associated(mat_u_out) .and. associated(mat_v_out) ) then
+          if ( idynamic == 3 ) then
+            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  mat_u_out(j,i,k) = mat_u_out(j,i,k) + mo_atm%ux(j,i,k)
+                  mat_v_out(j,i,k) = mat_v_out(i,j,k) + mo_atm%vx(j,i,k)
+                end do
+              end do
+            end do
+          else
+            call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+            call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  mat_u_out(j,i,k) = mat_u_out(j,i,k) + &
+                                d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
+                  mat_v_out(j,i,k) = mat_v_out(j,i,k) + &
+                                d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
+                end do
+              end do
+            end do
+          end if
+        end if
+      end if
+
+      ! Write record output stream
+
+      if ( ldomat ) then
+        matfac = d_one / rnmat_for_matfrq
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+
+        if ( associated(mat_u_out) .and. associated(mat_v_out) ) then
+          mat_u_out = mat_u_out*matfac
+          mat_v_out = mat_v_out*matfac
+          if ( uvrotate ) then
+            call uvrot(mat_u_out,mat_v_out)
+          end if
+        end if
+
+        call write_record_output_stream(mat_stream,alarm_out_mat%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'MAT variables written at ' , rcmtimer%str( )
+
+        if ( associated(mat_u_out) ) mat_u_out = d_zero
+        if ( associated(mat_v_out) ) mat_v_out = d_zero
+        rnmat_for_matfrq = d_zero
+      end if
+    end if
+
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
         srffac = d_one / rnsrf_for_srffrq
@@ -1238,6 +1313,7 @@ module mod_output
         else
           ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
+
         call write_record_output_stream(cyg_stream,alarm_out_cyg%idate)
         if ( myid == italk ) &
           write(stdout,*) 'CYG variables written at ' , rcmtimer%str( )
@@ -1607,6 +1683,7 @@ module mod_output
           mrd_clwpvi_out = mrd_clwpvi_out*mrdfac
         if ( associated(mrd_clwp_out) ) &
           mrd_clwp_out = mrd_clwp_out*mrdfac
+
         call write_record_output_stream(mrd_stream,alarm_out_mrd%idate)
         if ( myid == italk ) &
           write(stdout,*) 'MRD variables written at ' , rcmtimer%str( )
