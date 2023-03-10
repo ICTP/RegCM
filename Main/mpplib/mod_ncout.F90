@@ -88,7 +88,7 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nmrd2dvars = 11 + nbase
+  integer(ik4) , parameter :: nmrd2dvars = 12 + nbase
   integer(ik4) , parameter :: nmrd3dvars = 1
   integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
 
@@ -435,7 +435,7 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_solout = 15
   integer(ik4) , parameter :: mrd_lwout  = 16
   integer(ik4) , parameter :: mrd_totwv  = 17
-  integer(ik4) , parameter :: mrd_clwp2d = 18
+  integer(ik4) , parameter :: mrd_clwpvi = 18
 
   integer(ik4) , parameter :: mrd_clwp   = 1
 
@@ -2317,11 +2317,11 @@ module mod_ncout
             'atmosphere_water_vapor_content',.true.,'time: mean')
           mrd_totwv_out => v2dvar_mrd(mrd_totwv)%rval
         end if
-        if ( enable_mrd2d_vars(mrd_clwp2d) ) then
-          call setup_var(v2dvar_mrd,mrd_clwp2d,vsize,'clwpvi','mm', &
+        if ( enable_mrd2d_vars(mrd_clwpvi) ) then
+          call setup_var(v2dvar_mrd,mrd_clwpvi,vsize,'clwpvi','mm', &
             'Vertically-integrated in-cloud liquid water path', &
             'column_thickness_of_liquid_water_cloud',.true.,'time: mean')
-          mrd_clwp2d_out => v2dvar_mrd(mrd_clwp2d)%rval
+          mrd_clwpvi_out => v2dvar_mrd(mrd_clwpvi)%rval
         end if
         if ( enable_mrd3d_vars(mrd_clwp) ) then
           call setup_var(v2dvar_mrd,mrd_clwp,vsize,'clwp','mm', &

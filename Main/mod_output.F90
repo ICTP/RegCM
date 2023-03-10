@@ -1599,8 +1599,8 @@ module mod_output
           mrd_lwout_out = mrd_lwout_out*mrdfac
         if ( associated(mrd_totwv_out) ) &
           mrd_totwv_out = mrd_totwv_out*mrdfac
-        if ( associated(mrd_clwp2d_out) ) &
-          mrd_clwp2d_out = mrd_clwp2d_out*mrdfac
+        if ( associated(mrd_clwpvi_out) ) &
+          mrd_clwpvi_out = mrd_clwpvi_out*mrdfac
         if ( associated(mrd_clwp_out) ) &
           mrd_clwp_out = mrd_clwp_out*mrdfac
         call write_record_output_stream(mrd_stream,alarm_out_mrd%idate)
@@ -1617,7 +1617,7 @@ module mod_output
         if ( associated(mrd_solout_out) ) mrd_solout_out = d_zero
         if ( associated(mrd_lwout_out) ) mrd_lwout_out = d_zero
         if ( associated(mrd_totwv_out) ) mrd_totwv_out = d_zero
-        if ( associated(mrd_clwp2d_out) ) mrd_clwp2d_out = d_zero
+        if ( associated(mrd_clwpvi_out) ) mrd_clwpvi_out = d_zero
         if ( associated(mrd_clwp_out) ) mrd_clwp_out = d_zero
         rnmrd_for_mrdfrq = d_zero
       end if
