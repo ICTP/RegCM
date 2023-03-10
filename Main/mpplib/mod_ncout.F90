@@ -112,6 +112,8 @@ module mod_ncout
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_atm => null()
+  type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_mat => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_mat => null()
   type(ncvariable2d_mixed) , save , pointer , &

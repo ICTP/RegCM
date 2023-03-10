@@ -436,6 +436,7 @@ module mod_dynparam
   real(rkx) , public :: outnwf
   real(rkx) , public :: savfrq
   real(rkx) , public :: atmfrq
+  real(rkx) , public :: matfrq
   real(rkx) , public :: radfrq
   real(rkx) , public :: mrdfrq
   real(rkx) , public :: lakfrq
