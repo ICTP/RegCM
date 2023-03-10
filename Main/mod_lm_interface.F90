@@ -934,6 +934,8 @@ module mod_lm_interface
           msf_u10m_out = msf_u10m_out + lm%u10m
         if ( associated(msf_v10m_out) ) &
           msf_v10m_out = msf_v10m_out + lm%v10m
+        if ( associated(msf_t2m_out) ) &
+          msf_t2m_out = msf_t2m_out + sum(lms%t2m,1)*rdnnsg
       end if
       if ( ifsub ) then
         rnsrf_for_subfrq = rnsrf_for_subfrq + 1.0_rkx

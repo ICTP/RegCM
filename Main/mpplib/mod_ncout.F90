@@ -67,7 +67,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nmsfvars = 3 + nbase
+  integer(ik4) , parameter :: nmsfvars = 4 + nbase
 
   integer(ik4) , parameter :: ncygvars = 1 + nbase
 
@@ -333,6 +333,7 @@ module mod_ncout
   integer(ik4) , parameter :: msf_u10m   = 7
   integer(ik4) , parameter :: msf_v10m   = 8
   integer(ik4) , parameter :: msf_wspd   = 9 
+  integer(ik4) , parameter :: msf_t2m    = 10
 
   integer(ik4) , parameter :: cyg_xlon   = 1
   integer(ik4) , parameter :: cyg_xlat   = 2
@@ -1645,20 +1646,24 @@ module mod_ncout
         if ( enable_msf_vars(msf_u10m) ) then
           if ( uvrotate ) then
             call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
-              'Eastward Near-Surface Wind','eastward_wind',.true.)
+              'Eastward Near-Surface Wind', &
+              'eastward_wind',.true.,'time: mean')
           else
             call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
-              'Grid Eastward Near-Surface Wind','grid_eastward_wind',.true.)
+              'Grid Eastward Near-Surface Wind', &
+              'grid_eastward_wind',.true.,'time: mean')
           end if
           msf_u10m_out => v2dvar_msf(msf_u10m)%rval
         end if
         if ( enable_msf_vars(msf_v10m) ) then
           if ( uvrotate ) then
             call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
-              'Northward Near-Surface Wind','northward_wind',.true.)
+              'Northward Near-Surface Wind', &
+              'northward_wind',.true.,'time: mean')
           else
             call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
-              'Grid Northward Near-Surface Wind','grid_northward_wind',.true.)
+              'Grid Northward Near-Surface Wind', &
+              'grid_northward_wind',.true.,'time: mean')
           end if
           msf_v10m_out => v2dvar_msf(msf_v10m)%rval
         end if
@@ -1667,6 +1672,12 @@ module mod_ncout
             'Near-Surface Wind Speed', &
             'wind_speed',.true.,'time: mean')
           msf_wspd_out => v2dvar_msf(msf_wspd)%rval
+        end if
+        if ( enable_msf_vars(msf_t2m) ) then
+          call setup_var(v2dvar_msf,msf_t2m,vsize,'tas','K', &
+            'Near-Surface Air Temperature', &
+            'air_temperature',.true.,'time: mean')
+          msf_t2m_out => v2dvar_msf(msf_t2m)%rval
         end if
 
         outstream(msf_stream)%nvar = countvars(enable_msf_vars,nmsfvars)

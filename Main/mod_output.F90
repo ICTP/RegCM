@@ -1209,6 +1209,9 @@ module mod_output
             call uvrot(msf_u10m_out,msf_v10m_out)
           end if
         end if
+        if ( associated(msf_t2m_out) ) &
+          msf_t2m_out = msf_t2m_out*msffac
+
         call write_record_output_stream(msf_stream,alarm_out_msf%idate)
         if ( myid == italk ) &
           write(stdout,*) 'MSF variables written at ' , rcmtimer%str( )
@@ -1216,6 +1219,7 @@ module mod_output
         if ( associated(msf_u10m_out) ) msf_u10m_out = d_zero
         if ( associated(msf_v10m_out) ) msf_v10m_out = d_zero
         if ( associated(msf_wspd_out) ) msf_wspd_out = d_zero
+        if ( associated(msf_t2m_out) ) msf_t2m_out = d_zero
         rnmsf_for_msffrq = d_zero
       end if
     end if
