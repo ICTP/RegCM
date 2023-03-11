@@ -1681,6 +1681,8 @@ module mod_output
           mrd_totwv_out = mrd_totwv_out*mrdfac
         if ( associated(mrd_clwpvi_out) ) &
           mrd_clwpvi_out = mrd_clwpvi_out*mrdfac
+        if ( associated(mrd_cld_out) ) &
+          mrd_cld_out = mrd_cld_out*mrdfac
         if ( associated(mrd_clwp_out) ) &
           mrd_clwp_out = mrd_clwp_out*mrdfac
 
@@ -1699,6 +1701,7 @@ module mod_output
         if ( associated(mrd_lwout_out) ) mrd_lwout_out = d_zero
         if ( associated(mrd_totwv_out) ) mrd_totwv_out = d_zero
         if ( associated(mrd_clwpvi_out) ) mrd_clwpvi_out = d_zero
+        if ( associated(mrd_cld_out) ) mrd_cld_out = d_zero
         if ( associated(mrd_clwp_out) ) mrd_clwp_out = d_zero
         rnmrd_for_mrdfrq = d_zero
       end if

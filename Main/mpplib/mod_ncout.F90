@@ -93,7 +93,7 @@ module mod_ncout
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nmrd2dvars = 12 + nbase
-  integer(ik4) , parameter :: nmrd3dvars = 1
+  integer(ik4) , parameter :: nmrd3dvars = 2
   integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
@@ -459,7 +459,8 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_totwv  = 17
   integer(ik4) , parameter :: mrd_clwpvi = 18
 
-  integer(ik4) , parameter :: mrd_clwp   = 1
+  integer(ik4) , parameter :: mrd_cld    = 1
+  integer(ik4) , parameter :: mrd_clwp   = 2
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -2438,8 +2439,14 @@ module mod_ncout
         end if
 
         vsize%k2 = kz
+        if ( enable_mrd3d_vars(mrd_cld) ) then
+          call setup_var(v3dvar_mrd,mrd_cld,vsize,'cl','1', &
+            'Cloud fractional cover', &
+            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
+          mrd_cld_out => v3dvar_mrd(mrd_cld)%rval
+        end if
         if ( enable_mrd3d_vars(mrd_clwp) ) then
-          call setup_var(v2dvar_mrd,mrd_clwp,vsize,'clwp','mm', &
+          call setup_var(v3dvar_mrd,mrd_clwp,vsize,'clwp','mm', &
             'In-cloud liquid water path', &
             'thickness_of_liquid_water_cloud',.true.,'time: mean')
           mrd_clwp_out => v3dvar_mrd(mrd_clwp)%rval
@@ -3117,8 +3124,7 @@ module mod_ncout
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
              che_stream > 0 .or. opt_stream > 0 .or. &
-             mrd_stream > 0 .or. msf_stream > 0 .or. &
-             cyg_stream > 0 .or. mat_stream > 0) then
+             mrd_stream > 0 .or. mat_stream > 0 ) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
