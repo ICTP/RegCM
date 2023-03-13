@@ -479,6 +479,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+  istatus = nf90_put_att(ncid, ipft2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
   istatus = nf90_def_var(ncid, 'slope', regcm_vartype, ivdims(1:2), islope2d)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
@@ -498,6 +500,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d units')
   istatus = nf90_put_att(ncid, iglc2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d Fill Value')
+  istatus = nf90_put_att(ncid, iglc2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d coordinates')
 
   istatus = nf90_def_var(ncid, 'wet_2d', regcm_vartype, ivdims(1:2), iwet2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wet_2d')
@@ -507,6 +511,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d units')
   istatus = nf90_put_att(ncid, iwet2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d Fill Value')
+  istatus = nf90_put_att(ncid, iwet2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d coordinates')
 
   istatus = nf90_def_var(ncid, 'lak_2d', regcm_vartype, ivdims(1:2), ilake2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lak_2d')
@@ -516,6 +522,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d units')
   istatus = nf90_put_att(ncid, ilake2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d Fill Value')
+  istatus = nf90_put_att(ncid, ilake2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d coordinates')
 
   ivdims(1) = idims(1)
   ivdims(2) = idims(2)
@@ -529,6 +537,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d units')
   istatus = nf90_put_att(ncid, iurban2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d Fill Value')
+  istatus = nf90_put_att(ncid, iurban2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d coordinates')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
@@ -1393,6 +1403,8 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
     istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+    istatus = nf90_put_att(ncid, ipft2dvar, 'coordinates','xlat xlon')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
     ! Variables
     istatus = nf90_def_var(ncid, 'gridcell', nf90_int, idims(5), ilndvar)
