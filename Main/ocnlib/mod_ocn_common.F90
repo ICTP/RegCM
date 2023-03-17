@@ -177,6 +177,9 @@ module mod_ocn_common
       call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
     emiss(:) = ocn_sfcemiss
+    where ( mod(mask,2) > 0 )
+      emiss = ice_sfcemiss
+    end where
     call l2c_ss(ocncomm,emiss,lms%emisv)
   end subroutine initocn
 

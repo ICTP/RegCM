@@ -765,7 +765,7 @@ module mod_clm_regcm
     ! The CLM outputs directly to RegCM the radiant Temperature.
     ! We fill it here the output not to leave it empy, but it is not
     ! used in computing the surface Long Wave Radiation
-    clm_l2a%notused = clm_l2a%emg*clm_l2a%emv
+    clm_l2a%notused = 1.0_rkx
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
 
     !--------------------------------------------------
