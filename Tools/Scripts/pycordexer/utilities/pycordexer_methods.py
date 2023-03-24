@@ -1874,13 +1874,13 @@ class SumOnDimension(Filter):
                     current_slice_old[time_position] = i
 
                     prev_data = prev_result.data(current_slice_old)
-                    new_data_array[current_slice_new] = np.ma.sum(
+                    new_data_array[tuple(current_slice_new)] = np.ma.sum(
                         prev_data,
                         axis=position_no_time
                     )
 
                     if is_masked(prev_data):
-                        new_data_mask[current_slice_new] = np.prod(
+                        new_data_mask[tuple(current_slice_new)] = np.prod(
                             prev_data.mask,
                             axis=position_no_time
                         )
