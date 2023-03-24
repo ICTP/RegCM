@@ -879,7 +879,7 @@ module mod_ncstream
       if ( stream%l_has100mlev ) then
         stvar%lev100m_var%vname = 'm100'
         stvar%lev100m_var%vunit = 'm'
-        stvar%lev100m_var%axis = 'w'
+        stvar%lev100m_var%axis = 'W'
         stvar%lev100m_var%long_name = 'Height level'
         stvar%lev100m_var%standard_name = 'height'
         stvar%lev100m_var%lrecords = .false.
