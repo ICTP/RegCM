@@ -1201,6 +1201,8 @@ class ComputeMaximum(Filter):
         )
 
         shape_template = [slice(None) for _ in prev_result.dimensions]
+        old_data_slice = shape_template[:]
+        new_data_slice = shape_template[:]
         LOGGER.debug('Computing maximums')
         with prev_result.data:
             for i in range(maximums_num):
@@ -1215,19 +1217,17 @@ class ComputeMaximum(Filter):
                     prev_result.times[start:end] + corr_factor
                 )
 
-                old_data_slice = shape_template[:]
                 old_data_slice[time_index] = slice(start, end)
-                new_data_slice = shape_template[:]
-                new_data_slice[time_index] = i
+                new_data_slice[time_index] = slice(i,i)
 
                 prev_data = prev_result.data(old_data_slice)
-                new_data_array[new_data_slice] = np.ma.maximum(
+                new_data_array[tuple(new_data_slice)] = np.ma.maximum(
                     prev_data,
                     axis=time_index
                 )
 
                 if is_masked(prev_data):
-                    new_data_mask[new_data_slice] = np.prod(
+                    new_data_mask[tuple(new_data_slice)] = np.prod(
                         prev_data.mask,
                         axis=time_index
                     )
@@ -1571,7 +1571,9 @@ class ComputeAverage(Filter):
             dtype=np.bool
         )
 
-        shape_template = [slice(None) for _ in prev_result.dimensions]
+        shape_template = [ slice(None) for _ in prev_result.dimensions]
+        old_data_slice = shape_template[:]
+        new_data_slice = shape_template[:]
         LOGGER.debug('Computing means')
         with prev_result.data:
             for i in range(averages_num):
@@ -1586,19 +1588,17 @@ class ComputeAverage(Filter):
                     prev_result.times[start:end] + corr_factor
                 )
 
-                old_data_slice = shape_template[:]
                 old_data_slice[time_index] = slice(start, end)
-                new_data_slice = shape_template[:]
                 new_data_slice[time_index] = i
 
                 prev_data = prev_result.data(old_data_slice)
-                new_data_array[new_data_slice] = np.ma.mean(
+                new_data_array[tuple(new_data_slice)] =  np.ma.mean(
                     prev_data,
                     axis=time_index
                 )
 
                 if is_masked(prev_data):
-                    new_data_mask[new_data_slice] = np.prod(
+                    new_data_mask[tuple(new_data_slice)] = np.prod(
                         prev_data.mask,
                         axis=time_index
                     )
@@ -1874,13 +1874,13 @@ class SumOnDimension(Filter):
                     current_slice_old[time_position] = i
 
                     prev_data = prev_result.data(current_slice_old)
-                    new_data_array[current_slice_new] = np.ma.sum(
+                    new_data_array[tuple(current_slice_new)] = np.ma.sum(
                         prev_data,
                         axis=position_no_time
                     )
 
                     if is_masked(prev_data):
-                        new_data_mask[current_slice_new] = np.prod(
+                        new_data_mask[tuple(current_slice_new)] = np.prod(
                             prev_data.mask,
                             axis=position_no_time
                         )

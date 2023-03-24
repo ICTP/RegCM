@@ -322,6 +322,7 @@ module mod_constants
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
   real(rkx) , parameter :: ocn_sfcemiss = 0.984_rkx
+  real(rkx) , parameter :: ice_sfcemiss = 0.982_rkx
 
   ! Constants used in Kain-Fritsch and WSM5
   real(rkx) , parameter :: aliq = 613.3_rkx

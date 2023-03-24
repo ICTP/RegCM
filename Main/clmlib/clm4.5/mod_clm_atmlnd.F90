@@ -152,6 +152,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
     real(rk8) , pointer , dimension(:) :: emg
+    !vegrtation emissivity
+    real(rk8) , pointer , dimension(:) :: emv
     !fraction of ground emittimg dust (not vegetated and not snow covered)
     real(rk8) , pointer , dimension(:) :: vdustfrac
     ! soil water kg/m^2 (water + ice)
@@ -312,6 +314,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%br1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
+    allocate(l2a%emv(ibeg:iend))
     allocate(l2a%vdustfrac(ibeg:iend))
     allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
     allocate(l2a%tsoi(ibeg:iend,nlevsoi))
@@ -362,6 +365,7 @@ end subroutine init_atm2lnd_type
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi(ibeg:iend,:) = ival
     l2a%emg(ibeg:iend) = ival
+    l2a%emv(ibeg:iend) = ival
     l2a%vdustfrac(ibeg:iend) = ival
     l2a%tsoi(ibeg:iend,:) = ival
     l2a%h2o10cm(ibeg:iend) = ival
@@ -502,6 +506,10 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',        &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,       &
+               pptr%pps%emv,clm_l2a%emv,                      &
+               p2c_scale_type='unity',c2l_scale_type='unity', &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,       &
                pptr%pdf%lnd_frc_mbl_dst,clm_l2a%vdustfrac,    &
                p2c_scale_type='unity',c2l_scale_type='unity', &
                l2g_scale_type='unity')
@@ -558,7 +566,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
 !FAB: for roughness lenght perform a ln averaging instead of linear
-      tmp = pptr%pps%z0mv 
+      tmp = pptr%pps%z0mv
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%zom,               &
                p2c_scale_type='unity',                  &
@@ -571,7 +579,7 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
-      !clm_l2a%zoh = exp(clm_l2a%zoh) 
+      !clm_l2a%zoh = exp(clm_l2a%zoh)
 !
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &
                pptr%pef%eflx_lh_tot,clm_l2a%eflx_lh_tot, &
