@@ -842,6 +842,9 @@ module mod_ncstream
         attr%aname = 'semi_major_axis'
         attr%theval = earthrad
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'semi_minor_axis'
+        attr%theval = earthrad
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         attr%aname = 'inverse_flattening'
         attr%theval = 0.0
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
