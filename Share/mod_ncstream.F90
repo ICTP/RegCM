@@ -361,7 +361,8 @@ module mod_ncstream
                     params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
-          ncstat = nf90_create(stream%filename,iomode,stream%id)
+          if ( params%l_sync ) imode = ior(iomode,nf90_share)
+          ncstat = nf90_create(stream%filename,imode,stream%id)
 #endif
 #endif
         else
