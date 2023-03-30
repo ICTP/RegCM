@@ -170,7 +170,7 @@ AC_DEFUN([RR_NETCDF4],[
                          [hdf5=yes],
                          [hdf5=no])
       if test "x$hdf5" = xyes; then
-        AM_CPPFLAGS="-DNETCDF_HDF5 $AM_CPPFLAGS"
+        AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -188,7 +188,7 @@ AC_DEFUN([RR_NETCDF4],[
                        [hdf5=no])
 
     if test "x$hdf5" = xyes; then
-      AM_CPPFLAGS="-DNETCDF_HDF5 $AM_CPPFLAGS"
+      AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
