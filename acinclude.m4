@@ -153,8 +153,8 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
   AC_SUBST([AM_CPPFLAGS])
 ])
 
-AC_DEFUN([RR_CDF5],[
-  AC_CHECKING([for NetCDF CDF5])
+AC_DEFUN([RR_NETCDF4],[
+  AC_CHECKING([for NetCDF HDF5])
   save_FCFLAGS="$FCFLAGS"
 
   if test -z "$NC_INCLUDES"; then
@@ -166,11 +166,11 @@ AC_DEFUN([RR_CDF5],[
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_cdf5]])],
-                         [cdf5=yes],
-                         [cdf5=no])
-      if test "x$cdf5" = xyes; then
-        AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+         imode = nf90_netcdf4]])],
+                         [hdf5=yes],
+                         [hdf5=no])
+      if test "x$hdf5" = xyes; then
+        AM_CPPFLAGS="-DNETCDF_HDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -183,12 +183,12 @@ AC_DEFUN([RR_CDF5],[
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_cdf5]])],
-                       [cdf5=yes],
-                       [cdf5=no])
+         imode = nf90_netcdf4]])],
+                       [hdf5=yes],
+                       [hdf5=no])
 
-    if test "x$cdf5" = xyes; then
-      AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+    if test "x$hdf5" = xyes; then
+      AM_CPPFLAGS="-DNETCDF_HDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
@@ -392,19 +392,6 @@ AC_DEFUN([RR_PATH_PNETCDF],[
   fi
 
   AC_LANG_POP([C])
-
-  AC_COMPILE_IFELSE(
-    [AC_LANG_PROGRAM([[ ]],
-                      [[
-         use pnetcdf
-         implicit none
-         integer :: imode
-         imode = nf90_cdf5]])],
-                     [cdf5=yes],
-                     [cdf5=no])
-  if test "x$cdf5" = xyes; then
-    AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
-  fi
 
 # Put them back to how they used to be and set the AM versions
 # The AM versions must be substituted explicitly

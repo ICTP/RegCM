@@ -265,36 +265,32 @@ AC_ARG_ENABLE(pnetcdf,
   [PNETCDF="1"],[PNETCDF="0"]
 )
 if eval "test x$PNETCDF = x1"; then
-  if eval "test x$PNETCDF_IN_NETCDF = x1"; then
-    AC_MSG_ERROR([Cannot enable both Parallel NetCDF and parallel-nc.])
-  fi
-  AM_CPPFLAGS="\$(DEFINE)PNETCDF $AM_CPPFLAGS"
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//')
+  AM_CPPFLAGS="\$(DEFINE)PNETCDF $NULLOPTION"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-if eval "test x$PNETCDF = x0"; then
-  AC_ARG_ENABLE(nc4-gzip,
-    AC_HELP_STRING([--enable-nc4-gzip],
-                   [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
-    [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
+AC_ARG_ENABLE(nc4-gzip,
+  AC_HELP_STRING([--enable-nc4-gzip],
+                 [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
+  [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
   )
-  if eval "test x$NETCDF4_COMPRESS = x1"; then
-    AM_CPPFLAGS="\$(DEFINE)NETCDF4_COMPRESS $AM_CPPFLAGS"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
+if eval "test x$NETCDF4_COMPRESS = x1"; then
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//' \
+                -e 's/\$(DEFINE)PNETCDF//')
+  AM_CPPFLAGS="\$(DEFINE)NETCDF4_COMPRESS $NULLOPTION"
+  AC_SUBST(AM_CPPFLAGS)
+fi
 
-  AC_ARG_ENABLE(nc4,
-    AC_HELP_STRING([--enable-nc4],
-                   [Supply this option if you plan on using NetCDF4/HDF5 option.]),
-    [NETCDF4_HDF5="1"],[NETCDF4_HDF5="0"]
-  )
-  if eval "test x$NETCDF4_HDF5 = x1"; then
-    AM_CPPFLAGS="\$(DEFINE)NETCDF4_HDF5 $AM_CPPFLAGS"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
-
-else
-  echo "Parallel netcdf disables NetCDF4 options"
+NETCDF_CDF5=0
+AC_ARG_ENABLE(cdf5,
+  AC_HELP_STRING([--enable-cdf5],
+                 [Supply this option if you plan on using NetCDF/CDF5 option.]),
+  [NETCDF_CDF5="1"],[NETCDF_CDF5="0"]
+)
+if eval "test x$NETCDF_CDF5 = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)NETCDF_CDF5 $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
 fi
 
 DEBUG="0"
@@ -396,13 +392,21 @@ case $ac_cv_fc_mangling in
     AC_MSG_WARN([UNKNOWN FORTRAN NAME-MANGLING SCHEME]);;
 esac
 
+RR_PATH_NETCDF
+RR_PATH_NETCDF_F90
 if eval "test x$PNETCDF = x0"; then
-  RR_PATH_NETCDF
-  RR_PATH_NETCDF_F90
-  RR_CDF5
+  if eval "test x$NETCDF_CDF5 = x0 || x$PNETCDF_IN_NETCDF = x0"; then
+    RR_NETCDF4
+  else
+    if eval "test x$NETCDF_CDF5 = x1"; then
+      RR_CDF5
+    fi
+  fi
 else
-  RR_PATH_NETCDF_F90
   RR_PATH_PNETCDF
+  if eval "test x$NETCDF_CDF5 = x1"; then
+    RR_CDF5
+  fi
 fi
 
 test "$osname"=NONE && osname=`uname -s`
