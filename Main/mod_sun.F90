@@ -357,7 +357,7 @@ module mod_sun
     call time_begin(subroutine_name,idindx)
 #endif
     if ( isolconst == 1 ) then
-      solar_irradiance = 1367.0_rkx
+      solar_irradiance = 1.36822e+03_rkx
     else
       if ( scenario(1:3) == 'SSP' ) then
         if ( .not. associated(heppatsi) ) then

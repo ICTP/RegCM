@@ -143,7 +143,7 @@ module mod_pbl_uwtcm
     real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
     real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
                  dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
-                 thvflx , q0s , tvfac , svs , cpoxlv
+                 thvflx , q0s , tvfac , svs , cpoxlv , pfcor , ustx
     ! real(rkx) :: kh0
     real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
     integer(ik4) :: kpbl2dx  ! Top of PBL
@@ -190,6 +190,7 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
+        pfcor = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -348,7 +349,8 @@ module mod_pbl_uwtcm
         thvflx = hfxx/rhoxsf*ocp(kz)*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        ! ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
+        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
+        ustx = sqrt(ustxsq)
         ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
 
 !*******************************************************************************
@@ -426,7 +428,6 @@ module mod_pbl_uwtcm
           thvx_t = thx_t*tvcon
           dthv_t = (thvx_t-thv0)
           nsquar(kzp1) = egrav/thvx_t * dthv_t/zax(kz)
-          !call pblhgt(uimp1,uimp2,kpbconv)
         end do melloryamadaiteration
 
         !*************************************************************
@@ -577,6 +578,7 @@ module mod_pbl_uwtcm
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
         ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
+        ustx = sqrt(ustxsq)
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
@@ -1059,33 +1061,24 @@ module mod_pbl_uwtcm
       if ( kpbconv > 0 ) then
         if ( kbot(kpbconv) == kzp1 ) then
           kmix2dx = ktop(kpbconv)
-          if ( kpbl2dx >= 0 ) then
-            if ( kpbconv > 1 ) then
-              kpbl2dx = ktop(kpbconv-1)
-            else
-              kpbl2dx = kmix2dx
-            end if
-          else
-            kpbl2dx=-kpbl2dx
-          end if
+          pblx = zqx(kmix2dx)
         else
+          pblx = (0.07_rkx*ustx)/pfcor
           kmix2dx = kz
-          if ( kpbl2dx >= 0 ) then
-            kpbl2dx = ktop(kpbconv)
-          else
-            kpbl2dx = -kpbl2dx
-          end if
+          do k = kz-1 , 1 , -1
+            if ( zqx(k) > pblx ) exit
+            kmix2dx = k
+          end do
         end if
       else
         ! Lowermost layer
-        kmix2dx = kz
-        if ( kpbl2dx >= 0 ) then
-          kpbl2dx = kpbl2dx
-        else
-          kpbl2dx = -kpbl2dx
-        end if
+        pblx = (0.07_rkx*ustx)/pfcor
+        do k = kz-1 , 1 , -1
+          if ( zqx(k) > pblx ) exit
+          kmix2dx = k
+        end do
       end if
-      pblx = zqx(kmix2dx)
+      kpbl2dx = kmix2dx
     end subroutine pblhgt
 
     ! Returns the saturation vapor pressure over water in units (cb)

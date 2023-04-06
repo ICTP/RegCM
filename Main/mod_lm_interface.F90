@@ -427,7 +427,7 @@ module mod_lm_interface
 
   subroutine surface_model
 #ifdef CLM45
-    use mod_atm_interface , only : voc_em_clm , dustflx_clm, ddepv_clm 
+    use mod_atm_interface , only : voc_em_clm , dustflx_clm , ddepv_clm
 #endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr

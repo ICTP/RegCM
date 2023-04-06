@@ -20,18 +20,18 @@
 !    the names of its contributors may be used to endorse or promote products
 !    derived from this software without specific prior written permission.
 !
-! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC., 
-! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC.,
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 ! THE POSSIBILITY OF SUCH DAMAGE.
-!                        (http://www.rtweb.aer.com/)                        
+!                        (http://www.rtweb.aer.com/)
 !----------------------------------------------------------------------------
 
 ! ------- Modules -------
@@ -56,9 +56,9 @@
 ! ----------------------------------------------------------------------------
 
 ! Purpose: Compute the cloud optical properties for each cloudy layer
-! and g-point interval for use by the McICA method.  
+! and g-point interval for use by the McICA method.
 ! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=1,2,3 are available;
-! (Hu & Stamnes, Ebert and Curry, Key, and Fu) are implemented. 
+! (Hu & Stamnes, Ebert and Curry, Key, and Fu) are implemented.
 
 ! ------- Input -------
 
@@ -79,7 +79,7 @@
                                                       !    Dimensions: (nlayers)
                                                       ! specific definition of reicmc depends on setting of iceflag:
                                                       ! iceflag = 0: (inactive)
-                                                      !              
+                                                      !
                                                       ! iceflag = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
                                                       !              r_ec range is limited to 13.0 to 130.0 microns
                                                       ! iceflag = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
@@ -104,7 +104,7 @@
 ! ------- Local -------
 
 !      integer(kind=im) :: ncbands
-      integer(kind=im) :: ib, lay, istr, index, icx, ig
+      integer(kind=im) :: ib, lay, istr, index, ig, icx
 
       real(kind=rb), parameter :: eps = 1.e-06_rb     ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
@@ -126,6 +126,7 @@
 ! Initialize
 
       hvrclc = '$Revision$'
+      icx = 0
 
 ! Some of these initializations are done elsewhere
       do lay = 1, nlayers
@@ -141,7 +142,7 @@
       do lay = 1, nlayers
 
 ! Main g-point interval loop
-         do ig = 1, ngptsw 
+         do ig = 1, ngptsw
             cwp = ciwpmc(ig,lay) + clwpmc(ig,lay)
             if (cldfmc(ig,lay) .ge. cldmin .and. &
                (cwp .ge. cldmin .or. taucmc(ig,lay) .ge. cldmin)) then
@@ -162,11 +163,11 @@
                   taucmc(ig,lay) = taucloud_a
                   asmcmc(ig,lay) = (asmcmc(ig,lay) - ffp) / (ffp1)
 
-               elseif (inflag .eq. 1) then 
+               elseif (inflag .eq. 1) then
                   stop 'INFLAG = 1 OPTION NOT AVAILABLE WITH MCICA'
 
 ! (inflag=2): Separate treatement of ice clouds and water clouds.
-               elseif (inflag .eq. 2) then       
+               elseif (inflag .eq. 2) then
                   radice = reicmc(lay)
 
 ! Calculation of absorption coefficients due to ice clouds.
@@ -176,7 +177,7 @@
                      gice(ig)     = 0.0_rb
                      forwice(ig)  = 0.0_rb
 
-! (iceflag = 1): 
+! (iceflag = 1):
 ! Note: This option uses Ebert and Curry approach for all particle sizes similar to
 ! CAM3 implementation, though this is somewhat unjustified for large ice particles
                   elseif (iceflag .eq. 1) then
@@ -250,9 +251,9 @@
                      if (fdelta(ig) .lt. 0.0_rb) stop 'FDELTA LESS THAN 0.0'
                      if (fdelta(ig) .gt. 1.0_rb) stop 'FDELTA GT THAN 1.0'
                      forwice(ig) = fdelta(ig) + 0.5_rb / ssacoice(ig)
-! See Fu 1996 p. 2067 
+! See Fu 1996 p. 2067
                      if (forwice(ig) .gt. gice(ig)) forwice(ig) = gice(ig)
-! Check to ensure all calculated quantities are within physical limits.  
+! Check to ensure all calculated quantities are within physical limits.
                      if (extcoice(ig) .lt. 0.0_rb) stop 'ICE EXTINCTION LESS THAN 0.0'
                      if (ssacoice(ig) .gt. 1.0_rb) stop 'ICE SSA GRTR THAN 1.0'
                      if (ssacoice(ig) .lt. 0.0_rb) stop 'ICE SSA LESS THAN 0.0'
@@ -293,7 +294,7 @@
                      if (gliq(ig) .gt. 1.0_rb) stop 'LIQUID ASYM GRTR THAN 1.0'
                      if (gliq(ig) .lt. 0.0_rb) stop 'LIQUID ASYM LESS THAN 0.0'
                   endif
-   
+
                   tauliqorig = clwpmc(ig,lay) * extcoliq(ig)
                   tauiceorig = ciwpmc(ig,lay) * extcoice(ig)
                   taormc(ig,lay) = tauliqorig + tauiceorig
@@ -316,7 +317,7 @@
                   ssacmc(ig,lay) = (scatliq + scatice) / taucmc(ig,lay)
 
                   if (iceflag .eq. 3) then
-! In accordance with the 1996 Fu paper, equation A.3, 
+! In accordance with the 1996 Fu paper, equation A.3,
 ! the moments for ice were calculated depending on whether using spheres
 ! or hexagonal ice crystals.
 ! Set asymetry parameter to first moment (istr=1)
@@ -326,15 +327,15 @@
                         (1.0_rb - forwliq(ig)) + scatice * ((gice(ig)-forwice(ig))/ &
                         (1.0_rb - forwice(ig)))**istr)
 
-                  else 
-! This code is the standard method for delta-m scaling. 
+                  else
+! This code is the standard method for delta-m scaling.
 ! Set asymetry parameter to first moment (istr=1)
                      istr = 1
                      asmcmc(ig,lay) = (scatliq *  &
                         (gliq(ig)**istr - forwliq(ig)) / &
                         (1.0_rb - forwliq(ig)) + scatice * (gice(ig)**istr - forwice(ig)) / &
                         (1.0_rb - forwice(ig)))/(scatliq + scatice)
-                  endif 
+                  endif
 
                endif
 
@@ -350,3 +351,4 @@
 
       end module rrtmg_sw_cldprmc
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

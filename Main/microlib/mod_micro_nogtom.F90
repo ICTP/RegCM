@@ -2000,10 +2000,10 @@ module mod_micro_nogtom
       end do
     end do
     !
-    if (ichem ==1) then          
-      ! save the 3D precip for chemical washout 
-      mc2mo%rembc =  mc2mo%rainls  
-    end if 
+    if ( ichem == 1 ) then
+      ! save the 3D precip for chemical washout
+      mc2mo%rembc =  mc2mo%rainls
+    end if
     !--------------------------------------------------------------
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels

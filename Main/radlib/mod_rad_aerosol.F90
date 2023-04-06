@@ -1711,7 +1711,7 @@ module mod_rad_aerosol
             call h_interpolate_cont(hint,xasy1,yasy)
             call h_interpolate_cont(hint,xdelp1,ydelp)
             !
-            !               VERTICAL Interpolation
+            ! VERTICAL Interpolation
             !
             ! The pressure at the MERRA top is a fixed constant:
             !

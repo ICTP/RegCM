@@ -1553,7 +1553,8 @@ module mod_moloch
               write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
             end if
           end if
-          call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
+          call radiation(rcmtimer%year,rcmtimer%month, &
+                         rcmtimer%day,loutrad,labsem)
         end if
         !
         ! Add radiative transfer package-calculated heating rates to
@@ -1610,8 +1611,8 @@ module mod_moloch
                  mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
           end if
         end if
-        !------------------------------------------------------------- 
-        !call chemistry/aerosol schemes 
+        !-------------------------------------------------------------
+        !call chemistry/aerosol schemes
         !----------------------------------------------------------------------
         if ( ichem == 1 ) then
           call tractend2(rcmtimer%month,rcmtimer%day,declin)
