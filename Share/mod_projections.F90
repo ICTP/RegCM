@@ -85,7 +85,7 @@ module mod_projections
       procedure , public :: wind2_rotate
       procedure , public :: wind_antirotate
       procedure , public :: wind2_antirotate
-      procedure , public :: rl00 , conefac
+      procedure , public :: rl00
       procedure , public :: destruct
 
   end type regcm_projection
@@ -195,12 +195,6 @@ module mod_projections
     lat0 = pj%p%rlat0
     lon0 = pj%p%rlon0
   end subroutine rl00
-
-  real(rk8) function conefac(pj)
-    implicit none
-    class(regcm_projection) , intent(in) :: pj
-    conefac = pj%p%conefac
-  end function conefac
 
   subroutine wind_rotate(pj,u,v)
     implicit none
