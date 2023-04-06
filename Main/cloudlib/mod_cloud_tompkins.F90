@@ -38,9 +38,9 @@ module mod_cloud_tompkins
   !
   ! See A cloud scheme for data assimilation purposes
   ! ECMWF Technical Memorandum 410
-  subroutine tompkins_cldfrac(qc,rh,p,ps,fcc)
+  subroutine tompkins_cldfrac(rh,p,ps,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , rh , p
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: rh , p
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) :: rhrng , kappa , rhcrit
@@ -54,19 +54,15 @@ module mod_cloud_tompkins
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > 1.0e-12_rkx ) then
-            rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-            sig = p(j,i,k)/ps(j,i)
-            kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
-            ! Adjusted relative humidity threshold
-            rhcrit = 0.7_rkx * sig * (1.0_rkx-sig) * &
-                   (1.85_rkx + 0.95_rkx*(sig-0.5_rkx))
-            if ( rhrng > rhcrit ) then
-              fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                     (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
-            else
-              fcc(j,i,k) = d_zero
-            end if
+          rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
+          sig = p(j,i,k)/ps(j,i)
+          kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
+          ! Adjusted relative humidity threshold
+          rhcrit = 0.70_rkx + 0.30 * sig * (1.0_rkx-sig) * &
+                 (1.85_rkx + 0.95_rkx*(sig-0.5_rkx))
+          if ( rhrng > rhcrit ) then
+            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                   (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
           else
             fcc(j,i,k) = d_zero
           end if

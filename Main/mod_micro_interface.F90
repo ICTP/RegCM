@@ -263,7 +263,7 @@ module mod_micro_interface
       case (4)
         call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0,mc2mo%fcc)
       case (5)
-        call tompkins_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
+        call tompkins_cldfrac(mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (6)
         call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case default
