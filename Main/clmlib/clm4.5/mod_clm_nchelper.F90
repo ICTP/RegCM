@@ -565,6 +565,7 @@ module mod_clm_nchelper
       if ( switchdim ) doswitch = .true.
     end if
     if ( myid /= iocpu ) return
+    nd = 0
     if ( present(cdims) ) then
       nd = size(cdims)
       do i = 1 , nd
@@ -690,9 +691,11 @@ module mod_clm_nchelper
     end if
 #if defined(NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
-    incstat = nf90_def_var_deflate(ncid%ncid,varid,1,1,deflate_level)
-    call clm_checkncerr(__FILE__,__LINE__, &
-        'Error compress variable '//varname//' in file '//trim(ncid%fname))
+    if ( nd > 0 ) then
+      incstat = nf90_def_var_deflate(ncid%ncid,varid,1,1,deflate_level)
+      call clm_checkncerr(__FILE__,__LINE__, &
+          'Error compress variable '//varname//' in file '//trim(ncid%fname))
+    end if
 #endif
 #endif
     ncid%ivarlast = ncid%ivarlast + 1
