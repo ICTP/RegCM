@@ -113,6 +113,9 @@ module mod_outvars
 
   real(rkx) , dimension(:,:,:) , pointer :: mat_u_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: mat_v_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mat_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mat_pai_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mat_omega_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: shf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_twetb_out => null()
@@ -240,6 +243,8 @@ module mod_outvars
 
   real(rkx) , dimension(:,:,:) , pointer :: mrd_cld_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: mrd_clwp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mrd_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: mrd_pai_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_tpr_out => null()

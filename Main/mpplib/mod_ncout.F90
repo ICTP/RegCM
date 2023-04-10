@@ -62,7 +62,7 @@ module mod_ncout
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nmat2dvars = 1 + nbase
-  integer(ik4) , parameter :: nmat3dvars = 2
+  integer(ik4) , parameter :: nmat3dvars = 5
   integer(ik4) , parameter :: nmatvars = nmat2dvars+nmat3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
@@ -93,7 +93,7 @@ module mod_ncout
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nmrd2dvars = 12 + nbase
-  integer(ik4) , parameter :: nmrd3dvars = 2
+  integer(ik4) , parameter :: nmrd3dvars = 4
   integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
@@ -281,8 +281,11 @@ module mod_ncout
   integer(ik4) , parameter :: mat_ps    = 6
   integer(ik4) , parameter :: mat_p0    = 7
 
-  integer(ik4) , parameter :: mat_u = 1
-  integer(ik4) , parameter :: mat_v = 2
+  integer(ik4) , parameter :: mat_u     = 1
+  integer(ik4) , parameter :: mat_v     = 2
+  integer(ik4) , parameter :: mat_pp    = 3
+  integer(ik4) , parameter :: mat_pai   = 4
+  integer(ik4) , parameter :: mat_omega = 5
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -461,6 +464,8 @@ module mod_ncout
 
   integer(ik4) , parameter :: mrd_cld    = 1
   integer(ik4) , parameter :: mrd_clwp   = 2
+  integer(ik4) , parameter :: mrd_pp     = 3
+  integer(ik4) , parameter :: mrd_pai    = 4
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -1268,6 +1273,32 @@ module mod_ncout
         ! The following may be enabled/disabled
 
         vsize%k2 = kz
+        if ( idynamic == 1 ) then
+          if ( enable_mat3d_vars(mat_omega) ) then
+            call setup_var(v3dvar_mat,mat_omega,vsize,'omega','hPa s-1', &
+              'Pressure Velocity','lagrangian_tendency_of_air_pressure',.true.)
+            mat_omega_out => v3dvar_mat(mat_omega)%rval
+          end if
+          enable_mat3d_vars(mat_pp) = .false.
+          enable_mat3d_vars(mat_pai) = .false.
+        else if ( idynamic == 2 ) then
+          if ( enable_mat3d_vars(mat_pp) ) then
+            call setup_var(v3dvar_mat,mat_pp,vsize,'ppa','Pa', &
+              'Pressure Perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            mat_pp_out => v3dvar_mat(mat_pp)%rval
+          end if
+          enable_mat3d_vars(mat_omega) = .false.
+          enable_mat3d_vars(mat_pai) = .false.
+        else
+          if ( enable_mat3d_vars(mat_pai) ) then
+            call setup_var(v3dvar_mat,mat_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            mat_pai_out => v3dvar_mat(mat_pai)%rval
+          end if
+          enable_mat3d_vars(mat_pp) = .false.
+          enable_mat3d_vars(mat_omega) = .false.
+        end if
         if ( enable_mat3d_vars(mat_u) ) then
           if ( uvrotate ) then
             call setup_var(v3dvar_mat,mat_u,vsize,'ua','m s-1', &
@@ -2439,6 +2470,25 @@ module mod_ncout
         end if
 
         vsize%k2 = kz
+        if ( idynamic == 2 ) then
+          if ( enable_mrd3d_vars(mrd_pp) ) then
+            call setup_var(v3dvar_mrd,mrd_pp,vsize,'ppa','Pa', &
+              'Pressure perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            mrd_pp_out => v3dvar_mrd(mrd_pp)%rval
+          end if
+          enable_mrd3d_vars(mrd_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_mrd3d_vars(mrd_pai) ) then
+            call setup_var(v3dvar_mrd,mrd_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            mrd_pai_out => v3dvar_mrd(mrd_pai)%rval
+          end if
+          enable_mrd3d_vars(mrd_pp) = .false.
+        else
+          enable_mrd3d_vars(mrd_pp) = .false.
+          enable_mrd3d_vars(mrd_pai) = .false.
+        end if
         if ( enable_mrd3d_vars(mrd_cld) ) then
           call setup_var(v3dvar_mrd,mrd_cld,vsize,'cl','1', &
             'Cloud fractional cover', &
