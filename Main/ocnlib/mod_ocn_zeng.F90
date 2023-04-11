@@ -109,8 +109,8 @@ module mod_ocn_zeng
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
-      tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
-      rlv = wlh(tsurf)
+      tsurf = tgrd(i)
+      rlv = wlh(tatm(i))
       cpm = cpd*(d_one-q995) + cpv*q995
       zi = hpbl(i)
       hu = z995
@@ -120,7 +120,7 @@ module mod_ocn_zeng
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
+      qs = pfwsat(tsurf,sfps(i))!*0.995_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -138,9 +138,9 @@ module mod_ocn_zeng
       !
       ! initial values of u* and convective velocity
       !
-      wc = 0.5_rkx
+      wc = 1.0_rkx
       if ( dthv >= d_zero ) then
-        um = uv995
+        um = max(uv995,wc)
       else
         um = sqrt(uv995*uv995+wc*wc)
       end if
