@@ -288,10 +288,6 @@ AC_ARG_ENABLE(cdf5,
                  [Supply this option if you plan on using NetCDF/CDF5 option.]),
   [NETCDF_CDF5="1"],[NETCDF_CDF5="0"]
 )
-if eval "test x$NETCDF_CDF5 = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)NETCDF_CDF5 $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
 
 DEBUG="0"
 AC_ARG_ENABLE(debug,

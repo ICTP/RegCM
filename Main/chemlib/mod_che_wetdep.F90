@@ -234,7 +234,7 @@ module mod_che_wetdep
       xh2o2(:,:)  = d_zero
     end if
 
-    zsurf(:) = czq(:,i,kz+1)*m2km
+    zsurf(:) = czq(jci1:jci2,i,kz+1)*m2km
     do k = ktop + 1 , kz - 1
        delz(:,k) = abs( (zmid(:,k) - zmid(:,k+1))*km2cm )
     end do

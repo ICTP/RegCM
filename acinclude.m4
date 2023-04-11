@@ -196,6 +196,49 @@ AC_DEFUN([RR_NETCDF4],[
   AC_SUBST([AM_CPPFLAGS])
 ])
 
+AC_DEFUN([RR_CDF5],[
+  AC_CHECKING([for NetCDF CDF5])
+  save_FCFLAGS="$FCFLAGS"
+
+  if test -z "$NC_INCLUDES"; then
+    for flag in "-I" "-M" "-p"; do
+      FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[ ]],
+                         [[
+         use netcdf
+         implicit none
+         integer :: imode
+         imode = nf90_cdf5]])],
+                         [cdf5=yes],
+                         [cdf5=no])
+      if test "x$cdf5" = xyes; then
+        AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+        break
+      fi
+    done
+    FCFLAGS="$save_FCFLAGS"
+  else
+    FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM([[ ]],
+                       [[
+         use netcdf
+         implicit none
+         integer :: imode
+         imode = nf90_cdf5]])],
+                       [cdf5=yes],
+                       [cdf5=no])
+
+    if test "x$cdf5" = xyes; then
+      AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+    fi
+    FCFLAGS="$save_FCFLAGS"
+  fi
+
+  AC_SUBST([AM_CPPFLAGS])
+])
+
 dnl @synopsis ACX_MPI([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 dnl
 dnl @summary figure out how to compile/link code with MPI

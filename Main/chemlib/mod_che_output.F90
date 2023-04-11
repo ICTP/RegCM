@@ -207,7 +207,7 @@ module mod_che_output
         che_chgact_out(:,:,:) = save_chagct(:,:,:,itr)
       end if
       if ( associated(che_airden_out) ) then
-        che_airden_out(:,:,:) =  crhob3d(:,:,:)
+        che_airden_out(:,:,:) =  crhob3d(jci1:jci2,ici1:ici2,1:kz)
       end if
       if ( associated(che_ncon_out) ) then
         che_ncon_out(:,:,:) = save_ncon(:,:,:,itr)
