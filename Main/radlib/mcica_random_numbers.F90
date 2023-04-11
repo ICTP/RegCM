@@ -1,7 +1,7 @@
-!     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/mcica_random_numbers.f90,v $
-!     author:    $Author: mike $
-!     revision:  $Revision: 1.3 $
-!     created:   $Date: 2008/08/29 17:59:07 $
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 !
 
 ! Fortran-95 implementation of the Mersenne Twister 19937, following
@@ -414,4 +414,3 @@ contains
   end module mcica_random_numbers
 
 
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

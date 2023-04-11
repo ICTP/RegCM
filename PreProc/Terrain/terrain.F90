@@ -262,7 +262,9 @@ program terrain
       call corpar(dlat_s,coriol_s)
     end if
 
+    xcone = pjx%conefac( )
     write(stdout,*) 'Subgrid Geo mapping done'
+
     !
     ! reduce the search area for the domain
     !
@@ -463,6 +465,7 @@ program terrain
     call corpar(dlat,coriol)
   end if
 
+  xcone = pjx%conefac( )
   write(stdout,*) 'Geo mapping done'
 
   !

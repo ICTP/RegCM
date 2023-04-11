@@ -38,15 +38,15 @@ module mod_cmip6_normm
   integer(ik4) , parameter :: nfiles = nhistory + nscenario
 
   integer(ik8) , parameter , dimension(nfiles) :: nrmm_start = [ &
-   195001010300, 196001010300, 197001010300, 198001010300,  &
-   199001010300, 200001010300, 201001010300, 201501010600,  &
-   202101010600, 203101010600, 204101010600, 205101010600,  &
-   206101010600, 207101010600, 208101010600, 209101010600 ]
+   195001010300_ik8, 196001010300_ik8, 197001010300_ik8, 198001010300_ik8,  &
+   199001010300_ik8, 200001010300_ik8, 201001010300_ik8, 201501010600_ik8,  &
+   202101010600_ik8, 203101010600_ik8, 204101010600_ik8, 205101010600_ik8,  &
+   206101010600_ik8, 207101010600_ik8, 208101010600_ik8, 209101010600_ik8 ]
   integer(ik8) , parameter , dimension(nfiles) :: nrmm_end = [   &
-   195912312100, 196912312100, 197912312100, 198912312100,  &
-   199912312100, 200912312100, 201412312100, 202101010000,  &
-   203101010000, 204101010000, 205101010000, 206101010000,  &
-   207101010000, 208101010000, 209101010000, 210101010000 ]
+   195912312100_ik8, 196912312100_ik8, 197912312100_ik8, 198912312100_ik8,  &
+   199912312100_ik8, 200912312100_ik8, 201412312100_ik8, 202101010000_ik8,  &
+   203101010000_ik8, 204101010000_ik8, 205101010000_ik8, 206101010000_ik8,  &
+   207101010000_ik8, 208101010000_ik8, 209101010000_ik8, 210101010000_ik8 ]
 
   character(len=*) , parameter :: normm_version = 'v20191108'
   character(len=*) , parameter :: normm_version1 = 'v20200218'
@@ -187,7 +187,6 @@ module mod_cmip6_normm
       type(cmip6_3d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -293,7 +292,7 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-      if ( year < 2015 ) then
+      if ( idate < 2015010112 ) then
         if ( irec+1 <= v%nrec ) then
           ncid_next = v%ncid
           ivar_next = v%ivar
@@ -338,7 +337,6 @@ module mod_cmip6_normm
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec
-      integer(ik4) :: year , month , day , hour , y
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
@@ -436,7 +434,7 @@ module mod_cmip6_normm
       istatus = nf90_get_var(v%ncid,v%ivar,v%var,istart,icount)
       call cmip6_error(istatus,__FILE__,__LINE__, &
           'Error read variable '//v%vname//' from '//trim(v%filename)//'.')
-      if ( year < 2015 ) then
+      if ( idate < 2015010112 ) then
         if ( irec+1 <= v%nrec ) then
           ncid_next = v%ncid
           ivar_next = v%ivar

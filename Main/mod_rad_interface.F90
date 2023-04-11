@@ -191,13 +191,13 @@ module mod_rad_interface
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
 
-  subroutine radiation(iyear,imonth,loutrad,labsem)
+  subroutine radiation(iyear,imonth,iday,loutrad,labsem)
     implicit none
-    integer(ik4) , intent(in) :: iyear , imonth
+    integer(ik4) , intent(in) :: iyear , imonth , iday
     logical , intent(in) :: loutrad
     logical , intent(in) :: labsem
     if ( irrtm == 1 ) then
-      call rrtmg_driver(iyear,imonth,loutrad,m2r,r2m)
+      call rrtmg_driver(iyear,imonth,iday,loutrad,m2r,r2m)
     else
       call colmod3(iyear,imonth,loutrad,labsem,m2r,r2m)
     end if

@@ -52,7 +52,6 @@ module mod_ocn_bats
 
       ! Update surface temperature from the input SST
       tgrd(i) = tgb(i)
-      tgbrd(i) = tgb(i)
 
       ! Compute delt and delq
       qs = qv(i)/(d_one+qv(i))
@@ -124,16 +123,14 @@ module mod_ocn_bats
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST
-      if ( tgb(i) >= icetriggert ) then
+      if ( tgb(i) > icetriggert ) then
         tgrd(i) = tgb(i)
+        tgbrd(i) = tgb(i)
       else
-        if ( tatm(i) > icetriggert ) then
-          tgrd(i) = icetriggert
-        else
-          tgrd(i) = tatm(i) - 0.01_rkx
-        end if
+        tgbrd(i) = 271.15_rkx
+        ! Give it a kick...
+        if ( tgrd(i) >= tgb(i) ) tgrd(i) = 0.5_rkx*(tatm(i)+tgb(i))
       end if
-      tgbrd(i) = icetriggert
 
       uv995 = max(sqrt(usw(i)**2+vsw(i)**2),wtur)
 
@@ -189,7 +186,7 @@ module mod_ocn_bats
       rhosw = 0.10_rkx*(d_one+d_three*age)
       rhosw3 = rhosw**3
       cdrn = (vonkar/log(ht(i)/zsno))**2
-      ribl = (d_one-icetriggert/tatm(i))*ht(i)*egrav/ribd
+      ribl = (d_one-(tgbrd(i)/tatm(i)))*ht(i)*egrav/ribd
       if ( ribl < d_zero ) then
         clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
@@ -239,14 +236,14 @@ module mod_ocn_bats
         evpr(i) = max(-drag(i)*delq,d_zero)
         sent(i) = -drag(i)*cpd*delt
       else
-        ! assume lead ocean temp is icetriggert
+        ! assume lead ocean temp is -2
         ! flux of heat and moisture through leads
         fact = -drag(i)
-        qgrd = pfqsat(fact*tatm(i),sfps(i))
-        qice = pfqsat(icetriggert,sfps(i))
+        qgrd = pfqsat(fact*tgrd(i),sfps(i))
+        qice = pfqsat(tgbrd(i),sfps(i))
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
-        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*icetriggert)/cdrx
+        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*tgbrd(i))/cdrx
         delt = tatm(i) - tgrnd
         delq = qs - qgrnd
         ! output fluxes, averaged over leads and ice
@@ -254,7 +251,7 @@ module mod_ocn_bats
         sncv(i) = sncv(i) - dtocn*evpr(i)
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
-        hsl = rhox(i)*vspda*clead * (icetriggert-tatm(i))*cpd
+        hsl = rhox(i)*vspda*clead * (tgrd(i)-tatm(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)
@@ -289,7 +286,7 @@ module mod_ocn_bats
         else
           ! snow or ice with no snow melting
           tg = tgrd(i) + bb
-          tg = min(tg,icetriggert)
+          tg = min(tg,tgbrd(i))
           tgrd(i) = tg
           tgb(i) = tg
         end if
@@ -300,12 +297,12 @@ module mod_ocn_bats
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       rhoa(i) = rhox(i)
-      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qv(i)))
+      t2m(i) = tatm(i) - delt*fact
+      q2m(i) = qs - delq*fact
+      xdens = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       tau = xdens*ustr(i)*ustr(i)
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
-      t2m(i) = tatm(i) - delt*fact
-      q2m(i) = qs - delq*fact
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

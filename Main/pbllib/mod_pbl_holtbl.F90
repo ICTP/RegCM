@@ -173,7 +173,7 @@ module mod_pbl_holtbl
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
       exns(j,i) = (m2p%patmf(j,i,kzp1)/p00)**rovcp
-      pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
+      pfcor(j,i) = min(max(abs(m2p%coriol(j,i)),2.0e-5_rkx),1.0e-4_rkx)
     end do
     !
     ! Compute the diffusion coefficient using Blackadar scheme above boundary
@@ -215,26 +215,6 @@ module mod_pbl_holtbl
     !
     ! Holtslag pbl
     !
-    ! Initialize bl diffusion coefficients and counter-gradient terms
-    ! with free atmosphere values
-    !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! counter gradient terms for heat and moisture
-          cgh(j,i,k) = d_zero
-          cgs(j,i,k) = d_zero
-          ! eddy diffusivities for momentum, heat and moisture
-          kvm(j,i,k) = kzm(j,i,k)
-          kvh(j,i,k) = kzm(j,i,k)
-          kvq(j,i,k) = kzm(j,i,k)
-          if ( ichem == 1 ) then
-            kvc(j,i,k) = kzm(j,i,k)
-          end if
-        end do
-      end do
-    end do
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         ! compute friction velocity
@@ -249,6 +229,34 @@ module mod_pbl_holtbl
         xqfx(j,i) = m2p%qfx(j,i)*rrho
         ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
         hfxv(j,i) = xhfx(j,i) + 0.61_rkx * m2p%thatm(j,i,kz) * xqfx(j,i)
+      end do
+    end do
+    !
+    ! Initialize bl diffusion coefficients and counter-gradient terms
+    ! with free atmosphere values
+    !
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ! eddy diffusivities for momentum, heat and moisture
+          kvm(j,i,k) = kzm(j,i,k)
+          kvh(j,i,k) = kzm(j,i,k)
+          kvq(j,i,k) = kzm(j,i,k)
+          if ( ichem == 1 ) then
+            kvc(j,i,k) = kzm(j,i,k)
+          end if
+        end do
+      end do
+    end do
+    !
+    ! counter gradient terms for heat and moisture
+    !
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          cgs(j,i,k) = 0.0_rkx
+          cgh(j,i,k) = 0.0_rkx
+        end do
       end do
     end do
     !

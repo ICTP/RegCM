@@ -76,7 +76,6 @@ module mod_projections
     procedure(rotate3) , pass(pj) , pointer , public :: uvbkrotate3 => NULL()
 
     real(rk8) , pointer , dimension(:,:) :: f1 , f2 , f3 , f4
-    real(rk8) , pointer , dimension(:,:) :: f5 , f6 , f7 , f8
 
     contains
 
@@ -86,7 +85,7 @@ module mod_projections
       procedure , public :: wind2_rotate
       procedure , public :: wind_antirotate
       procedure , public :: wind2_antirotate
-      procedure , public :: rl00
+      procedure , public :: rl00 , conefac
       procedure , public :: destruct
 
   end type regcm_projection
@@ -196,6 +195,12 @@ module mod_projections
     lat0 = pj%p%rlat0
     lon0 = pj%p%rlon0
   end subroutine rl00
+
+  real(rk8) function conefac(pj)
+    implicit none
+    class(regcm_projection) , intent(in) :: pj
+    conefac = pj%p%conefac
+  end function conefac
 
   subroutine wind_rotate(pj,u,v)
     implicit none
@@ -433,40 +438,40 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: ci , cj , clat , clon , plon , plat , ds
     logical , intent(in) :: luvrot
-    real(rk8) :: phi , lam , dlam
-    real(rk8) :: rotlam , rotphi
+    real(rk8) :: phi , lam , plam , pphi , clam , cphi , dlam
+    real(rk8) :: delta , arg1 , arg2
     real(rkx) :: lon , lat , ri , rj
     integer(ik4) :: i , j
     if ( abs(plat-90.0_rk8) < 0.001 ) pj%p%skiprot = .true.
     pj%p%dlon = raddeg * ds / earthrad
     pj%p%dlat = pj%p%dlon
-    phi = degrad*plat
-    lam = degrad*plon
-    call get_equator(phi,lam,pj%p%phi0,pj%p%lam0)
-    phi = clat
-    lam = clon
-    if ( phi >  deg90 )  phi = deg90 - phi
-    if ( phi < -deg90 )  phi = phi + deg90
-    if ( lam >  deg180 ) lam = lam - deg360
-    if ( lam < -deg180 ) lam = lam + deg360
-    phi = degrad * phi
-    lam = degrad * lam
-    pj%p%rlat0 = asin(-cos(phi)*sin(pj%p%phi0)*cos(lam-pj%p%lam0) + &
-                    sin(phi)*cos(pj%p%phi0))
+    pphi = degrad*plat
+    plam = degrad*plon
+    call get_equator(pphi,plam,pj%p%phi0,pj%p%lam0)
+    cphi = clat
+    clam = clon
+    if ( cphi >  deg90 )  cphi = deg90 - cphi
+    if ( cphi < -deg90 )  cphi = cphi + deg90
+    if ( clam >  deg180 ) clam = clam - deg360
+    if ( clam < -deg180 ) clam = clam + deg360
+    cphi = degrad * cphi
+    clam = degrad * clam
+    pj%p%rlat0 = asin(-cos(cphi)*sin(pj%p%phi0)*cos(clam-pj%p%lam0) + &
+                    sin(cphi)*cos(pj%p%phi0))
     if ( abs(abs(pj%p%rlat0)-halfpi) > 1.0e-7_rk8 .and. &
          abs(pj%p%phi0) > 1.0e-7_rk8 ) then
-      pj%p%rlon0 = (sin(phi)-cos(pj%p%phi0)*sin(pj%p%rlat0)) / &
+      pj%p%rlon0 = (sin(cphi)-cos(pj%p%phi0)*sin(pj%p%rlat0)) / &
                  (sin(pj%p%phi0)*cos(pj%p%rlat0))
       if ( pj%p%rlon0 < -1.0_rk8 .and. &
            pj%p%rlon0 > -1.00001_rk8 ) pj%p%rlon0 = -1.0_rk8
       if ( pj%p%rlon0 >  1.0_rk8 .and. &
            pj%p%rlon0 <  1.00001_rk8 ) pj%p%rlon0 =  1.0_rk8
       pj%p%rlon0 = acos(pj%p%rlon0)
-      if ( lam < pj%p%lam0 ) then
+      if ( clam < pj%p%lam0 ) then
         pj%p%rlon0 = -pj%p%rlon0
       end if
     else
-      pj%p%rlon0 = lam
+      pj%p%rlon0 = clam
     end if
     pj%p%rlat0 = raddeg*pj%p%rlat0 - cj*pj%p%dlat
     pj%p%rlon0 = raddeg*pj%p%rlon0 - ci*pj%p%dlon
@@ -475,77 +480,25 @@ module mod_projections
     if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = pj%p%rlon0 - deg360
     if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
     if ( luvrot ) then
-      call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
-      call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
-      call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
-      call getmem2d(pj%f4,1,pj%p%nlon,1,pj%p%nlat,'projections:f4')
-      call getmem2d(pj%f5,1,pj%p%nlon,1,pj%p%nlat,'projections:f5')
-      call getmem2d(pj%f6,1,pj%p%nlon,1,pj%p%nlat,'projections:f6')
-      call getmem2d(pj%f7,1,pj%p%nlon,1,pj%p%nlat,'projections:f7')
-      call getmem2d(pj%f8,1,pj%p%nlon,1,pj%p%nlat,'projections:f8')
-      do j = 1 , pj%p%nlat
-        rotphi = degrad*(pj%p%rlat0 + (j-1)*pj%p%dlat)
-        do i = 1 , pj%p%nlon
-          rotlam = degrad*(pj%p%rlon0 + (i-1)*pj%p%dlon)
-          ri = i
-          rj = j
-          call ijll_rl(pj,ri,rj,lat,lon)
-          lam = degrad*lon
-          phi = degrad*lat
-          dlam = lam - pj%p%lam0
-          if ( .not. pj%p%skiprot ) then
-            if ( abs(rotlam) < 1.0e-5 ) then
-              pj%f1(i,j) = 1.0_rk8
-              pj%f2(i,j) = 0.0_rk8
-              pj%f3(i,j) = 0.0_rk8
-              pj%f4(i,j) = 1.0_rk8
-            else
-              pj%f1(i,j) = (sin(dlam)*sin(pj%p%phi0))/cos(rotphi)
-              pj%f2(i,j) = (cos(dlam)*sin(phi)*sin(pj%p%phi0) + &
-                            cos(pj%p%phi0)*cos(phi)) / &
-                            cos(rotphi)
-              pj%f3(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
-                            sin(pj%p%phi0)*sin(rotphi)*cos(rotlam)) / &
-                           (sin(pj%p%phi0)*sin(rotlam))
-              pj%f4(i,j) = -cos(phi) / (sin(pj%p%phi0)*sin(rotlam))
-            end if
-            if ( abs(cos(phi)) > 1.0e-7_rk8 ) then
-              if ( abs(sin(dlam)) > 1.0e-7_rk8 ) then
-                pj%f5(i,j) = -(sin(pj%p%phi0)*sin(rotlam))/cos(phi)
-                pj%f6(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
-                              sin(pj%p%phi0)*sin(rotphi)*cos(rotlam))/cos(phi)
-                pj%f7(i,j) = cos(rotphi)/(sin(dlam)*sin(pj%p%phi0))
-                pj%f8(i,j) = -(cos(dlam)*sin(pj%p%phi0)*sin(phi) + &
-                              cos(pj%p%phi0)*cos(phi))/cos(rotphi)
-              else
-                if ( dlam < -halfpi .or. dlam > halfpi ) then
-                  pj%f5(i,j) = -1.0_rk8
-                  pj%f6(i,j) = 0.0_rk8
-                  pj%f7(i,j) = -1.0_rk8
-                  pj%f8(i,j) = 0.0_rk8
-                else
-                  pj%f5(i,j) = 1.0_rk8
-                  pj%f6(i,j) = 0.0_rk8
-                  pj%f7(i,j) = 1.0_rk8
-                  pj%f8(i,j) = 0.0_rk8
-                end if
-              end if
-            else
-              if ( pj%p%phi0 < 0.0 ) then
-                pj%f5(i,j) = -lam
-                pj%f6(i,j) = 0.0_rk8
-                pj%f7(i,j) = 0.0_rk8
-                pj%f8(i,j) = 0.0_rk8
-              else
-                pj%f5(i,j) = lam
-                pj%f6(i,j) = 0.0_rk8
-                pj%f7(i,j) = 0.0_rk8
-                pj%f8(i,j) = 0.0_rk8
-              end if
-            end if
-          end if
+      if ( .not. pj%p%skiprot ) then
+        call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
+        call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+        do j = 1 , pj%p%nlat
+          do i = 1 , pj%p%nlon
+            ri = i
+            rj = j
+            call ijll_rl(pj,ri,rj,lat,lon)
+            lam = degrad*lon
+            phi = degrad*lat
+            dlam = plam - lam
+            arg1 = cos(pphi)*sin(dlam)
+            arg2 = cos(phi)*sin(pphi) - sin(phi)*cos(pphi)*cos(dlam)
+            delta = atan(arg1/arg2)
+            pj%f1(i,j) = cos(delta)
+            pj%f2(i,j) = sin(delta)
+          end do
         end do
-      end do
+      end if
     end if
   end subroutine setup_rll
 
@@ -1472,7 +1425,7 @@ module mod_projections
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , i , j
-    real(rk8) :: tmp1 , tmp2
+    real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1480,15 +1433,9 @@ module mod_projections
     j2 = ubound(u,2)
     do j = j1 , j2
       do i = i1 , i2
-        if ( pj%f2(i,j) /= 0.0_rk8 .and. pj%f3(i,j) /= 0.0_rk8 ) then
-          tmp1 = pj%f1(i,j) * u(i,j) + pj%f2(i,j) * v(i,j)
-          tmp2 = pj%f3(i,j) * tmp1 + pj%f4(i,j) * v(i,j)
-          v(i,j) = real(tmp1,rkx)
-          u(i,j) = real(tmp2,rkx)
-        else
-          v(i,j) = pj%f1(i,j) * v(i,j)
-          u(i,j) = pj%f4(i,j) * u(i,j)
-        end if
+        tmp = u(i,j)*pj%f1(i,j) - v(i,j)*pj%f2(i,j)
+        v(i,j) = real(u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
+        u(i,j) = real(tmp,rkx)
       end do
     end do
   end subroutine rotate2_rl
@@ -1498,7 +1445,7 @@ module mod_projections
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , i , j
-    real(rk8) :: tmp1 , tmp2
+    real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1506,24 +1453,9 @@ module mod_projections
     j2 = ubound(u,2)
     do j = j1 , j2
       do i = i1 , i2
-        if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
-          tmp1 = pj%f5(i,j) * u(i,j) + pj%f6(i,j) * v(i,j)
-          tmp2 = pj%f7(i,j) * (v(i,j) + tmp1*pj%f8(i,j))
-          u(i,j) = real(tmp2,rkx)
-          v(i,j) = real(tmp1,rkx)
-        else
-          if ( pj%f7(i,j) /= 0.0_rk8 ) then
-            u(i,j) = pj%f5(i,j) * u(i,j)
-            v(i,j) = pj%f7(i,j) * v(i,j)
-          else
-            tmp1 = sqrt(u(i,j)*u(i,j)+v(i,j)*v(i,j))
-            tmp2 = halfpi + atan2(v(i,j),u(i,j))
-            if ( tmp2 > mathpi ) tmp2 = tmp2 - twopi
-            if ( tmp2 < mathpi ) tmp2 = tmp2 + twopi
-            u(i,j) = -tmp1 * sin(pj%f5(i,j)-tmp2)
-            v(i,j) = -tmp1 * cos(pj%f5(i,j)-tmp2)
-          end if
-        end if
+        tmp = u(i,j)*pj%f1(i,j) + v(i,j)*pj%f2(i,j)
+        v(i,j) = real(-u(i,j)*pj%f2(i,j) + v(i,j)*pj%f1(i,j),rkx)
+        u(i,j) = real(tmp,rkx)
       end do
     end do
   end subroutine backrotate2_rl
@@ -1533,7 +1465,7 @@ module mod_projections
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
-    real(rk8) :: tmp1 , tmp2
+    real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1544,15 +1476,9 @@ module mod_projections
     do k = k1 , k2
       do j = j1 , j2
         do i = i1 , i2
-          if ( pj%f2(i,j) /= 0.0_rk8 .and. pj%f3(i,j) /= 0.0_rk8 ) then
-            tmp1 = pj%f1(i,j) * u(i,j,k) + pj%f2(i,j) * v(i,j,k)
-            tmp2 = pj%f3(i,j) * tmp1 + pj%f4(i,j) * v(i,j,k)
-            v(i,j,k) = real(tmp1,rkx)
-            u(i,j,k) = real(tmp2,rkx)
-          else
-            v(i,j,k) = pj%f1(i,j) * v(i,j,k)
-            u(i,j,k) = pj%f4(i,j) * u(i,j,k)
-          end if
+          tmp = u(i,j,k)*pj%f1(i,j) - v(i,j,k)*pj%f2(i,j)
+          v(i,j,k) = real(u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
+          u(i,j,k) = real(tmp,rkx)
         end do
       end do
     end do
@@ -1563,7 +1489,7 @@ module mod_projections
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
     integer(ik4) :: i1 , i2 , j1 , j2 , k1 , k2 , i , j , k
-    real(rk8) :: tmp1 , tmp2
+    real(rk8) :: tmp
     if ( pj%p%skiprot ) return
     i1 = lbound(u,1)
     i2 = ubound(u,1)
@@ -1574,24 +1500,9 @@ module mod_projections
     do k = k1 , k2
       do j = j1 , j2
         do i = i1 , i2
-          if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
-            tmp1 = pj%f5(i,j) * u(i,j,k) + pj%f6(i,j) * v(i,j,k)
-            tmp2 = pj%f7(i,j) * (v(i,j,k) + tmp1*pj%f8(i,j))
-            u(i,j,k) = real(tmp2,rkx)
-            v(i,j,k) = real(tmp1,rkx)
-          else
-            if ( pj%f7(i,j) /= 0.0_rk8 ) then
-              u(i,j,k) = pj%f5(i,j) * u(i,j,k)
-              v(i,j,k) = pj%f7(i,j) * v(i,j,k)
-            else
-              tmp1 = sqrt(u(i,j,k)*u(i,j,k)+v(i,j,k)*v(i,j,k))
-              tmp2 = halfpi + atan2(v(i,j,k),u(i,j,k))
-              if ( tmp2 > mathpi ) tmp2 = tmp2 - twopi
-              if ( tmp2 < mathpi ) tmp2 = tmp2 + twopi
-              u(i,j,k) = -tmp1 * sin(pj%f5(i,j)-tmp2)
-              v(i,j,k) = -tmp1 * cos(pj%f5(i,j)-tmp2)
-            end if
-          end if
+          tmp = u(i,j,k)*pj%f1(i,j) + v(i,j,k)*pj%f2(i,j)
+          v(i,j,k) = real(-u(i,j,k)*pj%f2(i,j) + v(i,j,k)*pj%f1(i,j),rkx)
+          u(i,j,k) = real(tmp,rkx)
         end do
       end do
     end do

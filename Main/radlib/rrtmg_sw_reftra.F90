@@ -122,7 +122,7 @@
 
 ! ------- Local -------
 
-      integer(kind=im) :: jk, jl, kmodts
+      integer(kind=im) :: jk, kmodts
       integer(kind=im) :: itind
 
       real(kind=rb) :: tblind
@@ -204,7 +204,7 @@
                   ze2 = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   ze2 = exp_tbl(itind)
                endif
 !
@@ -279,7 +279,7 @@
                   zep1 = 1._rb / zem1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zem1 = exp_tbl(itind)
                   zep1 = 1._rb / zem1
                endif
@@ -289,7 +289,7 @@
                   zep2 = 1._rb / zem2
                else
                   tblind = ze2 / (bpade + ze2)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zem2 = exp_tbl(itind)
                   zep2 = 1._rb / zem2
                endif

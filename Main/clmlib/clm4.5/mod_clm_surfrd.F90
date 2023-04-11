@@ -539,7 +539,10 @@ module mod_clm_surfrd
     use mod_clm_varctl , only : create_crop_landunit , irrigate
     use mod_clm_pftvarcon , only : nc3crop , nc3irrig , npcropmin ,  &
           ncorn , ncornirrig , nsoybean , nsoybeanirrig , nscereal , &
-          nscerealirrig , nwcereal , nwcerealirrig , noveg
+          nscerealirrig , nwcereal , nwcerealirrig
+#ifdef CNDV
+    use mod_clm_pftvarcon , only : noveg
+#endif
     use mod_clm_domain , only : domain_type
     implicit none
     type(clm_filetype) , intent(inout) :: ncid   ! netcdf id

@@ -54,4 +54,5 @@
       real(kind=rb) :: rwgt(nbndsw*mg)
 
       end module rrsw_wvn
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
