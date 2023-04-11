@@ -3055,8 +3055,6 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('simple_sea_ice_scheme',iseaice))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('seasonal_desert_albedo',idesseas))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('convective_lwp_as_large_scale',iconvlwp))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('large_scale_cloud_fraction_scheme',icldfrac))
