@@ -92,7 +92,7 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nmrd2dvars = 12 + nbase
+  integer(ik4) , parameter :: nmrd2dvars = 13 + nbase
   integer(ik4) , parameter :: nmrd3dvars = 4
   integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
 
@@ -460,7 +460,8 @@ module mod_ncout
   integer(ik4) , parameter :: mrd_solout = 15
   integer(ik4) , parameter :: mrd_lwout  = 16
   integer(ik4) , parameter :: mrd_totwv  = 17
-  integer(ik4) , parameter :: mrd_clwpvi = 18
+  integer(ik4) , parameter :: mrd_totcl  = 18
+  integer(ik4) , parameter :: mrd_clwpvi = 19
 
   integer(ik4) , parameter :: mrd_cld    = 1
   integer(ik4) , parameter :: mrd_clwp   = 2
@@ -1276,7 +1277,8 @@ module mod_ncout
         if ( idynamic == 1 ) then
           if ( enable_mat3d_vars(mat_omega) ) then
             call setup_var(v3dvar_mat,mat_omega,vsize,'omega','hPa s-1', &
-              'Pressure Velocity','lagrangian_tendency_of_air_pressure',.true.)
+              'Pressure Velocity','lagrangian_tendency_of_air_pressure', &
+              .true., 'time: mean')
             mat_omega_out => v3dvar_mat(mat_omega)%rval
           end if
           enable_mat3d_vars(mat_pp) = .false.
@@ -1285,7 +1287,8 @@ module mod_ncout
           if ( enable_mat3d_vars(mat_pp) ) then
             call setup_var(v3dvar_mat,mat_pp,vsize,'ppa','Pa', &
               'Pressure Perturbation', &
-              'difference_of_air_pressure_from_model_reference',.true.)
+              'difference_of_air_pressure_from_model_reference', &
+              .true., 'time: mean')
             mat_pp_out => v3dvar_mat(mat_pp)%rval
           end if
           enable_mat3d_vars(mat_omega) = .false.
@@ -1293,7 +1296,8 @@ module mod_ncout
         else
           if ( enable_mat3d_vars(mat_pai) ) then
             call setup_var(v3dvar_mat,mat_pai,vsize,'pai','1', &
-              'Exner function','dimensionless_exner_function',.true.)
+              'Exner function','dimensionless_exner_function', &
+              .true., 'time: mean')
             mat_pai_out => v3dvar_mat(mat_pai)%rval
           end if
           enable_mat3d_vars(mat_pp) = .false.
@@ -2462,6 +2466,13 @@ module mod_ncout
             'atmosphere_water_vapor_content',.true.,'time: mean')
           mrd_totwv_out => v2dvar_mrd(mrd_totwv)%rval
         end if
+        if ( enable_mrd2d_vars(mrd_totcl) ) then
+          call setup_var(v2dvar_mrd,mrd_totcl,vsize,'clwvi','kg m-2', &
+            'Condensed Water Mass Content', &
+            'atmosphere_mass_content_of_cloud_condensed_water', &
+            .true.,'time: mean')
+          mrd_totcl_out => v2dvar_mrd(mrd_totcl)%rval
+        end if
         if ( enable_mrd2d_vars(mrd_clwpvi) ) then
           call setup_var(v2dvar_mrd,mrd_clwpvi,vsize,'clwpvi','mm', &
             'Vertically-integrated in-cloud liquid water path', &
@@ -2474,14 +2485,16 @@ module mod_ncout
           if ( enable_mrd3d_vars(mrd_pp) ) then
             call setup_var(v3dvar_mrd,mrd_pp,vsize,'ppa','Pa', &
               'Pressure perturbation', &
-              'difference_of_air_pressure_from_model_reference',.true.)
+              'difference_of_air_pressure_from_model_reference', &
+              .true., 'time: mean')
             mrd_pp_out => v3dvar_mrd(mrd_pp)%rval
           end if
           enable_mrd3d_vars(mrd_pai) = .false.
         else if ( idynamic == 3 ) then
           if ( enable_mrd3d_vars(mrd_pai) ) then
             call setup_var(v3dvar_mrd,mrd_pai,vsize,'pai','1', &
-              'Exner function','dimensionless_exner_function',.true.)
+              'Exner function','dimensionless_exner_function', &
+              .true., 'time: mean')
             mrd_pai_out => v3dvar_mrd(mrd_pai)%rval
           end if
           enable_mrd3d_vars(mrd_pp) = .false.

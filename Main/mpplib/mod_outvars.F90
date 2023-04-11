@@ -239,6 +239,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: mrd_solout_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_lwout_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_totwv_out => null()
+  real(rkx) , dimension(:,:) , pointer :: mrd_totcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: mrd_clwpvi_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: mrd_cld_out => null()

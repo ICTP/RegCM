@@ -209,6 +209,7 @@ module mod_rad_outrad
       call copy2d_add(solout,mrd_solout_out)
       call copy2d_add(lwout,mrd_lwout_out)
       call copy2d_add(totwv,mrd_totwv_out)
+      call copy2d_add(totcl,mrd_totcl_out)
       call copy2d_add_integrate_from3(clwp,mrd_clwpvi_out)
       call copy3d_add(cld,mrd_cld_out)
       call copy3d_add(clwp,mrd_clwp_out)
