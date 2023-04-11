@@ -1985,13 +1985,14 @@ module mod_micro_nogtom
 
     ! Rain+liquid, snow+ice
     ! for each level k = 1 , kz, sum of the same phase elements
-    do k = 1 , kzp1
+     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
               pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-              mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
+              ! rainls has dimension kz
+              if ( k < kzp1 ) mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
