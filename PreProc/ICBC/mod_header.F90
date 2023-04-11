@@ -38,7 +38,7 @@ module mod_header
     integer(ik4) , parameter :: nrite = stdout
     integer(ik4) , dimension(8) :: tval
     character(len=*) , parameter :: f99001 = &
-           '(/,1x," This is ",A," part of the RegCM version 4")'
+           '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*) , parameter :: f99002 = &
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
 
