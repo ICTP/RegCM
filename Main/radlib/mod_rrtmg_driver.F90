@@ -99,7 +99,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 1 , mypid
+  integer(ik4) :: permuteseed = 12345_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -255,14 +255,7 @@ module mod_rrtmg_driver
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
-
     call allocate_tracers(1,npr)
-
-#if defined ( IBM )
-    mypid = getpid_()
-#else
-    mypid = getpid()
-#endif
   end subroutine allocate_mod_rad_rrtmg
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
@@ -336,7 +329,7 @@ module mod_rrtmg_driver
       end do
       if ( imcica == 1 ) then
         ! generates cloud properties:
-        permuteseed = permuteseed+mypid+ngptlw
+        permuteseed = permuteseed+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
         call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
@@ -370,7 +363,7 @@ module mod_rrtmg_driver
 
     ! LW call :
     if ( imcica == 1 ) then
-      permuteseed = permuteseed+mypid+ngptsw
+      permuteseed = permuteseed+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
