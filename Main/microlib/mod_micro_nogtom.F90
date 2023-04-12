@@ -1012,7 +1012,7 @@ module mod_micro_nogtom
                 qxfg(iqqv) = qxfg(iqqv) - supsat
 #ifdef DEBUG
                 if ( stats ) then
-                  ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - evapi
+                  ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - supsat
                 end if
 #endif
               end if
@@ -1985,14 +1985,12 @@ module mod_micro_nogtom
 
     ! Rain+liquid, snow+ice
     ! for each level k = 1 , kz, sum of the same phase elements
-     do k = 1 , kzp1
+    do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
               pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-              ! rainls has dimension kz
-              if ( k < kzp1 ) mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
@@ -2001,10 +1999,17 @@ module mod_micro_nogtom
       end do
     end do
     !
-    if (ichem ==1) then          
-      ! save the 3D precip for chemical washout 
-      mc2mo%rembc =  mc2mo%rainls  
-    end if 
+    if ( ichem == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%rainls(j,i,k) = pfplsl(j,i,k+1)
+            ! save the 3D precip for chemical washout
+            mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)
+          end do
+        end do
+      end do
+    end if
     !--------------------------------------------------------------
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
