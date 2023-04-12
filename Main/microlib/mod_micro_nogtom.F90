@@ -1832,13 +1832,19 @@ module mod_micro_nogtom
             fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
             ! Calculate the water variables tendencies
             chng = qxn(n) - qx0(n)
-            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
-            ! Calculate the temperature tendencies
-            if ( iphase(n) == 1 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
-            else if ( iphase(n) == 2 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
+#ifdef DEBUG
+            if ( abs(chng) > 1.0e-16_rkx ) then
+#endif
+              qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
+              ! Calculate the temperature tendencies
+              if ( iphase(n) == 1 ) then
+                ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
+              else if ( iphase(n) == 2 ) then
+                ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
+              end if
+#ifdef DEBUG
             end if
+#endif
           end do
 
         end do ! jx : end of longitude loop

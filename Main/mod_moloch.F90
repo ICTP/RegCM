@@ -1804,7 +1804,14 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
+#ifdef DEBUG
+            ptr = ptr * 1.0e4_rkx
+#endif
             call wafone(ptr,dta)
+#ifdef DEBUG
+            where ( ptr < 1.0e-16_rkx ) ptr = d_zero
+            ptr = ptr * 1.0e-4_rkx
+#endif
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -1813,7 +1820,14 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
+#ifdef DEBUG
+            ptr = ptr * 1.0e8_rkx
+#endif
             call wafone(ptr,dta)
+#ifdef DEBUG
+            where ( ptr < 1.0e-20_rkx ) ptr = d_zero
+            ptr = ptr * 1.0e-8_rkx
+#endif
           end do
         end if
 
