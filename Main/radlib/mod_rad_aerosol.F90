@@ -113,7 +113,7 @@ module mod_rad_aerosol
   ! wsdust  - single partical albedo dust
   ! gsdust  - asymmetry parameter dust
   !
-  integer(ik4) , private :: ii , jj ! coefficient index
+  integer(ik4) , private :: ii , jj, kk ! coefficient index
 
   ! Sulfate param for standard scheme / works only with rad standard
   ! (Brieglieb et al.)
@@ -2344,55 +2344,87 @@ module mod_rad_aerosol
         ! melange externe
         !
         ! only for climatic feedback allowed
-        do itr = 1 , ntr
-          do k = 0 , kz
-            do n = n1 , n2
-              tauxar3d(n,k,ns) = tauxar3d(n,k,ns) + tx(n,k,itr)
-              tauasc3d(n,k,ns) = tauasc3d(n,k,ns) + tx(n,k,itr)*wa(n,k,itr)
-              gtota3d(n,k,ns) = gtota3d(n,k,ns) + ga(n,k,itr) * &
+
+        if(irrtm==0) then    
+          do itr = 1 , ntr
+            do k = 0 , kz
+              do n = n1 , n2
+                tauxar3d(n,k,ns) = tauxar3d(n,k,ns) + tx(n,k,itr)
+                tauasc3d(n,k,ns) = tauasc3d(n,k,ns) + tx(n,k,itr)*wa(n,k,itr)
+                gtota3d(n,k,ns) = gtota3d(n,k,ns) + ga(n,k,itr) * &
                                   tx(n,k,itr)*wa(n,k,itr)
-              ftota3d(n,k,ns) = ftota3d(n,k,ns) + fa(n,k,itr) * &
+                ftota3d(n,k,ns) = ftota3d(n,k,ns) + fa(n,k,itr) * &
                                   tx(n,k,itr)*wa(n,k,itr)
+              end do
             end do
           end do
-        end do
+
+          do k = 0 , kz
+            do n = n1 , n2
+              !consider a minimal extinction and reflectivity background 
+              if ( tauxar3d(n,k,ns) < 1.E-10_rkx ) then
+                tauxar3d(n,k,ns) = 1.E-10_rkx
+                tauasc3d(n,k,ns) = 0.999999_rkx * tauxar3d(n,k,ns)
+                gtota3d(n,k,ns) = 0.5_rkx * tauasc3d(n,k,ns)
+                ftota3d(n,k,ns) = 0.5_rkx * gtota3d(n,k,ns)
+              end if
+            end do
+          end do
         !
         ! Clear sky (always calcuated if ichdir >=1 for
         ! diagnostic radiative forcing)
         !
-        do itr = 1 , ntr
-          do n = n1 , n2
-            tauxar(n,ns) = tauxar(n,ns) + tauaer(n,itr)
-            if (waer(n,itr) > minimum_waer) then
-              tauasc(n,ns) = tauasc(n,ns) + tauaer(n,itr)*waer(n,itr)
-            end if
-            if (gaer(n,itr) > minimum_gaer .and.  &
-                waer(n,itr) > minimum_gaer) then
-              gtota(n,ns) = gtota(n,ns) + gaer(n,itr) * &
-                                tauaer(n,itr)*waer(n,itr)
-              ftota(n,ns) = ftota(n,ns) + faer(n,itr) * &
-                                tauaer(n,itr)*waer(n,itr)
-            end if
-          end do
-        end do
-        ! in the case RRTM expect the layer extinction, and effective
-        ! SSA and asym relative to the mixture
-        if ( irrtm == 1 ) then
-          do k = 0 , kz
+          do itr = 1 , ntr
             do n = n1 , n2
-              if ( tauxar3d(n,k,ns) > d_zero ) then
+              tauxar(n,ns) = tauxar(n,ns) + tauaer(n,itr)
+              if (waer(n,itr) > minimum_waer) then
+                tauasc(n,ns) = tauasc(n,ns) + tauaer(n,itr)*waer(n,itr)
+              end if
+              if (gaer(n,itr) > minimum_gaer .and.  &
+                waer(n,itr) > minimum_gaer) then
+                gtota(n,ns) = gtota(n,ns) + gaer(n,itr) * &
+                                tauaer(n,itr)*waer(n,itr)
+                ftota(n,ns) = ftota(n,ns) + faer(n,itr) * &
+                                tauaer(n,itr)*waer(n,itr)
+              end if
+            end do
+          end do
+          ! in the case RRTM expect the layer extinction, and effective
+          ! SSA and asym relative to the mixture
+        elseif ( irrtm==1 ) then 
+          do itr = 1 , ntr
+            do k = 1 , kz
+              do n = n1 , n2
+                kk = kth -kz + k
+                tauxar3d(n,kk,ns) = tauxar3d(n,kk,ns) + tx(n,k,itr)
+                tauasc3d(n,kk,ns) = tauasc3d(n,kk,ns) + tx(n,k,itr)*wa(n,k,itr)
+                gtota3d(n,kk,ns) = gtota3d(n,kk,ns) + ga(n,k,itr) * &
+                                  tx(n,k,itr)*wa(n,k,itr)
+              end do
+            end do
+          end do
+ 
+          do k = kth -kz+1 , kth
+            do n = n1 , n2
+              !consider a minimal extinction background
+              if ( tauxar3d(n,k,ns) > 1.E-10_rkx ) then
                 tauasc3d(n,k,ns) = tauasc3d(n,k,ns) / tauxar3d(n,k,ns)
                 gtota3d(n,k,ns) = gtota3d(n,k,ns) / &
                   (tauasc3d(n,k,ns)*tauxar3d(n,k,ns))
               else
+                tauxar3d(n,k,ns) = 1.E-10_rkx
                 tauasc3d(n,k,ns) = 0.999999_rkx
                 gtota3d(n,k,ns) = 0.5_rkx
               end if
             end do
           end do
-        end if
+        ! radiative hat 
+          tauxar3d(n1:n2,0:kth -kz,ns) = 1.E-10_rkx
+          tauasc3d(n1:n2,0:kth -kz,ns) = 0.999999_rkx
+          gtota3d(n1:n2 ,0:kth -kz,ns) = 0.5_rkx
+        end if  
       end do ! end spectral loop
-      !
+
       ! DUST LW emissivity
       !
       if ( irrtm == 0 ) then
@@ -2424,17 +2456,17 @@ module mod_rad_aerosol
       else if ( irrtm == 1 ) then
         ! in this case use directly the LW extinction.
         do ns = 1 , nbndlw
-          tauxar3d_lw(:,:,ns) = d_zero
           ibin = 0
           do itr = 1 , ntr
             if ( chtrname(itr)(1:4) == 'DUST') then
               ibin = ibin + 1
               do k = 1 , kz
                 do n = n1 , n2
+                  kk = kth - kz +k
                   uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
                   tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust_lw(ns,ibin)
                   ! add the extinction for every bins
-                  tauxar3d_lw(n,k,ns) = tauxar3d_lw(n,k,ns) + tx(n,k,itr)
+                  tauxar3d_lw(n,kk,ns) = tauxar3d_lw(n,kk,ns) + tx(n,k,itr)
                 end do
               end do
             end if
