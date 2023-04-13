@@ -169,8 +169,10 @@ program mksurfdata
   integer(ik4) :: ierr
   integer(ik4) :: i , j , ip , il , ir , iu , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop
+  ! integer(ik4) :: jjs
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
+
   character(len=64) :: csdate , pftfile , laifile
   real(rkx) , dimension(:,:) , pointer :: pctspec => null( )
   real(rkx) , dimension(:,:) , pointer :: pctslake => null( )
@@ -1033,6 +1035,17 @@ program mksurfdata
   !var3dp(:,:,5) = 0.0_rkx
   !var3dp(:,:,15) = var3dp(:,:,15) + var3dp(:,:,7)
   !var3dp(:,:,7) = 0.0_rkx
+
+! ######################################################
+! QUI MODIFICARE var3d!!!
+!  do i = igstart , igstop
+!    jjs = jgstart + mod(i,2)
+!    do j = jjs , jgstop , 2
+!      var3dp(j,i,15) = var3dp(j,i,15) + 0.3 * var3dp(j,i,2)
+!      var3dp(j,i,2) = 0.7 * var3dp(j,i,2)
+!    end do
+!  end do
+! ######################################################
 
   call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, iglcvar, gcvar)
