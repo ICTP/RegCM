@@ -257,7 +257,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear , imonth , iday
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , idirect
+    integer(ik4) :: k , kj , n , i , j , ldirect
     integer(ik4) :: idcor           ! Decorrelation length type
     integer(ik4) :: juldat          ! Julian day of year
     real(rk8) :: decorr_con         ! decorrelation length, constant (m)
@@ -291,12 +291,12 @@ module mod_rrtmg_driver
     asaeradfos(:) = d_zero
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
-
-    idirect = 0
+    !
+    ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
-      idirect = idirect
+      ldirect = idirect
     else if ( iclimaaer > 0 ) then
-      idirect = 2
+      ldirect = 2
     end if
 
     juldat = int(julianday(iyear, imonth, iday),ik4)
@@ -329,7 +329,7 @@ module mod_rrtmg_driver
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,10,lradfor,idirect,play,plev,  &
+        call rrtmg_sw(npr,kth,icld,10,lradfor,ldirect,play,plev,  &
                       tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr, &
                       n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,  &
                       adjes,juldat,solcon,-1,inflgsw,iceflgsw,    &
@@ -340,7 +340,7 @@ module mod_rrtmg_driver
                       swddifuviflx,swddirpirflx,swddifpirflx,     &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,10,lradfor,idirect,play, &
+        call rrtmg_sw_nomcica(npr,kth,icld,10,lradfor,ldirect,play, &
                               plev,tlay,tlev,tsfc,h2ovmr,o3vmr,     &
                               co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,    &
                               asdif,aldir,aldif,czen,adjes,juldat,  &
@@ -362,7 +362,7 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor,idirect,play,plev,tlay,tlev, &
+      call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
                     tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
@@ -371,7 +371,7 @@ module mod_rrtmg_driver
                     lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,&
                     duflx_dt,duflxc_dt)
     else
-      call rrtmg_lw_nomcica(npr,kth,icld,0,lradfor,idirect,play,plev,    &
+      call rrtmg_lw_nomcica(npr,kth,icld,0,lradfor,ldirect,play,plev,    &
                             tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
@@ -794,16 +794,17 @@ module mod_rrtmg_driver
     !
     ! aerosols
     ! no stratospheric background for now
-    !care : Tracers mixing ratios are on regcm grid
-    !
+    !care : aermmr,rh and pint must be passed to aeroppt consitent with
+    !       the regcm vertical grid i.e.top down
+    !       the tauxar,tauasc,gtota calculated in aeroppt are then
+    !       switched on RRTM grid.
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
-          kj = kzp1-k
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1+1)+(i-ici1)*npj
-              aermmr(n,k,itr) = m2r%chiatms(j,i,kj,itr)
+              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),d_zero)
             end do
           end do
         end do
@@ -811,20 +812,18 @@ module mod_rrtmg_driver
     end if
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
-        kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
             n = (j-jci1+1)+(i-ici1)*npj
-            rh(n,k) = m2r%rhatms(j,i,kj)
+            rh(n,k) = m2r%rhatms(j,i,k)
           end do
         end do
       end do
       do k = 1 , kzp1
-        kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
             n = (j-jci1+1)+(i-ici1)*npj
-            pint(n,k) = m2r%pfatms(j,i,kj)
+            pint(n,k) = m2r%pfatms(j,i,k)
           end do
         end do
       end do
