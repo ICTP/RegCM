@@ -53,6 +53,8 @@ ifeq ($(findstring DCLM45, $(CPPFLAGS)),DCLM45)
   #CPPFLAGS += $(DEFINE)VICHYDRO
 endif
 
+#CPPFLAGS += $(DEFINE)RCEMIP
+
 space :=
 space +=
 fortflag := -D_FORTIFY_SOURCE=2

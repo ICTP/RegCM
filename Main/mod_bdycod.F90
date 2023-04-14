@@ -130,14 +130,18 @@ module mod_bdycod
   subroutine initideal
     implicit none
     integer(ik4) :: iunit , ierr
-    integer(ik4) :: i , k , nlev , nseed
+    integer(ik4) :: k
     real(rkx) :: ps , ts
+    real(rkx) , allocatable , dimension(:) :: zi , ti , qi
+#ifndef RCEMIP
     real(rkx) , allocatable , dimension(:) :: g , p , t , u , v , r
-    real(rkx) , allocatable , dimension(:) :: zi , pi , ti , ui , vi , qi
-    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
-    integer(ik4) , allocatable , dimension(:) :: seed
+    real(rkx) , allocatable , dimension(:) :: pi , ui , vi
+    integer(ik4) :: i , nlev
+    integer(ik4) :: nseed
     integer(ik8) :: sclock
+    integer(ik4) , allocatable , dimension(:) :: seed
     real(rkx) , dimension(1) :: ht
+    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: noise
 
     namelist /dimensions/ nlev
     namelist /surface/ ps , ts
@@ -244,11 +248,6 @@ module mod_bdycod
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
       end do
-      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call exchange(xub%b0,1,jde1,jde2,ice1,ice2,1,kz)
-      call exchange(xvb%b0,1,jce1,jce2,ide1,ide2,1,kz)
-      call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     else
@@ -259,6 +258,93 @@ module mod_bdycod
     deallocate(seed)
     deallocate(g,p,t,u,v,r)
     deallocate(zi,pi,ti,ui,vi,qi)
+#else
+    real(rkx) :: qs , tvs , tvt
+    real(rkx) , parameter , dimension(3) :: t0s = &
+                [ 295.0_rkx, 300.0_rkx, 305.0_rkx ]
+    real(rkx) , parameter , dimension(3) :: q0s = &
+                [ 0.012_rkx, 0.01865_rkx, 0.024_rkx ]
+    real(rkx) , parameter :: p0s = 101480
+
+    namelist /surface/ ps , ts
+
+    open(newunit=iunit, file='profile.in', status='old', &
+         action='read', iostat=ierr, err=100)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Open error for profile.in')
+    end if
+    read(iunit, nml=surface, iostat=ierr, err=300)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'Read error for namelist surface in profile.in')
+    end if
+    close(iunit)
+
+    if ( myid == italk ) then
+      write(stdout,*) 'Successfully read in surface temperature.'
+    end if
+
+    ps = p0s
+    if ( ts <= t0s(1) ) then
+      ts = t0s(1)
+      qs = q0s(1)
+    else if ( ts <= t0s(2) ) then
+      ts = t0s(2)
+      qs = q0s(2)
+    else
+      ts = t0s(3)
+      qs = q0s(3)
+    end if
+    tvs = ts * (1.0_rkx + 0.608_rkx*qs)
+    tvt = tvs - 0.0067_rkx * 15000.0_rkx
+
+    allocate(zi(kz),ti(kz),qi(kz))
+
+    if ( idynamic == 3 ) then
+      zi = mo_atm%zeta(jci1,ici1,1:kz)
+    else if ( idynamic == 2 ) then
+      zi = atm0%z(jci1,ici1,1:kz)
+    else
+      call fatal(__FILE__,__LINE__, 'Not implemented...')
+    end if
+
+    do k = 1 , kz
+      if ( zi(k) < 15000.0_rkx ) then
+        qi(k) = qs * exp(-zi(k)/4000.0_rkx) * exp((-zi(k)/7500.0_rkx)**2)
+        ti(k) = (tvs - 0.0067_rkx * zi(k))/(1.0_rkx + 0.608_rkx*qi(k))
+      else
+        qi(k) = 1.0e-14_rkx
+        ti(k) = tvt
+      end if
+    end do
+
+    xtsb%b0 = ts
+    qi = qi/(1.0_rkx-qi)
+    do k = 1 , kz
+      xub%b0(:,:,k) = -1.0_rkx
+      xvb%b0(:,:,k) = 0.0_rkx
+      xtb%b0(:,:,k) = ti(k)
+      xqb%b0(:,:,k) = qi(k)
+    end do
+
+    if ( idynamic == 1 ) then
+      xpsb%b0 = ps * 0.001_rkx
+    else if ( idynamic == 2 ) then
+      xpsb%b0 = ps * 0.001_rkx
+      xppb%b0 = 0.0_rkx
+      xwwb%b0 = 0.0_rkx
+    else if ( idynamic == 3 ) then
+      xpsb%b0 = ps
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    else
+      call fatal(__FILE__,__LINE__, &
+        'Should never get here....')
+    end if
+    deallocate(zi,ti,qi)
+#endif
+
     return
 
 100 call fatal(__FILE__,__LINE__, 'Error opening namelist file  profile.in')

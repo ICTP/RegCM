@@ -2454,7 +2454,7 @@ module mod_rad_aerosol
       else if ( irrtm == 1 ) then
         ! in this case use directly the LW extinction.
         do ns = 1 , nbndlw
-          tauxar3d_lw(:,:,ns) = d_zero
+          tauxar3d_lw(:,:,ns) = 1.0E-10_rkx
           ibin = 0
           do itr = 1 , ntr
             if ( chtrname(itr)(1:4) == 'DUST') then

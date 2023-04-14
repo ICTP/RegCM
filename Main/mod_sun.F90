@@ -330,7 +330,11 @@ module mod_sun
     end if
     scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
+#ifdef RCEMIP
+      coszrs(:,:) = cos(degrad*42.05_rkx)
+#else
       coszrs(:,:) = 1.0_rkx
+#endif
     else
       do i = ici1 , ici2
         do j = jci1 , jci2

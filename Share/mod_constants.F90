@@ -82,7 +82,11 @@ module mod_constants
   real(rkx) , parameter :: houpd = 24.0_rkx
 
   ! Standard Gravity (m/sec**2) 3rd CGPM
+#ifdef RCEMIP
+  real(rkx) , parameter :: egrav = 9.79764_rkx
+#else
   real(rkx) , parameter :: egrav = 9.80665_rkx
+#endif
 
   real(rkx) , parameter :: speedoflight = 299792458.0_rkx
   real(rkx) , parameter :: plankconstant = 6.62607550e-34_rkx
@@ -131,20 +135,32 @@ module mod_constants
   ! Gas constant for dry air
   real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.2870569248
   ! Gas constant for dry air in Joules/kg/K
+#ifdef RCEMIP
+  real(rkx) , parameter :: rgas = 287.04_rkx
+  real(rkx) , parameter :: rwat = 461.50_rkx
+#else
   real(rkx) , parameter :: rgas = c287*1000.0_rkx  ! 287.0569248
+  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx ! 461.5233169
+#endif
   real(rkx) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
-  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx ! 461.5233169
   ! Ratio of the two above
   real(rkx) , parameter :: rgow = rgas/rwat
   ! Reverse of the above
   real(rkx) , parameter :: rgowi = rwat/rgas
 
+#ifdef RCEMIP
+  ! Specific heat at constant pressure for dry air J/kg/K
+  real(rkx) , parameter :: cpd = 1004.64_rkx
+  ! Specific heat at constant pressure for water vapor J/kg/K
+  real(rkx) , parameter :: cpv = 1846.00_rkx
+#else
   ! Specific heat at constant pressure for dry air J/kg/K
   real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368
-  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.6423120
   ! Specific heat at constant pressure for water vapor J/kg/K
   real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
+#endif
+  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.6423120
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
   ! Specific heat of ice at 0 Celsius J/kg/K
@@ -168,11 +184,17 @@ module mod_constants
 
   ! Latent heats (Joules/kg)
   ! Water vaporization latent heat at T 0 Celsius
+#ifdef RCEMIP
+  real(rkx) , parameter :: wlhv = 2.501e6_rkx
+  real(rkx) , parameter :: wlhf = 3.337e5_rkx
+  real(rkx) , parameter :: wlhs = 2.834e6_rkx
+#else
   real(rkx) , parameter :: wlhv = 2.50080e6_rkx
   ! Water fusion latent heat at T 0 Celsius
   real(rkx) , parameter :: wlhf = 0.33355e6_rkx
   ! Water sublimation latent heat at T 0 Celsius
   real(rkx) , parameter :: wlhs = wlhv + wlhf
+#endif
   ! Reverse helpers
   real(rkx) , parameter :: rwlhv = d_one/wlhv
   real(rkx) , parameter :: rwlhf = d_one/wlhf
@@ -279,7 +301,11 @@ module mod_constants
   real(rkx) , parameter :: minwrat = 1.0e-4_rkx
 
   ! Earth radius in meters
+#ifdef RCEMIP
+  real(rk8) , parameter :: earthrad = 6.371e6_rk8
+#else
   real(rk8) , parameter :: earthrad = 6.371229e6_rk8
+#endif
   real(rk8) , parameter :: erkm = earthrad/1000.0_rk8
   real(rk8) , parameter :: rearthrad = d_one/earthrad
   ! Angular velocity of rotation of Earth
