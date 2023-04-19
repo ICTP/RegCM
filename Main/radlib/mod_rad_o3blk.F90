@@ -276,8 +276,8 @@ module mod_rad_o3blk
     end if
 
     if ( ifirst ) then
-      call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
-      call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
+      call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
 !      ifirst = .false.
       if ( myid == iocpu ) then
         infile = o3filename(iyear)
