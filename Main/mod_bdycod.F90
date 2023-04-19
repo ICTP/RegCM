@@ -322,7 +322,7 @@ module mod_bdycod
     xtsb%b0 = ts
     qi = qi/(1.0_rkx-qi)
     do k = 1 , kz
-      xub%b0(:,:,k) = -1.0_rkx
+      xub%b0(:,:,k) = 0.0_rkx
       xvb%b0(:,:,k) = 0.0_rkx
       xtb%b0(:,:,k) = ti(k)
       xqb%b0(:,:,k) = qi(k)
@@ -5779,9 +5779,13 @@ module mod_bdycod
         zdelta = z(j,i,kz)*egrav
         tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
         tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
-        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
         !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
+#ifdef RCEMIP
+        lrt = 0.0067_rkx
+#else
+        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+#endif
         tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)

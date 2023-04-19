@@ -176,7 +176,7 @@ module mod_slice
         do k = 1, kz
           do i = ici1, ici2
             do j = jci1, jci2
-              atms%qxb3d(j,i,k,n) = max(atms%qxb3d(j,i,k,n),d_zero)
+              atms%qxb3d(j,i,k,n) = max(atms%qxb3d(j,i,k,n),1.0e-10_rkx)
             end do
           end do
         end do

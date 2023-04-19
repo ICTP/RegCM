@@ -1797,7 +1797,11 @@ module mod_params
         do j = jde1 , jde2
           mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
           mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
+#ifdef RCEMIP
+          mddom%coriol(j,i) = 0.0_rkx
+#else
           mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
+#endif
         end do
       end do
       if ( idynamic == 3 ) then
@@ -1849,7 +1853,7 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriol = d_one
+      mddom%coriol = d_zero
     end if
 
     if ( idynamic == 3 ) then
