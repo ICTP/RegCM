@@ -326,12 +326,23 @@ module mod_sun
       else
         solcon = solar_irradiance( )
       end if
+#ifndef RCEMIP
       call solar1( )
+#endif
     end if
     scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
 #ifdef RCEMIP
       coszrs(:,:) = cos(degrad*42.05_rkx)
+      if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
+        if ( myid == italk .and. alarm_day%act( ) ) then
+          write (stdout, *) 'At ',rcmtimer%str( )
+          write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
+            ' solar zenith angle = 42.05 degrees'
+          write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+            solcon, ' W/m^2'
+        end if
+      end if
 #else
       coszrs(:,:) = 1.0_rkx
 #endif

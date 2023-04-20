@@ -297,7 +297,7 @@ module mod_bdycod
       qs = q0s(3)
     end if
     tvs = ts * (1.0_rkx + 0.608_rkx*qs)
-    tvt = tvs - 0.0067_rkx * 15000.0_rkx
+    tvt = tvs - lrate * 15000.0_rkx
 
     allocate(zi(kz),ti(kz),qi(kz))
 
@@ -312,7 +312,7 @@ module mod_bdycod
     do k = 1 , kz
       if ( zi(k) < 15000.0_rkx ) then
         qi(k) = qs * exp(-zi(k)/4000.0_rkx) * exp((-zi(k)/7500.0_rkx)**2)
-        ti(k) = (tvs - 0.0067_rkx * zi(k))/(1.0_rkx + 0.608_rkx*qi(k))
+        ti(k) = (tvs - lrate * zi(k))/(1.0_rkx + 0.608_rkx*qi(k))
       else
         qi(k) = 1.0e-14_rkx
         ti(k) = tvt
@@ -5779,14 +5779,10 @@ module mod_bdycod
         zdelta = z(j,i,kz)*egrav
         tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
         tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
-        !lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
-#ifdef RCEMIP
-        lrt = -0.0067_rkx
-#else
-        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
-        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-#endif
-        tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
+        lrt = (tv1-tv2)/(z(j,i,kz-1)-z(j,i,kz))
+        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
+        tv = tv1 + 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
         pai(j,i,kz) = (p/p00)**rovcp

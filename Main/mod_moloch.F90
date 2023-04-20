@@ -529,14 +529,10 @@ module mod_moloch
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
+        lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-#ifdef RCEMIP
-        lrt = -0.0067_rkx
-#else
-        lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-#endif
-        tv = tvirt(j,i,kz) - d_half*zeta(j,i,kz)*lrt
+        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
