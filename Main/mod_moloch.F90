@@ -531,7 +531,7 @@ module mod_moloch
         zdgz = zeta(j,i,kz)*egrav
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
 #ifdef RCEMIP
-        lrt = 0.0067_rkx
+        lrt = -0.0067_rkx
 #else
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
