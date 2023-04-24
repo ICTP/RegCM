@@ -72,4 +72,5 @@
       equivalence (ka(1,1,1),absa(1,1))
 
       end module rrlw_kg06
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

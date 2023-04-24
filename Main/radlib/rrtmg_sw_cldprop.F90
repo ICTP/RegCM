@@ -134,6 +134,7 @@
       hvrcld = '$Revision$'
 
 !      ncbands = 29
+      icx = 0
       ib1 = jpb1
       ib2 = jpb2
       tauctot(:) = 0._rb
@@ -365,5 +366,6 @@
       end subroutine cldprop_sw
 
       end module rrtmg_sw_cldprop
+
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

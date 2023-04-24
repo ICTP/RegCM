@@ -118,8 +118,8 @@
       do itr = 1, ntbl-1
          tfn = real(itr,kind=rb) / real(ntbl,kind=rb)
          tau_tbl = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl > 20.0_rb ) then
-           exp_tbl(itr) = expeps
+         if ( tau_tbl > 30.0_rb ) then
+           exp_tbl(itr) = 0.0_rb
          else
            exp_tbl(itr) = exp(-tau_tbl)
          end if
@@ -137,7 +137,7 @@
          if (ngc(ibnd).lt.mg) then
             do igc = 1,ngc(ibnd)
                igcsm = igcsm + 1
-               wtsum = 0.0_rb
+               wtsum = 0.
                do ipr = 1, ngn(igcsm)
                   iprsm = iprsm + 1
                   wtsum = wtsum + wt(iprsm)
@@ -1365,7 +1365,8 @@
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
                             irradnceo, facbrghto, snsptdrko, &
-                            ka, sfluxref, abso3a, abso3b, rayl, &
+                            ka, sfluxref, &
+                            abso3a, abso3b, rayl, &
                             irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
@@ -3517,5 +3518,6 @@
       end subroutine swcldpr
 
       end module rrtmg_sw_init
+
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

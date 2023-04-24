@@ -222,7 +222,6 @@ module mod_cmip6_canesm
     recursive subroutine read_2d_canesm(idate,v,lonlyc)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-      type(rcm_time_and_date) :: last_date
       type(cmip6_2d_var) , pointer , intent(inout) :: v
       logical , optional , intent(in) :: lonlyc
       integer(ik4) :: istatus , idimid , it , irec

@@ -27,8 +27,6 @@
       integer, parameter :: kind_rm = selected_real_kind(6)  ! 4 byte real
       integer, parameter :: kind_rn = kind(1.0)              ! native real
 
-      real(kind_rb) , parameter :: almostzero = 1.e-20_kind_rb
-
       end module parkind
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

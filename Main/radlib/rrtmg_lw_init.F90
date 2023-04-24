@@ -130,13 +130,14 @@
       tfn_tbl(ntbl) = 1.0_rb
       bpade = 1.0_rb / pade
       do itr = 1, ntbl-1
-         tfn = real(itr,kind=rb) / real(ntbl,kind=rb)
+         tfn = real(itr) / real(ntbl)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl(itr) < 20.0_rb ) then
-           exp_tbl(itr) = exp(-tau_tbl(itr))
+         if ( tau_tbl(itr) > 30.0_rb ) then
+           exp_tbl(itr) = 0.0_rb
          else
-           exp_tbl(itr) = expeps
+           exp_tbl(itr) = exp(-tau_tbl(itr))
          end if
+
          if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
          if (tau_tbl(itr) .lt. 0.06_rb) then
             tfn_tbl(itr) = tau_tbl(itr)/6._rb

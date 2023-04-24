@@ -2117,6 +2117,7 @@ module mod_ipcc_scenario
         case ('SSP585', 'ssp585')
           imod = 9
         case default
+          imod = 0
           write (stderr,*) 'Unsupported emission scenario: ', sname
           write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
           write (stderr,*) scenarios

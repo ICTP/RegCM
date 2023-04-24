@@ -2821,7 +2821,7 @@ module mod_ncout
             opt_pai_out => v3dvar_opt(opt_pai)%rval
           end if
           enable_opt3d_vars(opt_pp) = .false.
-          enable_opt3d_vars(opt_deltaz) = .false. 
+          enable_opt3d_vars(opt_deltaz) = .false.
         else
           enable_opt3d_vars(opt_pp) = .false.
           enable_opt3d_vars(opt_pai) = .false.

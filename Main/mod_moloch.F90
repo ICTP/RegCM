@@ -429,10 +429,10 @@ module mod_moloch
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
-        lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
+        lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-        tv = tvirt(j,i,kz) - d_half*zeta(j,i,kz)*lrt
+        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
@@ -1553,7 +1553,8 @@ module mod_moloch
               write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
             end if
           end if
-          call radiation(rcmtimer%year,rcmtimer%month,loutrad,labsem)
+          call radiation(rcmtimer%year,rcmtimer%month, &
+                         rcmtimer%day,loutrad,labsem)
         end if
         !
         ! Add radiative transfer package-calculated heating rates to
@@ -1610,8 +1611,8 @@ module mod_moloch
                  mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
           end if
         end if
-        !------------------------------------------------------------- 
-        !call chemistry/aerosol schemes 
+        !-------------------------------------------------------------
+        !call chemistry/aerosol schemes
         !----------------------------------------------------------------------
         if ( ichem == 1 ) then
           call tractend2(rcmtimer%month,rcmtimer%day,declin)

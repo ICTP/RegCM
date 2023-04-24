@@ -202,7 +202,7 @@ program mksurfdata
           '(2x," GIT Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
   write (stdout,  &
-     "(/,2x,'This is mksurfdata part of RegCM package version 5')")
+     "(/,2x,'This is mksurfdata part of RegCM package version 4')")
   write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
 
 #ifdef IBM
@@ -252,26 +252,32 @@ program mksurfdata
     p1 = 'dynamic'
     p2 = '.'
     write(cy,'(i0.4)') y1
-    if ( y1 > 2005 ) then
-      select case (dattyp(4:5))
-        case ('RF')
-          continue
-        case ('26')
-          p2 = 'SCENARIO'//pthsep//'RCP2.6'
-        case ('45')
-          p2 = 'SCENARIO'//pthsep//'RCP4.5'
-        case ('60')
-          p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85', '15')
-          p2 = 'SCENARIO'//pthsep//'RCP8.5'
-        case default
-          if ( dattyp /= "EIN15" .and. &
-               dattyp(1:4) /= "NNRP" .and. &
-               dattyp /= "JRA55" ) then
-            call die(__FILE__, &
-              'Dynamic landuse only supported for CMIP5',__LINE__)
-          end if
-      end select
+    if ( dattyp == 'CMIP6' ) then
+      if ( y1 > 2015 ) then
+        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_ssp(4:6)
+      end if
+    else
+      if ( y1 > 2005 ) then
+        select case (dattyp(4:5))
+          case ('RF')
+            continue
+          case ('26')
+            p2 = 'SCENARIO'//pthsep//'RCP2.6'
+          case ('45')
+            p2 = 'SCENARIO'//pthsep//'RCP4.5'
+          case ('60')
+            p2 = 'SCENARIO'//pthsep//'RCP6.0'
+          case ('85', '15')
+            p2 = 'SCENARIO'//pthsep//'RCP8.5'
+          case default
+            if ( dattyp /= "EIN15" .and. &
+                 dattyp(1:4) /= "NNRP" .and. &
+                 dattyp /= "JRA55" ) then
+              call die(__FILE__, &
+                'Dynamic landuse only supported for CMIP5',__LINE__)
+            end if
+        end select
+      end if
     end if
     pftfile = trim(p1)//pthsep//trim(p2)//pthsep//'mksrf_landuse_'//cy//'.nc'
 #else
@@ -473,6 +479,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+  istatus = nf90_put_att(ncid, ipft2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
   istatus = nf90_def_var(ncid, 'slope', regcm_vartype, ivdims(1:2), islope2d)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
@@ -492,6 +500,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d units')
   istatus = nf90_put_att(ncid, iglc2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d Fill Value')
+  istatus = nf90_put_att(ncid, iglc2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glc_2d coordinates')
 
   istatus = nf90_def_var(ncid, 'wet_2d', regcm_vartype, ivdims(1:2), iwet2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wet_2d')
@@ -501,6 +511,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d units')
   istatus = nf90_put_att(ncid, iwet2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d Fill Value')
+  istatus = nf90_put_att(ncid, iwet2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wet_2d coordinates')
 
   istatus = nf90_def_var(ncid, 'lak_2d', regcm_vartype, ivdims(1:2), ilake2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lak_2d')
@@ -510,6 +522,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d units')
   istatus = nf90_put_att(ncid, ilake2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d Fill Value')
+  istatus = nf90_put_att(ncid, ilake2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lak_2d coordinates')
 
   ivdims(1) = idims(1)
   ivdims(2) = idims(2)
@@ -523,6 +537,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d units')
   istatus = nf90_put_att(ncid, iurban2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d Fill Value')
+  istatus = nf90_put_att(ncid, iurban2dvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urb_2d coordinates')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
@@ -1387,6 +1403,8 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
     istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+    istatus = nf90_put_att(ncid, ipft2dvar, 'coordinates','xlat xlon')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
     ! Variables
     istatus = nf90_def_var(ncid, 'gridcell', nf90_int, idims(5), ilndvar)
@@ -1472,7 +1490,7 @@ program mksurfdata
       call model_zitah(zita)
       ax = md_ak(zita)
       bx = md_bk(zita)
-      call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
+      call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
     end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)
     ipnt = 1

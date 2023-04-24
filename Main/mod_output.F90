@@ -73,7 +73,7 @@ module mod_output
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
-    real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
+    real(rkx) :: srffac , radfac , lakfac , subfac , optfac , stsfac
     real(rkx) :: mrdfac , msffac , matfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
@@ -1032,7 +1032,6 @@ module mod_output
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
         srffac = d_one / rnsrf_for_srffrq
-        srafac = d_one / rnrad_for_srffrq
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then

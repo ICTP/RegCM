@@ -956,7 +956,7 @@ module mod_cu_kf
             chmin = 4.0e3_rkx
           else if ( tlcl <= 293.0_rkx .and. tlcl >= 273.0_rkx ) then
             chmin = 2.0e3_rkx + d_100 * (tlcl - 273.0_rkx)
-          else if ( tlcl < 273.0_rkx ) then
+          else
             chmin = 2.0e3_rkx
           end if
           do nk = k , ltop
@@ -1723,6 +1723,8 @@ module mod_cu_kf
         end if
         dabe = max(abe-abeg, 0.1_rkx*abe)
         fabe = abeg/abe
+        aincold = ainc
+        fabeold = fabe
         if ( fabe > d_one .and. ishall == 0 ) then
           ishall = 2
           cycle modelpoints
