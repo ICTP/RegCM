@@ -292,6 +292,7 @@ module mod_ncstream
       allocate(ncout%ncp%xs)
       allocate(ncout%obp%xb)
       allocate(ncout%svp%xv)
+      imode = iomode
       stream => ncout%ncp%xs
       stream%filename = params%fname
       if ( params%l_keep ) then
