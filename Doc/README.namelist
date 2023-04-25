@@ -364,6 +364,13 @@
                         !   4 : Texeira scheme
                         !   5 : Tompkins linearized scheme
                         !   6 : Echam5 like scheme
+                        ! ===================================================
+                        ! NOTE: Using the NoTo microphysics (ipptls=2) the
+                        !       Xu-Randall scheme (icldfrac=1) is recommended
+                        !       to avoid unrealistic values for LWP if the
+                        !       values is computed from actual mixing ratios
+                        !       (iconvlwp = 0).
+                        ! ===================================================
  icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
