@@ -54,8 +54,13 @@ module mod_constants
   real(rk8) , parameter :: deg360 = 360.0_rk8
 
   ! minimum values for uncoupled/coupled variables which require them
+#ifdef RCEMIP
+  real(rkx) , parameter :: minqq   = 1.0e-14_rkx
+  real(rkx) , parameter :: minqc   = 1.0e-16_rkx
+#else
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
   real(rkx) , parameter :: minqc   = 1.0e-10_rkx
+#endif
   real(rkx) , parameter :: minqv   = minqq * 100.0_rkx
 #ifdef SINGLE_PRECISION_REAL
   real(rkx) , parameter :: mintr   = 1.0e-20_rkx

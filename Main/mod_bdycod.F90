@@ -314,7 +314,7 @@ module mod_bdycod
         qi(k) = qs * exp(-zi(k)/4000.0_rkx) * exp((-zi(k)/7500.0_rkx)**2)
         ti(k) = (tvs - lrate * zi(k))/(1.0_rkx + 0.608_rkx*qi(k))
       else
-        qi(k) = 1.0e-14_rkx
+        qi(k) = minqq
         ti(k) = tvt
       end if
     end do
@@ -5780,7 +5780,7 @@ module mod_bdycod
         tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
         tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
         lrt = (tv1-tv2)/(z(j,i,kz-1)-z(j,i,kz))
-        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
         tv = tv1 + 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)

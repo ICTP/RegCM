@@ -531,8 +531,8 @@ module mod_moloch
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
@@ -1809,7 +1809,7 @@ module mod_moloch
 #endif
             call wafone(ptr,dta)
 #ifdef DEBUG
-            where ( ptr < 1.0e-16_rkx ) ptr = d_zero
+            where ( ptr < minqc ) ptr = minqc
             ptr = ptr * 1.0e-4_rkx
 #endif
           end do
@@ -2697,7 +2697,7 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-                qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+                qx(j,i,k,n) = max(qx(j,i,k,n),minqc)
               end do
             end do
           end do
