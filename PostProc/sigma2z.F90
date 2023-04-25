@@ -799,11 +799,11 @@ program sigma2z
     implicit none
     integer(ik4) , intent(in) :: iu
     integer(ik4) :: np ! Unused in sigma2z
-    namelist /dimparam/ nz , np
+    namelist /pp_param/ nz , np
     rewind(iu)
-    read(iu, nml=dimparam, iostat=iresult)
+    read(iu, nml=pp_param, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading dimparam namelist in ',trim(ncsfile)
+      write (stderr,*) 'Error reading pp_param namelist in ',trim(ncsfile)
       write (stderr,*) 'Exiting...'
       stop
     end if
