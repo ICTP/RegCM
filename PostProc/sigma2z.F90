@@ -98,7 +98,7 @@ program sigma2z
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (6,*) 'Usage : ', trim(prgname), '[namelist_file.in] Rcmfile.nc'
     write (6,*) ' '
     stop
   end if
