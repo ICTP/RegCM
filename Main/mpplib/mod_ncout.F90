@@ -1984,27 +1984,25 @@ module mod_ncout
             'thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
-        if ( idiag > 0 ) then
-          if ( enable_rad3d_vars(rad_qrs) ) then
-            call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
-              'Shortwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
-            rad_qrs_out => v3dvar_rad(rad_qrs)%rval
-          end if
-          if ( enable_rad3d_vars(rad_qrl) ) then
-            call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
-              'Longwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_longwave_heating',.true.)
-            rad_qrl_out => v3dvar_rad(rad_qrl)%rval
-          end if
+        if ( enable_rad3d_vars(rad_qrs) ) then
+          call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
+            'Shortwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
+          rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+        end if
+        if ( enable_rad3d_vars(rad_qrl) ) then
+          call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
+            'Longwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+          rad_qrl_out => v3dvar_rad(rad_qrl)%rval
+        end if
+        if ( iclimao3 > 0 ) then
           if ( enable_rad3d_vars(rad_o3) ) then
             call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
               'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
             rad_o3_out => v3dvar_rad(rad_o3)%rval
           end if
         else
-          enable_rad3d_vars(rad_qrs) = .false.
-          enable_rad3d_vars(rad_qrl) = .false.
           enable_rad3d_vars(rad_o3) = .false.
         end if
         if ( icosp == 1 ) then

@@ -1543,26 +1543,16 @@ module mod_mppparam
 
       ! South-North direction: The cross grid is one internal to the dot one.
       global_cross_istart = global_dot_istart
-      if ( ma%crmflag ) then
-        ! Take all points.
-        global_cross_iend = global_dot_iend
-      else
-        global_cross_iend = global_dot_iend
-        if ( global_dot_iend == iy ) then
-          global_cross_iend = global_cross_iend - 1
-        end if
+      global_cross_iend = global_dot_iend
+      if ( global_dot_iend == iy ) then
+        global_cross_iend = global_cross_iend - 1
       end if
 
+      ! West-East direction: The cross grid is one internal to the dot one.
       global_cross_jstart = global_dot_jstart
-      if ( ma%bandflag ) then
-        ! Take all points.
-        global_cross_jend = global_dot_jend
-      else
-        ! West-East direction: The cross grid is one internal to the dot one.
-        global_cross_jend = global_dot_jend
-        if ( global_dot_jend == jx ) then
-          global_cross_jend = global_cross_jend - 1
-        end if
+      global_cross_jend = global_dot_jend
+      if ( global_dot_jend == jx ) then
+        global_cross_jend = global_cross_jend - 1
       end if
     end if
     !
@@ -1691,14 +1681,13 @@ module mod_mppparam
       jdot1 = 1
       jdot2 = jx
       jcross1 = 1
+      jcross2 = jxm1
       if ( i_band == 1 ) then
-        jcross2 = jx
         jout1 = 1
-        jout2 = jx
+        jout2 = jxm1
         joutsg1 = 1
-        joutsg2 = jx*nsg
+        joutsg2 = jxm1*nsg
       else
-        jcross2 = jxm1
         jout1 = 2
         jout2 = jxm2
         joutsg1 = nsg+1
@@ -1707,14 +1696,13 @@ module mod_mppparam
       idot1 = 1
       idot2 = iy
       icross1 = 1
+      icross2 = iym1
       if ( i_crm == 1) then
-        icross2 = iy
-        iout1 = 2
-        iout2 = iy
+        iout1 = 1
+        iout2 = iym1
         ioutsg1 = 1
-        ioutsg2 = iy*nsg
+        ioutsg2 = iym1*nsg
       else
-        icross2 = iym1
         iout1 = 2
         iout2 = iym2
         ioutsg1 = nsg+1
