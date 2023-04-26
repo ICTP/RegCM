@@ -1276,8 +1276,16 @@ module mod_mppparam
 
       global_cross_jstart = 1
       global_cross_istart = 1
-      global_cross_jend = jx-1
-      global_cross_iend = iy-1
+      if ( ma%bandflag ) then
+        global_cross_jend = jx
+      else
+        global_cross_jend = jx-1
+      end if
+      if ( ma%crmflag ) then
+        global_cross_iend = iy
+      else
+        global_cross_iend = iy-1
+      end if
 
       if ( ma%crmflag ) then
         ma%left  = myid
@@ -1541,18 +1549,22 @@ module mod_mppparam
         call fatal(__FILE__,__LINE__,'DECOMPOSITION ERROR')
       end if
 
-      ! South-North direction: The cross grid is one internal to the dot one.
       global_cross_istart = global_dot_istart
       global_cross_iend = global_dot_iend
-      if ( global_dot_iend == iy ) then
-        global_cross_iend = global_cross_iend - 1
+      if ( .not. ma%crmflag ) then
+        if ( global_dot_iend == iy ) then
+          ! South-North direction: Cross grid is one internal to the dot one.
+          global_cross_iend = global_cross_iend - 1
+        end if
       end if
 
-      ! West-East direction: The cross grid is one internal to the dot one.
       global_cross_jstart = global_dot_jstart
       global_cross_jend = global_dot_jend
-      if ( global_dot_jend == jx ) then
-        global_cross_jend = global_cross_jend - 1
+      if ( .not. ma%bandflag ) then
+        if ( global_dot_jend == jx ) then
+          ! West-East direction: Cross grid is one internal to the dot one.
+          global_cross_jend = global_cross_jend - 1
+        end if
       end if
     end if
     !
@@ -1681,13 +1693,14 @@ module mod_mppparam
       jdot1 = 1
       jdot2 = jx
       jcross1 = 1
-      jcross2 = jxm1
       if ( i_band == 1 ) then
+        jcross2 = jx
         jout1 = 1
-        jout2 = jxm1
+        jout2 = jx
         joutsg1 = 1
-        joutsg2 = jxm1*nsg
+        joutsg2 = jx*nsg
       else
+        jcross2 = jxm1
         jout1 = 2
         jout2 = jxm2
         joutsg1 = nsg+1
@@ -1696,13 +1709,14 @@ module mod_mppparam
       idot1 = 1
       idot2 = iy
       icross1 = 1
-      icross2 = iym1
       if ( i_crm == 1) then
+        icross2 = iy
         iout1 = 1
-        iout2 = iym1
+        iout2 = iy
         ioutsg1 = 1
-        ioutsg2 = iym1*nsg
+        ioutsg2 = iy*nsg
       else
+        icross2 = iym1
         iout1 = 2
         iout2 = iym2
         ioutsg1 = nsg+1
@@ -6964,8 +6978,8 @@ module mod_mppparam
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
+      if ( ma%left /= mpi_proc_null ) &
+          ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
     end do
 
     ib2 = sizey
@@ -6973,7 +6987,7 @@ module mod_mppparam
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(:j2,i2-(iex-1))
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
     end do
 
     counts = [ 0, 0, sizey, sizey ]
@@ -7290,8 +7304,8 @@ module mod_mppparam
     do iex = 1 , nex
       ib1 = ib2 + 1
       ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
+      if ( ma%left /= mpi_proc_null ) &
+          ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
     end do
 
     ib2 = sizey
@@ -7299,7 +7313,7 @@ module mod_mppparam
       ib1 = ib2 + 1
       ib2 = ib1 + ty - 1
       if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(:j2,i2-(iex-1))
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
     end do
 
     counts = [ 0, 0, sizey, sizey ]

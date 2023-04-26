@@ -169,6 +169,7 @@ program mksurfdata
   integer(ik4) :: ierr
   integer(ik4) :: i , j , ip , il , ir , iu , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop
+  integer(ik4) :: jm1 , jp1 , ii , jj , jp , jm
   ! integer(ik4) :: jjs
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
@@ -925,15 +926,34 @@ program mksurfdata
   ! Calculate slope and std
   do i = igstart , igstop
     do j = jgstart , jgstop
-      argf = sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0_rkx
+      argf = 0.0_rkx
+      mean = 0.0_rkx
+      do ii = i-1 , i+1
+        do jj = j-1 , j+1
+          jp = jj
+          if ( jj < jgstart ) jp = jgstop
+          if ( jj > jgstop ) jp = jgstart
+          mean = mean + topo(jp,ii)
+          argf = argf + (topo(jp,ii)-topo(j,i))
+        end do
+      end do
+      argf = argf/8.0_rkx
       if ( abs(argf) > dlowval ) then
-        var3d(j,i,1) = raddeg * &
-          atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0_rkx)/(ds*1000.0_rkx))
+        var3d(j,i,1) = raddeg * atan(argf/(ds*1000.0_rkx))
       else
         var3d(j,i,1) = 0.0_rkx
       end if
-      mean = sum(topo(j-1:j+1,i-1:i+1))/9.0_rkx
-      var3d(j,i,2) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0_rkx)
+      mean = mean/9.0_rkx
+      argf = 0.0_rkx
+      do ii = i-1 , i+1
+        do jj = j-1 , j+1
+          jp = jj
+          if ( jj < jgstart ) jp = jgstop
+          if ( jj > jgstop ) jp = jgstart
+          argf = argf + (topo(jp,ii)-mean)**2
+        end do
+      end do
+      var3d(j,i,2) = sqrt(argf/8.0_rkx)
     end do
   end do
   where ( xmask < 0.5_rkx )

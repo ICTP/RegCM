@@ -1256,34 +1256,24 @@ module mod_ncstream
       in_name = dname
       select case (in_name)
         case ('JX','jx')
-          if ( stream%l_bound ) then
+          if ( stream%l_bound .or. stream%l_band ) then
             ! this is the number of dot points WITH bondary
             num = jx
           else
-            if ( stream%l_band ) then
-              ! this is the number of cross points WITH bondary
-              num = jx - 1
-            else
-              ! this is the number of cross points WITHOUT bondary
-              num = jx - 3
-            end if
+            ! this is the number of cross points WITHOUT bondary
+            num = jx - 3
           end if
           ! In subgrid , multiply for the number of points
           if ( stream%l_subgrid ) num = num*nsg
           the_name = 'jx'
           pdim = jx_dim
         case ('IY','iy')
-          if ( stream%l_bound ) then
+          if ( stream%l_bound .or. stream%l_crm ) then
             ! this is the number of dot points WITH bondary
             num = iy
           else
-            if ( stream%l_crm ) then
-              ! this is the number of cross points WITH bondary
-              num = iy - 1
-            else
-              ! this is the number of cross points WITHOUT bondary
-              num = iy - 3
-            end if
+            ! this is the number of cross points WITHOUT bondary
+            num = iy - 3
           end if
           ! In subgrid , multiply for the number of points
           if ( stream%l_subgrid ) num = num*nsg

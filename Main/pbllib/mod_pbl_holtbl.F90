@@ -111,20 +111,20 @@ module mod_pbl_holtbl
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
     call getmem3d(alphak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:alphak')
     call getmem3d(betak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:betak')
-    call getmem3d(akzz1,jdi1ga,jdi2, &
-                        idi1ga,idi2,1,kz,'mod_holtbl:akzz1')
-    call getmem3d(akzz2,jdi1ga,jdi2, &
-                        idi1ga,idi2,1,kz,'mod_holtbl:akzz2')
-    call getmem3d(coef1,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coef1')
-    call getmem3d(coef2,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coef2')
-    call getmem3d(coef3,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coef3')
-    call getmem3d(coefe,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coefe')
-    call getmem3d(coeff1,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coeff1')
-    call getmem3d(coeff2,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:coeff2')
-    call getmem2d(uvdrage,jdi1ga,jdi2, &
-                          idi1ga,idi2,'mod_holtbl:uvdrage')
-    call getmem3d(tpred1,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:tpred1')
-    call getmem3d(tpred2,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:tpred2')
+    call getmem3d(akzz1,jci1ga,jci2ga, &
+                        ici1ga,ici2ga,1,kz,'mod_holtbl:akzz1')
+    call getmem3d(akzz2,jci1ga,jci2ga, &
+                        ici1ga,ici2ga,1,kz,'mod_holtbl:akzz2')
+    call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
+    call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
+    call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
+    call getmem3d(coefe,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coefe')
+    call getmem3d(coeff1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff1')
+    call getmem3d(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
+    call getmem2d(uvdrage,jci1ga,jci2ga, &
+                          ici1ga,ici2ga,'mod_holtbl:uvdrage')
+    call getmem3d(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
+    call getmem3d(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
     if ( ichem == 1 ) then
       call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if

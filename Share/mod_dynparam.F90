@@ -621,13 +621,14 @@ module mod_dynparam
     jdot1 = 1
     jdot2 = jx
     jcross1 = 1
-    jcross2 = jxm1
     if ( i_band == 1 ) then
+      jcross2 = jx
       jout1 = 1
-      jout2 = jxm1
+      jout2 = jx
       joutsg1 = 1
-      joutsg2 = jxm1*nsg
+      joutsg2 = jx*nsg
     else
+      jcross2 = jxm1
       jout1 = 2
       jout2 = jxm2
       joutsg1 = nsg+1
@@ -636,13 +637,14 @@ module mod_dynparam
     idot1 = 1
     idot2 = iy
     icross1 = 1
-    icross2 = iym1
     if ( i_crm == 1 ) then
+      icross2 = iy
       iout1 = 1
-      iout2 = iym1
+      iout2 = iy
       ioutsg1 = 1
-      ioutsg2 = iym1*nsg
+      ioutsg2 = iy*nsg
     else
+      icross2 = iym1
       iout1 = 2
       iout2 = iym2
       ioutsg1 = nsg+1
@@ -667,7 +669,7 @@ module mod_dynparam
       end if
     else
       if ( i_band.eq.1 ) then
-        ds = real((twopi*erkm)/real(jxm1,rk8),rkx)
+        ds = real((twopi*erkm)/real(jx,rk8),rkx)
         if ( iproj == 'EQBAND' ) then
           iproj = 'NORMER'
           clat  =   0.0_rkx
