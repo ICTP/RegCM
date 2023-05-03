@@ -36,8 +36,8 @@ module mod_wrtoxd
   public :: chspec , oxspec , aespec , cbmzspec
 
   public :: init_outoxd , close_outoxd
-  public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc
-  public :: write_ch_icbc , write_ox_icbc , write_ae_icbc
+  public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc, newfile_ae_icbc1
+  public :: write_ch_icbc , write_ox_icbc , write_ae_icbc, write_ae_icbc1
 
   character(len=256) :: ofname
   character(len=8) :: chtype
@@ -47,11 +47,16 @@ module mod_wrtoxd
   ! cbmz species in chemistry lateral boundaries
   integer(ik4) , parameter :: ncbmz = 33
   integer(ik4) , parameter :: noxsp = 5
+  !aero species in chemistry lateral boundaries
+  integer(ik4) , parameter :: naero = 12
+
   integer(ik4) :: naesp = -1
 
   character(len=8) , dimension(nchsp) :: chspec   ! Names of Mozart species
   character(len=8) , dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
   character(len=8) , dimension(noxsp) :: oxspec
+  character(len=8) , dimension(naero) :: aerospec
+
   real(rkx) , dimension(nchsp) :: mw
 
   character(len=8) , pointer , dimension(:) :: aespec
@@ -88,6 +93,11 @@ module mod_wrtoxd
                  'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
                  'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
                  'ALD2    ','HCHO    ','CH3OH   '/
+! This is usedi only for CAMS preproc, in the future try to harmonize..
+ data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                'SO2   ','SO4   ','DUST01','DUST02', &
+                'DUST03','DUST04','SSLT01','SSLT02'/ 
+
 
   integer , parameter :: maxaeout = 16
 
@@ -181,14 +191,15 @@ module mod_wrtoxd
         sum_soa_to_oc2 = .true.
       case ( 'CBMZ' )
         dochem = .true.
-      case ( 'DCCB' )
-        naesp = 8
-        aespec => aedccb
+      case ('DCCB') 
+        naesp = 15
+        aespec => aeaero
         doaero = .true.
         dooxcl = .true.
-        dochem = .true.
+        dochem=.true. 
+        sum_sslt_bins = .true.  
       case default
-        call die('init_outoxd','Unknown chemsimtype')
+    call die('init_outoxd','Unknown chemsimtype')
     end select
     if ( doaero ) then
       if ( naesp > maxaeout ) then
@@ -314,7 +325,43 @@ module mod_wrtoxd
     call outstream_writevar(ncoutox,v2dvar_base(2))
   end subroutine newfile_ox_icbc
 
-  subroutine newfile_ae_icbc(idate1)
+
+   subroutine newfile_ae_icbc(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
+    type(ncoutstream_params) :: opar
+    integer(ik4) :: ivar
+
+    call outstream_dispose(ncoutae)
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_AEBC.', trim(tochar10(idate1)), '.nc'
+    opar%fname = ofname
+    opar%pname = 'chem_icbc'
+    opar%zero_date = idate1
+    opar%l_bound = .true.
+    call outstream_setup(ncoutae,opar)
+    call outstream_addatt(ncoutae, &
+      ncattribute_string('simulation_type',chtype))
+    call outstream_addvar(ncoutae,v2dvar_base(1))
+    call outstream_addvar(ncoutae,v2dvar_base(2))
+    do ivar = 1 , naero
+      v3dvar_ae(ivar)%vname = aerospec(ivar)
+      v3dvar_ae(ivar)%vunit = 'kg kg-1'
+      v3dvar_ae(ivar)%long_name = trim(aerospec(ivar))//' Mass Mixing Ratio'
+      v3dvar_ae(ivar)%standard_name = &
+        'mass_fraction_of_'//trim(aerospec(ivar))//'_in_air'
+      v3dvar_ae(ivar)%lrecords = .true.
+      v3dvar_ae(ivar)%is_slice = .true.
+      v3dvar_ae(ivar)%rval_slice => aev4
+      call outstream_addvar(ncoutae,v3dvar_ae(ivar))
+    end do
+    call outstream_enable(ncoutae,sigmah)
+    call outstream_writevar(ncoutae,v2dvar_base(1))
+    call outstream_writevar(ncoutae,v2dvar_base(2))
+  end subroutine newfile_ae_icbc
+
+
+  subroutine newfile_ae_icbc1(idate1)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate1
     type(ncoutstream_params) :: opar
@@ -354,7 +401,7 @@ module mod_wrtoxd
       end if
       v3dvar_ae(ivar)%vname = specname
       v3dvar_ae(ivar)%vunit = 'kg kg-1'
-      v3dvar_ae(ivar)%long_name = trim(specname)//' Volume Mixing Ratio'
+      v3dvar_ae(ivar)%long_name = trim(specname)//' Mass Mixing Ratio'
       v3dvar_ae(ivar)%standard_name = &
         'mass_fraction_of_'//trim(specname)//'_in_air'
       v3dvar_ae(ivar)%lrecords = .true.
@@ -365,7 +412,7 @@ module mod_wrtoxd
     call outstream_enable(ncoutae,sigmah)
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
-  end subroutine newfile_ae_icbc
+  end subroutine newfile_ae_icbc1
 
   subroutine write_ch_icbc(idate)
     implicit none
@@ -378,6 +425,17 @@ module mod_wrtoxd
     write (stdout ,*) 'Write ch_icbc : ', tochar(idate)
   end subroutine write_ch_icbc
 
+  subroutine write_ae_icbc(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4):: ivar
+    call outstream_addrec(ncoutae,idate)
+    do ivar = 1 , naero
+      call outstream_writevar(ncoutae,v3dvar_ae(ivar),is=ivar)
+    end do
+    write (stdout ,*) 'Write ae_icbc : ', tochar(idate)
+  end subroutine write_ae_icbc
+
   subroutine write_ox_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -389,7 +447,7 @@ module mod_wrtoxd
     write (stdout ,*) 'Write ox_icbc : ', tochar(idate)
   end subroutine write_ox_icbc
 !
-  subroutine write_ae_icbc(idate)
+  subroutine write_ae_icbc1(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivar
@@ -411,7 +469,7 @@ module mod_wrtoxd
       call outstream_writevar(ncoutae,v3dvar_ae(ivar),is=ivar)
     end do
     write (stdout ,*) 'Write ae_icbc : ', tochar(idate)
-  end subroutine write_ae_icbc
+  end subroutine write_ae_icbc1
 
 end module mod_wrtoxd
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

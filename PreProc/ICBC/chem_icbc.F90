@@ -48,6 +48,7 @@ program chem_icbc
   use mod_ae_icbc
   use mod_ch_fnest
   use mod_memutil
+  use mod_cams
 #ifdef PNETCDF
   use mpi
 #endif
@@ -200,30 +201,39 @@ program chem_icbc
 
   if ( dochem ) call newfile_ch_icbc(idate)
   if ( dooxcl ) call newfile_ox_icbc(idate)
-  if ( doaero ) call newfile_ae_icbc(idate)
-
+  !FAB would be better to have one single newdile routine 
+  if ( doaero  .and. chemtyp .eq. 'MZCLM') call newfile_ae_icbc1(idate)
+  if ( doaero  .and. chemtyp .eq. 'CAMSR') call newfile_ae_icbc(idate)
+ 
   if ( chemtyp .eq. 'FNEST' ) then
     call init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
   else
     if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call init_ch_icbc(idate)
     if ( dochem .and. chemtyp .eq. 'MZCLM' ) call init_ch_icbc_clim(idate)
+    if ( dochem .and. chemtyp .eq. 'CAMSR' ) call init_cams('CH')
+!fab also include aero and ox in CAMS RA 
     if ( dooxcl ) call init_ox_icbc(idate)
-    if ( doaero ) call init_ae_icbc(idate)
+    if ( doaero .and. chemtyp .eq. 'MZCLM') call init_ae_icbc(idate)
+    if ( doaero .and. chemtyp .eq. 'CAMSR') call init_cams('AE')
   end if
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
      if ( dochem ) call newfile_ch_icbc(monfirst(idate))
      if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
-     if ( doaero ) call newfile_ae_icbc(monfirst(idate))
+     if ( doaero .and. chemtyp .eq. 'MZCLM' ) call newfile_ae_icbc1(monfirst(idate))
+     if ( doaero .and. chemtyp .eq. 'CAMSR' ) call newfile_ae_icbc(monfirst(idate))
    end if
    if ( chemtyp .eq. 'FNEST' ) then
      call get_fnest(idate)
    else
      if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call get_ch_icbc(idate)
      if ( dochem .and. chemtyp .eq. 'MZCLM' ) call get_ch_icbc_clim(idate)
+     if ( dochem .and. chemtyp .eq. 'CAMSR' ) call get_cams(idate,'CH')
+
      if ( dooxcl ) call get_ox_icbc(idate)
-     if ( doaero ) call get_ae_icbc(idate)
+     if ( doaero .and. chemtyp .eq. 'MZCLM' ) call get_ae_icbc(idate)
+     if ( doaero .and. chemtyp .eq. 'CAMSR' ) call get_cams(idate,'AE')
    end if
    iodate = idate
    idate = idate + tbdy
@@ -235,8 +245,10 @@ program chem_icbc
   else
     if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call close_ch_icbc
     if ( dochem .and. chemtyp .eq. 'MZCLM' ) call close_ch_icbc_clim
+    if ( dochem .and. chemtyp .eq. 'MZCLM' ) call conclude_cams
     if ( dooxcl ) call close_ox_icbc
-    if ( doaero ) call close_ae_icbc
+    if ( doaero .and. chemtyp .eq. 'MZCLM'  ) call close_ae_icbc
+    if ( doaero .and. chemtyp .eq. 'CAMSR'  ) call conclude_cams
   end if
 
   call memory_destroy
