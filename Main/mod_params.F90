@@ -1791,12 +1791,14 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
+    call bcast(ds)
     if ( irceideal == 1 ) then
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
       mddom%msfx = 1.0_rkx
+      mddom%area = (ds*d_1000)**2
       dl = raddeg * (ds*d_1000)/earthrad
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -1864,7 +1866,6 @@ module mod_params
     if ( idynamic == 3 ) then
       ptop = 0.1_rkx ! assume 1 mbar (.1 cbar)
     end if
-    call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
 

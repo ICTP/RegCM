@@ -108,8 +108,9 @@ module mod_moloch
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  integer :: nadv , nsound
   real(rkx) :: nupait , ddamp , dzita
+  integer(ik4) :: nadv , nsound
+  integer(ik4) :: jmin , jmax , imin , imax
 
   contains
 
@@ -252,6 +253,21 @@ module mod_moloch
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
     ddamp = 0.25_rkx
+
+    jmin = jcross1
+    jmax = jcross2
+    imin = icross1
+    imax = icross2
+    if ( ma%bandflag ) then
+      jmin = jcross1 - 2
+      jmax = jcross2 + 2
+    end if
+    if ( ma%crmflag ) then
+      jmin = jcross1 - 2
+      jmax = jcross2 + 2
+      imin = icross1 - 2
+      imax = icross2 + 2
+    end if
 
 ! Update static arrays on device
 !$acc update device(mu, mv, rmu, rmv, mx, mx2, fmz, fmzf, hx, hy,&
@@ -567,6 +583,7 @@ module mod_moloch
         end if
       end if
     else
+      call uvstagtox(u,v,ux,vx)
       if ( debug_level > 1 ) then
         if ( myid == italk .and. irceideal == 0 ) then
           write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
@@ -651,10 +668,10 @@ module mod_moloch
 
       subroutine boundary
         implicit none
-        logical :: do_nudge
 #ifdef USE_MPI3
         type(commdata_real) :: comm1 , comm2 , comm3
 #else
+        logical :: do_nudge
         do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
         call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
 !$acc update self(ps) async(2) if(do_nudge)
@@ -1858,18 +1875,18 @@ module mod_moloch
         real(rkx) , intent(in) :: dta
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
-        integer(ik4) :: k1m1 , k1p1m1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmu , zrfmd
-        real(rkx) :: zpbys , zpbysp1 , zpbws , zpbwsp1
-        real(rkx) :: zamum1 , rm1 , bm1 , zphim1 , ism1
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
+#ifdef OPENACC
+        integer(ik4) :: k1m1 , k1p1m1
+        real(rkx) :: rm1 , bm1 , ism1
+        real(rkx) :: zpbys , zpbws
         real(rkx) :: wfwk , wfwkp1
-#ifdef USE_MPI3
-        type(commdata_real) :: comm1, comm2
+        real(rkx) :: zpbysp1 , zpbwsp1
+        real(rkx) :: zamum1 , zphim1
 #endif
-
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
@@ -2101,9 +2118,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = min(i+1,icross2)
+                  ih = min(i+1,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2117,9 +2134,9 @@ module mod_moloch
                   ih = i
                 else
                   is = -d_one
-                  ih = min(i+2,icross2)
+                  ih = min(i+2,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i+1,k), wz(j,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2207,9 +2224,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = min(j+1,jcross2)
+                  jh = min(j+1,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2223,9 +2240,9 @@ module mod_moloch
                   jh = j
                 else
                   is = -d_one
-                  jh = min(j+2,jcross2)
+                  jh = min(j+2,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j+1,i,k), p0(j,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2287,9 +2304,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = min(i+1,icross2)
+                  ih = min(i+1,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2303,9 +2320,9 @@ module mod_moloch
                   ih = i
                 else
                   is = -d_one
-                  ih = min(i+2,icross2)
+                  ih = min(i+2,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i+1,k), wz(j,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2392,9 +2409,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = min(j+1,jcross2)
+                  jh = min(j+1,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -2408,9 +2425,9 @@ module mod_moloch
                   jh = j
                 else
                   is = -d_one
-                  jh = min(j+2,jcross2)
+                  jh = min(j+2,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j+1,i,k), p0(j,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b

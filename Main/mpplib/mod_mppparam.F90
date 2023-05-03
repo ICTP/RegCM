@@ -632,6 +632,11 @@ module mod_mppparam
     integer(ik4) :: comm , split_type , key , info , newcomm , ierror
   end subroutine mpi_comm_split_type
 
+  subroutine mpi_cart_shift(comm, direction, shift, source, dest, ierror)
+    implicit none
+    integer(ik4) :: comm , direction , shift , source , dest , ierror
+  end subroutine mpi_cart_shift
+
   subroutine mpi_sendrecvr4(sendbuf, sendcount, sendtype, dest, sendtag, &
                             recvbuf, recvcount, recvtype, source, recvtag, &
                             comm, status, ierror)
@@ -641,6 +646,7 @@ module mod_mppparam
     integer(ik4) :: recvcount , recvtype , source , recvtag , comm
     integer(ik4) :: status(mpi_status_size)
     integer(ik4) :: ierror
+    recvbuf(1:recvcount) = sendbuf(1:sendcount)
   end subroutine mpi_sendrecvr4
 
   subroutine mpi_sendrecvr8(sendbuf, sendcount, sendtype, dest, sendtag, &
@@ -652,6 +658,7 @@ module mod_mppparam
     integer(ik4) :: recvcount , recvtype , source , recvtag , comm
     integer(ik4) :: status(mpi_status_size)
     integer(ik4) :: ierror
+    recvbuf(1:recvcount) = sendbuf(1:sendcount)
   end subroutine mpi_sendrecvr8
 
   subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
@@ -1235,7 +1242,7 @@ module mod_mppparam
     integer(ik4) :: maximum_buffer_size
     data dim_period /.false.,.false./
 
-    ma%bandflag    = (i_band == 1)
+    ma%bandflag    = (i_band == 1 .or. i_crm  == 1)
     ma%crmflag     = (i_crm  == 1)
     ma%top         = mpi_proc_null
     ma%bottom      = mpi_proc_null
@@ -1260,14 +1267,6 @@ module mod_mppparam
       cpus_per_dim(2) = 1
       jxp =  jx
       iyp =  iy
-      call mpi_comm_dup(mycomm,cartesian_communicator,mpierr)
-#ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
-      end if
-#endif
-      ma%location(1) = 0
-      ma%location(2) = 0
 
       global_dot_jstart = 1
       global_dot_istart = 1
@@ -1288,11 +1287,19 @@ module mod_mppparam
       end if
 
       if ( ma%crmflag ) then
+        dim_period(1) = .true.
+        dim_period(2) = .true.
         ma%left  = myid
         ma%right = myid
         ma%top  = myid
         ma%bottom = myid
+        ma%bottomleft  = myid
+        ma%bottomright = myid
+        ma%topleft     = myid
+        ma%topright    = myid
+        ma%has_bdy = .false.
       else
+        dim_period(1) = .true.
         ma%has_bdytop    = .true.
         ma%has_bdybottom = .true.
         if ( ma%bandflag ) then
@@ -1306,16 +1313,37 @@ module mod_mppparam
           ma%has_bdybottomleft  = .true.
           ma%has_bdybottomright = .true.
         end if
+        ma%has_bdy = .true.
       end if
-      ma%has_bdy = .true.
 
-      ccid = myid
+      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,lreorder, &
+                           cartesian_communicator,mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_create error.')
+      end if
+#endif
+      call mpi_comm_rank(cartesian_communicator,ccid,mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
+      end if
+#endif
+      call mpi_cart_coords(cartesian_communicator,ccid,2,ma%location,mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
+      end if
+#endif
       ccio = iocpu
 
     else
 
       if ( ma%bandflag ) dim_period(1) = .true.
-      if ( ma%crmflag  ) dim_period(2) = .true.
+      if ( ma%crmflag  ) then
+        dim_period(1) = .true.
+        dim_period(2) = .true.
+      end if
       if ( njxcpus > 0 .or. niycpus > 0 ) then
         ! Force just the number of CPUs in J direction
         if ( njxcpus > 0 .and. niycpus <= 0 ) then
@@ -1416,91 +1444,54 @@ module mod_mppparam
 
       call bcast(ccio)
 
+      call mpi_cart_shift(cartesian_communicator, 0, 1, &
+        ma%left, ma%right, mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_shift error.')
+      end if
+#endif
+      call mpi_cart_shift(cartesian_communicator, 1, 1, &
+        ma%bottom, ma%top, mpierr)
+#ifdef DEBUG
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_shift error.')
+      end if
+#endif
+
       ! Set coordinates in the grid for the other processors
-      isearch(1) = ma%location(1)
-      isearch(2) = ma%location(2)+1
-      if ( ma%crmflag .or. ( isearch(2) < cpus_per_dim(2) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%top,mpierr)
-#ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
-      end if
-      isearch(1) = ma%location(1)
-      isearch(2) = ma%location(2)-1
-      if ( ma%crmflag .or. ( isearch(2) >= 0 ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottom,mpierr)
-#ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
-      end if
-      isearch(1) = ma%location(1)-1
-      isearch(2) = ma%location(2)
-      if ( ma%bandflag .or. ( isearch(1) >= 0 ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%left,mpierr)
-#ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
-      end if
-      isearch(1) = ma%location(1)+1
-      isearch(2) = ma%location(2)
-      if ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%right,mpierr)
-#ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
-      end if
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)+1
-      if ( ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) .and. &
-           ( ma%crmflag  .or. ( isearch(2) < cpus_per_dim(2) ) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
 #ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
       end if
+#endif
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)+1
-      if ( ( ma%bandflag .or. ( isearch(1) >= 0 ) ) .and. &
-           ( ma%crmflag  .or. ( isearch(2) < cpus_per_dim(2) ) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
 #ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
       end if
+#endif
       isearch(1) = ma%location(1)+1
       isearch(2) = ma%location(2)-1
-      if ( ( ma%bandflag .or. ( isearch(1) < cpus_per_dim(1) ) ) .and. &
-           ( ma%crmflag  .or. ( isearch(2) >= 0 ) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
 #ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
       end if
+#endif
       isearch(1) = ma%location(1)-1
       isearch(2) = ma%location(2)-1
-      if ( ( ma%bandflag .or. ( isearch(1) >= 0 ) ) .and. &
-           ( ma%crmflag  .or. ( isearch(2) >= 0 ) ) ) then
-        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
+      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
 #ifdef DEBUG
-        if ( mpierr /= mpi_success ) then
-          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-        end if
-#endif
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
       end if
+#endif
 
       ma%has_bdytop    = (ma%top    == mpi_proc_null)
       ma%has_bdybottom = (ma%bottom == mpi_proc_null)
@@ -3221,18 +3212,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3252,32 +3249,44 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -3296,18 +3305,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
   end subroutine real8_2d_exchange
@@ -3347,22 +3362,28 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3382,40 +3403,52 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -3434,22 +3467,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -3491,26 +3530,32 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3530,48 +3575,60 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -3590,26 +3647,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -3649,18 +3712,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3680,32 +3749,45 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1-bb:i2+tb) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
@@ -3724,18 +3806,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2+rb,i1-iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2+rb,i2+iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
   end subroutine real4_2d_exchange
@@ -3775,22 +3863,28 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3810,40 +3904,52 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1-bb:i2+tb,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -3862,22 +3968,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2+rb,i1-iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -3919,26 +4031,32 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1-bb:i2+tb,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2+tb,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -3958,48 +4076,60 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1-bb:i2+tb,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2+rb,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
@@ -4018,26 +4148,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2+rb,i1-iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4067,30 +4203,42 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4110,36 +4258,49 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
   end subroutine real8_2d_exchange_left_right_bottom_top
 
-  subroutine real8_2d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2,i1,i2,rc)
+  subroutine real8_2d_exchange_left_right_bottom_top_pre(ml,nex, &
+      j1,j2,i1,i2,rc)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     type(commdata_real) , intent(inout) :: rc
@@ -4164,30 +4325,42 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4203,7 +4376,8 @@ module mod_mppparam
 
   end subroutine real8_2d_exchange_left_right_bottom_top_pre
 
-  subroutine real8_2d_exchange_left_right_bottom_top_post(ml,nex,j1,j2,i1,i2,rc)
+  subroutine real8_2d_exchange_left_right_bottom_top_post(ml,nex, &
+      j1,j2,i1,i2,rc)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     type(commdata_real) , intent(inout) :: rc
@@ -4231,30 +4405,42 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4288,38 +4474,50 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4339,38 +4537,50 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4403,38 +4613,50 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4481,38 +4703,50 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4548,46 +4782,58 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4607,46 +4853,58 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4680,46 +4938,58 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4767,46 +5037,58 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -4839,30 +5121,42 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4882,36 +5176,49 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
   end subroutine real4_2d_exchange_left_right_bottom_top
 
-  subroutine real4_2d_exchange_left_right_bottom_top_pre(ml,nex,j1,j2,i1,i2,rc)
+  subroutine real4_2d_exchange_left_right_bottom_top_pre(ml,nex, &
+      j1,j2,i1,i2,rc)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     type(commdata_real) , intent(inout) :: rc
@@ -4936,30 +5243,42 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -4975,7 +5294,8 @@ module mod_mppparam
 
   end subroutine real4_2d_exchange_left_right_bottom_top_pre
 
-  subroutine real4_2d_exchange_left_right_bottom_top_post(ml,nex,j1,j2,i1,i2,rc)
+  subroutine real4_2d_exchange_left_right_bottom_top_post(ml,nex, &
+      j1,j2,i1,i2,rc)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     type(commdata_real) , intent(inout) :: rc
@@ -5003,30 +5323,42 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rc%rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -5060,38 +5392,50 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -5111,38 +5455,50 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -5175,38 +5531,50 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -5253,38 +5621,50 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -5320,46 +5700,58 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -5379,46 +5771,58 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -5452,46 +5856,58 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
@@ -5539,46 +5955,58 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rc%rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -5607,18 +6035,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -5638,18 +6072,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -5676,22 +6116,28 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -5711,22 +6157,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -5754,22 +6206,28 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -5810,22 +6268,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -5856,26 +6320,32 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -5895,26 +6365,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -5940,18 +6416,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -5971,18 +6453,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-       if ( ma%left /= mpi_proc_null ) &
-           ml(j1-iex,i1:i2) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2) = rdata(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -6010,22 +6498,28 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          rc%sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -6066,22 +6560,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -6111,22 +6611,28 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -6146,22 +6652,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -6189,26 +6701,32 @@ module mod_mppparam
     integer :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdata(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -6228,26 +6746,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-           if ( ma%left /= mpi_proc_null ) &
-               ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizex
+    end if
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     end block transmit
 
@@ -6273,18 +6797,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6304,18 +6834,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6343,22 +6879,28 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6399,22 +6941,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6444,22 +6992,28 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6479,22 +7033,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6522,26 +7082,32 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6561,26 +7127,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6606,18 +7178,24 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6637,18 +7215,24 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1:j2,i1-iex) = rdata(ib1:ib2)
-    end do
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2,i2+iex) = rdata(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i1-iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2,i2+iex) = rdata(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6676,22 +7260,28 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          rc%sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6732,22 +7322,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rc%rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6777,22 +7373,28 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6812,22 +7414,28 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i1-iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2,i2+iex,k) = rdata(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6855,26 +7463,32 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdata(ib1:ib2) = ml(j1:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -6894,26 +7508,32 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i1-iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+    else
+      ib2 = ib2 + sizey
+    end if
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2,i2+iex,k,n) = rdata(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -6924,15 +7544,14 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: nx , ny
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx
     sizey = nex*ty
@@ -6950,12 +7569,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = sizex
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2)
-    end do
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -6975,20 +7597,26 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
-    end do
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7008,12 +7636,15 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7024,16 +7655,15 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: nx , ny , nk
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -7051,14 +7681,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k)
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7078,24 +7711,30 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1-bb:i2,k) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -7114,14 +7753,17 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7132,7 +7774,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
@@ -7140,9 +7782,8 @@ module mod_mppparam
     nk = k2-k1+1
     nn = n2-n1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -7160,16 +7801,19 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k,n)
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7189,28 +7833,34 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              ml(j1-iex,i1-bb:i2,k,n) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7230,16 +7880,19 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7250,15 +7903,14 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: nx , ny
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx
     sizey = nex*ty
@@ -7276,12 +7928,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = sizex
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2)
-    end do
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7301,20 +7956,26 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          ml(j1-iex,i1-bb:i2) = rdatax(ib1:ib2)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j1-iex,i1:i2) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
-    end do
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7334,12 +7995,15 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1-lb:j2,i1-iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7350,16 +8014,15 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: nx , ny , nk
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -7377,14 +8040,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k)
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7404,24 +8070,30 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-         if ( ma%left /= mpi_proc_null ) &
-             ml(j1-iex,i1-bb:i2,k) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j1-iex,i1:i2,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
@@ -7440,14 +8112,17 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1-lb:j2,i1-iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7458,7 +8133,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: lb , bb
+    integer(ik4) :: lb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
@@ -7466,9 +8141,8 @@ module mod_mppparam
     nk = k2-k1+1
     nn = n2-n1+1
     lb = nex
-    bb = 0
     if ( ma%left == mpi_proc_null ) lb = 0
-    tx = ny+bb
+    tx = ny
     ty = nx+lb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -7486,16 +8160,19 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j2-(iex-1),i1-bb:i2,k,n)
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7515,28 +8192,34 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              ml(j1-iex,i1-bb:i2,k,n) = rdatax(ib1:ib2)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j1-iex,i1:i2,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7556,16 +8239,19 @@ module mod_mppparam
 #endif
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1-lb:j2,i1-iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7576,15 +8262,14 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: nx , ny
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx
     sizey = nex*ty
@@ -7602,12 +8287,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7627,20 +8315,26 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2+tb) = rdatax(ib1:ib2)
-    end do
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7660,12 +8354,15 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7676,16 +8373,15 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: nx , ny , nk
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -7703,14 +8399,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7730,24 +8429,30 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2+tb,k) = rdatax(ib1:ib2)
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7767,14 +8472,17 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7785,7 +8493,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
@@ -7793,9 +8501,8 @@ module mod_mppparam
     nk = k2-k1+1
     nn = n2-n1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
@@ -7813,16 +8520,19 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7842,28 +8552,34 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2+tb,k,n) = rdatax(ib1:ib2)
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7883,16 +8599,19 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -7903,15 +8622,14 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: nx , ny
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx
     sizey = nex*ty
@@ -7929,12 +8647,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%left /= mpi_proc_null ) &
-          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb)
-    end do
+    if ( ma%left /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7954,20 +8675,26 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + tx - 1
-      if ( ma%right /= mpi_proc_null ) &
-          ml(j2+iex,i1:i2+tb) = rdatax(ib1:ib2)
-    end do
+    if ( ma%right /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        ml(j2+iex,i1:i2) = rdatax(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%bottom /= mpi_proc_null ) &
-          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
-    end do
+    if ( ma%bottom /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7987,12 +8714,15 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do iex = 1 , nex
-      ib1 = ib2 + 1
-      ib2 = ib1 + ty - 1
-      if ( ma%top /= mpi_proc_null ) &
-         ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
-    end do
+    if ( ma%top /= mpi_proc_null ) then
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        ml(j1:j2+rb,i2+iex) = rdatay(ib1:ib2)
+      end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -8003,16 +8733,15 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: nx , ny , nk
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
     ny = i2-i1+1
     nk = k2-k1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx*nk
     sizey = nex*ty*nk
@@ -8030,14 +8759,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%left /= mpi_proc_null ) &
-            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k)
+    if ( ma%left /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -8057,24 +8789,30 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + tx - 1
-        if ( ma%right /= mpi_proc_null ) &
-            ml(j2+iex,i1:i2+tb,k) = rdatax(ib1:ib2)
+    if ( ma%right /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          ml(j2+iex,i1:i2,k) = rdatax(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%bottom /= mpi_proc_null ) &
-            sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -8094,14 +8832,17 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do k = k1 , k2
-      do iex = 1 , nex
-        ib1 = ib2 + 1
-        ib2 = ib1 + ty - 1
-        if ( ma%top /= mpi_proc_null ) &
-           ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+    if ( ma%top /= mpi_proc_null ) then
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          ml(j1:j2+rb,i2+iex,k) = rdatay(ib1:ib2)
+        end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 
@@ -8112,7 +8853,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: nx , ny , nk , nn
-    integer(ik4) :: rb , tb
+    integer(ik4) :: rb
     integer(ik4) :: ndx , ndy , tx , ty , sizex , sizey
 
     nx = j2-j1+1
@@ -8120,9 +8861,8 @@ module mod_mppparam
     nk = k2-k1+1
     nn = n2-n1+1
     rb = nex
-    tb = 0
     if ( ma%right == mpi_proc_null ) rb = 0
-    tx = ny+tb
+    tx = ny
     ty = nx+rb
     sizex = nex*tx*nk*nn
     sizey = nex*ty*nk*nn
@@ -8140,16 +8880,19 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%left /= mpi_proc_null ) &
-              sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2+tb,k,n)
+    if ( ma%left /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -8169,28 +8912,34 @@ module mod_mppparam
 #endif
 
     ib2 = sizex
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + tx - 1
-          if ( ma%right /= mpi_proc_null ) &
-              ml(j2+iex,i1:i2+tb,k,n) = rdatax(ib1:ib2)
+    if ( ma%right /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + tx - 1
+            ml(j2+iex,i1:i2,k,n) = rdatax(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizex
+    end if
 
     ib2 = 0
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%bottom /= mpi_proc_null ) &
-              sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+    if ( ma%bottom /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -8210,16 +8959,19 @@ module mod_mppparam
 #endif
 
     ib2 = sizey
-    do n = n1 , n2
-      do k = k1 , k2
-        do iex = 1 , nex
-          ib1 = ib2 + 1
-          ib2 = ib1 + ty - 1
-          if ( ma%top /= mpi_proc_null ) &
-             ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+    if ( ma%top /= mpi_proc_null ) then
+      do n = n1 , n2
+        do k = k1 , k2
+          do iex = 1 , nex
+            ib1 = ib2 + 1
+            ib2 = ib1 + ty - 1
+            ml(j1:j2+rb,i2+iex,k,n) = rdatay(ib1:ib2)
+          end do
         end do
       end do
-    end do
+    else
+      ib2 = ib2 + sizey
+    end if
 
     end block transmit
 

@@ -221,6 +221,7 @@ module mod_cu_interface
   subroutine cucloud
     implicit none
     integer(ik4) :: i , j , k
+    if ( all(icup == 0) ) return
     if ( any(icup == 1) .or. any(icup == 3) ) then
       call model_cumulus_cloud(m2c)
     end if
@@ -228,7 +229,7 @@ module mod_cu_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),0.0_rkx)
-          if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
+          if ( cu_cldfrc(j,i,k) > lowcld ) then
             c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
           else
             c2m%cldlwc(j,i,k) = d_zero

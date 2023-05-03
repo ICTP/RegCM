@@ -272,7 +272,7 @@ module mod_micro_interface
     end select
 
     if ( ipptls == 1 ) then
-      rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-cldfra),1.0e-5_rkx)**2
+      rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-mc2mo%fcc),1.0e-5_rkx)**2
     end if
 
     !------------------------------------------

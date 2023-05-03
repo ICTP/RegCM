@@ -118,6 +118,12 @@ module mod_sound
     real(rkx) :: maxt , loc_maxt , loc_xmsf
 
     rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
+    if ( ma%bandflag ) then
+      rnpts = d_one/real((nicross-2)*njcross,rkx)
+    end if
+    if ( ma%crmflag ) then
+      rnpts = d_one/real(nicross*njcross,rkx)
+    end if
 
     if ( ifupr == 1 ) then
       !
@@ -551,9 +557,9 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             do nsi = -6 , 6
-              inn = min(max(icross1+1,i+nsi),icross2-1)
+              inn = inrange_i(i+nsi)
               do nsj = -6 , 6
-                jnn = min(max(jcross1+1,j+nsj),jcross2-1)
+                jnn = inrange_j(j+nsj)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
@@ -730,11 +736,37 @@ module mod_sound
         end do
         do i = icii1 , icii2
           do j = jcii1 , jcii2
-            e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i) 
+            e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i)
           end do
         end do
       end do
     end subroutine smallfilter
+
+    integer(ik4) function inrange_i(i) result(inrange)
+      implicit none
+      integer(ik4) , intent(in) :: i
+      inrange = i
+      if ( ma%crmflag ) then
+        if ( i > icross2 ) inrange = icross1 + (i - icross2)
+        if ( i < icross1 ) inrange = icross2 - (icross1 - i)
+      else
+        if ( i > icross2-1 ) inrange = icross2 -1
+        if ( i < icross1+1 ) inrange = icross1 +1
+      end if
+    end function inrange_i
+
+    integer(ik4) function inrange_j(j) result(inrange)
+      implicit none
+      integer(ik4) , intent(in) :: j
+      inrange = j
+      if ( ma%crmflag .or. ma%bandflag ) then
+        if ( j > jcross2 ) inrange = jcross1 + (j - jcross2)
+        if ( j < jcross1 ) inrange = jcross2 - (jcross1 - j)
+      else
+        if ( j > jcross2-1 ) inrange = jcross2 -1
+        if ( j < jcross1+1 ) inrange = jcross1 +1
+      end if
+    end function inrange_j
 
   end subroutine sound
 
