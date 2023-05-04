@@ -45,19 +45,20 @@ module mod_cams
 
   integer(ik4) :: jlat , ilon , klev , timlen
 
-  real(rkx) , pointer , dimension(:,:,:) :: b3, b3a
-  real(rkx) , pointer , dimension(:,:,:) :: b2, b2a
+  real(rkx) , pointer , dimension(:,:,:) :: b3 , b3a
+  real(rkx) , pointer , dimension(:,:,:) :: b2 , b2a
 
-  real(rkx) , pointer , dimension(:,:,:) :: hz,hza,o3,co,dust1,dust2,dust3,eth,xch2o,h2o2,bchl,ochl,bchb,ochb
-  real(rkx) , pointer , dimension(:,:,:) :: oh,isop,hno3,no,pan,c3h8,sslt1,sslt2,sslt3,so4,so2,no2 
-  real(rkx) , pointer , dimension(:,:,:) :: hzvar,hzavar,o3var,covar,dust1var,dust2var,dust3var,ethvar,xch2ovar, \
-                                            h2o2var,bchlvar,rochlvar,bchbvar,ochbvar,ochlvar
-  real(rkx) , pointer , dimension(:,:,:) :: ohvar,isopvar,hno3var,novar,panvar,c3h8var,sslt1var,sslt2var,\
-                                            sslt3var,so4var,so2var,no2var
-
-
+  real(rkx) , pointer , dimension(:,:,:) :: hz , hza , o3 , co , &
+    dust1 , dust2 , dust3 , eth , xch2o , h2o2 , bchl , ochl , bchb , ochb
+  real(rkx) , pointer , dimension(:,:,:) :: oh , isop , hno3 , no , &
+    pan , c3h8 , sslt1 , sslt2 , sslt3 , so4 , so2 , no2
+  real(rkx) , pointer , dimension(:,:,:) :: hzvar , hzavar , o3var , &
+    covar , dust1var , dust2var , dust3var , ethvar , xch2ovar, &
+    h2o2var , bchlvar , rochlvar , bchbvar , ochbvar , ochlvar
+  real(rkx) , pointer , dimension(:,:,:) :: ohvar , isopvar , hno3var , &
+    novar , panvar , c3h8var , sslt1var , sslt2var , sslt3var , so4var , &
+    so2var , no2var
   real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
-
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
@@ -67,9 +68,9 @@ module mod_cams
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
 
-  integer(ik4) , dimension(20,4) :: inet5 !care the first dimension must be 
+  integer(ik4) , dimension(20,4) :: inet5 !care the first dimension must be
                                           !bigger than the number of species
-                                          !for gas or aer                                          
+                                          !for gas or aer
   integer(ik4) , dimension(20,4) :: ivar5
   real(rkx) , dimension(20,4) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
@@ -79,14 +80,13 @@ module mod_cams
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   public :: init_cams , get_cams, conclude_cams
-  
 
   contains
 
-  subroutine init_cams(typ) 
+  subroutine init_cams(typ)
 
     implicit none
-    character(len=2) ::typ
+    character(len=2) :: typ
     integer(ik4) :: k
     integer(ik4) :: year , month , day , hour
     character(len=256) :: pathaddname
@@ -178,7 +178,7 @@ module mod_cams
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
 
-    if(typ=='CH') then 
+    if ( typ == 'CH' ) then
       call getmem3d(b3,1,jx,1,iy,1,klev*25,'mod_cams:b3')
       call getmem3d(b2,1,ilon,1,jlat,1,klev*25,'mod_cams:b2')
       call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
@@ -200,7 +200,6 @@ module mod_cams
       so2   => b3(:,:,12*klev+1:13*klev)
       no2   => b3(:,:,13*klev+1:14*klev)
 
-
       hzvar    => b2(:,:,1:klev)
       o3var    => b2(:,:,klev+1:2*klev)
       covar    => b2(:,:,2*klev+1:3*klev)
@@ -215,12 +214,10 @@ module mod_cams
       c3h8var  => b2(:,:,11*klev+1:12*klev)
       so2var   => b2(:,:,12*klev+1:13*klev)
       no2var   => b2(:,:,13*klev+1:14*klev)
-
-
-      else if ( typ=='AE' ) then  
-        call getmem3d(b3a,1,jx,1,iy,1,klev*25,'mod_cams:b3a')
-        call getmem3d(b2a,1,ilon,1,jlat,1,klev*25,'mod_cams:b2a')
-        call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
+    else if ( typ == 'AE' ) then
+      call getmem3d(b3a,1,jx,1,iy,1,klev*25,'mod_cams:b3a')
+      call getmem3d(b2a,1,ilon,1,jlat,1,klev*25,'mod_cams:b2a')
+      call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
       !
       ! Set up pointers
       !
@@ -238,7 +235,7 @@ module mod_cams
       so4   => b3a(:,:,11*klev+1:12*klev)
       so2   => b3a(:,:,12*klev+1:13*klev)
 
-      hzavar    => b2a(:,:,1:klev)
+      hzavar   => b2a(:,:,1:klev)
       dust1var => b2a(:,:,1*klev+1:2*klev)
       dust2var => b2a(:,:,2*klev+1:3*klev)
       dust3var => b2a(:,:,3*klev+1:4*klev)
@@ -251,11 +248,9 @@ module mod_cams
       sslt3var => b2a(:,:,10*klev+1:11*klev)
       so4var   => b2a(:,:,11*klev+1:12*klev)
       so2var   => b2a(:,:,12*klev+1:13*klev)
-
-      end if 
+    end if
 
   end subroutine init_cams
-
 
   subroutine get_cams(idate,typ)
     implicit none
@@ -264,165 +259,180 @@ module mod_cams
     !
     ! Read data at idate
     !
-    if(typ =='CH') then 
+    if ( typ == 'CH' ) then
 
-    call cams6hour(dattyp,idate,globidate1,'CH')
-    write (stdout,*) 'READ IN CAMS fields at DATE:' , tochar(idate)
-    !
-    ! Horizontal interpolation of both the scalar and vector fields
-    !
-    call h_interpolate_cont(cross_hint,b2,b3)
-    !
-    ! Invert vertical order, set BOTTOM -> TOP
+      call cams6hour(dattyp,idate,globidate1,'CH')
+      write (stdout,*) 'READ IN CAMS fields at DATE:' , tochar(idate)
+      !
+      ! Horizontal interpolation of both the scalar and vector fields
+      !
+      call h_interpolate_cont(cross_hint,b2,b3)
+      !
+      ! Invert vertical order, set BOTTOM -> TOP
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(hz)
+      call top2btm(hz)
 !$OMP SECTION
-    call top2btm(o3)
+      call top2btm(o3)
 !$OMP SECTION
-    call top2btm(co)
+      call top2btm(co)
 !$OMP SECTION
-    call top2btm(eth ) 
+      call top2btm(eth )
 !$OMP SECTION
-    call top2btm(xch2o)
+      call top2btm(xch2o)
 !$OMP SECTION
-    call top2btm(h2o2 )
+      call top2btm(h2o2 )
 !$OMP SECTION
-    call top2btm(oh)
+      call top2btm(oh)
 !$OMP SECTION
-    call top2btm(isop)
+      call top2btm(isop)
 !$OMP SECTION
-    call top2btm (hno3)
+      call top2btm (hno3)
 !$OMP SECTION
-    call top2btm(no)
+      call top2btm(no)
 !$OMP SECTION
-    call top2btm(pan)  
+      call top2btm(pan)
 !$OMP SECTION
-    call top2btm(c3h8 )
+      call top2btm(c3h8 )
 !$OMP SECTION
-    call top2btm(so2)
+      call top2btm(so2)
 !$OMP SECTION
-    call top2btm(no2)
+      call top2btm(no2)
 !$OMP END SECTIONS
-    else if(typ=='AE') then 
-
-    call cams6hour(dattyp,idate,globidate1,'AE')
-    write (stdout,*) 'READ IN CAMS AER fields at DATE:' , tochar(idate)
-    !
-    ! Horizontal interpolation of both the scalar and vector fields
-    !
-    call h_interpolate_cont(cross_hint,b2a,b3a)
-    !
-
+    else if ( typ == 'AE' ) then
+      call cams6hour(dattyp,idate,globidate1,'AE')
+      write (stdout,*) 'READ IN CAMS AER fields at DATE:' , tochar(idate)
+      !
+      ! Horizontal interpolation of both the scalar and vector fields
+      !
+      call h_interpolate_cont(cross_hint,b2a,b3a)
+      !
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(hza)
+      call top2btm(hza)
 !$OMP SECTION
-    call top2btm(dust1)
+      call top2btm(dust1)
 !$OMP SECTION
-    call top2btm(dust2)
+      call top2btm(dust2)
 !$OMP SECTION
-    call top2btm(dust3)
+      call top2btm(dust3)
 !$OMP SECTION
-    call top2btm(bchl)
+      call top2btm(bchl)
 !$OMP SECTION
-    call top2btm(ochl)
+      call top2btm(ochl)
 !$OMP SECTION
-    call top2btm(bchb)
+      call top2btm(bchb)
 !$OMP SECTION
-    call top2btm(ochb)
+      call top2btm(ochb)
 !$OMP SECTION
-    call top2btm(sslt1)
+      call top2btm(sslt1)
 !$OMP SECTION
-    call top2btm(sslt2)
+      call top2btm(sslt2)
 !$OMP SECTION
-    call top2btm(sslt3)
+      call top2btm(sslt3)
 !$OMP SECTION
-    call top2btm(so4)
+      call top2btm(so4)
 !$OMP SECTION
-    call top2btm(so2)
+      call top2btm(so2)
 !$OMP END SECTIONS
-
-    end if   
+    end if
     ! New calculation of p* on rcm topography.
     !
     ! Interpolate chemicals.
     !
     if ( idynamic == 3 ) then
-    if (typ == 'CH') then 
-
+      if ( typ == 'CH' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      
-      call intz1(chv4(:,:,:,cb_O3),o3,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_O3),o3,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_ALD2),xch2o,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)            
+        call intz1(chv4(:,:,:,cb_ALD2),xch2o,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_ISOP),isop,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_ISOP),isop,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_HNO3),hno3,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_HNO3),hno3,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_NO),no,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_NO),no,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_PAN),pan,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_PAN),pan,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_PAR),c3h8,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_PAR),c3h8,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_NO2),no2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(chv4(:,:,:,cb_NO2),no2,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
 
 !!$OMP SECTION
-!      call intz1(chv4(:,:,:,cb_OH),oh,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+!       call intz1(chv4(:,:,:,cb_OH),oh,z0,hz,topogm, &
+!         jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 
-     else if (typ=='AE') then 
+      else if ( typ == 'AE' ) then
 !$OMP SECTIONS
-      call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_dust2),dust2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_dust2),dust2,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_dust3),dust3,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_dust3),dust3,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_bchl),bchl,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_bchl),bchl,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_ochl),ochl,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_ochl),ochl,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_bchb),bchb,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_bchb),bchb,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_ochb),ochb,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_ochb),ochb,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_sslt1),sslt1,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_sslt1),sslt1,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_sslt2),sslt2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_sslt2),sslt2,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so2),so2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+        call intz1(aev4(:,:,:,ae_so2),so2,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
-      end if 
-
+      end if
     else
-      print*,'not compatible with idynamic < 3'
-      
+      write(stderr,*) 'Not compatible with idynamic < 3'
     end if
-!write out chv4  
-    if(typ=='CH')   call  write_ch_icbc(idate)
-    if(typ=='AE')   call  write_ae_icbc(idate)
-
+    ! write out chv4
+    if ( typ == 'CH' ) call write_ch_icbc(idate)
+    if ( typ == 'AE' ) call write_ae_icbc(idate)
   end subroutine get_cams
-
 
   subroutine cams6hour(dattyp,idate,idate0,typ)
     implicit none
     character(len=5) , intent(in) :: dattyp
-    character(len=2), intent(in) ::typ 
+    character(len=2), intent(in) ::typ
     type(rcm_time_and_date) , intent(in) :: idate , idate0
     integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
     integer(ik4) :: timid
@@ -440,12 +450,15 @@ module mod_cams
     integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
 
-    data gasname /'z','go3' , 'co', 'c2h6','hcho','c3h8','no','no2', 'h2o2','c5h8' ,'so2','hno3' /
-    data gfname   /'geop','O3','CO','ETH', 'CH2O', 'C3H8','NO','NO2', 'H2O2', 'ISOP','SO2','HNO3'/
-    data aername /'z','aermr04' , 'aermr05', 'aermr06','aermr09','aermr07','aermr10','aermr08',\
-                      'aermr01','aermr02' ,'aermr03','aermr11' /
-    data afname   /'geop','DUST1','DUST2','DUST3', 'BCHL','OCHL','BCHB', 'OCHB', 'SSLT1','SSLT2','SSLT3','SO4'/
-
+    data gasname /'z','go3','co','c2h6','hcho','c3h8','no', &
+                  'no2','h2o2','c5h8' ,'so2','hno3' /
+    data gfname  /'geop','O3','CO','ETH','CH2O','C3H8','NO', &
+                  'NO2','H2O2','ISOP','SO2','HNO3'/
+    data aername /'z','aermr04','aermr05','aermr06','aermr09',&
+                  'aermr07','aermr10','aermr08','aermr01', &
+                  'aermr02' ,'aermr03','aermr11' /
+    data afname  /'geop','DUST1','DUST2','DUST3','BCHL','OCHL', &
+                  'BCHB','OCHB','SSLT1','SSLT2','SSLT3','SO4'/
 
     !
     ! This is the latitude, longitude dimension of the grid to be read.
@@ -455,15 +468,15 @@ module mod_cams
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    if (typ == 'CH') then 
+    if (typ == 'CH') then
      nsp = 12
-     varname(1:nsp) = gasname(1:nsp) 
+     varname(1:nsp) = gasname(1:nsp)
      fname(1:nsp) = gfname(1:nsp)
-    else if (typ == 'AE') then 
+    else if (typ == 'AE') then
      nsp = 12
      varname(1:nsp) = aername(1:nsp)
      fname(1:nsp) = afname(1:nsp)
-    end if  
+    end if
 
     k4 = 1
     call split_idate(idate,year,month,day,hour)
@@ -471,12 +484,12 @@ module mod_cams
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
       do kkrec = 1 , nsp ! boulce sur nbre variables gaz
-        !verifie le path pour fichier CAMS !! 
+        !verifie le path pour fichier CAMS !!
         write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
         year, pthsep, trim(fname(kkrec)), '_', year, '_', month,'.nc'
         pathaddname = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
-           
+
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
         istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
@@ -530,52 +543,73 @@ module mod_cams
     icount(3) = klev
     istart(4) = it
     icount(4) = 1
-    
-    if (typ=='CH') then 
-    do kkrec = 1 , nsp ! loop on number variables
-      inet = inet5(kkrec,k4)
-      ivar = ivar5(kkrec,k4)
-      xscale = xscl(kkrec,k4)
-      xadd = xoff(kkrec,k4)
-      call getwork(kkrec)
-      !care the order must match varname data - could be more elegant,
- 
-      if ( kkrec == 1 ) hzvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)/9.80616_rk4
-      if ( kkrec == 2 ) o3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 3 ) covar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 4 ) ethvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 5 ) xch2ovar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 6 ) c3h8var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 7 ) novar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 8 ) no2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 9 ) h2o2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 10 ) isopvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 11 ) so2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 12 ) hno3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-     end do
 
-      else if(typ=='AE') then
-       do kkrec = 1 , nsp ! loop on number variables
-         inet = inet5(kkrec,k4)
-         ivar = ivar5(kkrec,k4)
-         xscale = xscl(kkrec,k4)
-         xadd = xoff(kkrec,k4)
-          call getwork(kkrec)
-      !care the order must match varname data - could be more elegant,
-      if ( kkrec == 1 ) hzavar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)\
-                                                 /9.80616_rk4
-      if ( kkrec == 2 ) dust1var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 3 ) dust2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 4 ) dust3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 5 ) bchlvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 6 ) ochlvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 7 ) bchbvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 8 ) ochbvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 9 ) sslt1var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 10 )sslt2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 11 )sslt3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-      if ( kkrec == 12 )so4var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
-        end do    
+    if (typ=='CH') then
+      do kkrec = 1 , nsp ! loop on number variables
+        inet = inet5(kkrec,k4)
+        ivar = ivar5(kkrec,k4)
+        xscale = xscl(kkrec,k4)
+        xadd = xoff(kkrec,k4)
+        call getwork(kkrec)
+        !care the order must match varname data - could be more elegant,
+        if ( kkrec == 1 ) hzvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)/9.80616_rk4
+        if ( kkrec == 2 ) o3var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 3 ) covar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 4 ) ethvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 5 ) xch2ovar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 6 ) c3h8var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 7 ) novar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 8 ) no2var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 9 ) h2o2var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 10 ) isopvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 11 ) so2var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 12 ) hno3var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+      end do
+    else if(typ=='AE') then
+      do kkrec = 1 , nsp ! loop on number variables
+        inet = inet5(kkrec,k4)
+        ivar = ivar5(kkrec,k4)
+        xscale = xscl(kkrec,k4)
+        xadd = xoff(kkrec,k4)
+        call getwork(kkrec)
+        !care the order must match varname data - could be more elegant,
+        if ( kkrec == 1 ) hzavar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx) / 9.80616_rk4
+        if ( kkrec == 2 ) dust1var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 3 ) dust2var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 4 ) dust3var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 5 ) bchlvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 6 ) ochlvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 7 ) bchbvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 8 ) ochbvar(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 9 ) sslt1var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 10 )sslt2var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 11 )sslt3var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+        if ( kkrec == 12 )so4var(1:ilon,1:jlat,:) = &
+          real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+      end do
     end if
 
     contains
@@ -608,7 +642,6 @@ module mod_cams
       call h_interpolator_destroy(vdot_hint)
     end if
   end subroutine conclude_cams
-
 
 end module mod_cams
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
