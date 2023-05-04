@@ -332,7 +332,7 @@ module mod_ae_icbc
       end do
     end do
 
-    call write_ae_icbc(idate)
+    call write_ae_icbc1(idate)
 
   end subroutine get_ae_icbc
 

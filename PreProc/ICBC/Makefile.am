@@ -45,8 +45,8 @@ icbc_SOURCES = mod_vectutil.F90 mod_ein.F90 mod_grid.F90  \
                mod_lgm_helper.F90 mod_ccsm4_helper.F90 mod_cmip6.F90 icbc.F90
 clmbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
                mod_mksst.F90 mod_era5.F90 clmbc.F90
-chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
-                    mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 \
+chem_icbc_SOURCES = mod_vectutil.F90 mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
+                    mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 mod_ch_cams.F90 \
                     mod_ch_fnest.F90 mod_grid.F90 mod_header.F90 chem_icbc.F90
 pgwbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
                 mod_pgw.F90 pgwbc.F90
@@ -65,7 +65,7 @@ distclean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o
+chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o mod_ch_cams.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 pgw_icbc.o : pgw_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_vertint.o mod_date.o mod_vectutil.o
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
@@ -74,6 +74,7 @@ pgwbc.o : pgwbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o 
 icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ein.o mod_ifs.o mod_era5.o mod_ncep.o mod_nest.o mod_gn6hnc.o mod_write.o mod_projections.o $(CMIP6LIB)
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_ch_icbc.o : mod_ch_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o mod_constants.o
+mod_ch_cams.o : mod_ch_cams.F90  mod_wrtoxd.o mod_ch_param.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_projections.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o mod_date.o mod_constants.o 
 mod_ch_icbc_clim.o : mod_ch_icbc_clim.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o mod_constants.o
 mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_constants.o mod_stdio.o
 mod_ae_icbc.o : mod_ae_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_stdio.o mod_constants.o
