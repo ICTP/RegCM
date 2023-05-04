@@ -49,11 +49,11 @@ module mod_cams
   real(rkx) , pointer , dimension(:,:,:) :: b2, b2a
 
   real(rkx) , pointer , dimension(:,:,:) :: hz,hza,o3,co,dust1,dust2,dust3,eth,xch2o,h2o2,bchl,ochl,bchb,ochb
-  real(rkx) , pointer , dimension(:,:,:) :: oh,isop,hno3,no,pan,c3h8,sslt1,sslt2,sslt3,so4,so2,no2 
+  real(rkx) , pointer , dimension(:,:,:) :: oh,isop,hno3,no,pan,c3h8,sslt1,sslt2,sslt3,so4,so2,no2,ch4,aso2 
   real(rkx) , pointer , dimension(:,:,:) :: hzvar,hzavar,o3var,covar,dust1var,dust2var,dust3var,ethvar,xch2ovar, \
                                             h2o2var,bchlvar,rochlvar,bchbvar,ochbvar,ochlvar
   real(rkx) , pointer , dimension(:,:,:) :: ohvar,isopvar,hno3var,novar,panvar,c3h8var,sslt1var,sslt2var,\
-                                            sslt3var,so4var,so2var,no2var
+                                            sslt3var,so4var,so2var,no2var,ch4var,aso2var
 
 
   real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
@@ -179,8 +179,8 @@ module mod_cams
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
 
     if(typ=='CH') then 
-      call getmem3d(b3,1,jx,1,iy,1,klev*25,'mod_cams:b3')
-      call getmem3d(b2,1,ilon,1,jlat,1,klev*25,'mod_cams:b2')
+      call getmem3d(b3,1,jx,1,iy,1,klev*15,'mod_cams:b3')
+      call getmem3d(b2,1,ilon,1,jlat,1,klev*15,'mod_cams:b2')
       call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
       !
       ! Set up pointers
@@ -199,6 +199,7 @@ module mod_cams
       c3h8  => b3(:,:,11*klev+1:12*klev)
       so2   => b3(:,:,12*klev+1:13*klev)
       no2   => b3(:,:,13*klev+1:14*klev)
+      ch4   => b3(:,:,14*klev+1:15*klev)
 
 
       hzvar    => b2(:,:,1:klev)
@@ -215,12 +216,13 @@ module mod_cams
       c3h8var  => b2(:,:,11*klev+1:12*klev)
       so2var   => b2(:,:,12*klev+1:13*klev)
       no2var   => b2(:,:,13*klev+1:14*klev)
+      ch4var   => b2(:,:,14*klev+1:15*klev)
 
 
       else if ( typ=='AE' ) then  
-        call getmem3d(b3a,1,jx,1,iy,1,klev*25,'mod_cams:b3a')
-        call getmem3d(b2a,1,ilon,1,jlat,1,klev*25,'mod_cams:b2a')
-        call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
+        call getmem3d(b3a,1,jx,1,iy,1,klev*15,'mod_cams:b3a')
+        call getmem3d(b2a,1,ilon,1,jlat,1,klev*15,'mod_cams:b2a')
+        call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:awork')
       !
       ! Set up pointers
       !
@@ -236,7 +238,7 @@ module mod_cams
       sslt2 => b3a(:,:,9*klev+1:10*klev)
       sslt3 => b3a(:,:,10*klev+1:11*klev)
       so4   => b3a(:,:,11*klev+1:12*klev)
-      so2   => b3a(:,:,12*klev+1:13*klev)
+      aso2   => b3a(:,:,12*klev+1:13*klev)
 
       hzavar    => b2a(:,:,1:klev)
       dust1var => b2a(:,:,1*klev+1:2*klev)
@@ -250,7 +252,7 @@ module mod_cams
       sslt2var => b2a(:,:,9*klev+1:10*klev)
       sslt3var => b2a(:,:,10*klev+1:11*klev)
       so4var   => b2a(:,:,11*klev+1:12*klev)
-      so2var   => b2a(:,:,12*klev+1:13*klev)
+      aso2var   => b2a(:,:,12*klev+1:13*klev)
 
       end if 
 
@@ -303,6 +305,8 @@ module mod_cams
     call top2btm(so2)
 !$OMP SECTION
     call top2btm(no2)
+!$OMP SECTION
+    call top2btm(ch4)
 !$OMP END SECTIONS
     else if(typ=='AE') then 
 
@@ -340,7 +344,7 @@ module mod_cams
 !$OMP SECTION
     call top2btm(so4)
 !$OMP SECTION
-    call top2btm(so2)
+    call top2btm(aso2)
 !$OMP END SECTIONS
 
     end if   
@@ -348,19 +352,18 @@ module mod_cams
     !
     ! Interpolate chemicals.
     !
-    if ( idynamic == 3 ) then
+    if ( idynamic < 3 ) call die('mod_ch_cams','CAMSR only works for idynamic=3')
     if (typ == 'CH') then 
 
 !$OMP SECTIONS
 !$OMP SECTION
-      
       call intz1(chv4(:,:,:,cb_O3),o3,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(chv4(:,:,:,cb_ALD2),xch2o,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)            
+      call intz1(chv4(:,:,:,cb_HCHO),xch2o,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)            
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
@@ -377,10 +380,12 @@ module mod_cams
       call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_NO2),no2,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+!$OMP SECTION
+      call intz1(chv4(:,:,:,cb_CH4),ch4,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
-
-!!$OMP SECTION
-!      call intz1(chv4(:,:,:,cb_OH),oh,z0,hz,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+! treat special case of functional groups 
+      chv4(:,:,:,cb_PAR) = 3._rkx* chv4(:,:,:,cb_PAR)
+! consider putting OH
 
      else if (typ=='AE') then 
 !$OMP SECTIONS
@@ -404,14 +409,23 @@ module mod_cams
 !$OMP SECTION
       call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so2),so2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+      call intz1(aev4(:,:,:,ae_so2),aso2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
-      end if 
 
-    else
-      print*,'not compatible with idynamic < 3'
+! perform mass reditribution from cams bins to regcm bins for dust and seasalt
+! the weights are roughly estimated from bin size and dust volume distribution between 0 and 20ùm
+! 
+      aev4(:,:,:,ae_dust1) = aev4(:,:,:,ae_dust1) + aev4(:,:,:,ae_dust2) 
+      aev4(:,:,:,ae_dust2) = 0.4_rkx * aev4(:,:,:,ae_dust3) 
+      aev4(:,:,:,ae_dust4) = 0.2_rkx * aev4(:,:,:,ae_dust3)!4 before 3!!
+      aev4(:,:,:,ae_dust3) = 0.4_rkx * aev4(:,:,:,ae_dust3)
       
-    end if
+      aev4(:,:,:,ae_sslt1) = aev4(:,:,:,ae_sslt1) + 0.2_rkx * aev4(:,:,:,ae_sslt2)
+      aev4(:,:,:,ae_sslt2) = 0.8_rkx * aev4(:,:,:,ae_sslt2)    
+! dit not use sslt3 consider using a third ssbin ... 
+
+     end if 
+
 !write out chv4  
     if(typ=='CH')   call  write_ch_icbc(idate)
     if(typ=='AE')   call  write_ae_icbc(idate)
@@ -428,10 +442,10 @@ module mod_cams
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=7) , dimension(12) :: gasname,aername
-    character(len=7) , dimension(12) :: gfname,afname
-    character(len=7) , dimension(12) ::varname
-    character(len=7) , dimension(12) ::fname
+    character(len=7) , dimension(14) :: gasname,gfname
+    character(len=7) , dimension(13) :: aername,afname
+    character(len=7) , dimension(15) ::varname ! make sure that dim is large enough
+    character(len=7) , dimension(15) ::fname
 
     character(len=64) :: cunit , ccal
     real(rkx) :: xadd , xscale
@@ -440,11 +454,11 @@ module mod_cams
     integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
 
-    data gasname /'z','go3' , 'co', 'c2h6','hcho','c3h8','no','no2', 'h2o2','c5h8' ,'so2','hno3' /
-    data gfname   /'geop','O3','CO','ETH', 'CH2O', 'C3H8','NO','NO2', 'H2O2', 'ISOP','SO2','HNO3'/
+    data gasname /'z','go3' , 'co', 'c2h6','hcho','c3h8','no','no2', 'h2o2','c5h8' ,'so2','hno3','ch4','pan'/
+    data gfname   /'geop','O3','CO','ETH', 'CH2O', 'C3H8','NO','NO2', 'H2O2', 'ISOP','SO2','HNO3','CH4','PAN'/
     data aername /'z','aermr04' , 'aermr05', 'aermr06','aermr09','aermr07','aermr10','aermr08',\
-                      'aermr01','aermr02' ,'aermr03','aermr11' /
-    data afname   /'geop','DUST1','DUST2','DUST3', 'BCHL','OCHL','BCHB', 'OCHB', 'SSLT1','SSLT2','SSLT3','SO4'/
+                      'aermr01','aermr02' ,'aermr03','aermr11','so2' /
+    data afname   /'geop','DUST1','DUST2','DUST3', 'BCHL','OCHL','BCHB', 'OCHB', 'SSLT1','SSLT2','SSLT3','SO4','SO2'/
 
 
     !
@@ -456,11 +470,11 @@ module mod_cams
     ! will contain the unpacked data.
     !
     if (typ == 'CH') then 
-     nsp = 12
+     nsp = 14
      varname(1:nsp) = gasname(1:nsp) 
      fname(1:nsp) = gfname(1:nsp)
     else if (typ == 'AE') then 
-     nsp = 12
+     nsp = 13
      varname(1:nsp) = aername(1:nsp)
      fname(1:nsp) = afname(1:nsp)
     end if  
@@ -552,6 +566,9 @@ module mod_cams
       if ( kkrec == 10 ) isopvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       if ( kkrec == 11 ) so2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       if ( kkrec == 12 ) hno3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+      if ( kkrec == 13 ) ch4var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+      if ( kkrec == 14 ) panvar(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+
      end do
 
       else if(typ=='AE') then
@@ -575,6 +592,7 @@ module mod_cams
       if ( kkrec == 10 )sslt2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       if ( kkrec == 11 )sslt3var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       if ( kkrec == 12 )so4var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
+      if ( kkrec == 13 )aso2var(1:ilon,1:jlat,:) = real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
         end do    
     end if
 
