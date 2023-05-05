@@ -1460,38 +1460,46 @@ module mod_mppparam
 #endif
 
       ! Set coordinates in the grid for the other processors
-      isearch(1) = ma%location(1)+1
-      isearch(2) = ma%location(2)+1
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
+      if ( ma%top /= mpi_proc_null .and. ma%right /= mpi_proc_null ) then
+        isearch(1) = ma%location(1)+1
+        isearch(2) = ma%location(2)+1
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%topright,mpierr)
 #ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-      end if
+        if ( mpierr /= mpi_success ) then
+          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
+        end if
 #endif
-      isearch(1) = ma%location(1)-1
-      isearch(2) = ma%location(2)+1
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
+      end if
+      if ( ma%top /= mpi_proc_null .and. ma%left /= mpi_proc_null ) then
+        isearch(1) = ma%location(1)-1
+        isearch(2) = ma%location(2)+1
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%topleft,mpierr)
 #ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-      end if
+        if ( mpierr /= mpi_success ) then
+          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
+        end if
 #endif
-      isearch(1) = ma%location(1)+1
-      isearch(2) = ma%location(2)-1
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
+      end if
+      if ( ma%bottom /= mpi_proc_null .and. ma%right /= mpi_proc_null ) then
+        isearch(1) = ma%location(1)+1
+        isearch(2) = ma%location(2)-1
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomright,mpierr)
 #ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-      end if
+        if ( mpierr /= mpi_success ) then
+          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
+        end if
 #endif
-      isearch(1) = ma%location(1)-1
-      isearch(2) = ma%location(2)-1
-      call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
+      end if
+      if ( ma%bottom /= mpi_proc_null .and. ma%left /= mpi_proc_null ) then
+        isearch(1) = ma%location(1)-1
+        isearch(2) = ma%location(2)-1
+        call mpi_cart_rank(cartesian_communicator,isearch,ma%bottomleft,mpierr)
 #ifdef DEBUG
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
-      end if
+        if ( mpierr /= mpi_success ) then
+          call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
+        end if
 #endif
+      end if
 
       ma%has_bdytop    = (ma%top    == mpi_proc_null)
       ma%has_bdybottom = (ma%bottom == mpi_proc_null)
