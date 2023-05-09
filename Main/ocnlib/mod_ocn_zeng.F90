@@ -139,11 +139,7 @@ module mod_ocn_zeng
       ! initial values of u* and convective velocity
       !
       wc = 1.0_rkx
-      if ( dthv >= d_zero ) then
-        um = max(uv995,wc)
-      else
-        um = sqrt(uv995*uv995+wc*wc)
-      end if
+      um = sqrt(uv995*uv995+wc*wc)
       ustar = um/25.0_rkx
       !
       ! zo comes from wave model

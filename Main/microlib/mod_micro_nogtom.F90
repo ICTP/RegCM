@@ -238,9 +238,15 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
+
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
+#ifdef RCEMIP
+  real(rkx) , parameter :: activcf = 0.1_rkx
+#else
+  real(rkx) , parameter :: activcf = zerocf
+#endif
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   abstract interface
@@ -839,7 +845,7 @@ module mod_micro_nogtom
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
           ltkgthomo = ( tk > thomo )
-          lcloud    = ( ccover > zerocf )
+          lcloud    = ( ccover > activcf )
           locast    = ( ccover >= onecf )
 
           ! Derived variables needed

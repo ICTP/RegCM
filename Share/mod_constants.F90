@@ -159,13 +159,16 @@ module mod_constants
   real(rkx) , parameter :: cpd = 1004.64_rkx
   ! Specific heat at constant pressure for water vapor J/kg/K
   real(rkx) , parameter :: cpv = 1846.00_rkx
+  ! Specific heat for dry air at constant volume J/kg/K
+  real(rkx) , parameter :: cvd = 717.6_rkx
 #else
   ! Specific heat at constant pressure for dry air J/kg/K
   real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368
   ! Specific heat at constant pressure for water vapor J/kg/K
   real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
-#endif
+  ! Specific heat for dry air at constant volume J/kg/K
   real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.6423120
+#endif
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
   ! Specific heat of ice at 0 Celsius J/kg/K

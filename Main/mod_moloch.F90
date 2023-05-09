@@ -104,11 +104,13 @@ module mod_moloch
   logical , parameter :: do_filterqx = .false.
   logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
+  logical , parameter :: do_paiforce = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  real(rkx) :: nupait , ddamp , dzita
+  real(rkx) , parameter :: paifact = 0.85_rkx
+  real(rkx) :: nupait , ddamp , dzita , prat
   integer(ik4) :: nadv , nsound
   integer(ik4) :: jmin , jmax , imin , imax
 
@@ -285,6 +287,7 @@ module mod_moloch
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
     real(rkx) :: tv , lrt , fice
+    real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
     !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
@@ -303,6 +306,13 @@ module mod_moloch
     on_device = .true.
 
     call reset_tendencies
+
+    if ( do_paiforce ) then
+      do k = 1 , kz
+        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmil,tmi(k))
+      end do
+    end if
 
 !$acc parallel present(p, pai, qsat, t)
 !$acc loop collapse(3)
@@ -449,6 +459,24 @@ module mod_moloch
 !$acc kernels present(pai, pf)
       pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
 !$acc end kernels
+    end if
+
+    if ( do_paiforce ) then
+      do k = 1 , kz
+        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmfl,tmf(k))
+      end do
+!$acc parallel present(pai) private(prat)
+!$acc loop collapse(3)
+      do k = 1 , kz
+        prat = tmi(k)/tmf(k)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            pai(j,i,k) = pai(j,i,k) * sign(1.0_rkx,prat) * max(paifact,prat)
+          end do
+        end do
+      end do
+!$acc end parallel
     end if
 
 !$acc update self(pai) async(2)

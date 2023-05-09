@@ -99,7 +99,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 12345_ik4
+  integer(ik4) :: permuteseed = 1_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,6 +107,10 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
+    permuteseed = permuteseed + myid*(ngptlw+ngptsw)
+    do while ( permuteseed < 0 )
+      permuteseed = 2147483641+permuteseed
+    end do
     npj = (jci2-jci1+1)
     npr = npj*(ici2-ici1+1)
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
