@@ -296,7 +296,7 @@ module mod_bdycod
       ts = t0s(3)
       qs = q0s(3)
     end if
-    tvs = ts * (1.0_rkx + 0.608_rkx*qs)
+    tvs = ts * (1.0_rkx + ep1*qs)
     tvt = tvs - lrate * 15000.0_rkx
 
     allocate(zi(kz),ti(kz),qi(kz))
@@ -312,7 +312,7 @@ module mod_bdycod
     do k = 1 , kz
       if ( zi(k) < 15000.0_rkx ) then
         qi(k) = qs * exp(-zi(k)/4000.0_rkx) * exp((-zi(k)/7500.0_rkx)**2)
-        ti(k) = (tvs - lrate * zi(k))/(1.0_rkx + 0.608_rkx*qi(k))
+        ti(k) = (tvs - lrate * zi(k))/(1.0_rkx + ep1*qi(k))
       else
         qi(k) = minqq
         ti(k) = tvt
@@ -322,7 +322,7 @@ module mod_bdycod
     xtsb%b0 = ts
     qi = qi/(1.0_rkx-qi)
     do k = 1 , kz
-      xub%b0(:,:,k) = -0.05_rkx
+      xub%b0(:,:,k) = 0.0_rkx
       xvb%b0(:,:,k) = 0.0_rkx
       xtb%b0(:,:,k) = ti(k)
       xqb%b0(:,:,k) = qi(k)

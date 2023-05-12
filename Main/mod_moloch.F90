@@ -76,7 +76,7 @@ module mod_moloch
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
   real(rkx) , dimension(:,:) , pointer :: mv , hy
-  real(rkx) , dimension(:,:) , pointer :: ps , ht
+  real(rkx) , dimension(:,:) , pointer :: ps , ts , ht
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
   real(rkx) , dimension(:,:,:) , pointer :: pai , pf
@@ -99,18 +99,19 @@ module mod_moloch
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
   logical , parameter :: do_fulleq = .true.
+  logical , parameter :: do_divdamp = .true.
   logical , parameter :: do_filterpai = .false.
   logical , parameter :: do_vadvtwice = .true.
   logical , parameter :: do_filterqx = .false.
   logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
-  logical , parameter :: do_paiforce = .false.
+  logical , parameter :: do_paiconserve = .true.
+
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  real(rkx) , parameter :: paifact = 0.85_rkx
-  real(rkx) :: nupait , ddamp , dzita , prat
+  real(rkx) :: nupait , ddamp , dzita
   integer(ik4) :: nadv , nsound
   integer(ik4) :: jmin , jmax , imin , imax
 
@@ -204,6 +205,7 @@ module mod_moloch
     call assignpnt(mddom%xlon,xlon)
     call assignpnt(mddom%ht,ht)
     call assignpnt(sfs%psa,ps)
+    call assignpnt(sfs%tg,ts)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%fmzf,fmzf)
     call assignpnt(mo_atm%pai,pai)
@@ -276,7 +278,7 @@ module mod_moloch
 !$acc& gzitak, gzitakh, wwkw, w, coru, corv, mo_atm%zeta, mo_atm%zetaf)
 
 ! Update dynamic arrays to device
-!$acc update device(u, v, pai, t, qx, ps)
+!$acc update device(u, v, pai, t, qx, ps, ts)
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -286,8 +288,12 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice
+    real(rkx) :: tv , lrt , fice , invt , prat
+#ifdef QUAD_PRECISION
+    real(rk16) :: tmi(kz) , tmf(kz) , tmil , tmfl
+#else
     real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
+#endif
     !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
@@ -307,7 +313,7 @@ module mod_moloch
 
     call reset_tendencies
 
-    if ( do_paiforce ) then
+    if ( do_paiconserve ) then
       do k = 1 , kz
         tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
         call sumall(tmil,tmi(k))
@@ -461,7 +467,7 @@ module mod_moloch
 !$acc end kernels
     end if
 
-    if ( do_paiforce ) then
+    if ( do_paiconserve ) then
       do k = 1 , kz
         tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
         call sumall(tmfl,tmf(k))
@@ -472,7 +478,7 @@ module mod_moloch
         prat = tmi(k)/tmf(k)
         do i = ice1 , ice2
           do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) * sign(1.0_rkx,prat) * max(paifact,prat)
+            pai(j,i,k) = pai(j,i,k) * prat
           end do
         end do
       end do
@@ -568,15 +574,21 @@ module mod_moloch
 !$acc end parallel
 
     !jday = yeardayfrac(rcmtimer%idate)
-!$acc parallel present(zeta, tvirt, ps, p) private(zdgz, lrt, tv)
+!$acc parallel present(zeta, tvirt, ps, ts, p) private(zdgz, lrt, tv, invt)
 !$acc loop collapse(2)
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
+        invt = sign(1.0,(t(j,i,kz)-ts(j,i)))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
+        if ( invt < 0.0 ) then
+          tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
+        else
+          tv = tvirt(j,i,kz) - &
+            0.5_rkx*(t(j,i,kz)-ts(j,i))*(d_one+ep1*qv(j,i,kz))
+        end if
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
@@ -602,12 +614,12 @@ module mod_moloch
       call boundary
       if ( i_crm /= 1 ) then
         if ( ifrayd == 1 ) then
-          !$acc wait(2)
+!$acc wait(2)
           call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
           call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
           call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
           call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-          !$acc update device(u, v, t, pai) async(2)
+!$acc update device(u, v, t, pai) async(2)
         end if
       end if
     else
@@ -1312,7 +1324,7 @@ module mod_moloch
             call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           end if
 #endif
-          call divdamp(dtsound)
+          if ( do_divdamp ) call divdamp(dtsound)
           if ( do_filterdiv ) call divergence_filter(mo_anu2)
 !$acc parallel present(zdiv2, fmz, s)
 !$acc loop collapse(3)
@@ -1845,18 +1857,11 @@ module mod_moloch
         call wafone(ux,dta)
         call wafone(vx,dta)
         call wafone(wx,dta)
-        call wafone(qv,dta)
+        call wafone(qv,dta,pmin=minqq)
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-#ifdef DEBUG
-            ptr = ptr * 1.0e4_rkx
-#endif
-            call wafone(ptr,dta)
-#ifdef DEBUG
-            where ( ptr < minqc ) ptr = minqc
-            ptr = ptr * 1.0e-4_rkx
-#endif
+            call wafone(ptr,dta,1.0e4_rkx,minqc)
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -1865,14 +1870,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-#ifdef DEBUG
-            ptr = ptr * 1.0e8_rkx
-#endif
-            call wafone(ptr,dta)
-#ifdef DEBUG
-            where ( ptr < 1.0e-20_rkx ) ptr = d_zero
-            ptr = ptr * 1.0e-8_rkx
-#endif
+            call wafone(ptr,dta,1.0e8_rkx,1.0e-20_rkx)
           end do
         end if
 
@@ -1897,10 +1895,11 @@ module mod_moloch
         rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
       end function rdeno
 
-      subroutine wafone(pp,dta)
+      subroutine wafone(pp,dta,pfac,pmin)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dta
+        real(rkx) , optional , intent(in) :: pfac , pmin
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmu , zrfmd
@@ -1923,6 +1922,12 @@ module mod_moloch
         zdtrdz = dta/dzita
         if ( do_vadvtwice ) then
           zdtrdz = 0.5_rkx * zdtrdz
+        end if
+
+        if ( present(pfac) ) then
+!$acc kernels present(pp)
+          pp = pp * pfac
+!$acc end kernels
         end if
 
         ! Vertical advection
@@ -2127,6 +2132,12 @@ module mod_moloch
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 !!$acc update device(wz)
 
+        if ( present(pmin) ) then
+!$acc kernels present(wz)
+          wz = max(wz,pmin)
+!$acc end kernels
+        end if
+
         if ( lrotllr ) then
 
           ! Meridional advection
@@ -2233,6 +2244,12 @@ module mod_moloch
 !!$acc update self(p0)
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 !!$acc update device(p0)
+
+        if ( present(pmin) ) then
+!$acc kernels present(p0)
+          p0 = max(p0,pmin)
+!$acc end kernels
+        end if
 
           ! Zonal advection
 
@@ -2499,6 +2516,17 @@ module mod_moloch
 #endif
           end do
 !$acc end parallel
+        end if
+
+        if ( present(pfac) ) then
+!$acc kernels present(pp)
+          pp = pp / pfac
+!$acc end kernels
+        end if
+        if ( present(pmin) ) then
+!$acc kernels present(pp)
+          pp = max(pp,pmin)
+!$acc end kernels
         end if
       end subroutine wafone
 

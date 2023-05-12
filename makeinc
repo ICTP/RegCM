@@ -53,12 +53,13 @@ ifeq ($(findstring DCLM45, $(CPPFLAGS)),DCLM45)
   #CPPFLAGS += $(DEFINE)VICHYDRO
 endif
 
-#CPPFLAGS += $(DEFINE)RCEMIP
+#CPPFLAGS += $(DEFINE)RCEMIP $(DEFINE)QUAD_PRECISION
 
 space :=
 space +=
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
+scppfla := $(filter-out $(DEFINE)QUAD_PRECISION,$(scppfla))
 scppfla := $(filter-out $(DEFINE)MPI_SERIAL,$(scppfla))
 scppfla := $(filter-out $(DEFINE)NETCDF_CDF5,$(scppfla))
 scppfla := $(filter-out $(DEFINE)NETCDF4_COMPRESS,$(scppfla))

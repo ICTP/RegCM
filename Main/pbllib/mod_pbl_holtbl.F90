@@ -155,12 +155,8 @@ module mod_pbl_holtbl
     !
     ! Compute the g/dp term
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       thvx(j,i,k) = m2p%thatm(j,i,k) * (d_one+ep1*m2p%qxatm(j,i,k,iqv))

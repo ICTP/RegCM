@@ -21,6 +21,7 @@ module mod_ocn_common
 !
 ! Storage for Surface (BATS and shared by CLM) variables
 !
+  use mod_mpmessage
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -58,6 +59,9 @@ module mod_ocn_common
         call zengocndrv
       case (3)
         call coare3_drv
+      case default
+        call fatal(__FILE__,__LINE__, &
+                    'Not implemented Ocean Surface Fluxes Scheme.')
     end select
     if ( llake ) call lakedrv
     if ( lseaice ) call seaice
