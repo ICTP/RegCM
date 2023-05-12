@@ -580,10 +580,10 @@ module mod_moloch
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        invt = sign(1.0,(t(j,i,kz)-ts(j,i)))
+        invt = sign(1.0_rkx,(t(j,i,kz)-ts(j,i)))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        if ( invt < 0.0 ) then
+        if ( invt < 0.0_rkx ) then
           tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         else
           tv = tvirt(j,i,kz) - &
