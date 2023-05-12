@@ -337,7 +337,9 @@ module mod_mppparam
                      bcast_int8,              &
                      bcast_real4,             &
                      bcast_real8,             &
+#ifdef QUAD_PRECISION
                      bcast_real16,            &
+#endif
                      bcast_arr_logical,       &
                      bcast_arr_character,     &
                      bcast_arr_text_list,     &
@@ -744,17 +746,6 @@ module mod_mppparam
     implicit none
     real(rk16) , intent(inout) :: rval
     call mpi_bcast(rval,1,mpi_real16,iocpu,mycomm,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
-    end if
-#endif
-  end subroutine bcast_real16
-#else
-  subroutine bcast_real16(rval)
-    implicit none
-    real(rk8) , dimension(2) , intent(inout) :: rval
-    call mpi_bcast(rval,2,mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
