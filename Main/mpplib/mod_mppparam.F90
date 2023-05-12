@@ -753,7 +753,7 @@ module mod_mppparam
 #else
   subroutine bcast_real16(rval)
     implicit none
-    real(rk8) , dimension(2) :: intent(inout) :: rval
+    real(rk8) , dimension(2) , intent(inout) :: rval
     call mpi_bcast(rval,2,mpi_real8,iocpu,mycomm,mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
