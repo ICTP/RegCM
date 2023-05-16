@@ -865,7 +865,9 @@ module mod_init
       !
       ! Init boundary
       !
-      call init_bdy
+      if ( irceideal /= 1 ) then
+        call init_bdy
+      end if
       !
       ! Report success
       !
