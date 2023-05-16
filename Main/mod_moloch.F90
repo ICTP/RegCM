@@ -105,7 +105,7 @@ module mod_moloch
   logical , parameter :: do_filterqx = .false.
   logical , parameter :: do_filterdiv = .false.
   logical , parameter :: do_filtertheta = .false.
-  logical , parameter :: do_paiconserve = .true.
+  logical , parameter :: do_massconserve = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -294,6 +294,7 @@ module mod_moloch
 #else
     real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
 #endif
+!$acc enter data create(tmi,tmf)
     !real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
@@ -312,13 +313,6 @@ module mod_moloch
     on_device = .true.
 
     call reset_tendencies
-
-    if ( do_paiconserve ) then
-      do k = 1 , kz
-        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmil,tmi(k))
-      end do
-    end if
 
 !$acc parallel present(p, pai, qsat, t)
 !$acc loop collapse(3)
@@ -448,6 +442,14 @@ module mod_moloch
       end if
     end if
 
+    if ( do_massconserve ) then
+      do k = 1 , kz
+        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmil,tmi(k))
+      end do
+    end if
+!$acc update self(tmi) async(2)
+
     do jadv = 1 , nadv
 
       call sound(dtsound)
@@ -467,24 +469,6 @@ module mod_moloch
 !$acc end kernels
     end if
 
-    if ( do_paiconserve ) then
-      do k = 1 , kz
-        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmfl,tmf(k))
-      end do
-!$acc parallel present(pai) private(prat)
-!$acc loop collapse(3)
-      do k = 1 , kz
-        prat = tmi(k)/tmf(k)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) * prat
-          end do
-        end do
-      end do
-!$acc end parallel
-    end if
-
 !$acc update self(pai) async(2)
 
     if ( do_fulleq ) then
@@ -497,6 +481,26 @@ module mod_moloch
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
 !$acc end kernels
       end if
+    end if
+
+    if ( do_massconserve ) then
+      do k = 1 , kz
+        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmfl,tmf(k))
+      end do
+!$acc update self(tmf) async(2)
+
+!$acc parallel present(pai) private(prat)
+!$acc loop collapse(3)
+      do k = 1 , kz
+        prat = tmi(k)/tmf(k)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            pai(j,i,k) = pai(j,i,k) * prat
+          end do
+        end do
+      end do
+!$acc end parallel
     end if
 
 !$acc parallel present(tvirt, tetav, pai)
@@ -561,13 +565,14 @@ module mod_moloch
         cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
       end if
     end if
+
 !$acc parallel present(p, pai, rho, t)
 !$acc loop collapse(3)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           p(j,i,k) = (pai(j,i,k)**cpovr) * p00
-          rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
+          rho(j,i,k) = p(j,i,k)/(rgas*tvirt(j,i,k))
         end do
       end do
     end do
@@ -580,10 +585,10 @@ module mod_moloch
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        invt = sign(1.0,(t(j,i,kz)-ts(j,i)))
+        invt = sign(1.0_rkx,(t(j,i,kz)-ts(j,i)))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        if ( invt < 0.0 ) then
+        if ( invt < 0.0_rkx ) then
           tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         else
           tv = tvirt(j,i,kz) - &
