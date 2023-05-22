@@ -75,7 +75,7 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:,:) :: xasy1 , xasy2
   real(rkx) , pointer , dimension(:,:,:) :: xdelp1 , xdelp2
   type(h_interpolator) :: hint
-  integer(ik4) :: ncid = -1
+  integer(ik4) :: ncid1 = -1 , ncid2 = -1
   integer(ik4) :: clnlon , clnlat , clnlev
   !
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
@@ -1609,7 +1609,7 @@ module mod_rad_aerosol
       call split_idate(idatex,iyear,imon,iday,ihour)
       imonmidd = monmiddle(idatex)
 
-      if (iyear < 1979 .and. iyear > 2021) then
+      if (iyear < 1979 .and. iyear > 2020) then
         write (stderr,*) 'NO CLIMATIC AEROPP DATA AVAILABLE FOR ',iyear*100+imon
         return
       end if
@@ -1618,7 +1618,7 @@ module mod_rad_aerosol
         call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
         call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
-          call getfile(iyear,imon,ncid)
+          call getfile(iyear,imon,ncid1)
 
           call getmem1d(lat,1,clnlat,'aeropp:lat')
           call getmem1d(lon,1,clnlon,'aeropp:lon')
@@ -1643,7 +1643,7 @@ module mod_rad_aerosol
           call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
           call getmem3d(ydelp,1,njcross,1,nicross,1,clnlev,':ydelp')
           call getmem3d(yphcl,1,njcross,1,nicross,1,clnlev,':yphcl')
-          call init_aeroppdata(ncid,lat,lon)
+          call init_aeroppdata(ncid1,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
         end if
       end if
@@ -1685,17 +1685,17 @@ module mod_rad_aerosol
 
           write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
           if ( lfirst ) then
-            call getfile(iy1,im1,ncid)
-            call readvar3d(ncid,'EXTTOT',xext1)
-            call readvar3d(ncid,'SSATOT',xssa1)
-            call readvar3d(ncid,'GTOT',xasy1)
-            call readvar3d(ncid,'DELP',xdelp1)
+            call getfile(iy1,im1,ncid1)
+            call readvar3d(ncid1,'EXTTOT',xext1)
+            call readvar3d(ncid1,'SSATOT',xssa1)
+            call readvar3d(ncid1,'GTOT',xasy1)
+            call readvar3d(ncid1,'DELP',xdelp1)
 
-            call getfile(iy2,im2,ncid)
-            call readvar3d(ncid,'EXTTOT',xext2)
-            call readvar3d(ncid,'SSATOT',xssa2)
-            call readvar3d(ncid,'GTOT',xasy2)
-            call readvar3d(ncid,'DELP',xdelp2)
+            call getfile(iy2,im2,ncid2)
+            call readvar3d(ncid2,'EXTTOT',xext2)
+            call readvar3d(ncid2,'SSATOT',xssa2)
+            call readvar3d(ncid2,'GTOT',xasy2)
+            call readvar3d(ncid2,'DELP',xdelp2)
 
             call remove_nans(xext1,d_zero)
             call remove_nans(xext2,d_zero)
@@ -1761,11 +1761,11 @@ module mod_rad_aerosol
             ext1 = ext2
             ssa1 = ssa2
             asy1 = asy2
-            call getfile(iy2,im2,ncid)
-            call readvar3d(ncid,'EXTTOT',xext2)
-            call readvar3d(ncid,'SSATOT',xssa2)
-            call readvar3d(ncid,'GTOT',xasy2)
-            call readvar3d(ncid,'DELP',xdelp2)
+            call getfile(iy2,im2,ncid2)
+            call readvar3d(ncid2,'EXTTOT',xext2)
+            call readvar3d(ncid2,'SSATOT',xssa2)
+            call readvar3d(ncid2,'GTOT',xasy2)
+            call readvar3d(ncid2,'DELP',xdelp2)
 
             call remove_nans(xext2,d_zero)
             call remove_nans(xssa2,d_one)
