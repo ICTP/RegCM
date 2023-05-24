@@ -86,7 +86,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: ud , vd
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
-  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
+  real(rkx) , dimension(:,:,:) , pointer :: qv , qf , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
@@ -94,24 +94,28 @@ module mod_moloch
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , xtouvstag , wstagtox
 
-  real(rkx) , parameter :: minden = 1.0e-30_rkx
+  real(rkx) , parameter :: minden = 1.0e-15_rkx
 
-  logical , parameter :: do_phys = .true.
-  logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .true.
-  logical , parameter :: do_divdamp = .true.
-  logical , parameter :: do_filterpai = .false.
-  logical , parameter :: do_vadvtwice = .true.
-  logical , parameter :: do_filterqx = .false.
-  logical , parameter :: do_filterdiv = .false.
-  logical , parameter :: do_filtertheta = .false.
-  logical , parameter :: do_massconserve = .true.
+  logical , parameter :: do_phys         = .true.
+  logical , parameter :: do_fulleq       = .true.
+  logical , parameter :: do_vadvtwice    = .true.
+  logical , parameter :: do_bdy          = .true.
+  logical , parameter :: do_divdamp      = .true.
+  logical , parameter :: do_filterpai    = .false.
+  logical , parameter :: do_filterqv     = .false.
+  logical , parameter :: do_filterdiv    = .false.
+  logical , parameter :: do_filtertheta  = .false.
+  logical , parameter :: do_massconserve = .false.
+
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  real(rkx) :: nupait , ddamp , dzita
+  real(rkx) , parameter :: nupaitq = 0.05_rkx
+  real(rkx) , parameter :: ddamp = 0.25_rkx
+
+  real(rkx) :: dzita
   integer(ik4) :: nadv , nsound
   integer(ik4) :: jmin , jmax , imin , imax
 
@@ -192,6 +196,10 @@ module mod_moloch
       call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
 !$acc enter data create(tf)
     end if
+    if ( do_filterqv ) then
+      call getmem3d(qf,jce1,jce2,ice1,ice2,1,kz,'moloch:qf')
+!$acc enter data create(qf)
+    end if
   end subroutine allocate_moloch
 
   subroutine init_moloch
@@ -252,11 +260,9 @@ module mod_moloch
     nadv = mo_nadv
     nsound = mo_nsound
     dzita = mo_dzita
-    nupait = 0.05_rkx
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
-    ddamp = 0.25_rkx
 
     jmin = jcross1
     jmax = jcross2
@@ -441,6 +447,11 @@ module mod_moloch
 !$acc end kernels
       end if
     end if
+    if ( do_filterqv ) then
+!$acc kernels present(qf, qv)
+      qf = qv(jce1:jce2,ice1:ice2,:)
+!$acc end kernels
+    end if
 
     if ( do_massconserve ) then
       do k = 1 , kz
@@ -481,6 +492,7 @@ module mod_moloch
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
 !$acc end kernels
       end if
+!$acc update self(tetav) async(2)
     end if
 
     if ( do_massconserve ) then
@@ -628,7 +640,6 @@ module mod_moloch
         end if
       end if
     else
-      call uvstagtox(u,v,ux,vx)
       if ( debug_level > 1 ) then
         if ( myid == italk .and. irceideal == 0 ) then
           write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
@@ -638,6 +649,7 @@ module mod_moloch
     !
     ! Prepare fields to be used in physical parametrizations.
     !
+    call uvstagtox(u,v,ux,vx)
     call mkslice
     !
     ! PHYSICS
@@ -661,6 +673,19 @@ module mod_moloch
         end if
       end if
     end if
+
+    if ( do_filterqv ) then
+!$acc kernels present(qv, qf)
+      qv(jce1:jce2,ice1:ice2,:) = qv(jce1:jce2,ice1:ice2,:) - qf
+!$acc end kernels
+      call filtqv
+!$acc kernels present(qv, qf)
+      qv(jce1:jce2,ice1:ice2,:) = max(qv(jce1:jce2,ice1:ice2,:) + qf,minqq)
+!$acc end kernels
+    end if
+
+!$acc update self(qv) async(2)
+
     !
     ! Mass check
     !
@@ -894,14 +919,7 @@ module mod_moloch
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
         end if
-
 !$acc wait(2)
-        call uvstagtox(u,v,ux,vx)
-        if ( do_filterqx .and. ipptls > 0 ) then
-          call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
-          call filt4d(qx,mo_anu2,iqfrst,iqlst)
-        end if
-
       end subroutine boundary
 
       subroutine filt4d(p,nu,n1,n2)
@@ -986,7 +1004,7 @@ module mod_moloch
 !$acc loop vector collapse(2)
           do i = ici1 , ici2
             do j = jci1 , jci2
-              pai(j,i,k) = pai(j,i,k) + nupait * p2d(j,i)
+              pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
             end do
           end do
         end do
@@ -1015,12 +1033,41 @@ module mod_moloch
 !$acc loop vector collapse(2)
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tetav(j,i,k) = tetav(j,i,k) + nupait * p2d(j,i)
+              tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
             end do
           end do
         end do
 !$acc end parallel
       end subroutine filttheta
+
+      subroutine filtqv
+        implicit none
+        integer(ik4) :: j , i , k
+
+!!$acc update self(qv)
+        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
+!!$acc update device(qv)
+
+!$acc parallel present(p2d, qv) if(on_device)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector collapse(2)
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
+                                      qv(j,i-1,k) + qv(j,i+1,k)) - &
+                         d_half   * qv(j,i,k)
+            end do
+          end do
+!$acc loop vector collapse(2)
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qv(j,i,k) = qv(j,i,k) + nupaitq * p2d(j,i)
+            end do
+          end do
+        end do
+!$acc end parallel
+      end subroutine filtqv
 
       subroutine sound(dts)
         implicit none
