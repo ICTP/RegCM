@@ -28,7 +28,7 @@ module mod_pbl_holtbl
   use mod_constants
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
         ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter , &
-        ipptls , iqc , iqi , dsigma
+        ipptls , iqc , iqi , dsigma , nqx
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -52,6 +52,7 @@ module mod_pbl_holtbl
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2 , cfac , vv
   real(rkx) , pointer , dimension(:,:,:) :: kzm , ttnp
+  real(rkx) , pointer , dimension(:,:,:,:) :: qten
   real(rkx) , pointer , dimension(:,:) :: uvdrage
   real(rkx) , pointer , dimension(:,:,:) :: hydf
 
@@ -90,6 +91,7 @@ module mod_pbl_holtbl
     call getmem3d(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem3d(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
     call getmem3d(kzm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kzm')
+    call getmem4d(qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'mod_holtbl:qten')
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
@@ -820,12 +822,12 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
+    qten(:,:,:,:) = d_zero
     if ( idynamic == 3 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                    (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
+           qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
           end do
         end do
       end do
@@ -833,8 +835,8 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                         (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
+            qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))* &
+              rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -908,8 +910,7 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                    (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
+            qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
           end do
         end do
       end do
@@ -917,8 +918,8 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                    (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
+            qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))* &
+              rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -983,8 +984,7 @@ module mod_pbl_holtbl
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                      (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
+              qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
             end do
           end do
         end do
@@ -992,8 +992,8 @@ module mod_pbl_holtbl
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                      (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt*m2p%psb(j,i)
+              qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))* &
+                rdt*m2p%psb(j,i)
             end do
           end do
         end do
@@ -1059,17 +1059,19 @@ module mod_pbl_holtbl
       do k = 1 , kzm1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-              (ttnp(j,i,k+1)-ttnp(j,i,k))
+            qten(j,i,k,iqv) = qten(j,i,k,iqv) + (ttnp(j,i,k+1)-ttnp(j,i,k))
           end do
         end do
       end do
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%qxten(j,i,kz,iqv) = p2m%qxten(j,i,kz,iqv) - ttnp(j,i,kz)
+          qten(j,i,kz,iqv) = qten(j,i,kz,iqv) - ttnp(j,i,kz)
         end do
       end do
     end if
+
+    call force_water_conserve(qten,m2p%qxatm,xqfx)
+    p2m%qxten(:,:,:,:) = p2m%qxten(:,:,:,:) + qten
 
     if ( ichem == 1 ) then
       !
@@ -1462,6 +1464,36 @@ module mod_pbl_holtbl
       real(rkx) , intent(in) :: thvs , ustar , bfs
       obk = - thvs * ustar**3 / (gvk*bfs+sign(1.0e-10_rkx,bfs))
     end function comp_obklen
+
+    subroutine force_water_conserve(tend,start,sflux)
+      implicit none
+      real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: tend
+      real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux
+      real(rkx) , dimension(kz) :: qi , qf
+      real(rkx) :: sqtoti , sqtotf
+      integer(ik4) :: i , j , k , n
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nqx
+            qi(1:kz) = start(j,i,1:kz,n)
+            qf(1:kz) = qi(1:kz) + tend(j,i,1:kz,n) * dt
+            if ( idynamic /= 3 ) then
+              qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
+              qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
+            end if
+            sqtoti = sum(qi)
+            sqtotf = sum(qf)
+            if ( n == iqv ) sqtoti = sqtoti + sflux(j,i)
+            if ( abs(sqtotf-sqtoti) > minqq ) then
+              k = maxloc(qi,1)
+              tend(j,i,k,n) = tend(j,i,k,n) + (sqtoti-sqtotf) * rdt
+            end if
+          end do
+        end do
+      end do
+    end subroutine force_water_conserve
 
   end subroutine holtbl
 

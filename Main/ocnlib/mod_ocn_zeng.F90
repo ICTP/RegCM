@@ -92,7 +92,7 @@ module mod_ocn_zeng
 #endif
 
     wt1 = (threedays-dtocn)/threedays
-    wt2 = dtocn/threedays
+    wt2 = 1.0_rkx-wt1
 
     do i = iocnbeg , iocnend
       if ( mask(i) /= 1 ) cycle
@@ -381,7 +381,7 @@ module mod_ocn_zeng
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))
-      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
+      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
     end do
 
 #ifdef DEBUG

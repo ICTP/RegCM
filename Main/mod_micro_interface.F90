@@ -59,6 +59,8 @@ module mod_micro_interface
   integer(ik4) , parameter :: nchi = 256
   real(rkx) , dimension(0:nchi-1) :: chis
 
+  logical , parameter :: do_cfscaling = .false.
+
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 
   contains
@@ -251,6 +253,7 @@ module mod_micro_interface
       end do
     end if
 
+#ifndef RCEMIP
     select case ( icldfrac )
       case (1)
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
@@ -270,6 +273,12 @@ module mod_micro_interface
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
     end select
+#else
+    mc2mo%fcc = d_zero
+    where ( totc > 1.0e-8_rkx )
+      mc2mo%fcc = 1.0_rkx
+    end where
+#endif
 
     if ( ipptls == 1 ) then
       rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-mc2mo%fcc),1.0e-5_rkx)**2
@@ -356,8 +365,10 @@ module mod_micro_interface
               ! Scaling for CF
               ! Implements CF scaling as in Liang GRL 32, 2005
               ! doi: 10.1029/2004GL022301
-              ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
-              exlwc = exlwc * chis(ichi)
+              if ( do_cfscaling ) then
+                ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+                exlwc = exlwc * chis(ichi)
+              end if
               if ( cldfra(j,i,k) > lowcld ) then
                 ! get maximum cloud fraction between cumulus and large scale
                 cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
@@ -391,8 +402,10 @@ module mod_micro_interface
               ! Scaling for CF
               ! Implements CF scaling as in Liang GRL 32, 2005
               ! doi: 10.1029/2004GL022301
-              ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
-              exlwc = exlwc * chis(ichi)
+              if ( do_cfscaling ) then
+                ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+                exlwc = exlwc * chis(ichi)
+              end if
               cldlwc(j,i,k) = exlwc
               if ( cldlwc(j,i,k) > d_zero ) then
                 cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
