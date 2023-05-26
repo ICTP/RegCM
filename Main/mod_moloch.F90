@@ -105,7 +105,11 @@ module mod_moloch
   logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filterdiv    = .false.
   logical , parameter :: do_filtertheta  = .false.
+#ifdef RCEMIP
+  logical , parameter :: do_massconserve = .true.
+#else
   logical , parameter :: do_massconserve = .false.
+#endif
 
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
@@ -508,7 +512,8 @@ module mod_moloch
         prat = tmi(k)/tmf(k)
         do i = ice1 , ice2
           do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) * prat
+            pai(j,i,k) = pai(j,i,k) * &
+              (1.0_rkx - nadv*nsound*rdt*(1.0_rkx-prat))
           end do
         end do
       end do
