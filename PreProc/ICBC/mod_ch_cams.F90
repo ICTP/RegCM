@@ -67,11 +67,11 @@ module mod_cams
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
 
-  integer(ik4) , dimension(20,4) :: inet5 !care the first dimension must be
-                                          !bigger than the number of species
-                                          !for gas or aer
-  integer(ik4) , dimension(20,4) :: ivar5
-  real(rkx) , dimension(20,4) :: xoff , xscl
+  integer(ik4) , dimension(20) :: inet5 !care the first dimension must be
+                                        !bigger than the number of species
+                                        !for gas or aer
+  integer(ik4) , dimension(20) :: ivar5
+  real(rkx) , dimension(20) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
 
@@ -455,7 +455,7 @@ module mod_cams
     character(len=5) , intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
@@ -500,56 +500,62 @@ module mod_cams
       fname(1:nsp) = afname(1:nsp)
     end if
 
-    k4 = 1
     call split_idate(idate,year,month,day,hour)
 
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
+      if ( idate /= idate0 ) then
+        do kkrec = 1 , nsp ! boulce sur nbre variables gaz
+          istatus = nf90_close(inet5(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+             'Error close file')
+        end do
+      end if
       do kkrec = 1 , nsp ! boulce sur nbre variables gaz
         !verifie le path pour fichier CAMS !!
         write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
         year, pthsep, trim(fname(kkrec)), '_', year, '_', month,'.nc'
         pathaddname = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
 
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
-                                 ivar5(kkrec,1))
+        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec), &
+                                 ivar5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
-                 'scale_factor',xscl(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                 'scale_factor',xscl(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
-                   'add_offset',xoff(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                   'add_offset',xoff(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-        write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
-                         xscl(kkrec,1) , xoff(kkrec,1)
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                         xscl(kkrec) , xoff(kkrec)
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_dimid(inet5(1),'time',timid)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_varid(inet5(1),'time',timid)
           if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+            istatus = nf90_inq_varid(inet5(1),'date',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var time/date')
           end if
-          istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          istatus = nf90_get_att(inet5(1,1),timid,'calendar',ccal)
+          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
           call getmem1d(itimes,1,timlen,'mod_cams:itimes')
           call getmem1d(xtimes,1,timlen,'mod_cams:xtimes')
-          istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+          istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
           do it = 1 , timlen
@@ -566,12 +572,12 @@ module mod_cams
     istart(4) = it
     icount(4) = 1
 
-    if (typ=='CH') then
+    if ( typ == 'CH' ) then
       do kkrec = 1 , nsp ! loop on number variables
-        inet = inet5(kkrec,k4)
-        ivar = ivar5(kkrec,k4)
-        xscale = xscl(kkrec,k4)
-        xadd = xoff(kkrec,k4)
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
         call getwork(kkrec)
         !care the order must match varname data - could be more elegant,
         if ( kkrec == 1 ) hzvar(1:ilon,1:jlat,:) = &
@@ -603,12 +609,12 @@ module mod_cams
         if ( kkrec == 14 ) panvar(1:ilon,1:jlat,:) = &
           real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       end do
-    else if(typ=='AE') then
+    else if ( typ == 'AE' ) then
       do kkrec = 1 , nsp ! loop on number variables
-        inet = inet5(kkrec,k4)
-        ivar = ivar5(kkrec,k4)
-        xscale = xscl(kkrec,k4)
-        xadd = xoff(kkrec,k4)
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
         call getwork(kkrec)
         !care the order must match varname data - could be more elegant,
         if ( kkrec == 1 ) hzavar(1:ilon,1:jlat,:) = &
