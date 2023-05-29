@@ -101,8 +101,11 @@ module mod_rad_interface
           if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
         end do
         kth  = n_hrehlev - kclimh + 1 + kz
-        ktf  = kth + 1
-        kclimf = kclimh + 1
+        do k = 1 , n_hreflev
+          kclimf = k
+          if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
+        end do
+        ktf  = n_hreflev - kclimf + 1 + kzp1
       end if
       if ( myid == italk ) then
         write(stdout,*) 'Total number of the half RRTM levels is ', kth

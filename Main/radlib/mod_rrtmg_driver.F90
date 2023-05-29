@@ -272,7 +272,6 @@ module mod_rrtmg_driver
     adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
-
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
@@ -644,7 +643,13 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
+#ifdef RCEMIP
+          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#else
+          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#endif
         end do
       end do
     end do
@@ -695,7 +700,13 @@ module mod_rrtmg_driver
     end if
     do k = kzp1 , ktf
       do n = 1 , npr
-        tlev(n,k) = stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk)
+#ifdef RCEMIP
+        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#else
+        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#endif
       end do
     end do
 
@@ -725,14 +736,14 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
+          h2ommr(n,k) = m2r%qxatms(j,i,kj,iqv)
           h2ovmr(n,k) = h2ommr(n,k) * rep2
         end do
       end do
     end do
     do k = kzp1 , kth
       do n = 1 , npr
-        h2ommr(n,k) = 1.0e-12_rkx
+        h2ommr(n,k) = m2r%qxatms(j,i,1,iqv)
         h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
     end do
@@ -750,9 +761,15 @@ module mod_rrtmg_driver
     end do
     do k = kzp1 , kth
       do n = 1 , npr
+#ifdef RCEMIP
+        o3vmr(n,k) = &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+#else
         o3vmr(n,k) = &
           stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
           stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+#endif
       end do
     end do
     !
