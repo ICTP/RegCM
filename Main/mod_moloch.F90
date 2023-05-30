@@ -106,7 +106,7 @@ module mod_moloch
   logical , parameter :: do_filterdiv    = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_massconserve = .true.
+  logical , parameter :: do_massconserve = .false.
 #else
   logical , parameter :: do_massconserve = .false.
 #endif
@@ -513,7 +513,7 @@ module mod_moloch
         do i = ice1 , ice2
           do j = jce1 , jce2
             pai(j,i,k) = pai(j,i,k) * &
-              (1.0_rkx - nadv*nsound*rdt*(1.0_rkx-prat))
+              (1.0_rkx + 0.025_rkx*(prat-1.0_rkx))
           end do
         end do
       end do
@@ -1918,7 +1918,7 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta,1.0e4_rkx,minqc)
+            call wafone(ptr,dta,1.0e4_rkx,pmin=d_zero)
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -1927,7 +1927,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-            call wafone(ptr,dta,1.0e8_rkx,1.0e-20_rkx)
+            call wafone(ptr,dta,1.0e8_rkx,d_zero)
           end do
         end if
 
@@ -1970,6 +1970,10 @@ module mod_moloch
         real(rkx) :: wfwk , wfwkp1
         real(rkx) :: zpbysp1 , zpbwsp1
         real(rkx) :: zamum1 , zphim1
+#endif
+#ifdef RCEMIP
+        logical :: solved
+        integer(ik4) :: kp1 , km1
 #endif
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
@@ -2580,11 +2584,74 @@ module mod_moloch
           pp = pp / pfac
 !$acc end kernels
         end if
+#ifdef RCEMIP
+        if ( present(pmin) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              do k = 1 , kz
+                if ( pp(j,i,k) < pmin ) then
+                  zdv = pmin - pp(j,i,k)
+                  pp(j,i,k) = pmin
+                  solved = .false.
+                  if ( s(j,i,k+1) > d_zero ) then
+                    kp1 = k+1
+                    do while ( (.not. solved) .and. ( kp1 <= kz ) )
+                      if ( pp(j,i,kp1) > zdv+pmin ) then
+                        pp(j,i,kp1) = pp(j,i,kp1)-zdv
+                        solved = .true.
+                        exit
+                      end if
+                      kp1 = kp1 + 1
+                    end do
+                  else
+                    km1 = k-1
+                    do while ( (.not. solved) .and. ( km1 >= 1 ) )
+                      if ( pp(j,i,km1) > zdv+pmin ) then
+                        pp(j,i,km1) = pp(j,i,km1)-zdv
+                        solved = .true.
+                        exit
+                      end if
+                      km1 = km1 + 1
+                    end do
+                  end if
+                  if ( .not. solved ) then
+                    if ( k == kz ) then
+                      if ( pp(j,i,kzm1) > zdv+pmin ) then
+                        pp(j,i,kzm1) = pp(j,i,kzm1)-zdv
+                        solved = .true.
+                      end if
+                    else if ( k == 1 ) then
+                      if ( pp(j,i,2) > zdv+pmin ) then
+                        pp(j,i,2) = pp(j,i,2)-zdv
+                        solved = .true.
+                      end if
+                    else
+                      if ( pp(j,i,k+1) > 0.5_rkx*(zdv+pmin) .and. &
+                           pp(j,i,k-1) > 0.5_rkx*(zdv+pmin) ) then
+                        pp(j,i,k+1) = pp(j,i,k+1)-0.5_rkx*zdv
+                        pp(j,i,k-1) = pp(j,i,k-1)-0.5_rkx*zdv
+                        solved = .true.
+                      end if
+                    end if
+                    if ( .not. solved ) then
+                      write(stderr, *) 'NON CONSERVATION ERROR IN ADVECTION!'
+                      write(stderr, *) 'At j,i,k : ', j, i, k
+                      write(stderr, *) 'Forcibly setting value at ', pmin
+                      pp(j,i,k) = pmin
+                    end if
+                  end if
+                end if
+              end do
+            end do
+          end do
+        end if
+#else
         if ( present(pmin) ) then
 !$acc kernels present(pp)
           pp = max(pp,pmin)
 !$acc end kernels
         end if
+#endif
       end subroutine wafone
 
       subroutine reset_tendencies
@@ -2827,7 +2894,7 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-                qx(j,i,k,n) = max(qx(j,i,k,n),minqc)
+                qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
               end do
             end do
           end do
