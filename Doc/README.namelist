@@ -364,6 +364,7 @@
                         !   4 : Texeira scheme
                         !   5 : Tompkins linearized scheme
                         !   6 : Echam5 like scheme
+                        !   7 : Digital : cloud/no cloud on total condensate
                         ! ===================================================
                         ! NOTE: Using the NoTo microphysics (ipptls=2) the
                         !       Xu-Randall scheme (icldfrac=1) is recommended
