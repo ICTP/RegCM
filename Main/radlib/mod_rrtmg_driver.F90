@@ -743,7 +743,13 @@ module mod_rrtmg_driver
     end do
     do k = kzp1 , kth
       do n = 1 , npr
-        h2ommr(n,k) = m2r%qxatms(j,i,1,iqv)
+#ifdef RCEMIP
+        h2ommr(n,k) = 1.0e-14_rkx
+#else
+        h2ommr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+#endif
         h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
     end do
