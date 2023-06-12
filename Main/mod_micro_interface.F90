@@ -253,7 +253,6 @@ module mod_micro_interface
       end do
     end if
 
-#ifndef RCEMIP
     select case ( icldfrac )
       case (1)
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
@@ -269,16 +268,15 @@ module mod_micro_interface
         call tompkins_cldfrac(mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case (6)
         call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
+      case (7)
+        mc2mo%fcc = d_zero
+        where ( totc > 1.0e-8_rkx )
+          mc2mo%fcc = 1.0_rkx
+        end where
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
     end select
-#else
-    mc2mo%fcc = d_zero
-    where ( totc > 1.0e-8_rkx )
-      mc2mo%fcc = 1.0_rkx
-    end where
-#endif
 
     if ( ipptls == 1 ) then
       rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-mc2mo%fcc),1.0e-5_rkx)**2

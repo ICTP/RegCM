@@ -273,7 +273,11 @@ module mod_params
     iwhitecap = 0
     iseaice = 0
     iconvlwp = 1
-    icldfrac = 0
+#ifdef RCEMIP
+    icldfrac = 7
+#else
+    icldfrac = 1
+#endif
     icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
