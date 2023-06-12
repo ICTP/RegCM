@@ -1197,7 +1197,7 @@ class ComputeMaximum(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
-            dtype=np.bool
+            dtype=bool
         )
 
         shape_template = [slice(None) for _ in prev_result.dimensions]
@@ -1568,7 +1568,7 @@ class ComputeAverage(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
-            dtype=np.bool
+            dtype=bool
         )
 
         shape_template = [ slice(None) for _ in prev_result.dimensions]
@@ -1836,7 +1836,7 @@ class SumOnDimension(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in reduced_dims],
-            dtype=np.bool
+            dtype=bool
         )
 
         if prev_result.depends_on_time:

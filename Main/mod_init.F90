@@ -212,6 +212,7 @@ module mod_init
               end do
             end do
           else
+#ifndef RCEMIP
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
@@ -221,6 +222,7 @@ module mod_init
                 end do
               end do
             end do
+#endif
           end if
           if ( is_present_qi( ) ) then
             do k = 1 , kz
@@ -231,6 +233,7 @@ module mod_init
               end do
             end do
           else
+#ifndef RCEMIP
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
@@ -240,6 +243,7 @@ module mod_init
                 end do
               end do
             end do
+#endif
           end if
         else if ( ipptls == 1 ) then
           if ( is_present_qc( ) ) then
