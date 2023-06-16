@@ -104,8 +104,15 @@ module mod_cmip6_helper
           fx_experiment = '_hist-1950_'
           fx_model = cmip6_model
         case ( 'NorESM2-MM' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
-            pthsep//'CMIP6'//pthsep//'CMIP/NCC'//pthsep//'NorESM2-MM'//pthsep
+          if ( index(cmip6_inp,'noresg.nird.sigma2.no') > 0 ) then
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
+              pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCC'//pthsep// &
+              'NorESM2-MM'//pthsep
+          else
+            ! This should work for esgf3
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
+              'CMIP'//pthsep//'NCC'//pthsep//'NorESM2-MM'//pthsep
+          end if
           fpath = trim(fpath)//'historical'//pthsep
           fx_variant = 'r1i1p1f1'
           fx_experiment = '_historical_'
@@ -221,8 +228,13 @@ module mod_cmip6_helper
           fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
           grid = cmip6_grid
         case ( 'NorESM2-MM' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
-            pthsep//'CMIP6'//pthsep
+          if ( index(cmip6_inp,'noresg.nird.sigma2.no') > 0 ) then
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
+              pthsep//'CMIP6'//pthsep
+          else
+            ! This should work for esgf3
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
+          end if
           if ( year < 2015 ) then
             fpath = trim(fpath)//'CMIP'//pthsep
             experiment = 'historical'
