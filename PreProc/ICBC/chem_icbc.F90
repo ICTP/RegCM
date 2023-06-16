@@ -272,7 +272,7 @@ program chem_icbc
       call init_cams('CH')
       do nnn = 1 , nsteps
         if (.not. lsamemonth(idate, iodate) ) then
-          call newfile_ae_icbc(monfirst(idate))
+          call newfile_ch_icbc(monfirst(idate))
         end if
         call get_cams(idate,'CH')
         iodate = idate
