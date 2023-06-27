@@ -241,12 +241,9 @@ module mod_micro_nogtom
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
-#ifdef RCEMIP
-  real(rkx) , parameter :: activcf = 0.1_rkx
-#else
+  real(rkx) , parameter :: activqx = 1.0e-8_rkx
+  real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
   real(rkx) , parameter :: activcf = zerocf
-#endif
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   abstract interface
@@ -920,13 +917,13 @@ module mod_micro_nogtom
             ! Evaporate very small amounts of liquid and ice
             !------------------------------------------------
 
-            if ( qx0(iqql) < activqx ) then
+            if ( qx0(iqql) < verylowqx ) then
               qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + qx0(iqql)
               qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - qx0(iqql)
               qxfg(iqql) = qxfg(iqql) - qx0(iqql)
               qxfg(iqqv) = qxfg(iqqv) + qx0(iqql)
             end if
-            if ( qx0(iqqi) < activqx ) then
+            if ( qx0(iqqi) < verylowqx ) then
               qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + qx0(iqqi)
               qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - qx0(iqqi)
               qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
@@ -1748,8 +1745,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qx0(n),activqx) / &
-              max(sinksum(n),max(qx0(n),activqx))
+            ratio(n) = max(qx0(n),verylowqx) / &
+              max(sinksum(n),max(qx0(n),verylowqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1776,8 +1773,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qx0(jo),activqx) / &
-               max(sinksum(jo),max(qx0(jo),activqx))
+            ratio(jo) = max(qx0(jo),verylowqx) / &
+               max(sinksum(jo),max(qx0(jo),verylowqx))
           end do
           !------
           ! scale
@@ -2227,7 +2224,7 @@ module mod_micro_nogtom
         end if
         indx(n) = imax
         if ( n /= nqx ) then
-          dum = d_one/max(qlhs(n,n),activqx)
+          dum = d_one/max(qlhs(n,n),verylowqx)
           do m = n + 1 , nqx
             qlhs(m,n) = qlhs(m,n)*dum
           end do
@@ -2248,7 +2245,7 @@ module mod_micro_nogtom
         xsum = qxn(ll)
         qxn(ll) = qxn(m)
         if ( ii == 0 ) then
-          if ( abs(xsum) > activqx ) ii = m
+          if ( abs(xsum) > verylowqx ) ii = m
         else
           do jj = ii , m - 1
             xsum = xsum - qlhs(m,jj)*qxn(jj)
