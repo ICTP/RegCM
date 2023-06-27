@@ -61,6 +61,7 @@
       "tasmean",
       "prmean",
       "psmean",
+      "mrromean",
       "sundmean",
       "sfcWindmax"
     ],
