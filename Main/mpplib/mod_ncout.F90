@@ -71,7 +71,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nmsfvars = 4 + nbase
+  integer(ik4) , parameter :: nmsfvars = 3 + nbase
 
   integer(ik4) , parameter :: ncygvars = 1 + nbase
 
@@ -356,8 +356,7 @@ module mod_ncout
   integer(ik4) , parameter :: msf_ps     = 6
   integer(ik4) , parameter :: msf_u10m   = 7
   integer(ik4) , parameter :: msf_v10m   = 8
-  integer(ik4) , parameter :: msf_wspd   = 9 
-  integer(ik4) , parameter :: msf_t2m    = 10
+  integer(ik4) , parameter :: msf_wspd   = 9
 
   integer(ik4) , parameter :: cyg_xlon   = 1
   integer(ik4) , parameter :: cyg_xlat   = 2
@@ -1808,12 +1807,6 @@ module mod_ncout
             'Near-Surface Wind Speed', &
             'wind_speed',.true.,'time: mean')
           msf_wspd_out => v2dvar_msf(msf_wspd)%rval
-        end if
-        if ( enable_msf_vars(msf_t2m) ) then
-          call setup_var(v2dvar_msf,msf_t2m,vsize,'tas','K', &
-            'Near-Surface Air Temperature', &
-            'air_temperature',.true.,'time: mean')
-          msf_t2m_out => v2dvar_msf(msf_t2m)%rval
         end if
 
         outstream(msf_stream)%nvar = countvars(enable_msf_vars,nmsfvars)
