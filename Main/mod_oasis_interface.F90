@@ -794,15 +794,15 @@ module mod_oasis_interface
       nullify(grd)
     end if
     !
-    if ( l_cpl_ex_wdir ) then ! near-surface wind direction (10m-height) [m.s-1]
+    if ( l_cpl_ex_wdir ) then ! near-surface wind direction (10m-height) [degree]
       grd => ex_wdir%grd
       do i = grd%i1 , grd%i2
         ishift = i - grd%i1 + 1
         do j = grd%j1 , grd%j2
           jshift = j - grd%j1 + 1
-          cpl_wdir(jshift,ishift) = atan2( sfs%u10m(j,i) , sfs%v10m(j,i) )
+          cpl_wdir(jshift,ishift) = atan2( sfs%u10m(j,i) , sfs%v10m(j,i) ) * raddeg
           if ( cpl_wdir(jshift,ishift) < d_zero ) &
-               cpl_wdir(jshift,ishift) = cpl_wdir(jshift,ishift) + twopi
+               cpl_wdir(jshift,ishift) = cpl_wdir(jshift,ishift) + 360_rkx
         end do
       end do
       call oasisxregcm_snd(cpl_wdir, ex_wdir, time, .false. .or. l_write_restart)

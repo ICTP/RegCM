@@ -1304,9 +1304,11 @@ module mod_output
           msf_u10m_out = msf_u10m_out*msffac
         if ( associated(msf_v10m_out) ) &
           msf_v10m_out = msf_v10m_out*msffac
+        if ( associated(msf_wspd_out) ) &
+          msf_wspd_out = msf_wspd_out*msffac
+        if ( associated(msf_wdir_out) ) &
+          msf_wdir_out = msf_wdir_out*msffac
         if ( associated(msf_u10m_out) .and. associated(msf_v10m_out) ) then
-          if ( associated(msf_wspd_out) ) &
-            msf_wspd_out = sqrt(msf_u10m_out**2 + msf_v10m_out**2)
           if ( uvrotate ) then
             call uvrot(msf_u10m_out,msf_v10m_out)
           end if
@@ -1319,6 +1321,7 @@ module mod_output
         if ( associated(msf_u10m_out) ) msf_u10m_out = d_zero
         if ( associated(msf_v10m_out) ) msf_v10m_out = d_zero
         if ( associated(msf_wspd_out) ) msf_wspd_out = d_zero
+        if ( associated(msf_wdir_out) ) msf_wdir_out = d_zero
         rnmsf_for_msffrq = d_zero
       end if
     end if
