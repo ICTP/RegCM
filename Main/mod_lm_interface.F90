@@ -938,6 +938,8 @@ module mod_lm_interface
           msf_wspd_out = msf_wspd_out + sqrt(lm%u10m**2 + lm%v10m**2)
         if ( associated(msf_wdir_out) ) &
           msf_wdir_out = msf_wdir_out + atan2(lm%v10m,lm%u10m)*raddeg
+        if ( associated(msf_tau_out) ) &
+          msf_tau_out = msf_tau_out + sum(lms%drag,1)*rdnnsg
       end if
       if ( ifsub ) then
         rnsrf_for_subfrq = rnsrf_for_subfrq + 1.0_rkx

@@ -170,6 +170,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: msf_v10m_out => null()
   real(rkx) , dimension(:,:) , pointer :: msf_wspd_out => null()
   real(rkx) , dimension(:,:) , pointer :: msf_wdir_out => null()
+  real(rkx) , dimension(:,:) , pointer :: msf_tau_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: cyg_wspd_out => null()
 

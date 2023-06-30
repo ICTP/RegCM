@@ -71,7 +71,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nmsfvars = 4 + nbase
+  integer(ik4) , parameter :: nmsfvars = 5 + nbase
 
   integer(ik4) , parameter :: ncygvars = 1 + nbase
 
@@ -358,6 +358,7 @@ module mod_ncout
   integer(ik4) , parameter :: msf_v10m   = 8
   integer(ik4) , parameter :: msf_wspd   = 9
   integer(ik4) , parameter :: msf_wdir   = 10
+  integer(ik4) , parameter :: msf_tau    = 11
 
   integer(ik4) , parameter :: cyg_xlon   = 1
   integer(ik4) , parameter :: cyg_xlat   = 2
@@ -1814,6 +1815,12 @@ module mod_ncout
             'Near-Surface Wind Direction', &
             'wind_direction',.true.,'time: mean')
           msf_wdir_out => v2dvar_msf(msf_wdir)%rval
+        end if
+        if ( enable_msf_vars(msf_tau) ) then
+          call setup_var(v2dvar_msf,msf_tau,vsize,'tau','N m-2', &
+            'Surface Downward Wind Stress', &
+            'magnitude_of_surface_downward_stress',.true.,'time: mean')
+          msf_tau_out => v2dvar_msf(msf_tau)%rval
         end if
 
         outstream(msf_stream)%nvar = countvars(enable_msf_vars,nmsfvars)
