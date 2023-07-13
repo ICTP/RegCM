@@ -57,22 +57,28 @@ module mod_mkdynpft
     p2 = '.'
     write(cy,'(i0.4)') iy
 
-    if ( iy > 2005 ) then
-      select case (dattyp(4:5))
-        case ('RF')
-          continue
-        case ('26')
-          p2 = 'SCENARIO'//pthsep//'RCP2.6'
-        case ('45')
-          p2 = 'SCENARIO'//pthsep//'RCP4.5'
-        case ('60')
-          p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85', '15')
-          p2 = 'SCENARIO'//pthsep//'RCP8.5'
-        case default
-          write(stderr,*) 'WARNING : Using CMIP5 '//scenario//'scenario !'
-          p2 = 'SCENARIO'//pthsep//scenario
-      end select
+    if ( dattyp == 'CMIP6' ) then
+      if ( iy > 2015 ) then
+        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_ssp(4:6)
+      end if
+    else
+      if ( iy > 2005 ) then
+        select case (dattyp(4:5))
+          case ('RF')
+            continue
+          case ('26')
+            p2 = 'SCENARIO'//pthsep//'RCP2.6'
+          case ('45')
+            p2 = 'SCENARIO'//pthsep//'RCP4.5'
+          case ('60')
+            p2 = 'SCENARIO'//pthsep//'RCP6.0'
+          case ('85', '15')
+            p2 = 'SCENARIO'//pthsep//'RCP8.5'
+          case default
+            write(stderr,*) 'WARNING : Using CMIP5 '//scenario//'scenario !'
+            p2 = 'SCENARIO'//pthsep//scenario
+        end select
+      end if
     end if
 
     npft = size(pft,3)
