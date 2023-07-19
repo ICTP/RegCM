@@ -298,7 +298,7 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice , invt , prat
+    real(rkx) :: tv , lrt , fice , prat
 #ifdef QUAD_PRECISION
     real(rk16) :: tmi(kz) , tmf(kz) , tmil , tmfl
 #else
@@ -509,7 +509,7 @@ module mod_moloch
 !$acc parallel present(pai) private(prat)
 !$acc loop collapse(3)
       do k = 1 , kz
-        prat = tmi(k)/tmf(k)
+        prat = real(tmi(k)/tmf(k),rkx)
         do i = ice1 , ice2
           do j = jce1 , jce2
             pai(j,i,k) = pai(j,i,k) * &
@@ -602,15 +602,9 @@ module mod_moloch
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        invt = sign(1.0_rkx,(t(j,i,kz)-ts(j,i)))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        if ( invt < 0.0_rkx ) then
-          tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
-        else
-          tv = tvirt(j,i,kz) - &
-            0.5_rkx*(t(j,i,kz)-ts(j,i))*(d_one+ep1*qv(j,i,kz))
-        end if
+        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
