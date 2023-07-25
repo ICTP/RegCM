@@ -699,7 +699,8 @@ module mod_moloch
       call maxall(maxps,pmax)
       call minall(minps,pmin)
       call sumall(total_precip_points,iconvec)
-      if ( is_nan(pmax) .or. is_nan(pmin) ) then
+      if ( is_nan(pmax) .or. is_nan(pmin) .or. &
+           is_inf(pmax) .or. is_inf(pmin) ) then
         write (stderr,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
         write (stderr,*) 'No more atmosphere here....'
         write (stderr,*) 'CFL violation detected, so model STOP'
