@@ -7592,16 +7592,19 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7631,16 +7634,19 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
+    end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7704,7 +7710,7 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -7713,9 +7719,14 @@ module mod_mppparam
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7747,7 +7758,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -7756,9 +7767,14 @@ module mod_mppparam
           sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+      end do
+    end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
@@ -7824,7 +7840,7 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -7835,9 +7851,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7871,7 +7894,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -7882,9 +7905,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -7951,16 +7981,19 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2)
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -7990,16 +8023,19 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1))
+    end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -8063,7 +8099,7 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8072,9 +8108,14 @@ module mod_mppparam
           sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k)
+      end do
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -8106,7 +8147,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8115,9 +8156,15 @@ module mod_mppparam
           sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k)
+      end do
+    end do
+
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
     call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
@@ -8183,7 +8230,7 @@ module mod_mppparam
     integer(ik4), dimension(1) :: mrequestx, mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
-    ib2 = sizex
+    ib2 = 0
     if ( ma%right /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8194,9 +8241,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j2-(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
@@ -8230,7 +8284,7 @@ module mod_mppparam
       ib2 = ib2 + sizex
     end if
 
-    ib2 = sizey
+    ib2 = 0
     if ( ma%top /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8241,9 +8295,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1-lb:j2,i2-(iex-1),k,n)
+        end do
+      end do
+    end do
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
@@ -8311,14 +8372,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8350,14 +8414,17 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
@@ -8423,6 +8490,13 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8431,8 +8505,6 @@ module mod_mppparam
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8466,6 +8538,13 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+      end do
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8474,8 +8553,6 @@ module mod_mppparam
           sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
@@ -8544,6 +8621,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8554,8 +8640,6 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8591,6 +8675,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8601,8 +8694,6 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
@@ -8671,14 +8762,17 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + tx - 1
+      sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + tx - 1
         sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2)
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8710,14 +8804,17 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do iex = 1 , nex
+      ib1 = ib2 + 1
+      ib2 = ib1 + ty - 1
+      sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do iex = 1 , nex
         ib1 = ib2 + 1
         ib2 = ib1 + ty - 1
         sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1))
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
@@ -8783,6 +8880,13 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + tx - 1
+        sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
+      end do
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8791,8 +8895,6 @@ module mod_mppparam
           sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k)
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8826,6 +8928,13 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do k = k1 , k2
+      do iex = 1 , nex
+        ib1 = ib2 + 1
+        ib2 = ib1 + ty - 1
+        sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
+      end do
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do k = k1 , k2
         do iex = 1 , nex
@@ -8834,8 +8943,6 @@ module mod_mppparam
           sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k)
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
@@ -8904,6 +9011,15 @@ module mod_mppparam
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + tx - 1
+          sdatax(ib1:ib2) = ml(j1+(iex-1),i1:i2,k,n)
+        end do
+      end do
+    end do
     if ( ma%left /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8914,8 +9030,6 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizex
     end if
 
     counts = [ sizex, sizex, 0, 0 ]
@@ -8951,6 +9065,15 @@ module mod_mppparam
     end if
 
     ib2 = 0
+    do n = n1 , n2
+      do k = k1 , k2
+        do iex = 1 , nex
+          ib1 = ib2 + 1
+          ib2 = ib1 + ty - 1
+          sdatay(ib1:ib2) = ml(j1:j2+rb,i1+(iex-1),k,n)
+        end do
+      end do
+    end do
     if ( ma%bottom /= mpi_proc_null ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -8961,8 +9084,6 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      ib2 = ib2 + sizey
     end if
 
     counts = [ 0, 0, sizey, sizey ]
