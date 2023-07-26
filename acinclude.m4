@@ -47,29 +47,29 @@ AC_DEFUN([RR_PATH_NETCDF],[
       AC_MSG_ERROR([NetCDF include not found])
   fi
 
-  AC_CHECKING([for libnetcdf.a])
+  AC_CHECKING([for libnetcdf])
   AC_CHECK_LIB([netcdf], [nc_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
-    AC_CHECKING([if we need to link jpeg library for HDF4])
+    AC_CHECKING([if we need to link hdf5 library])
+    NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
     LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-    LIBS="$LIBS -ljpeg"
-    AC_CHECK_LIB([netcdf], [nc_enddef],
-    [netcdf=yes], [netcdf=no])
+    LIBS="$LIBS -lhdf5 -lhdf5_hl"
+    AC_CHECK_LIB([netcdf], [nc_sync],
+                 [netcdf=yes], [netcdf=no])
     if test "x$netcdf" = xno; then
-      AC_CHECKING([if we need to link hdf5 library])
-      NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
+      AC_CHECKING([if we need to link szlib library])
+      NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
       LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-      LIBS="$LIBS -lhdf5 -lhdf5_hl"
-      AC_CHECK_LIB([netcdf], [nc_sync],
+      LIBS="$LIBS -lsz"
+      AC_CHECK_LIB([netcdf], [nc_inq_libvers],
                    [netcdf=yes], [netcdf=no])
       if test "x$netcdf" = xno; then
-        AC_CHECKING([if we need to link szlib library])
-        NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
+        AC_CHECKING([if we need to link libraries for HDF4])
         LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-        LIBS="$LIBS -lsz"
-        AC_CHECK_LIB([netcdf], [nc_inq_libvers],
-                     [netcdf=yes], [netcdf=no])
+        LIBS="$LIBS -lmfhdf -ldf -ljpeg"
+        AC_CHECK_LIB([netcdf], [nc_enddef],
+        [netcdf=yes], [netcdf=no])
       fi
     fi
     if test "x$netcdf" = xno; then
@@ -91,12 +91,12 @@ AC_DEFUN([RR_PATH_NETCDF],[
 # Netcdf Fortran interface can be placed in a separate libnetcdff
 #
   LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-  AC_CHECKING([for libnetcdff.a])
+  AC_CHECKING([for libnetcdff])
   AC_CHECK_LIB([netcdf], [nf_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
     LIBS="-lnetcdff $LIBS"
-    AC_CHECKING([for libnetcdff.a])
+    AC_CHECKING([for libnetcdff])
     AC_CHECK_LIB([netcdff], [nf_close],
                  [netcdf=yes], [netcdf=no])
     if test "x$netcdf" = xno; then
@@ -427,7 +427,7 @@ AC_DEFUN([RR_PATH_PNETCDF],[
       AC_MSG_ERROR([Parallel NetCDF include not found])
   fi
 
-  AC_CHECKING([for libpnetcdf.a])
+  AC_CHECKING([for libpnetcdf])
   AC_CHECK_LIB([pnetcdf], [ncmpi_close],
                [pnetcdf=yes], [pnetcdf=no])
   if test "x$pnetcdf" = xno; then
