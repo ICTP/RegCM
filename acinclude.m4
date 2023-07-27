@@ -170,7 +170,7 @@ AC_DEFUN([RR_NETCDF4],[
                          [hdf5=yes],
                          [hdf5=no])
       if test "x$hdf5" = xyes; then
-        AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
+        AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -188,7 +188,7 @@ AC_DEFUN([RR_NETCDF4],[
                        [hdf5=no])
 
     if test "x$hdf5" = xyes; then
-      AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
+      AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
@@ -213,7 +213,7 @@ AC_DEFUN([RR_CDF5],[
                          [cdf5=yes],
                          [cdf5=no])
       if test "x$cdf5" = xyes; then
-        AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+        AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
         break
       fi
     done
@@ -231,7 +231,7 @@ AC_DEFUN([RR_CDF5],[
                        [cdf5=no])
 
     if test "x$cdf5" = xyes; then
-      AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+      AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
@@ -364,8 +364,8 @@ fi],
 		AC_MSG_RESULT(no)])
 fi],
 [Fortran], [if test x != x"$MPILIBS"; then
-	AC_MSG_CHECKING([for mpif.h])
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[      include 'mpif.h'])],[AC_MSG_RESULT(yes)], [MPILIBS=""
+	AC_MSG_CHECKING([for mpi module])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],[      use mpi])],[AC_MSG_RESULT(yes)], [MPILIBS=""
 		AC_MSG_RESULT(no)])
 fi])
 
@@ -466,8 +466,52 @@ AC_DEFUN([RCM_FC_CHECK_IEEE_ARITHMETIC],[
   if test "${fc_has_ieee_arithmetic}" = "yes"; then
     AC_DEFINE([HAVE_FC_IEEE_ARITHMETIC],1, 
       [Define to 1 if your Fortran compiler supports IEEE_ARITHMETIC module.])
-    FCFLAGS="-DF2008 $FCFLAGS"
+    FCFLAGS="${DEFINE}F2008 $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   AC_MSG_RESULT([${fc_has_ieee_arithmetic}])
 ]) # RCM_FC_CHECK_IEEE_ARITHMETIC
+
+AC_DEFUN([RCM_FC_CHECK_QUAD_PRECISION],[
+  # Init
+  fc_has_quad_precision="no"
+  AC_MSG_CHECKING([whether the Fortran compiler supports quadruple precision])
+  # Try to compile a piece of code that uses the module.
+  AC_LANG_PUSH([Fortran])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+    [[
+      integer, parameter :: qp = selected_real_kind(32)
+      real(kind=qp) :: val
+    ]])], [fc_has_quad_precision="yes"])
+  AC_LANG_POP([Fortran])
+  if test "${fc_has_quad_precision}" = "yes"; then
+    AC_DEFINE([HAVE_FC_QUAD_PRECISION],1, 
+      [Define to 1 if your Fortran compiler supports quadruple precision reals.])
+    FCFLAGS="${DEFINE}QUAD_PRECISION $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  AC_MSG_RESULT([${fc_has_quad_precision}])
+]) # RCM_FC_CHECK_QUAD_PRECISION
+
+AC_DEFUN([RCM_MPI_CHECK_MPI3],[
+  # Init
+  mpifc_has_mpi3="no"
+  AC_MSG_CHECKING([whether the MPI compiler supports mpi3 interface])
+  # Try to compile a piece of code that uses the module.
+  acx_mpi_save_FC="$FC"
+  FC="$MPIFC"
+  AC_LANG_PUSH([Fortran])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+    [[
+       call mpi_ineighbor_alltoallv
+    ]])], [mpifc_has_mpi3="yes"])
+  AC_LANG_POP([Fortran])
+  if test "${mpifc_has_mpi3}" = "yes"; then
+    AC_DEFINE([HAVE_MPI3],1, 
+      [Define to 1 if your MPI library supports MPI3 interfaces.])
+    FCFLAGS="${DEFINE}USE_MPI3 $FCFLAGS"
+    AC_SUBST(FCFLAGS)
+  fi
+  FC="$acx_mpi_save_FC"
+  AC_MSG_RESULT([${mpifc_has_mpi3}])
+]) # RCM_MPI_CHECK_MPI3

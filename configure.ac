@@ -388,23 +388,6 @@ case $ac_cv_fc_mangling in
     AC_MSG_WARN([UNKNOWN FORTRAN NAME-MANGLING SCHEME]);;
 esac
 
-RR_PATH_NETCDF
-RR_PATH_NETCDF_F90
-if eval "test x$PNETCDF = x0"; then
-  if eval "test x$NETCDF_CDF5 = x0 || x$PNETCDF_IN_NETCDF = x0"; then
-    RR_NETCDF4
-  else
-    if eval "test x$NETCDF_CDF5 = x1"; then
-      RR_CDF5
-    fi
-  fi
-else
-  RR_PATH_PNETCDF
-  if eval "test x$NETCDF_CDF5 = x1"; then
-    RR_CDF5
-  fi
-fi
-
 test "$osname"=NONE && osname=`uname -s`
 OSNAME=$osname
 AC_SUBST(OSNAME)
@@ -475,6 +458,9 @@ AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
+
+DEFINE="-D"
+AC_SUBST(DEFINE)
 
 # Force Big endian I/O for known compilers
 if test -z "$COMPILER_GNU_TRUE"; then
@@ -568,11 +554,13 @@ if test -z "$COMPILER_PGI_TRUE"; then
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
+  DEFINE="-WF,-D"
   FCFLAGS="$FCFLAGS -WF,-DIBM"
   OMPFLAGS="-qsmp=omp"
   CPRDEF="XLF"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
+  AC_SUBST(DEFINE)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
@@ -726,7 +714,25 @@ else
   fi
 fi
 
+RR_PATH_NETCDF
+RR_PATH_NETCDF_F90
+if eval "test x$PNETCDF = x0"; then
+  if eval "test x$NETCDF_CDF5 = x0 || x$PNETCDF_IN_NETCDF = x0"; then
+    RR_NETCDF4
+  else
+    if eval "test x$NETCDF_CDF5 = x1"; then
+      RR_CDF5
+    fi
+  fi
+else
+  RR_PATH_PNETCDF
+  if eval "test x$NETCDF_CDF5 = x1"; then
+    RR_CDF5
+  fi
+fi
+
 RCM_FC_CHECK_IEEE_ARITHMETIC
+RCM_FC_CHECK_QUAD_PRECISION
 
 MCTPATH="${PWD}/external"
 if test -z "$COMPILER_SUN_TRUE"; then
@@ -742,6 +748,7 @@ AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
 if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
+  RCM_MPI_CHECK_MPI3
 else
   FORT_SIZE="real4double8"
   AC_SUBST(FORT_SIZE)
