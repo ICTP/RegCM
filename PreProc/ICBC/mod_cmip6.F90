@@ -720,9 +720,6 @@ module mod_cmip6
           pst = fplev(nkin)/10.0_rkx
           call getmem3d(pa_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:normm:pa_in')
           call getmem3d(zp_in,1,ta%ni,1,ta%nj,1,ta%nk,'cmip6:normm:zp_in')
-          do k = 1 , ta%nk
-            zp_in(:,:,k) = ta%vcoord%ak(k) + ta%vcoord%bk(k) * orog%var(:,:)
-          end do
           call getmem3d(tvar,1,ta%ni,1,ta%nj,1,nkin,'cmip6:normm:tvar')
           call getmem3d(uvar,1,ua%ni,1,ua%nj,1,nkin,'cmip6:normm:uvar')
           call getmem3d(vvar,1,va%ni,1,va%nj,1,nkin,'cmip6:normm:vvar')
