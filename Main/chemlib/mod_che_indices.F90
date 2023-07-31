@@ -46,7 +46,8 @@ module mod_che_indices
   integer(ik4) :: inox , ihox , isox , ieoh , ich3oh , iaco2 , ircooh , ihcooh
   integer(ik4) :: ipar , iolet , iolei , imgly , icres , iopen , iisoprd
   integer(ik4) :: iisopn , iethooh , ixo2 , iro2
-  integer(ik4) :: iapin , ilimo
+!  integer(ik4) :: iapin , ilimo *** STRS 15/10/2019 commented out to avoid
+!  conflicts with tracer declaration in mod_che_emission.F90 ***
   integer(ik4) :: ialk4, ialk7
 ! integer(ik4) :: ianh4, iano3 : now declared in mod_runparam
 

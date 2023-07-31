@@ -341,7 +341,8 @@ module mod_che_common
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
       if ( ismoke == 1 ) then
-        ntr = 52
+      ! *** STRS - 15/10/2019: add MONOTERPENES ***
+        ntr = 60 ! *** STRS - 15/10/2019: add MONOTERPENES
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
@@ -355,9 +356,11 @@ module mod_che_common
                                 'CRES  ','NH3   ','DUST01','DUST02',&
                                 'DUST03','DUST04','BC_HL ','BC_HB ',&
                                 'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                                'ANO3  ','ANH4  ','SM1   ','SM2   ' ]
+                                'ANO3  ','ANH4  ','SM1   ','SM2   ',& 
+                                'LIMO  ','APIN  ','BPIN  ','3CAR  ',&
+                                'OCIM  ','MYRC  ','SABI  ','OMTP  ' ]
       else
-        ntr = 50
+        ntr = 58 ! *** STRS - 15/10/2019: add MONOTERPENES
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
@@ -371,7 +374,9 @@ module mod_che_common
                                 'CRES  ','NH3   ','DUST01','DUST02',&
                                 'DUST03','DUST04','BC_HL ','BC_HB ',&
                                 'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                                'ANO3  ','ANH4  ']
+                                'ANO3  ','ANH4  ','LIMO  ','APIN  ',&
+                                'BPIN  ','3CAR  ','OCIM  ','MYRC  ',&
+                                'SABI  ','OMTP  ' ]
       end if
       iaerosol = 1
       igaschem = 1
@@ -379,7 +384,10 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'DCCB simulation'
     else if ( chemsimtype(1:4) == 'CBMZ' ) then
       ! This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
-      ntr = 37
+      ! *** STRS - 15/10/2019: add MONOTERPENES (MTP) ***
+      ! *** STRS - 21/08/2020: add OH ***
+      ! *** STRS - 06/09/2020: remove OH ***
+      ntr = 45 ! *** STRS - 15/10/2019: add MTP; 21/08/2020: add OH
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
                               'HNO3  ','HNO4  ','O3    ','H2O2  ',&
@@ -390,7 +398,9 @@ module mod_che_common
                               'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
                               'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
                               'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                              'CRES  ']
+                              'CRES  ','LIMO  ','APIN  ','BPIN  ',&
+                              '3CAR  ','OCIM  ','MYRC  ','SABI  ',&
+                              'OMTP  ' ]
       igaschem = 1
       if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
     else if ( chemsimtype(1:6) == 'POLLEN' ) then

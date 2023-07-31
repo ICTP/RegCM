@@ -97,7 +97,12 @@ module mod_ch_icbc_clim
     irec = int(tohours(tdif)/ibdyfrq)+1
 
     write(chfilename,'(a,i0.2,a)') &
+       !*** STRS 11/03/2020+ - Read EMAC CLIM
+       !trim(inpglob)//pthsep//'EMAC_CLIM_CHEMBC'//pthsep//'EMAC_1999-2009_clim_01.nc'
+       !*** STRS 11/03/2020- 
+       !*** STRS 06/09/2020+ - Read MOZART CLIM
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'mz4_19990401.nc'
+       !*** STRS 06/09/2020- 
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
        'Error open file chemical '//trim(chfilename))
@@ -309,6 +314,11 @@ module mod_ch_icbc_clim
     real(rkx) , parameter :: rglrog = rgas*lrate*regrav
 
     if ( doread ) then
+      !*** STRS 11/03/2020+ - Read EMAC CLIM
+      !trim(inpglob)//pthsep//'EMAC_CLIM_CHEMBC'//pthsep// &
+      !'EMAC_1999-2009_clim_',im1,'.nc'
+      !*** STRS 11/03/2020- 
+      !*** STRS 06/09/2020+ - Read MOZART CLIM
       if ( lfuture ) then
         write(chfilename,'(a,i0.2,a)') &
            trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
@@ -318,6 +328,7 @@ module mod_ch_icbc_clim
            trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
            'mz4_avg_1999-2009_',im1,'.nc'
       end if
+      !*** STRS 06/09/2020- 
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open file chemical')
@@ -374,6 +385,11 @@ module mod_ch_icbc_clim
       end do
     end do
     if ( doread ) then
+      !*** STRS 11/03/2020+ - Read EMAC CLIM
+      !trim(inpglob)//pthsep//'EMAC_CLIM_CHEMBC'//pthsep// &
+      !'EMAC_1999-2009_clim_',im2,'.nc'
+      !*** STRS 11/03/2020- 
+      !*** STRS 09/09/2020+ - Read MOZART CLIM
       if ( lfuture ) then
         write(chfilename,'(a,i0.2,a)') &
            trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
@@ -383,6 +399,7 @@ module mod_ch_icbc_clim
            trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
            'mz4_avg_1999-2009_',im2,'.nc'
       end if
+      !*** STRS 09/09/2020- 
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open file chemical')

@@ -651,6 +651,14 @@ module mod_clm_histflds
 
     ! Canopy physiology
 
+    ! STRS 09/12/2020 Add VCMAX_Z
+!    call hist_addfld2d (fname='VCMAX_Z', units='umol co2/m2/s', &
+!         type2d='levgrnd', &
+!         avgflag='A', long_name='Maximum rate of carboxylation', &
+!         ptr_pft=clm3%g%l%c%p%ppsyns%vcmax_z)
+    ! STRS 09/12/2020 Add VCMAX_Z
+
+
     call hist_addfld1d (fname='RSSUN', units='s/m',  &
          avgflag='M', long_name='sunlit leaf stomatal resistance', &
          ptr_pft=clm3%g%l%c%p%pps%rssun, set_lake=spval, set_urb=spval, &

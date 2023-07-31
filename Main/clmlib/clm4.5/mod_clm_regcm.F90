@@ -784,6 +784,56 @@ module mod_clm_regcm
           end if
           ! add compatibility for other biogenic species !! /
           !
+          !*** STRS 15/10/2019 - Add MONOTERPENES ***
+          if (shr_megan_mechcomps(k)%name == 'LIMO' .and. ilimo > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,ilimo) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'APIN' .and. iapin > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,iapin) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'BPIN' .and. ibpin > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,ibpin) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == '3CAR' .and. i3car > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,i3car) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'OCIM' .and. iocim > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,iocim) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'MYRC' .and. imyrc > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,imyrc) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'SABI' .and. isabi > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,isabi) = real(emis2d,rkx)
+          end if
+
+          if (shr_megan_mechcomps(k)%name == 'OMTP' .and. iomtp > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,iomtp) = real(emis2d,rkx)
+          end if
+          !*** STRS 15/10/2019 ***
+
         end do
       end if
 

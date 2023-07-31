@@ -42,6 +42,13 @@ module mod_clm_megan
   ! switch to use mapped emission factors
   public :: shr_megan_mapped_emisfctrs
   public :: shr_megan_comp_ptr
+  ! switch ON/OFF soil moisture activity factor
+  public :: shr_megan_gamma_sm
+  ! switch ON/OFF soil moisture activity factor from Guenther et al., 2012 or
+  ! Jiang et al., 2018
+  public :: shr_megan_2012
+  public :: shr_megan_2018
+
 
   ! First drydep fields token
   character(len=80), public :: shr_megan_fields_token = ''
@@ -90,6 +97,9 @@ module mod_clm_megan
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
+  logical :: shr_megan_gamma_sm = .false.
+  logical :: shr_megan_2012 = .false.
+  logical :: shr_megan_2018 = .false.
 
   ! private data
   type parser_items_t
@@ -152,7 +162,8 @@ module mod_clm_megan
 
     namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
                      shr_megan_mapped_emisfctrs , shr_megan_megcomps_n , &
-                     shr_megan_mechcomps_n
+                     shr_megan_mechcomps_n , shr_megan_gamma_sm, &
+                     shr_megan_2012 , shr_megan_2018
 
     if ( myid == iocpu ) then
       inquire( file=trim(NLFileName), exist=exists)
@@ -178,6 +189,11 @@ module mod_clm_megan
     do i = 1 , maxspc
       call bcast(megan_specifier(i),max_specifier_len)
     end do
+    ! STRS 12/12/2020
+    call bcast(shr_megan_gamma_sm)
+    call bcast(shr_megan_2012)
+    call bcast(shr_megan_2018)
+    ! STRS 12/12/2020
 
     shr_megan_factors_file = megan_factors_file
 

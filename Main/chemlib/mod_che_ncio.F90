@@ -472,7 +472,7 @@ module mod_che_ncio
       integer(ik4) , intent(out) :: ifreq
       real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
+      integer(ik4) :: n,ncid , itvar, idimid , chmnrec , sdim , icheck
       character(64) ::chemi_timeunits , chemi_timecal
       real(rkx) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount
@@ -674,9 +674,12 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,ixyl,echemsrc,'XYL_flux',.false.,sdim)
       end if
 !ISOP
-      if ( iisop/= 0 ) then
-        call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.,sdim)
-      end if
+! *** STRS - 08/06/2020: NOT reading ISOP emissions because MEGAN is ON
+!      if ( iisop/= 0 ) then
+!        call rvar(ncid,istart,icount,iisop,echemsrc, &
+!                  'ISOP_BIO_flux',.false.,sdim)
+!      end if
+! *** STRS - 08/06/2020: NOT reading ISOP emissions because MEGAN is ON
 
       ! NO2 emission
       if ( ino2 /= 0 ) then
@@ -943,8 +946,7 @@ module mod_che_ncio
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
       implicit none
-
-      integer(ik4) , intent(in) :: ncid,sdim
+      integer(ik4) , intent(in) :: ncid , sdim
       integer(ik4) , dimension(4) , intent(in) :: istart , icount
       real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       logical , intent(in) :: lh

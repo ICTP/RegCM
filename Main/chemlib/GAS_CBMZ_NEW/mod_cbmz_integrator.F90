@@ -1693,6 +1693,7 @@ module mod_cbmz_integrator
       if (nst .eq. 0) go to 626
       go to 520
   280 if ((tn + h) .ne. tn) go to 290
+      go to 290
       nhnil = nhnil + 1
       if (nhnil .gt. mxhnil) go to 290
       msg = 'dlsode-  warning..internal t (=r1) and h (=r2) are'
@@ -1719,10 +1720,15 @@ module mod_cbmz_integrator
         case (1)
           goto 300
         case (2)
-          goto 530
+          !*** ICTP STRS 04/02/2020+ - Remove comments in the output
+          !goto 530
+          goto 560
         case (3)
-          goto 540
+          !goto 540
+          goto 560
+          !*** ICTP STRS 04/02/2020-
       end select
+
 !-----------------------------------------------------------------------
 ! block f.
 ! the following block handles the case of a successful return from the
@@ -2178,7 +2184,9 @@ module mod_cbmz_integrator
       call xerrwd (msg, 30, 51, 0, 1, k, 0, 0, 0.0d0, 0.0d0)
       iflag = -1
       return
-   90 msg = 'dintdy-  t (=r1) illegal      '
+   90 iflag = 2
+      return
+      msg = 'dintdy-  t (=r1) illegal      '
       call xerrwd (msg, 30, 52, 0, 0, 0, 0, 1, t, 0.0d0)
       msg='      t not in interval tcur - hu (= r1) to tcur (=r2)      '
       call xerrwd (msg, 60, 52, 0, 0, 0, 0, 2, tp, tn)
@@ -2903,7 +2911,7 @@ module mod_cbmz_integrator
 !   930809  renamed to allow single/double precision versions. (ach)
 !***end prologue  dvnorm
 !**end
-      integer n,   i
+      integer n, i
       real(kind=dp) v(n), w(n)
       real(kind=qp) :: xsum
 !

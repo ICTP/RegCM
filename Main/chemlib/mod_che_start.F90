@@ -58,6 +58,10 @@ module mod_che_start
     character(len=8) :: minamesav
 
     ! A : Intialise chemistry tracer indices
+    ! *** STRS 15/10/2019: add MONOTERPENES ***
+    ! limo, apin, ibpin, i3car, iocim, imyrc, isabi, iomtp 
+    ! *** STRS 21/08/2020: add OH print-out ***
+    ! *** STRS 06/09/2020: remove OH print-out ***
 
     dtchsolv = dtche
 
@@ -105,6 +109,14 @@ module mod_che_start
     itol    = 0
     ixyl    = 0
     iisop   = 0
+    ilimo   = 0
+    iapin   = 0
+    ibpin   = 0
+    i3car   = 0
+    iocim   = 0
+    imyrc   = 0
+    isabi   = 0
+    iomtp   = 0
     ionit   = 0
     ipan    = 0
     ihcooh  = 0
@@ -280,6 +292,10 @@ module mod_che_start
       !  however this information is also contained in trac%indcbmz table
       !
       !CBMZ mechanims
+      ! *** STRS 15/10/2019: add MONOTERPENES ***
+      ! limo, apin, ibpin, i3car, iocim, imyrc, isabi, iomtp 
+      ! *** STRS 21/08/2020: add OH print-out ***
+      ! *** STRS 06/09/2020: remove OH print-out ***
       if ( chtrname(itr) == 'NO'     ) ino         = itr
       if ( chtrname(itr) == 'NO2'    ) ino2        = itr
       if ( chtrname(itr) == 'N2O5'   ) in2o5       = itr
@@ -305,6 +321,14 @@ module mod_che_start
       if ( chtrname(itr) == 'TOL'    ) itol        = itr
       if ( chtrname(itr) == 'XYL'    ) ixyl        = itr
       if ( chtrname(itr) == 'ISOP'   ) iisop       = itr
+      if ( chtrname(itr) == 'LIMO'   ) ilimo       = itr
+      if ( chtrname(itr) == 'APIN'   ) iapin       = itr
+      if ( chtrname(itr) == 'BPIN'   ) ibpin       = itr
+      if ( chtrname(itr) == '3CAR'   ) i3car       = itr
+      if ( chtrname(itr) == 'OCIM'   ) iocim       = itr
+      if ( chtrname(itr) == 'MYRC'   ) imyrc       = itr
+      if ( chtrname(itr) == 'SABI'   ) isabi       = itr
+      if ( chtrname(itr) == 'OMTP'   ) iomtp       = itr
       if ( chtrname(itr) == 'ONIT'   ) ionit       = itr
       if ( chtrname(itr) == 'PAN'    ) ipan        = itr
       if ( chtrname(itr) == 'HCOOH'  ) ihcooh      = itr
@@ -331,6 +355,12 @@ module mod_che_start
       !    *** Uncomment to give potential to advect
       if ( igaschem == 1 ) then
         if ( chtrname(itr) == 'ISOP'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'BPIN'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == '3CAR'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'OCIM'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'MYRC'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'SABI'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'OMTP'  ) bvoc_trmask(itr) = 1
         if ( chtrname(itr) == 'APIN'  ) bvoc_trmask(itr) = 1
         if ( chtrname(itr) == 'LIMO'  ) bvoc_trmask(itr) = 1
       end if

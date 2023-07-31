@@ -187,6 +187,56 @@ module mod_che_emission
     ! test if CLM BVOC is activated and add bio component to chemsrc.
     ! isoprene ( overwrite biogenic emission from inventory  / rq
     ! this way  we  negelect the anthropog isoprene emissions )
+
+    ! *** STRS 15/10/2019: add MONOTERPENES ***
+    if ( ilimo > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,ilimo) = cvoc_em_clm(j,i,ilimo)
+      end do
+    end if
+
+    if ( iapin > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,iapin) = cvoc_em_clm(j,i,iapin)
+      end do
+    end if
+
+    if ( ibpin > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,ibpin) = cvoc_em_clm(j,i,ibpin)
+      end do
+    end if
+
+    if ( i3car > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,i3car) = cvoc_em_clm(j,i,i3car)
+      end do
+    end if
+
+    if ( iocim > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,iocim) = cvoc_em_clm(j,i,iocim)
+      end do
+    end if
+ 
+    if ( imyrc > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,imyrc) = cvoc_em_clm(j,i,imyrc)
+      end do
+    end if
+
+    if ( isabi > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,isabi) = cvoc_em_clm(j,i,isabi)
+      end do
+    end if
+
+    if ( iomtp > 0 ) then
+      do j = jci1, jci2
+        chemsrc(j,i,iomtp) = cvoc_em_clm(j,i,iomtp)
+      end do
+    end if
+
     if ( iisop > 0 ) then
       if ( rcm_megan_enabled ) then
         do j = jci1, jci2

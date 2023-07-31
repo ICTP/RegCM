@@ -24,8 +24,14 @@ module mod_clm_vocemission
   use mod_clm_megan , only : shr_megan_mechcomps_n
   use mod_clm_megan , only : shr_megan_mechcomps
   use mod_clm_megan , only : shr_megan_mapped_emisfctrs
+  use mod_clm_megan , only : shr_megan_gamma_sm ! Flag to switch ON/OFF the gammaSM function
+  use mod_clm_megan , only : shr_megan_2012     ! Flag to use gammaSM function based on Guenther et al., 2012
+  use mod_clm_megan , only : shr_megan_2018     ! Flag to use gammaSM function based on Jiang et al., 2018
+
   use mod_clm_meganfactors , only : Agro, Amat, Anew, Aold
   use mod_clm_meganfactors , only : betaT, ct1, ct2, LDF, Ceo
+
+  use mod_dynparam, only : myid ! STRS 07/12/20220 Print out gammaSM
 
   implicit none
 
@@ -70,6 +76,7 @@ module mod_clm_vocemission
   ! Output: vocflx(shr_megan_mechcomps_n) !VOC flux [kg/m2/sec]
   !
   subroutine VOCEmission (lbp, ubp, num_soilp, filter_soilp )
+    use mod_clm_varpar , only : nlevsoi
     implicit none
     integer(ik4), intent(in) :: lbp, ubp  ! pft bounds
     integer(ik4), intent(in) :: num_soilp ! number of columns in soil pft filter
@@ -121,6 +128,11 @@ module mod_clm_vocemission
     real(rk8), pointer :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
     real(rk8), pointer :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
 
+! ***STRS *** 09/01/2019 Update from JIANG et al., 2018
+    real(rk8), pointer :: btran(:)     ! Transpiration wetness factor (from 0 to 1)
+    real(rk8), pointer :: vcmax_z(:,:) ! Max rate of carboxylation by the Rubisco enzime
+! ***STRS ***
+
     type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
     real(rk8), pointer :: gamma_out(:)
@@ -169,25 +181,26 @@ module mod_clm_vocemission
     ! CAM srf emis units [g/m2/sec]
     real(rk8), parameter :: megemis_units_factor = 1._rk8/3600._rk8/1.e6_rk8
 
-!    real(rk8) :: root_depth(0:numpft)    ! Root depth [m]
+    real(rk8) , dimension(nlevsoi) :: tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6
+    real(rk8) :: root_depth(0:numpft)    ! Root depth [m]
     character(len=32), parameter :: subname = "VOCEmission"
-!
-!    ! root depth (m) (defined based on Zeng et al., 2001, cf Guenther 2006)
+
+!    root depth (m) (defined based on Zeng et al., 2001, cf Guenther 2006)
 !    ! bare-soil
-!    root_depth(noveg) = 0._rk8
+    root_depth(noveg) = 0._rk8
 !    ! evergreen tree
-!    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree) = 1.8_rk8
+    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree) = 1.8_rk8
 !    ! needleleaf deciduous boreal tree
-!    root_depth(ndllf_dcd_brl_tree) = 2.0_rk8
+    root_depth(ndllf_dcd_brl_tree) = 2.0_rk8
 !    ! broadleaf evergreen tree
-!    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree) = 3.0_rk8
+    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree) = 3.0_rk8
 !    ! broadleaf deciduous tree
-!    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree) = 2.0_rk8
+    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree) = 2.0_rk8
 !    ! shrub
-!    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub) = 2.5_rk8
+    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub) = 2.5_rk8
 !    ! grass/crop
-!    root_depth(nc3_arctic_grass:numpft) = 1.5_rk8
-!
+    root_depth(nc3_arctic_grass:numpft) = 1.5_rk8
+
     if ( shr_megan_mechcomps_n < 1) return
 
     clandunit  => clm3%g%l%c%landunit
@@ -216,6 +229,10 @@ module mod_clm_vocemission
     clayfrac         => clm3%g%l%c%p%pps%clayfrac
     sandfrac         => clm3%g%l%c%p%pps%sandfrac
 
+    ! ***STRS *** 09/01/2019 Update from JIANG et al., 2018
+    btran            => clm3%g%l%c%p%pps%btran
+    vcmax_z          => clm3%g%l%c%p%ppsyns%vcmax_z
+    ! ***STRS ***
     cisun_z          => clm3%g%l%c%p%pcf%cisun_z
     cisha_z          => clm3%g%l%c%p%pcf%cisha_z
     if ( nlevcan /= 1 )then
@@ -320,11 +337,44 @@ module mod_clm_vocemission
 
         ! Activity factor for soil moisture: all species
         !  (commented out for now)
+        ! *** STRS 15/10/2019 - Activate the gammaSM function ***
+        if ( shr_megan_gamma_sm ) then
+          if ( shr_megan_2012 ) then
+            tmp1 = h2osoi_vol(c,:)
+            tmp2 = h2osoi_ice(c,:)
+            tmp3 = dz(c,:)
+            tmp4 = bsw(c,:)
+            tmp5 = watsat(c,:)
+            tmp6 = sucsat(c,:)
+            gamma_sm = get_gamma_SM(clayfrac(p), sandfrac(p), &
+                       tmp1,tmp2,tmp3,tmp4,tmp5,tmp6, &
+                       root_depth(ivt(p)))
+!                     h2osoi_vol(c,:), h2osoi_ice(c,:), &
+!                     dz(c,:), bsw(c,:), watsat(c,:), sucsat(c,:), &
 !       gamma_sm = get_gamma_SM(clayfrac(p), sandfrac(p), &
 !                  h2osoi_vol(c,:), h2osoi_ice(c,:), &
 !                  dz(c,:), bsw(c,:), watsat(c,:), sucsat(c,:), &
 !                  root_depth(ivt(p)))
-        gamma_sm = 1.0_rk8
+        ! ***STRS *** 09/01/2019 Update from JIANG et al., 2018
+          else if ( shr_megan_2018 ) then
+            if ( btran(p) >= 0.6_rk8 ) then
+              gamma_sm = 1.0_rk8
+            else
+              if ( .not. is_nan(vcmax_z(p,1)) ) then
+                gamma_sm = min(vcmax_z(p,1)/37.0_rk8,1.0_rk8)
+              else
+                gamma_sm = 1.0_rk8
+              end if
+            end if
+            !write(100+myid,*) gamma_sm
+            !flush(100+myid)
+          else
+            gamma_sm = 1.0_rk8
+          end if
+        else
+          gamma_sm = 1.0_rk8
+        end if
+
         !
         ! Loop through VOCs for light, temperature and leaf age
         ! activity factor & apply all final activity factors to baseline
