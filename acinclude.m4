@@ -104,12 +104,13 @@ AC_DEFUN([RR_PATH_NETCDF],[
     fi
   fi
   LDFLAGS="$save_LDFLAGS"
+  AC_SUBST([netcdf])
 
 ])
 
 dnl
 dnl autoconf macro for detecting NetCDF module file
-dnl 
+dnl
 
 AC_DEFUN([RR_PATH_NETCDF_F90],[
 
@@ -454,7 +455,7 @@ AC_DEFUN([RCM_FC_CHECK_IEEE_ARITHMETIC],[
   AC_MSG_CHECKING([whether the Fortran compiler supports IEEE_ARITHMETIC])
   # Try to compile a piece of code that uses the module.
   AC_LANG_PUSH([Fortran])
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([],
     [[
       use, intrinsic :: ieee_arithmetic
       real :: val
@@ -464,7 +465,7 @@ AC_DEFUN([RCM_FC_CHECK_IEEE_ARITHMETIC],[
     ]])], [fc_has_ieee_arithmetic="yes"])
   AC_LANG_POP([Fortran])
   if test "${fc_has_ieee_arithmetic}" = "yes"; then
-    AC_DEFINE([HAVE_FC_IEEE_ARITHMETIC],1, 
+    AC_DEFINE([HAVE_FC_IEEE_ARITHMETIC],1,
       [Define to 1 if your Fortran compiler supports IEEE_ARITHMETIC module.])
     FCFLAGS="${DEFINE}F2008 $FCFLAGS"
     AC_SUBST(FCFLAGS)
@@ -478,14 +479,14 @@ AC_DEFUN([RCM_FC_CHECK_QUAD_PRECISION],[
   AC_MSG_CHECKING([whether the Fortran compiler supports quadruple precision])
   # Try to compile a piece of code that uses the module.
   AC_LANG_PUSH([Fortran])
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([],
     [[
       integer, parameter :: qp = selected_real_kind(32)
       real(kind=qp) :: val
     ]])], [fc_has_quad_precision="yes"])
   AC_LANG_POP([Fortran])
   if test "${fc_has_quad_precision}" = "yes"; then
-    AC_DEFINE([HAVE_FC_QUAD_PRECISION],1, 
+    AC_DEFINE([HAVE_FC_QUAD_PRECISION],1,
       [Define to 1 if your Fortran compiler supports quadruple precision reals.])
     FCFLAGS="${DEFINE}QUAD_PRECISION $FCFLAGS"
     AC_SUBST(FCFLAGS)
@@ -501,13 +502,13 @@ AC_DEFUN([RCM_MPI_CHECK_MPI3],[
   acx_mpi_save_FC="$FC"
   FC="$MPIFC"
   AC_LANG_PUSH([Fortran])
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([], 
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([],
     [[
        call mpi_ineighbor_alltoallv
     ]])], [mpifc_has_mpi3="yes"])
   AC_LANG_POP([Fortran])
   if test "${mpifc_has_mpi3}" = "yes"; then
-    AC_DEFINE([HAVE_MPI3],1, 
+    AC_DEFINE([HAVE_MPI3],1,
       [Define to 1 if your MPI library supports MPI3 interfaces.])
     FCFLAGS="${DEFINE}USE_MPI3 $FCFLAGS"
     AC_SUBST(FCFLAGS)

@@ -196,7 +196,6 @@ AC_ARG_ENABLE(clm,
   [USECLM="1"],
 )
 AM_CONDITIONAL(DO_COMPILE_LIBCLM, [test x"$USECLM" = x1])
-AM_CONDITIONAL(RRTM_NC, [true])
 
 AC_ARG_ENABLE(megan,
   AC_HELP_STRING([--enable-megan],
@@ -730,6 +729,8 @@ else
     RR_CDF5
   fi
 fi
+
+AM_CONDITIONAL(RRTM_NC, [test x"$netcdf" = xyes])
 
 RCM_FC_CHECK_IEEE_ARITHMETIC
 RCM_FC_CHECK_QUAD_PRECISION

@@ -104,12 +104,11 @@ endif
 rrtmg_lw_rad.o : rrtmg_lw_rad.F90 parkind.o parrrtm.o rrlw_vsn.o mcica_subcol_gen_lw.o rrtmg_lw_cldprmc.o rrtmg_lw_rtrnmc.o rrtmg_lw_setcoef.o rrtmg_lw_taumol.o rrlw_con.o rrlw_wvn.o
 rrtmg_lw_rad.nomcica.o : rrtmg_lw_rad.nomcica.F90 parkind.o parrrtm.o rrlw_vsn.o rrtmg_lw_cldprop.o rrtmg_lw_rtrn.o rrtmg_lw_rtrnmr.o rrtmg_lw_setcoef.o rrtmg_lw_taumol.o rrlw_con.o rrlw_wvn.o
 if RRTM_NC
-rrtmg_lw_read_nc.o : rrtmg_lw_read_nc.F90 parkind.o rrlw_kg01.o rrlw_kg02.o rrlw_kg03.o rrlw_kg04.o rrlw_kg05.o rrlw_kg06.o rrlw_kg07.o rrlw_kg08.o rrlw_kg09.o rrlw_kg10.o rrlw_kg11.o rrlw_kg12.o rrlw_kg13.o rrlw_kg14.o rrlw_kg15.o rrlw_kg16.o rrlw_vsn.o
+rrtmg_lw_read_nc.o : rrtmg_lw_read_nc.F90 rrlw_kg01.o rrlw_ncpar.o rrlw_kg02.o rrlw_kg03.o rrlw_kg04.o rrlw_kg05.o rrlw_kg06.o rrlw_kg07.o rrlw_kg08.o rrlw_kg09.o rrlw_kg10.o rrlw_kg11.o rrlw_kg12.o rrlw_kg13.o rrlw_kg14.o rrlw_kg15.o rrlw_kg16.o
 else
 rrtmg_lw_k_g.o : rrtmg_lw_k_g.F90 parkind.o rrlw_kg01.o rrlw_kg02.o rrlw_kg03.o rrlw_kg04.o rrlw_kg05.o rrlw_kg06.o rrlw_kg07.o rrlw_kg08.o rrlw_kg09.o rrlw_kg10.o rrlw_kg11.o rrlw_kg12.o rrlw_kg13.o rrlw_kg14.o rrlw_kg15.o rrlw_kg16.o rrlw_vsn.o
 	$(FC) $(CPPFLAGS) $(NOOPTFC) -c $<
 endif
-rrtmg_lw_read_nc.o : rrtmg_lw_read_nc.F90 rrlw_kg01.o rrlw_ncpar.o rrlw_kg02.o rrlw_kg03.o rrlw_kg04.o rrlw_kg05.o rrlw_kg06.o rrlw_kg07.o rrlw_kg08.o rrlw_kg09.o rrlw_kg10.o rrlw_kg11.o rrlw_kg12.o rrlw_kg13.o rrlw_kg14.o rrlw_kg15.o rrlw_kg16.o
 rrtmg_lw_rtrn.o : rrtmg_lw_rtrn.F90 parkind.o parrrtm.o rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
 rrtmg_lw_rtrnmc.o : rrtmg_lw_rtrnmc.F90 parkind.o parrrtm.o rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
 rrtmg_lw_rtrnmr.o : rrtmg_lw_rtrnmr.F90 parkind.o parrrtm.o rrlw_con.o rrlw_wvn.o rrlw_tbl.o rrlw_vsn.o
@@ -125,12 +124,11 @@ endif
 rrtmg_sw_rad.o : rrtmg_sw_rad.F90 parkind.o rrsw_vsn.o mcica_subcol_gen_sw.o rrtmg_sw_cldprmc.o rrtmg_sw_setcoef.o rrtmg_sw_spcvmc.o parrrsw.o rrsw_aer.o rrsw_con.o rrsw_wvn.o
 rrtmg_sw_rad.nomcica.o : rrtmg_sw_rad.nomcica.F90 parkind.o rrsw_vsn.o rrtmg_sw_cldprop.o rrtmg_sw_setcoef.o rrtmg_sw_spcvrt.o parrrsw.o rrsw_aer.o rrsw_con.o rrsw_wvn.o
 if RRTM_NC
-rrtmg_sw_read_nc.o : rrtmg_sw_read_nc.F90 parkind.o rrsw_kg16.o rrsw_kg17.o rrsw_kg18.o rrsw_kg19.o rrsw_kg20.o rrsw_kg21.o rrsw_kg22.o rrsw_kg23.o rrsw_kg24.o rrsw_kg25.o rrsw_kg26.o rrsw_kg27.o rrsw_kg28.o rrsw_kg29.o rrsw_vsn.o
+rrtmg_sw_read_nc.o : rrtmg_sw_read_nc.F90 rrsw_kg16.o rrsw_ncpar.o rrsw_kg17.o rrsw_kg18.o rrsw_kg19.o rrsw_kg20.o rrsw_kg21.o rrsw_kg22.o rrsw_kg23.o rrsw_kg24.o rrsw_kg25.o rrsw_kg26.o rrsw_kg27.o rrsw_kg28.o rrsw_kg29.o
 else
 rrtmg_sw_k_g.o : rrtmg_sw_k_g.F90 parkind.o rrsw_kg16.o rrsw_kg17.o rrsw_kg18.o rrsw_kg19.o rrsw_kg20.o rrsw_kg21.o rrsw_kg22.o rrsw_kg23.o rrsw_kg24.o rrsw_kg25.o rrsw_kg26.o rrsw_kg27.o rrsw_kg28.o rrsw_kg29.o rrsw_vsn.o
 	$(FC) $(CPPFLAGS) $(NOOPTFC) -c $<
 endif
-rrtmg_sw_read_nc.o : rrtmg_sw_read_nc.F90 rrsw_kg16.o rrsw_ncpar.o rrsw_kg17.o rrsw_kg18.o rrsw_kg19.o rrsw_kg20.o rrsw_kg21.o rrsw_kg22.o rrsw_kg23.o rrsw_kg24.o rrsw_kg25.o rrsw_kg26.o rrsw_kg27.o rrsw_kg28.o rrsw_kg29.o
 rrtmg_sw_reftra.o : rrtmg_sw_reftra.F90 parkind.o rrsw_tbl.o rrsw_vsn.o
 rrtmg_sw_setcoef.o : rrtmg_sw_setcoef.F90 parkind.o parrrsw.o rrsw_ref.o rrsw_vsn.o
 rrtmg_sw_spcvmc.o : rrtmg_sw_spcvmc.F90 parkind.o parrrsw.o rrsw_tbl.o rrsw_vsn.o rrsw_wvn.o rrtmg_sw_reftra.o rrtmg_sw_taumol.o rrtmg_sw_vrtqdr.o
