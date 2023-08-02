@@ -1994,6 +1994,27 @@ module mod_moloch
         end do
 !$acc end parallel
 
+        if ( ma%has_bdybottom ) then
+!$acc parallel present(pp,wz)
+!$acc loop collapse(2)
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice1,k) = pp(j,ici1,k)
+            end do
+          end do
+!$acc end parallel
+        end if
+        if ( ma%has_bdytop ) then
+!$acc parallel present(pp,wz)
+!$acc loop collapse(2)
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice2,k) = pp(j,ici2,k)
+            end do
+          end do
+!$acc end parallel
+        end if
+
 !$acc parallel present(wfw, pp, s, fmzf, fmz, wz) private(zamu,&
 !$acc&     is, k1, k1p1, r, b, zphi, wfwkp1, wfwk, zrfmu, zrfmd, zdv)
 !$acc loop collapse(3)
@@ -2154,36 +2175,14 @@ module mod_moloch
                 zrfmu = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
                 zrfmd = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
                 zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
-                wz(j,i, k) = wz(j,i,k) - wwkw(j,i,k)*zrfmu + &
-                                         wwkw(j,i,k+1)*zrfmd + zdv
+                wz(j,i,k) = wz(j,i,k) - wwkw(j,i,k)*zrfmu + &
+                                        wwkw(j,i,k+1)*zrfmd + zdv
               end do
             end do
           end do
 !$acc end parallel
 #endif
         end if
-
-        if ( ma%has_bdybottom ) then
-!$acc parallel present(wz)
-!$acc loop collapse(2)
-          do k = 1 , kz
-            do j = jci1 , jci2
-              wz(j,ice1,k) = wz(j,ici1,k)
-            end do
-          end do
-!$acc end parallel
-        end if
-        if ( ma%has_bdytop ) then
-!$acc parallel present(wz)
-!$acc loop collapse(2)
-          do k = 1 , kz
-            do j = jci1 , jci2
-              wz(j,ice2,k) = wz(j,ici2,k)
-            end do
-          end do
-!$acc end parallel
-        end if
-
 !!$acc update self(wz)
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 !!$acc update device(wz)
@@ -2192,6 +2191,28 @@ module mod_moloch
 !$acc kernels present(wz)
           wz = max(wz,pmin)
 !$acc end kernels
+        end if
+
+        if ( ma%has_bdyleft ) then
+!$acc parallel present(p0,pp)
+!$acc loop collapse(2)
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce1,i,k) = pp(jci1,i,k)
+            end do
+          end do
+!$acc end parallel
+        end if
+
+        if ( ma%has_bdyright ) then
+!$acc parallel present(p0,pp)
+!$acc loop collapse(2)
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce2,i,k) = pp(jci2,i,k)
+            end do
+          end do
+!$acc end parallel
         end if
 
         if ( lrotllr ) then
@@ -2274,28 +2295,6 @@ module mod_moloch
 #endif
           end do
 !$acc end parallel
-
-          if ( ma%has_bdyleft ) then
-!$acc parallel present(p0)
-!$acc loop collapse(2)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce1,i,k) = p0(jci1,i,k)
-              end do
-            end do
-!$acc end parallel
-          end if
-
-          if ( ma%has_bdyright ) then
-!$acc parallel present(p0)
-!$acc loop collapse(2)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce2,i,k) = p0(jci2,i,k)
-              end do
-            end do
-!$acc end parallel
-          end if
 
 !!$acc update self(p0)
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
@@ -2466,28 +2465,6 @@ module mod_moloch
 #endif
           end do
 !$acc end parallel
-
-          if ( ma%has_bdyleft ) then
-!$acc parallel present(p0)
-!$acc loop collapse(2)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce1,i,k) = p0(jci1,i,k)
-              end do
-            end do
-!$acc end parallel
-          end if
-
-          if ( ma%has_bdyright ) then
-!$acc parallel present(p0)
-!$acc loop collapse(2)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce2,i,k) = p0(jci2,i,k)
-              end do
-            end do
-!$acc end parallel
-          end if
 
 !!$acc update self(p0)
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)

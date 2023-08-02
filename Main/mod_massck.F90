@@ -50,6 +50,12 @@ module mod_massck
   real(rk8) , public :: dryerror = d_zero
   real(rk8) , public :: waterror = d_zero
 
+  real(wrkp) :: mcrai = 0.0_wrkp
+  real(wrkp) :: mncrai = 0.0_wrkp
+  real(wrkp) :: mevap = 0.0_wrkp
+  real(wrkp) :: mdryadv = 0.0_wrkp
+  real(wrkp) :: mqadv = 0.0_wrkp
+
   contains
 
   subroutine massck
@@ -59,11 +65,6 @@ module mod_massck
     real(wrkp) :: tcrai , tncrai , tqeva
     real(wrkp) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
     real(wrkp) :: north , south , east , west
-    real(wrkp) , save :: mcrai = 0.0_wrkp
-    real(wrkp) , save :: mncrai = 0.0_wrkp
-    real(wrkp) , save :: mevap = 0.0_wrkp
-    real(wrkp) , save :: mdryadv = 0.0_wrkp
-    real(wrkp) , save :: mqadv = 0.0_wrkp
     real(wrkp) :: w1 , w2
     integer(ik4) :: i , j , k , n
 
