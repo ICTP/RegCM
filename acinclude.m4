@@ -43,28 +43,28 @@ AC_DEFUN([RR_PATH_NETCDF],[
   AC_CHECK_HEADER([netcdf.h],
                   [netcdf=yes], [netcdf=no])
 
-  if test "x$netcdf" = xno; then
+  if test "x$netcdf" = "xno"; then
       AC_MSG_ERROR([NetCDF include not found])
   fi
 
   AC_CHECKING([for libnetcdf])
   AC_CHECK_LIB([netcdf], [nc_close],
                [netcdf=yes], [netcdf=no])
-  if test "x$netcdf" = xno; then
+  if test "x$netcdf" = "xno"; then
     AC_CHECKING([if we need to link hdf5 library])
     NC_LDFLAGS="$NC_LDFLAGS -L$HDF5_PREFIX/lib"
     LDFLAGS="$LDFLAGS $NC_LDFLAGS"
     LIBS="$LIBS -lhdf5 -lhdf5_hl"
     AC_CHECK_LIB([netcdf], [nc_sync],
                  [netcdf=yes], [netcdf=no])
-    if test "x$netcdf" = xno; then
+    if test "x$netcdf" = "xno"; then
       AC_CHECKING([if we need to link szlib library])
       NC_LDFLAGS="$NC_LDFLAGS -L$SZIP_PREFIX/lib"
       LDFLAGS="$LDFLAGS $NC_LDFLAGS"
       LIBS="$LIBS -lsz"
       AC_CHECK_LIB([netcdf], [nc_inq_libvers],
                    [netcdf=yes], [netcdf=no])
-      if test "x$netcdf" = xno; then
+      if test "x$netcdf" = "xno"; then
         AC_CHECKING([if we need to link libraries for HDF4])
         LDFLAGS="$LDFLAGS $NC_LDFLAGS"
         LIBS="$LIBS -lmfhdf -ldf -ljpeg"
@@ -72,7 +72,7 @@ AC_DEFUN([RR_PATH_NETCDF],[
         [netcdf=yes], [netcdf=no])
       fi
     fi
-    if test "x$netcdf" = xno; then
+    if test "x$netcdf" = "xno"; then
       AC_MSG_ERROR([NetCDF library not found])
     fi
   fi
@@ -114,6 +114,7 @@ dnl
 
 AC_DEFUN([RR_PATH_NETCDF_F90],[
 
+  AC_LANG_PUSH([Fortran])
   AC_CHECKING([for NetCDF module file])
   save_FCFLAGS="$FCFLAGS"
 
@@ -121,15 +122,15 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
     for flag in "-I" "-M" "-p"; do
       FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
       AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[ ]],
-                         [[      use netcdf]])],
+        [AC_LANG_PROGRAM([ ],
+                         [      use netcdf])],
                          [netcdf=yes; NC_FCFLAGS=$flag],
                          [netcdf=no])
-      if test "x$netcdf" = xyes; then
+      if test "x$netcdf" = "xyes"; then
         break
       fi
     done
-    if test "x$netcdf" = xno; then
+    if test "x$netcdf" = "xno"; then
       AC_MSG_ERROR([NetCDF module not found])
     fi
 
@@ -138,18 +139,19 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
   else
     FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
     AC_COMPILE_IFELSE(
-      [AC_LANG_PROGRAM([[ ]],
+      [AC_LANG_PROGRAM([ ],
                        [[      use netcdf]])],
                        [netcdf=yes],
                        [netcdf=no])
 
-    if test "x$netcdf" = xno; then
+    if test "x$netcdf" = "xno"; then
       AC_MSG_ERROR([NetCDF module not found])
     fi
 
     FCFLAGS="$save_FCFLAGS"
     AM_CPPFLAGS="$NC_INCLUDES $AM_CPPFLAGS"
   fi
+  AC_LANG_POP([Fortran])
 
   AC_SUBST([AM_CPPFLAGS])
 ])
@@ -162,15 +164,15 @@ AC_DEFUN([RR_NETCDF4],[
     for flag in "-I" "-M" "-p"; do
       FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
       AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[ ]],
-                         [[
+        [AC_LANG_PROGRAM([ ],
+                         [
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_netcdf4]])],
+         imode = nf90_netcdf4])],
                          [hdf5=yes],
                          [hdf5=no])
-      if test "x$hdf5" = xyes; then
+      if test "x$hdf5" = "xyes"; then
         AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
         break
       fi
@@ -179,16 +181,16 @@ AC_DEFUN([RR_NETCDF4],[
   else
     FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
     AC_COMPILE_IFELSE(
-      [AC_LANG_PROGRAM([[ ]],
-                       [[
+      [AC_LANG_PROGRAM([ ],
+                       [
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_netcdf4]])],
+         imode = nf90_netcdf4])],
                        [hdf5=yes],
                        [hdf5=no])
 
-    if test "x$hdf5" = xyes; then
+    if test "x$hdf5" = "xyes"; then
       AM_CPPFLAGS="${DEFINE}NETCDF4_HDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
@@ -198,22 +200,23 @@ AC_DEFUN([RR_NETCDF4],[
 ])
 
 AC_DEFUN([RR_CDF5],[
-  AC_CHECKING([for NetCDF CDF5])
+  AC_CHECKING([for NetCDF CDF5 format])
+  AC_LANG_PUSH([Fortran])
   save_FCFLAGS="$FCFLAGS"
 
   if test -z "$NC_INCLUDES"; then
     for flag in "-I" "-M" "-p"; do
       FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
       AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[ ]],
-                         [[
+        [AC_LANG_PROGRAM([ ],
+                         [
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_cdf5]])],
+         imode = nf90_cdf5])],
                          [cdf5=yes],
                          [cdf5=no])
-      if test "x$cdf5" = xyes; then
+      if test "x$cdf5" = "xyes"; then
         AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
         break
       fi
@@ -222,21 +225,21 @@ AC_DEFUN([RR_CDF5],[
   else
     FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
     AC_COMPILE_IFELSE(
-      [AC_LANG_PROGRAM([[ ]],
-                       [[
+      [AC_LANG_PROGRAM([ ],
+                       [
          use netcdf
          implicit none
          integer :: imode
-         imode = nf90_cdf5]])],
+         imode = nf90_cdf5])],
                        [cdf5=yes],
                        [cdf5=no])
 
-    if test "x$cdf5" = xyes; then
+    if test "x$cdf5" = "xyes"; then
       AM_CPPFLAGS="${DEFINE}NETCDF_CDF5 $AM_CPPFLAGS"
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
-
+  AC_LANG_POP([Fortran])
   AC_SUBST([AM_CPPFLAGS])
 ])
 
@@ -424,14 +427,14 @@ AC_DEFUN([RR_PATH_PNETCDF],[
   AC_CHECK_HEADER([pnetcdf.h],
                   [pnetcdf=yes], [pnetcdf=no])
 
-  if test "x$pnetcdf" = xno; then
+  if test "x$pnetcdf" = "xno"; then
       AC_MSG_ERROR([Parallel NetCDF include not found])
   fi
 
   AC_CHECKING([for libpnetcdf])
   AC_CHECK_LIB([pnetcdf], [ncmpi_close],
                [pnetcdf=yes], [pnetcdf=no])
-  if test "x$pnetcdf" = xno; then
+  if test "x$pnetcdf" = "xno"; then
     AC_MSG_ERROR([Parallel NetCDF library not found])
   fi
 

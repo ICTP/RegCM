@@ -716,7 +716,7 @@ fi
 RR_PATH_NETCDF
 RR_PATH_NETCDF_F90
 if eval "test x$PNETCDF = x0"; then
-  if eval "test x$NETCDF_CDF5 = x0 || x$PNETCDF_IN_NETCDF = x0"; then
+  if eval "test x$NETCDF_CDF5 = x0 || test x$PNETCDF_IN_NETCDF = x0"; then
     RR_NETCDF4
   else
     if eval "test x$NETCDF_CDF5 = x1"; then
