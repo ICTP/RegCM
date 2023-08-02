@@ -345,15 +345,20 @@ module mod_massck
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
         write(stdout,*) 'At ', trim(rcmtimer%str( ))
-        write(stdout,'(a,e12.5,a,f9.5,a)') ' Total dry air   =', drymass, &
+        write(stdout,'(a,e12.5,a,f14.10,a)') ' Total dry air   =', drymass, &
                    ' kg, error = ', dryerror, ' %'
-        write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &
+        write(stdout,'(a,e12.5,a,f14.10,a)') ' Total water     =', qmass, &
                    ' kg, error = ', waterror, ' %'
         write(stdout,'(a)') ' Mean values over past 24 hours :'
+#ifndef RCEMIP
         write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', mdryadv , ' kg.'
         write(stdout,'(a,e12.5,a)') ' Water boundary      = ', mqadv, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Convective rain     = ', mcrai, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Nonconvective rain  = ', mncrai, ' kg.'
+#else
+        write(stdout,'(a,e12.5,a)') ' Total precipitation = ', &
+          mncrai+mcrai, ' kg.'
+#endif
         write(stdout,'(a,e12.5,a)') ' Ground Evaporation  = ', mevap, ' kg.'
         write(stdout,'(a)') &
             ' *****************************************************'

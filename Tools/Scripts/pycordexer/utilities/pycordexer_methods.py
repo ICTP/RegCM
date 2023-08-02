@@ -1197,10 +1197,12 @@ class ComputeMaximum(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
-            dtype=np.bool
+            dtype=bool
         )
 
         shape_template = [slice(None) for _ in prev_result.dimensions]
+        old_data_slice = shape_template[:]
+        new_data_slice = shape_template[:]
         LOGGER.debug('Computing maximums')
         with prev_result.data:
             for i in range(maximums_num):
@@ -1215,19 +1217,17 @@ class ComputeMaximum(Filter):
                     prev_result.times[start:end] + corr_factor
                 )
 
-                old_data_slice = shape_template[:]
                 old_data_slice[time_index] = slice(start, end)
-                new_data_slice = shape_template[:]
-                new_data_slice[time_index] = i
+                new_data_slice[time_index] = slice(i,i)
 
                 prev_data = prev_result.data(old_data_slice)
-                new_data_array[new_data_slice] = np.ma.maximum(
+                new_data_array[tuple(new_data_slice)] = np.ma.maximum(
                     prev_data,
                     axis=time_index
                 )
 
                 if is_masked(prev_data):
-                    new_data_mask[new_data_slice] = np.prod(
+                    new_data_mask[tuple(new_data_slice)] = np.prod(
                         prev_data.mask,
                         axis=time_index
                     )
@@ -1568,10 +1568,12 @@ class ComputeAverage(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
-            dtype=np.bool
+            dtype=bool
         )
 
-        shape_template = [slice(None) for _ in prev_result.dimensions]
+        shape_template = [ slice(None) for _ in prev_result.dimensions]
+        old_data_slice = shape_template[:]
+        new_data_slice = shape_template[:]
         LOGGER.debug('Computing means')
         with prev_result.data:
             for i in range(averages_num):
@@ -1586,19 +1588,17 @@ class ComputeAverage(Filter):
                     prev_result.times[start:end] + corr_factor
                 )
 
-                old_data_slice = shape_template[:]
                 old_data_slice[time_index] = slice(start, end)
-                new_data_slice = shape_template[:]
                 new_data_slice[time_index] = i
 
                 prev_data = prev_result.data(old_data_slice)
-                new_data_array[new_data_slice] = np.ma.mean(
+                new_data_array[tuple(new_data_slice)] =  np.ma.mean(
                     prev_data,
                     axis=time_index
                 )
 
                 if is_masked(prev_data):
-                    new_data_mask[new_data_slice] = np.prod(
+                    new_data_mask[tuple(new_data_slice)] = np.prod(
                         prev_data.mask,
                         axis=time_index
                     )
@@ -1836,7 +1836,7 @@ class SumOnDimension(Filter):
         LOGGER.debug('Preparing a mask to hide NaN values')
         new_data_mask = np.zeros(
             [d[1] for d in reduced_dims],
-            dtype=np.bool
+            dtype=bool
         )
 
         if prev_result.depends_on_time:
@@ -1874,13 +1874,13 @@ class SumOnDimension(Filter):
                     current_slice_old[time_position] = i
 
                     prev_data = prev_result.data(current_slice_old)
-                    new_data_array[current_slice_new] = np.ma.sum(
+                    new_data_array[tuple(current_slice_new)] = np.ma.sum(
                         prev_data,
                         axis=position_no_time
                     )
 
                     if is_masked(prev_data):
-                        new_data_mask[current_slice_new] = np.prod(
+                        new_data_mask[tuple(current_slice_new)] = np.prod(
                             prev_data.mask,
                             axis=position_no_time
                         )
@@ -2428,6 +2428,9 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             self.need_time_bounds
         )
 
+        if "grid_" not in reference_var.attributes['standard_name']:
+            return reference_var
+
         attributes = copy(reference_var.attributes)
 
         if self.new_attributes is not None:
@@ -2502,12 +2505,12 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
             LOGGER.debug('Plat is %s', plat)
         else:
             plat = None
-        LOGGER.debug('Plat not found: missing attribute')
+            LOGGER.debug('Plat not found: missing attribute')
 
         # This is the function that computes the coefficients for the rotation
         def compute_rotation_coefficients(lat_lon_slice):
             LOGGER.debug('Computing transformation coefficients')
-            c1, c2 = grid_to_earth_uvrotate(
+            ff = grid_to_earth_uvrotate(
                 regcm_file.map_projection,
                 regcm_file.xlon[lat_lon_slice],
                 regcm_file.xlat[lat_lon_slice],
@@ -2517,11 +2520,10 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 plon,
                 plat
             )
-
             if self.direction == 'eastward':
-                return c1, c2
+                return ff[0], ff[1]
             elif self.direction == 'northward':
-                return -c2, c1
+                return -ff[1], ff[0]
             else:
                 raise ValueError('Invalid direction: {}'.format(self.direction))
 
@@ -2547,9 +2549,8 @@ class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
                 SliceStr(lat_lon_slice)
             )
 
-            c1, c2 = compute_rotation_coefficients(lat_lon_slice)
-
-            return c1 * x + c2 * y
+            f1, f2 = compute_rotation_coefficients(lat_lon_slice)
+            return f1 * x + f2 * y
 
         # Return the variable that uses the previous function to compute
         # its data

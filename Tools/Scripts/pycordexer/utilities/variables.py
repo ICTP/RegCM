@@ -255,9 +255,9 @@ class NetCDFData(Data):
         # a masked array
         slice_start_stop, slice_steps = step_postponer(slice_data)
         if slice_steps is not None:
-            data_raw = data_var[slice_start_stop][slice_steps]
+            data_raw = data_var[tuple(slice_start_stop)][tuple(slice_steps)]
         else:
-            data_raw = data_var[slice_start_stop]
+            data_raw = data_var[tuple(slice_start_stop)]
         LOGGER.debug('Data read')
 
         # Now we cast the data
@@ -314,7 +314,7 @@ class MemoryData(Data):
     def __call__(self, slice_data=None):
         if slice_data is None:
             slice_data = np.index_exp[:]
-        return self.__data_array[slice_data]
+        return self.__data_array[tuple(slice_data)]
 
     @property
     def source(self):
@@ -341,7 +341,7 @@ class FilterData(Data):
         else:
             if slice_data is None:
                 slice_data = np.index_exp[:]
-            return self.__f(self.__prev_data())[slice_data]
+            return self.__f(self.__prev_data())[tuple(slice_data)]
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__prev_data.__exit__(exc_type, exc_val, exc_tb)
@@ -367,7 +367,7 @@ class SubselectedData(Data):
     def __call__(self, slice_data=None):
         if slice_data is None:
             slice_data = np.index_exp[:]
-        return self.__prev_data(self.__slice)[slice_data]
+        return self.__prev_data(self.__slice)[tuple(slice_data)]
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__prev_data.__exit__(exc_type, exc_val, exc_tb)

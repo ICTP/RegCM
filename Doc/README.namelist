@@ -260,6 +260,7 @@
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
                               ! Enabled by default if debug_level > 2
+                              ! This is supported only by netCDF3 and CDF5
  uvrotate = .false.,          ! Rotate projected wind to S-N, W-E direction
  icosp = 0,                   ! Enable COSP needed fields in output in the ATM
  idiag = 0,                   ! Enable tendency diagnostic output in the ATM
@@ -348,10 +349,19 @@
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
+                        ! This is reset to zero if using ipptls = 2
  icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
+                        !   2 : digital cloud (0/1) on condensate presence
+                        ! ===================================================
+                        ! NOTE: Using the NoTo microphysics (ipptls=2) the
+                        !       Xu-Randall scheme (icldfrac=1) is recommended
+                        !       to avoid unrealistic values for LWP if the
+                        !       values is computed from actual mixing ratios
+                        !       (iconvlwp = 0).
+                        ! ===================================================
  icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
@@ -884,3 +894,24 @@
  dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
  /
 ! ####################################################################
+! PostProc
+! ####################################################################
+!
+! For sigma2p, sigma2z the number of vertical levels to interpolate to.
+!
+ &pp_param
+ np = 12,
+ nz = 14
+ /
+!
+! Pressure levels for sigma2p. Unit is hPa (mb).
+!
+ &pressure
+ plevs = 1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.,
+ /
+!
+! Height levels for sigma2z. Unit is meter.
+!
+ &height
+ zlevs = 20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0,1500.0,2000.0,5000.0,7000.0,10000.0,
+ /

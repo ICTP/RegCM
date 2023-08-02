@@ -42,9 +42,6 @@ program sigma2z
 
   implicit none
 
-  integer(ik4) , parameter :: nz = 14
-  real(rk4) , dimension(nz) :: zlevs
-
   character(256) :: prgname , ncsfile , ncpfile
   character(128) :: attname , dimname , varname
   integer(ik4) :: numarg , istatus , ncid , ncout
@@ -81,16 +78,14 @@ program sigma2z
   integer(ik4) :: tvarid , qvarid , irhvar , imslzvar , ircm_map
   logical :: has_t , has_q , has_rh , has_sph , is_icbc
   logical :: make_rh , make_mslp
-  integer(ik4) :: n3d , iz3d , iodyn
+  integer(ik4) :: n3d , iz3d , iodyn , nz , ipunit , iresult
+  real(rk4) , allocatable , dimension(:) :: zlevs
 
   data has_t /.false./
   data has_q /.false./
   data has_rh /.false./
   data make_rh /.false./
   data make_mslp /.false./
-
-  data zlevs /20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0, &
-              1500.0,2000.0,5000.0,7000.0,10000.0/
 
 !$OMP THREADPRIVATE(xvar,zvar)
 
@@ -103,19 +98,40 @@ program sigma2z
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (6,*) 'Usage : ', trim(prgname), '[namelist_file.in] Rcmfile.nc'
     write (6,*) ' '
     stop
   end if
 
   call get_command_argument(1,value=ncsfile)
+  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+  if ( istatus /= nf90_noerr ) then
+    ! Assume we have been provided a namelist with pressure levels.
+    open(newunit=ipunit, file=ncsfile, status='old', &
+         action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(ncsfile)
+      stop
+    end if
+    call get_nz(ipunit)
+    allocate(zlevs(nz))
+    call get_zlevs(ipunit)
+    call get_command_argument(2,value=ncsfile)
+    istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+  else
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+    nz = 14
+    allocate(zlevs(nz))
+    zlevs = [ 20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0, &
+              1500.0,2000.0,5000.0,7000.0,10000.0 ]
+  end if
+
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_hgt.nc'
-
-  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error Opening Input file '//trim(ncsfile))
 
   jxdimid = -1
   iydimid = -1
@@ -774,6 +790,37 @@ program sigma2z
   istatus = nf90_close(ncout)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
+
+  deallocate(zlevs)
+
+  contains
+
+  subroutine get_nz(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    integer(ik4) :: np ! Unused in sigma2z
+    namelist /pp_param/ nz , np
+    rewind(iu)
+    read(iu, nml=pp_param, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading pp_param namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_nz
+
+  subroutine get_zlevs(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    namelist /height/ zlevs
+    rewind(iu)
+    read(iu, nml=height, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading height namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_zlevs
 
 end program sigma2z
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

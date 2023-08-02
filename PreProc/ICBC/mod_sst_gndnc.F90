@@ -50,7 +50,7 @@ module mod_sst_gndnc
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
-  character(len=8), dimension(2) :: varname
+  character(len=16), dimension(2) :: varname
   type(h_interpolator) :: hint
   integer(ik2) :: fillvalue
   real(rkx) :: add_offset , scale_factor
@@ -101,6 +101,12 @@ module mod_sst_gndnc
          'sst_',year,'_',month,'.nc'
       varname(1) = 'time'
       varname(2) = 'sst'
+    else if ( ssttyp == 'HRMED' ) then
+      write (inpfile,'(a,i0.4,a)') &
+        trim(inpglob)//pthsep//'SST'//pthsep//'HR_MED'//pthsep// &
+         'ERA5-HR-JPL-MUR_SST_',year,'_day.nc'
+      varname(1) = 'time'
+      varname(2) = 'analysed_sst'
     else
       call die('gndnc_sst','Unknown ssttyp: '//ssttyp,1)
     end if
@@ -305,6 +311,10 @@ module mod_sst_gndnc
         write (inpfile,'(a,i0.4,a)') &
            trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
               'tmisst', year, '.nc'
+      else if ( ssttyp == 'HRMED' ) then
+        write (inpfile,'(a,i0.4,a)') &
+          trim(inpglob)//pthsep//'SST'//pthsep//'HR_MED'//pthsep// &
+           'ERA5-HR-JPL-MUR_SST_',year,'_day.nc'
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -372,6 +382,16 @@ module mod_sst_gndnc
             sst(i,j) = workf(i,j) + 273.15_rkx
           else
             sst(i,j) = -9999.0_rkx
+          end if
+        end do
+      end do
+    else if ( ssttyp == 'HRMED' ) then
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if ( is_nan(workf(i,j)) ) then
+            sst(i,j) = -9999.0_rkx
+          else
+            sst(i,j) = workf(i,j)
           end if
         end do
       end do

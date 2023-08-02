@@ -235,9 +235,9 @@ module mod_rad_outrad
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
         rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
-        if ( idiag > 0 ) then
-          call copy3d(qrs,rad_qrs_out)
-          call copy3d(qrl,rad_qrl_out)
+        call copy3d(qrs,rad_qrs_out)
+        call copy3d(qrl,rad_qrl_out)
+        if ( iclimao3 > 0 ) then
           call copy3d(o3,rad_o3_out)
         end if
         if ( icosp == 1 ) then

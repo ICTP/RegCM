@@ -24,17 +24,17 @@
 # Destination directory
 #DEST=$PWD
 
-netcdf_c_ver=4.9.0
-netcdf_f_ver=4.5.4
-hdf5_ver=1.13.2
-zlib_ver=1.2.12
-ompi_ver=4.1.4
+netcdf_c_ver=4.9.2
+netcdf_f_ver=4.6.1
+hdf5_ver=1.14.1-2
+zlib_ver=1.2.13
+ompi_ver=4.1.5
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
 hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2`
 
 UNIDATA=https://downloads.unidata.ucar.edu/
 OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
-HDFGROUP=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${hdf5_major}/hdf5-${hdf5_ver}/src
+HDFGROUP=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${hdf5_major}/hdf5-`echo ${hdf5_ver} | cut -d "-" -f1`/src
 ZLIB=http://zlib.net
 
 export LD_LIBRARY_PATH=$DEST/lib:$LD_LIBRARY_PATH

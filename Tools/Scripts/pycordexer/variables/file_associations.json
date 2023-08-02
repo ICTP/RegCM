@@ -28,7 +28,6 @@
       "psl",
       "mrro",
       "mrros",
-      "mrso",
       "mrsol",
       "sfcWind",
       "clt",
@@ -62,6 +61,7 @@
       "tasmean",
       "prmean",
       "psmean",
+      "mrromean",
       "sundmean",
       "sfcWindmax"
     ],

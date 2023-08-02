@@ -271,7 +271,11 @@ module mod_params
     idcsst = 0
     iseaice = 0
     iconvlwp = 1
-    icldfrac = 0
+#ifdef RCEMIP
+    icldfrac = 2
+#else
+    icldfrac = 1
+#endif
     icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
@@ -343,8 +347,13 @@ module mod_params
     rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
+#ifdef RCEMIP
+    clfrcvmax = 1.00_rkx   ! Max cloud fractional cover for convective precip.
+    cftotmax  = 1.00_rkx   ! Max total cover cloud fraction for radiation
+#else
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
+#endif
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
@@ -415,7 +424,7 @@ module mod_params
     elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 1.50_rkx       ! Coefficient of mixing in the entrainment formulation
+    entp = 0.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
     sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
@@ -1782,18 +1791,24 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
+    call bcast(ds)
     if ( irceideal == 1 ) then
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
       mddom%msfx = 1.0_rkx
+      mddom%area = (ds*d_1000)**2
       dl = raddeg * (ds*d_1000)/earthrad
       do i = ide1 , ide2
         do j = jde1 , jde2
           mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
           mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
+#ifdef RCEMIP
+          mddom%coriol(j,i) = 0.0_rkx
+#else
           mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
+#endif
         end do
       end do
       if ( idynamic == 3 ) then
@@ -1845,13 +1860,12 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriol = d_one
+      mddom%coriol = d_zero
     end if
 
     if ( idynamic == 3 ) then
       ptop = 0.1_rkx ! assume 1 mbar (.1 cbar)
     end if
-    call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
 
@@ -2464,8 +2478,8 @@ module mod_params
     if ( any(icup == 3) ) then
       if ( myid == italk ) then
         write(stderr,*) &
-          'The Betts-Miller Convection scheme has been removed in V5.'
-        call fatal(__FILE__,__LINE__,'MODEL STOPS')
+          'WARNING : The Betts-Miller Convection scheme is not ', &
+          'properly implemented'
       end if
     end if
     if ( any(icup == 4) ) then

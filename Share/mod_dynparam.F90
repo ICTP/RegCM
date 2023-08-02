@@ -585,7 +585,7 @@ module mod_dynparam
       cntrj = real(jx,rkx)/d_two
     end if
 
-!   Ensure that band mode is active if CRM mode is active
+    ! Ensure that band mode is active if CRM mode is active
     if ( i_crm == 1 ) then
       i_band = 1
     end if

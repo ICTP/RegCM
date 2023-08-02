@@ -5,8 +5,8 @@ import numpy as np
 
 # The current version of RegCM. This information will be used only if there is
 # no way to get it from the RegCM files
-ICTP_Model_fallback = 'ICTP-RegCM4-5'
-ICTP_Model_Version_fallback = 'v4'
+ICTP_Model_fallback = 'ICTP-RegCM5-0'
+ICTP_Model_Version_fallback = 'v0'
 
 # Get the path of the directory that contains the software
 MAIN_DIR = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/..')

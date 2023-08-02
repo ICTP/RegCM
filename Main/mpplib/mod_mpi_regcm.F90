@@ -17,6 +17,8 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef MPI08
+
 module mod_mpi_regcm
   use, intrinsic :: iso_fortran_env
   use mpi_f08
@@ -3872,5 +3874,7 @@ module mod_mpi_regcm
   end subroutine real4_exchange_bdy_bt
 
 end module mod_mpi_regcm
+
+#endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1015,10 +1015,12 @@ module mod_ncstream
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
         end do
         where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) > 180.0 )
-          buffer%doublebuff = 360.0_rk8 - buffer%doublebuff
+          buffer%doublebuff(1:stream%len_dims(jx_dim)) = &
+            360.0_rk8 - buffer%doublebuff(1:stream%len_dims(jx_dim))
         end where
         where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) < -180.0 )
-          buffer%doublebuff = 360.0_rk8 + buffer%doublebuff
+          buffer%doublebuff(1:stream%len_dims(jx_dim)) = &
+            360.0_rk8 + buffer%doublebuff(1:stream%len_dims(jx_dim))
         end where
         call outstream_writevar(ncout,stvar%jx_var,nocopy)
         buffer%doublebuff(1) = rlat0 - &
@@ -1107,11 +1109,10 @@ module mod_ncstream
         buffer%doublebuff(8) = 0.00000400_rk8
         call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
-
       contains
 
       subroutine compute_zero_rotated(rlat0,rlon0)
-       implicit none
+        implicit none
         real(rk8) , intent(out) :: rlat0 , rlon0
         real(rk8) :: pphi , plam
         real(rk8) :: cphi , clam
@@ -1146,7 +1147,7 @@ module mod_ncstream
           clam = degrad*clon
         end if
         rlat0 = asin(-cos(cphi)*sin(pphi)*cos(clam-plam) + &
-                      sin(cphi)*cos(pphi))
+                    sin(cphi)*cos(pphi))
         if ( abs(abs(rlat0)-halfpi) > 1.0e-7_rk8 .and. &
              abs(pphi) > 1.0e-7_rk8 ) then
           rlon0 = (sin(cphi)-cos(pphi)*sin(rlat0)) / &
@@ -2565,6 +2566,10 @@ module mod_ncstream
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
                 [totsize])
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 2
           if ( var%lrecords ) then
@@ -2640,6 +2645,10 @@ module mod_ncstream
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
                 [totsize]),rk4)
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 2
           if ( var%lrecords ) then
@@ -2727,6 +2736,10 @@ module mod_ncstream
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize])
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 3
           if ( var%lrecords ) then
@@ -2814,6 +2827,10 @@ module mod_ncstream
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize]),rk4)
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 3
           if ( var%lrecords ) then
@@ -2906,6 +2923,10 @@ module mod_ncstream
             buffer%realbuff(1:totsize) = &
               reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize])
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2998,6 +3019,10 @@ module mod_ncstream
             buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize]),rk4)
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -5065,6 +5090,23 @@ module mod_ncstream
       write(stderr,*) nf90_strerror(ncstat)
 #endif
     end subroutine printerror
+
+    pure elemental real(rk4) function bitshave_nb(x,nb) result(y)
+      implicit none
+      real(rk4) , intent(in) :: x
+      integer(ik4) , intent(in) :: nb
+      integer(ik4) :: mask
+      integer(ik4) , parameter :: all_on = not(0_ik4)
+      mask = lshift(all_on,23-nb)
+      y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
+    end function bitshave_nb
+
+    pure elemental real(rk4) function bitshave_15(x) result(y)
+      implicit none
+      real(rk4) , intent(in) :: x
+      integer(ik4) , parameter :: mask = -256
+      y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
+    end function bitshave_15
 
 end module mod_ncstream
 
