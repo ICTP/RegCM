@@ -73,9 +73,10 @@ program chem_icbc
     iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
     icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
     islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
-    iwhitecap , ifixsolar , year_offset , ipcpcool , ichdustparam
+    ifixsolar , year_offset , ichdustparam , irceideal
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
+  character(len=256) :: radclimpath
   real(rkx) :: rdstemfac , rocemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
@@ -93,11 +94,11 @@ program chem_icbc
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
     iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-    ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
-    idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
-    iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
-    temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-    fixedsolarval , year_offset
+    ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
+    icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
+    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
+    ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
+    year_offset , radclimpath
 
 #ifdef PNETCDF
   call mpi_init(ierr)
