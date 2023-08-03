@@ -38,7 +38,7 @@ def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None,
         dlam = plam - lam
         f1 = np.cos(pphi)*np.sin(dlam)
         f2 = np.cos(phi)*np.sin(pphi) - np.sin(phi)*np.cos(pphi)*np.cos(dlam)
-        delta = np.arctan(f1/f2) 
+        delta = np.arctan(f1/f2)
         return np.cos(delta), np.sin(delta)
 
     elif proj == 'ROTMER':
