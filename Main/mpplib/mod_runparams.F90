@@ -131,7 +131,6 @@ module mod_runparams
   integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
   integer(ik4) , public :: idcsst
-  integer(ik4) , public :: ipcpcool
   integer(ik4) , public :: iwhitecap
   ! Sea Ice scheme index
   integer(ik4) , public :: iseaice
