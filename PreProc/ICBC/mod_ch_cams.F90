@@ -32,7 +32,6 @@ module mod_cams
   use mod_earth
   use mod_hgt
   use mod_humid
-  use mod_mksst
   use mod_projections
   use mod_vectutil
   use mod_message
