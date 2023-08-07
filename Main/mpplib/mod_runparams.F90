@@ -106,9 +106,14 @@ module mod_runparams
   logical , public :: uvrotate
 
   ! Step counters to activate surface and radiation schemes
-  real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
-     rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_optfrq , &
-     rnrad_for_srffrq , rnrad_for_radfrq , rnsrf_for_atmfrq
+  real(rkx) , public :: rnsrf_for_day = d_zero
+  real(rkx) , public :: rnsrf_for_srffrq = d_zero
+  real(rkx) , public :: rnsrf_for_lakfrq = d_zero
+  real(rkx) , public :: rnsrf_for_subfrq = d_zero
+  real(rkx) , public :: rnrad_for_optfrq = d_zero
+  real(rkx) , public :: rnrad_for_srffrq = d_zero
+  real(rkx) , public :: rnrad_for_radfrq = d_zero
+  real(rkx) , public :: rnsrf_for_atmfrq = d_zero
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !
