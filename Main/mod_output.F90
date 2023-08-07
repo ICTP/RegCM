@@ -1179,7 +1179,6 @@ module mod_output
         if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
 
         rnsrf_for_srffrq = d_zero
-        rnrad_for_srffrq = d_zero
 
       end if
     end if

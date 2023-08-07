@@ -1423,8 +1423,10 @@ module mod_savefile
 #endif
     if ( present(skippable) ) then
       if ( skippable ) then
-        var(:,:) = 0.0_rk8
-        return
+        if ( ncstatus /= nf90_noerr ) then
+          var(:,:) = 0.0_rk8
+          return
+        end if
       else
         call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
       end if
