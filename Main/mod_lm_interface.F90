@@ -852,9 +852,6 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
-      if ( ifrad ) then
-        rnrad_for_srffrq = rnrad_for_srffrq + 1.0_rkx
-      end if
       if ( ifatm ) then
         rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
         if ( associated(atm_tsw_out) ) &

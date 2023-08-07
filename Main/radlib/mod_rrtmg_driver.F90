@@ -265,6 +265,9 @@ module mod_rrtmg_driver
     real(rk8) :: decorr_con         ! decorrelation length, constant (m)
     logical :: lradfor
     real(rkx) :: adjes
+    integer(ik4) , parameter :: idrv = 0
+    integer(ik4) , parameter :: iaer = 10
+    integer(ik4) , parameter :: isolvar = -1
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = 1.0e-10_rkx
@@ -330,27 +333,27 @@ module mod_rrtmg_driver
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,10,lradfor,ldirect,play,plev,  &
-                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr, &
-                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,  &
-                      adjes,juldat,solcon,-1,inflgsw,iceflgsw,    &
-                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,   &
-                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
-                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,   &
-                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,    &
-                      swddifuviflx,swddirpirflx,swddifpirflx,     &
+        call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
+                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
+                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
+                      adjes,juldat,solcon,isolvar,inflgsw,iceflgsw, &
+                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
+                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,      &
+                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,     &
+                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,      &
+                      swddifuviflx,swddirpirflx,swddifpirflx,       &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,10,lradfor,ldirect,play, &
-                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,     &
-                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,    &
-                              asdif,aldir,aldif,czen,adjes,juldat,  &
-                              solcon,-1,inflgsw,iceflgsw,liqflgsw,  &
-                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,   &
-                              rei,rel,tauaer,ssaaer,asmaer,ecaer,   &
-                              swuflx,swdflx,swhr,swuflxc,swdflxc,   &
-                              swhrc,swddiruviflx,swddifuviflx,      &
-                              swddirpirflx,swddifpirflx,swdvisflx,  &
+        call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
+                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
+                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
+                              asdif,aldir,aldif,czen,adjes,juldat,      &
+                              solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
+                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
+                              rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
+                              swuflx,swdflx,swhr,swuflxc,swdflxc,       &
+                              swhrc,swddiruviflx,swddifuviflx,          &
+                              swddirpirflx,swddifpirflx,swdvisflx,      &
                               aeradfo,aeradfos,asaeradfo,asaeradfos)
       end if
     end if ! end shortwave call
@@ -363,16 +366,16 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
-                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
-                    inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
-                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,           &
-                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,       &
-                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,&
+      call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
+                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,         &
+                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,          &
+                    inflglw,iceflglw,liqflglw,cldfmcl_lw,                  &
+                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,              &
+                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,          &
+                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,   &
                     duflx_dt,duflxc_dt)
     else
-      call rrtmg_lw_nomcica(npr,kth,icld,0,lradfor,ldirect,play,plev,    &
+      call rrtmg_lw_nomcica(npr,kth,icld,idrv,lradfor,ldirect,play,plev, &
                             tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
