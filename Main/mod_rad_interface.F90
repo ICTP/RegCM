@@ -87,25 +87,30 @@ module mod_rad_interface
     ktf = kzp1
 
     if ( irrtm == 1 ) then
-      if ( idynamic /= 3 ) then
-        do k = 1 , n_prehlev
-          kclimh = k
-          if ( ptop*d_10 > stdplevh(k) ) exit
-        end do
-        kth = n_prehlev - kclimh + 1 + kz
-        ktf = kth + 1
-        kclimf = kclimh + 1
+      if ( rrtm_extend ) then
+        if ( idynamic /= 3 ) then
+          do k = 1 , n_prehlev
+            kclimh = k
+            if ( ptop*d_10 > stdplevh(k) ) exit
+          end do
+          kth = n_prehlev - kclimh + 1 + kz
+          ktf = kth + 1
+          kclimf = kclimh + 1
+        else
+          do k = 1 , n_hrehlev
+            kclimh = k
+            if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
+          end do
+          kth  = n_hrehlev - kclimh + 1 + kz
+          do k = 1 , n_hreflev
+            kclimf = k
+            if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
+          end do
+          ktf  = n_hreflev - kclimf + 1 + kzp1
+        end if
       else
-        do k = 1 , n_hrehlev
-          kclimh = k
-          if ( mo_ztop*d_r1000 < stdhlevh(k) ) exit
-        end do
-        kth  = n_hrehlev - kclimh + 1 + kz
-        do k = 1 , n_hreflev
-          kclimf = k
-          if ( mo_ztop*d_r1000 < stdhlevf(k) ) exit
-        end do
-        ktf  = n_hreflev - kclimf + 1 + kzp1
+        kth = kz
+        ktf = kzp1
       end if
       if ( myid == italk ) then
         write(stdout,*) 'Total number of the half RRTM levels is ', kth
