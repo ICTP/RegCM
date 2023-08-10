@@ -160,9 +160,15 @@ module mod_era5
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
-    write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
+    if ( dattyp == 'ERA5XX' ) then
+      write(inname,'(a,a,a,a,a,i0.2,a)') &
+          'XXXX', pthsep, 'geop_', 'XXXX', '_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep//inname
+    else
+      write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
       year, pthsep, 'geop_', year, '_', month,'.nc'
-    pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+      pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file '//trim(pathaddname))
@@ -574,9 +580,15 @@ module mod_era5
         end do
       end if
       do kkrec = 1 , 5
-        write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
-        year, pthsep, fname(kkrec), '_', year, '_', month,'.nc'
-        pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+        if ( dattyp == 'ERAXX' ) then
+          write(inname,'(a,a,a,a,a,a,i0.2,a)') &
+          'XXXX', pthsep, fname(kkrec), '_', 'XXXX', '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep//inname
+        else
+          write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
+          year, pthsep, fname(kkrec), '_', year, '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))

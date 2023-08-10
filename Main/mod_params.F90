@@ -309,9 +309,9 @@ module mod_params
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
     mo_nadv = 3
-    mo_nsound = 5
+    mo_nsound = 6
     mo_anu2 = 0.05_rkx
-    mo_nzfilt = 0
+    mo_nzfilt = kz/5
     !
     ! Rrtm radiation param ;
     !
