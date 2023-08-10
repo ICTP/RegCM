@@ -160,7 +160,7 @@ module mod_era5
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
-    if ( dattyp == 'ERA5XX' ) then
+    if ( dattyp == 'ERAXX' ) then
       write(inname,'(a,a,a,a,a,i0.2,a)') &
           'XXXX', pthsep, 'geop_', 'XXXX', '_', month,'.nc'
       pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep//inname
