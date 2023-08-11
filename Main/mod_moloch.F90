@@ -72,6 +72,7 @@ module mod_moloch
 
   real(rkx) , dimension(:) , pointer :: gzitak
   real(rkx) , dimension(:) , pointer :: gzitakh
+  real(rkx) , dimension(:) , pointer :: xknu
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
@@ -103,7 +104,7 @@ module mod_moloch
   logical , parameter :: do_divdamp      = .true.
   logical , parameter :: do_filterpai    = .false.
   logical , parameter :: do_filterqv     = .false.
-  logical , parameter :: do_filterdiv    = .false.
+  logical , parameter :: do_filterdiv    = .true.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
   logical , parameter :: do_massconserve = .false.
@@ -120,7 +121,6 @@ module mod_moloch
   real(rkx) , parameter :: ddamp = 0.25_rkx
 
   real(rkx) :: dzita
-  integer(ik4) :: nadv , nsound
   integer(ik4) :: jmin , jmax , imin , imax
 
   contains
@@ -130,6 +130,7 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
+    integer(ik4) :: k
     call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
 !$acc enter data create(gzitak)
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
@@ -191,6 +192,13 @@ module mod_moloch
       call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
       call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
 !$acc enter data create(qwltot,qwitot)
+    end if
+    if ( do_filterdiv ) then
+      call getmem1d(xknu,1,kz,'moloch:xknu')
+!$acc enter data create(xknu)
+      do k = 1 , kz
+        xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1)/kz,rkx)))*mo_anu2
+      end do
     end if
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -261,8 +269,6 @@ module mod_moloch
     rmv = d_one/mv
     gzitak = gzita(zita)
     gzitakh = gzita(zitah)
-    nadv = mo_nadv
-    nsound = mo_nsound
     dzita = mo_dzita
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
@@ -295,7 +301,6 @@ module mod_moloch
   !
   subroutine moloch
     implicit none
-    integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
     real(rkx) :: tv , lrt , fice , prat
@@ -306,7 +311,7 @@ module mod_moloch
 #endif
 !$acc enter data create(tmi,tmf)
     !real(rk8) :: jday
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j , k , nadv
     integer(ik4) :: iconvec
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
@@ -314,8 +319,8 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
-    dtstepa = dtsec / real(nadv,rkx)
-    dtsound = dtstepa / real(nsound,rkx)
+    dtstepa = dtsec / real(mo_nadv,rkx)
+    dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
     !
     ! Start of accelerated section
@@ -323,7 +328,6 @@ module mod_moloch
     on_device = .true.
 
     call reset_tendencies
-
 !$acc parallel present(p, pai, qsat, t)
 !$acc loop collapse(3)
     do k = 1 , kz
@@ -465,7 +469,7 @@ module mod_moloch
     end if
 !$acc update self(tmi) async(2)
 
-    do jadv = 1 , nadv
+    do nadv = 1 , mo_nadv
 
       call sound(dtsound)
 
@@ -952,16 +956,91 @@ module mod_moloch
 !$acc end parallel
       end subroutine filt4d
 
-      subroutine divergence_filter(nu)
+      subroutine divergence_filter( )
         implicit none
-        real(rkx) , intent(in) :: nu
         integer(ik4) :: j , i , k
+#ifdef USE_MPI3
+        type(commdata_real) :: comm
 
+!!$acc update self(zdiv2)
+        call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+!!$acc update device(zdiv2)
+
+!$acc parallel present(p2d, zdiv2, xknu)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector collapse(2)
+          do i = ici1+1 , ici2-1
+            do j = jci1+1 , jci2-1
+              p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                      zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                         d_half   * zdiv2(j,i,k)
+            end do
+          end do
+!$acc loop vector collapse(2)
+          do i = ici1+1 , ici2-1
+            do j = jci1+1 , jci2-1
+              zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
+            end do
+          end do
+        end do
+!$acc end parallel
+
+!!$acc update self(zdiv2)
+        call exchange_lrbt_post(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+!!$acc update device(zdiv2)
+
+!$acc parallel present(p2d, zdiv2, xknu)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector
+          do i = ici1 , ici2
+            p2d(jci1,i) = 0.125_rkx * (zdiv2(jci1-1,i,k) + zdiv2(jci1+1,i,k) + &
+                                       zdiv2(jci1,i-1,k) + zdiv2(jci1,i+1,k)) -&
+                         d_half   * zdiv2(jci1,i,k)
+          end do
+!$acc loop vector
+          do i = ici1 , ici2
+            zdiv2(jci1,i,k) = zdiv2(jci1,i,k) + xknu(k) * p2d(jci1,i)
+          end do
+!$acc loop vector
+          do i = ici1 , ici2
+            p2d(jci2,i) = 0.125_rkx * (zdiv2(jci2-1,i,k) + zdiv2(jci2+1,i,k) + &
+                                       zdiv2(jci2,i-1,k) + zdiv2(jci2,i+1,k)) -&
+                         d_half   * zdiv2(jci2,i,k)
+          end do
+!$acc loop vector
+          do i = ici1 , ici2
+            zdiv2(jci2,i,k) = zdiv2(jci2,i,k) + xknu(k) * p2d(jci2,i)
+          end do
+!$acc loop vector
+          do j = jci1+1 , jci2-1
+            p2d(j,ici1) = 0.125_rkx * (zdiv2(j-1,ici1,k) + zdiv2(j+1,ici1,k) + &
+                                       zdiv2(j,ici1-1,k) + zdiv2(j,ici1+1,k)) -&
+                       d_half   * zdiv2(j,ici1,k)
+          end do
+!$acc loop vector
+          do j = jci1+1 , jci2-1
+            zdiv2(j,ici1,k) = zdiv2(j,ici1,k) + xknu(k) * p2d(j,ici1)
+          end do
+!$acc loop vector
+          do j = jci1+1 , jci2-1
+            p2d(j,ici2) = 0.125_rkx * (zdiv2(j-1,ici2,k) + zdiv2(j+1,ici2,k) + &
+                                       zdiv2(j,ici2-1,k) + zdiv2(j,ici2+1,k)) -&
+                       d_half   * zdiv2(j,ici2,k)
+          end do
+!$acc loop vector
+          do j = jci1+1 , jci2-1
+            zdiv2(j,ici2,k) = zdiv2(j,ici2,k) + xknu(k) * p2d(j,ici2)
+          end do
+        end do
+!$acc end parallel
+#else
 !!$acc update self(zdiv2)
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 !!$acc update device(zdiv2)
 
-!$acc parallel present(p2d, zdiv2)
+!$acc parallel present(p2d, zdiv2, xknu)
 !$acc loop gang
         do k = 1 , kz
 !$acc loop vector collapse(2)
@@ -975,11 +1054,12 @@ module mod_moloch
 !$acc loop vector collapse(2)
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdiv2(j,i,k) = zdiv2(j,i,k) + nu * p2d(j,i)
+              zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
             end do
           end do
         end do
 !$acc end parallel
+#endif
       end subroutine divergence_filter
 
       subroutine filtpai
@@ -1072,7 +1152,7 @@ module mod_moloch
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , nsound
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzum , zrfmzup , zrfmzvm , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
@@ -1099,10 +1179,10 @@ module mod_moloch
         end if
 #endif
 
-        do jsound = 1 , nsound
+        do nsound = 1 , mo_nsound
 
 #ifdef USE_MPI3
-          if ( jsound == 1 .and. .not. do_fulleq ) then
+          if ( nsound == 1 .and. .not. do_fulleq ) then
             call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           end if
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
@@ -1372,12 +1452,12 @@ module mod_moloch
 #endif
 
 #ifdef USE_MPI3
-          if ( jsound == 1 .and. .not. do_fulleq ) then
+          if ( nsound == 1 .and. .not. do_fulleq ) then
             call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           end if
 #endif
           if ( do_divdamp ) call divdamp(dtsound)
-          if ( do_filterdiv ) call divergence_filter(mo_anu2)
+
 !$acc parallel present(zdiv2, fmz, s)
 !$acc loop collapse(3)
           do k = 1 , kz
@@ -1413,12 +1493,12 @@ module mod_moloch
                         (tetav(j,i,k-1) + tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * &
                          fmzf(j,i,k)*fmzf(j,i,k) * &
-                         real(jsound,rkx) * zdtrdz * &
+                         real(nsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                      w(j,i,k) > 0.1_rkx ) then
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*wlhv*wlhv* &
+                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
                     zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
                   zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
@@ -1504,6 +1584,8 @@ module mod_moloch
 !!$acc update device(tetav)
 #endif
           end if
+
+          if ( do_filterdiv ) call divergence_filter( )
 
           ! horizontal momentum equations
 !$acc parallel present(pai, zdiv2)
