@@ -325,7 +325,7 @@ module mod_params
     imcica = 1
     irng = 1
     nradfo = 4
-    rrtm_extend = .false.
+    rrtm_extend = .true.
     !
     ! Subexparam ;
     ! From Pal et al, 2000
