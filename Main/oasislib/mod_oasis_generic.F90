@@ -56,7 +56,7 @@ module mod_oasis_generic
   public :: oasisxregcm_allocate_oasisgrids , srf_sqm
   public :: oasisxregcm_write_oasisgrids , oasisxregcm_deallocate_oasisgrids
   public :: oasisxregcm_def_field , oasisxregcm_end_def
-  public :: oasisxregcm_rcv , oasisxregcm_rcv_lag , fill_ocean
+  public :: oasisxregcm_rcv , fill_ocean
   public :: oasisxregcm_snd
 
   contains
@@ -544,41 +544,6 @@ module mod_oasis_generic
 ! XXX
 #endif
   end subroutine oasisxregcm_rcv
-
-  ! receive a single field with id fld_id through oasis_get
-  ! lag seconds earlier
-  subroutine oasisxregcm_rcv_lag(array,fld,time,dtsec,lag,last,l_act)
-    implicit none
-    type(infofld) , intent(in) :: fld
-    integer(ik4) , intent(in) :: time ! execution time
-    integer(ik4) , intent(in) :: dtsec , lag , last 
-    real(rkx) , dimension(:,:) , intent(out) :: array
-    logical , intent(out) :: l_act
-    integer(ik4) :: local_time
-! XXX
-    character(len=*) , parameter :: sub_name  = 'oasisxregcm_rcv_lag'
-#ifdef DEBUG
-! XXX
-    !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
-    if ( time == 0 ) then
-      local_time = 0
-      do while ( local_time < lag ) then
-        call oasisxregcm_rcv(array,fld,local_time,l_act)
-        local_time = local_time + dtsec
-      end do
-    end if
-    if ( time <= last ) then
-      call oasisxregcm_rcv(array,fld,time+lag,l_act)
-    end if
-! XXX
-    call checkpoint_exit(sub_name)
-! XXX
-#endif
-  end subroutine oasisxregcm_rcv_lag
 
   ! fill the ocean parts of array_out with array_in
   subroutine fill_ocean_2d(array_out,array_in,lndcat,grd)
