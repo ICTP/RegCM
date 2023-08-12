@@ -186,6 +186,8 @@ module mod_params
 #ifdef OASIS
     namelist /oasisparam/ l_write_grids , write_restart_option , &
                           oasis_sync_lag , &
+                          sst_rcv_lag, &
+    ! OASIS field +++
                           l_cpl_im_sst , &
 !                          l_cpl_im_sit , &
                           l_cpl_im_wz0 , &
@@ -630,6 +632,8 @@ module mod_params
     write_restart_option = 0
     l_write_grids = .false.
     oasis_sync_lag = 0
+    sst_rcv_lag = 0
+    ! OASIS field +++
     l_cpl_im_sst  = .false.
 !    l_cpl_im_sit  = .false.
     l_cpl_im_wz0  = .false.
@@ -1448,6 +1452,8 @@ module mod_params
       call bcast(write_restart_option)
       call bcast(l_write_grids)
       call bcast(oasis_sync_lag)
+      call bcast(sst_rcv_lag)
+      ! OASIS field +++
       call bcast(l_cpl_im_sst)
 !      call bcast(l_cpl_im_sit)
       call bcast(l_cpl_im_wz0)
@@ -2946,13 +2952,23 @@ module mod_params
        end if
        ioasiscpl = 0
      end if
-     if ( ioasiscpl == 1 .and. &
-        ( write_restart_option < 0 .or. write_restart_option > 3 )) then
-       if ( myid == italk ) then
-         write(stdout,*) 'Warning: write_restart_option is out of bounds.'
-         write(stdout,*) 'It is now set to 0.'
+     if ( ioasiscpl == 1 ) then
+       if ( l_cpl_im_sst .and. sst_rcv_lag > 0 ) then
+         if ( myid == italk ) then
+           write(stdout,*) 'The OASIS field SST will be received'
+           write(stdout,*) sst_rcv_lag,'s ahead of the coupling time.'
+         end if      
+         last_sst_rcv = rcmtimer%model_stop_time - rcmtimer%model_start_time - sst_rcv_lag
+       else
+         sst_rcv_lag = 0
        end if
-       write_restart_option = 0
+       if ( write_restart_option < 0 .or. write_restart_option > 3 ) then
+         if ( myid == italk ) then
+           write(stdout,*) 'Warning: write_restart_option is out of bounds.'
+           write(stdout,*) 'It is now set to 0.'
+         end if
+         write_restart_option = 0
+       end if
      end if
    end if
 #endif

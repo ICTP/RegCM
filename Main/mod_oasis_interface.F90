@@ -91,6 +91,8 @@ module mod_oasis_interface
                       l_cpl_ex_ndsw , &
                       l_cpl_ex_rhoa
   ! OASIS field +++
+  integer(ik4) , public :: sst_rcv_lag
+  ! OASIS field +++
 
   !--------------------------------------------------------------------
   ! below the variables for the fields' information
@@ -135,11 +137,16 @@ module mod_oasis_interface
                                               cpl_wdir
   ! OASIS field +++
 
+  ! The variables below are useful only with a positive *_rcv_lag.
+  ! last_*_rcv contains the time in second such that
+  ! last_*_rcv + *_rcv_lag = model_stop_time
+  integer(ik4) :: last_sst_rcv
+
   ! OASIS needs double precision arrays. These variables are optional.
   ! They are used when calling the subroutine oasisxregcm_setup_field_array(),
   ! when an array is to be initialized. If not given, the array will be
   ! initialized with zeros.
-  real(rkx) , parameter :: init_sst = tzero + 20.0 ! 20 degrees celsius 
+  real(rkx) , parameter :: init_sst = tzero + 25.0 ! 20 degrees celsius 
   ! OASIS field +++
 
   !--------------------------------------------------------------------
@@ -662,13 +669,19 @@ module mod_oasis_interface
 #endif
     !
     if ( l_cpl_im_sst ) then ! sea surface temperature [K]
-      call oasisxregcm_rcv(cpl_sst,im_sst,time,l_act)
-!      if ( l_act ) then
+      if ( sst_rcv_lag > 0 ) then
+        call oasisxregcm_rcv_lag(cpl_sst,im_sst,time,int(dtsec,ik4), &
+                                 sst_rcv_lag,last_sst_rcv,l_act)
+      else
+        call oasisxregcm_rcv(cpl_sst,im_sst,time,l_act)
+      end if
+      if ( l_act ) then
+        write(stdout,*) '###: ',time
         ! fill the ocean parts: out array (2d or 3d with nsg dimension)
         !                       in array, mask, field grid
         call fill_ocean(sfs%tg,cpl_sst,mddom%lndcat,im_sst%grd)
         call fill_ocean(sfs%tgbb,cpl_sst,mddom%lndcat,im_sst%grd)
-!      end if
+      end if
     end if
     ! NOT IMPLEMENTED YET, BELOW IS A COPY OF THE PROCESS IN
     ! MOD_LM_INTERFACE.F90; IMPORT_DATA_INTO_SURFACE.
