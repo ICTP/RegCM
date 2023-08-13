@@ -945,6 +945,5 @@
  l_cpl_ex_ndsw = .false.,  ! RCM_NDSW | rcin/rcim
  l_cpl_ex_rhoa = .false.,  ! RCM_RHOA | rcin/rcim
                            !------ NAMCOUPLE FIELD ENTRIES ------
- sst_rcv_lag = 0,
  /
 ! ####################################################################
