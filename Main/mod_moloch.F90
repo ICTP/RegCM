@@ -2040,6 +2040,7 @@ module mod_moloch
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
+        real(rkx) :: pfm
 #ifdef OPENACC
         integer(ik4) :: k1m1 , k1p1m1
         real(rkx) :: rm1 , bm1 , ism1
@@ -2062,10 +2063,23 @@ module mod_moloch
           zdtrdz = 0.5_rkx * zdtrdz
         end if
 
+        if ( present(pmin) ) then
+          pfm = pmin
+        end if
         if ( present(pfac) ) then
-!$acc kernels present(pp)
-          pp = pp * pfac
-!$acc end kernels
+!$acc parallel present(pp)
+!$acc loop collapse(3)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = pp(j,i,k) * pfac
+              end do
+            end do
+          end do
+!$acc end parallel
+          if ( present(pmin) ) then
+            pfm = pfm*pfac
+          end if
         end if
 
         ! Vertical advection
@@ -2271,7 +2285,7 @@ module mod_moloch
 
         if ( present(pmin) ) then
 !$acc kernels present(wz)
-          wz = max(wz,pmin)
+          wz = max(wz,pfm)
 !$acc end kernels
         end if
 
@@ -2384,7 +2398,7 @@ module mod_moloch
 
         if ( present(pmin) ) then
 !$acc kernels present(p0)
-          p0 = max(p0,pmin)
+          p0 = max(p0,pfm)
 !$acc end kernels
         end if
 
@@ -2634,9 +2648,16 @@ module mod_moloch
         end if
 
         if ( present(pfac) ) then
-!$acc kernels present(pp)
-          pp = pp / pfac
-!$acc end kernels
+!$acc parallel present(pp)
+!$acc loop collapse(3)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = pp(j,i,k) / pfac
+              end do
+            end do
+          end do
+!$acc end parallel
         end if
 #ifdef RCEMIP
         if ( present(pmin) ) then
@@ -2701,9 +2722,16 @@ module mod_moloch
         end if
 #else
         if ( present(pmin) ) then
-!$acc kernels present(pp)
-          pp = max(pp,pmin)
-!$acc end kernels
+!$acc parallel present(pp)
+!$acc loop collapse(3)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = max(pp(j,i,k),pmin)
+              end do
+            end do
+          end do
+!$acc end parallel
         end if
 #endif
       end subroutine wafone
