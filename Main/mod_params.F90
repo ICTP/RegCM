@@ -118,7 +118,7 @@ module mod_params
       mo_anu2 , mo_nadv , mo_nsound , mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
-      iceflglw , liqflglw , icld , irng , imcica , nradfo
+      iceflglw , liqflglw , icld , irng , imcica , nradfo , rrtm_extend
 
     namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
       cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , k2_const , &
@@ -310,7 +310,7 @@ module mod_params
     mo_nadv = 3
     mo_nsound = 5
     mo_anu2 = 0.05_rkx
-    mo_nzfilt = 0
+    mo_nzfilt = kz/5
     !
     ! Rrtm radiation param ;
     !
@@ -324,6 +324,7 @@ module mod_params
     imcica = 1
     irng = 1
     nradfo = 4
+    rrtm_extend = .true.
     !
     ! Subexparam ;
     ! From Pal et al, 2000
@@ -1434,6 +1435,7 @@ module mod_params
       call bcast(irng)
       call bcast(imcica)
       call bcast(nradfo)
+      call bcast(rrtm_extend)
       if ( imcica == 0 .and. inflgsw == 2 ) then
         if ( myid == italk ) then
           write(stderr,*) &

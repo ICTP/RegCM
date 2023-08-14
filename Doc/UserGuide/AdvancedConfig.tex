@@ -671,8 +671,6 @@ sensitivity experiments to select the best scheme for your application.
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
- ipcpcool =          0, ! Precipitation cooling effect over ocean surface
- iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective algo for lwp in the large-scale
@@ -1258,7 +1256,9 @@ You are allowed here to tune the RRTM radiative scheme selected above in
  icld  = 1,    ! Cloud Overlap hypothesis
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
- nradfo = 4,   ! ?????????
+ nradfo = 4,   ! Radiative forcing syncronization
+ rrtm_extend = .false. ! Extend vertical levels above to climatological using
+                       ! std atmosphere vertical profile up to 0.5mb
  /
 \end{Verbatim}
 }

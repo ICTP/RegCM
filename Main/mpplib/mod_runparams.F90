@@ -378,6 +378,7 @@ module mod_runparams
 
   ! RRTM scheme parameters
 
+  logical , public :: rrtm_extend
   integer(ik4) , public :: irrtm
   integer(ik4) , public :: irrtm_cldov
   integer(ik4) , public :: irrtm_sw_opcliq

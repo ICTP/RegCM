@@ -739,10 +739,12 @@
                ! icld = 0, clear only
                ! icld = 1, with clouds using random cloud overlap
                ! icld = 2, with clouds using maximum/random cloud overlap
-               ! icld = 3, with clouds using maximum cloud overlap (McICA only) 
+               ! icld = 3, with clouds using maximum cloud overlap (McICA only)
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
  nradfo = 4,   ! Radiative forcing syncronization
+ rrtm_extend = .false. ! Extend vertical levels above to climatological using
+                       ! std atmosphere vertical profile up to 0.5mb
  /
 !
 ! Chemical control parameter

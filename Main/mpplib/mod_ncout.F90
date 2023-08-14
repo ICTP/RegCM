@@ -3364,17 +3364,25 @@ module mod_ncout
         end if
         if ( irrtm == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',inflgsw))
+            ncattribute_logical('rrtm_extended_above',rrtm_extend))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_vap', &
+            inflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_ice', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',inflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_liq', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_vap', &
+            inflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_ice', &
+            iceflglw))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_liq', &
+            iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &
