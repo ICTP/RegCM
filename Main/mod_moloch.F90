@@ -1183,13 +1183,18 @@ module mod_moloch
 
 #ifdef USE_MPI3
           if ( nsound == 1 .and. .not. do_fulleq ) then
+!!$acc update self(tetav)
             call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           end if
+!!$acc update self(u)
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
+!!$acc update self(v)
           call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm2)
 
           ! partial definition of the generalized vertical velocity
 
+!$acc parallel present(u, v, w, hx, hy) private(zuh, zvh)
+!$acc loop collapse(2)
           do i = ici1 , ici2-1
             do j = jci1 , jci2-1
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
@@ -1197,14 +1202,21 @@ module mod_moloch
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
+!$acc end parallel
+!$acc parallel present(w, s)
+!$acc loop collapse(2)
           do i = ici1 , ici2-1
             do j = jci1 , jci2-1
               s(j,i,kzp1) = -w(j,i,kzp1)
             end do
           end do
+!$acc end parallel
 
           ! Equation 10, generalized vertical velocity
 
+!$acc parallel present(u, hx, v, hy, s, gzitak) private(zuh, zvh)
+!$acc loop collapse(3)
+!!$acc loop tile(4,8,8)
           do k = kz , 2 , -1
             do i = ici1 , ici2-1
               do j = jci1 , jci2-1
@@ -1216,11 +1228,15 @@ module mod_moloch
               end do
             end do
           end do
+!$acc end parallel
 
           ! Part of divergence (except w contribution) put in zdiv2
           ! Equation 16
 
           if ( lrotllr ) then
+!$acc parallel present(fmz, u, v, rmv, zdiv2, mx) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = ici1 , ici2-1
                 do j = jci1 , jci2-1
@@ -1236,7 +1252,11 @@ module mod_moloch
                 end do
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(fmz, u, v, rmv, rmu, zdiv2, mx2) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = ici1 , ici2-1
                 do j = jci1 , jci2-1
@@ -1252,19 +1272,29 @@ module mod_moloch
                 end do
               end do
             end do
+!$acc end parallel
           end if
 
           call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm2)
+!!$acc update device(u,v)
 
+!$acc parallel present(u, v, w, hx, hy) private(zuh, zvh)
+!$acc loop vector
           do i = ici1 , ici2-1
             zuh = u(jci2,i,kz) * hx(jci2,i) + u(jci2+1,i,kz) * hx(jci2+1,i)
             zvh = v(jci2,i,kz) * hy(jci2,i) + v(jci2,i+1,kz) * hy(jci2,i+1)
             w(jci2,i,kzp1) = d_half * (zuh+zvh)
           end do
+!$acc end parallel
+!$acc parallel present(w, s)
+!$acc loop vector
           do i = ici1 , ici2-1
             s(jci2,i,kzp1) = -w(jci2,i,kzp1)
           end do
+!$acc end parallel
+!$acc parallel present(u, hx, v, hy, s, gzitak) private(zuh, zvh)
+!$acc loop collapse(2)
           do k = kz , 2 , -1
             do i = ici1 , ici2-1
               zuh = (u(jci2,i,k)   + u(jci2,i,k-1))   * hx(jci2,i) + &
@@ -1274,7 +1304,11 @@ module mod_moloch
               s(jci2,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
             end do
           end do
+!$acc end parallel
           if ( lrotllr ) then
+!$acc parallel present(fmz, u, v, rmv, zdiv2, mx) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2-1
                 zrfmzum = d_two / (fmz(jci2,i,k) + fmz(jci2-1,i,k))
@@ -1289,7 +1323,11 @@ module mod_moloch
                   mx(jci2,i) * ((zup-zum) + (zvp-zvm))
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(fmz, u, v, rmv, rmu, zdiv2, mx2) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1 , ici2-1
                 zrfmzum = d_two / (fmz(jci2,i,k) + fmz(jci2-1,i,k))
@@ -1304,16 +1342,25 @@ module mod_moloch
                   fmz(jci2,i,k) * ((zup-zum)+(zvp-zvm))
               end do
             end do
+!$acc end parallel
           end if
 
+!$acc parallel present(u, v, w, hx, hy) private(zuh, zvh)
+!$acc loop vector
           do j = jci1 , jci2
             zuh = u(j,ici2,kz) * hx(j,ici2) + u(j+1,ici2,kz) * hx(j+1,ici2)
             zvh = v(j,ici2,kz) * hy(j,ici2) + v(j,ici2+1,kz) * hy(j,ici2+1)
             w(j,ici2,kzp1) = d_half * (zuh+zvh)
           end do
+!$acc end parallel
+!$acc parallel present(w, s)
+!$acc loop vector
           do j = jci1 , jci2
             s(j,ici2,kzp1) = -w(j,ici2,kzp1)
           end do
+!$acc end parallel
+!$acc parallel present(u, hx, v, hy, s, gzitak) private(zuh, zvh)
+!$acc loop collapse(2)
           do k = kz , 2 , -1
             do j = jci1 , jci2
               zuh = (u(j,ici2,k)   + u(j,ici2,k-1))   * hx(j,ici2) + &
@@ -1323,7 +1370,11 @@ module mod_moloch
               s(j,ici2,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
             end do
           end do
+!$acc end parallel
           if ( lrotllr ) then
+!$acc parallel present(fmz, u, v, rmv, zdiv2, mx) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jci1 , jci2
                 zrfmzum = d_two / (fmz(j,ici2,k) + fmz(j-1,ici2,k))
@@ -1338,7 +1389,11 @@ module mod_moloch
                   mx(j,ici2) * ((zup-zum) + (zvp-zvm))
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(fmz, u, v, rmv, rmu, zdiv2, mx2) private(zrfmzum,&
+!$acc& zrfmzvm, zrfmzup, zrfmzvp, zum, zup, zvm, zvp)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jci1 , jci2
                 zrfmzum = d_two / (fmz(j,ici2,k) + fmz(j-1,ici2,k))
@@ -1353,6 +1408,7 @@ module mod_moloch
                   fmz(j,ici2,k) * ((zup-zum)+(zvp-zvm))
               end do
             end do
+!$acc end parallel
           end if
 #else
 !!$acc update self(u,v)
@@ -1454,6 +1510,7 @@ module mod_moloch
 #ifdef USE_MPI3
           if ( nsound == 1 .and. .not. do_fulleq ) then
             call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+!!$acc update device(tetav)
           end if
 #endif
           if ( do_divdamp ) call divdamp(dtsound)
@@ -1577,6 +1634,7 @@ module mod_moloch
 !$acc end parallel
             end if
 #ifdef USE_MPI3
+!!$acc update self(tetav)
             call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
 #else
 !!$acc update self(tetav)
@@ -1622,14 +1680,19 @@ module mod_moloch
 !$acc end parallel
 
 #ifdef USE_MPI3
+!!$acc update self(pai, deltaw)
           call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_pre(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1,comm2)
 
           if ( do_fulleq ) then
             call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+!!$acc update device(tetav)
           end if
 
           if ( lrotllr ) then
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, gzitakh,&
+!$acc& pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = ici1+1 , ici2
                 do j = jdi1+1 , jdi2
@@ -1639,7 +1702,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1647,7 +1711,11 @@ module mod_moloch
                 end do
               end do
             end do
+!$acc end parallel
             zcy = zdtrdy
+!$acc parallel present(deltaw, tetav, corv, ud, v, hy, gzitakh,&
+!$acc& pai) private(zfz, zrom1v, zcor1v)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = idi1+1 , idi2
                 do j = jci1+1 , jci2
@@ -1656,7 +1724,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1664,7 +1733,11 @@ module mod_moloch
                 end do
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, &
+!$acc&   gzitakh, pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = ici1+1 , ici2
                 do j = jdi1+1 , jdi2
@@ -1674,7 +1747,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1682,6 +1756,10 @@ module mod_moloch
                 end do
               end do
             end do
+!$acc end parallel
+!$acc parallel present(mv, deltaw, tetav, corv, ud, v, hy,&
+!$acc&    gzitakh, pai) private(zcy, zfz, zrom1v, zcor1v)
+!$acc loop collapse(3)
             do k = 1 , kz
               do i = idi1+1 , idi2
                 do j = jci1+1 , jci2
@@ -1691,7 +1769,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1700,11 +1779,16 @@ module mod_moloch
               end do
             end do
           end if
+!$acc end parallel
 
           call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_post(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1,comm2)
+!!$acc update device(pai, deltaw)
 
           if ( lrotllr ) then
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, gzitakh,&
+!$acc& pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1+1 , ici2
                 zcx = zdtrdx * mu(jdi1,i)
@@ -1721,6 +1805,10 @@ module mod_moloch
                            zcx * zrom1u * (pai(jdi1,i,k) - pai(jdi1-1,i,k))
               end do
             end do
+!$acc end parallel
+!$acc parallel present(deltaw, tetav, corv, ud, v, hy, gzitakh,&
+!$acc& pai) private(zfz, zrom1v, zcor1v)
+!$acc loop collapse(2)
             zcy = zdtrdy
             do k = 1 , kz
               do i = idi1+1 , idi2
@@ -1737,7 +1825,11 @@ module mod_moloch
                            zcy * zrom1v * (pai(jci1,i,k) - pai(jci1,i-1,k))
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, &
+!$acc&   gzitakh, pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(2)
             do k = 1 , kz
               do i = ici1+1 , ici2
                 zcx = zdtrdx * mu(jdi1,i)
@@ -1754,6 +1846,10 @@ module mod_moloch
                            zcx * zrom1u * (pai(jdi1,i,k) - pai(jdi1-1,i,k))
               end do
             end do
+!$acc end parallel
+!$acc parallel present(mv, deltaw, tetav, corv, ud, v, hy,&
+!$acc&    gzitakh, pai) private(zcy, zfz, zrom1v, zcor1v)
+!$acc loop collapse(2)
             do k = 1 , kz
               do i = idi1+1 , idi2
                 zcy = zdtrdy * mv(jci1,i)
@@ -1770,9 +1866,13 @@ module mod_moloch
                            zcy * zrom1v * (pai(jci1,i,k) - pai(jci1,i-1,k))
               end do
             end do
+!$acc end parallel
           end if
 
           if ( lrotllr ) then
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, gzitakh,&
+!$acc& pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jdi1 , jdi2
                 zcx = zdtrdx * mu(j,ici1)
@@ -1789,7 +1889,11 @@ module mod_moloch
                            zcx * zrom1u * (pai(j,ici1,k) - pai(j-1,ici1,k))
               end do
             end do
+!$acc end parallel
             zcy = zdtrdy
+!$acc parallel present(deltaw, tetav, corv, ud, v, hy, gzitakh,&
+!$acc& pai) private(zfz, zrom1v, zcor1v)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jci1 , jci2
                 zfz = 0.25_rkx * &
@@ -1805,7 +1909,11 @@ module mod_moloch
                            zcy * zrom1v * (pai(j,idi1,k) - pai(j,idi1-1,k))
               end do
             end do
+!$acc end parallel
           else
+!$acc parallel present(mu, deltaw, tetav, coru, vd, u, hx, &
+!$acc&   gzitakh, pai) private(zcx, zfz, zrom1u, zcor1u)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jdi1 , jdi2
                 zcx = zdtrdx * mu(j,ici1)
@@ -1822,6 +1930,10 @@ module mod_moloch
                            zcx * zrom1u * (pai(j,ici1,k) - pai(j-1,ici1,k))
               end do
             end do
+!$acc end parallel
+!$acc parallel present(mv, deltaw, tetav, corv, ud, v, hy,&
+!$acc&    gzitakh, pai) private(zcy, zfz, zrom1v, zcor1v)
+!$acc loop collapse(2)
             do k = 1 , kz
               do j = jci1 , jci2
                 zcy = zdtrdy * mv(j,idi1)
@@ -1838,6 +1950,7 @@ module mod_moloch
                            zcy * zrom1v * (pai(j,idi1,k) - pai(j,idi1-1,k))
               end do
             end do
+!$acc end parallel
           end if
 #else
 !!$acc update self(pai, deltaw)
@@ -1858,7 +1971,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1879,7 +1993,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1901,7 +2016,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1922,7 +2038,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -3174,42 +3291,59 @@ module mod_moloch
 #ifdef USE_MPI3
     type(commdata_real) :: comm1, comm2
 
+!!$acc update self(ux, vx)
     call exchange_lr_pre(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
     call exchange_bt_pre(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
 
     if ( ma%has_bdyright ) then
+!$acc parallel present(u, ux) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdyleft ) then
+!$acc parallel present(u, ux) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdytop ) then
+!$acc parallel present(v, vx) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdybottom ) then
+!$acc parallel present(v, vx) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
         end do
       end do
+!$acc end parallel
     end if
 
     call exchange_lr_post(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
     call exchange_bt_post(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
+!!$acc update device(ux, vx)
 
     ! Back to wind points: U/V (fourth order)
+
+!$acc parallel present(u, ux) if(on_device)
+!$acc loop collapse(3)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jdii1 , jdii2
@@ -3218,6 +3352,9 @@ module mod_moloch
         end do
       end do
     end do
+!$acc end parallel
+!$acc parallel present(v, vx) if(on_device)
+!$acc loop collapse(3)
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jci1 , jci2
@@ -3226,6 +3363,7 @@ module mod_moloch
         end do
       end do
     end do
+!$acc end parallel
 #else
 
 !!$acc update self(ux, vx)
@@ -3312,42 +3450,58 @@ module mod_moloch
 #ifdef USE_MPI3
     type(commdata_real) :: comm1, comm2
 
+!!$acc update self(u, v)
     call exchange_lr_pre(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
     call exchange_bt_pre(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
 
     if ( ma%has_bdyleft ) then
+!$acc parallel present(ux, u) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ice1 , ice2
           ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdyright ) then
+!$acc parallel present(ux, u) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ice1 , ice2
           ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdybottom ) then
+!$acc parallel present(vx, v) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jce1 , jce2
           vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
         end do
       end do
+!$acc end parallel
     end if
     if ( ma%has_bdytop ) then
+!$acc parallel present(vx, v) if(on_device)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jce1 , jce2
           vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
         end do
       end do
+!$acc end parallel
     end if
 
     call exchange_lr_post(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
     call exchange_bt_post(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
+!!$acc update device(u, v)
 
     ! Compute U-wind on T points
+!$acc parallel present(ux, u) if(on_device)
+!$acc loop collapse(3)
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jci1 , jci2
@@ -3356,7 +3510,10 @@ module mod_moloch
         end do
       end do
     end do
+!$acc end parallel
     ! Compute V-wind on T points
+!$acc parallel present(vx, v) if(on_device)
+!$acc loop collapse(3)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jce1 , jce2
@@ -3365,6 +3522,7 @@ module mod_moloch
         end do
       end do
     end do
+!$acc end parallel
 #else
 
 !!$acc update self(u, v)
@@ -3453,8 +3611,12 @@ module mod_moloch
 
     ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
 #ifdef USE_MPI3
+!!$acc update self(zdiv2)
     call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+
     if ( lrotllr ) then
+!$acc parallel present(u, rmu, zdiv2)
+!$acc loop collapse(3)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1+1 , jdi2
@@ -3463,6 +3625,9 @@ module mod_moloch
           end do
         end do
       end do
+!$acc end parallel
+!$acc parallel present(v, zdiv2)
+!$acc loop collapse(3)
       do k = 1 , kz
         do i = idi1+1 , idi2
           do j = jci1 , jci2
@@ -3471,7 +3636,10 @@ module mod_moloch
           end do
         end do
       end do
+!$acc end parallel
     else
+!$acc parallel present(u, rmu, zdiv2)
+!$acc loop collapse(3)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jdi1+1 , jdi2
@@ -3480,6 +3648,9 @@ module mod_moloch
           end do
         end do
       end do
+!$acc end parallel
+!$acc parallel present(v, rmv, zdiv2)
+!$acc loop collapse(3)
       do k = 1 , kz
         do i = idi1+1 , idi2
           do j = jci1 , jci2
@@ -3488,34 +3659,50 @@ module mod_moloch
           end do
         end do
       end do
+!$acc end parallel
     end if
+
     call exchange_lrbt_post(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+!!$acc update device(zdiv2)
+
     if ( lrotllr ) then
+!$acc parallel present(u, rmu, zdiv2)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
               ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
         end do
       end do
+!$acc end parallel
+!$acc parallel present(v, zdiv2)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
               ddamp1/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
         end do
       end do
+!$acc end parallel
     else
+!$acc parallel present(u, rmu, zdiv2)
+!$acc loop collapse(2)
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
               ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
         end do
       end do
+!$acc end parallel
+!$acc parallel present(v, rmv, zdiv2)
+!$acc loop collapse(2)
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
               ddamp1/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
         end do
       end do
+!$acc end parallel
     end if
 #else
 !!$acc update self(zdiv2)
