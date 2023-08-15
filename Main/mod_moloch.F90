@@ -2279,15 +2279,16 @@ module mod_moloch
 !$acc end parallel
 #endif
         end if
-!!$acc update self(wz)
-        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
-!!$acc update device(wz)
 
         if ( present(pmin) ) then
 !$acc kernels present(wz)
           wz = max(wz,pfm)
 !$acc end kernels
         end if
+
+!!$acc update self(wz)
+        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+!!$acc update device(wz)
 
         if ( ma%has_bdyleft ) then
 !$acc parallel present(p0,pp)
@@ -2392,15 +2393,15 @@ module mod_moloch
           end do
 !$acc end parallel
 
+          if ( present(pmin) ) then
+!$acc kernels present(p0)
+            p0 = max(p0,pfm)
+!$acc end kernels
+          end if
+
 !!$acc update self(p0)
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 !!$acc update device(p0)
-
-        if ( present(pmin) ) then
-!$acc kernels present(p0)
-          p0 = max(p0,pfm)
-!$acc end kernels
-        end if
 
           ! Zonal advection
 
@@ -2561,6 +2562,12 @@ module mod_moloch
 #endif
           end do
 !$acc end parallel
+
+          if ( present(pmin) ) then
+!$acc kernels present(p0)
+            p0 = max(p0,pfm)
+!$acc end kernels
+          end if
 
 !!$acc update self(p0)
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
