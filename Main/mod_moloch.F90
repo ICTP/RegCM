@@ -488,7 +488,7 @@ module mod_moloch
       do i = ice1 , ice2
         do j = jce1 , jce2
           p(j,i,k) = (pai(j,i,k)**cpovr) * p00
-          rho(j,i,k) = p(j,i,k)/(rgas*tvirt(j,i,k))
+          rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
         end do
       end do
     end do
@@ -1866,11 +1866,11 @@ module mod_moloch
           end do
         end if
 
-        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
-
         if ( present(pmin) ) then
           wz = max(wz,pfm)
         end if
+
+        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
@@ -1933,11 +1933,11 @@ module mod_moloch
             !end do
           end do
 
-          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+          if ( present(pmin) ) then
+            p0 = max(p0,pfm)
+          end if
 
-        if ( present(pmin) ) then
-          p0 = max(p0,pfm)
-        end if
+          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
           ! Zonal advection
 
@@ -2026,6 +2026,10 @@ module mod_moloch
             !  end do
             !end do
           end do
+
+          if ( present(pmin) ) then
+            p0 = max(p0,pfm)
+          end if
 
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 

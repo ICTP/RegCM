@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 35 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -291,6 +291,8 @@ module mod_ncout
   integer(ik4) , parameter :: srf_tauy     = 37
   integer(ik4) , parameter :: srf_psl      = 38
   integer(ik4) , parameter :: srf_evpot    = 39
+  integer(ik4) , parameter :: srf_pcpmax   = 40
+  integer(ik4) , parameter :: srf_twetb    = 41
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1439,6 +1441,23 @@ module mod_ncout
             'Total Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+        end if
+        if ( ifshf ) then
+          enable_srf_vars(srf_pcpmax) = .false.
+          enable_srf_vars(srf_twetb) = .false.
+        else
+          if ( enable_srf_vars(srf_pcpmax) ) then
+            call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
+              'Maximum Hourly Precipitation Rate','precipitation_flux', &
+              .true.,'time: maximum')
+            srf_pcpmax_out => v2dvar_srf(srf_pcpmax)%rval
+          end if
+          if ( enable_srf_vars(srf_twetb) ) then
+            call setup_var(v2dvar_srf,srf_twetb,vsize,'twetbmax','K', &
+              'Wet bulb temperature','wet_bulb_temperature', &
+              .true.,'time: maximum')
+            srf_twetb_out => v2dvar_srf(srf_twetb)%rval
+          end if
         end if
 
         vsize%k2 = 1
