@@ -593,7 +593,7 @@ module mod_moloch
       do i = ice1 , ice2
         do j = jce1 , jce2
           p(j,i,k) = (pai(j,i,k)**cpovr) * p00
-          rho(j,i,k) = p(j,i,k)/(rgas*tvirt(j,i,k))
+          rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
         end do
       end do
     end do

@@ -133,8 +133,8 @@ module mod_slice
 !$acc loop collapse(2)
       do i = ice1, ice2
         do j = jce1, jce2
-          atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
-            (atms%zq(j,i,1)-atms%za(j,i,1))
+          atms%pf3d(j,i,1) = atms%pb3d(j,i,1) * (1.0_rkx - egrav * &
+            (atms%zq(j,i,1)-atms%za(j,i,1) / (rgas*atms%tv3d(j,i,k)) )
         end do
       end do
 !$acc end parallel
