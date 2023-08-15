@@ -1177,6 +1177,8 @@ module mod_output
         if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
         if ( associated(srf_sund_out) ) srf_sund_out = d_zero
         if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
+        if ( associated(srf_pcpmax_out) ) srf_pcpmax_out = d_zero
+        if ( associated(srf_twetb_out) ) srf_twetb_out = d_zero
 
         rnsrf_for_srffrq = d_zero
 
