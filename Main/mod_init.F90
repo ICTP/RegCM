@@ -59,6 +59,7 @@ module mod_init
 
   public :: init
 
+  real(rkx) , parameter :: mo_zfilt_fac = 1.0_rkx
   real(rkx) , parameter :: tlp = 50.0_rkx
   real(rkx) , parameter :: ts00 = 288.0_rkx
 
@@ -1047,7 +1048,7 @@ module mod_init
             ffilt(k) = d_zero
           else
             zzi = (mo_dzita*(kzp1-k)-zfilt)/(mo_ztop-zfilt)
-            ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
+            ffilt(k) = mo_zfilt_fac*sin(d_half*mathpi*zzi)**2
           end if
         end do
       else
