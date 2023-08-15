@@ -134,7 +134,7 @@ module mod_slice
       do i = ice1, ice2
         do j = jce1, jce2
           atms%pf3d(j,i,1) = atms%pb3d(j,i,1) * (1.0_rkx - egrav * &
-            (atms%zq(j,i,1)-atms%za(j,i,1) / (rgas*atms%tv3d(j,i,k)) )
+            (atms%zq(j,i,1)-atms%za(j,i,1) / (rgas*atms%tv3d(j,i,1)) )
         end do
       end do
 !$acc end parallel
