@@ -310,7 +310,7 @@ module mod_params
     mo_wmax = 150.0_rkx
     mo_nadv = 3
     mo_nsound = 5
-    mo_anu2 = 0.05_rkx
+    mo_anu2 = 0.6_rkx
     mo_nzfilt = kz/5
     !
     ! Rrtm radiation param ;
@@ -381,7 +381,7 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqr = 4.0_rkx
-    vfqi = 0.15_rkx
+    vfqi = 0.015_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx

@@ -2212,7 +2212,7 @@ module mod_moloch
 !$acc loop collapse(2)
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice1,k) = pp(j,ice1,k)
+              wz(j,ice1,k) = 0.5_rkx * (pp(j,ice1,k)+pp(j,ici1,k))
             end do
           end do
 !$acc end parallel
@@ -2222,7 +2222,7 @@ module mod_moloch
 !$acc loop collapse(2)
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice2,k) = pp(j,ice2,k)
+              wz(j,ice2,k) = 0.5_rkx * (pp(j,ice2,k)+pp(j,ici2,k))
             end do
           end do
 !$acc end parallel
@@ -2412,7 +2412,7 @@ module mod_moloch
 !$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce1,i,k) = pp(jce1,i,k)
+              p0(jce1,i,k) = 0.5_rkx * (pp(jce1,i,k)+pp(jci1,i,k))
             end do
           end do
 !$acc end parallel
@@ -2423,7 +2423,7 @@ module mod_moloch
 !$acc loop collapse(2)
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce2,i,k) = pp(jce2,i,k)
+              p0(jce2,i,k) = 0.5_rkx * (pp(jce2,i,k)+pp(jci2,i,k))
             end do
           end do
 !$acc end parallel

@@ -1683,7 +1683,7 @@ module mod_rad_aerosol
               (stdhlevf(kclimh +k)-stdhlevf(kclimh +k -1)) * d_1000
           end do
 
-          write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
+          write (stdout,*) 'Reading EXT,SSA,ASY Data...'
           if ( lfirst ) then
             call getfile(iy1,im1,ncid1)
             call readvar3d(ncid1,'EXTTOT',xext1)

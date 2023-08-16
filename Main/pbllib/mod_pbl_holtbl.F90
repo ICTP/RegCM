@@ -827,7 +827,7 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-           qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
+            qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
           end do
         end do
       end do
@@ -836,7 +836,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))* &
-              rdt*m2p%psb(j,i)
+                           rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -919,7 +919,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))* &
-              rdt*m2p%psb(j,i)
+                        rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -993,7 +993,7 @@ module mod_pbl_holtbl
           do i = ici1 , ici2
             do j = jci1 , jci2
               qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))* &
-                rdt*m2p%psb(j,i)
+                             rdt*m2p%psb(j,i)
             end do
           end do
         end do
