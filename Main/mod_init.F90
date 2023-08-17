@@ -212,6 +212,7 @@ module mod_init
               end do
             end do
           else
+#ifndef RCEMIP
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
@@ -221,6 +222,7 @@ module mod_init
                 end do
               end do
             end do
+#endif
           end if
           if ( is_present_qi( ) ) then
             do k = 1 , kz
@@ -231,6 +233,7 @@ module mod_init
               end do
             end do
           else
+#ifndef RCEMIP
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
@@ -240,6 +243,7 @@ module mod_init
                 end do
               end do
             end do
+#endif
           end if
         else if ( ipptls == 1 ) then
           if ( is_present_qc( ) ) then
@@ -830,7 +834,9 @@ module mod_init
       !
       ! Init boundary
       !
-      call init_bdy
+      if ( irceideal /= 1 ) then
+        call init_bdy
+      end if
       !
       ! Report success
       !
@@ -950,7 +956,7 @@ module mod_init
     else
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ptrop(j,i) = 17.0e3_rkx - 6.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
+          ptrop(j,i) = 25.0e3_rkx - 15.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
         end do
       end do
     end if

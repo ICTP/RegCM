@@ -223,7 +223,7 @@ module mod_cu_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),0.0_rkx)
-          if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
+          if ( cu_cldfrc(j,i,k) > lowcld ) then
             c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
           else
             c2m%cldlwc(j,i,k) = d_zero
@@ -284,7 +284,7 @@ module mod_cu_interface
         end do
       end if
 
-      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,300.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2

@@ -92,7 +92,7 @@ module mod_ocn_zeng
 #endif
 
     wt1 = (threedays-dtocn)/threedays
-    wt2 = dtocn/threedays
+    wt2 = 1.0_rkx-wt1
 
     do i = iocnbeg , iocnend
       if ( mask(i) /= 1 ) cycle
@@ -109,8 +109,8 @@ module mod_ocn_zeng
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
-      tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
-      rlv = wlh(tsurf)
+      tsurf = tgrd(i)
+      rlv = wlh(tatm(i))
       cpm = cpd*(d_one-q995) + cpv*q995
       zi = hpbl(i)
       hu = z995
@@ -120,7 +120,7 @@ module mod_ocn_zeng
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
+      qs = pfwsat(tsurf,sfps(i))!*0.995_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -138,13 +138,9 @@ module mod_ocn_zeng
       !
       ! initial values of u* and convective velocity
       !
-      ustar = 0.06_rkx
-      wc = 0.5_rkx
-      if ( dthv >= d_zero ) then
-        um = uv995
-      else
-        um = sqrt(uv995*uv995+wc*wc)
-      end if
+      wc = 1.0_rkx
+      um = sqrt(uv995*uv995+wc*wc)
+      ustar = um/25.0_rkx
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo
@@ -176,7 +172,7 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      do nconv = 1 , 5
+      do nconv = 1 , 2
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         if ( flag2 ) then
           ustar = vonkar*um/log(hu/zo)
@@ -385,7 +381,7 @@ module mod_ocn_zeng
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))
-      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
+      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
     end do
 
 #ifdef DEBUG

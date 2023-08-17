@@ -32,7 +32,6 @@ module mod_cams
   use mod_earth
   use mod_hgt
   use mod_humid
-  use mod_mksst
   use mod_projections
   use mod_vectutil
   use mod_message
@@ -50,13 +49,13 @@ module mod_cams
   real(rkx) , pointer , dimension(:,:,:) :: hz , hza , o3 , co , &
     dust1 , dust2 , dust3 , eth , xch2o , h2o2 , bchl , ochl , bchb , ochb
   real(rkx) , pointer , dimension(:,:,:) :: oh , isop , hno3 , no , &
-    pan , c3h8 , sslt1 , sslt2 , sslt3 , so4 , so2 , no2, ch4,aso2
+    pan , c3h8 , sslt1 , sslt2 , sslt3 , so4 , so2 , no2 , ch4 , aso2
   real(rkx) , pointer , dimension(:,:,:) :: hzvar , hzavar , o3var , &
     covar , dust1var , dust2var , dust3var , ethvar , xch2ovar, &
     h2o2var , bchlvar , rochlvar , bchbvar , ochbvar , ochlvar
   real(rkx) , pointer , dimension(:,:,:) :: ohvar , isopvar , hno3var , &
     novar , panvar , c3h8var , sslt1var , sslt2var , sslt3var , so4var , &
-    so2var , no2var, ch4var, aso2var
+    so2var , no2var , ch4var , aso2var
   real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
@@ -67,11 +66,11 @@ module mod_cams
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
 
-  integer(ik4) , dimension(20,4) :: inet5 !care the first dimension must be
-                                          !bigger than the number of species
-                                          !for gas or aer
-  integer(ik4) , dimension(20,4) :: ivar5
-  real(rkx) , dimension(20,4) :: xoff , xscl
+  integer(ik4) , dimension(20) :: inet5 !care the first dimension must be
+                                        !bigger than the number of species
+                                        !for gas or aer
+  integer(ik4) , dimension(20) :: ivar5
+  real(rkx) , dimension(20) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
 
@@ -91,6 +90,9 @@ module mod_cams
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
     character(len=64) :: inname
+
+    if ( idynamic < 3 ) &
+      call die('mod_ch_cams','CAMSR only works for idynamic=3')
 
     call split_idate(globidate1,year,month,day,hour)
     write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
@@ -177,7 +179,7 @@ module mod_cams
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
 
-    if(typ=='CH') then 
+    if ( typ == 'CH' ) then
       call getmem3d(b3,1,jx,1,iy,1,klev*15,'mod_cams:b3')
       call getmem3d(b2,1,ilon,1,jlat,1,klev*15,'mod_cams:b2')
       call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
@@ -216,7 +218,7 @@ module mod_cams
       no2var   => b2(:,:,13*klev+1:14*klev)
       ch4var   => b2(:,:,14*klev+1:15*klev)
 
-    else if(typ =='AE') then 
+    else if ( typ =='AE' ) then
       call getmem3d(b3a,1,jx,1,iy,1,klev*15,'mod_cams:b3a')
       call getmem3d(b2a,1,ilon,1,jlat,1,klev*15,'mod_cams:b2a')
       call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_cams:work')
@@ -235,7 +237,7 @@ module mod_cams
       sslt2 => b3a(:,:,9*klev+1:10*klev)
       sslt3 => b3a(:,:,10*klev+1:11*klev)
       so4   => b3a(:,:,11*klev+1:12*klev)
-      aso2   => b3a(:,:,12*klev+1:13*klev)
+      aso2  => b3a(:,:,12*klev+1:13*klev)
 
       hzavar   => b2a(:,:,1:klev)
       dust1var => b2a(:,:,1*klev+1:2*klev)
@@ -249,7 +251,7 @@ module mod_cams
       sslt2var => b2a(:,:,9*klev+1:10*klev)
       sslt3var => b2a(:,:,10*klev+1:11*klev)
       so4var   => b2a(:,:,11*klev+1:12*klev)
-      aso2var   => b2a(:,:,12*klev+1:13*klev)
+      aso2var  => b2a(:,:,12*klev+1:13*klev)
     end if
   end subroutine init_cams
 
@@ -298,9 +300,9 @@ module mod_cams
 !$OMP SECTION
       call top2btm(so2)
 !$OMP SECTION
-    call top2btm(no2)
+      call top2btm(no2)
 !$OMP SECTION
-    call top2btm(ch4)
+      call top2btm(ch4)
 !$OMP END SECTIONS
     else if ( typ == 'AE' ) then
       call cams6hour(dattyp,idate,globidate1,'AE')
@@ -336,48 +338,47 @@ module mod_cams
 !$OMP SECTION
       call top2btm(so4)
 !$OMP SECTION
-    call top2btm(aso2)
+      call top2btm(aso2)
 !$OMP END SECTIONS
     end if
     ! New calculation of p* on rcm topography.
     !
     ! Interpolate chemicals.
     !
-    if ( idynamic < 3 ) call die('mod_ch_cams','CAMSR only works for idynamic=3')
-    if (typ == 'CH') then 
+    if ( typ == 'CH' ) then
 !$OMP SECTIONS
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_O3),o3,z0,hz,topogm, &
          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+      call intz1(chv4(:,:,:,cb_CO),co,z0,hz,topogm, &
+         jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_C2H6),eth,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_HCHO),xch2o,z0,hz,topogm, &
-          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)            
-!$OMP SECTION
-        call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_ISOP),isop,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_H2O2),h2o2,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_HNO3),hno3,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_ISOP),isop,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_NO),no,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_HNO3),hno3,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_PAN),pan,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_NO),no,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_PAR),c3h8,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_PAN),pan,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm, &
+      call intz1(chv4(:,:,:,cb_PAR),c3h8,z0,hz,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+!$OMP SECTION
+      call intz1(chv4(:,:,:,cb_SO2),so2,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
       call intz1(chv4(:,:,:,cb_NO2),no2,z0,hz,topogm, &
@@ -386,62 +387,65 @@ module mod_cams
       call intz1(chv4(:,:,:,cb_CH4),ch4,z0,hz,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
-! treat special case of functional groups 
+      ! treat special case of functional groups
       chv4(:,:,:,cb_PAR) = 3._rkx* chv4(:,:,:,cb_PAR)
-! consider putting OH
+      ! consider putting OH
 
-      else if ( typ == 'AE' ) then
+    else if ( typ == 'AE' ) then
 !$OMP SECTIONS
-        call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_dust1),dust1,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_dust2),dust2,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_dust2),dust2,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_dust3),dust3,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_dust3),dust3,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_bchl),bchl,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_bchl),bchl,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_ochl),ochl,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_ochl),ochl,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_bchb),bchb,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_bchb),bchb,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_ochb),ochb,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_ochb),ochb,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_sslt1),sslt1,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_sslt1),sslt1,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_sslt2),sslt2,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_sslt2),sslt2,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-        call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm, &
+      call intz1(aev4(:,:,:,ae_so4),so4,z0,hza,topogm, &
           jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
-      call intz1(aev4(:,:,:,ae_so2),aso2,z0,hza,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
+      call intz1(aev4(:,:,:,ae_so2),aso2,z0,hza,topogm, &
+          jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
 
-! perform mass redistribution from cams bins to regcm bins for dust and seasalt
-! the weights are roughly estimated from bin size and dust volume distribution between 0 and 20ùm
-! 
-      aev4(:,:,:,ae_dust1) = aev4(:,:,:,ae_dust1) + aev4(:,:,:,ae_dust2) 
-      aev4(:,:,:,ae_dust2) = 0.4_rkx * aev4(:,:,:,ae_dust3) 
-      aev4(:,:,:,ae_dust4) = 0.2_rkx * aev4(:,:,:,ae_dust3)!4 before 3!!
+      ! Perform mass redistribution from cams bins to regcm bins for dust and
+      ! seasalt. The weights are roughly estimated from bin size and dust
+      ! volume distribution between 0 and 20um
+
+      aev4(:,:,:,ae_dust1) = aev4(:,:,:,ae_dust1) + aev4(:,:,:,ae_dust2)
+      aev4(:,:,:,ae_dust2) = 0.4_rkx * aev4(:,:,:,ae_dust3)
+      aev4(:,:,:,ae_dust4) = 0.2_rkx * aev4(:,:,:,ae_dust3) ! 4 before 3 !!
       aev4(:,:,:,ae_dust3) = 0.4_rkx * aev4(:,:,:,ae_dust3)
-      
-      aev4(:,:,:,ae_sslt1) = aev4(:,:,:,ae_sslt1) + 0.2_rkx * aev4(:,:,:,ae_sslt2)
-      aev4(:,:,:,ae_sslt2) = 0.8_rkx * aev4(:,:,:,ae_sslt2)    
-! dit not use sslt3 consider using a third ssbin ... 
 
-     end if 
+      aev4(:,:,:,ae_sslt1) = aev4(:,:,:,ae_sslt1) + &
+                             0.2_rkx * aev4(:,:,:,ae_sslt2)
+      aev4(:,:,:,ae_sslt2) = 0.8_rkx * aev4(:,:,:,ae_sslt2)
+      ! did not use sslt3 consider using a third ssbin ...
 
-!write out chv4  
-    if(typ=='CH')   call  write_ch_icbc(idate)
-    if(typ=='AE')   call  write_ae_icbc(idate)
+    end if
+
+    !write out chv4
+    if ( typ=='CH' ) call  write_ch_icbc(idate)
+    if ( typ=='AE' ) call  write_ae_icbc(idate)
 
   end subroutine get_cams
 
@@ -450,13 +454,14 @@ module mod_cams
     character(len=5) , intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=7) , dimension(14) :: gasname,gfname
-    character(len=7) , dimension(13) :: aername,afname
-    character(len=7) , dimension(15) ::varname ! make sure that dim is large enough
+    character(len=7) , dimension(14) :: gasname , gfname
+    character(len=7) , dimension(13) :: aername , afname
+    ! make sure that dim is large enough
+    character(len=7) , dimension(15) ::varname
     character(len=7) , dimension(15) ::fname
 
     character(len=64) :: cunit , ccal
@@ -484,66 +489,72 @@ module mod_cams
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    if (typ == 'CH') then 
-     nsp = 14
-     varname(1:nsp) = gasname(1:nsp) 
-     fname(1:nsp) = gfname(1:nsp)
-    else if (typ == 'AE') then 
-     nsp = 13
-     varname(1:nsp) = aername(1:nsp)
-     fname(1:nsp) = afname(1:nsp)
+    if (typ == 'CH') then
+      nsp = 14
+      varname(1:nsp) = gasname(1:nsp)
+      fname(1:nsp) = gfname(1:nsp)
+    else if (typ == 'AE') then
+      nsp = 13
+      varname(1:nsp) = aername(1:nsp)
+      fname(1:nsp) = afname(1:nsp)
     end if
 
-    k4 = 1
     call split_idate(idate,year,month,day,hour)
 
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
+      if ( idate /= idate0 ) then
+        do kkrec = 1 , nsp ! boulce sur nbre variables gaz
+          istatus = nf90_close(inet5(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+             'Error close file')
+        end do
+      end if
       do kkrec = 1 , nsp ! boulce sur nbre variables gaz
         !verifie le path pour fichier CAMS !!
         write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
         year, pthsep, trim(fname(kkrec)), '_', year, '_', month,'.nc'
         pathaddname = trim(inpglob)//pthsep//chemtyp(1:4)//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
 
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
-                                 ivar5(kkrec,1))
+        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec), &
+                                 ivar5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
-                 'scale_factor',xscl(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                 'scale_factor',xscl(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
-                   'add_offset',xoff(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                   'add_offset',xoff(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-        write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
-                         xscl(kkrec,1) , xoff(kkrec,1)
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                         xscl(kkrec) , xoff(kkrec)
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_dimid(inet5(1),'time',timid)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_varid(inet5(1),'time',timid)
           if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+            istatus = nf90_inq_varid(inet5(1),'date',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var time/date')
           end if
-          istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          istatus = nf90_get_att(inet5(1,1),timid,'calendar',ccal)
+          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
           call getmem1d(itimes,1,timlen,'mod_cams:itimes')
           call getmem1d(xtimes,1,timlen,'mod_cams:xtimes')
-          istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+          istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
           do it = 1 , timlen
@@ -560,12 +571,12 @@ module mod_cams
     istart(4) = it
     icount(4) = 1
 
-    if (typ=='CH') then
+    if ( typ == 'CH' ) then
       do kkrec = 1 , nsp ! loop on number variables
-        inet = inet5(kkrec,k4)
-        ivar = ivar5(kkrec,k4)
-        xscale = xscl(kkrec,k4)
-        xadd = xoff(kkrec,k4)
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
         call getwork(kkrec)
         !care the order must match varname data - could be more elegant,
         if ( kkrec == 1 ) hzvar(1:ilon,1:jlat,:) = &
@@ -597,12 +608,12 @@ module mod_cams
         if ( kkrec == 14 ) panvar(1:ilon,1:jlat,:) = &
           real(real(work(1:ilon,1:jlat,:),rkx)*xscale+xadd,rkx)
       end do
-    else if(typ=='AE') then
+    else if ( typ == 'AE' ) then
       do kkrec = 1 , nsp ! loop on number variables
-        inet = inet5(kkrec,k4)
-        ivar = ivar5(kkrec,k4)
-        xscale = xscl(kkrec,k4)
-        xadd = xoff(kkrec,k4)
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
         call getwork(kkrec)
         !care the order must match varname data - could be more elegant,
         if ( kkrec == 1 ) hzavar(1:ilon,1:jlat,:) = &

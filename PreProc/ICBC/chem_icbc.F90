@@ -73,9 +73,10 @@ program chem_icbc
     iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
     icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
     islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
-    iwhitecap , ifixsolar , year_offset , ipcpcool , ichdustparam
+    ifixsolar , year_offset , ichdustparam , irceideal
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
+  character(len=256) :: radclimpath
   real(rkx) :: rdstemfac , rocemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
@@ -93,11 +94,11 @@ program chem_icbc
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
     iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-    ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
-    idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
-    iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
-    temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
-    fixedsolarval , year_offset
+    ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
+    icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
+    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
+    ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
+    year_offset , radclimpath
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -196,18 +197,18 @@ program chem_icbc
     write (stdout,*) 'Aerosol simulation.'
   end if
 
-  select case (chemtyp) 
+  select case (chemtyp)
 
   case ('FNEST')
     idate = globidate1
     iodate = idate
     call init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
     do nnn = 1 , nsteps
-     call get_fnest(idate)
-     iodate = idate
-     idate = idate + tbdy
-     end do
-     call close_fnest
+      call get_fnest(idate)
+      iodate = idate
+      idate = idate + tbdy
+    end do
+    call close_fnest
 
   case('MZCLM')
     idate = globidate1
@@ -219,71 +220,69 @@ program chem_icbc
     if (doaero ) call init_ae_icbc(idate)
     if (dooxcl)  call init_ox_icbc(idate)
     do nnn = 1 , nsteps
-       if (.not. lsamemonth(idate, iodate) ) then
-         if ( dochem ) call newfile_ch_icbc(monfirst(idate))
-         if ( doaero ) call newfile_ae_icbc1(monfirst(idate))   
-         if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
-       end if
-       if ( dochem ) call get_ch_icbc_clim(idate)
-       if ( dooxcl ) call get_ox_icbc(idate)
-       if ( doaero ) call get_ae_icbc(idate)
+      if (.not. lsamemonth(idate, iodate) ) then
+        if ( dochem ) call newfile_ch_icbc(monfirst(idate))
+        if ( doaero ) call newfile_ae_icbc1(monfirst(idate))
+        if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
+      end if
+      if ( dochem ) call get_ch_icbc_clim(idate)
+      if ( dooxcl ) call get_ox_icbc(idate)
+      if ( doaero ) call get_ae_icbc(idate)
+      iodate = idate
+      idate = idate + tbdy
+    end do
+    if ( dochem ) call close_ch_icbc_clim
+    if ( doaero) call close_ae_icbc
+    if ( dooxcl)  call close_ox_icbc
+
+  case('MZ6HR')
+    idate = globidate1
+    iodate = idate
+    if (dochem) call newfile_ch_icbc(idate)
+    if (dochem) call init_ch_icbc(idate)
+    do nnn = 1 , nsteps
+      if (.not. lsamemonth(idate, iodate) ) then
+        if ( dochem ) call newfile_ch_icbc(monfirst(idate))
+      end if
+      if(dochem)  call get_ch_icbc(idate)
+      iodate = idate
+      idate = idate + tbdy
+    end do
+    call close_ch_icbc
+
+  case('CAMSR')
+    if ( doaero ) then
+      idate = globidate1
+      iodate = idate
+      call newfile_ae_icbc(idate)
+      call init_cams('AE')
+      do nnn = 1 , nsteps
+        if (.not. lsamemonth(idate, iodate) ) then
+          call newfile_ae_icbc(monfirst(idate))
+        end if
+       call get_cams(idate,'AE')
        iodate = idate
        idate = idate + tbdy
-     end do 
-     if ( dochem ) call close_ch_icbc_clim
-     if ( doaero) call close_ae_icbc
-     if ( dooxcl)  call close_ox_icbc
-
-   case('MZ6HR') 
-     idate = globidate1
-     iodate = idate
-     if (dochem) call newfile_ch_icbc(idate)
-     if (dochem) call init_ch_icbc(idate)
-     do nnn = 1 , nsteps
-       if (.not. lsamemonth(idate, iodate) ) then
-         if ( dochem ) call newfile_ch_icbc(monfirst(idate))
-       end if
-       if(dochem)  call get_ch_icbc(idate)
-       iodate = idate
-       idate = idate + tbdy
-     end do
-     call close_ch_icbc
-
-   case('CAMSR')
-     if ( doaero ) then
-         idate = globidate1
-          iodate = idate
-       call newfile_ae_icbc(idate)
-       call init_cams('AE')
-        do nnn = 1 , nsteps
-         if (.not. lsamemonth(idate, iodate) ) then
-           call newfile_ae_icbc(monfirst(idate))
-         end if 
-        call get_cams(idate,'AE')
-        iodate = idate
-        idate = idate + tbdy
-        end do  
-        call conclude_cams
-     end if 
-     if (dochem) then 
-       idate = globidate1
-       iodate = idate
-       call newfile_ch_icbc(idate)
-       call init_cams('CH')
-        do nnn = 1 , nsteps
-         if (.not. lsamemonth(idate, iodate) ) then
-           call newfile_ch_icbc(monfirst(idate))
-         end if
+      end do
+      call conclude_cams
+    end if
+    if (dochem) then
+      idate = globidate1
+      iodate = idate
+      call newfile_ch_icbc(idate)
+      call init_cams('CH')
+      do nnn = 1 , nsteps
+        if (.not. lsamemonth(idate, iodate) ) then
+          call newfile_ch_icbc(monfirst(idate))
+        end if
         call get_cams(idate,'CH')
         iodate = idate
         idate = idate + tbdy
-        end do
-        call conclude_cams
-      end if 
+      end do
+      call conclude_cams
+    end if
 
-
-   end select 
-  
+  end select
 
   call close_outoxd
 

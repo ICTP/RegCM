@@ -76,7 +76,7 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:,:) :: xasy1 , xasy2
   real(rkx) , pointer , dimension(:,:,:) :: xdelp1 , xdelp2
   type(h_interpolator) :: hint
-  integer(ik4) :: ncid = -1
+  integer(ik4) :: ncid1 = -1 , ncid2 = -1
   integer(ik4) :: clnlon , clnlat , clnlev
   !
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
@@ -117,7 +117,7 @@ module mod_rad_aerosol
   ! wsdust  - single partical albedo dust
   ! gsdust  - asymmetry parameter dust
   !
-  integer(ik4) , private :: ii , jj, kk ! coefficient index
+  integer(ik4) , private :: ii , jj , kk ! coefficient index
 
   ! Sulfate param for standard scheme / works only with rad standard
   ! (Brieglieb et al.)
@@ -1177,7 +1177,7 @@ module mod_rad_aerosol
       call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
 
       ! these variables are defined on full rad grid including hat
-      if (irrtm == 1) then
+      if ( irrtm == 1 ) then
         call getmem3d(gtota3d,1,npoints,0,kth,1,nband,'aerosol:gtota3d')
         call getmem3d(tauasc3d,1,npoints,0,kth,1,nband,'aerosol:tauasc3d')
         call getmem3d(tauxar3d,1,npoints,0,kth,1,nband,'aerosol:tauxar3d')
@@ -1613,7 +1613,7 @@ module mod_rad_aerosol
       call split_idate(idatex,iyear,imon,iday,ihour)
       imonmidd = monmiddle(idatex)
 
-      if (iyear < 1979 .and. iyear > 2021) then
+      if (iyear < 1979 .and. iyear > 2020) then
         write (stderr,*) 'NO CLIMATIC AEROPP DATA AVAILABLE FOR ',iyear*100+imon
         return
       end if
@@ -1622,7 +1622,7 @@ module mod_rad_aerosol
         call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
         call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
-          call getfile(iyear,imon,ncid,3) ! open just clim vis for latlon
+          call getfile(iyear,imon,ncid1,3) ! open just clim vis for latlon
                                           ! reading
 
           call getmem1d(lat,1,clnlat,'aeropp:lat')
@@ -1648,7 +1648,7 @@ module mod_rad_aerosol
           call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
           call getmem3d(ydelp,1,njcross,1,nicross,1,clnlev,':ydelp')
           call getmem3d(yphcl,1,njcross,1,nicross,1,clnlev,':yphcl')
-          call init_aeroppdata(ncid,lat,lon)
+          call init_aeroppdata(ncid1,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
         end if
       end if
@@ -1691,17 +1691,17 @@ module mod_rad_aerosol
           write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
           if ( lfirst ) then
             do wn = 1, nacwb
-              call getfile(iy1,im1,ncid,wn)
-              call readvar3d(ncid,'EXTTOT',xext1)
-              call readvar3d(ncid,'SSATOT',xssa1)
-              call readvar3d(ncid,'GTOT',xasy1)
-              call readvar3d(ncid,'DELP',xdelp1)
+              call getfile(iy1,im1,ncid1,wn)
+              call readvar3d(ncid1,'EXTTOT',xext1)
+              call readvar3d(ncid1,'SSATOT',xssa1)
+              call readvar3d(ncid1,'GTOT',xasy1)
+              call readvar3d(ncid1,'DELP',xdelp1)
 
-              call getfile(iy2,im2,ncid,wn)
-              call readvar3d(ncid,'EXTTOT',xext2)
-              call readvar3d(ncid,'SSATOT',xssa2)
-              call readvar3d(ncid,'GTOT',xasy2)
-              call readvar3d(ncid,'DELP',xdelp2)
+              call getfile(iy2,im2,ncid1,wn)
+              call readvar3d(ncid1,'EXTTOT',xext2)
+              call readvar3d(ncid1,'SSATOT',xssa2)
+              call readvar3d(ncid1,'GTOT',xasy2)
+              call readvar3d(ncid1,'DELP',xdelp2)
 
               call remove_nans(xext1,d_zero)
               call remove_nans(xext2,d_zero)
@@ -1767,11 +1767,11 @@ module mod_rad_aerosol
               ext1(:,:,:,wn) = ext2(:,:,:,wn)
               ssa1(:,:,:,wn) = ssa2(:,:,:,wn)
               asy1(:,:,:,wn) = asy2(:,:,:,wn)
-              call getfile(iy2,im2,ncid,wn)
-              call readvar3d(ncid,'EXTTOT',xext2)
-              call readvar3d(ncid,'SSATOT',xssa2)
-              call readvar3d(ncid,'GTOT',xasy2)
-              call readvar3d(ncid,'DELP',xdelp2)
+              call getfile(iy2,im2,ncid1,wn)
+              call readvar3d(ncid1,'EXTTOT',xext2)
+              call readvar3d(ncid1,'SSATOT',xssa2)
+              call readvar3d(ncid1,'GTOT',xasy2)
+              call readvar3d(ncid1,'DELP',xdelp2)
 
               call remove_nans(xext2,d_zero)
               call remove_nans(xssa2,d_one)
@@ -2372,7 +2372,7 @@ module mod_rad_aerosol
         !
         ! only for climatic feedback allowed
 
-        if(irrtm==0) then    
+        if ( irrtm == 0 ) then
           do itr = 1 , ntr
             do k = 0 , kz
               do n = n1 , n2
@@ -2385,10 +2385,9 @@ module mod_rad_aerosol
               end do
             end do
           end do
-
           do k = 0 , kz
             do n = n1 , n2
-              !consider a minimal extinction and reflectivity background 
+              !consider a minimal extinction and reflectivity background
               if ( tauxar3d(n,k,ns) < 1.E-10_rkx ) then
                 tauxar3d(n,k,ns) = 1.E-10_rkx
                 tauasc3d(n,k,ns) = 0.999999_rkx * tauxar3d(n,k,ns)
@@ -2397,10 +2396,10 @@ module mod_rad_aerosol
               end if
             end do
           end do
-        !
-        ! Clear sky (always calcuated if ichdir >=1 for
-        ! diagnostic radiative forcing)
-        !
+          !
+          ! Clear sky (always calcuated if ichdir >=1 for
+          ! diagnostic radiative forcing)
+          !
           do itr = 1 , ntr
             do n = n1 , n2
               tauxar(n,ns) = tauxar(n,ns) + tauaer(n,itr)
@@ -2418,7 +2417,7 @@ module mod_rad_aerosol
           end do
           ! in the case RRTM expect the layer extinction, and effective
           ! SSA and asym relative to the mixture
-        elseif ( irrtm==1 ) then 
+        else if ( irrtm == 1 ) then
           do itr = 1 , ntr
             do k = 1 , kz
               do n = n1 , n2
@@ -2430,7 +2429,6 @@ module mod_rad_aerosol
               end do
             end do
           end do
- 
           do k = kth -kz+1 , kth
             do n = n1 , n2
               !consider a minimal extinction background
@@ -2445,11 +2443,11 @@ module mod_rad_aerosol
               end if
             end do
           end do
-        ! radiative hat 
+          ! radiative hat
           tauxar3d(n1:n2,0:kth -kz,ns) = 1.E-10_rkx
           tauasc3d(n1:n2,0:kth -kz,ns) = 0.999999_rkx
           gtota3d(n1:n2 ,0:kth -kz,ns) = 0.5_rkx
-        end if  
+        end if
       end do ! end spectral loop
 
       ! DUST LW emissivity
@@ -2483,6 +2481,7 @@ module mod_rad_aerosol
       else if ( irrtm == 1 ) then
         ! in this case use directly the LW extinction.
         do ns = 1 , nbndlw
+          tauxar3d_lw(:,:,ns) = 1.0E-10_rkx
           ibin = 0
           do itr = 1 , ntr
             if ( chtrname(itr)(1:4) == 'DUST') then

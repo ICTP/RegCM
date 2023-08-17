@@ -28,6 +28,7 @@ program sigma2p
   use mod_realkinds
   use mod_constants
   use mod_dynparam , only : iomode , dsmax , dsmin
+  use mod_stdio , only : stderr
 #ifdef NETCDF4_HDF5
   use mod_dynparam , only : deflate_level
 #endif
@@ -41,9 +42,6 @@ program sigma2p
   use netcdf
 
   implicit none
-
-  integer(ik4) , parameter :: np = 12
-  real(rk4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
   character(128) :: attname , dimname , varname , psunit
@@ -81,15 +79,14 @@ program sigma2p
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q , has_rh , is_icbc
   logical :: make_rh , make_hgt , has_sph
-  integer(ik4) :: n3d , ip3d , iodyn
+  integer(ik4) :: n3d , ip3d , iodyn , np , ipunit , iresult
+  real(rk4) , allocatable , dimension(:) :: plevs
 
   data has_t /.false./
   data has_q /.false./
   data has_rh /.false./
   data make_rh /.false./
   data make_hgt /.false./
-
-  data plevs /1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100./
 
 !$OMP THREADPRIVATE(xvar,pvar)
 
@@ -102,19 +99,39 @@ program sigma2p
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (6,*) 'Usage : ', trim(prgname), '[namelist_file.in] Rcmfile.nc'
     write (6,*) ' '
     stop
   end if
 
   call get_command_argument(1,value=ncsfile)
+  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+  if ( istatus /= nf90_noerr ) then
+    ! Assume we have been provided a namelist with pressure levels.
+    open(newunit=ipunit, file=ncsfile, status='old', &
+         action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(ncsfile)
+      stop
+    end if
+    call get_np(ipunit)
+    allocate(plevs(np))
+    call get_plevs(ipunit)
+    call get_command_argument(2,value=ncsfile)
+    istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+  else
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+    np = 12
+    allocate(plevs(np))
+    plevs = [1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.]
+  end if
+
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
-
-  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error Opening Input file '//trim(ncsfile))
 
   jxdimid = -1
   iydimid = -1
@@ -851,6 +868,8 @@ program sigma2p
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
 
+  deallocate(plevs)
+
   contains
 
   subroutine top2btm(x,nlon1,nlat1,nlev1)
@@ -873,6 +892,33 @@ program sigma2p
       end do
     end do
   end subroutine top2btm
+
+  subroutine get_np(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    integer(ik4) :: nz ! Unused in sigma2p
+    namelist /pp_param/ nz , np
+    rewind(iu)
+    read(iu, nml=pp_param, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading pp_param namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_np
+
+  subroutine get_plevs(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    namelist /pressure/ plevs
+    rewind(iu)
+    read(iu, nml=pressure, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading pressure namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_plevs
 
 end program sigma2p
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

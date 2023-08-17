@@ -65,9 +65,9 @@ module mod_era5
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
 
-  integer(ik4) , dimension(5,4) :: inet5
-  integer(ik4) , dimension(5,4) :: ivar5
-  real(rkx) , dimension(5,4) :: xoff , xscl
+  integer(ik4) , dimension(5) :: inet5
+  integer(ik4) , dimension(5) :: ivar5
+  real(rkx) , dimension(5) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
 
@@ -160,9 +160,15 @@ module mod_era5
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
-    write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
+    if ( dattyp == 'ERAXX' ) then
+      write(inname,'(a,a,a,a,a,i0.2,a)') &
+          'XXXX', pthsep, 'geop_', 'XXXX', '_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep//inname
+    else
+      write(inname,'(i4,a,a,i0.4,a,i0.2,a)') &
       year, pthsep, 'geop_', year, '_', month,'.nc'
-    pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+      pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file '//trim(pathaddname))
@@ -398,7 +404,7 @@ module mod_era5
   subroutine era5hour(idate,idate0)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
@@ -421,55 +427,61 @@ module mod_era5
     data varname /'tp  ' , 'ssr ' , 'strd' , 'tcc '/
     data fname   /'pr  ' , 'ssr ' , 'strd' , 'clt '/
 
-    k4 = 1
     call split_idate(idate,year,month,day,hour)
 
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
+      if ( idate /= idate0 ) then
+        do kkrec = 1 , 4
+          istatus = nf90_close(inet5(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error close file')
+        end do
+      end if
       do kkrec = 1 , 4
         write(inname,'(a,a,i0.4,a,i0.2,a)') &
           trim(fname(kkrec)), '_', year, '_', month,'.nc'
         pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
             pthsep//'hourly'//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec,1),trim(varname(kkrec)), &
-                                 ivar5(kkrec,1))
+        istatus = nf90_inq_varid(inet5(kkrec),trim(varname(kkrec)), &
+                                 ivar5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
-                 'scale_factor',xscl(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                 'scale_factor',xscl(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
-                   'add_offset',xoff(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                   'add_offset',xoff(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-        write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
-                         xscl(kkrec,1) , xoff(kkrec,1)
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                         xscl(kkrec) , xoff(kkrec)
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_dimid(inet5(1),'time',timid)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_varid(inet5(1),'time',timid)
           if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+            istatus = nf90_inq_varid(inet5(1),'date',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var time/date')
           end if
-          istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          istatus = nf90_get_att(inet5(1,1),timid,'calendar',ccal)
+          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
           call getmem1d(itimes,1,timlen,'mod_era5:itimes')
           call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
-          istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+          istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
           do it = 1 , timlen
@@ -486,10 +498,10 @@ module mod_era5
     icount(3) = 1
 
     do kkrec = 1 , 4
-      inet = inet5(kkrec,k4)
-      ivar = ivar5(kkrec,k4)
-      xscale = xscl(kkrec,k4)
-      xadd = xoff(kkrec,k4)
+      inet = inet5(kkrec)
+      ivar = ivar5(kkrec)
+      xscale = xscl(kkrec)
+      xadd = xoff(kkrec)
       call getwork(kkrec)
       if ( kkrec == 1 ) then
         do j = 1 , jlat
@@ -533,7 +545,7 @@ module mod_era5
     implicit none
     character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
@@ -556,54 +568,66 @@ module mod_era5
     data varname /'t' , 'z' , 'q' , 'u' , 'v'/
     data fname   /'tatm','geop','qhum','uwnd','vwnd'/
 
-    k4 = 1
     call split_idate(idate,year,month,day,hour)
 
     if ( idate == idate0 .or. month /= lastmonth ) then
       lastmonth = month
+      if ( idate /= idate0 ) then
+        do kkrec = 1 , 5
+          istatus = nf90_close(inet5(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error close file')
+        end do
+      end if
       do kkrec = 1 , 5
-        write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
-        year, pthsep, fname(kkrec), '_', year, '_', month,'.nc'
-        pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
-        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+        if ( dattyp == 'ERAXX' ) then
+          write(inname,'(a,a,a,a,a,a,i0.2,a)') &
+          'XXXX', pthsep, fname(kkrec), '_', 'XXXX', '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep//inname
+        else
+          write(inname,'(i4,a,a,a,i0.4,a,i0.2,a)') &
+          year, pthsep, fname(kkrec), '_', year, '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//dattyp(1:4)//pthsep//inname
+        end if
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
-        istatus = nf90_inq_varid(inet5(kkrec,1),varname(kkrec), &
-                                 ivar5(kkrec,1))
+        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec), &
+                                 ivar5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error find var '//varname(kkrec))
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
-                 'scale_factor',xscl(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                 'scale_factor',xscl(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
-                   'add_offset',xoff(kkrec,1))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                   'add_offset',xoff(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Error find att add_offset')
-        write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
-                         xscl(kkrec,1) , xoff(kkrec,1)
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                         xscl(kkrec) , xoff(kkrec)
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_dimid(inet5(1),'time',timid)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+          istatus = nf90_inq_varid(inet5(1),'time',timid)
           if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+            istatus = nf90_inq_varid(inet5(1),'date',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find var time/date')
           end if
-          istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
-          istatus = nf90_get_att(inet5(1,1),timid,'calendar',ccal)
+          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
           call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time units')
           call getmem1d(itimes,1,timlen,'mod_era5:itimes')
           call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
-          istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+          istatus = nf90_get_var(inet5(1),timid,xtimes)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read time')
           do it = 1 , timlen
@@ -621,10 +645,10 @@ module mod_era5
     icount(4) = 1
 
     do kkrec = 1 , 5
-      inet = inet5(kkrec,k4)
-      ivar = ivar5(kkrec,k4)
-      xscale = xscl(kkrec,k4)
-      xadd = xoff(kkrec,k4)
+      inet = inet5(kkrec)
+      ivar = ivar5(kkrec)
+      xscale = xscl(kkrec)
+      xadd = xoff(kkrec)
       call getwork(kkrec)
       if ( kkrec == 1 ) then
         do j = 1 , jlat

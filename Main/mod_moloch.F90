@@ -72,11 +72,12 @@ module mod_moloch
 
   real(rkx) , dimension(:) , pointer :: gzitak
   real(rkx) , dimension(:) , pointer :: gzitakh
+  real(rkx) , dimension(:) , pointer :: xknu
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
   real(rkx) , dimension(:,:) , pointer :: mv , hy
-  real(rkx) , dimension(:,:) , pointer :: ps , ht
+  real(rkx) , dimension(:,:) , pointer :: ps , ts , ht
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
   real(rkx) , dimension(:,:,:) , pointer :: pai , pf
@@ -86,7 +87,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: ud , vd
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
-  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
+  real(rkx) , dimension(:,:,:) , pointer :: qv , qf , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
@@ -94,31 +95,42 @@ module mod_moloch
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , xtouvstag , wstagtox
 
-  real(rkx) , parameter :: minden = 1.0e-30_rkx
+  real(rkx) , parameter :: minden = 1.0e-15_rkx
 
-  logical , parameter :: do_phys = .true.
-  logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .true.
-  logical , parameter :: do_filterpai = .false.
-  logical , parameter :: do_vadvtwice = .true.
-  logical , parameter :: do_filterqx = .false.
-  logical , parameter :: do_filterdiv = .false.
-  logical , parameter :: do_filtertheta = .false.
+  logical , parameter :: do_phys         = .true.
+  logical , parameter :: do_fulleq       = .true.
+  logical , parameter :: do_vadvtwice    = .true.
+  logical , parameter :: do_bdy          = .true.
+  logical , parameter :: do_divdamp      = .true.
+  logical , parameter :: do_filterpai    = .false.
+  logical , parameter :: do_filterqv     = .false.
+  logical , parameter :: do_filterdiv    = .true.
+  logical , parameter :: do_filtertheta  = .false.
+#ifdef RCEMIP
+  logical , parameter :: do_massconserve = .false.
+#else
+  logical , parameter :: do_massconserve = .false.
+#endif
+
+
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr
 
-  integer :: nadv , nsound
-  real(rkx) :: nupait , ddamp , dzita
+  real(rkx) , parameter :: nupaitq = 0.05_rkx
+  real(rkx) , parameter :: ddamp = 0.25_rkx
+
+  real(rkx) :: dzita
+  integer(ik4) :: jmin , jmax , imin , imax
 
   contains
 
-#include <wlh.inc>
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
   subroutine allocate_moloch
     implicit none
+    integer(ik4) :: k
     call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
     call getmem2d(p2d,jdi1,jdi2,idi1,idi2,'moloch:p2d')
@@ -156,16 +168,23 @@ module mod_moloch
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
     if ( do_fulleq ) then
-      if ( ipptls > 0 ) then
-        call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
-        call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
-      end if
+      call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
+      call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
+    end if
+    if ( do_filterdiv ) then
+      call getmem1d(xknu,1,kz,'moloch:xknu')
+      do k = 1 , kz
+        xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1)/kz,rkx)))*mo_anu2
+      end do
     end if
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
     end if
     if ( do_filtertheta ) then
       call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
+    end if
+    if ( do_filterqv ) then
+      call getmem3d(qf,jce1,jce2,ice1,ice2,1,kz,'moloch:qf')
     end if
   end subroutine allocate_moloch
 
@@ -180,6 +199,7 @@ module mod_moloch
     call assignpnt(mddom%xlon,xlon)
     call assignpnt(mddom%ht,ht)
     call assignpnt(sfs%psa,ps)
+    call assignpnt(sfs%tg,ts)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%fmzf,fmzf)
     call assignpnt(mo_atm%pai,pai)
@@ -205,8 +225,12 @@ module mod_moloch
         call assignpnt(mo_atm%qx,qs,iqs)
       end if
     end if
-    if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
-    if ( ichem == 1 ) call assignpnt(mo_atm%trac,trac)
+    if ( ibltyp == 2 ) then
+      call assignpnt(mo_atm%tke,tke)
+    end if
+    if ( ichem == 1 ) then
+      call assignpnt(mo_atm%trac,trac)
+    end if
     if ( ifrayd == 1 ) then
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
@@ -218,26 +242,42 @@ module mod_moloch
     rmv = d_one/mv
     gzitak = gzita(zita)
     gzitakh = gzita(zitah)
-    nadv = mo_nadv
-    nsound = mo_nsound
     dzita = mo_dzita
-    nupait = 0.05_rkx
     wwkw(:,:,kzp1) = d_zero
     w(:,:,1) = d_zero
     lrotllr = (iproj == 'ROTLLR')
-    ddamp = 0.25_rkx
+
+    jmin = jcross1
+    jmax = jcross2
+    imin = icross1
+    imax = icross2
+    if ( ma%bandflag ) then
+      jmin = jcross1 - 2
+      jmax = jcross2 + 2
+    end if
+    if ( ma%crmflag ) then
+      jmin = jcross1 - 2
+      jmax = jcross2 + 2
+      imin = icross1 - 2
+      imax = icross2 + 2
+    end if
+
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
   !
   subroutine moloch
     implicit none
-    integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice
+    real(rkx) :: tv , lrt , fice , prat
+#ifdef QUAD_PRECISION
+    real(rk16) :: tmi(kz) , tmf(kz) , tmil , tmfl
+#else
+    real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
+#endif
     !real(rk8) :: jday
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j , k , nadv
     integer(ik4) :: iconvec
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
@@ -245,8 +285,8 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
-    dtstepa = dtsec / real(nadv,rkx)
-    dtsound = dtstepa / real(nsound,rkx)
+    dtstepa = dtsec / real(mo_nadv,rkx)
+    dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
 
     call reset_tendencies
@@ -347,8 +387,18 @@ module mod_moloch
         tf = tetav(jce1:jce2,ice1:ice2,:)
       end if
     end if
+    if ( do_filterqv ) then
+      qf = qv(jce1:jce2,ice1:ice2,:)
+    end if
 
-    do jadv = 1 , nadv
+    if ( do_massconserve ) then
+      do k = 1 , kz
+        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmil,tmi(k))
+      end do
+    end if
+
+    do nadv = 1 , mo_nadv
 
       call sound(dtsound)
 
@@ -361,12 +411,29 @@ module mod_moloch
       call filtpai
       pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
     end if
+
     if ( do_fulleq ) then
       if ( do_filtertheta ) then
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) - tf
         call filttheta
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
       end if
+    end if
+
+    if ( do_massconserve ) then
+      do k = 1 , kz
+        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
+        call sumall(tmfl,tmf(k))
+      end do
+      do k = 1 , kz
+        prat = real(tmi(k)/tmf(k),rkx)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            pai(j,i,k) = pai(j,i,k) * &
+              (1.0_rkx + 0.025_rkx*(prat-1.0_rkx))
+          end do
+        end do
+      end do
     end if
 
     do k = 1 , kz
@@ -416,6 +483,7 @@ module mod_moloch
         cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
       end if
     end if
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -431,8 +499,8 @@ module mod_moloch
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
-        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
@@ -469,6 +537,7 @@ module mod_moloch
     !
     ! Prepare fields to be used in physical parametrizations.
     !
+    call uvstagtox(u,v,ux,vx)
     call mkslice
     !
     ! PHYSICS
@@ -482,6 +551,13 @@ module mod_moloch
         end if
       end if
     end if
+
+    if ( do_filterqv ) then
+      qv(jce1:jce2,ice1:ice2,:) = qv(jce1:jce2,ice1:ice2,:) - qf
+      call filtqv
+      qv(jce1:jce2,ice1:ice2,:) = max(qv(jce1:jce2,ice1:ice2,:) + qf,minqq)
+    end if
+
     !
     ! Mass check
     !
@@ -495,7 +571,8 @@ module mod_moloch
       call maxall(maxps,pmax)
       call minall(minps,pmin)
       call sumall(total_precip_points,iconvec)
-      if ( is_nan(pmax) .or. is_nan(pmin) ) then
+      if ( is_nan(pmax) .or. is_nan(pmin) .or. &
+           is_inf(pmax) .or. is_inf(pmin) ) then
         write (stderr,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
         write (stderr,*) 'No more atmosphere here....'
         write (stderr,*) 'CFL violation detected, so model STOP'
@@ -532,17 +609,27 @@ module mod_moloch
 
       subroutine boundary
         implicit none
-
+#ifdef USE_MPI3
+        type(commdata_real) :: comm1 , comm2 , comm3
+#else
+        logical :: do_nudge
+        do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
         call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-        if ( ichem == 1 ) then
+        if ( is_present_qc( ) ) then
+          call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( is_present_qi( ) ) then
+          call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
+        if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
           call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
-
+#endif
         if ( idiag > 0 ) then
           ten0 = t(jci1:jci2,ici1:ici2,:)
           qen0 = qv(jci1:jci2,ici1:ici2,:)
@@ -554,12 +641,55 @@ module mod_moloch
         end if
 
         if ( iboudy == 1 .or. iboudy >= 5 ) then
-          call nudge(iboudy,pai,xpaib)
+#ifdef USE_MPI3
+          call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
+          call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call nudge(iboudy,ps,xpsb)
+          call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call nudge(iboudy,u,v,xub,xvb)
+          call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call nudge(iboudy,t,xtb)
+          call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call nudge(iboudy,qv,xqb)
+          call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call nudge(iboudy,pai,xpaib)
+
+          if ( ichem == 1 ) then
+            call exchange_lrbt_pre(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr,comm1)
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_pre(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_pre(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+          if ( ichem == 1 ) then
+            call exchange_lrbt_post(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr,comm1)
+            call nudge_chi(trac)
+            if ( ichdiag > 0 ) then
+              cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+            end if
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+            call nudge(iboudy,qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+            call nudge(iboudy,qi,xib)
+          end if
+#else
+          call nudge(iboudy,ps,xpsb)
+          call nudge(iboudy,u,v,xub,xvb)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
-          call nudge(iboudy,u,v,xub,xvb)
-
+          call nudge(iboudy,pai,xpaib)
           if ( idiag > 0 ) then
             tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
@@ -570,37 +700,64 @@ module mod_moloch
           if ( is_present_qi( ) ) then
             call nudge(iboudy,qi,xib)
           end if
+          if ( ichem == 1 ) then
+            call nudge_chi(trac)
+            if ( ichdiag > 0 ) then
+              cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+            end if
+          end if
+#endif
         else if ( iboudy == 4 ) then
+#ifdef USE_MPI3
+          call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
+          call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call sponge(ps,xpsb)
+          call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
+          call sponge(u,v,xub,xvb)
+          call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call sponge(t,xtb)
+          call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          call sponge(qv,xqb)
+          call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call sponge(pai,xpaib)
+
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_pre(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_pre(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+          if ( is_present_qc( ) ) then
+            call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
+            call sponge(qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+            call sponge(qi,xib)
+          end if
+#else
+          call sponge(ps,xpsb)
+          call sponge(u,v,xub,xvb)
           call sponge(t,xtb)
           call sponge(qv,xqb)
-          call sponge(u,v,xub,xvb)
-          if ( idiag > 0 ) then
-            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
-          end if
+          call sponge(pai,xpaib)
           if ( is_present_qc( ) ) then
             call sponge(qc,xlb)
           end if
           if ( is_present_qi( ) ) then
             call sponge(qi,xib)
           end if
-        end if
-        if ( ichem == 1 ) then
-          if ( iboudy == 1 .or. iboudy >= 5 ) then
-            call nudge_chi(trac)
-          else if ( iboudy == 4 ) then
-            ! Not implemented sponge_chi
+#endif
+          if ( idiag > 0 ) then
+            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
-          if ( ichdiag > 0 ) then
-            cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
-          end if
-        end if
-        call uvstagtox(u,v,ux,vx)
-        if ( do_filterqx .and. ipptls > 0 ) then
-          call exchange_lrbt(qx,1,jce1,jce2,ice1,ice2,1,kz,iqfrst,iqlst)
-          call filt4d(qx,mo_anu2,iqfrst,iqlst)
         end if
       end subroutine boundary
 
@@ -629,27 +786,84 @@ module mod_moloch
         end do
       end subroutine filt4d
 
-      subroutine filt3d(p,nu)
+      subroutine divergence_filter( )
         implicit none
-        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
-        real(rkx) , intent(in) :: nu
         integer(ik4) :: j , i , k
+#ifdef USE_MPI3
+        type(commdata_real) :: comm
+
+        call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+
+        do k = 1 , kz
+          do i = ici1+1 , ici2-1
+            do j = jci1+1 , jci2-1
+              p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                      zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                         d_half   * zdiv2(j,i,k)
+            end do
+          end do
+          do i = ici1+1 , ici2-1
+            do j = jci1+1 , jci2-1
+              zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
+            end do
+          end do
+        end do
+
+        call exchange_lrbt_post(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            p2d(jci1,i) = 0.125_rkx * (zdiv2(jci1-1,i,k) + zdiv2(jci1+1,i,k) + &
+                                       zdiv2(jci1,i-1,k) + zdiv2(jci1,i+1,k)) -&
+                         d_half   * zdiv2(jci1,i,k)
+          end do
+          do i = ici1 , ici2
+            zdiv2(jci1,i,k) = zdiv2(jci1,i,k) + xknu(k) * p2d(jci1,i)
+          end do
+          do i = ici1 , ici2
+            p2d(jci2,i) = 0.125_rkx * (zdiv2(jci2-1,i,k) + zdiv2(jci2+1,i,k) + &
+                                       zdiv2(jci2,i-1,k) + zdiv2(jci2,i+1,k)) -&
+                         d_half   * zdiv2(jci2,i,k)
+          end do
+          do i = ici1 , ici2
+            zdiv2(jci2,i,k) = zdiv2(jci2,i,k) + xknu(k) * p2d(jci2,i)
+          end do
+          do j = jci1+1 , jci2-1
+            p2d(j,ici1) = 0.125_rkx * (zdiv2(j-1,ici1,k) + zdiv2(j+1,ici1,k) + &
+                                       zdiv2(j,ici1-1,k) + zdiv2(j,ici1+1,k)) -&
+                       d_half   * zdiv2(j,ici1,k)
+          end do
+          do j = jci1+1 , jci2-1
+            zdiv2(j,ici1,k) = zdiv2(j,ici1,k) + xknu(k) * p2d(j,ici1)
+          end do
+          do j = jci1+1 , jci2-1
+            p2d(j,ici2) = 0.125_rkx * (zdiv2(j-1,ici2,k) + zdiv2(j+1,ici2,k) + &
+                                       zdiv2(j,ici2-1,k) + zdiv2(j,ici2+1,k)) -&
+                       d_half   * zdiv2(j,ici2,k)
+          end do
+          do j = jci1+1 , jci2-1
+            zdiv2(j,ici2,k) = zdiv2(j,ici2,k) + xknu(k) * p2d(j,ici2)
+          end do
+        end do
+#else
+        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
-                                      p(j,i-1,k) + p(j,i+1,k)) - &
-                         d_half   * p(j,i,k)
+              p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                      zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                         d_half   * zdiv2(j,i,k)
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
+              zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
             end do
           end do
         end do
-      end subroutine filt3d
+#endif
+      end subroutine divergence_filter
 
       subroutine filtpai
         implicit none
@@ -667,7 +881,7 @@ module mod_moloch
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              pai(j,i,k) = pai(j,i,k) + nupait * p2d(j,i)
+              pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
             end do
           end do
         end do
@@ -689,16 +903,38 @@ module mod_moloch
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tetav(j,i,k) = tetav(j,i,k) + nupait * p2d(j,i)
+              tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
             end do
           end do
         end do
       end subroutine filttheta
 
+      subroutine filtqv
+        implicit none
+        integer(ik4) :: j , i , k
+
+        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
+                                      qv(j,i-1,k) + qv(j,i+1,k)) - &
+                         d_half   * qv(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qv(j,i,k) = qv(j,i,k) + nupaitq * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filtqv
+
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , nsound
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzum , zrfmzup , zrfmzvm , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
@@ -706,6 +942,9 @@ module mod_moloch
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+#ifdef USE_MPI3
+        type(commdata_real) :: comm1, comm2 , comm3
+#endif
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
@@ -714,19 +953,192 @@ module mod_moloch
 
         !  sound waves
 
+#ifndef USE_MPI3
         if ( .not. do_fulleq ) then
           call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
+#endif
 
-        do jsound = 1 , nsound
+        do nsound = 1 , mo_nsound
+
+#ifdef USE_MPI3
+          if ( nsound == 1 .and. .not. do_fulleq ) then
+            call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+          call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm2)
 
           ! partial definition of the generalized vertical velocity
 
-          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
+          do i = ici1 , ici2-1
+            do j = jci1 , jci2-1
+              zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
+              zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
+              w(j,i,kzp1) = d_half * (zuh+zvh)
+            end do
+          end do
+          do i = ici1 , ici2-1
+            do j = jci1 , jci2-1
+              s(j,i,kzp1) = -w(j,i,kzp1)
+            end do
+          end do
 
-          ud(:,:,1:kz) = u(jde1ga:jde2ga,ice1ga:ice2ga,1:kz)
-          vd(:,:,1:kz) = v(jce1ga:jce2ga,ide1ga:ide2ga,1:kz)
+          ! Equation 10, generalized vertical velocity
+
+          do k = kz , 2 , -1
+            do i = ici1 , ici2-1
+              do j = jci1 , jci2-1
+                zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
+                      (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
+                zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
+                      (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
+                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+              end do
+            end do
+          end do
+
+          ! Part of divergence (except w contribution) put in zdiv2
+          ! Equation 16
+
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do i = ici1 , ici2-1
+                do j = jci1 , jci2-1
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = zdtrdx * u(j,i,k) * zrfmzum
+                  zup = zdtrdx * u(j+1,i,k) * zrfmzup
+                  zvm = zdtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                  zvp = zdtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                  zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2-1
+                do j = jci1 , jci2-1
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = zdtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                  zup = zdtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                  zvm = zdtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                  zvp = zdtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
+                end do
+              end do
+            end do
+          end if
+
+          call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm2)
+
+          do i = ici1 , ici2-1
+            zuh = u(jci2,i,kz) * hx(jci2,i) + u(jci2+1,i,kz) * hx(jci2+1,i)
+            zvh = v(jci2,i,kz) * hy(jci2,i) + v(jci2,i+1,kz) * hy(jci2,i+1)
+            w(jci2,i,kzp1) = d_half * (zuh+zvh)
+          end do
+          do i = ici1 , ici2-1
+            s(jci2,i,kzp1) = -w(jci2,i,kzp1)
+          end do
+          do k = kz , 2 , -1
+            do i = ici1 , ici2-1
+              zuh = (u(jci2,i,k)   + u(jci2,i,k-1))   * hx(jci2,i) + &
+                    (u(jci2+1,i,k) + u(jci2+1,i,k-1)) * hx(jci2+1,i)
+              zvh = (v(jci2,i,k)   + v(jci2,i,k-1))   * hy(jci2,i) + &
+                    (v(jci2,i+1,k) + v(jci2,i+1,k-1)) * hy(jci2,i+1)
+              s(jci2,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+            end do
+          end do
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do i = ici1 , ici2-1
+                zrfmzum = d_two / (fmz(jci2,i,k) + fmz(jci2-1,i,k))
+                zrfmzvm = d_two / (fmz(jci2,i,k) + fmz(jci2,i-1,k))
+                zrfmzup = d_two / (fmz(jci2,i,k) + fmz(jci2+1,i,k))
+                zrfmzvp = d_two / (fmz(jci2,i,k) + fmz(jci2,i+1,k))
+                zum = zdtrdx * u(jci2,i,k) * zrfmzum
+                zup = zdtrdx * u(jci2+1,i,k) * zrfmzup
+                zvm = zdtrdy * v(jci2,i,k) * zrfmzvm * rmv(jci2,i)
+                zvp = zdtrdy * v(jci2,i+1,k) * zrfmzvp * rmv(jci2,i+1)
+                zdiv2(jci2,i,k) = fmz(jci2,i,k) * &
+                  mx(jci2,i) * ((zup-zum) + (zvp-zvm))
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2-1
+                zrfmzum = d_two / (fmz(jci2,i,k) + fmz(jci2-1,i,k))
+                zrfmzvm = d_two / (fmz(jci2,i,k) + fmz(jci2,i-1,k))
+                zrfmzup = d_two / (fmz(jci2,i,k) + fmz(jci2+1,i,k))
+                zrfmzvp = d_two / (fmz(jci2,i,k) + fmz(jci2,i+1,k))
+                zum = zdtrdx * u(jci2,i,k)   * rmu(jci2,i)   * zrfmzum
+                zup = zdtrdx * u(jci2+1,i,k) * rmu(jci2+1,i) * zrfmzup
+                zvm = zdtrdy * v(jci2,i,k)   * rmv(jci2,i)   * zrfmzvm
+                zvp = zdtrdy * v(jci2,i+1,k) * rmv(jci2,i+1) * zrfmzvp
+                zdiv2(jci2,i,k) = mx2(jci2,i) * &
+                  fmz(jci2,i,k) * ((zup-zum)+(zvp-zvm))
+              end do
+            end do
+          end if
+
+          do j = jci1 , jci2
+            zuh = u(j,ici2,kz) * hx(j,ici2) + u(j+1,ici2,kz) * hx(j+1,ici2)
+            zvh = v(j,ici2,kz) * hy(j,ici2) + v(j,ici2+1,kz) * hy(j,ici2+1)
+            w(j,ici2,kzp1) = d_half * (zuh+zvh)
+          end do
+          do j = jci1 , jci2
+            s(j,ici2,kzp1) = -w(j,ici2,kzp1)
+          end do
+          do k = kz , 2 , -1
+            do j = jci1 , jci2
+              zuh = (u(j,ici2,k)   + u(j,ici2,k-1))   * hx(j,ici2) + &
+                    (u(j+1,ici2,k) + u(j+1,ici2,k-1)) * hx(j+1,ici2)
+              zvh = (v(j,ici2,k)   + v(j,ici2,k-1))   * hy(j,ici2) + &
+                    (v(j,ici2+1,k) + v(j,ici2+1,k-1)) * hy(j,ici2+1)
+              s(j,ici2,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+            end do
+          end do
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do j = jci1 , jci2
+                zrfmzum = d_two / (fmz(j,ici2,k) + fmz(j-1,ici2,k))
+                zrfmzvm = d_two / (fmz(j,ici2,k) + fmz(j,ici2-1,k))
+                zrfmzup = d_two / (fmz(j,ici2,k) + fmz(j+1,ici2,k))
+                zrfmzvp = d_two / (fmz(j,ici2,k) + fmz(j,ici2+1,k))
+                zum = zdtrdx * u(j,ici2,k) * zrfmzum
+                zup = zdtrdx * u(j+1,ici2,k) * zrfmzup
+                zvm = zdtrdy * v(j,ici2,k) * zrfmzvm * rmv(j,ici2)
+                zvp = zdtrdy * v(j,ici2+1,k) * zrfmzvp * rmv(j,ici2+1)
+                zdiv2(j,ici2,k) = fmz(j,ici2,k) * &
+                  mx(j,ici2) * ((zup-zum) + (zvp-zvm))
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do j = jci1 , jci2
+                zrfmzum = d_two / (fmz(j,ici2,k) + fmz(j-1,ici2,k))
+                zrfmzvm = d_two / (fmz(j,ici2,k) + fmz(j,ici2-1,k))
+                zrfmzup = d_two / (fmz(j,ici2,k) + fmz(j+1,ici2,k))
+                zrfmzvp = d_two / (fmz(j,ici2,k) + fmz(j,ici2+1,k))
+                zum = zdtrdx * u(j,ici2,k)   * rmu(j,ici2)   * zrfmzum
+                zup = zdtrdx * u(j+1,ici2,k) * rmu(j+1,ici2) * zrfmzup
+                zvm = zdtrdy * v(j,ici2,k)   * rmv(j,ici2)   * zrfmzvm
+                zvp = zdtrdy * v(j,ici2+1,k) * rmv(j,ici2+1) * zrfmzvp
+                zdiv2(j,ici2,k) = mx2(j,ici2) * &
+                  fmz(j,ici2,k) * ((zup-zum)+(zvp-zvm))
+              end do
+            end do
+          end if
+#else
+          call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+          ! partial definition of the generalized vertical velocity
 
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -735,6 +1147,7 @@ module mod_moloch
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
+
           do i = ici1 , ici2
             do j = jci1 , jci2
               s(j,i,kzp1) = -w(j,i,kzp1)
@@ -791,9 +1204,16 @@ module mod_moloch
               end do
             end do
           end if
-          call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-          call divdamp(dtsound)
-          if ( do_filterdiv ) call filt3d(zdiv2,mo_anu2)
+
+#endif
+
+#ifdef USE_MPI3
+          if ( nsound == 1 .and. .not. do_fulleq ) then
+            call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+#endif
+          if ( do_divdamp ) call divdamp(dtsound)
+
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -815,12 +1235,12 @@ module mod_moloch
                         (tetav(j,i,k-1) + tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * &
                          fmzf(j,i,k)*fmzf(j,i,k) * &
-                         real(jsound,rkx) * zdtrdz * &
+                         real(nsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                      w(j,i,k) > 0.1_rkx ) then
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(jsound-1,rkx)*dts*wlhv*wlhv* &
+                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
                     zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
                   zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
@@ -853,6 +1273,7 @@ module mod_moloch
           end do
 
           ! new Exner function (Equation 19)
+
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -880,12 +1301,17 @@ module mod_moloch
                   end do
                 end do
               end do
-              call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
             end if
+#ifdef USE_MPI3
+            call exchange_lrbt_pre(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+#else
+            call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+#endif
           end if
 
-          ! horizontal momentum equations
+          if ( do_filterdiv ) call divergence_filter( )
 
+          ! horizontal momentum equations
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -894,11 +1320,244 @@ module mod_moloch
             end do
           end do
 
+          do k = 1 , kz
+            do i = ice1ga, ice2ga
+              do j = jde1ga , jde2ga
+                ud(j,i,k) = u(j,i,k)
+              end do
+            end do
+          end do
+          do k = 1 , kz
+            do i = ide1ga, ide2ga
+              do j = jce1ga , jce2ga
+                vd(j,i,k) = v(j,i,k)
+              end do
+            end do
+          end do
+
+#ifdef USE_MPI3
+          call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_pre(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1,comm2)
+
+          if ( do_fulleq ) then
+            call exchange_lrbt_post(tetav,1,jce1,jce2,ice1,ice2,1,kz,comm3)
+          end if
+
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do i = ici1+1 , ici2
+                do j = jdi1+1 , jdi2
+                  zcx = zdtrdx * mu(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                end do
+              end do
+            end do
+            zcy = zdtrdy
+            do k = 1 , kz
+              do i = idi1+1 , idi2
+                do j = jci1+1 , jci2
+                  zfz = 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1+1 , ici2
+                do j = jdi1+1 , jdi2
+                  zcx = zdtrdx * mu(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                end do
+              end do
+            end do
+            do k = 1 , kz
+              do i = idi1+1 , idi2
+                do j = jci1+1 , jci2
+                  zcy = zdtrdy * mv(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                end do
+              end do
+            end do
+          end if
+
+          call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm1)
+          call exchange_lrbt_post(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1,comm2)
+
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do i = ici1+1 , ici2
+                zcx = zdtrdx * mu(jdi1,i)
+                zfz = 0.25_rkx * &
+                  (deltaw(jdi1-1,i,k) + deltaw(jdi1-1,i,k+1) + &
+                   deltaw(jdi1,i,k)   + deltaw(jdi1,i,k+1)) + egrav * dts
+                zrom1u = d_half * cpd * (tetav(jdi1-1,i,k) + tetav(jdi1,i,k))
+                zcor1u = coru(jdi1,i) * dts * 0.25_rkx * &
+                     (vd(jdi1,i,k) + vd(jdi1-1,i,k) + &
+                      vd(jdi1-1,i+1,k) + vd(jdi1,i+1,k))
+                ! Equation 17
+                u(jdi1,i,k) = u(jdi1,i,k) + zcor1u - &
+                           zfz * hx(jdi1,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(jdi1,i,k) - pai(jdi1-1,i,k))
+              end do
+            end do
+            zcy = zdtrdy
+            do k = 1 , kz
+              do i = idi1+1 , idi2
+                zfz = 0.25_rkx * &
+                  (deltaw(jci1,i-1,k) + deltaw(jci1,i-1,k+1) + &
+                   deltaw(jci1,i,k)   + deltaw(jci1,i,k+1)) + egrav * dts
+                zrom1v = d_half * cpd * (tetav(jci1,i-1,k) + tetav(jci1,i,k))
+                zcor1v = corv(jci1,i) * dts * 0.25_rkx * &
+                     (ud(jci1,i,k) + ud(jci1,i-1,k) + &
+                      ud(jci1+1,i,k) + ud(jci1+1,i-1,k))
+                ! Equation 18
+                v(jci1,i,k) = v(jci1,i,k) - zcor1v - &
+                           zfz * hy(jci1,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(jci1,i,k) - pai(jci1,i-1,k))
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1+1 , ici2
+                zcx = zdtrdx * mu(jdi1,i)
+                zfz = 0.25_rkx * &
+                  (deltaw(jdi1-1,i,k) + deltaw(jdi1-1,i,k+1) + &
+                   deltaw(jdi1,i,k)   + deltaw(jdi1,i,k+1)) + egrav * dts
+                zrom1u = d_half * cpd * (tetav(jdi1-1,i,k) + tetav(jdi1,i,k))
+                zcor1u = coru(jdi1,i) * dts * 0.25_rkx * &
+                     (vd(jdi1,i,k) + vd(jdi1-1,i,k) + &
+                      vd(jdi1-1,i+1,k) + vd(jdi1,i+1,k))
+                ! Equation 17
+                u(jdi1,i,k) = u(jdi1,i,k) + zcor1u - &
+                           zfz * hx(jdi1,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(jdi1,i,k) - pai(jdi1-1,i,k))
+              end do
+            end do
+            do k = 1 , kz
+              do i = idi1+1 , idi2
+                zcy = zdtrdy * mv(jci1,i)
+                zfz = 0.25_rkx * &
+                  (deltaw(jci1,i-1,k) + deltaw(jci1,i-1,k+1) + &
+                   deltaw(jci1,i,k)   + deltaw(jci1,i,k+1)) + egrav * dts
+                zrom1v = d_half * cpd * (tetav(jci1,i-1,k) + tetav(jci1,i,k))
+                zcor1v = corv(jci1,i) * dts * 0.25_rkx * &
+                     (ud(jci1,i,k) + ud(jci1,i-1,k) + &
+                      ud(jci1+1,i,k) + ud(jci1+1,i-1,k))
+                ! Equation 18
+                v(jci1,i,k) = v(jci1,i,k) - zcor1v - &
+                           zfz * hy(jci1,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(jci1,i,k) - pai(jci1,i-1,k))
+              end do
+            end do
+          end if
+
+          if ( lrotllr ) then
+            do k = 1 , kz
+              do j = jdi1 , jdi2
+                zcx = zdtrdx * mu(j,ici1)
+                zfz = 0.25_rkx * &
+                  (deltaw(j-1,ici1,k) + deltaw(j-1,ici1,k+1) + &
+                   deltaw(j,ici1,k)   + deltaw(j,ici1,k+1)) + egrav * dts
+                zrom1u = d_half * cpd * (tetav(j-1,ici1,k) + tetav(j,ici1,k))
+                zcor1u = coru(j,ici1) * dts * 0.25_rkx * &
+                     (vd(j,ici1,k) + vd(j-1,ici1,k) + &
+                      vd(j-1,ici1+1,k) + vd(j,ici1+1,k))
+                ! Equation 17
+                u(j,ici1,k) = u(j,ici1,k) + zcor1u - &
+                           zfz * hx(j,ici1) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,ici1,k) - pai(j-1,ici1,k))
+              end do
+            end do
+            zcy = zdtrdy
+            do k = 1 , kz
+              do j = jci1 , jci2
+                zfz = 0.25_rkx * &
+                  (deltaw(j,idi1-1,k) + deltaw(j,idi1-1,k+1) + &
+                   deltaw(j,idi1,k)   + deltaw(j,idi1,k+1)) + egrav * dts
+                zrom1v = d_half * cpd * (tetav(j,idi1-1,k) + tetav(j,idi1,k))
+                zcor1v = corv(j,idi1) * dts * 0.25_rkx * &
+                     (ud(j,idi1,k) + ud(j,idi1-1,k) + &
+                      ud(j+1,idi1,k) + ud(j+1,idi1-1,k))
+                ! Equation 18
+                v(j,idi1,k) = v(j,idi1,k) - zcor1v - &
+                           zfz * hy(j,idi1) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,idi1,k) - pai(j,idi1-1,k))
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do j = jdi1 , jdi2
+                zcx = zdtrdx * mu(j,ici1)
+                zfz = 0.25_rkx * &
+                  (deltaw(j-1,ici1,k) + deltaw(j-1,ici1,k+1) + &
+                   deltaw(j,ici1,k)   + deltaw(j,ici1,k+1)) + egrav * dts
+                zrom1u = d_half * cpd * (tetav(j-1,ici1,k) + tetav(j,ici1,k))
+                zcor1u = coru(j,ici1) * dts * 0.25_rkx * &
+                     (vd(j,ici1,k) + vd(j-1,ici1,k) + &
+                      vd(j-1,ici1+1,k) + vd(j,ici1+1,k))
+                ! Equation 17
+                u(j,ici1,k) = u(j,ici1,k) + zcor1u - &
+                           zfz * hx(j,ici1) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,ici1,k) - pai(j-1,ici1,k))
+              end do
+            end do
+            do k = 1 , kz
+              do j = jci1 , jci2
+                zcy = zdtrdy * mv(j,idi1)
+                zfz = 0.25_rkx * &
+                  (deltaw(j,idi1-1,k) + deltaw(j,idi1-1,k+1) + &
+                   deltaw(j,idi1,k)   + deltaw(j,idi1,k+1)) + egrav * dts
+                zrom1v = d_half * cpd * (tetav(j,idi1-1,k) + tetav(j,idi1,k))
+                zcor1v = corv(j,idi1) * dts * 0.25_rkx * &
+                     (ud(j,idi1,k) + ud(j,idi1-1,k) + &
+                      ud(j+1,idi1,k) + ud(j+1,idi1-1,k))
+                ! Equation 18
+                v(j,idi1,k) = v(j,idi1,k) - zcor1v - &
+                           zfz * hy(j,idi1) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,idi1,k) - pai(j,idi1-1,k))
+              end do
+            end do
+          end if
+#else
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
           if ( lrotllr ) then
-
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdi1 , jdi2
@@ -933,9 +1592,7 @@ module mod_moloch
                 end do
               end do
             end do
-
           else
-
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdi1 , jdi2
@@ -971,12 +1628,12 @@ module mod_moloch
               end do
             end do
           end if
+#endif
 
         end do ! sound loop
 
         ! complete computation of generalized vertical velocity
         ! Complete Equation 10
-
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1018,11 +1675,11 @@ module mod_moloch
         call wafone(ux,dta)
         call wafone(vx,dta)
         call wafone(wx,dta)
-        call wafone(qv,dta)
+        call wafone(qv,dta,pmin=minqq)
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta)
+            call wafone(ptr,dta,1.0e4_rkx,pmin=d_zero)
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -1031,7 +1688,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-            call wafone(ptr,dta)
+            call wafone(ptr,dta,1.0e8_rkx,d_zero)
           end do
         end if
 
@@ -1053,17 +1710,22 @@ module mod_moloch
         rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
       end function rdeno
 
-      subroutine wafone(pp,dta)
+      subroutine wafone(pp,dta,pfac,pmin)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dta
+        real(rkx) , optional , intent(in) :: pfac , pmin
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmu , zrfmd
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
-
+        real(rkx) :: pfm
+#ifdef RCEMIP
+        logical :: solved
+        integer(ik4) :: kp1 , km1
+#endif
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
@@ -1074,33 +1736,65 @@ module mod_moloch
           zdtrdz = 0.5_rkx * zdtrdz
         end if
 
-        ! Vertical advection
+        if ( present(pmin) ) then
+          pfm = pmin
+        end if
+        if ( present(pfac) ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = pp(j,i,k) * pfac
+              end do
+            end do
+          end do
+          if ( present(pmin) ) then
+            pfm = pfm*pfac
+          end if
+        end if
 
+        ! Vertical advection
         do j = jci1 , jci2
           wfw(j,1) = d_zero
           wfw(j,kzp1) = d_zero
         end do
 
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice1,k) = pp(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice2,k) = pp(j,ice2,k)
+            end do
+          end do
+        end if
+
         do i = ici1 , ici2
           do k = 1 , kzm1
             do j = jci1 , jci2
-              zamu = s(j,i,k+1) * zdtrdz
-              if ( zamu >= d_zero ) then
-                is = d_one
-                k1 = k + 1
-                k1p1 = k1 + 1
-                if ( k1p1 > kz ) k1p1 = kz
-              else
-                is = -d_one
-                k1 = k - 1
-                k1p1 = k
-                if ( k1 < 1 ) k1 = 1
+              if ( k < kz ) then
+                zamu = s(j,i,k+1) * zdtrdz
+                if ( zamu >= d_zero ) then
+                  is = d_one
+                  k1 = k + 1
+                  k1p1 = k1 + 1
+                  if ( k1p1 > kz ) k1p1 = kz
+                else
+                  is = -d_one
+                  k1 = k - 1
+                  k1p1 = k
+                  if ( k1 < 1 ) k1 = 1
+                end if
+                r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu * b - is * b
+                wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                                    (d_one-zphi)*pp(j,i,k))
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
-              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu * b - is * b
-              wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                                  (d_one-zphi)*pp(j,i,k))
               !wfw(j,k+1) = d_half * zamu * ((d_one+zphi)*pp(j,i,k+1) + &
               !                              (d_one-zphi)*pp(j,i,k))
             end do
@@ -1125,23 +1819,27 @@ module mod_moloch
           do i = ici1 , ici2
             do k = 1 , kzm1
               do j = jci1 , jci2
-                zamu = s(j,i,k+1) * zdtrdz
-                if ( zamu >= d_zero ) then
-                  is = d_one
-                  k1 = k + 1
-                  k1p1 = k1 + 1
-                  if ( k1p1 > kz ) k1p1 = kz
+                if ( k == 0 ) then
+                  wwkw(j,i,1) = d_zero
                 else
-                  is = -d_one
-                  k1 = k - 1
-                  k1p1 = k
-                  if ( k1 < 1 ) k1 = 1
+                  zamu = s(j,i,k+1) * zdtrdz
+                  if ( zamu >= d_zero ) then
+                    is = d_one
+                    k1 = k + 1
+                    k1p1 = k1 + 1
+                    if ( k1p1 > kz ) k1p1 = kz
+                  else
+                    is = -d_one
+                    k1 = k - 1
+                    k1p1 = k
+                    if ( k1 < 1 ) k1 = 1
+                  end if
+                  r = rdeno(wz(j,i,k1),wz(j,i,k1p1),wz(j,i,k),wz(j,i,k+1))
+                  b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                  zphi = is + zamu * b - is * b
+                  wfw(j,k+1) = d_half*s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
+                                                    (d_one-zphi)*wz(j,i,k))
                 end if
-                r = rdeno(wz(j,i,k1),wz(j,i,k1p1),wz(j,i,k),wz(j,i,k+1))
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu * b - is * b
-                wfw(j,k+1) = d_half*s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
-                                                  (d_one-zphi)*wz(j,i,k))
                 !wfw(j,k+1) = d_half * zamu * ((d_one+zphi)*wz(j,i,k+1) + &
                 !                              (d_one-zphi)*wz(j,i,k))
               end do
@@ -1168,27 +1866,31 @@ module mod_moloch
           end do
         end if
 
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
-              wz(j,ice1,k) = wz(j,ici1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
-              wz(j,ice2,k) = wz(j,ici2,k)
-            end do
-          end do
+        if ( present(pmin) ) then
+          wz = max(wz,pfm)
         end if
 
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce1,i,k) = pp(jce1,i,k)
+            end do
+          end do
+        end if
+
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce2,i,k) = pp(jce2,i,k)
+            end do
+          end do
+        end if
+
         if ( lrotllr ) then
 
           ! Meridional advection
-
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
@@ -1198,9 +1900,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = min(i+1,icross2)
+                  ih = min(i+1,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1231,20 +1933,8 @@ module mod_moloch
             !end do
           end do
 
-          if ( ma%has_bdyleft ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce1,i,k) = p0(jci1,i,k)
-              end do
-            end do
-          end if
-
-          if ( ma%has_bdyright ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce2,i,k) = p0(jci2,i,k)
-              end do
-            end do
+          if ( present(pmin) ) then
+            p0 = max(p0,pfm)
           end if
 
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
@@ -1260,9 +1950,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = min(j+1,jcross2)
+                  jh = min(j+1,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1305,9 +1995,9 @@ module mod_moloch
                   ih = i-1
                 else
                   is = -d_one
-                  ih = min(i+1,icross2)
+                  ih = min(i+1,imax)
                 end if
-                ihm1 = max(ih-1,icross1)
+                ihm1 = max(ih-1,imin)
                 r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1317,7 +2007,6 @@ module mod_moloch
                 !  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
               end do
             end do
-
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
@@ -1338,26 +2027,13 @@ module mod_moloch
             !end do
           end do
 
-          if ( ma%has_bdyleft ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce1,i,k) = p0(jci1,i,k)
-              end do
-            end do
-          end if
-
-          if ( ma%has_bdyright ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                p0(jce2,i,k) = p0(jci2,i,k)
-              end do
-            end do
+          if ( present(pmin) ) then
+            p0 = max(p0,pfm)
           end if
 
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
           ! Zonal advection
-
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jce2ga
@@ -1367,9 +2043,9 @@ module mod_moloch
                   jh = j-1
                 else
                   is = -d_one
-                  jh = min(j+1,jcross2)
+                  jh = min(j+1,jmax)
                 end if
-                jhm1 = max(jh-1,jcross1)
+                jhm1 = max(jh-1,jmin)
                 r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
@@ -1379,7 +2055,6 @@ module mod_moloch
                 !     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
               end do
             end do
-
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
@@ -1401,11 +2076,91 @@ module mod_moloch
           end do
         end if
 
+        if ( present(pfac) ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = pp(j,i,k) / pfac
+              end do
+            end do
+          end do
+        end if
+#ifdef RCEMIP
+        if ( present(pmin) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              do k = 1 , kz
+                if ( pp(j,i,k) < pmin ) then
+                  zdv = pmin - pp(j,i,k)
+                  pp(j,i,k) = pmin
+                  solved = .false.
+                  if ( s(j,i,k+1) > d_zero ) then
+                    kp1 = k+1
+                    do while ( (.not. solved) .and. ( kp1 <= kz ) )
+                      if ( pp(j,i,kp1) > zdv+pmin ) then
+                        pp(j,i,kp1) = pp(j,i,kp1)-zdv
+                        solved = .true.
+                        exit
+                      end if
+                      kp1 = kp1 + 1
+                    end do
+                  else
+                    km1 = k-1
+                    do while ( (.not. solved) .and. ( km1 >= 1 ) )
+                      if ( pp(j,i,km1) > zdv+pmin ) then
+                        pp(j,i,km1) = pp(j,i,km1)-zdv
+                        solved = .true.
+                        exit
+                      end if
+                      km1 = km1 + 1
+                    end do
+                  end if
+                  if ( .not. solved ) then
+                    if ( k == kz ) then
+                      if ( pp(j,i,kzm1) > zdv+pmin ) then
+                        pp(j,i,kzm1) = pp(j,i,kzm1)-zdv
+                        solved = .true.
+                      end if
+                    else if ( k == 1 ) then
+                      if ( pp(j,i,2) > zdv+pmin ) then
+                        pp(j,i,2) = pp(j,i,2)-zdv
+                        solved = .true.
+                      end if
+                    else
+                      if ( pp(j,i,k+1) > 0.5_rkx*(zdv+pmin) .and. &
+                           pp(j,i,k-1) > 0.5_rkx*(zdv+pmin) ) then
+                        pp(j,i,k+1) = pp(j,i,k+1)-0.5_rkx*zdv
+                        pp(j,i,k-1) = pp(j,i,k-1)-0.5_rkx*zdv
+                        solved = .true.
+                      end if
+                    end if
+                    if ( .not. solved ) then
+                      write(stderr, *) 'NON CONSERVATION ERROR IN ADVECTION!'
+                      write(stderr, *) 'At j,i,k : ', j, i, k
+                      write(stderr, *) 'Forcibly setting value at ', pmin
+                      pp(j,i,k) = pmin
+                    end if
+                  end if
+                end if
+              end do
+            end do
+          end do
+        end if
+#else
+        if ( present(pmin) ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = max(pp(j,i,k),pmin)
+              end do
+            end do
+          end do
+        end if
+#endif
       end subroutine wafone
 
       subroutine reset_tendencies
         implicit none
-
         s(:,:,:) = d_zero
         deltaw(:,:,:) = d_zero
         zdiv2(:,:,:) = d_zero
@@ -1691,6 +2446,7 @@ module mod_moloch
     i2 = ubound(wx,2)
     j1 = lbound(wx,1)
     j2 = ubound(wx,1)
+
     do k = 2 , kzm1
       do i = i1 , i2
         do j = j1 , j2
@@ -1712,6 +2468,7 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
     integer(ik4) :: i , j , k
+
     do k = 3 , kzm1
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -1749,6 +2506,7 @@ module mod_moloch
         end do
       end do
     end if
+
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -1793,6 +2551,62 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     integer(ik4) :: i , j , k
+#ifdef USE_MPI3
+    type(commdata_real) :: comm1, comm2
+
+    call exchange_lr_pre(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_pre(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
+
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
+        end do
+      end do
+    end if
+
+    call exchange_lr_post(ux,2,jce1,jce2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_post(vx,2,jce1,jce2,ice1,ice2,1,kz,comm2)
+
+    ! Back to wind points: U/V (fourth order)
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
+        end do
+      end do
+    end do
+#else
 
     call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
@@ -1823,6 +2637,7 @@ module mod_moloch
     end if
 
     ! Back to wind points: V (fourth order)
+
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jci1 , jci2
@@ -1845,6 +2660,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine xtouvstag
 
   subroutine uvstagtox(u,v,ux,vx)
@@ -1852,11 +2668,69 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     integer(ik4) :: i , j , k
+#ifdef USE_MPI3
+    type(commdata_real) :: comm1, comm2
+
+    call exchange_lr_pre(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_pre(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
+
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jce1 , jce2
+          vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
+        end do
+      end do
+    end if
+
+    call exchange_lr_post(u,2,jde1,jde2,ice1,ice2,1,kz,comm1)
+    call exchange_bt_post(v,2,jce1,jce2,ide1,ide2,1,kz,comm2)
+
+    ! Compute U-wind on T points
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jci1 , jci2
+          ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                      0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
+        end do
+      end do
+    end do
+    ! Compute V-wind on T points
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jce1 , jce2
+          vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                      0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
+        end do
+      end do
+    end do
+#else
 
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
 
     ! Compute U-wind on T points
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jci1 , jci2
@@ -1879,7 +2753,9 @@ module mod_moloch
         end do
       end do
     end if
+
     ! Compute V-wind on T points
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jce1 , jce2
@@ -1902,6 +2778,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine uvstagtox
 
   subroutine divdamp(dts)
@@ -1909,8 +2786,79 @@ module mod_moloch
     real(rkx) , intent(in) :: dts
     integer(ik4) :: i , j , k
     real(rkx) :: ddamp1
+#ifdef USE_MPI3
+    type(commdata_real) :: comm
+#endif
 
     ddamp1 = ddamp*0.125_rkx*(dx**2)/dts
+#ifdef USE_MPI3
+    call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+    if ( lrotllr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1+1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1+1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdi1+1 , jdi2
+            u(j,i,k) = u(j,i,k) + &
+                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1+1 , idi2
+          do j = jci1 , jci2
+            v(j,i,k) = v(j,i,k) + &
+                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end do
+      end do
+    end if
+    call exchange_lrbt_post(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
+    if ( lrotllr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = u(jdi1,i,k) + &
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+        end do
+      end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = v(j,idi1,k) + &
+              ddamp1/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = u(jdi1,i,k) + &
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+        end do
+      end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = v(j,idi1,k) + &
+              ddamp1/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+        end do
+      end do
+    end if
+#else
+    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
     if ( lrotllr ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -1946,6 +2894,7 @@ module mod_moloch
         end do
       end do
     end if
+#endif
   end subroutine divdamp
 
 end module mod_moloch

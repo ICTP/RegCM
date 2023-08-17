@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 35 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -291,6 +291,8 @@ module mod_ncout
   integer(ik4) , parameter :: srf_tauy     = 37
   integer(ik4) , parameter :: srf_psl      = 38
   integer(ik4) , parameter :: srf_evpot    = 39
+  integer(ik4) , parameter :: srf_pcpmax   = 40
+  integer(ik4) , parameter :: srf_twetb    = 41
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1440,6 +1442,23 @@ module mod_ncout
             l_fill=.true.)
           srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
         end if
+        if ( ifshf ) then
+          enable_srf_vars(srf_pcpmax) = .false.
+          enable_srf_vars(srf_twetb) = .false.
+        else
+          if ( enable_srf_vars(srf_pcpmax) ) then
+            call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
+              'Maximum Hourly Precipitation Rate','precipitation_flux', &
+              .true.,'time: maximum')
+            srf_pcpmax_out => v2dvar_srf(srf_pcpmax)%rval
+          end if
+          if ( enable_srf_vars(srf_twetb) ) then
+            call setup_var(v2dvar_srf,srf_twetb,vsize,'twetbmax','K', &
+              'Wet bulb temperature','wet_bulb_temperature', &
+              .true.,'time: maximum')
+            srf_twetb_out => v2dvar_srf(srf_twetb)%rval
+          end if
+        end if
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'
@@ -1982,27 +2001,25 @@ module mod_ncout
             'thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
-        if ( idiag > 0 ) then
-          if ( enable_rad3d_vars(rad_qrs) ) then
-            call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
-              'Shortwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
-            rad_qrs_out => v3dvar_rad(rad_qrs)%rval
-          end if
-          if ( enable_rad3d_vars(rad_qrl) ) then
-            call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
-              'Longwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_longwave_heating',.true.)
-            rad_qrl_out => v3dvar_rad(rad_qrl)%rval
-          end if
+        if ( enable_rad3d_vars(rad_qrs) ) then
+          call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
+            'Shortwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
+          rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+        end if
+        if ( enable_rad3d_vars(rad_qrl) ) then
+          call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
+            'Longwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+          rad_qrl_out => v3dvar_rad(rad_qrl)%rval
+        end if
+        if ( iclimao3 > 0 ) then
           if ( enable_rad3d_vars(rad_o3) ) then
             call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
               'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
             rad_o3_out => v3dvar_rad(rad_o3)%rval
           end if
         else
-          enable_rad3d_vars(rad_qrs) = .false.
-          enable_rad3d_vars(rad_qrl) = .false.
           enable_rad3d_vars(rad_o3) = .false.
         end if
         if ( icosp == 1 ) then
@@ -3366,17 +3383,25 @@ module mod_ncout
         end if
         if ( irrtm == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',inflgsw))
+            ncattribute_logical('rrtm_extended_above',rrtm_extend))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_vap', &
+            inflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_ice', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',inflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_liq', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_vap', &
+            inflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_ice', &
+            iceflglw))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_liq', &
+            iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &

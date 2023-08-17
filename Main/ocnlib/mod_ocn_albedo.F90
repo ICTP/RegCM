@@ -65,6 +65,12 @@ module mod_ocn_albedo
     call time_begin(subroutine_name,idindx)
 #endif
     do i = iocnbeg , iocnend
+#ifdef RCEMIP
+      swdiral(i) = 0.07_rkx
+      lwdiral(i) = 0.07_rkx
+      swdifal(i) = 0.07_rkx
+      lwdifal(i) = 0.07_rkx
+#else
       czeta = czenith(i)
       !
       !================================================================
@@ -137,6 +143,7 @@ module mod_ocn_albedo
       lwdiral(i) = albgl
       swdifal(i) = albgsd
       lwdifal(i) = albgld
+#endif
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

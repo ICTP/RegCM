@@ -442,6 +442,7 @@ module mod_projections
     real(rk8) :: delta , arg1 , arg2
     real(rkx) :: lon , lat , ri , rj
     integer(ik4) :: i , j
+    pj%p%skiprot = .false.
     if ( abs(plat-90.0_rk8) < 0.001 ) pj%p%skiprot = .true.
     pj%p%dlon = raddeg * ds / earthrad
     pj%p%dlat = pj%p%dlon
