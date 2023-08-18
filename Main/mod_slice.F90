@@ -118,7 +118,7 @@ module mod_slice
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%pf3d(j,i,1) = atms%pb3d(j,i,1) * (1.0_rkx - egrav * &
-            (atms%zq(j,i,1)-atms%za(j,i,1) / (rgas*atms%tv3d(j,i,1))))
+            (atms%zq(j,i,1)-atms%za(j,i,1)) / (rgas*atms%tv3d(j,i,1)))
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
