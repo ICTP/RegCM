@@ -746,7 +746,11 @@ module mod_ocn_lake
     icount = 0
     do
       if ( abs(f1-f0) < 1.0e-8_rkx ) then
-        t2 = t1
+        t2 = t0
+        exit
+      end if
+      if ( t2 < -50.0_rkx ) then
+        t2 = -50.0_rkx
         exit
       end if
       t2 = t1 - (t1-t0)*f1/(f1-f0)

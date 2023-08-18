@@ -1353,7 +1353,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1370,7 +1371,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1388,7 +1390,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1405,7 +1408,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1567,7 +1571,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1584,7 +1589,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1602,7 +1608,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                   zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                       (vd(j,i,k) + vd(j-1,i,k) + &
+                        vd(j-1,i+1,k) + vd(j,i+1,k))
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -1619,7 +1626,8 @@ module mod_moloch
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                   zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                       (ud(j,i,k) + ud(j,i-1,k) + &
+                        ud(j+1,i,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -1761,14 +1769,14 @@ module mod_moloch
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice1,k) = pp(j,ice1,k)
+              wz(j,ice1,k) = 0.5_rkx * (pp(j,ice1,k)+pp(j,ici1,k))
             end do
           end do
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice2,k) = pp(j,ice2,k)
+              wz(j,ice2,k) = 0.5_rkx * (pp(j,ice2,k)+pp(j,ici2,k))
             end do
           end do
         end if
@@ -1875,7 +1883,7 @@ module mod_moloch
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce1,i,k) = pp(jce1,i,k)
+              p0(jce1,i,k) = 0.5_rkx * (pp(jce1,i,k)+pp(jci1,i,k))
             end do
           end do
         end if
@@ -1883,7 +1891,7 @@ module mod_moloch
         if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce2,i,k) = pp(jce2,i,k)
+              p0(jce2,i,k) = 0.5_rkx * (pp(jce2,i,k)+pp(jci2,i,k))
             end do
           end do
         end if

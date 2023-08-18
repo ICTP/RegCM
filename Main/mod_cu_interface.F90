@@ -216,6 +216,7 @@ module mod_cu_interface
   subroutine cucloud
     implicit none
     integer(ik4) :: i , j , k
+    if ( all(icup == 0) ) return
     if ( any(icup == 1) ) then
       call model_cumulus_cloud(m2c)
     end if
