@@ -95,7 +95,7 @@ module mod_moloch
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , xtouvstag , wstagtox
 
-  real(rkx) , parameter :: minden = 1.0e-15_rkx
+  real(rkx) , parameter :: minden = 1.0e-30_rkx
 
   logical , parameter :: do_phys         = .true.
   logical , parameter :: do_fulleq       = .true.
