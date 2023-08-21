@@ -1445,16 +1445,16 @@ module mod_ncout
           srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
         end if
         if ( ifshf ) then
-          enable_srf_vars(srf_pcpmax) = .false.
-          enable_srf_vars(srf_twetb) = .false.
+          enable_srf2d_vars(srf_pcpmax) = .false.
+          enable_srf2d_vars(srf_twetb) = .false.
         else
-          if ( enable_srf_vars(srf_pcpmax) ) then
+          if ( enable_srf2d_vars(srf_pcpmax) ) then
             call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
               'Maximum Hourly Precipitation Rate','precipitation_flux', &
               .true.,'time: maximum')
             srf_pcpmax_out => v2dvar_srf(srf_pcpmax)%rval
           end if
-          if ( enable_srf_vars(srf_twetb) ) then
+          if ( enable_srf2d_vars(srf_twetb) ) then
             call setup_var(v2dvar_srf,srf_twetb,vsize,'twetbmax','K', &
               'Wet bulb temperature','wet_bulb_temperature', &
               .true.,'time: maximum')
