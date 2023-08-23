@@ -2040,10 +2040,13 @@ module mod_rad_aerosol
             do i = ici1 , ici2
               do j = jci1 , jci2
        ! spectral interpolation for all RRTM band ; special band 14 is left aside  
-       ! use linear extrapolation between clim data wn points ( check interp1d code in Share) 
-                call interp1d(wavncl(1:4),extprof(j,i,k,1:4),wavn(1:13),tauxar3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
-                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4),wavn(1:13),tauasc3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
-                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4),wavn(1:13),gtota3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
+       ! use linear interpolation between clim wb data points
+       ! use constant extrapolation (check interp1d in Share) to avoid
+       ! negative values at wn = 1  
+       ! 
+                call interp1d(wavncl(1:4),extprof(j,i,k,1:4),wavn(1:13),tauxar3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
+                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4),wavn(1:13),tauasc3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
+                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4),wavn(1:13),gtota3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
        !  the LW prop assumed to be spectrally constant for now might change in
        !  future 
                 tauxar3d_lw(n,k,:) = extprof(j,i,k,5) 
