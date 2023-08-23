@@ -2031,24 +2031,29 @@ module mod_rad_aerosol
           do ns= 1, 14
             wavn(ns)= 0.5_rkx*(wavnm2(ns) +  wavnm1(ns))
           end do
-           ! wavncl are the climatological spectral bands 3,6,10,13
-           ! might evolve evolve in future
-           !
-            wavncl(1)  = wavn(3)
-            wavncl(2)  = wavn(6)
-            wavncl(3)  = wavn(10)
-            wavncl(4)  = wavn(13)
+          ! wavncl are the climatological spectral bands 3,6,10,13
+          ! MIGHT EVOLVE IN FUTURE
+          !
+          wavncl(1)  = wavn(3)
+          wavncl(2)  = wavn(6)
+          wavncl(3)  = wavn(10)
+          wavncl(4)  = wavn(13)
           do k = 1 , kth
             n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-       ! spectral interpolation for all RRTM band ; special band 14 is left aside
-       ! use linear extrapolation between clim data wn points ( check interp1d code in Share)
-                call interp1d(wavncl(1:4),extprof(j,i,k,1:4),wavn(1:13),tauxar3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
-                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4),wavn(1:13),tauasc3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
-                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4),wavn(1:13),gtota3d(n,k,1:13),1._rkx,1._rkx,1._rkx)
-       !  the LW prop assumed to be spectrally constant for now might change in
-       !  future
+                ! Spectral interpolation for all RRTM band
+                ! Special band 14 is left aside. Use constant extrapolation
+                ! between clim data wn points ( check interp1d code in Share)
+                ! to avoid negative values at wn = 1
+                call interp1d(wavncl(1:4),extprof(j,i,k,1:4), &
+                  wavn(1:13),tauxar3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4), &
+                  wavn(1:13),tauasc3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4), &
+                  wavn(1:13),gtota3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                ! The LW prop assumed to be spectrally constant for now
+                ! MIGHT CHANGE IN FUTURE
                 tauxar3d_lw(n,k,:) = extprof(j,i,k,5)
                 n = n + 1
               end do
@@ -2068,7 +2073,9 @@ module mod_rad_aerosol
             n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ! index 3 correponds to clim vis band !! might change in future
+                !
+                ! index 3 correponds to clim vis band
+                ! MIGHT CHANGE IN FUTURE
                 !
                 tauxar3d(n,0,ns) = sum(extprof(j,i,1:kth-kz,3) )
                 tauasc3d(n,0,ns) = sum(ssaprof(j,i,1:kth-kz,3)) / &
@@ -2145,14 +2152,14 @@ module mod_rad_aerosol
       ! concentrations (either intractive aerosol, or prescribed concentration
       ! climatology)
       if ( ichem /= 1 .and. iclimaaer /= 1 ) then
-        tauxar(:,:) = d_zero
-        tauasc(:,:) = d_zero
-        gtota(:,:) = d_zero
-        ftota(:,:) = d_zero
+        tauxar(:,:)     = d_zero
+        tauasc(:,:)     = d_zero
+        gtota(:,:)      = d_zero
+        ftota(:,:)      = d_zero
         tauxar3d(:,:,:) = d_zero
         tauasc3d(:,:,:) = d_zero
-        gtota3d(:,:,:) = d_zero
-        ftota3d(:,:,:) = d_zero
+        gtota3d(:,:,:)  = d_zero
+        ftota3d(:,:,:)  = d_zero
         aertrlw (:,:,:) = d_one
         if ( irrtm == 1 ) then
           tauxar3d_lw(:,:,:) = d_zero
