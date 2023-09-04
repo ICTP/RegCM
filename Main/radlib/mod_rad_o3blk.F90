@@ -186,7 +186,14 @@ module mod_rad_o3blk
         else
           ystart = 2050
           yend = 2100
-          o3filename = trim(o3filename) // '205001-210012.nc'
+          if ( scenario(4:6) == '585' .or.
+               scenario(4:6) == '370' .or.
+               scenario(4:6) == '245' .or.
+               scenario(4:6) == '126' ) then
+            o3filename = trim(o3filename) // '205001-209912.nc'
+          else
+            o3filename = trim(o3filename) // '205001-210012.nc'
+          end if
         end if
       else
         call fatal(__FILE__,__LINE__,'O3 : year < SPP max date (2101)')
