@@ -955,16 +955,19 @@ module mod_ncio
           call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
         end if
       end if
-      qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      qv(jce1:jce2,ice1:ice2,1:kz) = &
+               max(rspace3(jce1:jce2,ice1:ice2,1:kz),1.0e-8_rkx)
       if ( has_qc ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
-        qc(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        qc(jce1:jce2,ice1:ice2,1:kz) = &
+                 max(rspace3(jce1:jce2,ice1:ice2,1:kz),0.0_rkx)
       end if
       if ( has_qi ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
-        qi(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        qi(jce1:jce2,ice1:ice2,1:kz) = &
+                 max(rspace3(jce1:jce2,ice1:ice2,1:kz),0.0_rkx)
       end if
       if ( idynamic == 2 ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
@@ -1059,15 +1062,18 @@ module mod_ncio
             call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
           end if
         end if
+        where ( rspace3 < 0.0_rkx ) rspace3 = 1.0e-8_rkx
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
         if ( has_qc ) then
           istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
+          where ( rspace3 < 0.0_rkx ) rspace3 = 0.0_rkx
           call grid_distribute(rspace3,qc,jce1,jce2,ice1,ice2,1,kz)
         end if
         if ( has_qi ) then
           istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
+          where ( rspace3 < 0.0_rkx ) rspace3 = 0.0_rkx
           call grid_distribute(rspace3,qi,jce1,jce2,ice1,ice2,1,kz)
         end if
         if ( idynamic == 2 ) then

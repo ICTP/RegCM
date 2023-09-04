@@ -347,9 +347,6 @@ module mod_rad_o3blk
         else
           ozone1 = ozone2
           call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone1,yozone)
-          call intlinreg(ozone1,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
           call h_interpolate_cont(hint,xozone2,yozone)
           call intlinreg(ozone2,yozone,aps,oplev, &
                          1,njcross,1,nicross,size(oplev),pp3d,kzp1)

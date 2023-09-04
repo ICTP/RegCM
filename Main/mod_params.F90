@@ -2037,18 +2037,18 @@ module mod_params
       write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
 #endif
       write(stdout,*) 'Model Timestep Pameterizations'
-      write(stdout,'(a,f12.6)') '  time step for dynamical '// &
+      write(stdout,'(a,f18.6)') '  time step for dynamical '// &
             'model in seconds : ' , dt
-      write(stdout,'(a,f12.6)') '  time step for surface   '// &
+      write(stdout,'(a,f18.6)') '  time step for surface   '// &
             'model in seconds : ' , dtsrf
-      write(stdout,'(a,f12.6)') '  time step for cumulus   '// &
+      write(stdout,'(a,f18.6)') '  time step for cumulus   '// &
             'model in seconds : ' , dtcum
-      write(stdout,'(a,f12.6)') '  time step for radiation '// &
+      write(stdout,'(a,f18.6)') '  time step for radiation '// &
             'model in seconds : ' , dtrad
-      write(stdout,'(a,f12.6)') '  time step for emission  '// &
+      write(stdout,'(a,f18.6)') '  time step for emission  '// &
             'model in seconds : ' , dtabem
       if ( ichem == 1 ) then
-        write(stdout,'(a,f12.6)') '  time step for chemistry '// &
+        write(stdout,'(a,f18.6)') '  time step for chemistry '// &
               'model in seconds : ' , dtche
       end if
     end if
