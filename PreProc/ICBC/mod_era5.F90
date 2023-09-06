@@ -607,32 +607,38 @@ module mod_era5
         write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
                          xscl(kkrec) , xoff(kkrec)
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1),'time',timid)
-          if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1),'date',timid)
+          if ( dattyp == 'ERAXX' ) then
+            call getmem1d(itimes,1,1,'mod_era5:itimes')
+            itimes(1) = year*1000000 + month*10000+100
+            call setcal(itimes(1),'noleap')
+          else
+            istatus = nf90_inq_dimid(inet5(1),'time',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find var time/date')
+                            'Error find dim time')
+            istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error inquire time')
+            istatus = nf90_inq_varid(inet5(1),'time',timid)
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_varid(inet5(1),'date',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time/date')
+            end if
+            istatus = nf90_get_att(inet5(1),timid,'units',cunit)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error read time units')
+            istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error read time units')
+            call getmem1d(itimes,1,timlen,'mod_era5:itimes')
+            call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
+            istatus = nf90_get_var(inet5(1),timid,xtimes)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time')
+            do it = 1 , timlen
+              itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
+            end do
           end if
-          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          call getmem1d(itimes,1,timlen,'mod_era5:itimes')
-          call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
-          istatus = nf90_get_var(inet5(1),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read time')
-          do it = 1 , timlen
-            itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
-          end do
         end if
       end do
     end if
