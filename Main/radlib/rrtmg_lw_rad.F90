@@ -578,7 +578,7 @@
                     taut(k,ig) = taug(k,ig)
                   end do
                 end do
-              end if  
+              end if
             else if ( idirect == 2 ) then
               if ( n == 1 .and. lradfor ) then
                  do k = 1, nlayers
