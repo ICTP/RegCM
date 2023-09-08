@@ -59,7 +59,7 @@ module mod_mkdynpft
 
     if ( dattyp == 'CMIP6' ) then
       if ( iy > 2015 ) then
-        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_ssp(4:6)
+        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_experiment(4:6)
       end if
     else
       if ( iy > 2005 ) then
