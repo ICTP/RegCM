@@ -72,7 +72,7 @@ module mod_moloch
 
   real(rkx) , dimension(:) , pointer :: gzitak
   real(rkx) , dimension(:) , pointer :: gzitakh
-  real(rkx) , dimension(:) , pointer :: xknu
+  real(rkx) , dimension(:) , pointer :: xknu , zprof
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
@@ -195,6 +195,8 @@ module mod_moloch
     end if
     call getmem1d(xknu,1,kz,'moloch:xknu')
 !$acc enter data create(xknu)
+    call getmem1d(zprof,1,kz,'moloch:zprof')
+!$acc enter data create(zprof)
     do k = 1 , kz
       xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1)/kz,rkx)))*mo_anu2
     end do
@@ -1511,7 +1513,13 @@ module mod_moloch
 !!$acc update device(tetav)
           end if
 #endif
-          if ( do_divdamp ) call divdamp(dtsound)
+          if ( do_divdamp ) then
+            do k = 1 , kz
+              zprof(k) = (ddamp + (1.0_rkx-ddamp)*xknu(k)) * &
+                      0.125_rkx*(dx**2)/dtsound
+            end do
+            call divdamp
+          end if
 
 !$acc parallel present(zdiv2, fmz, s)
 !$acc loop collapse(3)
@@ -3598,11 +3606,9 @@ module mod_moloch
 #endif
   end subroutine uvstagtox
 
-  subroutine divdamp(dts)
+  subroutine divdamp
     implicit none
-    real(rkx) , intent(in) :: dts
     integer(ik4) :: i , j , k
-    real(rkx) :: zprof
 #ifdef USE_MPI3
     type(commdata_real) :: comm
 #endif
@@ -3612,51 +3618,47 @@ module mod_moloch
     call exchange_lrbt_pre(zdiv2,1,jce1,jce2,ice1,ice2,1,kz,comm)
 
     if ( lrotllr ) then
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           do j = jdi1+1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                zprof/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = idi1+1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                zprof/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+                zprof(k)/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
 !$acc end parallel
     else
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           do j = jdi1+1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                zprof/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, rmv, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, rmv, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = idi1+1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                zprof/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+                zprof(k)/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
@@ -3667,44 +3669,40 @@ module mod_moloch
 !!$acc update device(zdiv2)
 
     if ( lrotllr ) then
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(2)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              zprof/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, zdiv2, zprof)
 !$acc loop collapse(2)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              zprof/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              zprof(k)/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
         end do
       end do
 !$acc end parallel
     else
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(2)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              zprof/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, rmv, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, rmv, zdiv2, zprof)
 !$acc loop collapse(2)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              zprof/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              zprof(k)/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
         end do
       end do
 !$acc end parallel
@@ -3715,51 +3713,47 @@ module mod_moloch
 !!$acc update device(zdiv2)
 
     if ( lrotllr ) then
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           do j = jdi1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                zprof/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = idi1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                zprof/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+                zprof(k)/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
 !$acc end parallel
     else
-!$acc parallel present(u, rmu, zdiv2, xknu) private(zprof)
+!$acc parallel present(u, rmu, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = ici1 , ici2
           do j = jdi1 , jdi2
             u(j,i,k) = u(j,i,k) + &
-                zprof/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
           end do
         end do
       end do
 !$acc end parallel
-!$acc parallel present(v, rmv, zdiv2, xknu) private(zprof)
+!$acc parallel present(v, rmv, zdiv2, zprof)
 !$acc loop collapse(3)
       do k = 1 , kz
-        zprof = (ddamp + (1.0_rkx-ddamp)*xknu(k))*0.125_rkx*(dx**2)/dts
         do i = idi1 , idi2
           do j = jci1 , jci2
             v(j,i,k) = v(j,i,k) + &
-                zprof/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+                zprof(k)/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
           end do
         end do
       end do
