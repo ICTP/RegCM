@@ -174,7 +174,7 @@ module mod_moloch
     if ( do_filterdiv ) then
       call getmem1d(xknu,1,kz,'moloch:xknu')
       do k = 1 , kz
-        xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1)/kz,rkx)))*mo_anu2
+        xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1),rkx)/kz))*mo_anu2
       end do
     end if
     if ( do_filterpai ) then
