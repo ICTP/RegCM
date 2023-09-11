@@ -563,7 +563,9 @@ module mod_ncout
       nstream = nstream+1
       che_stream = nstream
     end if
-    if ( ifopt .and. ((ichem == 1 .and. iaerosol == 1) .or. iclimaaer > 0) ) then
+    if ( ifopt .and. &
+      ((ichem == 1 .and. iaerosol == 1) .or. &
+       iclimaaer > 0) ) then
       nstream = nstream+1
       opt_stream = nstream
     end if
@@ -2839,6 +2841,19 @@ module mod_ncout
 
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('model_icbc_data_source',dattyp))
+        if ( dattyp == 'CMIP6' ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_string('CMIP6_model', &
+            trim(cmip6_model)//'_'//trim(cmip6_experiment)//'_'// &
+            trim(cmip6_variant)//'_'//trim(cmip6_grid)))
+        else if ( dattyp == 'PMIP6' ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_string('PMIP6_model', &
+            trim(pmip6_model)//'_'//trim(pmip6_experiment)//'_'// &
+            trim(pmip6_variant)//'_'//trim(pmip6_grid)))
+        else
+          ! Do not add any description here
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('model_sst_data_source',ssttyp))
 

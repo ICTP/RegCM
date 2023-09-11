@@ -98,19 +98,31 @@
 !
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'EIN75',           ! Type of Sea Surface Temperature used
+ ssttyp = 'ERAXX',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
-                             !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
- dattyp = 'EIN75',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
-                             !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
-                             !          IP_XX, GF_XX, CN_XX, MP_XX, CMIP6
-                             ! with XX for CMIP5 datasets in 26, 45, 85
+                             !   TMIST, ERSST, ERSKT, CAM4N, FV_A2, CCSM3,
+                             !   FV_B2, EH5A2, EH5B1, EHA1B, EIXXX, EIN75,
+                             !   EIN15, CCSST, CA_??, HA_??, EC_??, IP_??,
+                             !   GF_??, CN_??, MP_??, E5_A2, CMIP6, ERA5D,
+                             !   ERA5 , HRMED, ERAXX, PMIP6, LGMNN, CFSNN,
+                             !   JRA55, EIXXX
+                             ! for all codes, look into sst.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
                              ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP6, fill the pmip6param namelist
+ dattyp = 'ERAXX',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !   ERAHI, NNRP1, NNRP2, NRP2W, GFS11, FVGCM,
+                             !   FNEST, EH5A2, EH5B1, EHA1B, CCSMN, ECEXY,
+                             !   CA_??, HA_??, EC_??, IP_??, GF_??, CN_??,
+                             !   MP_??, CFSNN, CAM4N, CCSM3, ERA5 , ERAXX,
+                             !   IFSXX, CMIP6, PMIP6
+                             ! for all codes, look into icbc.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
+                             ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP6, fill the pmip6param namelist
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -129,73 +141,83 @@
  &cmip6param
  cmip6_model = 'MPI-ESM1-2-HR',
  cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
- cmip6_ssp = 'ssp585',
+ cmip6_experiment = 'ssp585',
  cmip6_variant = 'r1i1p1f1',
  cmip6_grid = 'gn',
  /
  ! &cmip6param
  ! cmip6_model = 'HadGEM3-GC31-MM',
  ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f3',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'NorESM2-MM',
  ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CNRM-ESM2-1',
  ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CESM2',
  ! cmip6_inp = 'https://esgf-data.ucar.edu/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r11i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'EC-Earth3-Veg',
  ! cmip6_inp = 'https://esg-dn1.nsc.liu.se/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gr',
  ! /
  ! &cmip6param
  ! cmip6_model = 'MIROC6',
  ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'MIROC-ES2L',
  ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CanESM5',
  ! cmip6_inp = 'https://crd-esgf-drc.ec.gc.ca/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p2f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CMCC-ESM2',
  ! cmip6_inp = 'https://esgf-node2.cmcc.it/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
+!
+! PMIP6 model selection
+!
+ &pmip6param
+ pmip6_model = 'MPI-ESM1-2-LR',
+ pmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ pmip6_exp = 'lgm',
+ pmip6_variant = 'r1i1p1f2',
+ pmip6_grid = 'gn',
+ /
 !
 ! Nesting control
 !

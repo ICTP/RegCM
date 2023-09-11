@@ -1805,6 +1805,7 @@ module mod_micro_nogtom
                 ! Here is the delta T - missing from doc.
                 qlhs(jn,n) = -qsimp(jn,n)
               end if
+              if ( is_nan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
             end do
           end do
 
@@ -1818,6 +1819,7 @@ module mod_micro_nogtom
               rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
+            if ( is_nan(qxn(n)) ) qxn(n) = verylowqx
           end do
 
           call mysolve

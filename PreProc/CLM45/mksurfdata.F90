@@ -257,7 +257,7 @@ program mksurfdata
     write(cy,'(i0.4)') y1
     if ( dattyp == 'CMIP6' ) then
       if ( y1 > 2015 ) then
-        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_ssp(4:6)
+        p2 = 'SCENARIO'//pthsep//'SSP'//cmip6_experiment(4:6)
       end if
     else
       if ( y1 > 2005 ) then

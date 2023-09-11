@@ -87,7 +87,7 @@ program sst
   call read_domain_info(terfile)
   call setup_outvars
 
-  if ( ssttyp == 'CMIP6' ) then
+  if ( ssttyp == 'CMIP6' .or. ssttyp == 'PMIP6' ) then
     call cmip6_sst
   else if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.  &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &

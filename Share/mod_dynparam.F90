@@ -154,16 +154,26 @@ module mod_dynparam
   real(rkx) , public :: low_nudge    = 1.0_rkx
 
   ! Type of global analysis datasets used in Pre processing
-  ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
-  !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 
   character(len=5) , public :: dattyp
+
+  ! CMIP6 model namelist info
+
   character(len=256) , public :: cmip6_inp = &
               'https://esgf3.dkrz.de/thredds/dodsC'
   character(len=16) , public :: cmip6_model = 'MPI-ESM1-2-HR'
   character(len=12) , public :: cmip6_variant = 'r1i1p1f1'
-  character(len=6) , public :: cmip6_ssp = 'ssp585'
+  character(len=6) , public :: cmip6_experiment = 'ssp585'
   character(len=12) , public :: cmip6_grid = 'gn'
+
+  ! PMIP6 model namelist info
+
+  character(len=256) , public :: pmip6_inp = &
+              'https://esgf3.dkrz.de/thredds/dodsC'
+  character(len=16) , public :: pmip6_model = 'MPI-ESM1-2-LR'
+  character(len=12) , public :: pmip6_variant = 'r1i1p1f2'
+  character(len=6) , public :: pmip6_experiment  ='lgm'
+  character(len=12) , public :: pmip6_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
   !      MZ6HR is for MOZART 6 hourly boundary conditions
@@ -493,8 +503,10 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_ssp , &
+    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_experiment , &
       cmip6_variant , cmip6_grid
+    namelist /pmip6param/ pmip6_inp , pmip6_model , pmip6_experiment , &
+      pmip6_variant , pmip6_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
@@ -742,6 +754,15 @@ module mod_dynparam
       read(ipunit, nml=cmip6param, iostat=iresult)
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading cmip6param namelist in ',trim(filename)
+        ierr = 7
+        return
+      end if
+    end if
+    if ( dattyp == 'PMIP6' ) then
+      rewind(ipunit)
+      read(ipunit, nml=pmip6param, iostat=iresult)
+      if ( iresult /= 0 ) then
+        write (stderr,*) 'Error reading pmip6param namelist in ',trim(filename)
         ierr = 7
         return
       end if
