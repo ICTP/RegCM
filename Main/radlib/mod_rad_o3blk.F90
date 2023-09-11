@@ -186,9 +186,9 @@ module mod_rad_o3blk
         else
           ystart = 2050
           yend = 2100
-          if ( scenario(4:6) == '585' .or.
-               scenario(4:6) == '370' .or.
-               scenario(4:6) == '245' .or.
+          if ( scenario(4:6) == '585' .or. &
+               scenario(4:6) == '370' .or. &
+               scenario(4:6) == '245' .or. &
                scenario(4:6) == '126' ) then
             o3filename = trim(o3filename) // '205001-209912.nc'
           else
