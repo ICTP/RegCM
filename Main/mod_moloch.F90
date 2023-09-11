@@ -198,7 +198,7 @@ module mod_moloch
     call getmem1d(zprof,1,kz,'moloch:zprof')
 !$acc enter data create(zprof)
     do k = 1 , kz
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1)/kz,rkx)))*mo_anu2
+      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1),rkx)/kz))*mo_anu2
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
