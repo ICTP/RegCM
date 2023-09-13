@@ -749,11 +749,7 @@ module mod_ocn_lake
         t2 = t0
         exit
       end if
-      if ( t2 < -50.0_rkx ) then
-        t2 = -50.0_rkx
-        exit
-      end if
-      t2 = t1 - (t1-t0)*f1/(f1-f0)
+      t2 = max(t1 - (t1-t0)*f1/(f1-f0),-75.0)
       if ( t2 > 0.0_rkx ) then
         t2 = 0.0_rkx
         exit
