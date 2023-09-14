@@ -118,9 +118,15 @@ module mod_cmip6_helper
           fx_experiment = '_historical_'
           fx_model = cmip6_model
         case ( 'CNRM-ESM2-1' )
-          fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
-            pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
-          fpath = trim(fpath)//'amip'//pthsep
+          if ( index(cmip6_inp,'umr-cnrm.fr') > 0 ) then
+            fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
+              pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+            fpath = trim(fpath)//'amip'//pthsep
+          else
+            fpath = trim(cmip6_inp)//pthsep//'CMIP6'//pthsep//'CMIP'// &
+              pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+            fpath = trim(fpath)//'amip'//pthsep
+          end if
           fx_variant = 'r1i1p1f2'
           fx_experiment = '_amip_'
           fx_model = cmip6_model
@@ -247,7 +253,11 @@ module mod_cmip6_helper
             fpath = trim(fpath)//'NCC'//pthsep//'NorESM2-MM'//pthsep
             grid = cmip6_grid
           case ( 'CNRM-ESM2-1' )
-            fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep
+            if ( index(cmip6_inp,'umr-cnrm.fr') > 0 ) then
+              fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'CMIP6'//pthsep
+            end if
             if ( year < 2015 ) then
               fpath = trim(fpath)//'CMIP'//pthsep
               experiment = 'historical'
