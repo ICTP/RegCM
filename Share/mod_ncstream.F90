@@ -3366,6 +3366,7 @@ module mod_ncstream
       integer(ik4) , dimension(8) :: tvals
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
+      type(ncattribute_integer) :: atti
       type(ncattribute_real8_array) :: attra
 
       stream => ncout%ncp%xs
@@ -3555,6 +3556,9 @@ module mod_ncstream
         attr%theval = mo_h
         call add_attribute(stream,attr)
       end if
+      atti%aname = 'dynamical_core'
+      atti%theval = idynamic
+      call add_attribute(stream,atti)
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)

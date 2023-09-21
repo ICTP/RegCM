@@ -818,7 +818,7 @@ module mod_vertint
                 if ( sig(k) < sigp ) exit
               end do
               knx = kx - 1
-              wp = (dlog(sigp)-dlog(sig(kx)))/(dlog(sig(knx))-dlog(sig(kx)))
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
               w1 = d_one - wp
               fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
