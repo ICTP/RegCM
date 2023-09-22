@@ -54,23 +54,15 @@ module mod_cmip6
   public :: init_cmip6 , get_cmip6 , conclude_cmip6
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
-  integer(ik4) , parameter :: nipl = 38
+  integer(ik4) , parameter :: nipl = 41
   real(rkx) , target , dimension(nipl) :: fplev = &
-     [ 1000.0_rkx, 975.0_rkx, 950.0_rkx, 925.0_rkx, 900.0_rkx, 875.0_rkx, &
-        850.0_rkx, 825.0_rkx, 800.0_rkx, 775.0_rkx, 750.0_rkx, 700.0_rkx, &
-        650.0_rkx, 600.0_rkx, 550.0_rkx, 500.0_rkx, 450.0_rkx, 425.0_rkx, &
-        400.0_rkx, 350.0_rkx, 300.0_rkx, 250.0_rkx, 225.0_rkx, 200.0_rkx, &
-        175.0_rkx, 150.0_rkx, 125.0_rkx, 100.0_rkx,  70.0_rkx,  50.0_rkx, &
-         30.0_rkx,  20.0_rkx,  10.0_rkx,   7.0_rkx,   5.0_rkx,   3.0_rkx, &
-          2.0_rkx,    1.0_rkx ]
-
-!     [  1.0_rkx,    2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
-!       20.0_rkx,   30.0_rkx,  50.0_rkx,  70.0_rkx, 100.0_rkx, 125.0_rkx, &
-!      150.0_rkx,  175.0_rkx, 200.0_rkx, 225.0_rkx, 250.0_rkx, 300.0_rkx, &
-!      350.0_rkx,  400.0_rkx, 425.0_rkx, 450.0_rkx, 500.0_rkx, 550.0_rkx, &
-!      600.0_rkx,  650.0_rkx, 700.0_rkx, 750.0_rkx, 775.0_rkx, 800.0_rkx, &
-!      825.0_rkx,  850.0_rkx, 875.0_rkx, 900.0_rkx, 925.0_rkx, 950.0_rkx, &
-!      975.0_rkx, 1000.0_rkx ]
+     [ 1030.0_rkx,1020.0_rkx,1010.0_rkx,1000.0_rkx, 975.0_rkx, 950.0_rkx, &
+        925.0_rkx, 900.0_rkx, 875.0_rkx, 850.0_rkx, 825.0_rkx, 800.0_rkx, &
+        775.0_rkx, 750.0_rkx, 700.0_rkx, 650.0_rkx, 600.0_rkx, 550.0_rkx, &
+        500.0_rkx, 450.0_rkx, 425.0_rkx, 400.0_rkx, 350.0_rkx, 300.0_rkx, &
+        250.0_rkx, 225.0_rkx, 200.0_rkx, 175.0_rkx, 150.0_rkx, 125.0_rkx, &
+        100.0_rkx,  70.0_rkx,  50.0_rkx,  30.0_rkx,  20.0_rkx,  10.0_rkx, &
+          7.0_rkx,   5.0_rkx,   3.0_rkx,   2.0_rkx,   1.0_rkx ]
 
   type(cmip6_2d_var) , pointer :: orog => null( )
   type(cmip6_2d_var) , pointer :: ps => null( )
