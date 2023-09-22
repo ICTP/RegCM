@@ -2928,8 +2928,6 @@ module mod_ncout
 
         ! Model Physics
 
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('dynamical_core',idynamic))
         if ( idynamic /= 3 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('asselin_filter_nu_1',gnu1))

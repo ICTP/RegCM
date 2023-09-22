@@ -203,10 +203,9 @@ module mod_hgt
     real(rkx) , intent(in) , dimension(kp) :: p
     real(rkx) , intent(out) , dimension(im,jm,kp) :: hp
 
-    real(rkx) :: psfc , temp , wb , wt
-    integer(ik4) :: i , j , k , kb , kt , n
-    real(rkx) , dimension(km+1) :: psig
-    real(rkx) , dimension(km) :: sig
+    real(rkx) :: psfc , temp , wb , wt , pt , pb
+    integer(ik4) :: i , j , k , kb , kt , n , ipb , ipt , ipi
+    real(rkx) , dimension(km) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -227,36 +226,47 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
+    if ( p3d(1,1,1) < p3d(1,1,km) ) then
+      ipt = 1
+      ipb = km
+      ipi = +1
+    else
+      ipt = km
+      ipb = 1
+      ipi = -1
+    end if
     do j = 1 , jm
       do i = 1 , im
         psfc = ps(i,j)
         if ( psfc > -9995.0_rkx ) then
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/ps(i,j)
             psig(k) = p3d(i,j,k)
           end do
+          pt = psig(ipt)
+          pb = psig(ipb)
           do n = 1 , kp
-            kt = 1
-            do k = 1 , km
-              if ( psig(k) < p(n) ) kt = k
-            end do
-            kb = kt + 1
-            if ( p(n) <= psig(1) ) then
-              temp = t(i,j,1)
-              hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
-            else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
+            if ( p(n) < pt ) then
+              temp = t(i,j,ipt)
+              hp(i,j,n) = h(i,j,ipt) + rovg*temp*log(psig(ipt)/p(n))
+            else if ( p(n) > psfc ) then
+              temp = 0.5 * ( t(i,j,ipb) + t(i,j,ipb-ipi))
+              hp(i,j,n) = ht(i,j) + &
+                    (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
+            else if ( p(n) >= pb ) then
+              temp = t(i,j,ipb)
+              hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
+            else
+              kt = ipt
+              do k = ipt , ipb , ipi
+                if ( psig(k) > p(n) ) exit
+                kt = k
+              end do
+              kb = kt + ipi
               wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-              wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
+              wb = 1.0_rkx - wt
               temp = wt*t(i,j,kt) + wb*t(i,j,kb)
               temp = (temp+t(i,j,kb))/d_two
               hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
-            else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
-              temp = t(i,j,km)
-              hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
-            else if ( p(n) > psfc ) then
-              temp = 0.5 * ( t(i,j,km) + t(i,j,km-1))
-              hp(i,j,n) = ht(i,j)+ &
-                      (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
             end if
           end do
         else
@@ -270,13 +280,13 @@ module mod_hgt
 !
 !-----------------------------------------------------------------------
 !
-  subroutine height_o_double(hp,h,t,pstar,ht,sig,ptop,im,jm,km,p,kp)
+  subroutine height_o_double(hp,h,t,ps,ht,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
     real(rkx) , intent(in) :: ptop
     real(rk8) , intent(in) , dimension(im,jm,km) :: h , t
     real(rk8) , intent(out) , dimension(im,jm,kp) :: hp
-    real(rk8) , intent(in) , dimension(im,jm) :: ht , pstar
+    real(rk8) , intent(in) , dimension(im,jm) :: ht , ps
     real(rk8) , intent(in) , dimension(kp) :: p
     real(rk8) , intent(in) , dimension(km) :: sig
 
@@ -305,31 +315,32 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
-          psig(k) = sig(k)*(pstar(i,j)-ptop) + ptop
+          psig(k) = sig(k)*(ps(i,j)-ptop) + ptop
         end do
-        psfc = pstar(i,j)
+        psfc = ps(i,j)
         do n = 1 , kp
-          kt = 1
-          do k = 1 , km
-            if ( psig(k) < p(n) ) kt = k
-          end do
-          kb = kt + 1
           if ( p(n) <= psig(1) ) then
             temp = t(i,j,1)
             hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
-          else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
-            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-            wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/d_two
-            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
-          else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
             temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
+          else if ( p(n) >= psig(km) ) then
+            temp = t(i,j,km)
+            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
+          else
+            kt = 1
+            do k = 1 , km
+              if ( psig(k) > p(n) ) exit
+              kt = k
+            end do
+            kb = kt + 1
+            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+            wb = 1.0_rk8 - wt
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/d_two
+            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
           end if
         end do
       end do
@@ -369,40 +380,41 @@ module mod_hgt
       do i = 1 , im
         psfc = ps(i,j)
         do n = 1 , kp
-          kt = 1
-          do k = 1 , km
-            if ( p3(i,j,k) < p(n) ) kt = k
-          end do
-          kb = kt + 1
           if ( p(n) <= p3(i,j,1) ) then
             temp = t(i,j,1)
             hp(i,j,n) = h(i,j,1) + rovg*temp*log(p3(i,j,1)/p(n))
-          else if ( (p(n) > p3(i,j,1)) .and. (p(n) < p3(i,j,km)) ) then
-            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
-            wb = log(p(n)/p3(i,j,kt))/log(p3(i,j,kb)/p3(i,j,kt))
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/d_two
-            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(p3(i,j,kb)/p(n))
-          else if ( (p(n) >= p3(i,j,km)) .and. (p(n) <= psfc) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
             temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
+          else if ( p(n) >= p3(i,j,km) ) then
+            temp = t(i,j,km)
+            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
+          else
+            kt = 1
+            do k = 1 , km
+              if ( p3(i,j,k) > p(n) ) exit
+              kt = k
+            end do
+            kb = kt + 1
+            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
+            wb = 1.0_rk8 - wt
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/d_two
+            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(p3(i,j,kb)/p(n))
           end if
         end do
       end do
     end do
   end subroutine height_o_double_nonhy
 
-  subroutine height_o_single(hp,h,t,pstar,ht,sig,ptop,im,jm,km,p,kp)
+  subroutine height_o_single(hp,h,t,ps,ht,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
     real(rkx) , intent(in) :: ptop
     real(rk4) , intent(in) , dimension(im,jm,km) :: h , t
     real(rk4) , intent(out) , dimension(im,jm,kp) :: hp
-    real(rk4) , intent(in) , dimension(im,jm) :: ht , pstar
+    real(rk4) , intent(in) , dimension(im,jm) :: ht , ps
     real(rk4) , intent(in) , dimension(kp) :: p
     real(rk4) , intent(in) , dimension(km) :: sig
 
@@ -432,31 +444,32 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
-          psig(k) = sig(k)*(pstar(i,j)-ptp) + ptp
+          psig(k) = sig(k)*(ps(i,j)-ptp) + ptp
         end do
-        psfc = pstar(i,j)
+        psfc = ps(i,j)
         do n = 1 , kp
-          kt = 1
-          do k = 1 , km
-            if ( psig(k) < p(n) ) kt = k
-          end do
-          kb = kt + 1
           if ( p(n) <= psig(1) ) then
             temp = t(i,j,1)
             hp(i,j,n) = h(i,j,1) + srovg*temp*log(psig(1)/p(n))
-          else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
-            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
-            wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/2.0
-            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
-          else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
             temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
+          else if ( p(n) >= psig(km) ) then
+            temp = t(i,j,km)
+            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
+          else
+            kt = 1
+            do k = 1 , km
+              if ( psig(k) > p(n) ) exit
+              kt = k
+            end do
+            kb = kt + 1
+            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+            wb = 1.0 - wt
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/2.0
+            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
           end if
         end do
       end do
@@ -496,27 +509,28 @@ module mod_hgt
       do i = 1 , im
         psfc = ps(i,j)
         do n = 1 , kp
-          kt = 1
-          do k = 1 , km
-            if ( p3(i,j,k) < p(n) ) kt = k
-          end do
-          kb = kt + 1
-          if ( p(n) <= p3(i,j,1) ) then
-            temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1) + srovg*temp*log(p3(i,j,1)/p(n))
-          else if ( (p(n) > p3(i,j,1)) .and. (p(n) < p3(i,j,km)) ) then
-            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
-            wb = log(p(n)/p3(i,j,kt))/log(p3(i,j,kb)/p3(i,j,kt))
-            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/2.0
-            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(p3(i,j,kb)/p(n))
-          else if ( (p(n) >= p3(i,j,km)) .and. (p(n) <= psfc) ) then
-            temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
-          else if ( p(n) > psfc ) then
+          if ( p(n) > psfc ) then
             temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
+          else if ( p(n) <= p3(i,j,1) ) then
+            temp = t(i,j,1)
+            hp(i,j,n) = h(i,j,1) + srovg*temp*log(p3(i,j,1)/p(n))
+          else if ( p(n) >= p3(i,j,km) ) then
+            temp = t(i,j,km)
+            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
+          else
+            kt = 1
+            do k = 1 , km
+              if ( p3(i,j,k) > p(n) ) exit
+              kt = k
+            end do
+            kb = kt + 1
+            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
+            wb = 1.0 - wt
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/2.0
+            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(p3(i,j,kb)/p(n))
           end if
         end do
       end do

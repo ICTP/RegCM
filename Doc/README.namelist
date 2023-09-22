@@ -150,6 +150,8 @@
  ! &cmip6param
  ! cmip6_model = 'CNRM-ESM2-1',
  ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
+ ! cmip6_inp = 'https://esgf-data04.diasjp.net/thredds/dodsC/esg_dataroot',
+ ! cmip6_inp = 'https://esgf.nci.org.au/thredds/dodsC/replica/',
  ! cmip6_ssp = 'ssp585',
  ! cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
