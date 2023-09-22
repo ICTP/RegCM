@@ -216,7 +216,7 @@
  &pmip6param
  pmip6_model = 'MPI-ESM1-2-LR',
  pmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
- pmip6_exp = 'lgm',
+ pmip6_experiment = 'lgm',
  pmip6_variant = 'r1i1p1f2',
  pmip6_grid = 'gn',
  /
