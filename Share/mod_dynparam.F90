@@ -162,7 +162,7 @@ module mod_dynparam
               'https://esgf3.dkrz.de/thredds/dodsC'
   character(len=16) , public :: cmip6_model = 'MPI-ESM1-2-HR'
   character(len=12) , public :: cmip6_variant = 'r1i1p1f1'
-  character(len=6) , public :: cmip6_ssp = 'ssp585'
+  character(len=6) , public :: cmip6_experiment = 'ssp585'
   character(len=12) , public :: cmip6_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
@@ -493,7 +493,7 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_ssp , &
+    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_experiment , &
       cmip6_variant , cmip6_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &

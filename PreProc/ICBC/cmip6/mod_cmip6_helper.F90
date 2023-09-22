@@ -214,7 +214,7 @@ module mod_cmip6_helper
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
             fpath = trim(fpath)//'DKRZ'//pthsep//'MPI-ESM1-2-HR'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           grid = cmip6_grid
         case ( 'HadGEM3-GC31-MM' )
@@ -229,7 +229,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
           grid = cmip6_grid
@@ -246,7 +246,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'NCC'//pthsep//'NorESM2-MM'//pthsep
           grid = cmip6_grid
@@ -261,7 +261,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
           if ( var == 'tos' ) then
@@ -302,7 +302,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'EC-Earth-Consortium'//pthsep// &
             'EC-Earth3-Veg'//pthsep
@@ -319,7 +319,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'NCAR'//pthsep//'CESM2'//pthsep
           grid = cmip6_grid
@@ -331,7 +331,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'CMCC'//pthsep//'CMCC-ESM2'//pthsep
           grid = cmip6_grid
@@ -342,7 +342,7 @@ module mod_cmip6_helper
             experiment = 'esm-hist'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'NOAA-GFDL'//pthsep//'GFDL-ESM4'//pthsep
           if ( var == 'tos' ) then
@@ -370,7 +370,7 @@ module mod_cmip6_helper
                 'AR6'//pthsep//'CMIP6'//pthsep
             end if
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'CCCma'//pthsep//'CanESM5'//pthsep
           grid = cmip6_grid
@@ -382,7 +382,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'MIROC'//pthsep//'MIROC6'//pthsep
           grid = cmip6_grid
@@ -394,7 +394,7 @@ module mod_cmip6_helper
             experiment = 'historical'
           else
             fpath = trim(fpath)//'ScenarioMIP'//pthsep
-            experiment = trim(cmip6_ssp)
+            experiment = trim(cmip6_experiment)
           end if
           fpath = trim(fpath)//'MIROC'//pthsep//'MIROC-ES2L'//pthsep
           grid = cmip6_grid
