@@ -1744,6 +1744,7 @@ module mod_moloch
           zdtrdz = 0.5_rkx * zdtrdz
         end if
 
+        pfm = 0.0_rkx
         if ( present(pmin) ) then
           pfm = pmin
         end if
@@ -2841,26 +2842,26 @@ module mod_moloch
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jci1,i,k)-zdiv2(jci1-1,i,k))
         end do
       end do
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              ddamp1/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              ddamp1/dx*(zdiv2(j,ici1,k)-zdiv2(j,ici1-1,k))
         end do
       end do
     else
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              ddamp1/(dx*rmu(jdi1,i))*(zdiv2(jci1,i,k)-zdiv2(jci1-1,i,k))
         end do
       end do
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              ddamp1/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              ddamp1/(dx*rmv(j,idi1))*(zdiv2(j,ici1,k)-zdiv2(j,ici1-1,k))
         end do
       end do
     end if
