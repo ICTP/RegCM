@@ -38,7 +38,7 @@ module mod_oasis_generic
   use mod_oasis_debug
 ! XXX
   use mod_oasis_signature
- 
+
   implicit none
 
   private

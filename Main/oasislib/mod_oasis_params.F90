@@ -20,13 +20,13 @@
 #ifdef OASIS
 
 module mod_oasis_params
- 
+
   use mod_intkinds
 
   implicit none
 
   private
- 
+
   ! grid information type
   type infogrd
     character(len=4) :: naNM , naWM ! grid name (No Mask , With Mask)
