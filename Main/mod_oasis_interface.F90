@@ -41,7 +41,7 @@ module mod_oasis_interface
 ! XXX
   use mod_oasis_signature
   use mod_oasis_generic
-  
+
   implicit none
 
   private
@@ -55,7 +55,7 @@ module mod_oasis_interface
   logical :: l_make_grdde , l_make_grddi , &
              l_make_grdce , l_make_grdci
   type(infogrd) , target , allocatable :: grdde , grddi , &
-                                          grdce , grdci 
+                                          grdce , grdci
 
   !--------------------------------------------------------------------
   ! below the namelist parameters (namelist oasisparam)
@@ -139,7 +139,7 @@ module mod_oasis_interface
   ! They are used when calling the subroutine oasisxregcm_setup_field_array(),
   ! when an array is to be initialized. If not given, the array will be
   ! initialized with zeros.
-  real(rkx) , parameter :: init_sst = tzero + 25.0 ! 20 degrees celsius 
+  real(rkx) , parameter :: init_sst = tzero + 25.0
   ! OASIS field +++
 
   !--------------------------------------------------------------------
@@ -216,13 +216,13 @@ module mod_oasis_interface
     !                   local j1, j2, i1, i2, global j1, j2, i1, i2, number of
     !                   corners per cell
     if ( l_make_grdde )   call oasisxregcm_setup_grid(grdde, 'rden', 'rdem', &
-                               jde1, jde2, ide1, ide2, 1, jx, 1, iy, 4) 
+                               jde1, jde2, ide1, ide2, 1, jx, 1, iy, 4)
     if ( l_make_grddi )   call oasisxregcm_setup_grid(grddi, 'rdin', 'rdim', &
-                               jdi1, jdi2, idi1, idi2, 2, jx-1, 2, iy-1, 4) 
+                               jdi1, jdi2, idi1, idi2, 2, jx-1, 2, iy-1, 4)
     if ( l_make_grdce )   call oasisxregcm_setup_grid(grdce, 'rcen', 'rcem', &
-                               jce1, jce2, ice1, ice2, 1, jx-1, 1, iy-1, 4) 
+                               jce1, jce2, ice1, ice2, 1, jx-1, 1, iy-1, 4)
     if ( l_make_grdci )   call oasisxregcm_setup_grid(grdci, 'rcin', 'rcim', &
-                               jci1, jci2, ici1, ici2, 2, jx-2, 2, iy-2, 4) 
+                               jci1, jci2, ici1, ici2, 2, jx-2, 2, iy-2, 4)
     !
     ! initialize fields: field variable, name, grid, field array (optional), initialization value
     !                                                                        (optional; 0 otherwise)
@@ -596,7 +596,7 @@ module mod_oasis_interface
     !
     ! note: the cross case is easier as the cross grid is contained
     !       in the dot one thus all corners are already defined in dlon
-    !    
+    !
     call oasisxregcm_allocate_oasisgrids(lon,lat,clon,clat,srf,mask, &
                                          jx-1,iy-1,4)
     do i = 1 , iy-1
@@ -772,7 +772,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_u10m ) then ! eatward near-surface wind (10m-height) [m.s-1]
       grd => ex_u10m%grd
       call oasisxregcm_snd( &
-           sfs%u10m(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           sfs%u10m(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_u10m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -780,7 +780,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_v10m ) then ! northward near-surface wind (10m-height) [m.s-1]
       grd => ex_v10m%grd
       call oasisxregcm_snd( &
-           sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_v10m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -789,7 +789,7 @@ module mod_oasis_interface
       grd => ex_wspd%grd
       call oasisxregcm_snd( &
            sqrt(sfs%u10m(grd%j1:grd%j2 , grd%i1:grd%i2)**2   &
-              + sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2)**2), & 
+              + sfs%v10m(grd%j1:grd%j2 , grd%i1:grd%i2)**2), &
            ex_wspd, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -828,7 +828,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_q2m ) then ! near-surface air specific humidity (2m-height) [1]
       grd => ex_q2m%grd
       call oasisxregcm_snd( &
-           sfs%q2m(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           sfs%q2m(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_q2m, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -844,14 +844,14 @@ module mod_oasis_interface
     if ( l_cpl_ex_slp ) then ! sea level pressure [Pa]
       grd => ex_slp%grd
       call oasisxregcm_snd( &
-           atms%ps2d(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           atms%ps2d(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_slp, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
     !
-    if ( l_cpl_ex_taux) then ! surface eastward wind stress [Pa] 
+    if ( l_cpl_ex_taux) then ! surface eastward wind stress [Pa]
       grd => ex_taux%grd
-      call oasisxregcm_snd( & 
+      call oasisxregcm_snd( &
            sum( lms%taux(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
            ex_taux, time, .false. .or. l_write_restart)
       nullify(grd)
@@ -859,7 +859,7 @@ module mod_oasis_interface
     !
     if ( l_cpl_ex_tauy) then ! surface northward wind stress [Pa]
       grd => ex_tauy%grd
-      call oasisxregcm_snd( & 
+      call oasisxregcm_snd( &
            sum( lms%tauy(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
            ex_tauy, time, .false. .or. l_write_restart)
       nullify(grd)
@@ -891,7 +891,7 @@ module mod_oasis_interface
     !
     if ( l_cpl_ex_prec ) then ! precipitation flux [kg.m-2.s-1]
       grd => ex_prec%grd
-      call oasisxregcm_snd( & 
+      call oasisxregcm_snd( &
            sum( lms%prcp(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
            ex_prec, time, .false. .or. l_write_restart)
       nullify(grd)
@@ -899,7 +899,7 @@ module mod_oasis_interface
     !
     if ( l_cpl_ex_nuwa ) then ! net upward water flux [kg.m-2.s-1]
       grd => ex_nuwa%grd
-      call oasisxregcm_snd( & 
+      call oasisxregcm_snd( &
            sum( lms%evpr(: , grd%j1:grd%j2 , grd%i1:grd%i2) - &
                 lms%prcp(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
            ex_nuwa, time, .false. .or. l_write_restart)
@@ -927,7 +927,7 @@ module mod_oasis_interface
       grd => ex_uwlw%grd
       call oasisxregcm_snd( &
            flwd(grd%j1:grd%j2 , grd%i1:grd%i2) &
-           + flw(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           + flw(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_uwlw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -935,7 +935,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_dwlw ) then ! surface downwelling long-wave radiation flux [W.m-2]
       grd => ex_dwlw%grd
       call oasisxregcm_snd( &
-           flwd(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           flwd(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_dwlw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -943,7 +943,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_nulw ) then ! surface net upward long-wave radiation flux [W.m-2]
       grd => ex_nulw%grd
       call oasisxregcm_snd( &
-           flw(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           flw(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_nulw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -952,7 +952,7 @@ module mod_oasis_interface
       grd => ex_uwsw%grd
       call oasisxregcm_snd( &
            sinc(grd%j1:grd%j2 , grd%i1:grd%i2) &
-           - fsw(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           - fsw(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_uwsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -960,7 +960,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_dwsw ) then ! surface downwelling short-wave radiation flux [W.m-2]
       grd => ex_dwsw%grd
       call oasisxregcm_snd( &
-           sinc(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           sinc(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_dwsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -968,7 +968,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_ndsw ) then ! surface net downward short-wave radiation flux [W.m-2]
       grd => ex_ndsw%grd
       call oasisxregcm_snd( &
-           fsw(grd%j1:grd%j2 , grd%i1:grd%i2), & 
+           fsw(grd%j1:grd%j2 , grd%i1:grd%i2), &
            ex_ndsw, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
@@ -976,7 +976,7 @@ module mod_oasis_interface
     if ( l_cpl_ex_rhoa ) then ! surface air density [kg.m-3]
       grd => ex_rhoa%grd
       call oasisxregcm_snd( &
-           sum( lms%rhoa(:, grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, & 
+           sum( lms%rhoa(:, grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
            ex_rhoa, time, .false. .or. l_write_restart)
       nullify(grd)
     end if

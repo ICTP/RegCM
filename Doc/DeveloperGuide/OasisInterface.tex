@@ -43,7 +43,7 @@ the fields which are needed for a precise coupling experiment.
 The locations where lines should be added for implementing new fields are notified with
 the comment \verb=! OASIS field +++=, which may be \verb=grep=ped...
 
-Any interaction between fields from OASIS and the model's variables should be done in 
+Any interaction between fields from OASIS and the model's variables should be done in
 \verb=mod_oasis_interface.F90=, where developpers are invited to use the model's variables
 which are already public. However, if access to private variables is needed because
 the projected coupling cannot be conducted otherwise, accessibility changes may be done.

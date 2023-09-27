@@ -467,43 +467,6 @@ module mod_rad_outrad
     end if
   end subroutine copy2d_add
 
-  subroutine copy2d_add_integrate_from3(a,b)
-    implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) :: i , j , k , n
-    if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i) = b(j,i) + a(n,k)
-            n = n + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine copy2d_add_integrate_from3
-
-  subroutine copy2d_add_integrate_from3_clwp(a1,a2,b)
-    implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a1
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a2
-    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
-    integer(ik4) :: i , j , k , n
-    if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i) = b(j,i) + 1.0e-3_rkx*a1(n,k)*a2(n,k)
-            n = n + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine copy2d_add_integrate_from3_clwp
-
   subroutine copy3d_add(a,b)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:) :: a
@@ -521,25 +484,6 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy3d_add
-
-  subroutine copy3d_add_clwp(a1,a2,b)
-    implicit none
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a1
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: a2
-    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
-    integer(ik4) :: i , j , k , n
-    if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = b(j,i,k) + 1.0e-3_rkx*a1(n,k)*a2(n,k)
-            n = n + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine copy3d_add_clwp
 
   subroutine copy4d_add(a,b,l)
     implicit none

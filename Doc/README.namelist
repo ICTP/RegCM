@@ -904,9 +904,9 @@
                            !------ NAMCOUPLE FIELD ENTRIES ------
                            ! field    | grid
                            !-------------------------------------
- l_cpl_im_sst  = .false.,  ! RCM_SST  | rcim     
- l_cpl_im_wz0  = .false.,  ! RCM_WZ0  | rcim     
- l_cpl_im_wust = .false.,  ! RCM_WUST | rcim     
+ l_cpl_im_sst  = .false.,  ! RCM_SST  | rcim
+ l_cpl_im_wz0  = .false.,  ! RCM_WZ0  | rcim
+ l_cpl_im_wust = .false.,  ! RCM_WUST | rcim
  l_cpl_ex_u10m = .false.,  ! RCM_U10M | rcin/rcim
  l_cpl_ex_v10m = .false.,  ! RCM_V10M | rcin/rcim
  l_cpl_ex_wspd = .false.,  ! RCM_WSPD | rcin/rcim

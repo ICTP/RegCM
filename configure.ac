@@ -56,7 +56,7 @@ AC_ARG_WITH([oasis-path],
   AC_HELP_STRING([--with-oasis-path],
 		 [Path to OASIS3-MCT installation (require --enable-oasis) [default: ~/oasis3-mct/compile_oa3-mct]]),
   [OASIS_PREFIX="$withval"], [OASIS_PREFIX="~/oasis3-mct/compile_oa3-mct"]
-) 
+)
 
 AC_ARG_WITH([oasis-comm],
   AC_HELP_STRING([--with-oasis-comm],

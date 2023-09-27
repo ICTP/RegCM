@@ -38,7 +38,7 @@ module mod_oasis_generic
   use mod_oasis_debug
 ! XXX
   use mod_oasis_signature
-  
+ 
   implicit none
 
   private
@@ -61,7 +61,7 @@ module mod_oasis_generic
 
   contains
 
-  ! call initialization OASIS subroutines  
+  ! call initialization OASIS subroutines
   subroutine oasisxregcm_init(localComm)
     implicit none
     integer(ik4) , intent(out) :: localComm
@@ -96,7 +96,7 @@ module mod_oasis_generic
 
   ! initialize a type(infogrd) variable
   subroutine oasisxregcm_setup_grid(grd,naNM,naWM,j1,j2,i1,i2, &
-                                                  ja,jb,ia,ib,nc) 
+                                                  ja,jb,ia,ib,nc)
     implicit none
     character(len=4) , intent(in) :: naNM , naWM
     integer , intent(in) :: j1 , j2 , i1 , i2 , &
@@ -405,7 +405,7 @@ module mod_oasis_generic
 #endif
 ! XXX
   end subroutine oasisxregcm_write_oasisgrids
-  
+
   ! deallocate oasisgrids temporary pointers
   subroutine oasisxregcm_deallocate_oasisgrids(lon,lat,clon,clat,srf,mask)
     implicit none
