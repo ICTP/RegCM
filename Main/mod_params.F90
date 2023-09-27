@@ -1858,12 +1858,6 @@ module mod_params
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
     alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
     alarm_out_srf => rcm_alarm(rcmtimer,secph*srffrq)
-    if ( modulo(int(1800.0_rkx,ik8),alarm_out_cyg%timer%model_timestep) /= 0 ) then 
-      if ( myid == italk ) then
-        write(stdout,*) 'Warning: dt is not a divisor of 30 minutes.'
-        write(stdout,*) '         CYG outputs may not work properly.'
-      end if
-    end if
     alarm_out_shf => alarm_hour
     alarm_out_sts => alarm_day
     if ( lakemod == 1 ) then

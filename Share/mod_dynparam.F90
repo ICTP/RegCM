@@ -420,13 +420,9 @@ module mod_dynparam
 
   logical , public :: ifsave
   logical , public :: ifatm
-  logical , public :: ifmat ! output for mean variables of ATM
   logical , public :: ifshf
   logical , public :: ifrad
-  logical , public :: ifmrd ! output for mean variables of RAD
   logical , public :: ifsrf
-  logical , public :: ifmsf ! output for mean variables of SRF
-  logical , public :: ifcyg ! output for fitting CYGNSS L3 observations
   logical , public :: ifsub
   logical , public :: ifsts
   logical , public :: iflak
@@ -436,13 +432,10 @@ module mod_dynparam
   real(rkx) , public :: outnwf
   real(rkx) , public :: savfrq
   real(rkx) , public :: atmfrq
-  real(rkx) , public :: matfrq
   real(rkx) , public :: radfrq
-  real(rkx) , public :: mrdfrq
   real(rkx) , public :: lakfrq
   real(rkx) , public :: subfrq
   real(rkx) , public :: srffrq
-  real(rkx) , public :: msffrq
   real(rkx) , public :: chemfrq
   real(rkx) , public :: optfrq
   integer(ik4) , public :: ibdyfrq

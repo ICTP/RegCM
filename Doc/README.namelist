@@ -234,20 +234,10 @@
  savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)
  ifatm   = .true. ,  ! Output ATM ?
  atmfrq  =     6.,   ! Frequency in hours to write to ATM
- ifmat   = .false.,  ! Output MAT ?
- matfrq  =    24.,   ! Frequency in hours to write to MAT
  ifrad   = .true. ,  ! Output RAD ?
  radfrq  =     6.,   ! Frequency in hours to write to RAD
- ifmrd   = .false.,  ! Output MRD ?
- mrdfrq  =    24.,   ! Frequency in hours to write to MRD
  ifsrf   = .true. ,  ! Output SRF ?
  srffrq  =     3.,   ! Frequency in hours to write to SRF
- ifmsf   = .false.,  ! Output MSF ?
- msffrq  =    24.,   ! Frequency in hours to write to MSF
- ifcyg   = .false.,  ! Output CYG (frequence is hourly,
-                     !             offset is 30 minutes) ?
-                     ! Warning: the CYG output will not work
-                     !   properly if dt is not a divisor of 30 minutes
  ifsts   = .true. ,  ! Output STS (frequence is daily) ?
  ifshf   = .true. ,  ! Output SHF (frequence is hourly) ?
  ifsub   = .true. ,  ! Output SUB ?
@@ -258,12 +248,8 @@
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_mat_vars = 12*.true., ! Mask to eventually disable variables MAT
  enable_srf_vars = 46*.true., ! Mask to eventually disable variables SRF
- enable_msf_vars = 11*.true., ! Mask to eventually disable variables MSF
- enable_cyg_vars = 7*.true.,  ! Mask to eventually disable variables CYG
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
- enable_mrd_vars = 23*.true., ! Mask to eventually disable variables MRD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
  enable_shf_vars = 8*.true.,  ! Mask to eventually disable variables SHF

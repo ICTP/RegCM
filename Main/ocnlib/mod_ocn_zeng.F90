@@ -30,7 +30,6 @@ module mod_ocn_zeng
   use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
   use mod_runparams , only : iocncpl , iwavcpl
   use mod_runparams , only : zomax , ustarmax
-  use mod_stdio
 
   implicit none
 
@@ -265,11 +264,6 @@ module mod_ocn_zeng
           exit
         end if
         obu = nobu
-        if ( nconv == 10 ) then
-          write(stdout,*) 'has not converged for id', myid
-!        else
-!          write(stdout,*) '    has converged for id', myid
-        end if
       end do
       tau = xdens*ustar*ustar*uv995/um
       lh = -xdens*rlv*qstar*ustar
