@@ -111,12 +111,6 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocc_out => null()
 
-  real(rkx) , dimension(:,:,:) , pointer :: mat_u_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mat_v_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mat_pp_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mat_pai_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mat_omega_out => null()
-
   real(rkx) , dimension(:,:) , pointer :: shf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_twetb_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_pcpavg_out => null()
@@ -165,14 +159,6 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: srf_tsoil_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_ua100_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_va100_out => null()
-
-  real(rkx) , dimension(:,:) , pointer :: msf_u10m_out => null()
-  real(rkx) , dimension(:,:) , pointer :: msf_v10m_out => null()
-  real(rkx) , dimension(:,:) , pointer :: msf_wspd_out => null()
-  real(rkx) , dimension(:,:) , pointer :: msf_wdir_out => null()
-  real(rkx) , dimension(:,:) , pointer :: msf_tau_out => null()
-
-  real(rkx) , dimension(:,:) , pointer :: cyg_wspd_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: sts_tgmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_tgmin_out => null()
@@ -229,24 +215,6 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: rad_o3_out => null()
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_taucl_out => null()
   real(rkx) , dimension(:,:,:,:) , pointer :: rad_tauci_out => null()
-
-  real(rkx) , dimension(:,:) , pointer :: mrd_frsa_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_frla_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_clrst_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_clrss_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_clrls_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_clrlt_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_solin_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_solout_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_lwout_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_totwv_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_totcl_out => null()
-  real(rkx) , dimension(:,:) , pointer :: mrd_clwpvi_out => null()
-
-  real(rkx) , dimension(:,:,:) , pointer :: mrd_cld_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mrd_clwp_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mrd_pp_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: mrd_pai_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rkx) , dimension(:,:) , pointer :: lak_tpr_out => null()

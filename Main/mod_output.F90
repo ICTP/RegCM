@@ -66,7 +66,6 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche, ldoopt
-    logical :: ldomrd , ldomsf , ldocyg , ldomat
     logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
@@ -74,7 +73,6 @@ module mod_output
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
     real(rkx) :: srffac , radfac , lakfac , subfac , optfac , stsfac
-    real(rkx) :: mrdfac , msffac , matfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -131,14 +129,10 @@ module mod_output
 
     lnewf = .false.
     ldoatm = .false.
-    ldomat = .false.
     ldosrf = .false.
-    ldomsf = .false.
-    ldocyg = .false.
     ldolak = .false.
     ldosub = .false.
     ldorad = .false.
-    ldomrd = .false.
     ldoopt = .false.
     ldoche = .false.
     ldosav = .false.
@@ -175,17 +169,8 @@ module mod_output
       if ( alarm_out_atm%act( ) ) then
         ldoatm = .true.
       end if
-      if ( alarm_out_mat%act( ) ) then
-        ldomat = .true.
-      end if
       if ( alarm_out_srf%act( ) ) then
         ldosrf = .true.
-      end if
-      if ( alarm_out_msf%act( ) ) then
-        ldomsf = .true.
-      end if
-      if ( alarm_out_cyg%act( ) ) then
-        ldocyg = .true.
       end if
       if ( alarm_out_sts%act( ) ) then
         ldosts = .true.
@@ -205,9 +190,6 @@ module mod_output
       end if
       if ( alarm_out_rad%act( ) ) then
         ldorad = .true.
-      end if
-      if ( alarm_out_mrd%act( ) ) then
-        ldomrd = .true.
       end if
       if ( ichem == 1 ) then
         if ( alarm_out_che%act( ) ) then
@@ -930,105 +912,6 @@ module mod_output
       end if
     end if
 
-    if ( mat_stream > 0 ) then
-
-      if ( .not. lstartup .or. ldomat ) ps_out = sfs%psa(jci1:jci2,ici1:ici2)
-
-      ! Fill accumulators
-
-      if ( .not. lstartup ) then
-        rnmat_for_matfrq = rnmat_for_matfrq + 1.0_rkx
-        if ( associated(mat_omega_out) ) then
-          mat_omega_out = mat_omega_out + omega(jci1:jci2,ici1:ici2,:)*d_10
-        end if
-        if ( associated(mat_pai_out) ) then
-          do k = 1 , kz
-            mat_pai_out(:,:,k) = mat_pai_out(:,:,k) + mo_atm%pai(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(mat_pp_out) ) then
-          do k = 1 , kz
-            mat_pp_out(:,:,k) = mat_pp_out(:,:,k) + &
-                                atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out  
-          end do
-        end if
-
-        if ( associated(mat_u_out) .and. associated(mat_v_out) ) then
-          if ( idynamic == 3 ) then
-            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  mat_u_out(j,i,k) = mat_u_out(j,i,k) + mo_atm%ux(j,i,k)
-                  mat_v_out(j,i,k) = mat_v_out(j,i,k) + mo_atm%vx(j,i,k)
-                end do
-              end do
-            end do
-          else
-            call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-            call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  mat_u_out(j,i,k) = mat_u_out(j,i,k) + &
-                                d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
-                  mat_v_out(j,i,k) = mat_v_out(j,i,k) + &
-                                d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
-                end do
-              end do
-            end do
-          end if
-        end if
-      end if
-
-      ! Write record output stream
-
-      if ( ldomat ) then
-        matfac = d_one / rnmat_for_matfrq
-        if ( associated(mat_omega_out) ) then
-          mat_omega_out = mat_omega_out*matfac
-        end if
-        if ( associated(mat_pai_out) ) then
-          mat_pai_out = mat_pai_out*matfac
-        end if
-        if ( associated(mat_pp_out) ) then
-          mat_pp_out = mat_pp_out*matfac
-        end if
-
-        if ( associated(mat_u_out) .and. associated(mat_v_out) ) then
-          mat_u_out = mat_u_out*matfac
-          mat_v_out = mat_v_out*matfac
-          if ( uvrotate ) then
-            call uvrot(mat_u_out,mat_v_out)
-          end if
-        end if
-
-        if ( idynamic == 1 ) then
-          ps_out = d_1000*(ps_out+ptop)
-        else if ( idynamic == 2 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
-                         atm1%pp(j,i,kz)/sfs%psa(j,i)
-            end do
-          end do
-        end if
-
-        call write_record_output_stream(mat_stream,alarm_out_mat%idate)
-        if ( myid == italk ) &
-          write(stdout,*) 'MAT variables written at ' , rcmtimer%str( )
-
-        if ( associated(mat_omega_out) ) mat_omega_out = d_zero
-        if ( associated(mat_pai_out) ) mat_pai_out = d_zero
-        if ( associated(mat_pp_out) ) mat_pp_out = d_zero
-        if ( associated(mat_u_out) ) mat_u_out = d_zero
-        if ( associated(mat_v_out) ) mat_v_out = d_zero
-        rnmat_for_matfrq = d_zero
-      end if
-    end if
-
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
         srffac = d_one / rnsrf_for_srffrq
@@ -1281,72 +1164,6 @@ module mod_output
         rnsrf_for_srffrq = d_zero
         rnrad_for_srffrq = d_zero
 
-      end if
-    end if
-
-    if ( msf_stream > 0 ) then
-      if ( ldomsf ) then
-        msffac = d_one / rnmsf_for_msffrq
-        if ( idynamic == 1 ) then
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        else if ( idynamic == 2 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
-                atm1%pp(j,i,kz)/sfs%psa(j,i)
-            end do
-          end do
-        else
-          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
-        end if
-
-        if ( associated(msf_u10m_out) ) &
-          msf_u10m_out = msf_u10m_out*msffac
-        if ( associated(msf_v10m_out) ) &
-          msf_v10m_out = msf_v10m_out*msffac
-        if ( associated(msf_wspd_out) ) &
-          msf_wspd_out = msf_wspd_out*msffac
-        if ( associated(msf_wdir_out) ) &
-          msf_wdir_out = msf_wdir_out*msffac
-        if ( associated(msf_tau_out) ) &
-          msf_tau_out = msf_tau_out*msffac
-        if ( associated(msf_u10m_out) .and. associated(msf_v10m_out) ) then
-          if ( uvrotate ) then
-            call uvrot(msf_u10m_out,msf_v10m_out)
-          end if
-        end if
-
-        call write_record_output_stream(msf_stream,alarm_out_msf%idate)
-        if ( myid == italk ) &
-          write(stdout,*) 'MSF variables written at ' , rcmtimer%str( )
-
-        if ( associated(msf_u10m_out) ) msf_u10m_out = d_zero
-        if ( associated(msf_v10m_out) ) msf_v10m_out = d_zero
-        if ( associated(msf_wspd_out) ) msf_wspd_out = d_zero
-        if ( associated(msf_wdir_out) ) msf_wdir_out = d_zero
-        if ( associated(msf_tau_out) ) msf_tau_out = d_zero
-        rnmsf_for_msffrq = d_zero
-      end if
-    end if
-
-    if ( cyg_stream > 0 ) then
-      if ( ldocyg ) then
-        if ( idynamic == 1 ) then
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        else if ( idynamic == 2 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
-                atm1%pp(j,i,kz)/sfs%psa(j,i)
-            end do
-          end do
-        else
-          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
-        end if
-
-        call write_record_output_stream(cyg_stream,alarm_out_cyg%idate)
-        if ( myid == italk ) &
-          write(stdout,*) 'CYG variables written at ' , rcmtimer%str( )
       end if
     end if
 
@@ -1670,98 +1487,6 @@ module mod_output
         if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
         if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
         rnrad_for_radfrq = d_zero
-      end if
-    end if
-
-    if ( mrd_stream > 0 ) then
-
-      ! Fill accumulators
-
-      if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
-        if ( associated(mrd_pp_out) ) then
-          do k = 1 , kz
-            mrd_pp_out(:,:,k) = mrd_pp_out(:,:,k) + &
-                              ( atm1%pp(jci1:jci2,ici1:ici2,k)/sfs%psa(jci1:jci2,ici1:ici2) )
-          end do
-        end if
-        if ( associated(mrd_pai_out) ) then
-          do k = 1 , kz
-            mrd_pai_out(:,:,k) = mrd_pai_out(:,:,k) + mo_atm%pai(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-      end if  
-
-      ! Write record output stream
-
-      if ( ldomrd ) then
-        mrdfac = d_one / rnmrd_for_mrdfrq
-        if ( idynamic == 1 ) then
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
-        else if ( idynamic == 2 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
-                atm1%pp(j,i,kz)/sfs%psa(j,i)
-            end do
-          end do
-        else
-          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
-        end if
-        if ( associated(mrd_pp_out) ) &
-          mrd_pp_out = mrd_pp_out*mrdfac
-        if ( associated(mrd_pai_out) ) &
-          mrd_pai_out = mrd_pai_out*mrdfac
-
-        if ( associated(mrd_frsa_out) ) &
-          mrd_frsa_out = mrd_frsa_out*mrdfac
-        if ( associated(mrd_frla_out) ) &
-          mrd_frla_out = mrd_frla_out*mrdfac
-        if ( associated(mrd_clrst_out) ) &
-          mrd_clrst_out = mrd_clrst_out*mrdfac
-        if ( associated(mrd_clrss_out) ) &
-          mrd_clrss_out = mrd_clrss_out*mrdfac
-        if ( associated(mrd_clrlt_out) ) &
-          mrd_clrlt_out = mrd_clrlt_out*mrdfac
-        if ( associated(mrd_clrls_out) ) &
-          mrd_clrls_out = mrd_clrls_out*mrdfac
-        if ( associated(mrd_solin_out) ) &
-          mrd_solin_out = mrd_solin_out*mrdfac
-        if ( associated(mrd_solout_out) ) &
-          mrd_solout_out = mrd_solout_out*mrdfac
-        if ( associated(mrd_lwout_out) ) &
-          mrd_lwout_out = mrd_lwout_out*mrdfac
-        if ( associated(mrd_totwv_out) ) &
-          mrd_totwv_out = mrd_totwv_out*mrdfac
-        if ( associated(mrd_totcl_out) ) &
-          mrd_totcl_out = mrd_totcl_out*mrdfac
-        if ( associated(mrd_clwpvi_out) ) &
-          mrd_clwpvi_out = mrd_clwpvi_out*mrdfac
-        if ( associated(mrd_cld_out) ) &
-          mrd_cld_out = mrd_cld_out*mrdfac
-        if ( associated(mrd_clwp_out) ) &
-          mrd_clwp_out = mrd_clwp_out*mrdfac
-
-        call write_record_output_stream(mrd_stream,alarm_out_mrd%idate)
-        if ( myid == italk ) &
-          write(stdout,*) 'MRD variables written at ' , rcmtimer%str( )
-
-        if ( associated(mrd_pp_out) ) mrd_pp_out = d_zero
-        if ( associated(mrd_pai_out) ) mrd_pai_out = d_zero
-        if ( associated(mrd_frsa_out) ) mrd_frsa_out = d_zero
-        if ( associated(mrd_frla_out) ) mrd_frla_out = d_zero
-        if ( associated(mrd_clrst_out) ) mrd_clrst_out = d_zero
-        if ( associated(mrd_clrss_out) ) mrd_clrss_out = d_zero
-        if ( associated(mrd_clrlt_out) ) mrd_clrlt_out = d_zero
-        if ( associated(mrd_clrls_out) ) mrd_clrls_out = d_zero
-        if ( associated(mrd_solin_out) ) mrd_solin_out = d_zero
-        if ( associated(mrd_solout_out) ) mrd_solout_out = d_zero
-        if ( associated(mrd_lwout_out) ) mrd_lwout_out = d_zero
-        if ( associated(mrd_totwv_out) ) mrd_totwv_out = d_zero
-        if ( associated(mrd_totcl_out) ) mrd_totcl_out = d_zero
-        if ( associated(mrd_clwpvi_out) ) mrd_clwpvi_out = d_zero
-        if ( associated(mrd_cld_out) ) mrd_cld_out = d_zero
-        if ( associated(mrd_clwp_out) ) mrd_clwp_out = d_zero
-        rnmrd_for_mrdfrq = d_zero
       end if
     end if
 

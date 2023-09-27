@@ -928,19 +928,6 @@ module mod_lm_interface
           end do
         end if
       end if
-      if ( ifmsf ) then
-        rnmsf_for_msffrq = rnmsf_for_msffrq + 1.0_rkx
-        if ( associated(msf_u10m_out) ) &
-          msf_u10m_out = msf_u10m_out + lm%u10m
-        if ( associated(msf_v10m_out) ) &
-          msf_v10m_out = msf_v10m_out + lm%v10m
-        if ( associated(msf_wspd_out) ) &
-          msf_wspd_out = msf_wspd_out + sqrt(lm%u10m**2 + lm%v10m**2)
-        if ( associated(msf_wdir_out) ) &
-          msf_wdir_out = msf_wdir_out + atan2(lm%v10m,lm%u10m)*raddeg
-        if ( associated(msf_tau_out) ) &
-          msf_tau_out = msf_tau_out + sum(lms%drag,1)*rdnnsg
-      end if
       if ( ifsub ) then
         rnsrf_for_subfrq = rnsrf_for_subfrq + 1.0_rkx
         call reorder_add_subgrid(lms%sfcp,sub_ps_out)
@@ -1163,15 +1150,6 @@ module mod_lm_interface
 #endif
 
     end if ! IF output time
-      
-    if ( alarm_out_cyg%will_act(dtsrf) ) then
-
-      if ( ifcyg ) then
-        if ( associated(cyg_wspd_out) ) &
-          cyg_wspd_out = sqrt(lm%u10m**2 + lm%v10m**2)
-      end if
-
-    end if
 
     if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       ! Fill for the RTM component

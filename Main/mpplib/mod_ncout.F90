@@ -61,19 +61,11 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 62
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nmat2dvars = 1 + nbase
-  integer(ik4) , parameter :: nmat3dvars = 5
-  integer(ik4) , parameter :: nmatvars = nmat2dvars+nmat3dvars
-
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
-
-  integer(ik4) , parameter :: nmsfvars = 5 + nbase
-
-  integer(ik4) , parameter :: ncygvars = 1 + nbase
 
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
   integer(ik4) , parameter :: nsts3dvars = 4
@@ -92,10 +84,6 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nmrd2dvars = 13 + nbase
-  integer(ik4) , parameter :: nmrd3dvars = 4
-  integer(ik4) , parameter :: nmrdvars = nmrd2dvars+nmrd3dvars
-
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
   integer(ik4) , parameter :: nopt3dvars = 8
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
@@ -113,19 +101,11 @@ module mod_ncout
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_atm => null()
   type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_mat => null()
-  type(ncvariable3d_mixed) , save , pointer , &
-    dimension(:) :: v3dvar_mat => null()
-  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_shf => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_srf => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_srf => null()
-  type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_msf => null()
-  type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_cyg => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_sts => null()
   type(ncvariable3d_mixed) , save , pointer , &
@@ -145,10 +125,6 @@ module mod_ncout
   type(ncvariable4d_mixed) , save , pointer , &
     dimension(:) :: v4dvar_rad => null()
   type(ncvariable2d_mixed) , save , pointer , &
-    dimension(:) :: v2dvar_mrd => null()
-  type(ncvariable3d_mixed) , save , pointer , &
-    dimension(:) :: v3dvar_mrd => null()
-  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_opt => null()
@@ -166,14 +142,10 @@ module mod_ncout
   logical :: parallel_out
 
   integer(ik4) , public :: atm_stream = -1
-  integer(ik4) , public :: mat_stream = -1
   integer(ik4) , public :: shf_stream = -1
   integer(ik4) , public :: srf_stream = -1
-  integer(ik4) , public :: msf_stream = -1
-  integer(ik4) , public :: cyg_stream = -1
   integer(ik4) , public :: sub_stream = -1
   integer(ik4) , public :: rad_stream = -1
-  integer(ik4) , public :: mrd_stream = -1
   integer(ik4) , public :: lak_stream = -1
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
@@ -183,16 +155,12 @@ module mod_ncout
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
   logical , public , dimension(natmvars) :: enable_atm_vars
-  logical , public , dimension(nmatvars) :: enable_mat_vars
   logical , public , dimension(nshfvars) :: enable_shf_vars
   logical , public , dimension(nsrfvars) :: enable_srf_vars
-  logical , public , dimension(nmsfvars) :: enable_msf_vars
-  logical , public , dimension(ncygvars) :: enable_cyg_vars
   logical , public , dimension(nstsvars) :: enable_sts_vars
   logical , public , dimension(nsubvars) :: enable_sub_vars
   logical , public , dimension(nlakvars) :: enable_lak_vars
   logical , public , dimension(nradvars) :: enable_rad_vars
-  logical , public , dimension(nmrdvars) :: enable_mrd_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
 
@@ -273,20 +241,6 @@ module mod_ncout
   integer(ik4) , parameter :: atm_qincl        = 61
   integer(ik4) , parameter :: atm_autoconvr    = 62
 
-  integer(ik4) , parameter :: mat_xlon  = 1
-  integer(ik4) , parameter :: mat_xlat  = 2
-  integer(ik4) , parameter :: mat_mask  = 3
-  integer(ik4) , parameter :: mat_topo  = 4
-  integer(ik4) , parameter :: mat_area  = 5
-  integer(ik4) , parameter :: mat_ps    = 6
-  integer(ik4) , parameter :: mat_p0    = 7
-
-  integer(ik4) , parameter :: mat_u     = 1
-  integer(ik4) , parameter :: mat_v     = 2
-  integer(ik4) , parameter :: mat_pp    = 3
-  integer(ik4) , parameter :: mat_pai   = 4
-  integer(ik4) , parameter :: mat_omega = 5
-
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
   integer(ik4) , parameter :: shf_mask   = 3
@@ -347,26 +301,6 @@ module mod_ncout
   integer(ik4) , parameter :: srf_tsoi   = 7
   integer(ik4) , parameter :: srf_ua100  = 8
   integer(ik4) , parameter :: srf_va100  = 9
-
-  integer(ik4) , parameter :: msf_xlon   = 1
-  integer(ik4) , parameter :: msf_xlat   = 2
-  integer(ik4) , parameter :: msf_mask   = 3
-  integer(ik4) , parameter :: msf_topo   = 4
-  integer(ik4) , parameter :: msf_area   = 5
-  integer(ik4) , parameter :: msf_ps     = 6
-  integer(ik4) , parameter :: msf_u10m   = 7
-  integer(ik4) , parameter :: msf_v10m   = 8
-  integer(ik4) , parameter :: msf_wspd   = 9
-  integer(ik4) , parameter :: msf_wdir   = 10
-  integer(ik4) , parameter :: msf_tau    = 11
-
-  integer(ik4) , parameter :: cyg_xlon   = 1
-  integer(ik4) , parameter :: cyg_xlat   = 2
-  integer(ik4) , parameter :: cyg_mask   = 3
-  integer(ik4) , parameter :: cyg_topo   = 4
-  integer(ik4) , parameter :: cyg_area   = 5
-  integer(ik4) , parameter :: cyg_ps     = 6
-  integer(ik4) , parameter :: cyg_wspd   = 7
 
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
@@ -443,31 +377,6 @@ module mod_ncout
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
-
-  integer(ik4) , parameter :: mrd_xlon   = 1
-  integer(ik4) , parameter :: mrd_xlat   = 2
-  integer(ik4) , parameter :: mrd_mask   = 3
-  integer(ik4) , parameter :: mrd_topo   = 4
-  integer(ik4) , parameter :: mrd_area   = 5
-  integer(ik4) , parameter :: mrd_ps     = 6
-  integer(ik4) , parameter :: mrd_p0     = 7
-  integer(ik4) , parameter :: mrd_frsa   = 8
-  integer(ik4) , parameter :: mrd_frla   = 9
-  integer(ik4) , parameter :: mrd_clrst  = 10 
-  integer(ik4) , parameter :: mrd_clrss  = 11
-  integer(ik4) , parameter :: mrd_clrlt  = 12
-  integer(ik4) , parameter :: mrd_clrls  = 13
-  integer(ik4) , parameter :: mrd_solin  = 14
-  integer(ik4) , parameter :: mrd_solout = 15
-  integer(ik4) , parameter :: mrd_lwout  = 16
-  integer(ik4) , parameter :: mrd_totwv  = 17
-  integer(ik4) , parameter :: mrd_totcl  = 18
-  integer(ik4) , parameter :: mrd_clwpvi = 19
-
-  integer(ik4) , parameter :: mrd_cld    = 1
-  integer(ik4) , parameter :: mrd_clwp   = 2
-  integer(ik4) , parameter :: mrd_pp     = 3
-  integer(ik4) , parameter :: mrd_pai    = 4
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -582,8 +491,6 @@ module mod_ncout
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
     logical , dimension(natm3dvars) :: enable_atm3d_vars
-    logical , dimension(nmat2dvars) :: enable_mat2d_vars
-    logical , dimension(nmat3dvars) :: enable_mat3d_vars
     logical , dimension(nsrf2dvars) :: enable_srf2d_vars
     logical , dimension(nsrf3dvars) :: enable_srf3d_vars
     logical , dimension(nsts2dvars) :: enable_sts2d_vars
@@ -595,8 +502,6 @@ module mod_ncout
     logical , dimension(nrad2dvars) :: enable_rad2d_vars
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
     logical , dimension(nrad4dvars) :: enable_rad4d_vars
-    logical , dimension(nmrd2dvars) :: enable_mrd2d_vars
-    logical , dimension(nmrd3dvars) :: enable_mrd3d_vars
     logical , dimension(nopt2dvars) :: enable_opt2d_vars
     logical , dimension(nopt3dvars) :: enable_opt3d_vars
     logical , dimension(nche2dvars) :: enable_che2d_vars
@@ -628,10 +533,6 @@ module mod_ncout
       nstream = nstream+1
       atm_stream = nstream
     end if
-    if ( ifmat ) then
-      nstream = nstream+1
-      mat_stream = nstream
-    end if
     if ( ifshf ) then
       nstream = nstream+1
       shf_stream = nstream
@@ -639,14 +540,6 @@ module mod_ncout
     if ( ifsrf ) then
       nstream = nstream+1
       srf_stream = nstream
-    end if
-    if ( ifmsf ) then
-      nstream = nstream+1
-      msf_stream = nstream
-    end if
-    if ( ifcyg ) then
-      nstream = nstream+1
-      cyg_stream = nstream
     end if
     if ( ifsts ) then
       nstream = nstream+1
@@ -663,10 +556,6 @@ module mod_ncout
     if ( ifrad ) then
       nstream = nstream+1
       rad_stream = nstream
-    end if
-    if ( ifmrd ) then
-      nstream = nstream+1
-      mrd_stream = nstream
     end if
     if ( ifchem ) then
       nstream = nstream+1
@@ -1259,108 +1148,6 @@ module mod_ncout
         outstream(atm_stream)%ig2 = iout2
       end if
 
-      if ( nstream == mat_stream ) then
-
-        allocate(v2dvar_mat(nmat2dvars))
-        allocate(v3dvar_mat(nmat3dvars))
-        enable_mat2d_vars = enable_mat_vars(1:nmat2dvars)
-        enable_mat3d_vars = enable_mat_vars(nmat2dvars+1:nmatvars)
-
-        ! This variables are always present
-
-        call setup_common_vars(vsize,v2dvar_mat,mat_xlon, &
-                  mat_xlat,mat_topo,mat_mask,mat_area,mat_ps,mat_p0)
-        if ( idynamic /= 2 ) enable_mat2d_vars(mat_p0) = .false.
-
-        ! The following may be enabled/disabled
-
-        vsize%k2 = kz
-        if ( idynamic == 1 ) then
-          if ( enable_mat3d_vars(mat_omega) ) then
-            call setup_var(v3dvar_mat,mat_omega,vsize,'omega','hPa s-1', &
-              'Pressure Velocity','lagrangian_tendency_of_air_pressure', &
-              .true., 'time: mean')
-            mat_omega_out => v3dvar_mat(mat_omega)%rval
-          end if
-          enable_mat3d_vars(mat_pp) = .false.
-          enable_mat3d_vars(mat_pai) = .false.
-        else if ( idynamic == 2 ) then
-          if ( enable_mat3d_vars(mat_pp) ) then
-            call setup_var(v3dvar_mat,mat_pp,vsize,'ppa','Pa', &
-              'Pressure Perturbation', &
-              'difference_of_air_pressure_from_model_reference', &
-              .true., 'time: mean')
-            mat_pp_out => v3dvar_mat(mat_pp)%rval
-          end if
-          enable_mat3d_vars(mat_omega) = .false.
-          enable_mat3d_vars(mat_pai) = .false.
-        else
-          if ( enable_mat3d_vars(mat_pai) ) then
-            call setup_var(v3dvar_mat,mat_pai,vsize,'pai','1', &
-              'Exner function','dimensionless_exner_function', &
-              .true., 'time: mean')
-            mat_pai_out => v3dvar_mat(mat_pai)%rval
-          end if
-          enable_mat3d_vars(mat_pp) = .false.
-          enable_mat3d_vars(mat_omega) = .false.
-        end if
-        if ( enable_mat3d_vars(mat_u) ) then
-          if ( uvrotate ) then
-            call setup_var(v3dvar_mat,mat_u,vsize,'ua','m s-1', &
-              'Eastward Wind', &
-              'eastward_wind',.true.,'time: mean')
-          else
-            call setup_var(v3dvar_mat,mat_u,vsize,'ua','m s-1', &
-              'Grid Eastward Wind', &
-              'grid_eastward_wind',.true.,'time: mean')
-          end if
-          mat_u_out => v3dvar_mat(mat_u)%rval
-        end if
-        if ( enable_mat3d_vars(mat_v) ) then
-          if ( uvrotate ) then
-            call setup_var(v3dvar_mat,mat_v,vsize,'va','m s-1', &
-              'Northward Wind', &
-              'northward_wind',.true.,'time: mean')
-          else
-            call setup_var(v3dvar_mat,mat_v,vsize,'va','m s-1', &
-              'Grid Northward Wind', &
-              'grid_northward_wind',.true.,'time: mean')
-          end if
-          mat_v_out => v3dvar_mat(mat_v)%rval
-        end if
-
-        enable_mat_vars(1:nmat2dvars) = enable_mat2d_vars
-        enable_mat_vars(nmat2dvars+1:nmatvars) = enable_mat3d_vars
-        outstream(mat_stream)%nvar = countvars(enable_mat_vars,nmatvars)
-        allocate(outstream(mat_stream)%ncvars%vlist(outstream(mat_stream)%nvar))
-        outstream(mat_stream)%nfiles = 1
-        allocate(outstream(mat_stream)%ncout(outstream(mat_stream)%nfiles))
-        allocate(outstream(mat_stream)%cname_base(outstream(mat_stream)%nfiles))
-        outstream(mat_stream)%cname_base(1) = 'MAT'
-
-        vcount = 1
-        do i = 1 , nmat2dvars
-          if ( enable_mat_vars(i) ) then
-            outstream(mat_stream)%ncvars%vlist(vcount)%vp => v2dvar_mat(i)
-            vcount = vcount + 1
-          end if
-        end do
-        do i = 1 , nmat3dvars
-          if ( enable_mat_vars(i+nmat2dvars) ) then
-            outstream(mat_stream)%ncvars%vlist(vcount)%vp => v3dvar_mat(i)
-            vcount = vcount + 1
-          end if
-        end do
-        outstream(mat_stream)%jl1 = vsize%j1
-        outstream(mat_stream)%jl2 = vsize%j2
-        outstream(mat_stream)%il1 = vsize%i1
-        outstream(mat_stream)%il2 = vsize%i2
-        outstream(mat_stream)%jg1 = jout1
-        outstream(mat_stream)%jg2 = jout2
-        outstream(mat_stream)%ig1 = iout1
-        outstream(mat_stream)%ig2 = iout2
-      end if
-
       if ( nstream == shf_stream ) then
 
         allocate(v2dvar_shf(nshfvars))
@@ -1767,125 +1554,6 @@ module mod_ncout
         outstream(srf_stream)%jg2 = jout2
         outstream(srf_stream)%ig1 = iout1
         outstream(srf_stream)%ig2 = iout2
-      end if
-
-      if ( nstream == msf_stream ) then
-
-        allocate(v2dvar_msf(nmsfvars))
-
-        ! This variables are always present
-
-        call setup_common_vars(vsize,v2dvar_msf,msf_xlon, &
-                  msf_xlat,msf_topo,msf_mask,msf_area,msf_ps,-1)
-
-        ! The following may be enabled/disabled
-
-        if ( enable_msf_vars(msf_u10m) ) then
-          if ( uvrotate ) then
-            call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
-              'Eastward Near-Surface Wind', &
-              'eastward_wind',.true.,'time: mean')
-          else
-            call setup_var(v2dvar_msf,msf_u10m,vsize,'uas','m s-1', &
-              'Grid Eastward Near-Surface Wind', &
-              'grid_eastward_wind',.true.,'time: mean')
-          end if
-          msf_u10m_out => v2dvar_msf(msf_u10m)%rval
-        end if
-        if ( enable_msf_vars(msf_v10m) ) then
-          if ( uvrotate ) then
-            call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
-              'Northward Near-Surface Wind', &
-              'northward_wind',.true.,'time: mean')
-          else
-            call setup_var(v2dvar_msf,msf_v10m,vsize,'vas','m s-1', &
-              'Grid Northward Near-Surface Wind', &
-              'grid_northward_wind',.true.,'time: mean')
-          end if
-          msf_v10m_out => v2dvar_msf(msf_v10m)%rval
-        end if
-        if ( enable_msf_vars(msf_wspd) ) then
-          call setup_var(v2dvar_msf,msf_wspd,vsize,'sfcWind','m/s', &
-            'Near-Surface Wind Speed', &
-            'wind_speed',.true.,'time: mean')
-          msf_wspd_out => v2dvar_msf(msf_wspd)%rval
-        end if
-        if ( enable_msf_vars(msf_wdir) ) then
-          call setup_var(v2dvar_msf,msf_wdir,vsize,'sfcWindDir','degree', &
-            'Near-Surface Wind Direction', &
-            'wind_direction',.true.,'time: mean')
-          msf_wdir_out => v2dvar_msf(msf_wdir)%rval
-        end if
-        if ( enable_msf_vars(msf_tau) ) then
-          call setup_var(v2dvar_msf,msf_tau,vsize,'tau','N m-2', &
-            'Surface Downward Wind Stress', &
-            'magnitude_of_surface_downward_stress',.true.,'time: mean')
-          msf_tau_out => v2dvar_msf(msf_tau)%rval
-        end if
-
-        outstream(msf_stream)%nvar = countvars(enable_msf_vars,nmsfvars)
-        allocate(outstream(msf_stream)%ncvars%vlist(outstream(msf_stream)%nvar))
-        outstream(msf_stream)%nfiles = 1
-        allocate(outstream(msf_stream)%ncout(outstream(msf_stream)%nfiles))
-        allocate(outstream(msf_stream)%cname_base(outstream(msf_stream)%nfiles))
-        outstream(msf_stream)%cname_base(1) = 'MSF'
-
-        vcount = 1
-        do i = 1 , nmsfvars
-          if ( enable_msf_vars(i) ) then
-            outstream(msf_stream)%ncvars%vlist(vcount)%vp => v2dvar_msf(i)
-            vcount = vcount + 1
-          end if
-        end do
-        outstream(msf_stream)%jl1 = vsize%j1
-        outstream(msf_stream)%jl2 = vsize%j2
-        outstream(msf_stream)%il1 = vsize%i1
-        outstream(msf_stream)%il2 = vsize%i2
-        outstream(msf_stream)%jg1 = jout1
-        outstream(msf_stream)%jg2 = jout2
-        outstream(msf_stream)%ig1 = iout1
-        outstream(msf_stream)%ig2 = iout2
-      end if
-
-      if ( nstream == cyg_stream ) then
-
-        allocate(v2dvar_cyg(ncygvars))
-
-        ! This variables are always present
-
-        call setup_common_vars(vsize,v2dvar_cyg,cyg_xlon, &
-                  cyg_xlat,cyg_topo,cyg_mask,cyg_area,cyg_ps,-1)
-
-        ! The following may be enabled/disabled
-
-        if ( enable_cyg_vars(cyg_wspd) ) then
-          call setup_var(v2dvar_cyg,cyg_wspd,vsize,'sfcWind','m/s', &
-            'Near-Surface Wind Speed','wind_speed',.true.)
-          cyg_wspd_out => v2dvar_cyg(cyg_wspd)%rval
-        end if
-
-        outstream(cyg_stream)%nvar = countvars(enable_cyg_vars,ncygvars)
-        allocate(outstream(cyg_stream)%ncvars%vlist(outstream(cyg_stream)%nvar))
-        outstream(cyg_stream)%nfiles = 1
-        allocate(outstream(cyg_stream)%ncout(outstream(cyg_stream)%nfiles))
-        allocate(outstream(cyg_stream)%cname_base(outstream(cyg_stream)%nfiles))
-        outstream(cyg_stream)%cname_base(1) = 'CYG'
-
-        vcount = 1
-        do i = 1 , ncygvars
-          if ( enable_cyg_vars(i) ) then
-            outstream(cyg_stream)%ncvars%vlist(vcount)%vp => v2dvar_cyg(i)
-            vcount = vcount + 1
-          end if
-        end do
-        outstream(cyg_stream)%jl1 = vsize%j1
-        outstream(cyg_stream)%jl2 = vsize%j2
-        outstream(cyg_stream)%il1 = vsize%i1
-        outstream(cyg_stream)%il2 = vsize%i2
-        outstream(cyg_stream)%jg1 = jout1
-        outstream(cyg_stream)%jg2 = jout2
-        outstream(cyg_stream)%ig1 = iout1
-        outstream(cyg_stream)%ig2 = iout2
       end if
 
       if ( nstream == sts_stream ) then
@@ -2396,163 +2064,6 @@ module mod_ncout
         outstream(rad_stream)%jg2 = jout2
         outstream(rad_stream)%ig1 = iout1
         outstream(rad_stream)%ig2 = iout2
-      end if
-
-      if ( nstream == mrd_stream ) then
-
-        allocate(v2dvar_mrd(nmrd2dvars))
-        allocate(v3dvar_mrd(nmrd3dvars))
-        enable_mrd2d_vars = enable_mrd_vars(1:nmrd2dvars)
-        enable_mrd3d_vars = enable_mrd_vars(nmrd2dvars+1:nmrdvars)
-
-        ! This variables are always present
-
-        call setup_common_vars(vsize,v2dvar_mrd,mrd_xlon, &
-                  mrd_xlat,mrd_topo,mrd_mask,mrd_area,mrd_ps,mrd_p0)
-        if ( idynamic /= 2 ) enable_mrd2d_vars(mrd_p0) = .false.
-
-        ! The following may be enabled/disabled
-
-        if ( enable_mrd2d_vars(mrd_frsa) ) then
-          call setup_var(v2dvar_mrd,mrd_frsa,vsize,'rsns','W m-2', &
-            'Surface Net Downward Shortwave Flux', &
-            'surface_net_downward_shortwave_flux', .true.,'time: mean')
-          mrd_frsa_out => v2dvar_mrd(mrd_frsa)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_frla) ) then
-          call setup_var(v2dvar_mrd,mrd_frla,vsize,'rsnl','W m-2', &
-            'Surface Net Upward Longwave Flux', &
-            'surface_net_upward_longwave_flux', .true.,'time: mean')
-          mrd_frla_out => v2dvar_mrd(mrd_frla)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_clrst) ) then
-          call setup_var(v2dvar_mrd,mrd_clrst,vsize,'rtnscl','W m-2', &
-            'Clearsky TOA Net Downward Shortwave Flux', &
-            'toa_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
-          mrd_clrst_out => v2dvar_mrd(mrd_clrst)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_clrss) ) then
-          call setup_var(v2dvar_mrd,mrd_clrss,vsize,'rsnscl','W m-2', &
-            'Clearsky Surface Net Downward Shortwave Flux', &
-            'surface_net_downward_shortwave_flux_assuming_clear_sky',.true.,'time: mean')
-          mrd_clrss_out => v2dvar_mrd(mrd_clrss)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_clrlt) ) then
-          call setup_var(v2dvar_mrd,mrd_clrlt,vsize,'rtnlcl','W m-2', &
-            'Clearsky TOA Net Upward Longwave Flux', &
-            'toa_net_upward_longwave_flux_assuming_clear_sky',.true.,'time: mean')
-          mrd_clrlt_out => v2dvar_mrd(mrd_clrlt)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_clrls) ) then
-          call setup_var(v2dvar_mrd,mrd_clrls,vsize,'rlntpcs','W m-2', &
-            'Clearsky Net Surface Upward Longwave Flux', &
-            'net_upward_longwave_flux_in_air_assuming_clear_sky',.true.,'time: mean')
-          mrd_clrls_out => v2dvar_mrd(mrd_clrls)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_solin) ) then
-          call setup_var(v2dvar_mrd,mrd_solin,vsize,'rsdt','W m-2', &
-            'TOA Incident Shortwave Radiation', &
-            'toa_incoming_shortwave_flux',.true.,'time: mean')
-          mrd_solin_out => v2dvar_mrd(mrd_solin)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_solout) ) then
-          call setup_var(v2dvar_mrd,mrd_solout,vsize,'rsut','W m-2', &
-            'TOA Outgoing Shortwave Radiation', &
-            'toa_outgoing_shortwave_flux',.true.,'time: mean')
-          mrd_solout_out => v2dvar_mrd(mrd_solout)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_lwout) ) then
-          call setup_var(v2dvar_mrd,mrd_lwout,vsize,'rlut','W m-2', &
-            'TOA Outgoing Longwave Radiation', &
-            'toa_outgoing_longwave_flux',.true.,'time: mean')
-          mrd_lwout_out => v2dvar_mrd(mrd_lwout)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_totwv) ) then
-          call setup_var(v2dvar_mrd,mrd_totwv,vsize,'prw','kg m-2', &
-            'Water Vapor Path', &
-            'atmosphere_water_vapor_content',.true.,'time: mean')
-          mrd_totwv_out => v2dvar_mrd(mrd_totwv)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_totcl) ) then
-          call setup_var(v2dvar_mrd,mrd_totcl,vsize,'clwvi','kg m-2', &
-            'Condensed Water Mass Content', &
-            'atmosphere_mass_content_of_cloud_condensed_water', &
-            .true.,'time: mean')
-          mrd_totcl_out => v2dvar_mrd(mrd_totcl)%rval
-        end if
-        if ( enable_mrd2d_vars(mrd_clwpvi) ) then
-          call setup_var(v2dvar_mrd,mrd_clwpvi,vsize,'clwpvi','mm', &
-            'Vertically-integrated in-cloud liquid water path', &
-            'column_thickness_of_liquid_water_cloud',.true.,'time: mean')
-          mrd_clwpvi_out => v2dvar_mrd(mrd_clwpvi)%rval
-        end if
-
-        vsize%k2 = kz
-        if ( idynamic == 2 ) then
-          if ( enable_mrd3d_vars(mrd_pp) ) then
-            call setup_var(v3dvar_mrd,mrd_pp,vsize,'ppa','Pa', &
-              'Pressure perturbation', &
-              'difference_of_air_pressure_from_model_reference', &
-              .true., 'time: mean')
-            mrd_pp_out => v3dvar_mrd(mrd_pp)%rval
-          end if
-          enable_mrd3d_vars(mrd_pai) = .false.
-        else if ( idynamic == 3 ) then
-          if ( enable_mrd3d_vars(mrd_pai) ) then
-            call setup_var(v3dvar_mrd,mrd_pai,vsize,'pai','1', &
-              'Exner function','dimensionless_exner_function', &
-              .true., 'time: mean')
-            mrd_pai_out => v3dvar_mrd(mrd_pai)%rval
-          end if
-          enable_mrd3d_vars(mrd_pp) = .false.
-        else
-          enable_mrd3d_vars(mrd_pp) = .false.
-          enable_mrd3d_vars(mrd_pai) = .false.
-        end if
-        if ( enable_mrd3d_vars(mrd_cld) ) then
-          call setup_var(v3dvar_mrd,mrd_cld,vsize,'cl','1', &
-            'Cloud fractional cover', &
-            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
-          mrd_cld_out => v3dvar_mrd(mrd_cld)%rval
-        end if
-        if ( enable_mrd3d_vars(mrd_clwp) ) then
-          call setup_var(v3dvar_mrd,mrd_clwp,vsize,'clwp','mm', &
-            'In-cloud liquid water path', &
-            'thickness_of_liquid_water_cloud',.true.,'time: mean')
-          mrd_clwp_out => v3dvar_mrd(mrd_clwp)%rval
-        end if
-
-        enable_mrd_vars(1:nmrd2dvars) = enable_mrd2d_vars
-        enable_mrd_vars(nmrd2dvars+1:nmrdvars) = enable_mrd3d_vars
-        outstream(mrd_stream)%nvar = countvars(enable_mrd_vars,nmrdvars)
-        allocate(outstream(mrd_stream)%ncvars%vlist(outstream(mrd_stream)%nvar))
-        outstream(mrd_stream)%nfiles = 1
-        allocate(outstream(mrd_stream)%ncout(outstream(mrd_stream)%nfiles))
-        allocate(outstream(mrd_stream)%cname_base(outstream(mrd_stream)%nfiles))
-        outstream(mrd_stream)%cname_base(1) = 'MRD'
-
-        vcount = 1
-        do i = 1 , nmrd2dvars
-          if ( enable_mrd_vars(i) ) then
-            outstream(mrd_stream)%ncvars%vlist(vcount)%vp => v2dvar_mrd(i)
-            vcount = vcount + 1
-          end if
-        end do
-        do i = 1 , nmrd3dvars
-          if ( enable_mrd_vars(i+nmrd2dvars) ) then
-            outstream(mrd_stream)%ncvars%vlist(vcount)%vp => v3dvar_mrd(i)
-            vcount = vcount + 1
-          end if
-        end do
-
-        outstream(mrd_stream)%jl1 = vsize%j1
-        outstream(mrd_stream)%jl2 = vsize%j2
-        outstream(mrd_stream)%il1 = vsize%i1
-        outstream(mrd_stream)%il2 = vsize%i2
-        outstream(mrd_stream)%jg1 = jout1
-        outstream(mrd_stream)%jg2 = jout2
-        outstream(mrd_stream)%ig1 = iout1
-        outstream(mrd_stream)%ig2 = iout2
       end if
 
       if ( nstream == lak_stream ) then
@@ -3193,8 +2704,7 @@ module mod_ncout
           kkz = max(12,kkz)
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
-             che_stream > 0 .or. opt_stream > 0 .or. &
-             mrd_stream > 0 .or. mat_stream > 0 ) then
+             che_stream > 0 .or. opt_stream > 0 ) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -4249,19 +3759,13 @@ module mod_ncout
     integer(ik4) :: nstream , nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
     if ( associated(v3dvar_atm) ) deallocate(v3dvar_atm)
-    if ( associated(v2dvar_mat) ) deallocate(v2dvar_mat)
-    if ( associated(v3dvar_mat) ) deallocate(v3dvar_mat)
     if ( associated(v2dvar_srf) ) deallocate(v2dvar_srf)
     if ( associated(v3dvar_srf) ) deallocate(v3dvar_srf)
-    if ( associated(v2dvar_msf) ) deallocate(v2dvar_msf)
-    if ( associated(v2dvar_cyg) ) deallocate(v2dvar_cyg)
     if ( associated(v2dvar_sts) ) deallocate(v2dvar_sts)
     if ( associated(v3dvar_sts) ) deallocate(v3dvar_sts)
     if ( associated(v2dvar_rad) ) deallocate(v2dvar_rad)
     if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
     if ( associated(v4dvar_rad) ) deallocate(v4dvar_rad)
-    if ( associated(v2dvar_mrd) ) deallocate(v2dvar_mrd)
-    if ( associated(v3dvar_mrd) ) deallocate(v3dvar_mrd)
     if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)

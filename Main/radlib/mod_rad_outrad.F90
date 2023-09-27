@@ -149,9 +149,6 @@ module mod_rad_outrad
     if ( ifrad ) then
       rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
     end if
-    if ( ifmrd ) then
-      rnmrd_for_mrdfrq = rnmrd_for_mrdfrq + 1.0_rkx
-    end if
     if ( ifopt ) then
       rnrad_for_optfrq = rnrad_for_optfrq + 1.0_rkx
     end if
@@ -197,23 +194,6 @@ module mod_rad_outrad
         end do
       end do
     end if
-
-    if ( ifmrd ) then
-      call copy2d_add(frsa,mrd_frsa_out)
-      call copy2d_add(frla,mrd_frla_out)
-      call copy2d_add(clrst,mrd_clrst_out)
-      call copy2d_add(clrss,mrd_clrss_out)
-      call copy2d_add(clrlt,mrd_clrlt_out)
-      call copy2d_add(clrls,mrd_clrls_out)
-      call copy2d_add(solin,mrd_solin_out)
-      call copy2d_add(solout,mrd_solout_out)
-      call copy2d_add(lwout,mrd_lwout_out)
-      call copy2d_add(totwv,mrd_totwv_out)
-      call copy2d_add(totcl,mrd_totcl_out)
-      call copy2d_add_integrate_from3_clwp(clwp,cld,mrd_clwpvi_out)
-      call copy3d_add(cld,mrd_cld_out)
-      call copy3d_add_clwp(clwp,cld,mrd_clwp_out)
-    endif
 
     if ( rcmtimer%start( ) ) return
 
