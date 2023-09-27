@@ -809,7 +809,7 @@ module mod_oasis_interface
       nullify(grd)
     end if
     !
-    if ( l_cpl_ex_t2m ) then ! near-surface air temperature (2m-height) [K] 
+    if ( l_cpl_ex_t2m ) then ! near-surface air temperature (2m-height) [K]
       grd => ex_t2m%grd
       call oasisxregcm_snd( &
            sum( lms%t2m(: , grd%j1:grd%j2 , grd%i1:grd%i2) , 1 ) * rdnnsg, &
@@ -1024,7 +1024,7 @@ module mod_oasis_interface
     ! dummy loops with oasis_lag increasing like 0 -> oasis_sync_lag
     ! at the end of the run, OASIS and RegCM stop synchronously
     if ( oasis_sync_lag > 0 ) then
-      do while ( oasis_lag < oasis_sync_lag ) 
+      do while ( oasis_lag < oasis_sync_lag )
         call oasisxregcm_rcv_all(time + oasis_lag)
         ! dummy loop
 #ifdef DEBUG

@@ -20,13 +20,13 @@
 #ifdef OASIS
 
 module mod_oasis_params
-  
+ 
   use mod_intkinds
 
   implicit none
 
   private
-  
+ 
   ! grid information type
   type infogrd
     character(len=4) :: naNM , naWM ! grid name (No Mask , With Mask)
@@ -55,7 +55,7 @@ module mod_oasis_params
 
   ! oasisparam namelist general parameters
   integer(ik4) , public :: write_restart_option
-  logical , public :: l_write_grids 
+  logical , public :: l_write_grids
   integer(ik4) , public :: oasis_sync_lag ! model time lag to other components
                                           ! (parameter)
 

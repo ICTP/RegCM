@@ -71,7 +71,7 @@ module mod_oasis_debug
       write(proc_unit,*) ' with configure)'
       write(proc_unit,*) ''
       write(proc_unit,*) '     Component: ', trim(component_name)
-      write(proc_unit,"(A,I2)") '        with id: ', component_id 
+      write(proc_unit,"(A,I2)") '        with id: ', component_id
       write(proc_unit,*) '          Rank: ', myid
       write(proc_unit,*) '--------------------------------------------------'
       call flush(proc_unit)
