@@ -99,7 +99,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 1_ik4
+  integer(ik4) :: permuteseed = 37_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,10 +107,6 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-    permuteseed = permuteseed + myid*(ngptlw+ngptsw)
-    do while ( permuteseed < 0 )
-      permuteseed = 2147483641+permuteseed
-    end do
     npj = (jci2-jci1+1)
     npr = npj*(ici2-ici1+1)
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
@@ -325,10 +321,12 @@ module mod_rrtmg_driver
         end do
       end do
       if ( imcica == 1 ) then
+        permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+        do while ( permuteseed < 0 )
+          permuteseed = 2147483641+permuteseed
+        end do
         ! generates cloud properties:
-        permuteseed = permuteseed+ngptlw
-        if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
+        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play, &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
@@ -360,8 +358,10 @@ module mod_rrtmg_driver
 
     ! LW call :
     if ( imcica == 1 ) then
-      permuteseed = permuteseed+ngptsw
-      if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
+      permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+      do while ( permuteseed < 0 )
+        permuteseed = 2147483641+permuteseed
+      end do
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
@@ -786,6 +786,16 @@ module mod_rrtmg_driver
     !
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
+#ifdef RCEMIP
+    do n = 1 , npr
+      co2vmr(n) = ghgval(igh_co2,iyear,imonth,0.0_rkx)
+      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      ch40(n) = ghgval(igh_ch4,iyear,imonth,0.0_rkx)*(amch4/amd)
+      n2o0(n) = ghgval(igh_n2o,iyear,imonth,0.0_rkx)*(amn2o/amd)
+      cfc110(n) = ghgval(igh_cfc11,iyear,imonth,0.0_rkx)*(amcfc11/amd)
+      cfc120(n) = ghgval(igh_cfc12,iyear,imonth,0.0_rkx)*(amcfc12/amd)
+    end do
+#else
     do n = 1 , npr
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
       co2mmr(n) = co2vmr(n)*(amco2/amd)
@@ -794,6 +804,7 @@ module mod_rrtmg_driver
       cfc110(n) = ghgval(igh_cfc11,iyear,imonth,dlat(n))*(amcfc11/amd)
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
+#endif
 
     do k = 1 , kz
       do n = 1 , npr

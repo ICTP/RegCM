@@ -129,14 +129,22 @@
       decorr_inv(:ncol) = f_one
       if (icld .eq. 4 .or. icld .eq. 5) then
          if (idcor .eq. 1) then
+#ifdef RCEMIP
+            am3 = 0.0_rb
+#else
             if (juldat .gt. 181) then
                am3 = -4._rb * amr / 365._rb * (juldat - 272)
             else
                am3 = 4._rb * amr / 365._rb * (juldat - 91)
             endif
+#endif
 ! latitude in degrees, decorr_lat in km
             do i = 1, ncol
+#ifdef RCEMIP
+               decorr_lat = am1 + am2 * exp(-(am3**2)/am4**2)
+#else
                decorr_lat = am1 + am2 * exp( -(lat(i) - am3)**2 / am4**2)
+#endif
                decorr_len(i) = decorr_lat * 1.e3_rb
             enddo
          else
@@ -511,9 +519,9 @@
             seed3(i) = int(pmid(i,3) - int(pmid(i,3)),im)  * 1000000000_im
             seed4(i) = int(pmid(i,4) - int(pmid(i,4)),im)  * 1000000000_im
           enddo
-         do i=1,changeSeed
+         !do i=1,changeSeed
             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-         enddo
+         !enddo
       elseif (irng.eq.1) then
          randomNumbers = new_RandomNumberSequence(seed = changeSeed)
       endif

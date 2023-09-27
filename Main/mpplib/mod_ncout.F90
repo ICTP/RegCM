@@ -1291,11 +1291,15 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           srf_tg_out => v2dvar_srf(srf_tg)%rval
         end if
-        if ( enable_srf2d_vars(srf_tlef) ) then
-          call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
-            'Foliage Canopy Temperature','canopy_temperature',  &
-            .true.,l_fill=.true.)
-          srf_tlef_out => v2dvar_srf(srf_tlef)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_tlef) = .true.
+        else
+          if ( enable_srf2d_vars(srf_tlef) ) then
+            call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
+              'Foliage Canopy Temperature','canopy_temperature',  &
+              .true.,l_fill=.true.)
+            srf_tlef_out => v2dvar_srf(srf_tlef)%rval
+          end if
         end if
         if ( enable_srf2d_vars(srf_tpr) ) then
           call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
@@ -1306,12 +1310,6 @@ module mod_ncout
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
             'Evaporation','water_evaporation_flux',.true.,'time: mean')
           srf_evp_out => v2dvar_srf(srf_evp)%rval
-        end if
-        if ( enable_srf2d_vars(srf_scv) ) then
-          call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
-            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_scv_out => v2dvar_srf(srf_scv)%rval
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
           call setup_var(v2dvar_srf,srf_sena,vsize,'hfss','W m-2', &
@@ -1415,10 +1413,21 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_seaice) = .false.
         end if
-        if ( enable_srf2d_vars(srf_snowmelt) ) then
-          call setup_var(v2dvar_srf,srf_snowmelt,vsize,'snm','kg m-2 s-1', &
-            'Surface Snow Melt','surface_snow_melt_flux',.true.,'time: mean')
-          srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_scv) = .false.
+          enable_srf2d_vars(srf_snowmelt) = .false.
+        else
+          if ( enable_srf2d_vars(srf_scv) ) then
+            call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
+              'Surface Snow Amount', 'surface_snow_amount',.true., &
+              'time: mean', l_fill=.true.)
+            srf_scv_out => v2dvar_srf(srf_scv)%rval
+          end if
+          if ( enable_srf2d_vars(srf_snowmelt) ) then
+            call setup_var(v2dvar_srf,srf_snowmelt,vsize,'snm','kg m-2 s-1', &
+              'Surface Snow Melt','surface_snow_melt_flux',.true.,'time: mean')
+            srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
+          end if
         end if
         if ( idiag > 0 ) then
           if ( enable_srf2d_vars(srf_evp) ) then
@@ -1434,17 +1443,22 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_dew) = .false.
         end if
-        if ( enable_srf2d_vars(srf_srunoff) ) then
-          call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
-        end if
-        if ( enable_srf2d_vars(srf_trunoff) ) then
-          call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Total Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_srunoff) = .false.
+          enable_srf2d_vars(srf_trunoff) = .false.
+        else
+          if ( enable_srf2d_vars(srf_srunoff) ) then
+            call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
+              'Surface Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
+          end if
+          if ( enable_srf2d_vars(srf_trunoff) ) then
+            call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
+              'Total Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+          end if
         end if
         if ( ifshf ) then
           enable_srf2d_vars(srf_pcpmax) = .false.

@@ -582,7 +582,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),0._rkx)
+              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),0.0_rkx)
               n = n + 1
             end do
           end do

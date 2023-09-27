@@ -323,7 +323,7 @@ module mod_params
     liqflglw = 1
     icld  = 1
     imcica = 1
-    irng = 1
+    irng = 0
     nradfo = 4
     rrtm_extend = .true.
     !

@@ -989,7 +989,7 @@ module mod_init
     ! pressure of tropopause
     !
     if ( irceideal == 1 ) then
-      ptrop = 10000_rkx
+      ptrop(:,:) = 10000.0_rkx
     else
       do i = ici1 , ici2
         do j = jci1 , jci2

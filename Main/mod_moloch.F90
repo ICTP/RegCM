@@ -785,24 +785,30 @@ module mod_moloch
         end if
 
         if ( iboudy == 1 .or. iboudy >= 5 ) then
+!$acc wait(2)
 #ifdef USE_MPI3
           call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
           call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call nudge(iboudy,ps,xpsb)
+!$acc update device(ps) async(2)
           call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
           call nudge(iboudy,u,v,xub,xvb)
+!$acc update device(u,v) async(2)
           call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call nudge(iboudy,t,xtb)
+!$acc update device(t) async(2)
           call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
           call nudge(iboudy,qv,xqb)
+!$acc update device(qv) async(2)
           call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call nudge(iboudy,pai,xpaib)
+!$acc update device(pai) async(2)
 
           if ( ichem == 1 ) then
             call exchange_lrbt_pre(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr,comm1)
@@ -823,10 +829,12 @@ module mod_moloch
           if ( is_present_qc( ) ) then
             call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
             call nudge(iboudy,qc,xlb)
+!$acc update device(qc) async(2)
           end if
           if ( is_present_qi( ) ) then
             call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
             call nudge(iboudy,qi,xib)
+!$acc update device(qi) async(2)
           end if
 #else
 !$acc wait(2)
@@ -845,12 +853,10 @@ module mod_moloch
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
           if ( is_present_qc( ) ) then
-!$acc update self(qc)
             call nudge(iboudy,qc,xlb)
 !$acc update device(qc) async(2)
           end if
           if ( is_present_qi( ) ) then
-!$acc update self(qi)
             call nudge(iboudy,qi,xib)
 !$acc update device(qi) async(2)
           end if
@@ -863,23 +869,29 @@ module mod_moloch
 #endif
         else if ( iboudy == 4 ) then
 #ifdef USE_MPI3
+!$acc wait(2)
           call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
           call exchange_lrbt_post(ps,1,jce1,jce2,ice1,ice2,comm1)
           call sponge(ps,xpsb)
+!$acc update device(ps) async(2)
           call exchange_lrbt_pre(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call exchange_lrbt_post(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_post(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)
           call sponge(u,v,xub,xvb)
+!$acc update device(u,v) async(2)
           call exchange_lrbt_pre(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_post(t,1,jce1,jce2,ice1,ice2,1,kz,comm1)
           call sponge(t,xtb)
+!$acc update device(t) async(2)
           call exchange_lrbt_pre(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call exchange_lrbt_post(qv,1,jce1,jce2,ice1,ice2,1,kz,comm2)
           call sponge(qv,xqb)
+!$acc update device(qv) async(2)
           call exchange_lrbt_post(pai,1,jce1,jce2,ice1,ice2,1,kz,comm3)
           call sponge(pai,xpaib)
+!$acc update device(pai) async(2)
 
           if ( is_present_qc( ) ) then
             call exchange_lrbt_pre(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
@@ -890,10 +902,12 @@ module mod_moloch
           if ( is_present_qc( ) ) then
             call exchange_lrbt_post(qc,1,jce1,jce2,ice1,ice2,1,kz,comm2)
             call sponge(qc,xlb)
+!$acc update device(qc) async(2)
           end if
           if ( is_present_qi( ) ) then
             call exchange_lrbt_post(qi,1,jce1,jce2,ice1,ice2,1,kz,comm3)
             call sponge(qi,xib)
+!$acc update device(qi) async(2)
           end if
 #else
 !$acc wait(2)
@@ -2186,6 +2200,7 @@ module mod_moloch
           zdtrdz = 0.5_rkx * zdtrdz
         end if
 
+        pfm = 0.0_rkx
         if ( present(pmin) ) then
           pfm = pmin
         end if
@@ -3674,7 +3689,7 @@ module mod_moloch
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jci1,i,k)-zdiv2(jci1-1,i,k))
         end do
       end do
 !$acc end parallel
@@ -3683,7 +3698,7 @@ module mod_moloch
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              zprof(k)/dx*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              zprof(k)/dx*(zdiv2(j,ici1,k)-zdiv2(j,ici1-1,k))
         end do
       end do
 !$acc end parallel
@@ -3693,7 +3708,7 @@ module mod_moloch
       do k = 1 , kz
         do i = ici1 , ici2
           u(jdi1,i,k) = u(jdi1,i,k) + &
-              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jdi1,i,k)-zdiv2(jdi1-1,i,k))
+              zprof(k)/(dx*rmu(jdi1,i))*(zdiv2(jci1,i,k)-zdiv2(jci1-1,i,k))
         end do
       end do
 !$acc end parallel
@@ -3702,7 +3717,7 @@ module mod_moloch
       do k = 1 , kz
         do j = jci1 , jci2
           v(j,idi1,k) = v(j,idi1,k) + &
-              zprof(k)/(dx*rmv(j,idi1))*(zdiv2(j,idi1,k)-zdiv2(j,idi1-1,k))
+              zprof(k)/(dx*rmv(j,idi1))*(zdiv2(j,ici1,k)-zdiv2(j,ici1-1,k))
         end do
       end do
 !$acc end parallel

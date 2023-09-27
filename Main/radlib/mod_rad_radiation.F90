@@ -1859,6 +1859,9 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
+
+    qrl(:,:) = d_zero
+
     do n = n1 , n2
       rtclrsf(n,1) = d_one/tclrsf(n,1)
     end do
