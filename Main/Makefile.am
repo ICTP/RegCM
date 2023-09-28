@@ -224,7 +224,7 @@ endif
 # OASIS version of the model
 #
 if DO_COMPILE_OASIS
-mod_oasis_interface.o : mod_oasis_interface.F90 mod_oasis_signature.o mod_oasis_debug.o mod_oasis_params.o mod_oasis_generic.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_stdio.o mod_message.o mod_service.o mod_mppparam.o mod_runparams.o mod_bats_common.o mod_atm_interface.o mod_lm_interface.o
+mod_oasis_interface.o : mod_oasis_interface.F90 mod_oasis_signature.o mod_oasis_params.o mod_oasis_generic.o mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_stdio.o mod_message.o mod_service.o mod_mppparam.o mod_runparams.o mod_bats_common.o mod_atm_interface.o mod_lm_interface.o
 endif
 #
 # RegCM Main Program

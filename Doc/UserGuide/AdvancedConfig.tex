@@ -1711,12 +1711,9 @@ $> mpirun -np 2 ./bin/regcmMPICLM45 regcm.in
 \section{The OASIS options}
 \label{oasis}
 
-We will now discuss from the user point of view how to use the model
-setup which need to be activated at configure stage.
-
 The \verb=OASIS= option if activated allows the user to run a simulation using
 the OASIS interface module to exchange fields between RegCM and one or several
-other components. This can be used for setting up a coupling experiment with
+other components \citep{craig_2017}. This can be used for setting up a coupling experiment with
 an oceanic model, a wave model, etc.
 The executable of the model is different in the case of an OASIS-enabled
 compilation, and is named \verb=regcmMPIOASIS=.
@@ -1751,7 +1748,7 @@ programs will need to be run anyways.
 \subsubsection{Prepare and run}
 \label{oasisrun}
 
-The \verb=OASIS= configuration requires a separate entries in the namelist input
+The \verb=OASIS= configuration requires separate entries in the namelist input
 file.
 
 {\footnotesize
@@ -1886,7 +1883,7 @@ Name & Direction & Description & Unit\\
 
 More information on how to use OASIS is given in \cite{valcke_oasis}.
 To run the \verb=OASIS= option in the RegCM model,
-just substitute the executable name:
+simply substitute the executable name:
 
 \begin{Verbatim}
 $> mpirun -np 2 ./bin/regcmMPIOASIS regcm.in

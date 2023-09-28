@@ -4,7 +4,7 @@ all: DeveloperGuide.pdf
 
 TEXFILES = MainDeveloperGuide.tex \
            DeveloperGuide.tex    TitleDeveloperGuide.tex \
-	   OasisInterface.tex
+	   OASISInterface.tex
 BIBFILLES = Biblio_Developer.bib
 
 DeveloperGuide.pdf: DeveloperGuide.tex $(TEXFILES) $(BIBFILES) $(FIGURES)

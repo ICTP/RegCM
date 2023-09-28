@@ -34,11 +34,7 @@ module mod_oasis_interface
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
 
-  use mod_oasis
   use mod_oasis_params
-! XXX
-  use mod_oasis_debug
-! XXX
   use mod_oasis_signature
   use mod_oasis_generic
 
@@ -62,22 +58,22 @@ module mod_oasis_interface
   public :: l_write_grids , write_restart_option ! -> mod_oasis_params
   public :: oasis_sync_lag                       ! -> mod_oasis_params
   logical , public :: l_cpl_im_sst , &
-!                      l_cpl_im_sit , &
-                      l_cpl_im_wz0 , &
-                      l_cpl_im_wust , &
-                      l_cpl_ex_u10m , &
-                      l_cpl_ex_v10m , &
-                      l_cpl_ex_wspd , &
-                      l_cpl_ex_wdir , &
-                      l_cpl_ex_t2m , &
-!                      l_cpl_ex_t10m , &
-                      l_cpl_ex_q2m , &
-!                      l_cpl_ex_q10m , &
+!                      l_cpl_im_sit , & ! not coded
+                      l_cpl_im_wz0 , & ! not tested
+                      l_cpl_im_wust , & ! not tested
+                      l_cpl_ex_u10m , & ! not tested
+                      l_cpl_ex_v10m , & ! not tested
+                      l_cpl_ex_wspd , & ! not tested
+                      l_cpl_ex_wdir , & ! not tested
+                      l_cpl_ex_t2m , & ! not tested
+!                      l_cpl_ex_t10m , & ! not coded
+                      l_cpl_ex_q2m , & ! not tested
+!                      l_cpl_ex_q10m , & ! not coded
                       l_cpl_ex_slp , &
                       l_cpl_ex_taux , &
                       l_cpl_ex_tauy , &
-                      l_cpl_ex_z0 , &
-                      l_cpl_ex_ustr , &
+                      l_cpl_ex_z0 , & ! not tested
+                      l_cpl_ex_ustr , & ! not tested
                       l_cpl_ex_evap , &
                       l_cpl_ex_prec , &
                       l_cpl_ex_nuwa , &
@@ -89,7 +85,7 @@ module mod_oasis_interface
                       l_cpl_ex_uwsw , &
                       l_cpl_ex_dwsw , &
                       l_cpl_ex_ndsw , &
-                      l_cpl_ex_rhoa
+                      l_cpl_ex_rhoa ! not tested
   ! OASIS field +++
 
   !--------------------------------------------------------------------
@@ -144,14 +140,8 @@ module mod_oasis_interface
 
   !--------------------------------------------------------------------
   ! accessibility from oasislib:
-  public :: oasisxregcm_init , oasisxregcm_finalize      ! -> mod_oasis_generic
-  public :: oasisxregcm_header                           ! -> mod_oasis_signature
-! XXX
-  public :: oasisxregcm_open_log , oasisxregcm_close_log ! -> mod_oasis_debug
-#ifdef DEBUG
-  !public :: checkpoint_time ! -> mod_oasis_debug
-#endif
-! XXX
+  public :: oasisxregcm_init , oasisxregcm_finalize ! -> mod_oasis_generic
+  public :: oasisxregcm_header                      ! -> mod_oasis_signature
 
   !--------------------------------------------------------------------
   ! from this module:
@@ -164,15 +154,7 @@ module mod_oasis_interface
 
   subroutine oasisxregcm_params
     implicit none
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_params'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     oasis_lag = 0
     ! state which grids have to be defined,
     ! depending on what field is activated.
@@ -256,25 +238,12 @@ module mod_oasis_interface
     if ( l_cpl_ex_ndsw ) call oasisxregcm_setup_field(ex_ndsw, 'RCM_NDSW', grdci)
     if ( l_cpl_ex_rhoa ) call oasisxregcm_setup_field(ex_rhoa, 'RCM_RHOA', grdci)
     ! OASIS field +++
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_params
 
   ! call all definition subroutines for setting up OASIS
   subroutine oasisxregcm_def
     implicit none
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_def'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     ! partition definition
 #ifdef DEBUG
     write(ndebug,*) oasis_prefix, 'definition phase: partitions'
@@ -337,11 +306,6 @@ module mod_oasis_interface
     write(ndebug,*) oasis_prefix, 'definition phase: end'
 #endif
     call oasisxregcm_end_def
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
 
   contains
 
@@ -361,13 +325,7 @@ module mod_oasis_interface
     integer(ik4) :: il_flag ! flag for grid writing by proc 0
     integer(ik4) :: ierror
 #ifdef DEBUG
-! XXX
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_def_grid'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-! XXX
     write(ndebug,*) oasis_prefix, 'start collecting grid data'
     write(ndebug,*) oasis_prefix, 'grids writing is done by the in/out cpu only'
 #endif
@@ -456,9 +414,6 @@ module mod_oasis_interface
 #ifdef DEBUG
     write(ndebug,"(' ',A,A,I3,A)") oasis_prefix, 'please refer to cpu ', iocpu, ' for grid writing'&
                            //' debug statements'
-! XXX
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
   end subroutine oasisxregcm_def_grid
 
@@ -471,15 +426,7 @@ module mod_oasis_interface
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
     integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
     integer(ik4) :: i , j
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_make_oasisgrids_d'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     !
     !    ^    corner 2        corner 1
     !    |    x(j-1,i)         x(j,i)
@@ -556,11 +503,6 @@ module mod_oasis_interface
         end if
       end do
     end do
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_make_oasisgrids_d
 
   subroutine oasisxregcm_make_oasisgrids_c(lon,lat,clon,clat,srf,mask, &
@@ -572,15 +514,7 @@ module mod_oasis_interface
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
     integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
     integer(ik4) :: i , j
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_make_oasisgrids_c'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     !
     !    ^    corner 2        corner 1
     !    |    d(j,i+1)       d(j+1,i+1)
@@ -626,11 +560,6 @@ module mod_oasis_interface
         end if
       end do
     end do
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_make_oasisgrids_c
 
   end subroutine oasisxregcm_def
@@ -641,18 +570,7 @@ module mod_oasis_interface
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
     logical :: l_act
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_rcv_all'
-    character(len=256) :: message
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-    write(message,*) 'OASIS time: ', time
-    call checkpoint_proc(sub_name, trim(message))
-#endif
-! XXX
 #ifdef DEBUG
     if ( time == 0 ) then
       write(ndebug,*) oasis_prefix, 'Initialization:'
@@ -740,11 +658,6 @@ module mod_oasis_interface
     end if
     ! OASIS field +++
     !
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_rcv_all
 
   ! call all subroutines consisting of sending OASIS fields
@@ -756,15 +669,7 @@ module mod_oasis_interface
     type(infogrd) , pointer :: grd
     integer(ik4) :: i , j , ishift , jshift
     logical :: l_write_restart
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_snd_all'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     l_write_restart = (write_restart_option == 1 .and. time == 0) .or. &
                       (write_restart_option == 2 .and. l_last_time) .or. &
                       (write_restart_option == 3 .and. (time == 0 .or. l_last_time))
@@ -993,11 +898,6 @@ module mod_oasis_interface
                       //' last time.'
       end if
     end if
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
 
     contains
 
@@ -1069,15 +969,7 @@ module mod_oasis_interface
   ! the OASIS coupling
   subroutine oasisxregcm_release
     implicit none
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_release'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     call oasisxregcm_deallocate_field(im_sst, cpl_sst)
 !    call oasisxregcm_deallocate_field(im_sit, cpl_sit)
     call oasisxregcm_deallocate_field(im_wz0, cpl_wz0)
@@ -1112,11 +1004,6 @@ module mod_oasis_interface
     if ( allocated(grddi) ) deallocate(grddi)
     if ( allocated(grdce) ) deallocate(grdce)
     if ( allocated(grdci) ) deallocate(grdci)
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_release
 
 end module mod_oasis_interface

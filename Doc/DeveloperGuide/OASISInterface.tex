@@ -1,35 +1,34 @@
-\chapter{The Oasis Interface}
+\chapter{The OASIS Interface}
 
-This interface was developped in \PR with \OA\ (see the module's user guide:
+This interface was developped with \OA\ \citep{craig_2017} (see the module's user guide:
 \cite{valcke_oasis}).
 
-\section{Oasis-related code}
+\section{OASIS-related code}
 
-Are listed below the sections of the code which are related to the use of Oasis:
+Are listed below the sections of the code which are related to the use of OASIS:
 \begin{itemize}
 	\item 	the library \verb=oasislib=, needing only \verb=Share= and \verb=mpplib=;
 	\item 	the module \verb=mod_oasis_interface.F90=, which links all \verb=oasislib=
 		processes with the model's variables, and transfers the needed
 		accessibility to \verb=oasislib= parameters (in the rest of the code,
 		one only need to \verb=use mod_oasis_interface.F90=);
-	\item	some accessibility changes in \verb=mod_lm_interface.F90=;
 	\item	several lines in \verb=mod_params.F90= for reading the \verb=oasisparam=
 		namelist (and the parameter \verb=ioasiscpl= is added to the
 		\verb=physicsparam= namelist);
 	\item	several lines in \verb=mod_regcm_interface.F90= for calling the needed
 		subroutines along the run;
 	\item	several lines in \verb=regcm.F90= for implementing the MPI initialization
-		of Oasis;
+		of OASIS;
 	\item	appropriate lines in the \verb=Main='s \verb=Makefiles.am=;
 	\item	several lines in \verb=configure.ac= for the configuration options.
 \end{itemize}
 
-Oasis-related sections are enabled only if the builder is configured with
+OASIS-related sections are enabled only if the builder is configured with
 the option \verb=--enable-oasis=. In the code, these sections (except for the parameter
 \verb=ioasiscpl= which is in \verb=physicsparam= anyways) are inserted within
 \begin{verbatim}
 #ifdef OASIS
- ! Something to be done only in Oasis mode
+ ! Something to be done only in OASIS mode
 #endif
 \end{verbatim}
 
@@ -45,15 +44,7 @@ the comment \verb=! OASIS field +++=, which may be \verb=grep=ped...
 
 Any interaction between fields from OASIS and the model's variables should be done in
 \verb=mod_oasis_interface.F90=, where developpers are invited to use the model's variables
-which are already public. However, if access to private variables is needed because
-the projected coupling cannot be conducted otherwise, accessibility changes may be done.
-An example can be found in \verb=mod_lm_interface.F90=:
-\begin{verbatim}
-  public :: lms
-#ifdef OASIS
-  public :: lm
-#endif
-\end{verbatim}
+which are already public.
 
 Finally, simply adding a field should not need changes in the \verb=oasislib=, although
 consulting it may be useful for understanding then handling all types, variables and

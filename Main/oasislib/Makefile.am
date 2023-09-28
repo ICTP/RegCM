@@ -33,7 +33,7 @@ noinst_LIBRARIES = liboasis.a
 
 if DO_COMPILE_OASIS
 liboasis_a_SOURCES = mod_oasis_params.F90 mod_oasis_signature.F90 \
-                     mod_oasis_debug.F90 mod_oasis_generic.F90
+                     mod_oasis_generic.F90
 else
 liboasis_a_SOURCES = mod_oasis_void.F90
 endif
@@ -51,8 +51,6 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_oasis_signature.o : mod_oasis_signature.F90 mod_mppparam.o mod_stdio.o mod_dynparam.o
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPPINC) -c $<
-mod_oasis_generic.o : mod_oasis_generic.F90 mod_oasis_debug.o mod_oasis_params.o mod_oasis_signature.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_service.o mod_memutil.o mod_constants.o mod_stdio.o
+mod_oasis_generic.o : mod_oasis_generic.F90 mod_oasis_params.o mod_oasis_signature.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_service.o mod_memutil.o mod_constants.o mod_stdio.o
 	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPPINC) -c $<
 mod_oasis_params.o : mod_oasis_params.F90 mod_intkinds.o
-mod_oasis_debug.o : mod_oasis_debug.F90 mod_intkinds.o mod_stdio.o mod_message.o mod_mppparam.o mod_dynparam.o
-	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPPINC) -c $<

@@ -34,9 +34,6 @@ module mod_oasis_generic
 
   use mod_oasis
   use mod_oasis_params
-! XXX
-  use mod_oasis_debug
-! XXX
   use mod_oasis_signature
 
   implicit none
@@ -91,7 +88,7 @@ module mod_oasis_generic
       write(stderr,*) 'oasis_terminate abort compid ', comp_id
       call oasis_abort(comp_id,sub_name,'Problem in oasis_terminate call')
     end if
-    call oasisxregcm_endscreen
+    !call oasisxregcm_endscreen
   end subroutine oasisxregcm_finalize
 
   ! initialize a type(infogrd) variable
@@ -102,15 +99,7 @@ module mod_oasis_generic
     integer , intent(in) :: j1 , j2 , i1 , i2 , &
                             ja , jb , ia , ib , nc
     type(infogrd) , allocatable , intent(out) :: grd
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_setup_grid'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     allocate(grd)
     ! names
     grd%naNM = naNM
@@ -131,11 +120,6 @@ module mod_oasis_generic
     grd%igl = ib - ia + 1
     ! number of corner per cell
     grd%nc = nc
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_setup_grid
 
   ! initialize a type(infofld) variable
@@ -146,15 +130,7 @@ module mod_oasis_generic
     real(rkx) , intent(in) , optional :: init_val
     type(infofld) , allocatable , intent(out) :: fld
     real(rkx) , dimension(:,:) , allocatable , intent(out) , optional :: array
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_setup_field'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     allocate(fld)
     allocate(character(len=len(na)) :: fld%na)
     fld%na = na
@@ -167,11 +143,6 @@ module mod_oasis_generic
         array(:,:) = 0.0
       end if
     end if
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_setup_field
 
   ! deallocate a type(infofld) variable
@@ -179,15 +150,7 @@ module mod_oasis_generic
     implicit none
     type(infofld), allocatable, intent(inout) :: fld
     real(rkx) , dimension(:,:) , allocatable , intent(inout) , optional :: array
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_deallocate_field'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     !
     if ( allocated(fld) ) then
       nullify(fld%grd)
@@ -196,11 +159,6 @@ module mod_oasis_generic
     if ( present(array) ) then
       if ( allocated(array) ) deallocate(array)
     end if
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_deallocate_field
 
   ! define an OASIS partition
@@ -211,9 +169,6 @@ module mod_oasis_generic
     character(len=*) , parameter :: sub_name = 'oasisxregcm_def_partition'
     !--------------------------------------------------------------------------
 #ifdef DEBUG
-! XXX
-    call checkpoint_enter(sub_name)
-! XXX
     write(ndebug,*) oasis_prefix, '>> ', grd%naNM, '/', grd%naWM, ' partitions'
 #endif
     call oasisxregcm_box_partition(il_paral, grd)
@@ -225,9 +180,6 @@ module mod_oasis_generic
     end if
 #ifdef DEBUG
     write(ndebug,"(' ',A,A,I2)") oasis_prefix, '-- id: ', grd%id
-! XXX
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
 
   contains
@@ -243,15 +195,7 @@ module mod_oasis_generic
     implicit none
     type(infogrd) , intent(in) :: grd
     integer , dimension(:) , allocatable , intent(out) :: paral
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_box_partition'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     allocate(paral(5))
     paral(1) = 2
     paral(2) = (grd%i1 - grd%ia) * grd%jgl + (grd%j1 - grd%ja)
@@ -262,9 +206,6 @@ module mod_oasis_generic
     write(ndebug,*) oasis_prefix, 'Box definition:'
     write(ndebug,*) oasis_prefix, 'gl off |   lo x |   lo y |   gl x'
     write(ndebug,"(' ',A,3(I6,' | '),I6)") oasis_prefix , paral(2) , paral(3) , paral(4) , paral(5)
-! XXX
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
   end subroutine oasisxregcm_box_partition
 
@@ -277,15 +218,7 @@ module mod_oasis_generic
     real(rkx) , pointer , dimension(:,:) , intent(out) :: lon , lat , srf
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
     integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_allocate_oasisgrids'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     allocate(lon(jsize,isize),stat=ierror)
     if ( ierror /= 0 ) then
       write(stderr,*) 'error allocating lon'
@@ -316,11 +249,6 @@ module mod_oasis_generic
       write(stderr,*) 'error allocating mask'
       call fatal(__FILE__,__LINE__,'OASIS GRID')
     end if
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_allocate_oasisgrids
 
   ! return the surface of the mesh in square meters
@@ -353,15 +281,7 @@ module mod_oasis_generic
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: clon , clat
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: mask
     integer(ik4) , allocatable , dimension(:,:) :: mask0
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_write_oasisgrids'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     ! No Mask
 #ifdef DEBUG
     write(ndebug,*) oasis_prefix, '>>       name: ', grd%naNM
@@ -399,11 +319,6 @@ module mod_oasis_generic
     call oasis_write_mask(grd%naWM,grd%jgl,grd%igl, &
          mask(grd%ja:grd%jb , grd%ia:grd%ib))
     !
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_write_oasisgrids
 
   ! deallocate oasisgrids temporary pointers
@@ -412,26 +327,13 @@ module mod_oasis_generic
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'oasisxregcm_deallocate_oasisgrids'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     if ( associated(lon) ) nullify(lon)
     if ( associated(lat) ) nullify(lat)
     if ( associated(clon) ) nullify(clon)
     if ( associated(clat) ) nullify(clat)
     if ( associated(srf) ) nullify(srf)
     if ( associated(mask) ) nullify(mask)
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_deallocate_oasisgrids
 
   ! define OASIS variables to be used in the coupling
@@ -451,9 +353,6 @@ module mod_oasis_generic
     data var_type / OASIS_Real / ! always the case?
     !--------------------------------------------------------------------------
 #ifdef DEBUG
-! XXX
-    call checkpoint_enter(sub_name)
-! XXX
     if ( kinout == OASIS_Out ) then
       kinout_char = 'export'
     else
@@ -474,9 +373,6 @@ module mod_oasis_generic
     end if
 #ifdef DEBUG
     write(ndebug,"(' ',A,A,I2)") oasis_prefix, '--        id: ', fld%id
-! XXX
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
   end subroutine oasisxregcm_def_field
 
@@ -485,21 +381,11 @@ module mod_oasis_generic
     implicit none
     character(len=*) , parameter :: sub_name = 'oasisxregcm_end_def'
     !--------------------------------------------------------------------------
-! XXX
-#ifdef DEBUG
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     call oasis_enddef(ierror)
     if ( ierror /= 0 ) then
       write(stderr,*) 'oasis_enddef abort compid ', comp_id
       call oasis_abort(comp_id,sub_name,'Problem in oasis_enddef call')
     end if
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine oasisxregcm_end_def
 
   ! receive a single field with id fld_id through oasis_get
@@ -510,15 +396,7 @@ module mod_oasis_generic
     real(rkx) , dimension(:,:) , intent(out) :: array
     logical , intent(out) :: l_act
     character(len=*) , parameter :: sub_name  = 'oasisxregcm_rcv'
-! XXX
-#ifdef DEBUG
-    character(len=256) :: message
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     call oasis_get(fld%id,time,array,ierror)
     if ( ierror .ne. OASIS_Ok .and. ierror .lt. OASIS_Recvd ) then
       write(stderr,*) 'oasis_get (', fld%na, ') abort compid ', comp_id
@@ -535,13 +413,6 @@ module mod_oasis_generic
         write(ndebug,"(' ',A,A11,A,ES12.5E2)") oasis_prefix, &
         '',                    '  ', maxval(array)
       end if
-! XXX
-      write(message,"(' ',A11,A,ES12.5E2,A,A8,A,ES12.5E2)") &
-      getput_status(ierror), ': ', minval(array), ' < ', fld%na, ' < ', maxval(array)
-      call checkpoint_proc(sub_name, trim(message))
-    end if
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
   end subroutine oasisxregcm_rcv
 
@@ -553,15 +424,7 @@ module mod_oasis_generic
     type(infogrd) , intent(in) :: grd
     real(rkx) , dimension(:,:) , pointer , intent(inout) :: array_out
     integer(ik4) :: i , j , ishift , jshift
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'fill_ocean_2d'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     ! It seems that whether it's on crosses or dots,
     ! mddom%lndcat is used.
     do i = grd%i1 , grd%i2
@@ -571,11 +434,6 @@ module mod_oasis_generic
         if ( isocean(lndcat(j,i)) ) array_out(j,i) = array_in(jshift,ishift)
       end do
     end do
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine fill_ocean_2d
 
   ! fill the ocean parts of array_out with array_in (with a subgrid dimension)
@@ -586,15 +444,7 @@ module mod_oasis_generic
     type(infogrd) , intent(in) :: grd
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: array_out
     integer(ik4) :: i , j , ishift , jshift
-! XXX
-#ifdef DEBUG
-    character(len=*) , parameter :: sub_name = 'fill_ocean_3d'
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     ! It seems that whether it's on crosses or dots,
     ! mddom%lndcat is used.
     do i = grd%i1 , grd%i2
@@ -604,11 +454,6 @@ module mod_oasis_generic
         if ( isocean(lndcat(j,i)) ) array_out(:,j,i) = array_in(jshift,ishift)
       end do
     end do
-! XXX
-#ifdef DEBUG
-    call checkpoint_exit(sub_name)
-#endif
-! XXX
   end subroutine fill_ocean_3d
 
   ! send a single field with id fld_id through oasis_put
@@ -620,15 +465,7 @@ module mod_oasis_generic
     logical , intent(in) :: write_out
     character(len=*) , parameter :: sub_name = 'oasisxregcm_snd'
     logical :: l_act
-! XXX
-#ifdef DEBUG
-    character(len=256) :: message
-! XXX
     !--------------------------------------------------------------------------
-! XXX
-    call checkpoint_enter(sub_name)
-#endif
-! XXX
     call oasis_put(fld%id,time,array,ierror,write_restart=write_out)
     if ( ierror .ne. OASIS_Ok .and. ierror .lt. OASIS_Sent ) then
       write(stderr,*) 'oasis_put (', fld%na, ') abort compid ', comp_id
@@ -645,13 +482,6 @@ module mod_oasis_generic
         write(ndebug,"(' ',A,A11,A,ES12.5E2)") oasis_prefix, &
         '',                    '  ', maxval(array)
       end if
-! XXX
-      write(message,"(' ',A11,A,ES12.5E2,A,A8,A,ES12.5E2)") &
-      getput_status(ierror), ': ', minval(array), ' < ', fld%na, ' < ', maxval(array)
-      call checkpoint_proc(sub_name, trim(message))
-    end if
-    call checkpoint_exit(sub_name)
-! XXX
 #endif
   end subroutine oasisxregcm_snd
 
