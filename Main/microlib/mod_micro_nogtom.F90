@@ -1121,7 +1121,7 @@ module mod_micro_nogtom
             wtot   = mo2mc%pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
             dtdiab = min(dpmxdt*dtdp, &
-                     max(-dpmxdt*dtdp,-mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
+                     max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
             ! ldefr = 0
             ! note: ldefr should be set to the difference between the mixed
             ! phase functions in the convection and cloud scheme, and
