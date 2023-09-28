@@ -1292,7 +1292,7 @@ module mod_ncout
           srf_tg_out => v2dvar_srf(srf_tg)%rval
         end if
         if ( irceideal == 1 ) then
-          enable_srf2d_vars(srf_tlef) = .true.
+          enable_srf2d_vars(srf_tlef) = .false.
         else
           if ( enable_srf2d_vars(srf_tlef) ) then
             call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
