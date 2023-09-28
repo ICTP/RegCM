@@ -1709,6 +1709,185 @@ just substitute the executable name:
 $> mpirun -np 2 ./bin/regcmMPICLM45 regcm.in
 \end{Verbatim}
 
+\section{The OASIS options}
+\label{oasis}
+
+The \verb=OASIS= option if activated allows the user to run a simulation using
+the OASIS interface module to exchange fields between RegCM and one or several
+other components \citep{craig_2017}. This can be used for setting up a coupling experiment with
+an oceanic model, a wave model, etc.
+The executable of the model is different in the case of an OASIS-enabled
+compilation, and is named \verb=regcmMPIOASIS=.
+
+\subsubsection{Enable}
+
+At configure stage (see \ref{modconf}), the option is to be enabled with the
+right command line argument to the configure script
+
+\begin{verbatim}
+  --enable-oasis     Supply this option if you plan on using OASIS
+                     option.
+\end{verbatim}
+
+\noindent and precisions regarding the installed configuration of OASIS should
+be given:
+
+\begin{verbatim}
+  --with-oasis-path  Path to OASIS3-MCT installation (require
+                     --enable-oasis) [default:
+                     ~/oasis3-mct/compile_oa3-mct]
+  --with-oasis-comm  Communication technique used in OASIS3-MCT (require
+                     --enable-oasis) [default: MPI1]
+\end{verbatim}
+
+This will enable a preprocessing flag, and build a different model executable.
+Note that no modifications are needed for any other part of the model, and that
+even though one plans on coupling fields which are normally forced and read
+with pre-processing programs -- such as SST for instance -- these pre-processing
+programs will need to be run anyways.
+
+\subsubsection{Prepare and run}
+\label{oasisrun}
+
+The \verb=OASIS= configuration requires separate entries in the namelist input
+file.
+
+{\footnotesize
+\begin{Verbatim}
+ &oasisparam
+ write_restart_option = 2, ! 0 => no restart file writing
+                           ! 1 => write restart files at the first time
+ l_write_grids = .true.,   ! For writing grids.nc, areas.nc, masks.nc.
+ oasis_sync_lag = 0,       ! Synchronisation lag with other components (sec)
+                           ! > 0 => Regcm starts late
+                           ! < 0 => Regcm starts in advance
+                           ! Should be a multipe of the coupling period
+                           !   in the namcouple.
+                           ! In the namcouple, RUNTIME must have
+                           !   the run duration + oasis_sync_lag.
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+                           ! field    | grid
+                           !-------------------------------------
+ l_cpl_im_sst  = .false.,  ! RCM_SST  | rcim
+ l_cpl_im_wz0  = .false.,  ! RCM_WZ0  | rcim
+ l_cpl_im_wust = .false.,  ! RCM_WUST | rcim
+ l_cpl_ex_u10m = .false.,  ! RCM_U10M | rcin/rcim
+ l_cpl_ex_v10m = .false.,  ! RCM_V10M | rcin/rcim
+ l_cpl_ex_wspd = .false.,  ! RCM_WSPD | rcin/rcim
+ l_cpl_ex_wdir = .false.,  ! RCM_WDIR | rcin/rcim
+ l_cpl_ex_t2m  = .false.,  ! RCM_T2M  | rcin/rcim
+ l_cpl_ex_q2m  = .false.,  ! RCM_Q2M  | rcin/rcim
+ l_cpl_ex_slp  = .false.,  ! RCM_SLP  | rcen/rcem
+ l_cpl_ex_taux = .false.,  ! RCM_TAUX | rcin/rcim
+ l_cpl_ex_tauy = .false.,  ! RCM_TAUY | rcin/rcim
+ l_cpl_ex_z0   = .false.,  ! RCM_Z0   | rcin/rcim
+ l_cpl_ex_ustr = .false.,  ! RCM_USTR | rcin/rcim
+ l_cpl_ex_evap = .false.,  ! RCM_EVAP | rcin/rcim
+ l_cpl_ex_prec = .false.,  ! RCM_PREC | rcin/rcim
+ l_cpl_ex_nuwa = .false.,  ! RCM_NUWA | rcin/rcim
+ l_cpl_ex_ulhf = .false.,  ! RCM_ULHF | rcin/rcim
+ l_cpl_ex_ushf = .false.,  ! RCM_USHF | rcin/rcim
+ l_cpl_ex_uwlw = .false.,  ! RCM_UWLW | rcin/rcim
+ l_cpl_ex_dwlw = .false.,  ! RCM_DWLW | rcin/rcim
+ l_cpl_ex_nulw = .false.,  ! RCM_NULW | rcin/rcim
+ l_cpl_ex_uwsw = .false.,  ! RCM_UWSW | rcin/rcim
+ l_cpl_ex_dwsw = .false.,  ! RCM_DWSW | rcin/rcim
+ l_cpl_ex_ndsw = .false.,  ! RCM_NDSW | rcin/rcim
+ l_cpl_ex_rhoa = .false.,  ! RCM_RHOA | rcin/rcim
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The \verb=write_restart_option= corresponds to setting
+\verb=write_restart= to \verb=true= in the \verb=oasis_put= call, at
+specific time steps.
+\item The \verb=l_write_grids= will enable OASIS grid writing processes for
+the RegCM needed grids. The related files may be produced offline, in which
+case this logical does not need to be set to \verb=true=.
+\item The \verb=l_cpl_*= enable exchanging fields with OASIS. The
+\verb=*_im_*= (\verb=*_ex_*=) refer to fields to import from (export to)
+OASIS. Are given in comment the field and grid names that {\bf must be reported
+in the \verb=namcouple=} for the enabled fields. Tables \ref{oasis_grid_list}
+and \ref{oasis_field_list} list the available grids and fields, respectively,
+with useful indications. More grids and fields might be implemented in the
+future; one is invited to take a look at the developper guide if one's
+coupling system project requires grids and/or fields which are not
+implemented yet.
+\end{enumerate}
+
+\begin{table}[ht]
+\caption{Available grids for OASIS exchanges. {\tt *m} have the ocean
+         mask; {\tt *n} don't. {\tt jx} and {\tt iy} refer to the
+         parameters of the {\tt dimparam} namelist.}
+\vspace{0.05 in}
+\centering
+\begin{tabular}{l|l|c}
+\hline
+Name & Description & Dimensions\\
+\hline
+\verb=rdem= or \verb=rden= & dot grid & \verb=(jx,iy)=\\
+\verb=rdim= or \verb=rdin= & dot grid without the borders & \verb=(jx-2,iy-2)=\\
+\verb=rcem= or \verb=rcen= & cross grid & \verb=(jx-1,iy-1)=\\
+\verb=rcim= or \verb=rcin= & cross grid without the borders & \verb=(jx-3,iy-3)=\\
+\hline
+\end{tabular}
+\label{oasis_grid_list}
+\end{table}
+
+\begin{table}[ht]
+\caption{Available fields for OASIS exchanges.}
+\vspace{0.05 in}
+\centering
+\begin{tabular}{l|c|l|c}
+\hline
+Name & Direction & Description & Unit\\
+\hline
+% field for importing
+\verb=RCM_SST=  & in & Sea Surface Temperature & $K$\\
+\verb=RCM_WZ0=  & in & Surface Roughness Length (usually for coupling with a wave model) & $m$\\
+\verb=RCM_WUST= & in & Surface Friction Velocity (usually for coupling with a wave model) & $s^{-1}$\\
+\hline
+% field for exporting
+\verb=RCM_U10M= & out & Eastward Near-Surface Wind (10m-height) & $m.s^{-1}$\\
+\verb=RCM_V10M= & out & Northward Near-Surface Wind (10m-height) & $m.s^{-1}$\\
+\verb=RCM_WSPD= & out & Near-Surface Wind Speed (10m-height) & $m.s^{-1}$\\
+\verb=RCM_WDIR= & out & Near-Surface Wind Direction (10m-height) & $[0,2\pi]$ $rad$\\
+\verb=RCM_T2M=  & out & Near-Surface Air Temperature (2m-height) & $K$\\
+\verb=RCM_Q2M=  & out & Near-Surface Specific Humidity (2m-height) & $1$\\
+\verb=RCM_SLP=  & out & Sea Level Pressure & $Pa$\\
+\verb=RCM_TAUX= & out & Surface Eastward Wind Stress & $Pa$\\
+\verb=RCM_TAUY= & out & Surface Northward Wind Stress & $Pa$\\
+\verb=RCM_Z0=   & out & Surface Roughness Length & $m$\\
+\verb=RCM_USTR= & out & Surface Friction Velocity & $s^{-1}$\\
+\verb=RCM_EVAP= & out & Water Evaporation Flux & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_PREC= & out & Precipitation Flux & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_NUWA= & out & Net Upward Water Flux (Evaporation - Precipitation) & $kg.m^{-2}.s^{-1}$\\
+\verb=RCM_ULHF= & out & Surface Upward Latent Heat Flux & $W.m^{-2}$\\
+\verb=RCM_USHF= & out & Surface Upward Sensible Heat Flux & $W.m^{-2}$\\
+\verb=RCM_UWLW= & out & Surface Upwelling Long-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_DWLW= & out & Surface Downwelling Long-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_NDLW= & out & Surface Net Upward Long-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_UWSW= & out & Surface Upwelling Short-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_DWSW= & out & Surface Downwelling Short-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_NDSW= & out & Surface Net Downward Short-Wave Radiation Flux & $W.m^{-2}$\\
+\verb=RCM_RHOA= & out & Surface Air Density & $kg.m^{-3}$\\
+\hline
+\end{tabular}
+\label{oasis_field_list}
+\end{table}
+
+More information on how to use OASIS is given in \cite{valcke_oasis}.
+To run the \verb=OASIS= option in the RegCM model,
+simply substitute the executable name:
+
+\begin{Verbatim}
+$> mpirun -np 2 ./bin/regcmMPIOASIS regcm.in
+\end{Verbatim}
+
 \section{Sensitivity experiments hint}
 
 Although the LBC forcing does provide a constraint for the model, as any RCM,

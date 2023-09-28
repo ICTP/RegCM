@@ -80,6 +80,12 @@ Main/radlib/librad.a
 Main/radlib/*.mod
 Main/radlib/*.o
 
+Main/oasislib/Makefile
+Main/oasislib/Makefile.in
+Main/oasislib/liboasis.a
+Main/oasislib/*.mod
+Main/oasislib/*.o
+
 Main/Makefile
 Main/Makefile.in
 Main/regcm
