@@ -247,7 +247,7 @@ module mod_regcm_interface
       !
 #ifdef OASIS
       if ( ioasiscpl == 1 ) then
-        call oasisxregcm_snd_all(int(extime,ik4)+oasis_lag,rcmtimer%reached_endtime)
+        call oasisxregcm_snd_all(int(extime,ik4)+oasis_lag)
         if ( oasis_sync_lag < 0 .and. rcmtimer%reached_endtime) then
           call oasisxregcm_sync_wait(int(extime,ik4))
         end if

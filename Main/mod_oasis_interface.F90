@@ -29,7 +29,7 @@ module mod_oasis_interface
   use mod_message
   use mod_service
   use mod_mppparam
-  use mod_runparams , only : isocean , dtsec !, rcmtimer
+  use mod_runparams , only : isocean , dtsec , alarm_out_sav , rcmtimer
   use mod_bats_common , only : rdnnsg
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
@@ -665,14 +665,12 @@ module mod_oasis_interface
   subroutine oasisxregcm_snd_all(time,l_last_time)
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
-    logical , intent(in) :: l_last_time
     type(infogrd) , pointer :: grd
     integer(ik4) :: i , j , ishift , jshift
     logical :: l_write_restart
     !--------------------------------------------------------------------------
     l_write_restart = (write_restart_option == 1 .and. time == 0) .or. &
-                      (write_restart_option == 2 .and. l_last_time) .or. &
-                      (write_restart_option == 3 .and. (time == 0 .or. l_last_time))
+                      (rcmtimer%reached_endtime .or. alarm_out_sav%act( ))
     !
     if ( l_cpl_ex_u10m ) then ! eatward near-surface wind (10m-height) [m.s-1]
       grd => ex_u10m%grd
@@ -888,14 +886,9 @@ module mod_oasis_interface
     ! OASIS field +++
     !
     if ( myid == italk ) then
-      if ((write_restart_option == 1 .or. write_restart_option == 3) &
-          .and. time == 0) then
+      if (write_restart_option == 1 .and. time == 0) then
         write(stdout,*) 'Note: OASIS restart files written at the' &
                       //' first time.'
- else if ((write_restart_option == 2 .or. write_restart_option == 3) &
-          .and. l_last_time) then
-        write(stdout,*) 'Note: OASIS restart files written at the' &
-                      //' last time.'
       end if
     end if
 
