@@ -37,7 +37,8 @@ module mod_slabocean
 
   private
 
-  real(rkx) :: mlcp , dtocean
+  !real(rkx) :: mlcp
+  real(rkx) :: dtocean
 
   ! the actual prognotic sst pointing on tg2
   real(rkx) , pointer , dimension(:,:) :: sstemp
@@ -213,8 +214,8 @@ module mod_slabocean
     end subroutine init_slabocean
 
     subroutine update_slabocean(xt,lms)
-! FAB  : slab ocean model based on Q flux correction, similar to FMS global model
-!   
+      ! FAB  : Slab ocean model based on Q flux correction,
+      !        similar to FMS global model
       implicit none
       real(rk8) , intent(in) :: xt
       type(lm_state), intent(inout) :: lms
@@ -231,8 +232,8 @@ module mod_slabocean
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ocmask(j,i) ) then
-               qflux_sst(j,i) = (0.5_rkx * (xtsb%b0(j,i) + xtsb%b1(j,i)) - sstemp(j,i)) * &
-                 slabmld(j,i,rcmtimer%month)* 4.0e6_rkx  / &
+              qflux_sst(j,i) = (0.5_rkx * (xtsb%b0(j,i) + xtsb%b1(j,i)) - &
+                sstemp(j,i)) * slabmld(j,i,rcmtimer%month)* 4.0e6_rkx  / &
                  (sst_restore_timescale * 86400.0_rkx) ! w/m2
               qflux_restore_sst(j,i,rcmtimer%month) = &
                 qflux_restore_sst(j,i,rcmtimer%month) + qflux_sst(j,i)
@@ -282,7 +283,7 @@ module mod_slabocean
             hflx(j,i) = ofsw(j,i)-oflw(j,i)-ohfx(j,i)-wlhv*oqfx(j,i)
             ! account for the retaured or adjustment flux term
             net_hflx(j,i) = hflx(j,i) + qflux_adj(j,i) + qflux_sst(j,i)
-            ! update the prognostic sea surface temperature and overwrite 
+            ! update the prognostic sea surface temperature and overwrite
             ! tgrd and tgbb for proper atmospheric feedback and output
             sstemp(j,i) = sstemp(j,i) + dtocean*net_hflx(j,i) / &
               (slabmld(j,i,rcmtimer%month)* 4.0e6_rkx)

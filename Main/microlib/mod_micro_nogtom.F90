@@ -238,9 +238,12 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
+
+  real(rkx) , parameter :: activqx = 1.0e-8_rkx
+  real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
+  real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   abstract interface
@@ -839,7 +842,7 @@ module mod_micro_nogtom
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
           ltkgthomo = ( tk > thomo )
-          lcloud    = ( ccover > zerocf )
+          lcloud    = ( ccover > activcf )
           locast    = ( ccover >= onecf )
 
           ! Derived variables needed
@@ -914,13 +917,13 @@ module mod_micro_nogtom
             ! Evaporate very small amounts of liquid and ice
             !------------------------------------------------
 
-            if ( qx0(iqql) < activqx ) then
+            if ( qx0(iqql) < verylowqx ) then
               qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + qx0(iqql)
               qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - qx0(iqql)
               qxfg(iqql) = qxfg(iqql) - qx0(iqql)
               qxfg(iqqv) = qxfg(iqqv) + qx0(iqql)
             end if
-            if ( qx0(iqqi) < activqx ) then
+            if ( qx0(iqqi) < verylowqx ) then
               qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + qx0(iqqi)
               qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - qx0(iqqi)
               qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
@@ -1742,8 +1745,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qx0(n),activqx) / &
-              max(sinksum(n),max(qx0(n),activqx))
+            ratio(n) = max(qx0(n),verylowqx) / &
+              max(sinksum(n),max(qx0(n),verylowqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1770,8 +1773,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qx0(jo),activqx) / &
-               max(sinksum(jo),max(qx0(jo),activqx))
+            ratio(jo) = max(qx0(jo),verylowqx) / &
+               max(sinksum(jo),max(qx0(jo),verylowqx))
           end do
           !------
           ! scale
@@ -1802,6 +1805,7 @@ module mod_micro_nogtom
                 ! Here is the delta T - missing from doc.
                 qlhs(jn,n) = -qsimp(jn,n)
               end if
+              if ( is_nan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
             end do
           end do
 
@@ -1815,6 +1819,7 @@ module mod_micro_nogtom
               rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
+            if ( is_nan(qxn(n)) ) qxn(n) = verylowqx
           end do
 
           call mysolve
@@ -1832,13 +1837,19 @@ module mod_micro_nogtom
             fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
             ! Calculate the water variables tendencies
             chng = qxn(n) - qx0(n)
-            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
-            ! Calculate the temperature tendencies
-            if ( iphase(n) == 1 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
-            else if ( iphase(n) == 2 ) then
-              ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
+#ifdef DEBUG
+            if ( abs(chng) > 1.0e-16_rkx ) then
+#endif
+              qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
+              ! Calculate the temperature tendencies
+              if ( iphase(n) == 1 ) then
+                ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
+              else if ( iphase(n) == 2 ) then
+                ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
+              end if
+#ifdef DEBUG
             end if
+#endif
           end do
 
         end do ! jx : end of longitude loop
@@ -2215,7 +2226,7 @@ module mod_micro_nogtom
         end if
         indx(n) = imax
         if ( n /= nqx ) then
-          dum = d_one/max(qlhs(n,n),activqx)
+          dum = d_one/max(qlhs(n,n),verylowqx)
           do m = n + 1 , nqx
             qlhs(m,n) = qlhs(m,n)*dum
           end do
@@ -2236,7 +2247,7 @@ module mod_micro_nogtom
         xsum = qxn(ll)
         qxn(ll) = qxn(m)
         if ( ii == 0 ) then
-          if ( abs(xsum) > activqx ) ii = m
+          if ( abs(xsum) > verylowqx ) ii = m
         else
           do jj = ii , m - 1
             xsum = xsum - qlhs(m,jj)*qxn(jj)

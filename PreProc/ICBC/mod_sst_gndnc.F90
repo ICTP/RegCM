@@ -50,7 +50,7 @@ module mod_sst_gndnc
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
-  character(len=8), dimension(2) :: varname
+  character(len=16), dimension(2) :: varname
   type(h_interpolator) :: hint
   integer(ik2) :: fillvalue
   real(rkx) :: add_offset , scale_factor
@@ -101,6 +101,15 @@ module mod_sst_gndnc
          'sst_',year,'_',month,'.nc'
       varname(1) = 'time'
       varname(2) = 'sst'
+    else if ( ssttyp == 'ERAXX' ) then
+      write(inpfile,'(a)') trim(inpglob)//'/ERA5_MEAN/SST/sst_xxxx_xxxx.nc'
+      varname(2) = 'sst'
+    else if ( ssttyp == 'HRMED' ) then
+      write (inpfile,'(a,i0.4,a)') &
+        trim(inpglob)//pthsep//'SST'//pthsep//'HR_MED'//pthsep// &
+         'ERA5-HR-JPL-MUR_SST_',year,'_day.nc'
+      varname(1) = 'time'
+      varname(2) = 'analysed_sst'
     else
       call die('gndnc_sst','Unknown ssttyp: '//ssttyp,1)
     end if
@@ -279,66 +288,77 @@ module mod_sst_gndnc
     integer(ik4) :: it , i , j
     integer(ik4) :: year , month , day , hour
     type(rcm_time_interval) :: tdif
+    integer(ik4) , dimension(12) :: isteps
+
+    data isteps /1,32,60,91,121,151,182,213,244,274,305,335/
 
     istart(3) = 1
 
-    tdif = idate-fidate1
-    it = int(tohours(tdif))/24 + 1
-
-    if ( it > timlen ) then
-      ! Try switching to next file
-      istatus = nf90_close(inet1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error Close file')
+    if ( ssttyp == 'ERAXX' ) then
       call split_idate(idate, year, month, day, hour)
-      if ( ssttyp(1:3) == 'NO_' ) then
-        call find_noresm_sst(inpfile,idate)
-      else if ( ssttyp(1:3) == 'EID' ) then
-        write (inpfile,'(a,i0.4,a)') &
-          trim(inpglob)//pthsep//dattyp//pthsep//'SSTD'// &
-          pthsep//'sst.',year, '.nc'
-      else if ( ssttyp(1:4) == 'ERA5' ) then
-        write (inpfile,'(a,i0.4,a,i0.2,a)') &
-          trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SSTD'//pthsep// &
-           'sst_',year,'_',month,'.nc'
-      else if ( ssttyp == 'TMIST' ) then
-        write (inpfile,'(a,i0.4,a)') &
-           trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
-              'tmisst', year, '.nc'
-      end if
-      istatus = nf90_open(inpfile,nf90_nowrite,inet1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error opening '//trim(inpfile))
-      write (stdout,*) 'Opened ', trim(inpfile)
-      istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var '//varname(1))
-      istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var '//varname(2))
-      istatus = nf90_inq_dimid(inet1,'time',timid)
-      if ( istatus /= nf90_noerr ) then
-        istatus = nf90_inq_dimid(inet1,'TIME',timid)
+      it = isteps(month) + (day-1)
+    else
+      tdif = idate-fidate1
+      it = int(tohours(tdif))/24 + 1
+      if ( it > timlen ) then
+        ! Try switching to next file
+        istatus = nf90_close(inet1)
         call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim time')
-      end if
-      istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error inquire dim time')
-      call getmem1d(work,1,timlen,'mod_gndnc_sst:work')
-      if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
-        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+                        'Error Close file')
+        call split_idate(idate, year, month, day, hour)
+        if ( ssttyp(1:3) == 'NO_' ) then
+          call find_noresm_sst(inpfile,idate)
+        else if ( ssttyp(1:3) == 'EID' ) then
+          write (inpfile,'(a,i0.4,a)') &
+            trim(inpglob)//pthsep//dattyp//pthsep//'SSTD'// &
+            pthsep//'sst.',year, '.nc'
+        else if ( ssttyp(1:4) == 'ERA5' ) then
+          write (inpfile,'(a,i0.4,a,i0.2,a)') &
+            trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SSTD'//pthsep// &
+             'sst_',year,'_',month,'.nc'
+        else if ( ssttyp == 'TMIST' ) then
+          write (inpfile,'(a,i0.4,a)') &
+             trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
+                'tmisst', year, '.nc'
+        else if ( ssttyp == 'HRMED' ) then
+          write (inpfile,'(a,i0.4,a)') &
+            trim(inpglob)//pthsep//'SST'//pthsep//'HR_MED'//pthsep// &
+             'ERA5-HR-JPL-MUR_SST_',year,'_day.nc'
+        end if
+        istatus = nf90_open(inpfile,nf90_nowrite,inet1)
         call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' _FillValue')
-        istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+                        'Error opening '//trim(inpfile))
+        write (stdout,*) 'Opened ', trim(inpfile)
+        istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
         call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' add_offset')
-        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+                        'Error find var '//varname(1))
+        istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
         call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2)//' scale_factor')
-        write(stdout,*) 'Add offset   = ',add_offset
-        write(stdout,*) 'Scale factor = ',scale_factor
-        write(stdout,*) 'Fill Value   = ',fillvalue
+                        'Error find var '//varname(2))
+        istatus = nf90_inq_dimid(inet1,'time',timid)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(inet1,'TIME',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
+        end if
+        istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
+        call getmem1d(work,1,timlen,'mod_gndnc_sst:work')
+        if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
+          istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(2)//' _FillValue')
+          istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(2)//' add_offset')
+          istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' scale_factor')
+          write(stdout,*) 'Add offset   = ',add_offset
+          write(stdout,*) 'Scale factor = ',scale_factor
+          write(stdout,*) 'Fill Value   = ',fillvalue
+        end if
       end if
       istart(1) = 1
       icount(1) = timlen
@@ -372,6 +392,16 @@ module mod_sst_gndnc
             sst(i,j) = workf(i,j) + 273.15_rkx
           else
             sst(i,j) = -9999.0_rkx
+          end if
+        end do
+      end do
+    else if ( ssttyp == 'HRMED' ) then
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if ( is_nan(workf(i,j)) ) then
+            sst(i,j) = -9999.0_rkx
+          else
+            sst(i,j) = workf(i,j)
           end if
         end do
       end do

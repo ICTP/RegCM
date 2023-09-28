@@ -101,6 +101,25 @@ module mod_ch_param
   integer(ik4) , parameter :: cb_HCHO     = 32
   integer(ik4) , parameter :: cb_CH3OH    = 33
 
+! regcm aerosol indices (aev arrays)  ,
+! must follow the datablock order in wrtox !
+! data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+!                'SO2   ','SO4   ','DUST01','DUST02', &
+!                'DUST03','DUST04','SSLT01','SSLT02'/
+  integer(ik4) , parameter :: ae_bchl     = 1
+  integer(ik4) , parameter :: ae_bchb     = 2   
+  integer(ik4) , parameter :: ae_ochl     = 3    
+  integer(ik4) , parameter :: ae_ochb     = 4
+  integer(ik4) , parameter :: ae_so2      = 5
+  integer(ik4) , parameter :: ae_so4      = 6
+  integer(ik4) , parameter :: ae_dust1    = 7
+  integer(ik4) , parameter :: ae_dust2    = 8
+  integer(ik4) , parameter :: ae_dust3    = 9 
+  integer(ik4) , parameter :: ae_dust4    = 10
+  integer(ik4) , parameter :: ae_sslt1    = 11
+  integer(ik4) , parameter :: ae_sslt2    = 12
+
+! molecular weight for mozart / regcm conversions
   real(rkx) , parameter :: w_no2 = 46.0_rkx
   real(rkx) , parameter :: w_no  = 30.0_rkx
 

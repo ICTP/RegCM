@@ -17,12 +17,6 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-ifeq ($(findstring xlf, $(FC)),xlf)
-  DEFINE = -WF,-D
-else
-  DEFINE = -D
-endif
-
 tag := $(REGCM_ROOT)/tag
 
 $(REGCM_ROOT)/version :
@@ -53,12 +47,20 @@ ifeq ($(findstring DCLM45, $(CPPFLAGS)),DCLM45)
   #CPPFLAGS += $(DEFINE)VICHYDRO
 endif
 
+#CPPFLAGS += $(DEFINE)RCEMIP
+
 space :=
 space +=
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
-scppfla := $(filter-out -DMPI_SERIAL,$(scppfla))
-scppfla := $(filter-out -DNETCDF_CDF5,$(scppfla))
+scppfla := $(filter-out $(DEFINE)USE_MPI3,$(scppfla))
+scppfla := $(filter-out $(DEFINE)QUAD_PRECISION,$(scppfla))
+scppfla := $(filter-out $(DEFINE)MPI_SERIAL,$(scppfla))
+scppfla := $(filter-out $(DEFINE)NETCDF_CDF5,$(scppfla))
+scppfla := $(filter-out $(DEFINE)NETCDF4_COMPRESS,$(scppfla))
+scppfla := $(filter-out $(DEFINE)NETCDF4_HDF5,$(scppfla))
+scppfla := $(filter-out $(DEFINE)PNETCDF_IN_NETCDF,$(scppfla))
+scppfla := $(filter-out $(DEFINE)PNETCDF,$(scppfla))
 flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
 
 program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&

@@ -99,7 +99,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 12345_ik4
+  integer(ik4) :: permuteseed = 1_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,16 +107,12 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-
-#if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
-    integer , external :: getpid
-#endif
-#if defined ( IBM )
-    integer , external :: getpid_
-#endif
+    permuteseed = permuteseed + myid*(ngptlw+ngptsw)
+    do while ( permuteseed < 0 )
+      permuteseed = 2147483641+permuteseed
+    end do
     npj = (jci2-jci1+1)
     npr = npj*(ici2-ici1+1)
-
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
@@ -136,9 +132,7 @@ module mod_rrtmg_driver
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
     call getmem2d(qrs,1,npr,1,kz,'rrtmg:qrs')
     call getmem2d(qrl,1,npr,1,kz,'rrtmg:qrl')
-    if ( idiag == 1 ) then
-      call getmem2d(o3,1,npr,1,kz,'rrtmg:o3')
-    end if
+    call getmem2d(o3,1,npr,1,kz,'rrtmg:o3')
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
@@ -255,6 +249,7 @@ module mod_rrtmg_driver
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
+
     call allocate_tracers(1,npr)
   end subroutine allocate_mod_rad_rrtmg
 
@@ -270,14 +265,16 @@ module mod_rrtmg_driver
     real(rk8) :: decorr_con         ! decorrelation length, constant (m)
     logical :: lradfor
     real(rkx) :: adjes
+    integer(ik4) , parameter :: idrv = 0
+    integer(ik4) , parameter :: iaer = 10
+    integer(ik4) , parameter :: isolvar = -1
 
     ! from water path and cloud radius / tauc_LW is not requested
-    tauc_lw(:,:,:) = dlowval
+    tauc_lw(:,:,:) = 1.0e-10_rkx
     call prep_dat_rrtm(m2r,iyear,imonth)
     adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
-
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
@@ -336,27 +333,27 @@ module mod_rrtmg_driver
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,10,lradfor,ldirect,play,plev,  &
-                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr, &
-                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,  &
-                      adjes,juldat,solcon,-1,inflgsw,iceflgsw,    &
-                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,   &
-                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
-                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,   &
-                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,    &
-                      swddifuviflx,swddirpirflx,swddifpirflx,     &
+        call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
+                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
+                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
+                      adjes,juldat,solcon,isolvar,inflgsw,iceflgsw, &
+                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
+                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,      &
+                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,     &
+                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,      &
+                      swddifuviflx,swddirpirflx,swddifpirflx,       &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,10,lradfor,ldirect,play, &
-                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,     &
-                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,    &
-                              asdif,aldir,aldif,czen,adjes,juldat,  &
-                              solcon,-1,inflgsw,iceflgsw,liqflgsw,  &
-                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,   &
-                              rei,rel,tauaer,ssaaer,asmaer,ecaer,   &
-                              swuflx,swdflx,swhr,swuflxc,swdflxc,   &
-                              swhrc,swddiruviflx,swddifuviflx,      &
-                              swddirpirflx,swddifpirflx,swdvisflx,  &
+        call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
+                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
+                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
+                              asdif,aldir,aldif,czen,adjes,juldat,      &
+                              solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
+                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
+                              rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
+                              swuflx,swdflx,swhr,swuflxc,swdflxc,       &
+                              swhrc,swddiruviflx,swddifuviflx,          &
+                              swddirpirflx,swddifpirflx,swdvisflx,      &
                               aeradfo,aeradfos,asaeradfo,asaeradfos)
       end if
     end if ! end shortwave call
@@ -369,16 +366,16 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
-                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
-                    inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
-                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,           &
-                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,       &
-                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,&
+      call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
+                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,         &
+                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,          &
+                    inflglw,iceflglw,liqflglw,cldfmcl_lw,                  &
+                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,              &
+                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,          &
+                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,   &
                     duflx_dt,duflxc_dt)
     else
-      call rrtmg_lw_nomcica(npr,kth,icld,0,lradfor,ldirect,play,plev,    &
+      call rrtmg_lw_nomcica(npr,kth,icld,idrv,lradfor,ldirect,play,plev, &
                             tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
@@ -428,26 +425,19 @@ module mod_rrtmg_driver
 
     ! 3d heating rate back on regcm grid and converted to K.S-1
     ! used to calculate heatinge rate tendency
-    ! 
+    !
     do k = 1 , kz
-      kj = kzp1 -k 
+      kj = kzp1 -k
       do n = 1 , npr
         qrs(n,kj) = swhr(n,k) / secpd
         qrl(n,kj) = lwhr(n,k) / secpd
       end do
     end do
 
-    if ( idiag == 1 ) then
-      do k = 1 , kz
-        kj = kzp1-k
-        do n = 1 , npr
-          o3(n,kj) = o3vmr(n,k)
-        end do
-      end do
-    end if
     do k = 1 , kz
       kj = kzp1-k
       do n = 1 , npr
+        o3(n,kj) = o3vmr(n,k)
         dzr(n,kj) = deltaz(n,k)
         clwp_int(n,kj) = clwp(n,k)
       end do
@@ -656,7 +646,13 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          tlay(n,k) = stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk)
+#ifdef RCEMIP
+          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#else
+          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#endif
         end do
       end do
     end do
@@ -707,7 +703,13 @@ module mod_rrtmg_driver
     end if
     do k = kzp1 , ktf
       do n = 1 , npr
-        tlev(n,k) = stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk)
+#ifdef RCEMIP
+        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#else
+        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#endif
       end do
     end do
 
@@ -737,14 +739,20 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
-          h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
+          h2ommr(n,k) = m2r%qxatms(j,i,kj,iqv)
           h2ovmr(n,k) = h2ommr(n,k) * rep2
         end do
       end do
     end do
     do k = kzp1 , kth
       do n = 1 , npr
-        h2ommr(n,k) = 1.0e-12_rkx
+#ifdef RCEMIP
+        h2ommr(n,k) = 1.0e-14_rkx
+#else
+        h2ommr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+#endif
         h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
     end do
@@ -762,9 +770,15 @@ module mod_rrtmg_driver
     end do
     do k = kzp1 , kth
       do n = 1 , npr
+#ifdef RCEMIP
+        o3vmr(n,k) = &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+#else
         o3vmr(n,k) = &
           stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
           stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+#endif
       end do
     end do
     !
@@ -810,9 +824,9 @@ module mod_rrtmg_driver
     ! aerosols
     ! no stratospheric background for now
     !care : aermmr,rh and pint must be passed to aeroppt consitent with
-    !       the regcm vertical grid i.e.top down 
-    !       the tauxar,tauasc,gtota calculated in aeroppt are then 
-    !       switched on RRTM grid. 
+    !       the regcm vertical grid i.e.top down
+    !       the tauxar,tauasc,gtota calculated in aeroppt are then
+    !       switched on RRTM grid.
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
@@ -930,15 +944,11 @@ module mod_rrtmg_driver
     !
     ! initialise and  begin spectral loop
     !
-    tauc  =  dlowval
+    tauc  =  1.0e-10_rkx
     ssac  =  verynearone
     asmc  =  0.850_rkx
     fsfc  =  0.725_rkx
 
-#if defined(CLM45) || defined(CLM)
-    ! TS is the radiant temeprature
-    emis_surf(:,:) = 1.0_rkx
-#else
     do k = 1 , nbndlw
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -947,7 +957,6 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-#endif
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero

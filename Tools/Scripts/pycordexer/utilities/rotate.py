@@ -23,16 +23,28 @@ def get_x(lon, clon, cone):
         return np.radians(clon - lon) * cone
 
 
-def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None, plon=None,
-                           plat=None):
+def grid_to_earth_uvrotate(proj, lon, lat, clon, clat, cone=None,
+                           plon=None, plat=None):
     if proj == 'NORMER':
         return 1, 0
+
+    elif proj == 'ROTLLR':
+        if np.abs(plat - 90.0) < 0.001:
+            return 1, 0
+        plam = np.radians(plon)
+        pphi = np.radians(plat)
+        phi = np.radians(lat)
+        lam = np.where(abs(lat)>89.99999, 0.0, np.radians(lon))
+        dlam = plam - lam
+        f1 = np.cos(pphi)*np.sin(dlam)
+        f2 = np.cos(phi)*np.sin(pphi) - np.sin(phi)*np.cos(pphi)*np.cos(dlam)
+        delta = np.arctan(f1/f2)
+        return np.cos(delta), np.sin(delta)
 
     elif proj == 'ROTMER':
         zphi = np.radians(lat)
         zrla = np.radians(lon)
         zrla = np.where(abs(lat) > 89.99999, 0.0, zrla)
-
         if plat > 0.0:
             pollam = plon + 180.0
             polphi = 90.0 - plat
