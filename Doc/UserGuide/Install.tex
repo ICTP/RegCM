@@ -161,6 +161,26 @@ is to use the RegCM BATS Land Model.
 This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V4.5 inside RegCM. The default
 is to use the RegCM BATS Land Model.
+\item OASIS option
+\begin{verbatim}
+  --enable-oasis     Supply this option if you plan on using OASIS
+                     option.
+\end{verbatim}
+This option enables the OASIS-related processes inside RegCM. During the run,
+these sections of the code allow communication between RegCM and the other
+components of a coupling system through the OASIS interface module. The default
+is not to use OASIS.
+Enabling this option requires OASIS to be installed. The installation directory
+must be supplied, as well as the used type of communication technique
+(\verb=MPI1= or \verb=MPI2=; the default is \verb=MPI1=).
+The corresponding arguments are shown below.
+\begin{verbatim}
+  --with-oasis-path  Path to OASIS3-MCT installation (require
+                     --enable-oasis) [default:
+                     ~/oasis3-mct/compile_oa3-mct]
+  --with-oasis-comm  Communication technique used in OASIS3-MCT (require
+                     --enable-oasis) [default: MPI1]
+\end{verbatim}
 \end{enumerate}
 
 \section{Build the model executables}

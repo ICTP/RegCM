@@ -1667,6 +1667,7 @@ module mod_ncstream
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) 'ID: ', var%id
           call printerror
           call die('nc_stream', &
             'Cannot define variable '//trim(var%vname)// &
