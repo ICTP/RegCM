@@ -566,7 +566,7 @@
 
                zdbtc(jk) = zdbtmc
                if ( all([zdbtc(jk),ztdbtc(jk)] <= 1.0e-20_rb) ) then
-                  ztdbtc(jk+1) = 0.0_rb
+                  ztdbtc(jk+1) = 1.0e-40_rb
                else
                   ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
                end if
@@ -587,7 +587,7 @@
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
                if ( all([zdbt(jk),ztdbt(jk)] <= 1.0e-20_rb) ) then
-                  ztdbt(jk+1) = 0.0_rb
+                  ztdbt(jk+1) = 1.0e-40_rb
                else
                   ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
                end if

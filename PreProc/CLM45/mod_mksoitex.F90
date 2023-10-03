@@ -44,7 +44,6 @@ module mod_mksoitex
     real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
     integer(ik4) :: i , j , nc , n
     type(globalfile) :: gfile
-    real(rkx) :: tsum
     character(len=256) :: inpfile
 
     nc = size(sand,3)

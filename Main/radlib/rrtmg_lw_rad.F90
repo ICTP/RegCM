@@ -578,21 +578,21 @@
                     taut(k,ig) = taug(k,ig)
                   end do
                 end do
-              else if ( idirect == 2 ) then
-                if ( n == 1 .and. lradfor ) then
-                  do k = 1, nlayers
+              end if
+            else if ( idirect == 2 ) then
+              if ( n == 1 .and. lradfor ) then
+                 do k = 1, nlayers
                     do ig = 1, ngptlw
                       taut(k,ig) = taug(k,ig)
                     end do
-                  end do
-                else if ( n == 2 .or. .not. lradfor ) then
+                 end do
+              else if ( n == 2 .or. .not. lradfor ) then
                   do k = 1, nlayers
                     do ig = 1, ngptlw
                       taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
                     end do
                   end do
-                end if
-              end if
+               end if
             end if
 
 ! Call the radiative transfer routine.

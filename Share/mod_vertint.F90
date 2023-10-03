@@ -799,7 +799,7 @@ module mod_vertint
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = p3d(i,j,km)-1.0e-10_rk8
           bp = p3d(i,j,1)-tp
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/bp
@@ -818,7 +818,7 @@ module mod_vertint
                 if ( sig(k) < sigp ) exit
               end do
               knx = kx - 1
-              wp = (dlog(sigp)-dlog(sig(kx)))/(dlog(sig(knx))-dlog(sig(kx)))
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
               w1 = d_one - wp
               fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
@@ -828,7 +828,7 @@ module mod_vertint
     else
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = p3d(i,j,1)-1.0e-10_rk8
           bp = p3d(i,j,km)-tp
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/bp
@@ -870,7 +870,7 @@ module mod_vertint
     if ( p3d(1,1,1) > p3d(1,1,km) ) then
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = p3d(i,j,km)-1.0e-10_rk4
           bp = p3d(i,j,1)-tp
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/bp
@@ -899,7 +899,7 @@ module mod_vertint
     else
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = p3d(i,j,1)-1.0e-10_rk4
           bp = p3d(i,j,km)-tp
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/bp

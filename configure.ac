@@ -52,10 +52,16 @@ AC_ARG_WITH([szip],
   [SZIP_PREFIX="$withval"], [SZIP_PREFIX="${SZIP}"]
 )
 
-AC_ARG_WITH([oasis-include],
-  AC_HELP_STRING([--with-oasis-include],
-                 [Path to OASIS installation (default: do not use)]),
-  [USEOASIS="1"; OASIS_INCLUDE="$withval"], [USEOASIS="0"]
+AC_ARG_WITH([oasis-path],
+  AC_HELP_STRING([--with-oasis-path],
+		 [Path to OASIS3-MCT installation (require --enable-oasis) [default: ~/oasis3-mct/compile_oa3-mct]]),
+  [OASIS_PREFIX="$withval"], [OASIS_PREFIX="~/oasis3-mct/compile_oa3-mct"]
+)
+
+AC_ARG_WITH([oasis-comm],
+  AC_HELP_STRING([--with-oasis-comm],
+		 [Communication technique used in OASIS3-MCT (require --enable-oasis) [default: MPI1]]),
+  [OASIS_CHAN="$withval"], [OASIS_CHAN="MPI1"]
 )
 
 PARALLEL="1"
@@ -131,6 +137,40 @@ if eval "test x"$USE_SKL" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+USE_OPENACC="0"
+# TODO: make this configurable
+PGI_GPU_ARCH="cc80"
+
+AC_ARG_ENABLE(openacc,
+  AC_HELP_STRING([--enable-openacc],
+                 [Compile OpenACC directives (only for PGI fortran compilation)]),
+                 [USE_OPENACC="1"]
+)
+if eval "test x"$USE_OPENACC" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(openacc-debug,
+  AC_HELP_STRING([--enable-openacc-debug],
+                 [Compile OpenACC directives with autocompare (only for PGI fortran compilation)]),
+                 [USE_OPENACC="2"]
+)
+if eval "test x"$USE_OPENACC" = x2"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+AC_ARG_ENABLE(openacc-managed,
+  AC_HELP_STRING([--enable-openacc-managed],
+                 [Compile OpenACC directives with managed memory (only for PGI fortran compilation)]),
+                 [USE_OPENACC="3"]
+)
+if eval "test x"$USE_OPENACC" = x3"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -153,6 +193,22 @@ AC_ARG_ENABLE(sequence,
                  [Modify MCT types to make them contiguous in memory.]),
   [SRKDEF="SEQUENCE"],
 )
+
+USEOASIS="0"
+AC_ARG_ENABLE(oasis,
+  AC_HELP_STRING([--enable-oasis],
+                 [Supply this option if you plan on using OASIS option.]),
+  [USEOASIS="1"]
+)
+AM_CONDITIONAL(DO_COMPILE_OASIS, [test x"$USEOASIS" = x1])
+
+if eval "test x"$USEOASIS" = x1"; then
+  AC_MSG_WARN([Compiling OASIS enabled code])
+  AC_MSG_WARN([OASIS path: $OASIS_PREFIX])
+  AC_MSG_WARN([OASIS communication technique: $OASIS_CHAN])
+  AM_CPPFLAGS="\$(DEFINE)OASIS $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
 
 USECLM="0"
 USEMEGAN="0"
@@ -208,11 +264,6 @@ if eval "test x"$USECPL" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-if eval "test x"$USEOASIS" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)OASIS -I$OASIS_INCLUDE $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
-fi
-
 PNETCDF_IN_NETCDF=0
 AC_ARG_ENABLE(parallel-nc,
   AC_HELP_STRING([--enable-parallel-nc],
@@ -231,37 +282,29 @@ AC_ARG_ENABLE(pnetcdf,
   [PNETCDF="1"],[PNETCDF="0"]
 )
 if eval "test x$PNETCDF = x1"; then
-  if eval "test x$PNETCDF_IN_NETCDF = x1"; then
-    AC_MSG_ERROR([Cannot enable both Parallel NetCDF and parallel-nc.])
-  fi
-  AM_CPPFLAGS="\$(DEFINE)PNETCDF $AM_CPPFLAGS"
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//')
+  AM_CPPFLAGS="\$(DEFINE)PNETCDF $NULLOPTION"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-if eval "test x$PNETCDF = x0"; then
-  AC_ARG_ENABLE(nc4-gzip,
-    AC_HELP_STRING([--enable-nc4-gzip],
-                   [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
-    [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
+AC_ARG_ENABLE(nc4-gzip,
+  AC_HELP_STRING([--enable-nc4-gzip],
+                 [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
+  [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
   )
-  if eval "test x$NETCDF4_COMPRESS = x1"; then
-    AM_CPPFLAGS="\$(DEFINE)NETCDF4_COMPRESS $AM_CPPFLAGS"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
-
-  AC_ARG_ENABLE(nc4,
-    AC_HELP_STRING([--enable-nc4],
-                   [Supply this option if you plan on using NetCDF4/HDF5 option.]),
-    [NETCDF4_HDF5="1"],[NETCDF4_HDF5="0"]
-  )
-  if eval "test x$NETCDF4_HDF5 = x1"; then
-    AM_CPPFLAGS="\$(DEFINE)NETCDF4_HDF5 $AM_CPPFLAGS"
-    AC_SUBST(AM_CPPFLAGS)
-  fi
-
-else
-  echo "Parallel netcdf disables NetCDF4 options"
+if eval "test x$NETCDF4_COMPRESS = x1"; then
+  NULLOPTION=$( echo $AM_CPPFLAGS | sed -e 's/\$(DEFINE)PNETCDF_IN_NETCDF//' \
+                -e 's/\$(DEFINE)PNETCDF//')
+  AM_CPPFLAGS="\$(DEFINE)NETCDF4_COMPRESS $NULLOPTION"
+  AC_SUBST(AM_CPPFLAGS)
 fi
+
+NETCDF_CDF5=0
+AC_ARG_ENABLE(cdf5,
+  AC_HELP_STRING([--enable-cdf5],
+                 [Supply this option if you plan on using NetCDF/CDF5 option.]),
+  [NETCDF_CDF5="1"],[NETCDF_CDF5="0"]
+)
 
 DEBUG="0"
 AC_ARG_ENABLE(debug,
@@ -362,15 +405,6 @@ case $ac_cv_fc_mangling in
     AC_MSG_WARN([UNKNOWN FORTRAN NAME-MANGLING SCHEME]);;
 esac
 
-if eval "test x$PNETCDF = x0"; then
-  RR_PATH_NETCDF
-  RR_PATH_NETCDF_F90
-  RR_CDF5
-else
-  RR_PATH_NETCDF_F90
-  RR_PATH_PNETCDF
-fi
-
 test "$osname"=NONE && osname=`uname -s`
 OSNAME=$osname
 AC_SUBST(OSNAME)
@@ -434,11 +468,16 @@ AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
 AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
-                                    -z "${FCPROG##pgfortran*}" ] )
+                                    -z "${FCPROG##nvf9*}" -o \
+                                    -z "${FCPROG##pgfortran*}" -o \
+                                    -z "${FCPROG##nvfortran*}" ] )
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
+
+DEFINE="-D"
+AC_SUBST(DEFINE)
 
 # Force Big endian I/O for known compilers
 if test -z "$COMPILER_GNU_TRUE"; then
@@ -532,11 +571,13 @@ if test -z "$COMPILER_PGI_TRUE"; then
   AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
+  DEFINE="-WF,-D"
   FCFLAGS="$FCFLAGS -WF,-DIBM"
   OMPFLAGS="-qsmp=omp"
   CPRDEF="XLF"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
+  AC_SUBST(DEFINE)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
@@ -586,9 +627,12 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
-    FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
-             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
+    FCFLAGS="-Mbounds -Mcache_align -Mchkstk -Mdalign \
+             -Miomutex -Mrecursive -Ktrap=divz -O0 -g \
              -gopt -traceback $FCFLAGS"
+    if test "test x$USE_OPENACC = x1"; then
+      FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -658,7 +702,23 @@ else
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     NOOPTFC="-O1 $FCFLAGS"
-    FCFLAGS="-fastsse $FCFLAGS"
+    FCFLAGS="-O3 -fast -fastsse $FCFLAGS"
+    if eval "test x"$USE_OPENACC" = x1"; then
+      FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x2"; then
+      FCFLAGS="$NOOPTFC -acc=gpu \
+          -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu \
+          -gpu="${PGI_GPU_ARCH}",autocompare -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x3"; then
+      FCFLAGS="$FCFLAGS -acc=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+      NOOPTFC="$NOOPTFC -acc=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+    fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
@@ -671,7 +731,30 @@ else
   fi
 fi
 
+RR_PATH_NETCDF
+RR_PATH_NETCDF_F90
+
+if eval "test x$PNETCDF = x1"; then
+  if eval "test x$PNETCDF_IN_NETCDF = x1"; then
+    RR_NETCDF4
+  else
+    RR_PATH_PNETCDF
+    if eval "test x$NETCDF_CDF5 = x1"; then
+      RR_CDF5
+    fi
+  fi
+else
+  if eval "test x$NETCDF_CDF5 = x1"; then
+    RR_CDF5
+  else
+    RR_NETCDF4
+  fi
+fi
+
+AM_CONDITIONAL(RRTM_NC, [test x"$netcdf" = xyes])
+
 RCM_FC_CHECK_IEEE_ARITHMETIC
+RCM_FC_CHECK_QUAD_PRECISION
 
 MCTPATH="${PWD}/external"
 if test -z "$COMPILER_SUN_TRUE"; then
@@ -687,6 +770,7 @@ AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
 if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
+  #RCM_MPI_CHECK_MPI3
 else
   FORT_SIZE="real4double8"
   AC_SUBST(FORT_SIZE)
@@ -706,6 +790,23 @@ if test -n "$SRKDEF"; then
 fi
 AC_SUBST(MPEUCFLAGS)
 AC_SUBST(MPEUFCFLAGS)
+
+if eval "test x"$USEOASIS" = x1"; then
+  if test -z "$COMPILER_SUN_TRUE"; then
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/scrip"
+    AM_CPPFLAGS="$AM_CPPFLAGS -M$OASIS_PREFIX/build/lib/mct"
+    AC_SUBST(AM_CPPFLAGS)
+  else
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/psmile.$OASIS_CHAN"
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/scrip"
+    AM_CPPFLAGS="$AM_CPPFLAGS -I$OASIS_PREFIX/build/lib/mct"
+    AC_SUBST(AM_CPPFLAGS)
+  fi
+  OASIS3_LIBS="-L$OASIS_PREFIX/lib -lpsmile.$OASIS_CHAN -lmct -lmpeu -lscrip"
+  LIBS="$LIBS $OASIS3_LIBS"
+  AC_SUBST(LIBS)
+fi
 
 F90FLAGS="$FCFLAGS"
 AC_SUBST(F90FLAGS)
@@ -741,6 +842,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/cumlib/Makefile Main/microlib/Makefile \
                  Main/radlib/Makefile Main/radlib/RRTMG/Makefile \
                  Main/pbllib/Makefile Main/cloudlib/Makefile \
+                 Main/oasislib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/timeseries/Makefile])

@@ -1780,6 +1780,16 @@ module mod_ipcc_scenario
     2100.0_rkx , 935.874_rkx , 3750.685_rkx , 435.106_rkx , 25.98_rkx , 167.28_rkx ], &
       [6,251])
       case( 'CONST' )
+#ifdef RCEMIP
+        do jj = 1850 , 2100
+          cgas(1,jj) = jj
+          cgas(2,jj) = 348.0_rkx
+          cgas(3,jj) = 1650.0_rkx
+          cgas(4,jj) = 306.0_rkx
+          cgas(5,jj) = 0.0_rkx
+          cgas(6,jj) = 0.0_rkx
+        end do
+#else
         cgas(1:6,1850:2100) = reshape([    &
     1850.0_rkx , 284.725_rkx , 790.979_rkx , 275.425_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.875_rkx , 792.250_rkx , 275.500_rkx , 0.00_rkx , 0.00_rkx , &
@@ -2042,6 +2052,7 @@ module mod_ipcc_scenario
           cgas(5,jj) = ctemp(5)
           cgas(6,jj) = ctemp(6)
         end do
+#endif
       case default
         call load_scenario(csc,year,month,local_ghgc)
     end select
@@ -2117,6 +2128,7 @@ module mod_ipcc_scenario
         case ('SSP585', 'ssp585')
           imod = 9
         case default
+          imod = 0
           write (stderr,*) 'Unsupported emission scenario: ', sname
           write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
           write (stderr,*) scenarios

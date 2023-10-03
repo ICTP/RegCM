@@ -24,7 +24,7 @@ module mod_clm_regcm
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
-  use mod_clm_drydep , only : n_drydep 
+  use mod_clm_drydep , only : n_drydep
   use netcdf
 
   private
@@ -185,19 +185,6 @@ module mod_clm_regcm
     write(rdate,'(a)') tochar10(rcmtimer%idate)
     call initialize2(rdate)
 
-    ! If CLM45, the surface emissivity is not used.
-    ! The CLM outputs directly to RegCM the radiant Temperature.
-    ! We fill it here the output not to leave it empy, but it is not
-    ! used in computing the surface Long Wave Radiation
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%emisv(n,j,i) = lnd_sfcemiss
-          end if
-        end do
-      end do
-    end do
     if ( rcmtimer%start( ) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -774,6 +761,13 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_a2l%rainf,lms%prcp)
     call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
 
+    ! If CLM45, the surface emissivity is not used.
+    ! The CLM outputs directly to RegCM the radiant Temperature.
+    ! We fill it here the output not to leave it empy, but it is not
+    ! used in computing the surface Long Wave Radiation
+    clm_l2a%notused = 1.0_rkx
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
+
     !--------------------------------------------------
     ! From land to chemistry
     ! only for Isoprene , and in kg/m^2/sec
@@ -821,17 +815,17 @@ module mod_clm_regcm
         lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
       end if
 #endif
-     !FAB : test  drydep velocities for gas , based on w98 / improve by passing the real indices 
+     !FAB : test  drydep velocities for gas , based on w98 / improve by passing the real indices
       if (n_drydep > 0) then
-        do k = 1 , n_drydep 
+        do k = 1 , n_drydep
           emis2d = 0.0_rk8
           if (4 > 0 ) then
             clm_l2a%notused(:) = clm_l2a%ddvel(:,k)
             call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
             lms%ddepv(:,:,:,4) = real(emis2d,rkx)
-          end if 
+          end if
         end do
-      end if 
+      end if
     end if
     !--------------------------------------------------
     ! Will fix

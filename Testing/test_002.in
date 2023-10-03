@@ -82,8 +82,6 @@
  ichem   =          0,
  idcsst = 0,
  iseaice = 0,
- idesseas = 0,
- iconvlwp = 0,
  /
  &subexparam
  /

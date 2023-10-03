@@ -2024,16 +2024,9 @@ module mod_rad_radiation
       !
       ! Computation of clear sky fluxes always set first level of fsul
       !
-#if defined(CLM45) || defined(CLM)
-      ! TS is the Radiant Temperature
-      do n = n1 , n2
-        fsul(n,kzp1) = stebol * ts(n)**4
-      end do
-#else
       do n = n1 , n2
         fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
       end do
-#endif
       !
       ! Downward clear sky fluxes store intermediate quantities in down
       ! flux Initialize fluxes to clear sky values.
@@ -2674,7 +2667,7 @@ module mod_rad_radiation
           ! top of the current layer:
           !
           exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-          if ( exptdn(n,k) < dlowval ) exptdn(n,k) = d_zero
+          if ( exptdn(n,k) < dlowval ) exptdn(n,k) = 1.0e-10_rkx
           rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
           rdirexp = rdir(n,k-1)*exptdn(n,k-1)
           tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)

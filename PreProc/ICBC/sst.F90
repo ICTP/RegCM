@@ -177,9 +177,21 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp == 'HRMED' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gndnc
   else if ( ssttyp == 'ERA5D' .or. ssttyp(1:3) == 'EID' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gndnc
+  else if ( ssttyp == 'ERAXX' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gndnc

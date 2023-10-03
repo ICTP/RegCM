@@ -175,6 +175,7 @@
                zgamma2= zsr3 * zw * (1._rb - zg ) * 0.5_rb
                zgamma3= (1._rb - zsr3 * zg * prmuz ) * 0.5_rb
             end if
+            zgamma2 = min(zgamma1,zgamma2)
             zgamma4= 1._rb - zgamma3
 
 ! Recompute original s.s.a. to test for conservative solution
@@ -232,7 +233,7 @@
 
                za1 = zgamma1 * zgamma4 + zgamma2 * zgamma3
                za2 = zgamma1 * zgamma3 + zgamma2 * zgamma4
-               zrk = sqrt ( zgamma1**2 - zgamma2**2)
+               zrk = sqrt ( zgamma1**2 - zgamma2**2 )
                zrp = zrk * prmuz
                zrp1 = 1._rb + zrp
                zrm1 = 1._rb - zrp
@@ -308,15 +309,21 @@
                   pref(jk) = eps
                   ptra(jk) = zem2
                else
-                  pref(jk) = zw * (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
-                  ptra(jk) = zem2 - zem2 * zw * (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
+                  pref(jk) = zw * &
+                         (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
+                  ptra(jk) = zem2 - zem2 * zw * &
+                         (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
                endif
 !!
 
 ! diffuse beam
 
                zemm = zem1*zem1
-               zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               if ( (1._rb - zbeta*zemm) > 0.0_rb ) then
+                  zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               else
+                  zdend = 1.0e-20_rb
+               end if
                prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
                ptrad(jk) =  zrk2*zem1*zdend
 

@@ -1316,12 +1316,6 @@ module rrtmg_sw_rad
 !  Initialize all molecular amounts to zero here, then pass input amounts
 !  into RRTM array WKL below.
 
-      sfid = 0.0_rb
-      fraclo = 0.0_rb
-      frachi = 0.0_rb
-      indsolvar_scl(1:2) = 1.0_rb
-      indsolvar_ndx(1:2) = 0.0_rb
-      solcycfr = 0.0_rb
       wkl(:,:) = 0.0_rb
       cldfmc(:,:) = 0.0_rb
       taucmc(:,:) = 0.0_rb
@@ -1372,9 +1366,14 @@ module rrtmg_sw_rad
                endif
             endif
          endif
+<<<<<<< HEAD
       endif
 ! Check for presence of indsolvar when isolvar = 2.
       if (isolvar .eq. 2) then
+=======
+! Check for presence of indsolvar when isolvar = 2.
+      else if (isolvar .eq. 2) then
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 ! Use mean solar cycle facular and sunspot indices by default unless indsolvar is present
          indsolvar_ndx(1) = svar_f_avg
          indsolvar_ndx(2) = svar_s_avg
@@ -1382,6 +1381,16 @@ module rrtmg_sw_rad
             indsolvar_ndx(1) = indsolvar(1)
             indsolvar_ndx(2) = indsolvar(2)
          endif
+<<<<<<< HEAD
+=======
+      else
+         sfid = 0.0_rb
+         fraclo = 0.0_rb
+         frachi = 0.0_rb
+         indsolvar_scl(1:2) = 1.0_rb
+         indsolvar_ndx(1:2) = 0.0_rb
+         solcycfr = 0.0_rb
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       endif
 
 ! Set flux adjustment for current Earth/Sun distance (two options).
@@ -1400,6 +1409,7 @@ module rrtmg_sw_rad
 ! 1368.22 Wm-2 (for ISOLVAR=-1) and 1360.85 Wm-2 (for ISOLVAR=0,3;
 ! options ISOLVAR=1,2 model solar cycle variations from 1360.85 Wm-2)
 !
+<<<<<<< HEAD
 ! SCON = 0
 ! Use internal TSI value
       if (scon .eq. 0.0_rb) then
@@ -1410,20 +1420,49 @@ module rrtmg_sw_rad
             solvar(jpb1:jpb2) = 1.0_rb
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
          endif
+=======
+! SCON > 0
+! Scale from internal TSI to externally specified TSI value (scon)
+      if (scon .gt. 0.0_rb) then
+!   No solar cycle and no solar variability (Kurucz solar source function)
+!   Scale from internal solar constant to requested solar constant.
+!   Apply optional constant scaling by band if first element of bndsolvar > 0.0
+         if (isolvar .eq. -1) then
+            if (.not. present(bndsolvar)) &
+              solvar(jpb1:jpb2) = scon / rrsw_scon
+            if (present(bndsolvar)) &
+              solvar(jpb1:jpb2) = bndsolvar(:) * scon / rrsw_scon
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 
 !   Mean solar cycle with no solar variability (NRLSSI2 model solar irradiance)
 !   Quiet sun, facular, and sunspot terms averaged over the mean solar cycle
 !   (defined as average of Solar Cycles 13-24).
+<<<<<<< HEAD
          if (isolvar .eq. 0) then
             svar_f = 1.0_rb
             svar_s = 1.0_rb
             svar_i = 1.0_rb
          endif
+=======
+!   Scale internal solar constant to requested solar constant.
+!!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
+!!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+         else
+
+            if (isolvar .eq. 0) then
+               svar_cprim = Fint + Sint + Iint
+               svar_r = scon / svar_cprim
+               svar_f = svar_r
+               svar_s = svar_r
+               svar_i = svar_r
+            endif
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 
 !   Mean solar cycle with solar variability (NRLSSI2 model)
 !   Facular and sunspot terms interpolated from LUTs to input solar cycle
 !   fraction for mean solar cycle. Scalings defined below to convert from
 !   averaged Mg and SB terms to Mg and SB terms interpolated here.
+<<<<<<< HEAD
 !   (Includes optional facular and sunspot amplitude scale factors)
          if (isolvar .eq. 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
@@ -1474,12 +1513,76 @@ module rrtmg_sw_rad
             svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
             svar_i = 1.0_rb
          endif
+=======
+!   Scale internal solar constant to requested solar constant.
+!   (Includes optional facular and sunspot amplitude scale factors)
+            if (isolvar .eq. 1) then
+!   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
+               if (solcycfr .le. 0.0_rb) then
+                  tmp_f_0 = mgavgcyc(1)
+                  tmp_s_0 = sbavgcyc(1)
+               elseif (solcycfr .ge. 1.0_rb) then
+                  tmp_f_0 = mgavgcyc(nsolfrac)
+                  tmp_s_0 = sbavgcyc(nsolfrac)
+               else
+                  intrvl_len = 1.0_rb / (nsolfrac-2)
+                  intrvl_len_hf = 0.5_rb * intrvl_len
+!   Initial half interval (1)
+                  if (solcycfr .le. intrvl_len_hf) then
+                     sfid = 1
+                     fraclo = 0.0_rb
+                     frachi = intrvl_len_hf
+                  endif
+!   Main whole intervals (131)
+                  if (solcycfr .gt. intrvl_len_hf .and. &
+                      solcycfr .lt. 1.0_rb-intrvl_len_hf) then
+                     sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
+                     fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                     frachi = fraclo + intrvl_len
+                  endif
+!   Final half interval (1)
+                  if (solcycfr .ge. 1.0_rb-intrvl_len_hf) then
+                     sfid = (nsolfrac-2) + 1
+                     fraclo = 1.0_rb - intrvl_len_hf
+                     frachi = 1.0_rb
+                  endif
+                  intfrac = (solcycfr - fraclo) / (frachi - fraclo)
+                  tmp_f_0 = mgavgcyc(sfid) + &
+                    intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
+                  tmp_s_0 = sbavgcyc(sfid) + &
+                    intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
+               endif
+               svar_f_0 = tmp_f_0
+               svar_s_0 = tmp_s_0
+!   Define Cprime
+!              svar_cprim = indsolvar(1) * svar_f_avg * Fint + &
+!                      indsolvar(2) * svar_s_avg * Sint + Iint
+!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
+!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+               svar_i = (scon - (indsolvar_scl(1) * Fint + &
+                 indsolvar_scl(2) * Sint)) / Iint
+               svar_f = indsolvar_scl(1) * &
+                 (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+               svar_s = indsolvar_scl(2) * &
+                 (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+            endif
+
+!   Specific solar cycle with solar variability (NRLSSI2 model)
+!   (Not available for SCON > 0)
+!         if (isolvar .eq. 2) then
+!            scon = 0.0_rb
+!            svar_f = (indsolvar_ndx(1) - Foffset) / (svar_f_avg - Foffset)
+!            svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
+!            svar_i = 1.0_rb
+!         endif
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 
 !   Mean solar cycle with no solar variability (NRLSSI2 model)
 !   Averaged facular, sunspot and quiet sun terms from mean solar cycle
 !   (derived as average of Solar Cycles 13-24). This information is built
 !   into coefficient terms specified by g-point elsewhere. Separate
 !   scaling by spectral band is applied as defined by bndsolvar.
+<<<<<<< HEAD
          if (isolvar .eq. 3) then
             solvar(jpb1:jpb2) = 1.0_rb
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
@@ -1499,11 +1602,39 @@ module rrtmg_sw_rad
          if (isolvar .eq. -1) then
             if (.not. present(bndsolvar)) solvar(jpb1:jpb2) = scon / rrsw_scon
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:) * scon / rrsw_scon
+=======
+!   Scale internal solar constant (svar_cprim) to requested solar constant (scon)
+!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
+!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+            if (isolvar .eq. 3) then
+               svar_cprim = Fint + Sint + Iint
+               if (.not. present(bndsolvar)) &
+                 solvar(jpb1:jpb2) = scon / svar_cprim
+               if (present(bndsolvar)) &
+                 solvar(jpb1:jpb2) = bndsolvar(:) * scon / svar_cprim
+               do ib = jpb1,jpb2
+                  svar_f_bnd(ib) = solvar(ib)
+                  svar_s_bnd(ib) = solvar(ib)
+                  svar_i_bnd(ib) = solvar(ib)
+               enddo
+            endif
+         endif
+! SCON = 0
+! Use internal TSI value
+      else
+
+!   No solar cycle and no solar variability (Kurucz solar source function)
+!   Apply constant scaling by band if first element of bndsolvar specified
+         if (isolvar .eq. -1) then
+            solvar(jpb1:jpb2) = 1.0_rb
+            if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
          endif
 
 !   Mean solar cycle with no solar variability (NRLSSI2 model solar irradiance)
 !   Quiet sun, facular, and sunspot terms averaged over the mean solar cycle
 !   (defined as average of Solar Cycles 13-24).
+<<<<<<< HEAD
 !   Scale internal solar constant to requested solar constant.
 !!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
 !!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
@@ -1513,13 +1644,22 @@ module rrtmg_sw_rad
             svar_f = svar_r
             svar_s = svar_r
             svar_i = svar_r
+=======
+         if (isolvar .eq. 0) then
+            svar_f = 1.0_rb
+            svar_s = 1.0_rb
+            svar_i = 1.0_rb
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
          endif
 
 !   Mean solar cycle with solar variability (NRLSSI2 model)
 !   Facular and sunspot terms interpolated from LUTs to input solar cycle
 !   fraction for mean solar cycle. Scalings defined below to convert from
 !   averaged Mg and SB terms to Mg and SB terms interpolated here.
+<<<<<<< HEAD
 !   Scale internal solar constant to requested solar constant.
+=======
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 !   (Includes optional facular and sunspot amplitude scale factors)
          if (isolvar .eq. 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
@@ -1539,7 +1679,12 @@ module rrtmg_sw_rad
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
+<<<<<<< HEAD
                if (solcycfr .gt. intrvl_len_hf .and. solcycfr .lt. 1.0_rb-intrvl_len_hf) then
+=======
+               if (solcycfr .gt. intrvl_len_hf .and. &
+                   solcycfr .lt. 1.0_rb-intrvl_len_hf) then
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
                   sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
@@ -1556,6 +1701,7 @@ module rrtmg_sw_rad
             endif
             svar_f_0 = tmp_f_0
             svar_s_0 = tmp_s_0
+<<<<<<< HEAD
 !   Define Cprime
 !            svar_cprim = indsolvar(1) * svar_f_avg * Fint + indsolvar(2) * svar_s_avg * Sint + Iint
 !   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
@@ -1573,12 +1719,29 @@ module rrtmg_sw_rad
 !            svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
 !            svar_i = 1.0_rb
 !         endif
+=======
+            svar_f = indsolvar_scl(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+            svar_s = indsolvar_scl(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+            svar_i = 1.0_rb
+         endif
+
+!   Specific solar cycle with solar variability (NRLSSI2 model)
+!   Facular and sunspot index terms input directly to model specific
+!   solar cycle.  Scalings defined below to convert from averaged
+!   Mg and SB terms to specified Mg and SB terms.
+         if (isolvar .eq. 2) then
+            svar_f = (indsolvar_ndx(1) - Foffset) / (svar_f_avg - Foffset)
+            svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
+            svar_i = 1.0_rb
+         endif
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
 
 !   Mean solar cycle with no solar variability (NRLSSI2 model)
 !   Averaged facular, sunspot and quiet sun terms from mean solar cycle
 !   (derived as average of Solar Cycles 13-24). This information is built
 !   into coefficient terms specified by g-point elsewhere. Separate
 !   scaling by spectral band is applied as defined by bndsolvar.
+<<<<<<< HEAD
 !   Scale internal solar constant (svar_cprim) to requested solar constant (scon)
 !   Fint is provided as the product of (svar_f_avg-Foffset) and Fint,
 !   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
@@ -1586,6 +1749,11 @@ module rrtmg_sw_rad
             svar_cprim = Fint + Sint + Iint
             if (.not. present(bndsolvar)) solvar(jpb1:jpb2) = scon / svar_cprim
             if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:) * scon / svar_cprim
+=======
+         if (isolvar .eq. 3) then
+            solvar(jpb1:jpb2) = 1.0_rb
+            if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
             do ib = jpb1,jpb2
                svar_f_bnd(ib) = solvar(ib)
                svar_s_bnd(ib) = solvar(ib)

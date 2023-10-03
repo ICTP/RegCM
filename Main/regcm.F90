@@ -36,12 +36,18 @@ program regcm
 #ifndef MPI_SERIAL
   use mpi
 #endif
+#ifdef OASIS
+  use mod_oasis_interface
+#endif
 
   implicit none
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr , iprov
+#ifdef OASIS
+  integer :: localCommunicator
+#endif
 #ifdef MPI_SERIAL
   include 'mpif.h'
   integer(ik4) , parameter :: mpi_thread_single = 0
@@ -53,12 +59,20 @@ program regcm
 !
 !**********************************************************************
 !
+#ifndef OASIS
   call mpi_init_thread(mpi_thread_single,iprov,ierr)
   if ( ierr /= mpi_success ) then
     write(stderr,*) 'Cannot initilize MPI'
     stop
   end if
   call RCM_initialize()
+#else
+  !
+  ! OASIS Initialization
+  !
+  call oasisxregcm_init(localCommunicator)
+  call RCM_initialize(localCommunicator)
+#endif
 !
 !**********************************************************************
 !
@@ -79,7 +93,14 @@ program regcm
 !**********************************************************************
 !
   call RCM_finalize()
+#ifndef OASIS
   call mpi_finalize(ierr)
+#else
+  !
+  ! OASIS Finalization
+  !
+  call oasisxregcm_finalize
+#endif
 !
 end program regcm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

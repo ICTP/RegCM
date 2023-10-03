@@ -314,7 +314,7 @@ module mod_kdtree2
     if ( present(rearrange) ) then
       mr%rearrange = rearrange
     else
-      mr%rearrange = .true.
+      mr%rearrange = .false.
     end if
 
     if ( mr%rearrange ) then

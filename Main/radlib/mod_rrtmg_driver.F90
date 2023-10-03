@@ -97,9 +97,9 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer(ik4) :: npr
+  integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 1 , mypid
+  integer(ik4) :: permuteseed = 1_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,15 +107,12 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-
-#if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
-    integer , external :: getpid
-#endif
-#if defined ( IBM )
-    integer , external :: getpid_
-#endif
-    npr = (jci2-jci1+1)*(ici2-ici1+1)
-
+    permuteseed = permuteseed + myid*(ngptlw+ngptsw)
+    do while ( permuteseed < 0 )
+      permuteseed = 2147483641+permuteseed
+    end do
+    npj = (jci2-jci1+1)
+    npr = npj*(ici2-ici1+1)
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
@@ -133,11 +130,9 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
-    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
-    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
-    if ( idiag == 1 ) then
-      call getmem2d(o3,1,npr,1,kth,'rrtmg:o3')
-    end if
+    call getmem2d(qrs,1,npr,1,kz,'rrtmg:qrs')
+    call getmem2d(qrl,1,npr,1,kz,'rrtmg:qrl')
+    call getmem2d(o3,1,npr,1,kz,'rrtmg:o3')
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
@@ -256,12 +251,6 @@ module mod_rrtmg_driver
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
     call allocate_tracers(1,npr)
-
-#if defined ( IBM )
-    mypid = getpid_()
-#else
-    mypid = getpid()
-#endif
   end subroutine allocate_mod_rad_rrtmg
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
@@ -271,19 +260,22 @@ module mod_rrtmg_driver
     integer(ik4) , intent(in) :: iyear , imonth , iday
     logical , intent(in) :: lout
     integer(ik4) :: k , kj , n , i , j , idirect
+    integer(ik4) :: k , kj , n , i , j , ldirect
     integer(ik4) :: idcor           ! Decorrelation length type
     integer(ik4) :: juldat          ! Julian day of year
     real(rk8) :: decorr_con         ! decorrelation length, constant (m)
     logical :: lradfor
     real(rkx) :: adjes
+    integer(ik4) , parameter :: idrv = 0
+    integer(ik4) , parameter :: iaer = 10
+    integer(ik4) , parameter :: isolvar = -1
 
     ! from water path and cloud radius / tauc_LW is not requested
-    tauc_lw(:,:,:) = dlowval
+    tauc_lw(:,:,:) = 1.0e-10_rkx
     call prep_dat_rrtm(m2r,iyear,imonth)
     adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
-
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
@@ -304,8 +296,8 @@ module mod_rrtmg_driver
     asaeradfos(:) = d_zero
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
-
-    idirect = 0
+    !
+    ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       idirect = idirect
     else if ( iclimaaer > 0 ) then
@@ -322,27 +314,31 @@ module mod_rrtmg_driver
     end if
 
     if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
+<<<<<<< HEAD
       n = 1
+=======
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           asdir(n) = m2r%aldirs(j,i)
           asdif(n) = m2r%aldifs(j,i)
           aldir(n) = m2r%aldirl(j,i)
           aldif(n) = m2r%aldifl(j,i)
           czen(n)  = m2r%coszrs(j,i)
           if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
-          n = n + 1
         end do
       end do
       if ( imcica == 1 ) then
         ! generates cloud properties:
-        permuteseed = permuteseed+mypid+ngptlw
+        permuteseed = permuteseed+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
         call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
                              asmcmcl,fsfcmcl)
+<<<<<<< HEAD
         call rrtmg_sw(npr,kth,icld,10,lradfor,idirect,play,plev,  &
                       tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr, &
                       n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,  &
@@ -364,18 +360,42 @@ module mod_rrtmg_driver
                               swuflx,swdflx,swhr,swuflxc,swdflxc,   &
                               swhrc,swddiruviflx,swddifuviflx,      &
                               swddirpirflx,swddifpirflx,swdvisflx,  &
+=======
+        call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
+                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
+                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
+                      adjes,juldat,solcon,isolvar,inflgsw,iceflgsw, &
+                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
+                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,      &
+                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,     &
+                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,      &
+                      swddifuviflx,swddirpirflx,swddifpirflx,       &
+                      swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
+      else
+        call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
+                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
+                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
+                              asdif,aldir,aldif,czen,adjes,juldat,      &
+                              solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
+                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
+                              rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
+                              swuflx,swdflx,swhr,swuflxc,swdflxc,       &
+                              swhrc,swddiruviflx,swddifuviflx,          &
+                              swddirpirflx,swddifpirflx,swdvisflx,      &
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
                               aeradfo,aeradfos,asaeradfo,asaeradfos)
       end if
     end if ! end shortwave call
 
     ! LW call :
     if ( imcica == 1 ) then
-      permuteseed = permuteseed+mypid+ngptsw
+      permuteseed = permuteseed+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
                            reicmcl,relqmcl,taucmcl_lw)
+<<<<<<< HEAD
       call rrtmg_lw(npr,kth,icld,0,lradfor,idirect,play,plev,tlay,tlev, &
                     tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
@@ -386,6 +406,18 @@ module mod_rrtmg_driver
                     duflx_dt,duflxc_dt)
     else
       call rrtmg_lw_nomcica(npr,kth,icld,0,lradfor,idirect,play,plev,    &
+=======
+      call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
+                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,         &
+                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,          &
+                    inflglw,iceflglw,liqflglw,cldfmcl_lw,                  &
+                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,              &
+                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,          &
+                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,   &
+                    duflx_dt,duflxc_dt)
+    else
+      call rrtmg_lw_nomcica(npr,kth,icld,idrv,lradfor,ldirect,play,plev, &
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
                             tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
                             n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
                             ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
@@ -434,6 +466,7 @@ module mod_rrtmg_driver
     end do
 
     ! 3d heating rate back on regcm grid and converted to K.S-1
+<<<<<<< HEAD
     if ( idiag == 1 ) then
       do k = 1 , kz
         kj = kzp1-k
@@ -442,11 +475,25 @@ module mod_rrtmg_driver
           qrs(n,kj) = swhr(n,k) / secpd
           qrl(n,kj) = lwhr(n,k) / secpd
         end do
+=======
+    ! used to calculate heatinge rate tendency
+    !
+    do k = 1 , kz
+      kj = kzp1 -k
+      do n = 1 , npr
+        qrs(n,kj) = swhr(n,k) / secpd
+        qrl(n,kj) = lwhr(n,k) / secpd
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       end do
-    end if
+    end do
+
     do k = 1 , kz
       kj = kzp1-k
       do n = 1 , npr
+<<<<<<< HEAD
+=======
+        o3(n,kj) = o3vmr(n,k)
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
         dzr(n,kj) = deltaz(n,k)
         clwp_int(n,kj) = clwp(n,k)
       end do
@@ -454,15 +501,18 @@ module mod_rrtmg_driver
 
     cld_int(:,:) = d_zero
     do k = 1 , kz
+<<<<<<< HEAD
       n = 1
+=======
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           if ( clwp_int(n,k) > d_zero ) then
             cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                           (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
             cld_int(n,k) = min(cld_int(n,k),cftotmax)
           end if
-          n = n + 1
         end do
       end do
     end do
@@ -584,31 +634,31 @@ module mod_rrtmg_driver
 
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         dlat(n) = m2r%xlat(j,i)
         ioro(n) = m2r%ldmsk(j,i)
+<<<<<<< HEAD
         n = n + 1
+=======
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       end do
     end do
-
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
-        n = n + 1
       end do
     end do
 
     do k = 1 , kz
-      n = 1
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           play(n,k) = m2r%phatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
     end do
@@ -616,29 +666,40 @@ module mod_rrtmg_driver
     ! convert pressures from Pa to mb and define interface pressures:
     !
     do k = 1 , kzp1
-      n = 1
       kj = kzp2-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
     end do
+<<<<<<< HEAD
     do n = 1 , npr
       plev(n,ktf) = 1.0e-4_rkx
     end do
     do n = 1 , npr
       play(n,kth) = 0.5_rkx * plev(n,ktf-1)
+=======
+    do k = kzp2 , ktf
+      do n = 1 , npr
+        plev(n,k) = stdplevf(kclimf+k-kzp2)
+      end do
+    end do
+    ! smooth transition from top to climate at kzp1
+    do k = kzp1 , kth
+      do n = 1 , npr
+        play(n,k) = stdplevh(kclimh+k-kzp1)
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
     !
     ! ground temperature
     !
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         tsfc(n) = m2r%tg(j,i)
-        n = n + 1
       end do
     end do
     !
@@ -646,35 +707,56 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1-k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           tlay(n,k) = m2r%tatms(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
+<<<<<<< HEAD
     do n = 1 , npr
       tlay(n,kth) = tlay(n,kz)
+=======
+    do k = kzp1 , kth
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
+#ifdef RCEMIP
+          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#else
+          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#endif
+        end do
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
     !
     ! deltaz
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           deltaz(n,k) = m2r%deltaz(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
+<<<<<<< HEAD
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         deltaz(n,kth) = 100000_rkx - m2r%zq(j,i,1)
         n = n+1
+=======
+    do k = kzp1 , kth
+      do n = 1 , npr
+        deltaz(n,k) = (stdhlevf(kclimf+k-kzp1) - &
+                       stdhlevf(kclimf+k-kzp1-1)) * d_1000
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       end do
     end do
     !
@@ -686,15 +768,14 @@ module mod_rrtmg_driver
     if ( idynamic /= 3 ) then
       do k = 2 , kz
         kj = kzp2-k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = (j-jci1+1)+(i-ici1)*npj
             p1 = (plev(n,k)/play(n,k-1))**c287
             p2 = (plev(n,k)/play(n,k))**c287
             w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
             w2 = (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
             tlev(n,k) = w1 * tlay(n,k-1) * p1 + w2 * tlay(n,k) * p2
-            n = n + 1
           end do
         end do
       end do
@@ -705,26 +786,46 @@ module mod_rrtmg_driver
         end do
       end do
     end if
+<<<<<<< HEAD
     do n = 1 , npr
       tlev(n,kzp1) = tlay(n,kz)
       tlev(n,ktf) = 0.5_rkx * (tlev(n,ktf-1)+tlev(n,ktf-2))
+=======
+    do k = kzp1 , ktf
+      do n = 1 , npr
+#ifdef RCEMIP
+        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#else
+        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#endif
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
 
     if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = (j-jci1+1)+(i-ici1)*npj
             ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
             qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
-            n = n + 1
           end do
         end do
       end do
+<<<<<<< HEAD
       do n = 1 , npr
         ql1(n,kth) = d_zero
         qi1(n,kth) = d_zero
+=======
+      do k = kzp1 , kth
+        do n = 1 , npr
+          ql1(n,k) = d_zero
+          qi1(n,k) = d_zero
+        end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       end do
     end if
     !
@@ -732,34 +833,61 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
+          n = (j-jci1+1)+(i-ici1)*npj
+          h2ommr(n,k) = m2r%qxatms(j,i,kj,iqv)
           h2ovmr(n,k) = h2ommr(n,k) * rep2
-          n = n + 1
         end do
       end do
     end do
+<<<<<<< HEAD
     do n = 1 , npr
       h2ommr(n,kth) = 1.0e-12_rkx
       h2ovmr(n,kth) = h2ommr(n,k) * rep2
+=======
+    do k = kzp1 , kth
+      do n = 1 , npr
+#ifdef RCEMIP
+        h2ommr(n,k) = 1.0e-14_rkx
+#else
+        h2ommr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+#endif
+        h2ovmr(n,k) = h2ommr(n,k) * rep2
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
     !
     ! o3 volume mixing ratio
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
-          n = n + 1
         end do
       end do
     end do
+<<<<<<< HEAD
     do n = 1 , npr
       o3vmr(n,kth) = o3vmr(n,kz)
+=======
+    do k = kzp1 , kth
+      do n = 1 , npr
+#ifdef RCEMIP
+        o3vmr(n,k) = &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+#else
+        o3vmr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+#endif
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
     !
     ! cgas is in ppm , ppb , ppt
@@ -775,7 +903,11 @@ module mod_rrtmg_driver
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
 
+<<<<<<< HEAD
     do k = 1 , kth
+=======
+    do k = 1 , kz
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
       do n = 1 , npr
         co2vmrk(n,k) = co2vmr(n)
       end do
@@ -803,17 +935,17 @@ module mod_rrtmg_driver
     !
     ! aerosols
     ! no stratospheric background for now
-    !care : Tracers mixing ratios are on regcm grid
-    !
+    !care : aermmr,rh and pint must be passed to aeroppt consitent with
+    !       the regcm vertical grid i.e.top down
+    !       the tauxar,tauasc,gtota calculated in aeroppt are then
+    !       switched on RRTM grid.
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
-          kj = kzp1-k
-          n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = m2r%chiatms(j,i,kj,itr)
-              n = n + 1
+              n = (j-jci1+1)+(i-ici1)*npj
+              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),d_zero)
             end do
           end do
         end do
@@ -821,22 +953,18 @@ module mod_rrtmg_driver
     end if
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
-        n = 1
-        kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh(n,k) = m2r%rhatms(j,i,kj)
-            n = n + 1
+            n = (j-jci1+1)+(i-ici1)*npj
+            rh(n,k) = m2r%rhatms(j,i,k)
           end do
         end do
       end do
       do k = 1 , kzp1
-        n = 1
-        kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pint(n,k) = m2r%pfatms(j,i,kj)
-            n = n + 1
+            n = (j-jci1+1)+(i-ici1)*npj
+            pint(n,k) = m2r%pfatms(j,i,k)
           end do
         end do
       end do
@@ -880,7 +1008,6 @@ module mod_rrtmg_driver
     clwp = d_zero
     do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           !
@@ -889,18 +1016,26 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on bottom/toa grid
           !
+          n = (j-jci1+1)+(i-ici1)*npj
           cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          n = n + 1
         end do
       end do
     end do
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
+<<<<<<< HEAD
     do n = 1 , npr
       cldf(n,kth) = d_zero
       clwp(n,kth) = d_zero
+=======
+    do k = kzp1 , kth
+      do n = 1 , npr
+        cldf(n,k) = d_zero
+        clwp(n,k) = d_zero
+      end do
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     end do
     !
     ! CLOUD Properties:
@@ -931,25 +1066,23 @@ module mod_rrtmg_driver
     !
     ! initialise and  begin spectral loop
     !
+<<<<<<< HEAD
     tauc  =  dlowval
+=======
+    tauc  =  1.0e-10_rkx
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
     ssac  =  verynearone
     asmc  =  0.850_rkx
     fsfc  =  0.725_rkx
 
-#if defined(CLM45) || defined(CLM)
-    ! TS is the radiant temeprature
-    emis_surf(:,:) = 1.0_rkx
-#else
     do k = 1 , nbndlw
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           emis_surf(n,k) = m2r%emiss(j,i)
-          n = n + 1
         end do
       end do
     end do
-#endif
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
@@ -1109,7 +1242,11 @@ module mod_rrtmg_driver
       end do
     end do
     if ( ipptls > 1 ) then
+<<<<<<< HEAD
       do k = 1 , kz
+=======
+      do k = 1 , kth
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
         do n = 1 , npr
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
@@ -1119,7 +1256,11 @@ module mod_rrtmg_driver
         end do
       end do
     else
+<<<<<<< HEAD
       do k = 1 , kz
+=======
+      do k = 1 , kth
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
         do n = 1 , npr
           if ( t(n,k) > minus10 ) then
             ! if warmer than -10 degrees C then water phase
@@ -1136,9 +1277,12 @@ module mod_rrtmg_driver
         end do
       end do
     end if
+<<<<<<< HEAD
     do n = 1 , npr
       fice(n,kth) = d_zero
     end do
+=======
+>>>>>>> 25b83a9619aae7936a38dddd64369a5628093cf2
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver

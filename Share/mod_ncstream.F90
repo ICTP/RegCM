@@ -285,15 +285,14 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
-#if defined(NETCDF4_HDF5) || defined(PNETCDF_IN_NETCDF) || defined(PNETCDF)
       integer(ik4) :: imode
-#endif
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space
       allocate(ncout%ncp%xs)
       allocate(ncout%obp%xb)
       allocate(ncout%svp%xv)
+      imode = iomode
       stream => ncout%ncp%xs
       stream%filename = params%fname
       if ( params%l_keep ) then
@@ -360,7 +359,8 @@ module mod_ncstream
                     params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
-          ncstat = nf90_create(stream%filename,iomode,stream%id)
+          if ( params%l_sync ) imode = ior(iomode,nf90_share)
+          ncstat = nf90_create(stream%filename,imode,stream%id)
 #endif
 #endif
         else
@@ -370,7 +370,8 @@ module mod_ncstream
           ncstat = nf90mpi_create(mpi_comm_self,stream%filename, &
                                   imode,mpi_info_null,stream%id)
 #else
-          ncstat = nf90_create(stream%filename,iomode,stream%id)
+          if ( params%l_sync ) imode = ior(iomode,nf90_share)
+          ncstat = nf90_create(stream%filename,imode,stream%id)
 #endif
         end if
 #endif
@@ -503,6 +504,7 @@ module mod_ncstream
 #endif
       character(len=16) , dimension(8) :: tempstr
       real(rkx) :: xds , x0
+      real(rk8) :: rlat0 , rlon0
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
@@ -841,6 +843,9 @@ module mod_ncstream
         attr%aname = 'semi_major_axis'
         attr%theval = earthrad
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'semi_minor_axis'
+        attr%theval = earthrad
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         attr%aname = 'inverse_flattening'
         attr%theval = 0.0
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
@@ -878,7 +883,7 @@ module mod_ncstream
       if ( stream%l_has100mlev ) then
         stvar%lev100m_var%vname = 'm100'
         stvar%lev100m_var%vunit = 'm'
-        stvar%lev100m_var%axis = 'w'
+        stvar%lev100m_var%axis = 'W'
         stvar%lev100m_var%long_name = 'Height level'
         stvar%lev100m_var%standard_name = 'height'
         stvar%lev100m_var%lrecords = .false.
@@ -1002,23 +1007,24 @@ module mod_ncstream
         call outstream_writevar(ncout,stvar%iy_var,nocopy)
       else
         xds = xds/erkm*raddeg
-        buffer%doublebuff(1) = &
-          -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
-                    xds,rk8)
+        call compute_zero_rotated(rlat0,rlon0)
+        buffer%doublebuff(1) = rlon0 - &
+          real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two)*xds,rk8)
         do i = 2 , stream%len_dims(jx_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
         end do
-        where ( buffer%doublebuff > 180.0 )
-          buffer%doublebuff = 360.0_rk8 - buffer%doublebuff
+        where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) > 180.0 )
+          buffer%doublebuff(1:stream%len_dims(jx_dim)) = &
+            360.0_rk8 - buffer%doublebuff(1:stream%len_dims(jx_dim))
         end where
-        where ( buffer%doublebuff < -180.0 )
-          buffer%doublebuff = 360.0_rk8 + buffer%doublebuff
+        where ( buffer%doublebuff(1:stream%len_dims(jx_dim)) < -180.0 )
+          buffer%doublebuff(1:stream%len_dims(jx_dim)) = &
+            360.0_rk8 + buffer%doublebuff(1:stream%len_dims(jx_dim))
         end where
         call outstream_writevar(ncout,stvar%jx_var,nocopy)
-        buffer%doublebuff(1) = &
-          -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
-                    xds,rk8)
+        buffer%doublebuff(1) = rlat0 - &
+          real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two)*xds,rk8)
         do i = 2 , stream%len_dims(iy_dim)
           buffer%doublebuff(i) = &
             real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
@@ -1103,6 +1109,64 @@ module mod_ncstream
         buffer%doublebuff(8) = 0.00000400_rk8
         call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
+      contains
+
+      subroutine compute_zero_rotated(rlat0,rlon0)
+        implicit none
+        real(rk8) , intent(out) :: rlat0 , rlon0
+        real(rk8) :: pphi , plam
+        real(rk8) :: cphi , clam
+        pphi = degrad*plat
+        plam = degrad*plon
+        if ( plam < 0.0_rk8 ) then
+          plam = plam + mathpi
+        else if ( plam > 0.0_rk8 ) then
+          plam = plam - mathpi
+        else
+          plam = 0.0_rk8
+        end if
+        if ( pphi > 0.0_rk8 ) then
+          pphi = halfpi-pphi
+        else if ( pphi < 0.0_rk8 ) then
+          pphi = -(halfpi+pphi)
+        else
+          pphi = 0.0_rk8
+        end if
+        if ( clat >  deg90 ) then
+          cphi = degrad*(deg90 - clat)
+        else if ( clat < -deg90 ) then
+          cphi = degrad*(clat + deg90)
+        else
+          cphi = degrad*clat
+        end if
+        if ( clon >  deg180 ) then
+          clam = degrad*(clon - deg360)
+        else if ( clon < -deg180 ) then
+          clam = degrad*(clon + deg360)
+        else
+          clam = degrad*clon
+        end if
+        rlat0 = asin(-cos(cphi)*sin(pphi)*cos(clam-plam) + &
+                    sin(cphi)*cos(pphi))
+        if ( abs(abs(rlat0)-halfpi) > 1.0e-7_rk8 .and. &
+             abs(pphi) > 1.0e-7_rk8 ) then
+          rlon0 = (sin(cphi)-cos(pphi)*sin(rlat0)) / &
+                  (sin(pphi)*cos(rlat0))
+          if ( rlon0 < -1.0_rk8 .and. &
+               rlon0 > -1.00001_rk8 ) rlon0 = -1.0_rk8
+          if ( rlon0 >  1.0_rk8 .and. &
+               rlon0 <  1.00001_rk8 ) rlon0 =  1.0_rk8
+          rlon0 = acos(rlon0)
+          if ( clam < plam ) then
+            rlon0 = -rlon0
+          end if
+        else
+          rlon0 = clam
+        end if
+        rlat0 = raddeg*rlat0
+        rlon0 = raddeg*rlon0
+      end subroutine compute_zero_rotated
+
     end subroutine outstream_enable
 
     subroutine outstream_sync(ncout)
@@ -1603,6 +1667,7 @@ module mod_ncstream
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) 'ID: ', var%id
           call printerror
           call die('nc_stream', &
             'Cannot define variable '//trim(var%vname)// &
@@ -2502,6 +2567,10 @@ module mod_ncstream
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
                 [totsize])
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 2
           if ( var%lrecords ) then
@@ -2577,6 +2646,10 @@ module mod_ncstream
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
                 [totsize]),rk4)
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 2
           if ( var%lrecords ) then
@@ -2664,6 +2737,10 @@ module mod_ncstream
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize])
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 3
           if ( var%lrecords ) then
@@ -2751,6 +2828,10 @@ module mod_ncstream
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                   var%k1:var%k2),[totsize]),rk4)
             end if
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 3
           if ( var%lrecords ) then
@@ -2843,6 +2924,10 @@ module mod_ncstream
             buffer%realbuff(1:totsize) = &
               reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize])
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2935,6 +3020,10 @@ module mod_ncstream
             buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
                 var%k1:var%k2,var%n1:var%n2),[totsize]),rk4)
+#ifdef BITSHAVE
+            buffer%realbuff(1:totsize) = &
+              bitshave_15(buffer%realbuff(1:totsize))
+#endif
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -3278,6 +3367,7 @@ module mod_ncstream
       integer(ik4) , dimension(8) :: tvals
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
+      type(ncattribute_integer) :: atti
       type(ncattribute_real8_array) :: attra
 
       stream => ncout%ncp%xs
@@ -3467,6 +3557,9 @@ module mod_ncstream
         attr%theval = mo_h
         call add_attribute(stream,attr)
       end if
+      atti%aname = 'dynamical_core'
+      atti%theval = idynamic
+      call add_attribute(stream,atti)
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)
@@ -5002,6 +5095,23 @@ module mod_ncstream
       write(stderr,*) nf90_strerror(ncstat)
 #endif
     end subroutine printerror
+
+    pure elemental real(rk4) function bitshave_nb(x,nb) result(y)
+      implicit none
+      real(rk4) , intent(in) :: x
+      integer(ik4) , intent(in) :: nb
+      integer(ik4) :: mask
+      integer(ik4) , parameter :: all_on = not(0_ik4)
+      mask = lshift(all_on,23-nb)
+      y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
+    end function bitshave_nb
+
+    pure elemental real(rk4) function bitshave_15(x) result(y)
+      implicit none
+      real(rk4) , intent(in) :: x
+      integer(ik4) , parameter :: mask = -256
+      y = transfer(iand(transfer(x,0_ik4),mask),1.0_rk4)
+    end function bitshave_15
 
 end module mod_ncstream
 

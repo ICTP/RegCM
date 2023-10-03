@@ -186,7 +186,14 @@ module mod_rad_o3blk
         else
           ystart = 2050
           yend = 2100
-          o3filename = trim(o3filename) // '205001-210012.nc'
+          if ( scenario(4:6) == '585' .or. &
+               scenario(4:6) == '370' .or. &
+               scenario(4:6) == '245' .or. &
+               scenario(4:6) == '126' ) then
+            o3filename = trim(o3filename) // '205001-209912.nc'
+          else
+            o3filename = trim(o3filename) // '205001-210012.nc'
+          end if
         end if
       else
         call fatal(__FILE__,__LINE__,'O3 : year < SPP max date (2101)')
@@ -220,6 +227,23 @@ module mod_rad_o3blk
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: k
     real(rkx) , dimension(kzp1) :: ozprnt
+#ifdef RCEMIP
+    real(rkx) :: g1 = 3.6478_rkx
+    real(rkx) :: g2 = 0.83209_rkx
+    real(rkx) :: g3 = 11.3515_rkx
+    integer(ik4) :: i , j
+    real(rkx) :: p , o3
+    do k = 1 , kzp1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p = m2r%pfatms(j,i,k) * 0.01_rkx ! hPa
+          o3 = g1 * p**g2 * exp(-p/g3)     ! ppmv in VMR
+          ! RegCM wants MMR in kg kg-1
+          o3prof(j,i,k) = max(o3 * (amo3/amd) * 1.0e-6_rkx, 1.0e-12_rkx)
+        end do
+      end do
+    end do
+#else
     real(rkx) , pointer , dimension(:) :: o3wrk , ppwrk
     allocate(o3wrk(31),ppwrk(31))
     do k = 1 , 31
@@ -240,11 +264,12 @@ module mod_rad_o3blk
     ppwrk(:) = ppwrk(:) * d_100
     call intlinprof(o3prof,o3wrk,m2r%psatms,ppwrk,jci1,jci2, &
                     ici1,ici2,31,m2r%pfatms,kzp1)
+    deallocate(o3wrk,ppwrk)
+#endif
     if ( myid == italk ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
     end if
-    deallocate(o3wrk,ppwrk)
   end subroutine o3data
 
   subroutine read_o3data(idatex,m2r)
@@ -276,8 +301,8 @@ module mod_rad_o3blk
     end if
 
     if ( ifirst ) then
-      call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
-      call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
+      call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
 !      ifirst = .false.
       if ( myid == iocpu ) then
         infile = o3filename(iyear)
@@ -329,9 +354,6 @@ module mod_rad_o3blk
         else
           ozone1 = ozone2
           call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone1,yozone)
-          call intlinreg(ozone1,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
           call h_interpolate_cont(hint,xozone2,yozone)
           call intlinreg(ozone2,yozone,aps,oplev, &
                          1,njcross,1,nicross,size(oplev),pp3d,kzp1)

@@ -60,7 +60,7 @@ module mod_che_wetdep
   !
   subroutine sethet(i,qin,delt,ps2)
     implicit none
-    integer, intent(in) :: i               
+    integer, intent(in) :: i
     ! time step ( s )
     real(rkx), intent(in) :: delt
     ! exported species ( mmr )
@@ -168,12 +168,12 @@ module mod_che_wetdep
     !  Perform a few conversion for xhnm, zmid, nevap, cmfdqr
     !-----------------------------------------------------------------
     !FAB : here we are considering removal at grid cell level
-    !could be refined considering in cloud approach for strat and conv 
-    !strat. precip. autoconv. tendency,cremrat(from microphysics, grid cell level) in s-1, 
+    !could be refined considering in cloud approach for strat and conv
+    !strat. precip. autoconv. tendency,cremrat(from microphysics, grid cell level) in s-1,
     !nrain should in Kg/Kg/s in cloud
-    nrain(jci1:jci2,:) = cremrat(jci1:jci2,i,:) * cqxb3d(jci1:jci2,i,:,iqc) 
-                        
-    !convective precip. directly from conv scheme cloud level to grid cell level  
+    nrain(jci1:jci2,:) = cremrat(jci1:jci2,i,:) * cqxb3d(jci1:jci2,i,:,iqc)
+
+    !convective precip. directly from conv scheme cloud level to grid cell level
     cmfdqr(jci1:jci2,:) =  cconvpr(jci1:jci2,i,:) * convcldfra(jci1:jci2,i,:)
     !
     nevapr(:,:) = d_zero
@@ -182,7 +182,7 @@ module mod_che_wetdep
     !cfcc(j,i,k)
     ![m     -> km]
     zmid(jci1:jci2,:) =cza(jci1:jci2,i,:)*m2km
-    ![kg/m3 -> #/cm3] 
+    ![kg/m3 -> #/cm3]
     xhnm(jci1:jci2,:) = crhob3d(jci1:jci2,i,:)*1E3/amd*navgdr* cm3_2_m3
 
     !-----------------------------------------------------------------
@@ -234,12 +234,12 @@ module mod_che_wetdep
       xh2o2(:,:)  = d_zero
     end if
 
-    zsurf(:) = czq(:,i,kz+1)*m2km 
+    zsurf(:) = czq(jci1:jci2,i,kz+1)*m2km
     do k = ktop + 1 , kz - 1
        delz(:,k) = abs( (zmid(:,k) - zmid(:,k+1))*km2cm )
     end do
     delz(:,kz) = abs( (zmid(:,kz) - zsurf(:) )*km2cm )
- 
+
 
     !-----------------------------------------------------------------
     ! ... part 0b,  for temperature dependent of henrys
@@ -645,7 +645,7 @@ module mod_che_wetdep
     real(rkx) , dimension(jci1:jci2,kz,mbin) :: colef , wetdep , rhsize , rhop
     real(rkx) , dimension(ntr) :: wetrem , wetrem_cvc
     real(rkx) :: wtend , arg
-    integer(ik4) :: n , k , j, nk , nkh
+    integer(ik4) :: n , k , j
 
     ! rain out parametrisation
     ! clmin = non-precipitating cloud

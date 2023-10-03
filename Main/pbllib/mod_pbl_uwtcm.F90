@@ -323,14 +323,12 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        !if ( m2p%ldmsk(j,i) == 1 ) then
-        !  tvfac = d_one + ep1*m2p%q2m(j,i)
-        !else
-          !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
-          !         exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
-          q0s = 0.98_rkx * pfwsat(tskx,presfl(kzp1))
-          tvfac = d_one + ep1*q0s
-        !end if
+        if ( m2p%ldmsk(j,i) > 0 ) then
+          q0s = m2p%q2m(j,i)
+        else
+          q0s = pfwsat(tskx,presfl(kzp1))
+        end if
+        tvfac = d_one + ep1*q0s
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -1072,6 +1070,7 @@ module mod_pbl_uwtcm
         end if
       else
         ! Lowermost layer
+        kmix2dx = kz
         pblx = (0.07_rkx*ustx)/pfcor
         do k = kz-1 , 1 , -1
           if ( zqx(k) > pblx ) exit
