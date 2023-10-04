@@ -1761,9 +1761,6 @@ module mod_params
 
     rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
 
-    if ( iclimaaer == 1 ) then
-      call init_aerclima
-    end if
     !
     ! ALLOCATE NEEDED SPACE
     !
@@ -2838,6 +2835,10 @@ module mod_params
                   gas_tweak_factors(5)
         end if
       end if
+    end if
+
+    if ( iclimaaer == 1 ) then
+      call init_aerclima
     end if
 
 #ifdef OASIS

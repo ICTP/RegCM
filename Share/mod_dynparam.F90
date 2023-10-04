@@ -578,6 +578,12 @@ module mod_dynparam
       return
     end if
     if ( ds < 0.0_rkx ) then
+      if ( iproj /= 'ROTLLR' ) then
+        write(stderr,*) 'Grid size in degrees is supported only for ROTLLR'
+        write(stderr,*) 'Use positive grid size in km for projection '//iproj
+        ierr = 11
+        return
+      end if
       ds = -erkm*ds*degrad
     end if
     if ( iproj == 'LAMCON' ) then
