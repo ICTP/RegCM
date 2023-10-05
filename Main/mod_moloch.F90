@@ -785,8 +785,8 @@ module mod_moloch
         end if
 
         if ( iboudy == 1 .or. iboudy >= 5 ) then
-!$acc wait(2)
 #ifdef USE_MPI3
+!$acc wait(2)
           call exchange_lrbt_pre(ps,1,jce1,jce2,ice1,ice2,comm1)
           call exchange_lrbt_pre(u,1,jde1,jde2,ice1,ice2,1,kz,comm2)
           call exchange_lrbt_pre(v,1,jce1,jce2,ide1,ide2,1,kz,comm3)

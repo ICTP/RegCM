@@ -254,6 +254,9 @@ module mod_micro_interface
     end if
 
     select case ( icldfrac )
+      case (0)
+        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
+                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
       case (1)
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
@@ -274,8 +277,10 @@ module mod_micro_interface
           mc2mo%fcc = 1.0_rkx
         end where
       case default
-        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
+        mc2mo%fcc = d_zero
+        if ( myid == italk ) then
+          write(stdout,*) ' No cloud fraction algorithm used.'
+        end if
     end select
 
     if ( ipptls == 1 ) then
@@ -336,8 +341,10 @@ module mod_micro_interface
                               (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
               cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
             else
-              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-              cldlwc(j,i,k) = exlwc
+              if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+                cldlwc(j,i,k) = exlwc
+              end if
             end if
             if ( cldlwc(j,i,k) > d_zero ) then
               cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)

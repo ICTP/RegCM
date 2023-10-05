@@ -49,9 +49,10 @@ module mod_rad_aerosol
   public :: tauxar , tauasc , gtota , ftota
   public :: aermmr , aertrlw , tauxar3d_lw
   public :: allocate_mod_rad_aerosol , aermix , aeroppt
-  public :: init_aerclima , read_aerclima , close_aerclima
+  public :: read_aerclima , close_aerclima
   public :: init_aeroppdata , read_aeroppdata
   public :: cmip6_plume_profile
+  public :: aerclima_ntr , aerclima_nbin
   !
   character(len=256) :: macv2sp_hist , macv2sp_scen
   real(rk8) , pointer , dimension(:) :: lambdaw
@@ -83,6 +84,7 @@ module mod_rad_aerosol
   integer(ik4) , parameter :: nwav = 19
   integer(ik4) , parameter :: nih = 8
 
+  logical :: aerclima_init = .false.
   integer(ik4) , parameter :: aerclima_ntr = 12
   integer(ik4) , parameter :: aerclima_nbin = 4
 
@@ -1321,10 +1323,6 @@ module mod_rad_aerosol
       integer(ik4) :: itr
       type (rcm_time_and_date) :: aedate
 
-      if ( iclimaaer /= 1 ) return
-
-      ntr = aerclima_ntr
-      nbin = aerclima_nbin
       allocate(chtrname(ntr))
       do itr = 1 , ntr
         chtrname(itr) = aerclima_chtr(itr)
@@ -1352,6 +1350,10 @@ module mod_rad_aerosol
       real(rkx) :: w1 , w2 , step
       integer(ik4) :: i , j , k , n , ib
 
+      if ( .not. aerclima_init ) then
+        call init_aerclima( )
+        aerclima_init = .true.
+      end if
       if ( d1 == d2 ) then
         call doread(d1,m2r,1,aerm1)
         d2 = d1 + aefreq
@@ -1456,8 +1458,8 @@ module mod_rad_aerosol
         istart(2) = ice1
         istart(3) = 1
         istart(4) = irec
-        icount(1) = jce2
-        icount(2) = ice2
+        icount(1) = (jce2-jce1)+1
+        icount(2) = (ice2-ice1)+1
         icount(3) = kz
         icount(4) = 1
         do n = 1 , ntr
@@ -1517,7 +1519,9 @@ module mod_rad_aerosol
       aefile = trim(dirglob)//pthsep//trim(domname)// &
                '_AEBC.'//trim(ctime)//'.nc'
 
-      write (stdout, *) 'Opening aerosol file : '//trim(aefile)
+      if ( myid == italk ) then
+        write (stdout, *) 'Opening aerosol file : '//trim(aefile)
+      end if
 
       ncstatus = nf90_open(aefile,nf90_nowrite,ncaec)
       call check_ok(__FILE__,__LINE__, &
@@ -1686,7 +1690,9 @@ module mod_rad_aerosol
               (stdhlevf(kclimh +k)-stdhlevf(kclimh +k -1)) * d_1000
           end do
 
-          write (stdout,*) 'Reading EXT,SSA,ASY Data...'
+          if ( myid == italk ) then
+            write (stdout,*) 'Reading EXT,SSA,ASY Data...'
+          end if
           if ( lfirst ) then
             do wn = 1 , nacwb
               if ( wn /= 3 ) cycle
@@ -2592,7 +2598,9 @@ module mod_rad_aerosol
           write (stderr, *) nf90_strerror(iret), trim(infile)
           call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         else
-          write(stdout,*) 'AEROPP file open ', trim(infile)
+          if ( myid == italk ) then
+            write(stdout,*) 'AEROPP file open ', trim(infile)
+          end if
         end if
       else
         iret = nf90_close(ncid)
@@ -2606,7 +2614,9 @@ module mod_rad_aerosol
           call fatal(__FILE__,__LINE__, &
                      'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         end if
-        write(stdout,*) 'AEROPP file open ', trim(infile)
+        if ( myid == italk ) then
+          write(stdout,*) 'AEROPP file open ', trim(infile)
+        end if
       end if
       ncstatus = nf90_inq_dimid(ncid,'lev',idimid)
       call check_ok(__FILE__,__LINE__, &
