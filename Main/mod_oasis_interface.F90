@@ -34,6 +34,7 @@ module mod_oasis_interface
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
 
+  use mod_oasis
   use mod_oasis_params
   use mod_oasis_signature
   use mod_oasis_generic
