@@ -32,13 +32,13 @@
  /
  &globdatparam
  gdate1 = 1900010100,
- gdate2 = 1900030100,
+ gdate2 = 1900011100,
  /
  &restartparam
  ifrest  = .false. ,
  mdate0  = 1900010100,
  mdate1  = 1900010100,
- mdate2  = 1900030100,
+ mdate2  = 1900011100,
  /
  &timeparam
  dt      =    30.,
