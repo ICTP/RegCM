@@ -68,11 +68,11 @@ program chem_icbc
         isnowdark , ichecold
   logical :: carb_aging_control
   integer(ik4) :: ichem , iclimaaer
-  integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn , &
-    ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,      &
-    iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
-    icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
-    islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
+  integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn ,  &
+    ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,       &
+    ioasiscpl , iocnrough , iocnzoq , idcsst , iseaice , idesseas ,        &
+    iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 , isolconst ,      &
+    icumcloud , islab_ocean , itweak , ghg_year_const , idiffu , icopcpl , &
     ifixsolar , year_offset , ichdustparam , irceideal
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
@@ -94,11 +94,11 @@ program chem_icbc
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
     iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-    ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
-    icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
-    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
-    ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
-    year_offset , radclimpath
+    ichem ,  scenario ,  idcsst , iwhitecap , iseaice , iconvlwp ,     &
+    icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , &
+    icumcloud , islab_ocean , itweak , temp_tend_maxval ,              &
+    wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,    &
+    irceideal , year_offset , radclimpath
 
 #ifdef PNETCDF
   call mpi_init(ierr)

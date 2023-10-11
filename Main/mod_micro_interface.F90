@@ -308,8 +308,10 @@ module mod_micro_interface
                               (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
               cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
             else
-              cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-              cldlwc(j,i,k) = exlwc
+              if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+                cldlwc(j,i,k) = exlwc
+              end if
             end if
             if ( cldlwc(j,i,k) > d_zero ) then
               cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
@@ -346,8 +348,10 @@ module mod_micro_interface
                                 (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
                 cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
               else
-                cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-                cldlwc(j,i,k) = exlwc
+                if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                  cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+                  cldlwc(j,i,k) = exlwc
+                end if
               end if
               if ( cldlwc(j,i,k) > d_zero ) then
                 cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)

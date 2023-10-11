@@ -36,7 +36,7 @@ module mod_rad_interface
   use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
   use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data
   use mod_rad_o3blk , only : read_o3data , close_o3data
-  use mod_rad_aerosol , only : allocate_mod_rad_aerosol , init_aerclima
+  use mod_rad_aerosol , only : allocate_mod_rad_aerosol
   use mod_rad_aerosol , only : init_aeroppdata , read_aeroppdata
   use mod_rad_aerosol , only : read_aerclima , close_aerclima
   use mod_rad_aerosol , only : cmip6_plume_profile
@@ -51,7 +51,7 @@ module mod_rad_interface
   public :: allocate_radiation
   public :: init_radiation
   public :: radiation
-  public :: init_aerclima
+  public :: aerclima_ntr , aerclima_nbin
   public :: updateaerosol
   public :: updateaeropp
   public :: updateaeropp_cmip6

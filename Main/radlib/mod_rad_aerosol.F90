@@ -49,9 +49,10 @@ module mod_rad_aerosol
   public :: tauxar , tauasc , gtota , ftota
   public :: aermmr , aertrlw , tauxar3d_lw
   public :: allocate_mod_rad_aerosol , aermix , aeroppt
-  public :: init_aerclima , read_aerclima , close_aerclima
+  public :: read_aerclima , close_aerclima
   public :: init_aeroppdata , read_aeroppdata
   public :: cmip6_plume_profile
+  public :: aerclima_ntr , aerclima_nbin
   !
   character(len=256) :: macv2sp_hist , macv2sp_scen
   real(rk8) , pointer , dimension(:) :: lambdaw
@@ -68,7 +69,7 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:,:,:) :: ssaprof
   real(rkx) , pointer , dimension(:,:,:,:) :: asyprof
   real(rkx) , pointer , dimension(:,:,:,:) :: ssa1 , ssa2 , asy1 , asy2
-  real(rkx) , pointer , dimension(:,:,:,:) :: ext , ssa , asy 
+  real(rkx) , pointer , dimension(:,:,:,:) :: ext , ssa , asy
   real(rkx) , pointer , dimension(:,:,:) :: zp3d , zdz3d, zpr3d , zdzr3d
   real(rkx) , pointer , dimension(:,:,:) :: yext , yssa , yasy, ydelp , yphcl
   real(rkx) , pointer , dimension(:,:,:) :: xext1 , xext2
@@ -82,13 +83,13 @@ module mod_rad_aerosol
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
   integer(ik4) , parameter :: nwav = 19
   integer(ik4) , parameter :: nih = 8
-  
 
+  logical :: aerclima_init = .false.
   integer(ik4) , parameter :: aerclima_ntr = 12
   integer(ik4) , parameter :: aerclima_nbin = 4
-    
+
   integer(ik4) , parameter :: nacwb  = 5 ! number of waveband MERRA aerosol clim
-                                         ! might be completed in the future  
+                                         ! might be completed in the future
   character(len=6) , dimension(aerclima_ntr) :: aerclima_chtr
   integer(ik4) :: ncaec , ncstatus , naetime
   integer(ik4) , dimension(aerclima_ntr) :: ncaevar
@@ -1322,10 +1323,6 @@ module mod_rad_aerosol
       integer(ik4) :: itr
       type (rcm_time_and_date) :: aedate
 
-      if ( iclimaaer /= 1 ) return
-
-      ntr = aerclima_ntr
-      nbin = aerclima_nbin
       allocate(chtrname(ntr))
       do itr = 1 , ntr
         chtrname(itr) = aerclima_chtr(itr)
@@ -1353,6 +1350,10 @@ module mod_rad_aerosol
       real(rkx) :: w1 , w2 , step
       integer(ik4) :: i , j , k , n , ib
 
+      if ( .not. aerclima_init ) then
+        call init_aerclima( )
+        aerclima_init = .true.
+      end if
       if ( d1 == d2 ) then
         call doread(d1,m2r,1,aerm1)
         d2 = d1 + aefreq
@@ -1457,8 +1458,8 @@ module mod_rad_aerosol
         istart(2) = ice1
         istart(3) = 1
         istart(4) = irec
-        icount(1) = jce2
-        icount(2) = ice2
+        icount(1) = (jce2-jce1)+1
+        icount(2) = (ice2-ice1)+1
         icount(3) = kz
         icount(4) = 1
         do n = 1 , ntr
@@ -1518,7 +1519,9 @@ module mod_rad_aerosol
       aefile = trim(dirglob)//pthsep//trim(domname)// &
                '_AEBC.'//trim(ctime)//'.nc'
 
-      write (stdout, *) 'Opening aerosol file : '//trim(aefile)
+      if ( myid == italk ) then
+        write (stdout, *) 'Opening aerosol file : '//trim(aefile)
+      end if
 
       ncstatus = nf90_open(aefile,nf90_nowrite,ncaec)
       call check_ok(__FILE__,__LINE__, &
@@ -1602,7 +1605,7 @@ module mod_rad_aerosol
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) :: k , im1 , iy1 , im2 , iy2, wn
+      integer(ik4) :: k , im1 , iy1 , im2 , iy2 , wn
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -1623,8 +1626,7 @@ module mod_rad_aerosol
         call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
           call getfile(iyear,imon,ncid1,3) ! open just clim vis for latlon
-                                          ! reading
-
+                                           ! reading
           call getmem1d(lat,1,clnlat,'aeropp:lat')
           call getmem1d(lon,1,clnlon,'aeropp:lon')
           call getmem3d(xext1,1,clnlon, &
@@ -1688,9 +1690,11 @@ module mod_rad_aerosol
               (stdhlevf(kclimh +k)-stdhlevf(kclimh +k -1)) * d_1000
           end do
 
-          write (stdout,*) 'Reading EXT.,SSA,ASY Data...'
+          if ( myid == italk ) then
+            write (stdout,*) 'Reading EXT,SSA,ASY Data...'
+          end if
           if ( lfirst ) then
-            do wn = 1, nacwb
+            do wn = 1 , nacwb
               call getfile(iy1,im1,ncid1,wn)
               call readvar3d(ncid1,'EXTTOT',xext1)
               call readvar3d(ncid1,'SSATOT',xssa1)
@@ -1714,20 +1718,21 @@ module mod_rad_aerosol
               call h_interpolate_cont(hint,xssa1,yssa)
               call h_interpolate_cont(hint,xasy1,yasy)
               call h_interpolate_cont(hint,xdelp1,ydelp)
-            !
-            ! VERTICAL Interpolation
-            !
-            ! The pressure at the MERRA top is a fixed constant:
-            !
-            !                 PTOP = 0.01 hPa (1 Pa)
-            !
-            ! Pressures at edges should be computed by summing the DELP
-            ! pressure thickness starting at PTOP.
-            ! A representative pressure for the layer can then be obtained
-            ! from these. Here just use linear av for now, should be improved !!
-            ! MERRA grid is top down
+              !
+              ! VERTICAL Interpolation
+              !
+              ! The pressure at the MERRA top is a fixed constant:
+              !
+              !                 PTOP = 0.01 hPa (1 Pa)
+              !
+              ! Pressures at edges should be computed by summing the DELP
+              ! pressure thickness starting at PTOP.
+              ! A representative pressure for the layer can then be obtained
+              ! from these.
+              ! Here just use linear av for now, should be improved !!
+              ! MERRA grid is top down
               yphcl(1:njcross,1:nicross,1)  = d_one + &
-                  ydelp(1:njcross,1:nicross,1)*d_half
+                      ydelp(1:njcross,1:nicross,1)*d_half
               do k = 2 , clnlev
                 yphcl(1:njcross,1:nicross,k) = &
                    yphcl(1:njcross,1:nicross,k-1)  + &
@@ -1742,14 +1747,14 @@ module mod_rad_aerosol
               call intp1(asy1(:,:,:,wn),yasy,zpr3d,yphcl,njcross,nicross, &
                        kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
 
-            ! same for ext2
+              ! same for ext2
               call h_interpolate_cont(hint,xext2,yext)
               call h_interpolate_cont(hint,xssa2,yssa)
               call h_interpolate_cont(hint,xasy2,yasy)
               call h_interpolate_cont(hint,xdelp2,ydelp)
               yphcl(1:njcross,1:nicross,1) = d_one + &
                   ydelp(1:njcross,1:nicross,1)*d_half
-              do k = 2,clnlev
+              do k = 2 , clnlev
                 yphcl(1:njcross,1:nicross,k) = &
                     yphcl(1:njcross,1:nicross,k-1)  + &
                     (ydelp(1:njcross,1:nicross,k-1) + &
@@ -1763,7 +1768,7 @@ module mod_rad_aerosol
                        kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
             end do
           else  ! ( if not first call , just update ext2 )
-            do wn = 1, nacwb
+            do wn = 1 , nacwb
               ext1(:,:,:,wn) = ext2(:,:,:,wn)
               ssa1(:,:,:,wn) = ssa2(:,:,:,wn)
               asy1(:,:,:,wn) = asy2(:,:,:,wn)
@@ -1814,11 +1819,12 @@ module mod_rad_aerosol
         xfac2 = d_one - xfac1
         ! ! Important :  radiation schemes expect AOD per layer, calculated
         !   from extinction
-        do wn = 1, nacwb
-         ext(:,:,:,wn) = (ext1(:,:,:,wn)*xfac2 + ext2(:,:,:,wn)*xfac1) * zdzr3d
+        do wn = 1 , nacwb
+          ext(:,:,:,wn) = (ext1(:,:,:,wn)*xfac2 + &
+                           ext2(:,:,:,wn)*xfac1) * zdzr3d
         end do
-         ssa = ssa1*xfac2 + ssa2*xfac1
-         asy = asy1*xfac2 + asy2*xfac1
+        ssa = ssa1*xfac2 + ssa2*xfac1
+        asy = asy1*xfac2 + asy2*xfac1
 
         where ( ext < 1.E-10_rkx ) ext = 1.E-10_rkx
         where ( ssa < 1.E-10_rkx ) ssa = 0.991_rkx
@@ -1830,7 +1836,7 @@ module mod_rad_aerosol
       if ( myid == italk .and. dointerp ) then
         do k = 1 , kth
           opprnt(k) = extprof(3,3,kth-k+1,3) !!vis band in MERRA clim
-        end do                              
+        end do
         call vprntv(opprnt,kth,'Updated ext profile at (3,3)')
         do k = 1 , kth
           opprnt(k) = ssaprof(3,3,kth-k+1,3)
@@ -2012,9 +2018,9 @@ module mod_rad_aerosol
       integer(ik4) :: n , l , ibin , jbin , itr , k1 , k2 , ns
       integer(ik4) :: j , i , k , visband
       real(rkx) :: uaerdust , qabslw , rh0
-      real(rkx) , dimension(14) :: wavn ! central sw wave number for rrtm 
-      real(rkx) , dimension(4) :: wavncl ! central sw wave number for clim data 
-      real(rkx) , dimension(3) :: tmp 
+      real(rkx) , dimension(14) :: wavn ! central sw wave number for rrtm
+      real(rkx) , dimension(4) :: wavncl ! central sw wave number for clim data
+      real(rkx) , dimension(3) :: tmp
       !-
       ! Aerosol forced by Optical Properties Climatology
       ! distinguish between standard scheme and RRTM scheme
@@ -2026,30 +2032,32 @@ module mod_rad_aerosol
         aertrlw(:,:,:) = d_one
         if ( irrtm == 1 ) then
           do ns= 1, 14
-            wavn(ns)= 0.5_rkx*(wavnm2(ns) +  wavnm1(ns))  
-          end do  
-           ! wavncl are the climatological spectral bands 3,6,10,13
-           ! might evolve evolve in future
-           ! 
-            wavncl(1)  = wavn(3)
-            wavncl(2)  = wavn(6)
-            wavncl(3)  = wavn(10)
-            wavncl(4)  = wavn(13)
+            wavn(ns)= 0.5_rkx*(wavnm2(ns) +  wavnm1(ns))
+          end do
+          ! wavncl are the climatological spectral bands 3,6,10,13
+          ! MIGHT EVOLVE IN FUTURE
+          !
+          wavncl(1)  = wavn(3)
+          wavncl(2)  = wavn(6)
+          wavncl(3)  = wavn(10)
+          wavncl(4)  = wavn(13)
           do k = 1 , kth
             n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-       ! spectral interpolation for all RRTM band ; special band 14 is left aside  
-       ! use linear interpolation between clim wb data points
-       ! use constant extrapolation (check interp1d in Share) to avoid
-       ! negative values at wn = 1  
-       ! 
-                call interp1d(wavncl(1:4),extprof(j,i,k,1:4),wavn(1:13),tauxar3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
-                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4),wavn(1:13),tauasc3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
-                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4),wavn(1:13),gtota3d(n,k,1:13),1._rkx,0._rkx,0._rkx)
-       !  the LW prop assumed to be spectrally constant for now might change in
-       !  future 
-                tauxar3d_lw(n,k,:) = extprof(j,i,k,5) 
+                ! Spectral interpolation for all RRTM band
+                ! Special band 14 is left aside. Use constant extrapolation
+                ! between clim data wn points ( check interp1d code in Share)
+                ! to avoid negative values at wn = 1
+                call interp1d(wavncl(1:4),extprof(j,i,k,1:4), &
+                  wavn(1:13),tauxar3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                call interp1d(wavncl(1:4),ssaprof(j,i,k,1:4), &
+                  wavn(1:13),tauasc3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                call interp1d(wavncl(1:4),asyprof(j,i,k,1:4), &
+                  wavn(1:13),gtota3d(n,k,1:13),1._rkx,1._rkx,0._rkx)
+                ! The LW prop assumed to be spectrally constant for now
+                ! MIGHT CHANGE IN FUTURE
+                tauxar3d_lw(n,k,:) = extprof(j,i,k,5)
                 n = n + 1
               end do
             end do
@@ -2068,7 +2076,9 @@ module mod_rad_aerosol
             n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ! index 3 correponds to clim vis band !! might change in future
+                !
+                ! index 3 correponds to clim vis band
+                ! MIGHT CHANGE IN FUTURE
                 !
                 tauxar3d(n,0,ns) = sum(extprof(j,i,1:kth-kz,3) )
                 tauasc3d(n,0,ns) = sum(ssaprof(j,i,1:kth-kz,3)) / &
@@ -2088,7 +2098,7 @@ module mod_rad_aerosol
                 ! already scaled for layer height
                 ! grid is top down
                 ! FAB : index 2 is the vis band in MERRA aerclim
-                ! MIGHT CHANGE 
+                ! MIGHT CHANGE
                 tauxar3d(n,k,ns) = extprof(j,i,kth-kz+k,3)
                 ! here the standard scheme expect layer scaled quantity
                 tauasc3d(n,k,ns) = ssaprof(j,i,kth-kz+k,3) * tauxar3d(n,k,ns)
@@ -2145,14 +2155,14 @@ module mod_rad_aerosol
       ! concentrations (either intractive aerosol, or prescribed concentration
       ! climatology)
       if ( ichem /= 1 .and. iclimaaer /= 1 ) then
-        tauxar(:,:) = d_zero
-        tauasc(:,:) = d_zero
-        gtota(:,:) = d_zero
-        ftota(:,:) = d_zero
+        tauxar(:,:)     = d_zero
+        tauasc(:,:)     = d_zero
+        gtota(:,:)      = d_zero
+        ftota(:,:)      = d_zero
         tauxar3d(:,:,:) = d_zero
         tauasc3d(:,:,:) = d_zero
-        gtota3d(:,:,:) = d_zero
-        ftota3d(:,:,:) = d_zero
+        gtota3d(:,:,:)  = d_zero
+        ftota3d(:,:,:)  = d_zero
         aertrlw (:,:,:) = d_one
         if ( irrtm == 1 ) then
           tauxar3d_lw(:,:,:) = d_zero
@@ -2574,17 +2584,20 @@ module mod_rad_aerosol
       if (wbclim == 2) filnum = 'wb6.'
       if (wbclim == 3) filnum = 'wb10.'
       if (wbclim == 4) filnum = 'wb13.'
-      if (wbclim == 5) filnum = 'wb19.' ! 
- 
+      if (wbclim == 5) filnum = 'wb19.' !
+
       write(infile,'(A,A,I4,I0.2,A)') &
-        trim(radclimpath)//pthsep//'MERRA2_OPPMONTH_',trim(filnum),year,month,'.nc'
+        trim(radclimpath)//pthsep//'MERRA2_OPPMONTH_', &
+        trim(filnum),year,month,'.nc'
       if ( ncid < 0 ) then
         iret = nf90_open(infile,nf90_nowrite,ncid)
         if ( iret /= nf90_noerr ) then
           write (stderr, *) nf90_strerror(iret), trim(infile)
           call fatal(__FILE__,__LINE__,'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         else
-          write(stdout,*) 'AEROPP file open ', trim(infile)
+          if ( myid == italk ) then
+            write(stdout,*) 'AEROPP file open ', trim(infile)
+          end if
         end if
       else
         iret = nf90_close(ncid)
@@ -2598,7 +2611,9 @@ module mod_rad_aerosol
           call fatal(__FILE__,__LINE__, &
                      'CANNOT OPEN AEROSOL OP.PROP CLIM FILE')
         end if
-        write(stdout,*) 'AEROPP file open ', trim(infile)
+        if ( myid == italk ) then
+          write(stdout,*) 'AEROPP file open ', trim(infile)
+        end if
       end if
       ncstatus = nf90_inq_dimid(ncid,'lev',idimid)
       call check_ok(__FILE__,__LINE__, &

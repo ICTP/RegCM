@@ -361,7 +361,7 @@ module mod_params
     liqflglw = 1
     icld  = 1
     imcica = 1
-    irng = 1
+    irng = 0
     nradfo = 4
     rrtm_extend = .true.
     !
@@ -1760,7 +1760,8 @@ module mod_params
     rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
 
     if ( iclimaaer == 1 ) then
-      call init_aerclima
+      ntr = aerclima_ntr
+      nbin = aerclima_nbin
     end if
     !
     ! ALLOCATE NEEDED SPACE

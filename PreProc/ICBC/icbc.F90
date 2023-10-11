@@ -223,7 +223,7 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp == 'CMIP6' ) then
+  if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call init_cmip6(globidate1)
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call init_ncep
@@ -252,7 +252,7 @@ program icbc
       call newfile(monfirst(idate))
     end if
 
-    if ( dattyp == 'CMIP6' ) then
+    if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
       call get_cmip6(idate)
     else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call get_ncep(idate)
@@ -278,7 +278,7 @@ program icbc
   call close_output
   call closesst
 
-  if ( dattyp == 'CMIP6' ) then
+  if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call conclude_cmip6
   else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
     call conclude_era5

@@ -31,15 +31,17 @@ module mod_sst_cmip6
   use mod_stdio
   use mod_cmip6_cesm
   use mod_cmip6_canesm
+  use mod_cmip6_cmcc
   use mod_cmip6_cnrm
   use mod_cmip6_ecea
   use mod_cmip6_gfdl
   use mod_cmip6_hadmm
+  use mod_cmip6_ipsllr
   use mod_cmip6_miroc6
   use mod_cmip6_miresl
   use mod_cmip6_mpihr
+  use mod_cmip6_mpilr
   use mod_cmip6_normm
-  use mod_cmip6_cmcc
   use netcdf
 
   implicit none
@@ -72,114 +74,155 @@ module mod_sst_cmip6
       idatef = globidate2
       tdif = idatef-idateo
 
-      select case (cmip6_model)
-        case ('MPI-ESM1-2-HR')
-          if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'MPI-ESM1-2-HR requires gregorian calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_mpihr
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'HadGEM3-GC31-MM' )
-          if ( calendar /= '360_day' ) then
-            write(stderr,*) 'HadGEM3-GC31-MM requires 360_day calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_hadmm
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'GFDL-ESM4' )
-          if ( calendar /= 'noleap' ) then
-            write(stderr,*) 'GFDL-ESM4 requires noleap calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_gfdl
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'NorESM2-MM' )
-          if ( calendar /= 'noleap' ) then
-            write(stderr,*) 'NorESM2-MM requires noleap calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_normm
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'CNRM-ESM2-1' )
-          if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'CNRM-ESM2-1 requires gregorian calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_cnrm
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'EC-Earth3-Veg' )
-          if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'EC-Earth3-Veg requires gregorian calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_ecea
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'CESM2' )
-          if ( calendar /= 'noleap' ) then
-            write(stderr,*) 'CESM2 requires noleap calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_cesm
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'CMCC-ESM2' )
-          if ( calendar /= 'noleap' ) then
-            write(stderr,*) 'CMCC-ESM2 requires noleap calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_cmcc
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'CanESM5' )
-          if ( calendar /= 'noleap' ) then
-            write(stderr,*) 'CanESM5 requires noleap calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_canesm
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'MIROC6' )
-          if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'MIROC6 requires gregorian calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_miroc6
-          sst%vname = 'tos'
-          step = 86400
-          nsteps = int(tohours(tdif))/24 + 1
-        case ( 'MIROC-ES2L' )
-          if ( calendar /= 'gregorian' ) then
-            write(stderr,*) 'MIROC-ES2L requires gregorian calendar.'
-            call die('sst','Calendar mismatch',1)
-          end if
-          read_func => read_sst_miresl
-          sst%vname = 'tos'
-          idateo = prevmon(globidate1)
-          idatef = monfirst(globidate2)
-          if (idatef < globidate2) then
-            idatef = nextmon(idatef)
-          end if
-          step = rcm_time_interval(1_ik8,umnt)
-          nsteps = imondiff(idatef,idateo) + 1
-        case default
-          call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
-      end select
+      if ( dattyp == 'CMIP6' ) then
+        select case (cmip6_model)
+          case ('MPI-ESM1-2-HR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MPI-ESM1-2-HR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_mpihr
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'HadGEM3-GC31-MM' )
+            if ( calendar /= '360_day' ) then
+              write(stderr,*) 'HadGEM3-GC31-MM requires 360_day calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_hadmm
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'GFDL-ESM4' )
+            if ( calendar /= 'noleap' ) then
+              write(stderr,*) 'GFDL-ESM4 requires noleap calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_gfdl
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'NorESM2-MM' )
+            if ( calendar /= 'noleap' ) then
+              write(stderr,*) 'NorESM2-MM requires noleap calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_normm
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'CNRM-ESM2-1' )
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'CNRM-ESM2-1 requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_cnrm
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'EC-Earth3-Veg' )
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'EC-Earth3-Veg requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_ecea
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'CESM2' )
+            if ( calendar /= 'noleap' ) then
+              write(stderr,*) 'CESM2 requires noleap calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_cesm
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'CMCC-ESM2' )
+            if ( calendar /= 'noleap' ) then
+              write(stderr,*) 'CMCC-ESM2 requires noleap calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_cmcc
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'CanESM5' )
+            if ( calendar /= 'noleap' ) then
+              write(stderr,*) 'CanESM5 requires noleap calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_canesm
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'MIROC6' )
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MIROC6 requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_miroc6
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ( 'MIROC-ES2L' )
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MIROC-ES2L requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_miresl
+            sst%vname = 'tos'
+            idateo = prevmon(globidate1)
+            idatef = monfirst(globidate2)
+            if (idatef < globidate2) then
+              idatef = nextmon(idatef)
+            end if
+            step = rcm_time_interval(1_ik8,umnt)
+            nsteps = imondiff(idatef,idateo) + 1
+          case ('MPI-ESM1-2-LR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MPI-ESM1-2-LR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_mpilr
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case default
+            call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
+        end select
+      else if ( dattyp == 'PMIP4' ) then
+        select case (pmip4_model)
+          case ('MPI-ESM1-2-LR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MPI-ESM1-2-LR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_mpilr
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ('IPSL-CM6A-LR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'IPSL-CM6A-LR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_ipsllr
+            sst%vname = 'tos'
+            idateo = prevmon(globidate1)
+            idatef = monfirst(globidate2)
+            if (idatef < globidate2) then
+              idatef = nextmon(idatef)
+            end if
+            step = rcm_time_interval(1_ik8,umnt)
+            nsteps = imondiff(idatef,idateo) + 1
+          case default
+            call die('sst','Unknown PMIP4 model: '//trim(pmip4_model),1)
+        end select
+      else
+        call die('sst','No PMIP4/CMIP6 model', 1)
+      end if
 
       write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
       write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)

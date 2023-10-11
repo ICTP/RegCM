@@ -97,6 +97,12 @@ module mod_rad_tracer
     xch4 = d_zero
     xn2o = d_zero
     do n = n1 , n2
+#ifdef RCEMIP
+      xn2o = 0.3478_rkx
+      xch4 = 0.2353_rkx
+      xcfc11 = 0.7273_rkx
+      xcfc12 = 0.4000_rkx
+#else
       alat = abs(dlat(n)) ! This is absolute value of latitude in degrees
       if ( alat <= 45.0_rkx ) then
         xn2o = 0.3478_rkx + 0.00116_rkx*alat
@@ -109,6 +115,7 @@ module mod_rad_tracer
         xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
         xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
       end if
+#endif
       !  set stratospheric scale height factor for gases
       do k = 1 , kz
         if ( pmid(n,k) >= xptrop(n) ) then

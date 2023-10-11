@@ -119,6 +119,7 @@ module mod_regcm_interface
         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
         write ( 6, * ) ' '
         write ( 6, * ) 'Check argument and namelist syntax'
+        write ( 6, * ) 'ERROR : ', ierr
         stop
       end if
     end if
