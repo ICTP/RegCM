@@ -2855,6 +2855,8 @@ module mod_ncout
 
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('model_icbc_data_source',dattyp))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_sst_data_source',ssttyp))
         if ( dattyp == 'CMIP6' ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_string('CMIP6_model', &
@@ -2868,8 +2870,6 @@ module mod_ncout
         else
           ! Do not add any description here
         end if
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_string('model_sst_data_source',ssttyp))
 
         ! Buffer Zone Control relaxation + diffusion term params
 
@@ -3416,22 +3416,22 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('rrtm_extended_above',rrtm_extend))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',&
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_vap', &
             inflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',&
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_ice', &
             iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',&
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_liq', &
             iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',&
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_vap', &
             inflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',&
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_ice', &
             iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',&
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_liq', &
             iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
