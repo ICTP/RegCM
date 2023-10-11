@@ -94,7 +94,7 @@ program chem_icbc
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
     iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-    ichem ,  scenario ,  idcsst , iwhitecap , iseaice , iconvlwp ,     &
+    ichem ,  scenario ,  idcsst , iseaice , iconvlwp , ioasiscpl,      &
     icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , &
     icumcloud , islab_ocean , itweak , temp_tend_maxval ,              &
     wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,    &
