@@ -82,120 +82,160 @@ module mod_cmip6_helper
       implicit none
       character(len=*) , intent(in) :: var , ver
       character(len=24) :: fx_variant , fx_experiment , fx_model
-      select case ( cmip6_model )
-        case ( 'MPI-ESM1-2-HR' )
-          fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
-          fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
-          fpath = trim(fpath)//'historical'//pthsep
-          fx_variant = cmip6_variant
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'HadGEM3-GC31-MM' )
-          if ( cmip6_inp(1:8) == 'https://' ) then
-            fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
-              pthsep//'CMIP6'//pthsep//'HighResMIP'//pthsep
-          else
-            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
-              'HighResMIP'//pthsep
-          end if
-          fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
-          fpath = trim(fpath)//'hist-1950'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_hist-1950_'
-          fx_model = cmip6_model
-        case ( 'NorESM2-MM' )
-          if ( index(cmip6_inp,'noresg.nird.sigma2.no') > 0 ) then
-            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'// &
-              pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCC'//pthsep// &
-              'NorESM2-MM'//pthsep
-          else
-            ! This should work for esgf3
-            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
-              'CMIP'//pthsep//'NCC'//pthsep//'NorESM2-MM'//pthsep
-          end if
-          fpath = trim(fpath)//'historical'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'CNRM-ESM2-1' )
-          if ( index(cmip6_inp,'umr-cnrm.fr') > 0 ) then
-            fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
-              pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
-            fpath = trim(fpath)//'amip'//pthsep
-          else
-            fpath = trim(cmip6_inp)//pthsep//'CMIP6'//pthsep//'CMIP'// &
-              pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
-            fpath = trim(fpath)//'amip'//pthsep
-          end if
-          fx_variant = 'r1i1p1f2'
-          fx_experiment = '_amip_'
-          fx_model = cmip6_model
-        case ( 'EC-Earth3-Veg' )
-          if ( cmip6_inp(1:8) == 'https://' ) then
-            fpath = 'https://esg-dn2.nsc.liu.se/thredds/dodsC'//pthsep// &
-              'esg_dataroot1'//pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep// &
-              'CMIP'//pthsep//'EC-Earth-Consortium'// &
-              pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
-          else
-            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'//pthsep// &
-              'cmip6data'//pthsep//'CMIP6'//pthsep// &
-              'CMIP'//pthsep//'EC-Earth-Consortium'// &
-              pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
-          end if
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = 'EC-Earth3'
-        case ( 'CESM2' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
-            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCAR'// &
-            pthsep//'CESM2'//pthsep//'historical'//pthsep
-          fx_variant = 'r11i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'CMCC-ESM2' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
-            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'CMCC'// &
-            pthsep//'CMCC-ESM2'//pthsep//'historical'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'GFDL-ESM4' )
-          fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
-            pthsep//'AerChemMIP'//pthsep
-          fpath = trim(fpath)//'NOAA-GFDL'//pthsep//'GFDL-ESM4'//pthsep
-          fpath = trim(fpath)//'ssp370-lowNTCFCH4'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_ssp370-lowNTCFCH4_'
-          fx_model = cmip6_model
-        case ( 'CanESM5' )
-          fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'// &
-            pthsep//'AR6'//pthsep//'CMIP6'//pthsep//'CMIP'// &
-            pthsep//'CCCma'//pthsep//'CanESM5'//pthsep//'historical'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'MIROC6' )
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
-            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
-            pthsep//'MIROC6'//pthsep//'historical'//pthsep
-          fx_variant = 'r1i1p1f1'
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case ( 'MIROC-ES2L')
-          fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
-            pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
-            pthsep//'MIROC-ES2L'//pthsep//'historical'//pthsep
-          fx_variant = cmip6_variant
-          fx_experiment = '_historical_'
-          fx_model = cmip6_model
-        case default
-          call die(__FILE__, &
-            'Unsupported cmip6 model: '//trim(cmip6_model),-1)
-      end select
-      fpath = trim(fpath)//trim(fx_variant)// &
-        pthsep//'fx'//pthsep//trim(var)//pthsep//trim(cmip6_grid)// &
-        pthsep//trim(ver)//pthsep//trim(var)//'_fx_'//trim(fx_model)// &
-        trim(fx_experiment)//trim(fx_variant)//'_'//trim(cmip6_grid)//'.nc'
+      if ( dattyp == 'CMIP6' ) then
+        select case ( cmip6_model )
+          case ( 'MPI-ESM1-2-HR' )
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
+            fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
+            fpath = trim(fpath)//'historical'//pthsep
+            fx_variant = cmip6_variant
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'HadGEM3-GC31-MM' )
+            if ( cmip6_inp(1:8) == 'https://' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esg_cmip6'// &
+                pthsep//'CMIP6'//pthsep//'HighResMIP'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
+                'HighResMIP'//pthsep
+            end if
+            fpath = trim(fpath)//'MOHC'//pthsep//'HadGEM3-GC31-MM'//pthsep
+            fpath = trim(fpath)//'hist-1950'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_hist-1950_'
+            fx_model = cmip6_model
+          case ( 'NorESM2-MM' )
+            if ( index(cmip6_inp,'noresg.nird.sigma2.no') > 0 ) then
+              fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep//'cmor'//&
+                pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCC'//pthsep// &
+                'NorESM2-MM'//pthsep
+            else
+              ! This should work for esgf3
+              fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep// &
+                'CMIP'//pthsep//'NCC'//pthsep//'NorESM2-MM'//pthsep
+            end if
+            fpath = trim(fpath)//'historical'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'CNRM-ESM2-1' )
+            if ( index(cmip6_inp,'umr-cnrm.fr') > 0 ) then
+              fpath = trim(cmip6_inp)//pthsep//'CMIP6_CNRM'//pthsep//'CMIP'// &
+                pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+              fpath = trim(fpath)//'amip'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'CMIP6'//pthsep//'CMIP'// &
+                pthsep//'CNRM-CERFACS'//pthsep//'CNRM-ESM2-1'//pthsep
+              fpath = trim(fpath)//'amip'//pthsep
+            end if
+            fx_variant = 'r1i1p1f2'
+            fx_experiment = '_amip_'
+            fx_model = cmip6_model
+          case ( 'EC-Earth3-Veg' )
+            if ( cmip6_inp(1:8) == 'https://' ) then
+              fpath = 'https://esg-dn2.nsc.liu.se/thredds/dodsC'//pthsep// &
+                'esg_dataroot1'//pthsep//'cmip6data'//pthsep//'CMIP6'//pthsep//&
+                'CMIP'//pthsep//'EC-Earth-Consortium'// &
+                pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esg_dataroot1'//pthsep// &
+                'cmip6data'//pthsep//'CMIP6'//pthsep// &
+                'CMIP'//pthsep//'EC-Earth-Consortium'// &
+                pthsep//'EC-Earth3'//pthsep//'historical'//pthsep
+            end if
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = 'EC-Earth3'
+          case ( 'CESM2' )
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+              pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'NCAR'// &
+              pthsep//'CESM2'//pthsep//'historical'//pthsep
+            fx_variant = 'r11i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'CMCC-ESM2' )
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+              pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'CMCC'// &
+              pthsep//'CMCC-ESM2'//pthsep//'historical'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'GFDL-ESM4' )
+            fpath = trim(cmip6_inp)//pthsep//'gfdl_dataroot4'// &
+              pthsep//'AerChemMIP'//pthsep
+            fpath = trim(fpath)//'NOAA-GFDL'//pthsep//'GFDL-ESM4'//pthsep
+            fpath = trim(fpath)//'ssp370-lowNTCFCH4'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_ssp370-lowNTCFCH4_'
+            fx_model = cmip6_model
+          case ( 'CanESM5' )
+            fpath = trim(cmip6_inp)//pthsep//'esgA_dataroot'// &
+              pthsep//'AR6'//pthsep//'CMIP6'//pthsep//'CMIP'// &
+              pthsep//'CCCma'//pthsep//'CanESM5'//pthsep//'historical'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'MIROC6' )
+            fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+              pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+              pthsep//'MIROC6'//pthsep//'historical'//pthsep
+            fx_variant = 'r1i1p1f1'
+            fx_experiment = '_historical_'
+            fx_model = cmip6_model
+          case ( 'MIROC-ES2L')
+            fx_variant = cmip6_variant
+            fx_model = cmip6_model
+            if ( cmip6_experiment(1:3) == 'ssp' ) then
+              fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+                pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+                pthsep//'MIROC-ES2L'//pthsep//'historical'//pthsep
+              fx_experiment = '_historical_'
+            else
+              fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'// &
+                pthsep//'CMIP6'//pthsep//'CMIP'//pthsep//'MIROC'// &
+                pthsep//'MIROC-ES2L'//pthsep//trim(cmip6_experiment)//pthsep
+              fx_experiment = '_'//trim(cmip6_experiment)//'_'
+            end if
+          case ( 'MPI-ESM1-2-LR' )
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
+            fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-LR'//pthsep
+            fpath = trim(fpath)//trim(cmip6_experiment)//pthsep
+            fx_variant = cmip6_variant
+            fx_experiment = '_'//trim(cmip6_experiment)//'_'
+            fx_model = cmip6_model
+          case default
+            call die(__FILE__, &
+              'Unsupported cmip6 model: '//trim(cmip6_model),-1)
+        end select
+        fpath = trim(fpath)//trim(fx_variant)// &
+          pthsep//'fx'//pthsep//trim(var)//pthsep//trim(cmip6_grid)// &
+          pthsep//trim(ver)//pthsep//trim(var)//'_fx_'//trim(fx_model)// &
+          trim(fx_experiment)//trim(fx_variant)//'_'//trim(cmip6_grid)//'.nc'
+      else
+        select case ( pmip4_model )
+          case ( 'MPI-ESM1-2-LR' )
+            fpath = trim(pmip4_inp)//pthsep//'cmip6'//pthsep//'PMIP'//pthsep
+            fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-LR'//pthsep
+            fpath = trim(fpath)//trim(pmip4_experiment)//pthsep
+            fx_variant = pmip4_variant
+            fx_experiment = '_'//trim(pmip4_experiment)//'_'
+            fx_model = pmip4_model
+          case ( 'IPSL-CM6A-LR' )
+            fpath = trim(pmip4_inp)//pthsep//'cmip6'//pthsep//'PMIP'//pthsep
+            fpath = trim(fpath)//'IPSL'//pthsep//'IPSL-CM6A-LR'//pthsep
+            fpath = trim(fpath)//trim(pmip4_experiment)//pthsep
+            fx_variant = pmip4_variant
+            fx_experiment = '_'//trim(pmip4_experiment)//'_'
+            fx_model = pmip4_model
+          case default
+            call die(__FILE__, &
+              'Unsupported pmip4 model: '//trim(pmip4_model),-1)
+        end select
+        fpath = trim(fpath)//trim(fx_variant)// &
+          pthsep//'fx'//pthsep//trim(var)//pthsep//trim(pmip4_grid)// &
+          pthsep//trim(ver)//pthsep//trim(var)//'_fx_'//trim(fx_model)// &
+          trim(fx_experiment)//trim(fx_variant)//'_'//trim(pmip4_grid)//'.nc'
+      end if
     end function cmip6_fxpath
 
     character(len=1024) function cmip6_path(year,freq,ver,var) result(fpath)
@@ -391,14 +431,25 @@ module mod_cmip6_helper
           case ( 'MIROC-ES2L' )
             fpath = trim(cmip6_inp)//pthsep//'esg_dataroot'//pthsep// &
               'CMIP6'//pthsep
-            if ( year < 2015 ) then
-              fpath = trim(fpath)//'CMIP'//pthsep
-              experiment = 'historical'
+            if ( cmip6_experiment(1:3) == 'ssp' ) then
+              if ( year < 2015 ) then
+                fpath = trim(fpath)//'CMIP'//pthsep
+                experiment = 'historical'
+              else
+                fpath = trim(fpath)//'ScenarioMIP'//pthsep
+                experiment = trim(cmip6_experiment)
+              end if
             else
-              fpath = trim(fpath)//'ScenarioMIP'//pthsep
+              fpath = trim(fpath)//'CMIP'//pthsep
               experiment = trim(cmip6_experiment)
             end if
             fpath = trim(fpath)//'MIROC'//pthsep//'MIROC-ES2L'//pthsep
+            grid = cmip6_grid
+          case ( 'MPI-ESM1-2-LR' )
+            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
+            fpath = trim(fpath)//'CMIP'//pthsep
+            fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-LR'//pthsep
+            experiment = cmip6_experiment
             grid = cmip6_grid
           case default
             call die(__FILE__, &
@@ -411,23 +462,33 @@ module mod_cmip6_helper
         fpath = trim(fpath)//trim(experiment)//'_'
         fpath = trim(fpath)//trim(cmip6_variant)//'_'//trim(grid)//'_'
       else
-        select case ( pmip6_model )
+        select case ( pmip4_model )
           case ( 'MPI-ESM1-2-LR' )
-            fpath = trim(pmip6_inp)//pthsep//'cmip6'//pthsep
+            fpath = trim(pmip4_inp)//pthsep//'cmip6'//pthsep
             fpath = trim(fpath)//'PMIP'//pthsep
             fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-LR'//pthsep
-            experiment = pmip6_experiment
-            grid = pmip6_grid
+            experiment = pmip4_experiment
+            grid = pmip4_grid
+          case ( 'IPSL-CM6A-LR' )
+            fpath = trim(pmip4_inp)//pthsep//'cmip6'//pthsep
+            fpath = trim(fpath)//'PMIP'//pthsep
+            fpath = trim(fpath)//'IPSL'//pthsep//'IPSL-CM6A-LR'//pthsep
+            experiment = pmip4_experiment
+            if ( var == 'tos' ) then
+              grid = 'gn'
+            else
+              grid = pmip4_grid
+            end if
           case default
             call die(__FILE__, &
-              'Unsupported pmip6 model: '//trim(pmip6_model),-1)
+              'Unsupported pmip4 model: '//trim(pmip4_model),-1)
         end select
         fpath = trim(fpath)//trim(experiment)//pthsep
-        fpath = trim(fpath)//trim(pmip6_variant)//pthsep//trim(freq)//pthsep// &
+        fpath = trim(fpath)//trim(pmip4_variant)//pthsep//trim(freq)//pthsep// &
           trim(var)//pthsep//trim(grid)//pthsep//trim(ver)// &
-          pthsep//trim(var)//'_'//trim(freq)//'_'//trim(pmip6_model)//'_'
+          pthsep//trim(var)//'_'//trim(freq)//'_'//trim(pmip4_model)//'_'
         fpath = trim(fpath)//trim(experiment)//'_'
-        fpath = trim(fpath)//trim(pmip6_variant)//'_'//trim(grid)//'_'
+        fpath = trim(fpath)//trim(pmip4_variant)//'_'//trim(grid)//'_'
       end if
     end function cmip6_path
 

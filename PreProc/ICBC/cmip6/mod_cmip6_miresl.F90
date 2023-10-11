@@ -22,6 +22,7 @@ module mod_cmip6_miresl
   use mod_intkinds
   use mod_realkinds
   use mod_message
+  use mod_dynparam , only : cmip6_experiment
   use mod_date
   use mod_stdio
   use mod_memutil
@@ -100,6 +101,7 @@ module mod_cmip6_miresl
       real(rkx) , pointer , dimension(:) , intent(inout) :: a , b
       real(rkx) , intent(out) :: p0
       integer(ik4) :: istatus , idimid , ivarid
+      logical :: lquirk = .false.
       integer(ik4) :: nlev
       istatus = nf90_inq_dimid(ncid,'lev',idimid)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find lev dim')
@@ -108,6 +110,10 @@ module mod_cmip6_miresl
       call getmem1d(a,1,nlev,'cmip6_miresl:a')
       call getmem1d(b,1,nlev,'cmip6_miresl:b')
       istatus = nf90_inq_varid(ncid,'a',ivarid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(ncid,'ap',ivarid)
+        lquirk = .true.
+      end if
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find a var')
       istatus = nf90_get_var(ncid,ivarid,a)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read a var')
@@ -115,10 +121,14 @@ module mod_cmip6_miresl
       call cmip6_error(istatus,__FILE__,__LINE__,'Error find b var')
       istatus = nf90_get_var(ncid,ivarid,b)
       call cmip6_error(istatus,__FILE__,__LINE__,'Error read b var')
-      istatus = nf90_inq_varid(ncid,'p0',ivarid)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
-      istatus = nf90_get_var(ncid,ivarid,p0)
-      call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
+      if ( .not. lquirk ) then
+        istatus = nf90_inq_varid(ncid,'p0',ivarid)
+        call cmip6_error(istatus,__FILE__,__LINE__,'Error find p0 var')
+        istatus = nf90_get_var(ncid,ivarid,p0)
+        call cmip6_error(istatus,__FILE__,__LINE__,'Error read p0 var')
+      else
+        p0 = 1.0_rkx
+      end if
     end subroutine read_vcoord_miresl
 
     recursive subroutine read_3d_miresl(idate,v,lonlyc)
@@ -388,14 +398,20 @@ module mod_cmip6_miresl
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        if ( year < 2015 ) then
-          write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'Omon',miresl_version,v%vname)), &
-            '185001-201412.nc'
+        if ( cmip6_experiment(1:3) == 'ssp' ) then
+          if ( year < 2015 ) then
+            write(v%filename,'(a,a)') &
+              trim(cmip6_path(year,'Omon',miresl_version,v%vname)), &
+              '185001-201412.nc'
+          else
+            write(v%filename,'(a,a)') &
+              trim(cmip6_path(year,'Omon',miresl_version1,v%vname)), &
+              '201501-210012.nc'
+          end if
         else
           write(v%filename,'(a,a)') &
-            trim(cmip6_path(year,'Omon',miresl_version1,v%vname)), &
-            '201501-210012.nc'
+            trim(cmip6_path(year,'Omon',miresl_version,v%vname)), &
+            '185001-204912.nc'
         end if
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)

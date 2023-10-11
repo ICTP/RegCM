@@ -2860,11 +2860,11 @@ module mod_ncout
             ncattribute_string('CMIP6_model', &
             trim(cmip6_model)//'_'//trim(cmip6_experiment)//'_'// &
             trim(cmip6_variant)//'_'//trim(cmip6_grid)))
-        else if ( dattyp == 'PMIP6' ) then
+        else if ( dattyp == 'PMIP4' ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_string('PMIP6_model', &
-            trim(pmip6_model)//'_'//trim(pmip6_experiment)//'_'// &
-            trim(pmip6_variant)//'_'//trim(pmip6_grid)))
+            ncattribute_string('PMIP4_model', &
+            trim(pmip4_model)//'_'//trim(pmip4_experiment)//'_'// &
+            trim(pmip4_variant)//'_'//trim(pmip4_grid)))
         else
           ! Do not add any description here
         end if

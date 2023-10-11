@@ -104,25 +104,25 @@
                              !   FV_B2, EH5A2, EH5B1, EHA1B, EIXXX, EIN75,
                              !   EIN15, CCSST, CA_??, HA_??, EC_??, IP_??,
                              !   GF_??, CN_??, MP_??, E5_A2, CMIP6, ERA5D,
-                             !   ERA5 , HRMED, ERAXX, PMIP6, LGMNN, CFSNN,
+                             !   ERA5 , HRMED, ERAXX, PMIP4, LGMNN, CFSNN,
                              !   JRA55, EIXXX
                              ! for all codes, look into sst.f90
                              ! with ?? for CMIP5 datasets in 26, 45, 85
                              ! with NN in 01, 02, etc.
                              ! For CMIP6, fill the cmip6param namelist
-                             ! For PMIP6, fill the pmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
  dattyp = 'ERAXX',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !   ERAHI, NNRP1, NNRP2, NRP2W, GFS11, FVGCM,
                              !   FNEST, EH5A2, EH5B1, EHA1B, CCSMN, ECEXY,
                              !   CA_??, HA_??, EC_??, IP_??, GF_??, CN_??,
                              !   MP_??, CFSNN, CAM4N, CCSM3, ERA5 , ERAXX,
-                             !   IFSXX, CMIP6, PMIP6
+                             !   IFSXX, CMIP6, PMIP4
                              ! for all codes, look into icbc.f90
                              ! with ?? for CMIP5 datasets in 26, 45, 85
                              ! with NN in 01, 02, etc.
                              ! For CMIP6, fill the cmip6param namelist
-                             ! For PMIP6, fill the pmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -211,14 +211,14 @@
  ! cmip6_grid = 'gn',
  ! /
 !
-! PMIP6 model selection
+! PMIP4 model selection
 !
- &pmip6param
- pmip6_model = 'MPI-ESM1-2-LR',
- pmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
- pmip6_experiment = 'lgm',
- pmip6_variant = 'r1i1p1f2',
- pmip6_grid = 'gn',
+ &pmip4param
+ pmip4_model = 'MPI-ESM1-2-LR',
+ pmip4_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ pmip4_experiment = 'lgm',
+ pmip4_variant = 'r1i1p1f2',
+ pmip4_grid = 'gn',
  /
 !
 ! Nesting control

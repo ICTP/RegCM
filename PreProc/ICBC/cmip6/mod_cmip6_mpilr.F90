@@ -20,6 +20,7 @@
 module mod_cmip6_mpilr
 
   use mod_intkinds
+  use mod_dynparam, only : dattyp
   use mod_realkinds
   use mod_message
   use mod_date
@@ -129,18 +130,13 @@ module mod_cmip6_mpilr
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = year
+        y = 1850 + ((year-1850) / 20) * 20
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-          y = y - 1
-        end if
-        if ( y < 2015 .and. ( v%vname == 'ua' .or. v%vname == 'va' ) ) then
-          ver = mpilr_version1
-        else
-          ver = mpilr_version
+          y = y - 20
         end if
         write(v%filename,'(a,i4,a,i4,a)') &
-          trim(cmip6_path(y,'6hrLev',ver,v%vname)), &
-          y, '01010600-', y+1, '01010000.nc'
+          trim(cmip6_path(y,'6hrLev',mpilr_version,v%vname)), &
+          y, '01010600-', y+20, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif
@@ -241,13 +237,13 @@ module mod_cmip6_mpilr
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
-        y = (year / 5) * 5
+        y = 1850 + ((year-1850) / 20) * 20
         if ( y == year .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-          y = y - 5
+          y = y - 20
         end if
         write(v%filename,'(a,i4,a,i4,a)') &
           trim(cmip6_path(y,'6hrLev',mpilr_version,v%vname)), &
-          y, '01010600-', y+5, '01010000.nc'
+          y, '01010600-', y+20, '01010000.nc'
 #ifdef DEBUG
         write(stderr,*) 'Opening ',trim(v%filename)
 #endif

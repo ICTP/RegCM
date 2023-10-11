@@ -31,16 +31,17 @@ module mod_sst_cmip6
   use mod_stdio
   use mod_cmip6_cesm
   use mod_cmip6_canesm
+  use mod_cmip6_cmcc
   use mod_cmip6_cnrm
   use mod_cmip6_ecea
   use mod_cmip6_gfdl
   use mod_cmip6_hadmm
+  use mod_cmip6_ipsllr
   use mod_cmip6_miroc6
   use mod_cmip6_miresl
   use mod_cmip6_mpihr
   use mod_cmip6_mpilr
   use mod_cmip6_normm
-  use mod_cmip6_cmcc
   use netcdf
 
   implicit none
@@ -179,11 +180,6 @@ module mod_sst_cmip6
             end if
             step = rcm_time_interval(1_ik8,umnt)
             nsteps = imondiff(idatef,idateo) + 1
-          case default
-            call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
-        end select
-      else if ( dattyp == 'PMIP6' ) then
-        select case (pmip6_model)
           case ('MPI-ESM1-2-LR')
             if ( calendar /= 'gregorian' ) then
               write(stderr,*) 'MPI-ESM1-2-LR requires gregorian calendar.'
@@ -194,10 +190,38 @@ module mod_sst_cmip6
             step = 86400
             nsteps = int(tohours(tdif))/24 + 1
           case default
-            call die('sst','Unknown PMIP6 model: '//trim(pmip6_model),1)
+            call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
+        end select
+      else if ( dattyp == 'PMIP4' ) then
+        select case (pmip4_model)
+          case ('MPI-ESM1-2-LR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'MPI-ESM1-2-LR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_mpilr
+            sst%vname = 'tos'
+            step = 86400
+            nsteps = int(tohours(tdif))/24 + 1
+          case ('IPSL-CM6A-LR')
+            if ( calendar /= 'gregorian' ) then
+              write(stderr,*) 'IPSL-CM6A-LR requires gregorian calendar.'
+              call die('sst','Calendar mismatch',1)
+            end if
+            read_func => read_sst_ipsllr
+            sst%vname = 'tos'
+            idateo = prevmon(globidate1)
+            idatef = monfirst(globidate2)
+            if (idatef < globidate2) then
+              idatef = nextmon(idatef)
+            end if
+            step = rcm_time_interval(1_ik8,umnt)
+            nsteps = imondiff(idatef,idateo) + 1
+          case default
+            call die('sst','Unknown PMIP4 model: '//trim(pmip4_model),1)
         end select
       else
-        call die('sst','No PMIMP/CMIP6 model', 1)
+        call die('sst','No PMIP4/CMIP6 model', 1)
       end if
 
       write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
