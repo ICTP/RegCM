@@ -96,7 +96,7 @@ program chem_icbc
     iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
     ichem ,  scenario ,  idcsst , iwhitecap , iseaice , iconvlwp ,     &
     icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , &
-    icumcloud , islab_ocean , itweak , temp_tend_maxval ,              &
+    icumcloud , islab_ocean , itweak , temp_tend_maxval , ioasiscpl ,  &
     wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,    &
     irceideal , year_offset , radclimpath
 
