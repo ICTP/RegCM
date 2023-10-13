@@ -40,6 +40,7 @@ module mod_regcm_interface
   use mod_tendency
   use mod_service
   use mod_moloch
+  use mod_ensemble
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif
@@ -190,7 +191,16 @@ module mod_regcm_interface
     !
     ! Setup valid BC's
     !
-    if ( irceideal /= 1 ) call bdyval
+    if ( irceideal /= 1 ) then
+      call bdyval
+    else
+      if ( lrcemip_perturb ) then
+        allocate(rcemip_noise(njcross,nicross))
+        rcemip_noise(:,:) = xtsb%b0(jci1,ici1)
+        call randify(rcemip_noise,lrcemip_noise_level,nicross,njcross)
+        sfs%tg(jci1:jci2,ici1:ici2) = rcemip_noise(jci1:jci2,ici1:ici2)
+      end if
+    end if
     !
     ! Clean up and logging
     !
@@ -270,7 +280,15 @@ module mod_regcm_interface
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
-        if ( irceideal /= 1 ) call bdyval
+        if ( irceideal /= 1 ) then
+          call bdyval
+        else
+          if ( lrcemip_perturb ) then
+            rcemip_noise(:,:) = xtsb%b0(jci1,ici1)
+            call randify(rcemip_noise,lrcemip_noise_level,nicross,njcross)
+            sfs%tg(jci1:jci2,ici1:ici2) = rcemip_noise(jci1:jci2,ici1:ici2)
+          end if
+        end if
       end if
       !
       ! Send information to the driver
@@ -343,6 +361,12 @@ module mod_regcm_interface
 #endif
     end if
 #endif
+
+    if ( irceideal == 1 ) then
+      if ( lrcemip_perturb ) then
+        deallocate(rcemip_noise)
+      end if
+    end if
 
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V5 simulation successfully reached end'

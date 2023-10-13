@@ -118,6 +118,8 @@ module mod_runparams
   !
   ! Run with idealized conditions
   integer(ik4) , public :: irceideal
+  logical , public :: lrcemip_perturb
+  real(rkx) , public :: lrcemip_noise_level
   ! Cumulus scheme index
   integer(ik4) , public :: icup_lnd
   integer(ik4) , public :: icup_ocn

@@ -188,21 +188,6 @@ module mod_init
             end do
           end do
         end do
-        if ( irceideal == 1 ) then
-          do k = 1 , kz
-            if ( k == kz/2 ) then
-              do i = ide1 , ide2
-                if ( i == nidot/2 ) then
-                  do j = jce1 , jce2
-                    if ( j == njcross/2 ) then
-                      mo_atm%v(j,i,k) = 0.00001_rkx
-                    end if
-                  end do
-                end if
-              end do
-            end if
-          end do
-        end if
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jde1 , jde2
