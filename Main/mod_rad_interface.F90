@@ -40,6 +40,7 @@ module mod_rad_interface
   use mod_rad_aerosol , only : init_aeroppdata , read_aeroppdata
   use mod_rad_aerosol , only : read_aerclima , close_aerclima
   use mod_rad_aerosol , only : cmip6_plume_profile
+  use mod_rad_aerosol , only : aerclima_ntr , aerclima_nbin
   use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
 
