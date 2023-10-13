@@ -1,8 +1,8 @@
-! larger domain
+! smaller domain
  &dimparam
- iy     = 100,
- jx     = 500,
- kz     = 60,
+ iy     = 50,
+ jx     = 100,
+ kz     = 30,
  /
  &coreparam
  idynamic = 3,  ! Choice of dynamical core
