@@ -69,7 +69,9 @@ module mod_regcm_interface
   subroutine RCM_initialize(mpiCommunicator)
     implicit none
     integer, intent(in), optional :: mpiCommunicator
-    integer(ik4) :: ierr
+    real(rkx) , allocatable , dimension(:,:) :: rcemip_noise
+    integer(ik4) :: ierr , k
+    real(rkx) :: rnl
     !
     ! MPI Initialization
     !
@@ -187,19 +189,36 @@ module mod_regcm_interface
     ! Setup the output files
     !
     call init_output_streams(do_parallel_netcdf_out)
-    call output
     !
     ! Setup valid BC's
     !
-    if ( irceideal /= 1 ) then
-      call bdyval
-    else
+    if ( irceideal == 1 ) then
       if ( lrcemip_perturb ) then
         allocate(rcemip_noise(njcross,nicross))
-        rcemip_noise(:,:) = xtsb%b0(jci1,ici1)
-        call randify(rcemip_noise,lrcemip_noise_level,nicross,njcross)
-        sfs%tg(jci1:jci2,ici1:ici2) = rcemip_noise(jci1:jci2,ici1:ici2)
+        if ( idynamic == 3 ) then
+          do k = kz , kz - 5, -1
+            rnl = mo_atm%t(jci1,ici1,k)
+            rcemip_noise(:,:) = rnl
+            rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
+            call randify(rcemip_noise,rnl,nicross,njcross)
+            mo_atm%t(jce1:jce2,ice1:ice2,k) = rcemip_noise(jce1:jce2,ice1:ice2)
+          end do
+        else
+          do k = kz , kz - 5, -1
+            rnl = atm1%t(jci1,ici1,k)/sfs%psb(jci1,ici1)
+            rcemip_noise(:,:) = rnl
+            rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
+            call randify(rcemip_noise,rnl,nicross,njcross)
+            atm1%t(jce1:jce2,ice1:ice2,k) = &
+              rcemip_noise(jce1:jce2,ice1:ice2)*sfs%psb(jce1:jce2,ice1:ice2)
+          end do
+        end if
+        deallocate(rcemip_noise)
       end if
+      call output
+    else
+      call output
+      call bdyval
     end if
     !
     ! Clean up and logging
@@ -282,12 +301,6 @@ module mod_regcm_interface
         !
         if ( irceideal /= 1 ) then
           call bdyval
-        else
-          if ( lrcemip_perturb ) then
-            rcemip_noise(:,:) = xtsb%b0(jci1,ici1)
-            call randify(rcemip_noise,lrcemip_noise_level,nicross,njcross)
-            sfs%tg(jci1:jci2,ici1:ici2) = rcemip_noise(jci1:jci2,ici1:ici2)
-          end if
         end if
       end if
       !
@@ -361,12 +374,6 @@ module mod_regcm_interface
 #endif
     end if
 #endif
-
-    if ( irceideal == 1 ) then
-      if ( lrcemip_perturb ) then
-        deallocate(rcemip_noise)
-      end if
-    end if
 
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V5 simulation successfully reached end'

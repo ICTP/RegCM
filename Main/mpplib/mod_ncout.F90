@@ -785,7 +785,7 @@ module mod_ncout
               'mass_fraction_of_cloud_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 .or. idiag > 0 ) then
+          if ( icosp == 1 .or. idiag > 0 .or. irceideal == 1 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass Fraction of Rain', &

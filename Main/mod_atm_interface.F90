@@ -80,7 +80,6 @@ module mod_atm_interface
   real(rkx) , pointer , public , dimension(:,:,:) :: convpr
   real(rkx) , pointer , public , dimension(:,:) :: pptc
   real(rkx) , pointer , public , dimension(:,:) :: prca
-  real(rkx) , pointer , public , dimension(:,:) :: rcemip_noise
 
   ! Radiation
   real(rkx) , pointer , public , dimension(:,:) :: ptrop

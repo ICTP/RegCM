@@ -334,6 +334,8 @@ module mod_sun
     if ( ifixsolar == 1 ) then
 #ifdef RCEMIP
       coszrs(:,:) = cos(degrad*42.05_rkx)
+      eccf = 1.0_rkx
+      declin = 0.0_rkx
       if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
         if ( myid == italk .and. alarm_day%act( ) ) then
           write (stdout, *) 'At ',rcmtimer%str( )

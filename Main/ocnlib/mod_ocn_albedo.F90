@@ -67,9 +67,11 @@ module mod_ocn_albedo
 #endif
     do i = iocnbeg , iocnend
 #ifdef RCEMIP
-      swdiral(i) = 0.07_rkx
+      wspd = um10(i)
+      wfac = 2.95e-6_rkx * wspd**3.52_rkx
+      swdiral(i) = 0.07_rkx + 0.22_rkx * wfac
       lwdiral(i) = 0.07_rkx
-      swdifal(i) = 0.07_rkx
+      swdifal(i) = 0.07_rkx + 0.11_rkx * wfac
       lwdifal(i) = 0.07_rkx
 #else
       czeta = czenith(i)
@@ -83,7 +85,7 @@ module mod_ocn_albedo
           wspd = um10(i)
           ! Monahan and O'Muircheartaigh [1980]
           ! Fraction of whitecapping function of windspeed
-          wfac = 2.95e-6_rkx * wspd**3.52
+          wfac = 2.95e-6_rkx * wspd**3.52_rkx
           ! Ocean albedo depends on zenith angle.
           ! Solar zenith dependence from Briegleb et al., [1986]
           albg = 0.026_rkx / (czeta**1.7_rkx + 0.065_rkx) + &
@@ -96,7 +98,7 @@ module mod_ocn_albedo
           albg = albg + 0.22_rkx * wfac
           albgs = albg
           albgl = albg
-          albgsd = 0.05_rkx + 0.11 * wfac
+          albgsd = 0.05_rkx + 0.11_rkx * wfac
           albgld = 0.05_rkx
         else if ( iwhitecap == 2 ) then
           wspd = um10(i)
