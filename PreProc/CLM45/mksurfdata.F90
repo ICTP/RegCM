@@ -169,7 +169,7 @@ program mksurfdata
   integer(ik4) :: ierr
   integer(ik4) :: i , j , ip , il , ir , iu , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop
-  integer(ik4) :: jm1 , jp1 , ii , jj , jp , jm
+  integer(ik4) :: ii , jj , jp
   ! integer(ik4) :: jjs
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile

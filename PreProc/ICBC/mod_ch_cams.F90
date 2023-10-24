@@ -454,7 +454,7 @@ module mod_cams
     character(len=5) , intent(in) :: dattyp
     character(len=2), intent(in) ::typ
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , kkrec , istatus , ivar
+    integer(ik4) :: inet , it , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname

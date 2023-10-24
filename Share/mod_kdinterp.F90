@@ -157,7 +157,6 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    integer(ik4) :: imode
     real(rk8) :: dx , r2 , rin
     logical :: lbil
 
@@ -242,7 +241,6 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    integer(ik4) :: imode
     real(rk8) :: dx , dx1 , r2 , rin , rin1
     logical :: lbil
 
@@ -365,7 +363,6 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    integer(ik4) :: imode
     real(rk8) :: dx , r2 , rin
     logical :: lbil
 
@@ -453,7 +450,6 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
-    integer(ik4) :: imode
     real(rk8) :: dx , dx1 , r2 , rin , rin1
     logical :: lbil
 

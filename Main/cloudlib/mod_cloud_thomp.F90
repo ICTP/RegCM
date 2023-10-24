@@ -52,10 +52,8 @@ module mod_cloud_thomp
     real(rkx) , intent(in) :: gridkm
     real(rkx) :: rh_00l , rh_00o , rh_00 , rhi_max
     real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kz):: qvsat
-    integer(ik4) :: i , j , k , kk
+    integer(ik4) :: i , j , k
     real(rkx) :: tk , tc , qvsi , qvsw , rhum
-    real(rkx) , dimension(kz) :: qvs1d , cfr1d , t1d , p1d
-    real(rkx) , dimension(kz) :: r1d , qc1d , qi1d , qs1d
 
     ! First cut scale-aware. Higher resolution should require closer to
     ! saturated grid box for higher cloud fraction.  Simple functions
