@@ -75,7 +75,7 @@ module mod_kdinterp
   end interface maxedis
 
   ! Need at least three point to triangulate, 4 for a quasi-linear
-  integer(ik4) , parameter :: minp = 3
+  integer(ik4) , parameter :: minp = 4
 
   ! Try not to chocke memory...
   integer(ik4) , parameter :: maxp = 32
@@ -84,7 +84,6 @@ module mod_kdinterp
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
   real(rk8) , parameter :: mindis = 1.0e-4_rkx
-  real(rk8) , parameter :: mindis2 = mindis*mindis
 
   type pwgt
     integer(ik4) :: i , j
@@ -208,8 +207,8 @@ module mod_kdinterp
             call kdtree2_r_nearest(mr,p,r2,nf,np,results)
             np = nf
           end if
-          !call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           h_i%tg%ft(j,i)%np = np
           deallocate(results)
         end if
@@ -282,8 +281,8 @@ module mod_kdinterp
             call kdtree2_r_nearest(mr,p,r2,nf,np,results)
             np = nf
           end if
-          !call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           h_i%tg%ft(j,i)%np = np
           deallocate(results)
         end if
@@ -400,8 +399,8 @@ module mod_kdinterp
             call kdtree2_r_nearest(mr,p,r2,nf,np,results)
             np = nf
           end if
-          !call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           h_i%tg%ft(j,i)%np = np
           deallocate(results)
         end if
@@ -477,8 +476,8 @@ module mod_kdinterp
             call kdtree2_r_nearest(mr,p,r2,nf,np,results)
             np = nf
           end if
-          !call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           h_i%tg%ft(j,i)%np = np
           deallocate(results)
         end if
@@ -992,7 +991,7 @@ module mod_kdinterp
     end do
     allocate(w(np))
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( r(n)%dis < tiny(rx) ) then
         np = 1
         deallocate(w)
         allocate(w(1))
@@ -1017,11 +1016,12 @@ module mod_kdinterp
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     real(rk8) , dimension(3,np) :: v
     real(rk8) , dimension(np) :: lambda
+    real(rk8) :: rx
     integer(ik4) :: i , n
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( abs(r(n)%dis) < tiny(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = r(n)%idx
@@ -1054,11 +1054,12 @@ module mod_kdinterp
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     real(rk8) , dimension(3,np) :: v
     real(rk8) , dimension(np) :: lambda
+    real(rk8) :: rx
     integer(ik4) :: i , n
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( abs(r(n)%dis) < tiny(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1

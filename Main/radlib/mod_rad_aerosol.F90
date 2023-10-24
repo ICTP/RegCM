@@ -1695,7 +1695,6 @@ module mod_rad_aerosol
           end if
           if ( lfirst ) then
             do wn = 1 , nacwb
-              if ( wn /= 3 ) cycle
               call getfile(iy1,im1,ncid1,wn)
               call readvar3d(ncid1,'EXTTOT',xext1)
               call readvar3d(ncid1,'SSATOT',xssa1)
@@ -1770,7 +1769,6 @@ module mod_rad_aerosol
             end do
           else  ! ( if not first call , just update ext2 )
             do wn = 1 , nacwb
-              if ( wn /= 3 ) cycle
               ext1(:,:,:,wn) = ext2(:,:,:,wn)
               ssa1(:,:,:,wn) = ssa2(:,:,:,wn)
               asy1(:,:,:,wn) = asy2(:,:,:,wn)
@@ -1822,7 +1820,6 @@ module mod_rad_aerosol
         ! ! Important :  radiation schemes expect AOD per layer, calculated
         !   from extinction
         do wn = 1 , nacwb
-          if ( wn /= 3 ) cycle
           ext(:,:,:,wn) = (ext1(:,:,:,wn)*xfac2 + &
                            ext2(:,:,:,wn)*xfac1) * zdzr3d
         end do

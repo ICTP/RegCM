@@ -95,7 +95,7 @@ module mod_spbarcoord
 
     ! Double check sum weights is one
     norm = sum(lambda(1:np))-1.0_rk8
-    if ( abs(norm) > epsilon(1.0_rk8) ) then
+    if ( abs(norm) > tiny(1.0_rk8) ) then
       lambda(:) = lambda(:) - norm * (1.0_rk8-lambda(:))
     end if
 
