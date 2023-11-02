@@ -43,7 +43,7 @@ module mod_spbarcoord
   end type vpoint
 
   real(rk8) , dimension(3) :: centroid
-  real(rk8) , parameter :: notzero = 1.0e-10_rk8
+  real(rk8) , parameter :: notzero = epsilon(1.0_rk8)
 
   interface
     subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
@@ -67,7 +67,7 @@ module mod_spbarcoord
     real(rk8) , dimension(np) :: alpha
     real(rk8) , dimension(np) :: theta
     real(rk8) , dimension(np) :: tansum
-    real(rk8) :: norm
+    real(rk8) :: norm , xs
     integer(ik4) :: i
 
     ! Compute ordering centroid
@@ -90,11 +90,13 @@ module mod_spbarcoord
     end do
     norm = 0.0_rk8
     do i = 1 , np
-      norm = norm + tansum(i) / max(tan(theta(i)),notzero)
+      xs = tan(theta(i))
+      norm = norm + tansum(i) / sign(max(xs,notzero),xs)
     end do
     norm = max(norm,notzero)
     do i = 1 , np
-      lambda(voc(i)%idx) = (tansum(i)/max(sin(theta(i)),notzero))/norm
+      xs = sin(theta(i))
+      lambda(voc(i)%idx) = (tansum(i)/sign(max(xs,notzero),xs))/norm
     end do
 
     ! Double check sum weights is one

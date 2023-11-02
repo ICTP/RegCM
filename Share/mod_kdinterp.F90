@@ -1025,7 +1025,7 @@ module mod_kdinterp
     end do
     allocate(w(np))
     do n = 1 , np
-      if ( r(n)%dis < tiny(rx) ) then
+      if ( r(n)%dis < epsilon(rx) ) then
         np = 1
         deallocate(w)
         allocate(w(1))
@@ -1055,7 +1055,7 @@ module mod_kdinterp
 
     ! Check perfect match
     do n = 1 , np
-      if ( abs(r(n)%dis) < tiny(rx) ) then
+      if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = r(n)%idx
@@ -1093,7 +1093,7 @@ module mod_kdinterp
 
     ! Check perfect match
     do n = 1 , np
-      if ( abs(r(n)%dis) < tiny(rx) ) then
+      if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1
