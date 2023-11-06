@@ -290,7 +290,7 @@ module mod_micro_interface
     !     to be passed into radiation.
     !-----------------------------------------------------------------
 
-        if ( iconvlwp == 1 ) then
+    if ( iconvlwp == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
