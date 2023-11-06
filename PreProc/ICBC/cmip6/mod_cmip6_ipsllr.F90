@@ -126,7 +126,6 @@ module mod_cmip6_ipsllr
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
-      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)
@@ -363,7 +362,6 @@ module mod_cmip6_ipsllr
       character(len=32) :: timecal , timeunit
       integer(ik4) , dimension(3) :: istart , icount
       real(rk8) , dimension(2) :: times
-      type(rcm_time_interval) :: tdif
 
       if ( v%ncid == -1 ) then
         write(v%filename,'(a,a)') &
