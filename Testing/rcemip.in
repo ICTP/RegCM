@@ -1,0 +1,12 @@
+# Any line starting with a '#' character is commented out
+
+! ps in mb, ts in K
+&surface
+ ps = 1018.0,
+ ts = 295.0,
+/
+
+&perturbation
+ lrcemip_perturb = .true.,
+ lrcemip_noise_level = 0.0001,
+/

@@ -783,7 +783,7 @@ module mod_ncout
               'mass_fraction_of_cloud_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 .or. idiag > 0 ) then
+          if ( icosp == 1 .or. idiag > 0 .or. irceideal == 1 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass Fraction of Rain', &
@@ -1539,25 +1539,30 @@ module mod_ncout
           end if
           srf_va100_out => v3dvar_srf(srf_va100)%rval
         end if
-        vsize%k2 = num_soil_layers
-        v3dvar_srf(srf_smw)%axis = 'xys'
-        if ( enable_srf3d_vars(srf_smw) ) then
-          call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
-            'Moisture Content of the Soil Layers', &
-            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
-          srf_smw_out => v3dvar_srf(srf_smw)%rval
-        end if
+        if ( irceideal == 1 ) then
+          enable_srf3d_vars(srf_smw) = .false.
+          enable_srf3d_vars(srf_tsoi) = .false.
+        else
+          vsize%k2 = num_soil_layers
+          v3dvar_srf(srf_smw)%axis = 'xys'
+          if ( enable_srf3d_vars(srf_smw) ) then
+            call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
+              'Moisture Content of the Soil Layers', &
+              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            srf_smw_out => v3dvar_srf(srf_smw)%rval
+          end if
 #ifdef CLM45
-        v3dvar_srf(srf_tsoi)%axis = 'xys'
-        if ( enable_srf3d_vars(srf_tsoi) ) then
-          call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
-            'Bulk temperature of the Soil Layers', &
-            'soil_temperature',.true.,l_fill=.true.)
-          srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
-        end if
+          v3dvar_srf(srf_tsoi)%axis = 'xys'
+          if ( enable_srf3d_vars(srf_tsoi) ) then
+            call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
+              'Bulk temperature of the Soil Layers', &
+              'soil_temperature',.true.,l_fill=.true.)
+            srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
+          end if
 #else
-        enable_srf3d_vars(srf_tsoi) = .false.
+          enable_srf3d_vars(srf_tsoi) = .false.
 #endif
+        end if
 
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
@@ -1643,17 +1648,22 @@ module mod_ncout
             'Surface Air Pressure','air_pressure',.true.,'time: mean')
           sts_psavg_out => v2dvar_sts(sts_psavg)%rval
         end if
-        if ( enable_sts2d_vars(sts_srunoff) ) then
-          call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
-        end if
-        if ( enable_sts2d_vars(sts_trunoff) ) then
-          call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Total Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
+        if ( irceideal == 1 ) then
+          enable_sts2d_vars(sts_srunoff) = .false.
+          enable_sts2d_vars(sts_trunoff) = .false.
+        else
+          if ( enable_sts2d_vars(sts_srunoff) ) then
+            call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
+              'Surface Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
+          end if
+          if ( enable_sts2d_vars(sts_trunoff) ) then
+            call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
+              'Total Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
+          end if
         end if
 
         vsize%k2 = 1
@@ -1767,22 +1777,30 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           sub_tg_out => v2dvar_sub(sub_tg)%rval
         end if
-        if ( enable_sub2d_vars(sub_tlef) ) then
-          call setup_var(v2dvar_sub,sub_tlef,vsize,'tf','K', &
-            'Foliage canopy temperature','canopy_temperature',.true., &
-            l_fill=.true.)
-          sub_tlef_out => v2dvar_sub(sub_tlef)%rval
+        if ( irceideal == 1 ) then
+          enable_sub2d_vars(sub_tlef) = .false.
+        else
+          if ( enable_sub2d_vars(sub_tlef) ) then
+            call setup_var(v2dvar_sub,sub_tlef,vsize,'tf','K', &
+              'Foliage canopy temperature','canopy_temperature',.true., &
+              l_fill=.true.)
+            sub_tlef_out => v2dvar_sub(sub_tlef)%rval
+          end if
         end if
         if ( enable_sub2d_vars(sub_evp) ) then
           call setup_var(v2dvar_sub,sub_evp,vsize,'evspsbl','kg m-2 s-1', &
             'Evaporation','water_evaporation_flux',.true.,'time: mean')
           sub_evp_out => v2dvar_sub(sub_evp)%rval
         end if
-        if ( enable_sub2d_vars(sub_scv) ) then
-          call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
-            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
-            l_fill=.true.)
-          sub_scv_out => v2dvar_sub(sub_scv)%rval
+        if ( irceideal == 1 ) then
+          enable_sub2d_vars(sub_scv) = .false.
+        else
+          if ( enable_sub2d_vars(sub_scv) ) then
+            call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
+              'Surface Snow Amount', 'surface_snow_amount',.true., &
+              'time: mean', l_fill=.true.)
+            sub_scv_out => v2dvar_sub(sub_scv)%rval
+          end if
         end if
         if ( enable_sub2d_vars(sub_sena) ) then
           call setup_var(v2dvar_sub,sub_sena,vsize,'hfss','W m-2', &
@@ -1838,13 +1856,17 @@ module mod_ncout
             'Near-Surface Specific Humidity','specific_humidity',.true.)
           sub_q2m_out => v3dvar_sub(sub_q2m)%rval
         end if
-        vsize%k2 = num_soil_layers
-        v3dvar_sub(sub_smw)%axis = 'xys'
-        if ( enable_sub3d_vars(sub_smw) ) then
-          call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
-            'Moisture Content of the Soil Layers', &
-            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
-          sub_smw_out => v3dvar_sub(sub_smw)%rval
+        if ( irceideal == 1 ) then
+          enable_sub3d_vars(sub_smw) = .false.
+        else
+          vsize%k2 = num_soil_layers
+          v3dvar_sub(sub_smw)%axis = 'xys'
+          if ( enable_sub3d_vars(sub_smw) ) then
+            call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
+              'Moisture Content of the Soil Layers', &
+              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            sub_smw_out => v3dvar_sub(sub_smw)%rval
+          end if
         end if
 
         enable_sub_vars(1:nsub2dvars) = enable_sub2d_vars

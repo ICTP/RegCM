@@ -66,9 +66,11 @@ module mod_ocn_albedo
 #endif
     do i = iocnbeg , iocnend
 #ifdef RCEMIP
-      swdiral(i) = 0.07_rkx
+      wspd = um10(i)
+      wfac = 2.95e-6_rkx * wspd**3.52_rkx
+      swdiral(i) = 0.07_rkx + 0.22_rkx * wfac
       lwdiral(i) = 0.07_rkx
-      swdifal(i) = 0.07_rkx
+      swdifal(i) = 0.07_rkx + 0.11_rkx * wfac
       lwdifal(i) = 0.07_rkx
 #else
       czeta = czenith(i)

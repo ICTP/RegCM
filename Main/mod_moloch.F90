@@ -106,12 +106,6 @@ module mod_moloch
   logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filterdiv    = .true.
   logical , parameter :: do_filtertheta  = .false.
-#ifdef RCEMIP
-  logical , parameter :: do_massconserve = .false.
-#else
-  logical , parameter :: do_massconserve = .false.
-#endif
-
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -269,12 +263,7 @@ module mod_moloch
     implicit none
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice , prat
-#ifdef QUAD_PRECISION
-    real(rk16) :: tmi(kz) , tmf(kz) , tmil , tmfl
-#else
-    real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
-#endif
+    real(rkx) :: tv , lrt , fice
     !real(rk8) :: jday
     integer(ik4) :: i , j , k , nadv
     integer(ik4) :: iconvec
@@ -390,13 +379,6 @@ module mod_moloch
       qf = qv(jce1:jce2,ice1:ice2,:)
     end if
 
-    if ( do_massconserve ) then
-      do k = 1 , kz
-        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmil,tmi(k))
-      end do
-    end if
-
     do nadv = 1 , mo_nadv
 
       call sound(dtsound)
@@ -417,22 +399,6 @@ module mod_moloch
         call filttheta
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
       end if
-    end if
-
-    if ( do_massconserve ) then
-      do k = 1 , kz
-        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmfl,tmf(k))
-      end do
-      do k = 1 , kz
-        prat = real(tmi(k)/tmf(k),rkx)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) * &
-              (1.0_rkx + 0.025_rkx*(prat-1.0_rkx))
-          end do
-        end do
-      end do
     end if
 
     do k = 1 , kz

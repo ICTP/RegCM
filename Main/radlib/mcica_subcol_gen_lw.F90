@@ -495,9 +495,9 @@
             seed3(i) = int(pmid(i,3) - int(pmid(i,3)),im)  * 1000000000_im
             seed4(i) = int(pmid(i,4) - int(pmid(i,4)),im)  * 1000000000_im
           enddo
-         do i=1,changeSeed
+         !do i=1,changeSeed
             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-         enddo
+         !enddo
       elseif (irng.eq.1) then
          randomNumbers = new_RandomNumberSequence(seed = changeSeed)
       endif
