@@ -228,8 +228,13 @@ module mod_moloch
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
     end if
+#ifdef RCEMIP
+    coru = 0.0_rkx
+    corv = 0.0_rkx
+#else
     coru = eomeg2*sin(mddom%ulat(jde1:jde2,ice1:ice2)*degrad)
     corv = eomeg2*sin(mddom%vlat(jce1:jce2,ide1:ide2)*degrad)
+#endif
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv

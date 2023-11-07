@@ -2165,8 +2165,8 @@ module mod_params
       write(stdout,'(a,i2)') '  Climate O3 dataset          : ' , iclimao3
       write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ' , iclimaaer
       write(stdout,*) 'Boundary Pameterizations'
-      write(stdout,'(a,i2)') '  Num. of bndy points cross  : ', nspgx
-      write(stdout,'(a,i2)') '  Num. of bndy points dot    : ', nspgd
+      write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
+      write(stdout,'(a,i3)') '  Num. of bndy points dot    : ', nspgd
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
       write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
