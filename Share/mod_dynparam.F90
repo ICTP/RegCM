@@ -745,12 +745,15 @@ module mod_dynparam
     nspgd = max(nspgd,3)
 
     ibdyfrq = 6 ! Convenient default
+    dattyp = 'UNKNW'
+    gdate1 = 10100
+    gdate2 = 10100
     calendar = 'gregorian'
     ensemble_run = .false.
     chemtyp = 'MZCLM'
     rewind(ipunit)
     read(ipunit, nml=globdatparam, iostat=iresult)
-    if ( iresult /= 0 ) then
+    if ( iresult /= 0 .and. i_crm /= 1 ) then
       write (stderr,*) 'Error reading globdatparam namelist in ',trim(filename)
       ierr = 6
       return
