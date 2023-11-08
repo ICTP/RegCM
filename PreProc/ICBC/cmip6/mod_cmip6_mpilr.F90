@@ -126,7 +126,6 @@ module mod_cmip6_mpilr
       integer(ik4) , dimension(4) :: istart , icount
       real(rk8) , dimension(2) :: times
       type(rcm_time_interval) :: tdif
-      character(len=16) :: ver
 
       if ( v%ncid == -1 ) then
         call split_idate(idate, year, month, day, hour)

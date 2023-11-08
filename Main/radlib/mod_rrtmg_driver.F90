@@ -400,7 +400,7 @@ module mod_rrtmg_driver
       clrss(n)  = swdflxc(n,1) - swuflxc(n,1)
 
       firtp(n)  = -d_one * (lwdflx(n,kth) - lwuflx(n,kth))
-      lwout(n)  = -lwuflx(n,kth)
+      lwout(n)  = lwuflx(n,kth)
       lwin(n)   = -lwdflx(n,kth)
       frla(n)   = -d_one * (lwdflx(n,1) - lwuflx(n,1))
       clrlt(n)  = -d_one * (lwdflxc(n,kth) - lwuflxc(n,kth))
