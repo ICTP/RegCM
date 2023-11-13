@@ -1830,16 +1830,14 @@ module mod_micro_nogtom
           !  It is this scaled flux that must be used for source to next layer
           !-------------------------------------------------------------------
           do n = 1 , nqx
-            ! Generalized precipitation flux
-            ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
-            ! Calculate fluxes in and out of box for conservation of TL
-            fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
-            ! Calculate the water variables tendencies
             chng = qxn(n) - qx0(n)
-#ifdef DEBUG
             if ( abs(chng) > 1.0e-16_rkx ) then
-#endif
+              pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
+              ! Generalized precipitation flux
+              ! this will be the source for the k
+              ! Calculate fluxes in and out of box for conservation of TL
+              fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
+              ! Calculate the water variables tendencies
               qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
               ! Calculate the temperature tendencies
               if ( iphase(n) == 1 ) then
@@ -1847,11 +1845,10 @@ module mod_micro_nogtom
               else if ( iphase(n) == 2 ) then
                 ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
               end if
-#ifdef DEBUG
+            else
+              qxn(n) = qx0(n)
             end if
-#endif
           end do
-
         end do ! jx : end of longitude loop
       end do   ! iy : end of latitude loop
     end do     ! kz : end of vertical loop

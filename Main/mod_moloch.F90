@@ -106,6 +106,7 @@ module mod_moloch
   logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filterdiv    = .true.
   logical , parameter :: do_filtertheta  = .false.
+  logical , parameter :: do_diffutend    = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -354,7 +355,7 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
-                qwitot(j,i,k) = qi(j,i,k) + qs(j,i,k)
+                qwitot(j,i,k) = qi(j,i,k)
               end do
             end do
           end do
@@ -904,6 +905,80 @@ module mod_moloch
 !$acc wait(2)
       end subroutine boundary
 
+      subroutine filt3d(p,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
+        integer(ik4) :: j , i , k
+
+!$acc parallel present(p2d, p) if(on_device)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector collapse(2)
+          do i = icii1 , icii2
+            do j = jcii1 , jcii2
+              p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+                                      p(j,i-1,k) + p(j,i+1,k)) - &
+                         d_half   * p(j,i,k)
+            end do
+          end do
+!$acc loop vector collapse(2)
+          do i = icii1 , icii2
+            do j = jcii1 , jcii2
+              p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+!$acc end parallel
+      end subroutine filt3d
+
+      subroutine filtuv(u,v,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+        real(rkx) , intent(in) :: nu
+        integer(ik4) :: j , i , k
+
+!$acc parallel present(p2d, u) if(on_device)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector collapse(2)
+          do i = icii1 , icii2
+            do j = jdii1 , jdii2
+              p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
+                                      u(j,i-1,k) + u(j,i+1,k)) - &
+                         d_half   * u(j,i,k)
+            end do
+          end do
+!$acc loop vector collapse(2)
+          do i = icii1 , icii2
+            do j = jdii1 , jdii2
+              u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+!$acc end parallel
+
+!$acc parallel present(p2d, v) if(on_device)
+!$acc loop gang
+        do k = 1 , kz
+!$acc loop vector collapse(2)
+          do i = idii1 , idii2
+            do j = jcii1 , jcii2
+              p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
+                                      v(j,i-1,k) + v(j,i+1,k)) - &
+                         d_half   * v(j,i,k)
+            end do
+          end do
+!$acc loop vector collapse(2)
+          do i = idii1 , idii2
+            do j = jcii1 , jcii2
+              v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+!$acc end parallel
+      end subroutine filtuv
+
       subroutine filt4d(p,nu,n1,n2)
         implicit none
         real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
@@ -911,21 +986,21 @@ module mod_moloch
         integer(ik4) , intent(in) :: n1 , n2
         integer(ik4) :: j , i , k , n
 
-!$acc parallel present(p2d, p)
+!$acc parallel present(p2d, p) if(on_device)
 !$acc loop collapse(2)
         do n = n1 , n2
           do k = 1 , kz
 !$acc loop collapse(2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
                                         p(j,i-1,k,n) + p(j,i+1,k,n)) - &
                            d_half   * p(j,i,k,n)
               end do
             end do
 !$acc loop collapse(2)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
               end do
             end do
@@ -2852,25 +2927,25 @@ module mod_moloch
         deltaw(:,:,:) = d_zero
         zdiv2(:,:,:) = d_zero
 !$acc end kernels
-        mo_atm%tten = d_zero
-        mo_atm%qxten = d_zero
-        mo_atm%uten = d_zero
-        mo_atm%vten = d_zero
+        mo_atm%tten(:,:,:) = d_zero
+        mo_atm%qxten(:,:,:,:) = d_zero
+        mo_atm%uten(:,:,:) = d_zero
+        mo_atm%vten(:,:,:) = d_zero
         if ( ichem == 1 ) then
-          mo_atm%chiten = d_zero
+          mo_atm%chiten(:,:,:,:) = d_zero
         end if
         if ( ibltyp == 2 ) then
-          mo_atm%tketen = d_zero
+          mo_atm%tketen(:,:,:) = d_zero
         end if
 
         cldfra(:,:,:) = d_zero
         cldlwc(:,:,:) = d_zero
 
         if ( idiag > 0 ) then
-          ten0 = t(jci1:jci2,ici1:ici2,:)
-          qen0 = qv(jci1:jci2,ici1:ici2,:)
+          ten0 = t(jci1:jci2,ici1:ici2,1:kz)
+          qen0 = qv(jci1:jci2,ici1:ici2,1:kz)
           if ( ichem == 1 ) then
-            chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
+            chiten0 = trac(jci1:jci2,ici1:ici2,1:kz,1:ntr)
           end if
         end if
       end subroutine reset_tendencies
@@ -3063,6 +3138,17 @@ module mod_moloch
         !
         ! Update status
         !
+#ifdef RCEMIP
+        if ( do_diffutend ) then
+          call exchange_lrbt(mo_atm%tten,1,jci1,jci2,ici1,ici2,1,kz)
+          call filt3d(mo_atm%tten,mo_anu2)
+          call exchange_lrbt(mo_atm%qxten,1,jci1,jci2,ici1,ici2,1,kz,1,nqx)
+          call filt4d(mo_atm%qxten,mo_anu2,1,nqx)
+          call exchange_lrbt(mo_atm%uten,1,jdi1,jdi2,ici1,ici2,1,kz)
+          call exchange_lrbt(mo_atm%vten,1,jci1,jci2,idi1,idi2,1,kz)
+          call filtuv(mo_atm%uten,mo_atm%vten,mo_anu2)
+        end if
+#endif
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
           t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
         end do

@@ -1186,7 +1186,6 @@ module mod_params
         dtrad = dtrad - dt
       end do
       dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
-
       dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 
       dtche = int(dtche / dt) * dt
@@ -2167,6 +2166,7 @@ module mod_params
       write(stdout,'(a,i2)') '  Marine stratocumulus        : ' , icldmstrat
       write(stdout,'(a,i2)') '  Climate O3 dataset          : ' , iclimao3
       write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ' , iclimaaer
+#ifndef RCEMIP
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
       write(stdout,'(a,i3)') '  Num. of bndy points dot    : ', nspgd
@@ -2175,6 +2175,7 @@ module mod_params
       write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
       write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
       write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
+#endif
 #ifdef CLM
       write(stdout,*) 'CLM Pameterizations'
       write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask

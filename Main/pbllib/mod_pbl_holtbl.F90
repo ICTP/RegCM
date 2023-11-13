@@ -1071,7 +1071,8 @@ module mod_pbl_holtbl
     end if
 
     call force_water_conserve(qten,m2p%qxatm,xqfx)
-    p2m%qxten(:,:,:,:) = p2m%qxten(:,:,:,:) + qten
+    p2m%qxten(jci1:jci2,ici1:ici2,:,:) = &
+              p2m%qxten(jci1:jci2,ici1:ici2,:,:) + qten
 
     if ( ichem == 1 ) then
       !
