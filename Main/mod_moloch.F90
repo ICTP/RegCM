@@ -106,7 +106,7 @@ module mod_moloch
   logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filterdiv    = .true.
   logical , parameter :: do_filtertheta  = .false.
-  logical , parameter :: do_diffutend    = .true.
+  logical , parameter :: do_diffutend    = .false.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
