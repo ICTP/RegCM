@@ -663,7 +663,7 @@ module mod_oasis_interface
 
   ! call all subroutines consisting of sending OASIS fields
   ! with optional prior reworking
-  subroutine oasisxregcm_snd_all(time,l_last_time)
+  subroutine oasisxregcm_snd_all(time)
     implicit none
     integer(ik4) , intent(in) :: time ! execution time
     type(infogrd) , pointer :: grd
@@ -928,7 +928,7 @@ module mod_oasis_interface
           write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
         end if
 #endif
-        call oasisxregcm_snd_all(time + oasis_lag, .false.)
+        call oasisxregcm_snd_all(time + oasis_lag)
         oasis_lag = oasis_lag + int(dtsec,ik4)
 #ifdef DEBUG
         write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
@@ -950,7 +950,7 @@ module mod_oasis_interface
       do while ( oasis_lag < -oasis_sync_lag )
         call oasisxregcm_rcv_all(time + int(dtsec,ik4) + oasis_lag)
         ! dummy loop
-        call oasisxregcm_snd_all(time + int(dtsec,ik4) + oasis_lag, .false.)
+        call oasisxregcm_snd_all(time + int(dtsec,ik4) + oasis_lag)
         oasis_lag = oasis_lag + int(dtsec,ik4)
 #ifdef DEBUG
         write(ndebug,*) oasis_prefix, ' oasis_lag: ', oasis_lag
