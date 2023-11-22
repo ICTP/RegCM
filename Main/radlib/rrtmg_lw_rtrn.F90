@@ -246,10 +246,12 @@
 ! These arrays indicate the spectral 'region' (used in the
 ! calculation of ice cloud optical depths) corresponding
 ! to each spectral band.  See cldprop.f for more details.
-      integer(kind=im), parameter, dimension(16,0:2) :: ipat = [ &
+      integer(kind=im), parameter, dimension(16,0:2) :: ipat = &
+         reshape([ &
          [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ], &
          [ 1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 ], &
-         [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ] ]
+         [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ]],&
+         [16,3])
 
 ! This secant and weight corresponds to the standard diffusivity
 ! angle.  This initial value is redefined below for some bands.

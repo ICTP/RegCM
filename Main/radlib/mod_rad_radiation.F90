@@ -372,67 +372,69 @@ module mod_rad_radiation
   !
   ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
   !
-  real(rkx) , dimension(3,4) , parameter :: coefa = [ &
+  real(rkx) , dimension(3,4) , parameter :: coefa = reshape([ &
    [1.01400e+0_rkx , 6.41695e-3_rkx , 2.85787e-5_rkx] , &
    [1.01320e+0_rkx , 6.86400e-3_rkx , 2.96961e-5_rkx] , &
    [1.02920e+0_rkx , 1.01680e-2_rkx , 5.30226e-5_rkx] , &
-   [1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx] ]
+   [1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx] ],[3,4])
 
-  real(rkx) , dimension(4,4) , parameter :: coefb = [ &
+  real(rkx) , dimension(4,4) , parameter :: coefb = reshape([ &
    [ 8.85675e+0_rkx , -3.51620e-2_rkx ,  2.38653e-4_rkx , -1.71439e-6_rkx] , &
    [ 5.73841e+0_rkx , -1.91919e-2_rkx ,  1.65993e-4_rkx , -1.54665e-6_rkx] , &
    [ 6.64034e+0_rkx ,  1.56651e-2_rkx , -9.73357e-5_rkx ,  0.00000e+0_rkx] , &
-   [ 7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx ,  0.00000e+0_rkx] ]
+   [ 7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx ,  0.00000e+0_rkx]], &
+   [4,4])
 
-  real(rkx) , dimension(3,4) , parameter :: coefc = [ &
+  real(rkx) , dimension(3,4) , parameter :: coefc = reshape([ &
    [9.90127e-1_rkx , 1.22475e-3_rkx , 4.90135e-6_rkx] , &
    [9.89753e-1_rkx , 1.97081e-3_rkx , 3.42046e-6_rkx] , &
    [9.75230e-1_rkx , 1.03341e-3_rkx , 0.00000e+0_rkx] , &
-   [9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx] ]
+   [9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx] ],[3,4])
 
-  real(rkx) , dimension(4,4) , parameter :: coefd = [ &
+  real(rkx) , dimension(4,4) , parameter :: coefd = reshape([ &
    [7.03047e-1_rkx , -2.63501e-3_rkx , -1.57023e-6_rkx ,  0.00000e+0_rkx] , &
    [5.29269e-1_rkx , -3.14754e-3_rkx ,  4.39595e-6_rkx ,  0.00000e+0_rkx] , &
    [7.88193e-2_rkx ,  1.31290e-3_rkx ,  4.25827e-6_rkx , -1.23982e-8_rkx] , &
-   [1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , -4.30133e-8_rkx] ]
+   [1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , -4.30133e-8_rkx]], &
+   [4,4])
 
-  real(rkx) , dimension(3,4) , parameter :: coefe = [ &
+  real(rkx) , dimension(3,4) , parameter :: coefe = reshape([ &
    [3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx] , &
    [3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx] , &
    [7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx] , &
-   [7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx] ]
+   [7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx] ], [3,4])
 
-  real(rkx) , dimension(6,2) , parameter :: coeff = [ &
+  real(rkx) , dimension(6,2) , parameter :: coeff = reshape([ &
    [ 2.20370e-01_rkx ,  1.39719e-03_rkx , -7.32011e-06_rkx ,  &
     -1.40262e-08_rkx ,  2.13638e-10_rkx , -2.35955e-13_rkx] , &
    [ 3.07431e-01_rkx ,  8.27225e-04_rkx , -1.30067e-05_rkx ,  &
-     3.49847e-08_rkx ,  2.07835e-10_rkx , -1.98937e-12_rkx] ]
+     3.49847e-08_rkx ,  2.07835e-10_rkx , -1.98937e-12_rkx] ], [6,2])
 
-  real(rkx) , dimension(2,4) , parameter :: coefg = [ &
+  real(rkx) , dimension(2,4) , parameter :: coefg = reshape([ &
    [9.04489e+0_rkx , -9.56499e-3_rkx ,   &
     1.80898e+1_rkx , -1.91300e-2_rkx ] , &
    [8.72239e+0_rkx , -9.53359e-3_rkx ,   &
-    1.74448e+1_rkx , -1.90672e-2_rkx ] ]
+    1.74448e+1_rkx , -1.90672e-2_rkx ] ],[2,4])
 
-  real(rkx) , dimension(2,4) , parameter :: coefh = [ &
+  real(rkx) , dimension(2,4) , parameter :: coefh = reshape([ &
    [5.46557e+1_rkx , -7.30387e-2_rkx ,   &
     1.09311e+2_rkx , -1.46077e-1_rkx ] , &
    [5.11479e+1_rkx , -6.82615e-2_rkx ,   &
-    1.02296e+2_rkx , -1.36523e-1_rkx ] ]
+    1.02296e+2_rkx , -1.36523e-1_rkx ] ],[2,4])
 
-  real(rkx) , dimension(6,2) , parameter :: coefi = [ &
+  real(rkx) , dimension(6,2) , parameter :: coefi = reshape([ &
    [3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,     &
     5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx ] , &
    [3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,     &
-    6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx ] ]
+    6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx ] ],[6,2])
 
-  real(rkx) , dimension(3,2) , parameter :: coefj = [   &
+  real(rkx) , dimension(3,2) , parameter :: coefj = reshape([   &
    [2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx] , &
-   [9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx] ]
+   [9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx] ],[3,2])
 
-  real(rkx) , dimension(3,2) , parameter :: coefk = [   &
+  real(rkx) , dimension(3,2) , parameter :: coefk = reshape([   &
    [2.48852e-1_rkx , 2.09667e-3_rkx , 2.60377e-6_rkx] , &
-   [1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx] ]
+   [1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx] ],[3,2])
   !
   ! Narrow band data for H2O
   ! 200CM data for 800-1000 CM-1 and 1000-1200 CM-1.

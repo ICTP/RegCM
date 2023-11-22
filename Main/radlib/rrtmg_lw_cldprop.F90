@@ -163,10 +163,12 @@
 !                     Linear interpolation is used to get the absorption
 !                     coefficients for the input effective radius.
 
-      integer(kind=im), dimension(nbndlw,0:2), parameter :: icb = [ &
+      integer(kind=im), dimension(nbndlw,0:2), parameter :: icb = &
+         reshape([ &
           [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ] , &
           [ 1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 ] , &
-          [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ] ]
+          [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ]], &
+                [nbndlw,3])
 
       hvrcld = '$Revision$'
 
