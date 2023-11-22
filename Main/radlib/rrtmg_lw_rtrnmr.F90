@@ -155,8 +155,6 @@
       real(kind=rb) :: odcld(nlayers,nbndlw)
 
       real(kind=rb) :: secdiff(nbndlw)                 ! secant of diffusivity angle
-      real(kind=rb) :: a0(nbndlw),a1(nbndlw),a2(nbndlw)! diffusivity angle adjustment coefficients
-      real(kind=rb) :: wtdiff, rec_6
       real(kind=rb) :: radld, radclrd, plfrac, blay, dplankup, dplankdn
       real(kind=rb) :: odepth, odtot, odepth_rec, odtot_rec, gassrc, ttot
       real(kind=rb) :: tblind, tfactot, bbd, bbdtot, tfacgas, transc, tausfac
@@ -173,7 +171,6 @@
       integer(kind=im) :: igc                          ! g-point interval counter
       integer(kind=im) :: iclddn                       ! flag for cloud in down path
       integer(kind=im) :: ittot, itgas, itr            ! lookup table indices
-      integer(kind=im) :: ipat(16,0:2)
 
 ! Declarations for cloud overlap adjustment
       real(kind=rb) :: faccld1(nlayers+1),faccld2(nlayers+1)
@@ -258,31 +255,36 @@
 ! These arrays indicate the spectral 'region' (used in the
 ! calculation of ice cloud optical depths) corresponding
 ! to each spectral band.  See cldprop.f for more details.
-      data ipat /1,1,1,1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1, &
-                 1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5, &
-                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
+      integer(kind=im), dimension(16,0:2), parameter :: ipat = [ &
+        [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ] , &
+        [ 1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 ] , &
+        [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ] ]
 
 ! This secant and weight corresponds to the standard diffusivity
 ! angle.  This initial value is redefined below for some bands.
-      data wtdiff /0.5_rb/
-      data rec_6 /0.166667_rb/
+      real(kind=rb), parameter :: wtdiff = 0.5_rb
+      real(kind=rb), parameter :: rec_6 = 0.166667_rb
 
 ! Reset diffusivity angle for Bands 2-3 and 5-9 to vary (between 1.50
 ! and 1.80) as a function of total column water vapor.  The function
 ! has been defined to minimize flux and cooling rate errors in these bands
 ! over a wide range of precipitable water values.
-      data a0 / 1.66_rb,  1.55_rb,  1.58_rb,  1.66_rb, &
-                1.54_rb, 1.454_rb,  1.89_rb,  1.33_rb, &
-               1.668_rb,  1.66_rb,  1.66_rb,  1.66_rb, &
-                1.66_rb,  1.66_rb,  1.66_rb,  1.66_rb /
-      data a1 / 0.00_rb,  0.25_rb,  0.22_rb,  0.00_rb, &
-                0.13_rb, 0.446_rb, -0.10_rb,  0.40_rb, &
-              -0.006_rb,  0.00_rb,  0.00_rb,  0.00_rb, &
-                0.00_rb,  0.00_rb,  0.00_rb,  0.00_rb /
-      data a2 / 0.00_rb, -12.0_rb, -11.7_rb,  0.00_rb, &
-               -0.72_rb,-0.243_rb,  0.19_rb,-0.062_rb, &
-               0.414_rb,  0.00_rb,  0.00_rb,  0.00_rb, &
-                0.00_rb,  0.00_rb,  0.00_rb,  0.00_rb /
+      ! diffusivity angle adjustment coefficients
+      real(kind=rb), dimension(nbndlw), parameter :: a0 = &
+        [ 1.660_rb, 1.550_rb, 1.580_rb, 1.660_rb, &
+          1.540_rb, 1.454_rb, 1.890_rb, 1.330_rb, &
+          1.668_rb, 1.660_rb, 1.660_rb, 1.660_rb, &
+          1.660_rb, 1.660_rb, 1.660_rb, 1.660_rb ]
+      real(kind=rb), dimension(nbndlw), parameter :: a1 = &
+        [  0.000_rb,  0.250_rb,  0.220_rb,  0.000_rb, &
+           0.130_rb,  0.446_rb, -0.100_rb,  0.400_rb, &
+          -0.006_rb,  0.000_rb,  0.000_rb,  0.000_rb, &
+           0.000_rb,  0.000_rb,  0.000_rb,  0.000_rb ]
+      real(kind=rb), dimension(nbndlw), parameter :: a2 = &
+        [  0.000_rb,-12.000_rb,-11.700_rb,  0.000_rb, &
+          -0.720_rb, -0.243_rb,  0.190_rb, -0.062_rb, &
+           0.414_rb,  0.000_rb,  0.000_rb,  0.000_rb, &
+           0.000_rb,  0.000_rb,  0.000_rb,  0.000_rb ]
 
       do ibnd = 1,nbndlw
          if (ibnd.eq.1 .or. ibnd.eq.4 .or. ibnd.ge.10) then

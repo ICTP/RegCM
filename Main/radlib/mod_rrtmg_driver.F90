@@ -544,31 +544,40 @@ module mod_rrtmg_driver
 !   abari    - a coefficient for extinction optical depth
 !   bbari    - b coefficient for extinction o
 !
-    integer, dimension (nbndsw) :: indsl
-    real(rkx) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
-                                cbarl , dbari , dbarl , ebari , ebarl , &
-                                fbari , fbarl
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
-    data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
-    data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
-    data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-    data dbarl / 1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
-    data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
-    data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
+    real(rkx) , dimension(4) , parameter :: abarl = &
+         [  2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbarl = &
+         [  1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbarl = &
+         [ -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbarl = &
+         [  1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebarl = &
+         [  0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbarl = &
+         [  2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
 !
-    data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
-    data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
-    data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
-    data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
-    data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
-    data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
+    real(rkx) , dimension(4) , parameter :: abari = &
+         [  3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbari = &
+         [  2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbari = &
+         [  1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbari = &
+         [  0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebari = &
+         [  0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbari = &
+         [  5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
     !
     ! define index pointing on appropriate parameter in slingo's table
     ! for eachRRTM SW band
     !
-    data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
+    integer, dimension (nbndsw) , parameter :: indsl = &
+          [ 4, 4, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 4 ]
     ! CONVENTION : RRTMG driver takes layering from bottom to TOA.
     ! Regcm consider TOA to bottom
 

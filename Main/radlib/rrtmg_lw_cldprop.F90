@@ -96,7 +96,6 @@
       integer(kind=im) :: index
       integer(kind=im) :: iceind
       integer(kind=im) :: liqind
-      integer(kind=im) :: icb(nbndlw,0:2)
 
       real(kind=rb) :: abscoice(nbndlw)               ! ice absorption coefficients
       real(kind=rb) :: abscoliq(nbndlw)               ! liquid absorption coefficients
@@ -164,9 +163,10 @@
 !                     Linear interpolation is used to get the absorption
 !                     coefficients for the input effective radius.
 
-      data icb /1,1,1,1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1, &
-                1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5, &
-                1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
+      integer(kind=im), dimension(nbndlw,0:2), parameter :: icb = [ &
+          [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ] , &
+          [ 1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 ] , &
+          [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ] ]
 
       hvrcld = '$Revision$'
 
