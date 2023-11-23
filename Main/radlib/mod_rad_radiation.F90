@@ -205,10 +205,8 @@ module mod_rad_radiation
   ! fsul    - Clear sky upwards longwave flux
   ! fdl     - Total downwards longwave flux
   ! fsdl    - Clear sky downwards longwv flux
-  ! rtclrsf - d_one/tclrsf(n,k)
   real(rkx) , pointer , dimension(:,:) :: fdl , fsdl , fsul , ful
   real(rkx) , pointer , dimension(:,:) :: fdl0 , fsdl0 , fsul0 , ful0
-  real(rkx) , pointer , dimension(:,:) :: rtclrsf
   real(rkx) , pointer , dimension(:) :: taugab , tauray
   ! tmp     - Temporary
   ! delt    - Diff t**4 mid layer to top interface
@@ -298,6 +296,7 @@ module mod_rad_radiation
   ! plco2    - Prs weighted CO2 path
   ! plh2o    - Prs weighted H2O path
   ! tclrsf   - Total clear sky fraction, level to space
+  ! rtclrsf  - d_one/tclrsf(n,k)
   ! cfc11    - cfc11 mass mixing ratio
   ! cfc12    - cfc12 mass mixing ratio
   ! ch4      - methane mass mixing ratio
@@ -306,7 +305,8 @@ module mod_rad_radiation
   real(rkx) , pointer , dimension(:) :: fslwdcs
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr
-  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
+  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm
+  real(rkx) , pointer , dimension(:,:) :: tclrsf , rtclrsf
 
   real(rkx) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
@@ -673,6 +673,7 @@ module mod_rad_radiation
     call getmem2d(fsdl0,1,npoints,1,kzp1,'rad:fsdl0')
     call getmem2d(ful0,1,npoints,1,kzp1,'rad:ful0')
     call getmem2d(fsul0,1,npoints,1,kzp1,'rad:fsul0')
+    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
     call getmem2d(rtclrsf,1,npoints,1,kzp1,'rad:rtclrsf')
 
     call getmem2d(dbvtly,1,npoints,1,kz,'rad:dbvtly')
@@ -741,7 +742,6 @@ module mod_rad_radiation
     call getmem2d(plco2,1,npoints,1,kzp1,'rad:plco2')
     call getmem2d(plh2o,1,npoints,1,kzp1,'rad:plh2o')
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
-    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
 
     call allocate_tracers(1,npoints)
 
@@ -920,7 +920,7 @@ module mod_rad_radiation
     ! Set latitude dependent radiation input
     !
     call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
-                pbr,pnm,plco2,plh2o,tclrsf,rtclrsf,o3mmr)
+                pbr,pnm,plco2,plh2o,o3mmr)
     !
     ! Solar radiation computation
     !
@@ -1025,7 +1025,7 @@ module mod_rad_radiation
       call trcmix(rt%n1,rt%n2,rt%dlat,rt%xptrop,rt%pmid,n2o,ch4,cfc11,cfc12)
 
       call radclw(rt%n1,rt%n2,rt%ts,rt%t,rt%q,rt%o3vmr,pbr,pnm,         &
-                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,tclrsf, &
+                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,        &
                   rt%qrl,rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,     &
                   rt%flntc,rt%flwds,fslwdcs,rt%emiss,rt%aerlwfo,        &
                   rt%aerlwfos,rt%absgasnxt,rt%absgastot,rt%emsgastot,   &
@@ -1272,6 +1272,17 @@ module mod_rad_radiation
     ww(:) = d_zero
 
     qrs(:,:) = d_zero
+
+    do n = n1 , n2
+      tclrsf(n,1) = d_one
+      rtclrsf(n,1) = d_one
+    end do
+    do k = 1 , kz
+      do n = n1 , n2
+        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
+        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
+      end do
+    end do
     !
     ! Define solar incident radiation and interface pressures:
     !
@@ -1858,8 +1869,8 @@ module mod_rad_radiation
   ! flwds   - Down longwave flux at surface
   !
   subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,n2o,ch4,&
-                    cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,lwout,lwin,   &
-                    flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
+                    cfc11,cfc12,cld,qrl,flns,flnt,lwout,lwin,flnsc,    &
+                    flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,        &
                     absgasnxt,absgastot,emsgastot,labsem)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
@@ -1871,7 +1882,6 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:) , intent(in) :: piln , pmln
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ch4 , n2o
     real(rkx) , pointer , dimension(:,:) , intent(in) :: cfc11 , cfc12
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: tclrsf
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: qrl
     real(rkx) , pointer , dimension(:) , intent(inout) :: flns , flnt
     real(rkx) , pointer , dimension(:) , intent(inout) :: lwout , lwin
@@ -1893,10 +1903,17 @@ module mod_rad_radiation
 
     qrl(:,:) = d_zero
 
+    do n = n1 , n2
+      tclrsf(n,1) = d_one
+      rtclrsf(n,1) = d_one
+    end do
+
     do k = 1 , kz
       do n = n1 , n2
         fclb4(n,k) = d_zero
         fclt4(n,k) = d_zero
+        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
+        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
       end do
     end do
     !
@@ -4069,14 +4086,13 @@ module mod_rad_radiation
   !-----------------------------------------------------------------------
   !
   subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
-                    pintrd,plco2,plh2o,tclrsf,rtclrsf,o3mmr)
+                    pintrd,plco2,plh2o,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid , cld
     real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , h2ommr
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: pintrd , pmidrd
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: plco2 , plh2o
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: tclrsf , rtclrsf
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: o3mmr
     real(rkx) :: cpwpl , vmmr
     integer(ik4) :: n , k
@@ -4097,7 +4113,6 @@ module mod_rad_radiation
     ! pintrd  - Pressure at interfaces (dynes/cm*2)
     ! plco2   - Vert. pth lngth of co2 (prs-weighted)
     ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
-    ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
     ! o3mmr   - Ozone mass mixing ratio
     ! cpwpl   - Const in co2 mixing ratio to path length conversn
     ! vmmr    - Ozone volume mixing ratio
