@@ -389,7 +389,7 @@ module mod_rad_aerosol
      0.20599_rkx ],[nspi,4])
 
   real(rkx) , dimension(nspi,4) , parameter :: wsdust_stand = &
-    reshape([    &
+    reshape([ &
      0.64328_rkx , 0.55196_rkx , 0.53748_rkx , 0.54342_rkx , 0.67757_rkx , &
      0.56909_rkx , 0.53639_rkx , 0.54232_rkx , 0.67316_rkx , 0.56027_rkx , &
      0.53875_rkx , 0.54181_rkx , 0.66245_rkx , 0.55338_rkx , 0.53947_rkx , &
@@ -408,7 +408,7 @@ module mod_rad_aerosol
      0.89293_rkx ],[nspi,4])
 
   real(rkx) , dimension(nspi,4) , parameter :: gsdust_stand = &
-    reshape([    &
+    reshape([ &
      0.87114_rkx , 0.92556_rkx , 0.94542_rkx , 0.94831_rkx , 0.86127_rkx , &
      0.92100_rkx , 0.94355_rkx , 0.94813_rkx , 0.83800_rkx , 0.91194_rkx , &
      0.94304_rkx , 0.94803_rkx , 0.81760_rkx , 0.90442_rkx , 0.94239_rkx , &
