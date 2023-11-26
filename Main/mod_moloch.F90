@@ -110,7 +110,6 @@ module mod_moloch
   logical , parameter :: do_diffutend    = .false.
 #endif
 
-
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
   logical :: lrotllr

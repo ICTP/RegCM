@@ -65,7 +65,7 @@ module mod_ocn_zeng
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2
-  logical :: ecmwf_ocnrough = .false.
+  logical :: ecmwf_ocnrough = .true.
 
   contains
   !
