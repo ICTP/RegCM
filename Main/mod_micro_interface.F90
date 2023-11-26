@@ -59,7 +59,7 @@ module mod_micro_interface
   integer(ik4) , parameter :: nchi = 256
   real(rkx) , dimension(0:nchi-1) :: chis
 
-  logical , parameter :: do_cfscaling = .false.
+  logical , parameter :: do_cfscaling = .true.
 
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 

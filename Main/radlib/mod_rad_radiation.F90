@@ -919,7 +919,7 @@ module mod_rad_radiation
     !
     ! Set latitude dependent radiation input
     !
-    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%o3vmr, &
                 pbr,pnm,plco2,plh2o,o3mmr)
     !
     ! Solar radiation computation
@@ -1273,16 +1273,6 @@ module mod_rad_radiation
 
     qrs(:,:) = d_zero
 
-    do n = n1 , n2
-      tclrsf(n,1) = d_one
-      rtclrsf(n,1) = d_one
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
-      end do
-    end do
     !
     ! Define solar incident radiation and interface pressures:
     !
@@ -2227,7 +2217,8 @@ module mod_rad_radiation
           if ( skip(n) ) cycle
           if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
             ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
-                  rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+                  rtclrsf(n,kzp1-khiv(n)))* &
+                  (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
           end if
         end do
       end do  ! km = 1 , khighest
@@ -4085,11 +4076,11 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,o3vmr,pmidrd, &
                     pintrd,plco2,plh2o,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid , cld
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid
     real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , h2ommr
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: pintrd , pmidrd
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: plco2 , plh2o
@@ -4150,16 +4141,12 @@ module mod_rad_radiation
     do n = n1 , n2
       plh2o(n,1) = rgsslp*h2ommr(n,1)*pintrd(n,1)*pintrd(n,1)
       plco2(n,1) = co2vmr(n)*cpwpl*pintrd(n,1)*pintrd(n,1)
-      tclrsf(n,1) = d_one
-      rtclrsf(n,1) = d_one/tclrsf(n,1)
     end do
     do k = 1 , kz
       do n = n1 , n2
         plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
                        pintrd(n,k)**2) * h2ommr(n,k)
         plco2(n,k+1) = co2vmr(n)*cpwpl*pintrd(n,k+1)**2
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
       end do
     end do
     !

@@ -907,6 +907,7 @@ module mod_moloch
 !$acc wait(2)
       end subroutine boundary
 
+#ifdef RCEMIP
       subroutine filt3d(p,nu)
         implicit none
         real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
@@ -1010,6 +1011,7 @@ module mod_moloch
         end do
 !$acc end parallel
       end subroutine filt4d
+#endif
 
       subroutine divergence_filter( )
         implicit none
@@ -2173,7 +2175,7 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=d_zero)
+            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=epsilon(pmin))
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -2829,6 +2831,18 @@ module mod_moloch
 !$acc end parallel
         end if
 
+        if ( present(pmin) ) then
+!$acc parallel present(pp)
+!$acc loop collapse(3)
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = max(pp(j,i,k),pfm)
+              end do
+            end do
+          end do
+!$acc end parallel
+        end if
         if ( present(pfac) ) then
 !$acc parallel present(pp)
 !$acc loop collapse(3)
@@ -2836,18 +2850,6 @@ module mod_moloch
             do i = ice1 , ice2
               do j = jce1 , jce2
                 pp(j,i,k) = pp(j,i,k) / pfac
-              end do
-            end do
-          end do
-!$acc end parallel
-        end if
-        if ( present(pmin) ) then
-!$acc parallel present(pp)
-!$acc loop collapse(3)
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                pp(j,i,k) = max(pp(j,i,k),pmin)
               end do
             end do
           end do
