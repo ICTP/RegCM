@@ -43,6 +43,7 @@ module mod_spbarcoord
   end type vpoint
 
   real(rk8) , dimension(3) :: centroid
+  real(rk8) , parameter :: notzero = epsilon(1.0_rk8)
 
   interface
     subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
@@ -66,10 +67,12 @@ module mod_spbarcoord
     real(rk8) , dimension(np) :: alpha
     real(rk8) , dimension(np) :: theta
     real(rk8) , dimension(np) :: tansum
-    real(rk8) :: norm
+    real(rk8) :: norm , xs
     integer(ik4) :: i
 
     ! Compute ordering centroid
+
+    if ( np == 0 ) return
 
     centroid = d_zero
     do i = 1 , np
@@ -87,10 +90,13 @@ module mod_spbarcoord
     end do
     norm = 0.0_rk8
     do i = 1 , np
-      norm = norm + tansum(i) / tan(theta(i))
+      xs = tan(theta(i))
+      norm = norm + tansum(i) / sign(max(xs,notzero),xs)
     end do
+    norm = max(norm,notzero)
     do i = 1 , np
-      lambda(voc(i)%idx) = ( tansum(i) / sin(theta(i)) ) / norm
+      xs = sin(theta(i))
+      lambda(voc(i)%idx) = (tansum(i)/sign(max(xs,notzero),xs))/norm
     end do
 
     ! Double check sum weights is one
@@ -135,7 +141,8 @@ module mod_spbarcoord
       pure real(rk8) function angle_between(x,y) result(a)
         implicit none
         real(rk8) , dimension(3) , intent(in) :: x , y
-        a = max(-1.0_rk8,min(1.0_rk8,dotprod(x,y) / (norma(x)*norma(y))))
+        a = max(-1.0_rk8,min(1.0_rk8,dotprod(x,y) / &
+                  max((norma(x)*norma(y)),notzero)))
         a = acos(a)
       end function angle_between
 

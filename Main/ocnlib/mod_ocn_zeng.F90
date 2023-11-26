@@ -65,6 +65,7 @@ module mod_ocn_zeng
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2
+  logical :: ecmwf_ocnrough = .false.
 
   contains
   !
@@ -74,11 +75,11 @@ module mod_ocn_zeng
   subroutine zengocndrv
     implicit none
     real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo , &
-                 tau , tsurf , ustar , uv10 , zi
+                 tau , tsurf , ustar , uv10 , zi , cd
     real(rkx) :: t995 , q995 , uv995 , z995
-    real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,    &
+    real(rkx) :: dthv , zq , zh , zu , obu , qstar , xdens ,    &
                  th , thv , thvstar , tstar , um , visa , zot , &
-                 wc , zeta , zoq , wt1 , wt2 , tha , nobu
+                 wc , zeta , zoq , wt1 , wt2 , tha
     real(rkx) :: cpm , rlv
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
@@ -105,7 +106,7 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
-      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
+      uv995 = sqrt(usw(i)**2+vsw(i)**2)
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
@@ -113,14 +114,14 @@ module mod_ocn_zeng
       rlv = wlh(tatm(i))
       cpm = cpd*(d_one-q995) + cpv*q995
       zi = hpbl(i)
-      hu = z995
+      zu = z995
       zh = z995
-      hq = z995
+      zq = z995
       ! potential T
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))!*0.995_rkx
+      qs = pfwsat(tsurf,sfps(i))*0.98_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -138,9 +139,8 @@ module mod_ocn_zeng
       !
       ! initial values of u* and convective velocity
       !
-      wc = 1.0_rkx
-      um = sqrt(uv995*uv995+wc*wc)
-      ustar = um/25.0_rkx
+      wc = minw
+      um = max(sqrt(uv995*uv995),wc)
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo
@@ -172,46 +172,46 @@ module mod_ocn_zeng
       !
       ! loop to obtain initial and good ustar and zo
       !
-      do nconv = 1 , 2
-        call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        if ( flag2 ) then
-          ustar = vonkar*um/log(hu/zo)
+      if ( ecmwf_ocnrough ) then
+        if ( flag1 ) then  ! We don't have zo from the wave model
+          ! Compute z0 and cd
+          call zocd(visa,um,zu,zo,cd)
         end if
-      end do
-      br(i) = egrav*hu*dthv/(thv*um*um)
-      if ( br(i) >= d_zero ) then       ! neutral or stable
-        zeta = br(i)*log(hu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-        zeta = min(2.0_rkx,max(zeta,minz))
-      else                              ! unstable
-        zeta = br(i)*log(hu/zo)
-        zeta = max(-100.0_rkx,min(zeta,-minz))
-      end if
-      obu = hu/zeta
-      !
-      ! main iterations (2-10 iterations would be fine)
-      !
-      do nconv = 1 , 5
-        call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        !
-        ! wind
-        !
-        if ( flag2 ) then
-          zeta = hu/obu
-          if ( zeta < -zetam ) then      ! zeta < -1
-            ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
-                    psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
-          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            ram1(i) = (log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
-          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-            ram1(i) = (log(hu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
-          else                           !  1 < zeta, phi=5+zeta
-            ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
-                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
-          end if
-          ustar = vonkar*um/ram1(i)
-        else
-          ram1(i) = vonkar*um/ustar
+        if ( flag2 ) then  ! We don't have ustar from the wave model
+          ustar = um * vonkar / log(1.0_rkx+zu/zo)
         end if
+        if ( .not. flag1 ) then
+          cd = (ustar/um)**2
+        end if
+        br(i) = egrav*zu*dthv/(thv*um*um)
+        if ( br(i) >= d_zero ) then       ! neutral or stable
+          zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+          zeta = min(2.0_rkx,max(zeta,minz))
+        else                              ! unstable
+          zeta = br(i)*log(zu/zo)
+          zeta = max(-100.0_rkx,min(zeta,-minz))
+        end if
+        br(i) = egrav*zu*dthv/(thv*um*um)
+        if ( br(i) >= d_zero ) then       ! neutral or stable
+          zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+          zeta = min(2.0_rkx,max(zeta,minz))
+        else                              ! unstable
+          zeta = br(i)*log(zu/zo)
+          zeta = max(-100.0_rkx,min(zeta,-minz))
+        end if
+        obu = zu/zeta
+        if ( zeta < -zetam ) then      ! zeta < -1
+          ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
+                  psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
+        else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+          ram1(i) = (log(zu/zo) - psi(1,zeta)+psi(1,zo/obu))
+        else if ( zeta <= d_one ) then !  0 <= zeta <= 1
+          ram1(i) = (log(zu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
+        else                           !  1 < zeta, phi=5+zeta
+          ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
+                      (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+        end if
+        call roughness(zo,ustar,zot,zoq)
         !
         ! temperature
         !
@@ -225,42 +225,128 @@ module mod_ocn_zeng
           rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
         else                           !  1 < zeta, phi=5+zeta
           rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
-                  (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+                   (5.0_rkx*log(zeta)+zeta-1.0_rkx))
         end if
         tstar = vonkar*dth/rah1(i)
         !
         ! humidity
         !
-        zeta = hq/obu
+        zeta = zq/obu
         if ( zeta < -zetat ) then      ! zeta < -1
           qstar = vonkar*dqh/ &
                  (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
                        0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          qstar = vonkar*dqh/(log(hq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
+          qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
         else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-          qstar = vonkar*dqh/(log(hq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
+          qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
         else                           !  1 < zeta, phi=5+zeta
           qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
                   (5.0_rkx*log(zeta)+zeta-1.0_rkx))
         end if
-        thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
-        zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
-        if ( zeta >= d_zero ) then     !  neutral or stable
-          um = uv995
+      else
+        if ( flag1 ) then  ! We don't have zo from the wave model
+          ! First estimate of ustar
+          if ( flag2 ) then  ! We don't have ustar from the wave model
+            ustar = um/25.0_rkx
+            do nconv = 1 , 2
+              call ocnrough(zo,ustar,um10(i),wc,visa)
+              ustar = vonkar*um/log(1.0_rkx+zu/zo)
+            end do
+          else
+            call ocnrough(zo,ustar,um10(i),wc,visa)
+          end if
+        else
+          if ( flag2 ) then  ! We don't have ustar from the wave model
+            ustar = vonkar*um/log(1.0_rkx+zu/zo)
+          end if
+        end if
+        br(i) = egrav*zu*dthv/(thv*um*um)
+        if ( br(i) >= d_zero ) then       ! neutral or stable
+          zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
           zeta = min(2.0_rkx,max(zeta,minz))
-        else                           ! unstable
-          wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
-          um = sqrt(uv995*uv995+wc*wc)
+        else                              ! unstable
+          zeta = br(i)*log(zu/zo)
           zeta = max(-100.0_rkx,min(zeta,-minz))
         end if
-        nobu = hu/zeta
-        if ( abs(nobu-obu) < 0.1_rkx ) then
-          obu = nobu
-          exit
+        obu = zu/zeta
+        !
+        ! main iterations (2-10 iterations would be fine)
+        !
+        do nconv = 1 , 5
+          call roughness(zo,ustar,zot,zoq)
+          !
+          ! wind
+          !
+          if ( zeta < -zetam ) then      ! zeta < -1
+            ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
+                    psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
+          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+            ram1(i) = (log(zu/zo) - psi(1,zeta)+psi(1,zo/obu))
+          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
+            ram1(i) = (log(zu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
+          else                           !  1 < zeta, phi=5+zeta
+            ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
+                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+          end if
+          !
+          ! temperature
+          !
+          zeta = zh/obu
+          if ( zeta < -zetat ) then      ! zeta < -1
+            rah1(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+                      0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+            rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
+          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+            rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
+          else                           !  1 < zeta, phi=5+zeta
+            rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
+                    (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+          end if
+          tstar = vonkar*dth/rah1(i)
+          !
+          ! humidity
+          !
+          zeta = zq/obu
+          if ( zeta < -zetat ) then      ! zeta < -1
+            qstar = vonkar*dqh/ &
+                   (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
+                         0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+            qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
+          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+            qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
+          else                           !  1 < zeta, phi=5+zeta
+            qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
+                    (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+          end if
+
+          thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
+          zeta = vonkar*egrav*thvstar*zq/(ustar**2*thv)
+          if ( zeta >= d_zero ) then     !  neutral or stable
+            zeta = min(2.0_rkx,max(zeta,minz))
+          else                           ! unstable
+            wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
+            zeta = max(-100.0_rkx,min(zeta,-minz))
+          end if
+          um = max(sqrt(uv995*uv995),wc)
+          if ( .not. flag2 ) exit
+          ! Recompute ustar , zo
+          ustar = vonkar*um/log(1.0_rkx+zu/zo)
+          call ocnrough(zo,ustar,um10(i),wc,visa)
+        end do
+        br(i) = egrav*zu*dthv/(thv*um*um)
+        if ( br(i) >= d_zero ) then       ! neutral or stable
+          zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+          zeta = min(2.0_rkx,max(zeta,minz))
+        else                              ! unstable
+          zeta = br(i)*log(zu/zo)
+          zeta = max(-100.0_rkx,min(zeta,-minz))
         end if
-        obu = nobu
-      end do
+        obu = zu/zeta
+        cd = (ustar/um)**2
+      end if
       tau = xdens*ustar*ustar*uv995/um
       lh = -xdens*rlv*qstar*ustar
       sh = -xdens*cpm*tstar*ustar
@@ -272,11 +358,11 @@ module mod_ocn_zeng
       !
       zeta = z10/obu
       if ( zeta < d_zero ) then
-        uv10 = uv995 + (ustar/vonkar)*(log(z10/hu)- &
-                        (psi(1,zeta)-psi(1,hu/obu)))
+        uv10 = uv995 + (ustar/vonkar)*(log(z10/zu)- &
+                        (psi(1,zeta)-psi(1,zu/obu)))
       else
         uv10 = uv995 + (ustar/vonkar)* &
-                       (log(z10/hu)+5.0_rkx*zeta-5.0_rkx*hu/obu)
+                       (log(z10/zu)+5.0_rkx*zeta-5.0_rkx*zu/obu)
       end if
       if ( ldcsst ) then
         ! time step considered for the integration of prognostic skin
@@ -368,14 +454,14 @@ module mod_ocn_zeng
       sent(i) = sh
       evpr(i) = lh/rlv
       ! Back out Drag Coefficient
-      facttq = log(z995*0.5_rkx)/log(z995/zo)
-      drag(i) = ustar**2*rhox(i)/uv995
+      drag(i) = cd*uv995*xdens
       ustr(i) = ustar
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
+      facttq = log(z995*0.5_rkx)/log(z995/zo)
       t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
       q2m(i)  = q995 - dqh*facttq
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
@@ -412,50 +498,11 @@ module mod_ocn_zeng
     !
     ! our formulation for zo,zot,zoq
     !
-    subroutine ocnrough(zo,zot,zoq,ustar,um10,wc,visa)
+    subroutine roughness(zo,ustar,zot,zoq)
       implicit none
-      real(rkx) , intent (in) :: ustar , um10 , wc , visa
-      real(rkx) , intent (out) :: zo , zoq , zot
-      real(rkx) :: cp , charnockog , re , xtq , rt , rq , alph
-      ! if surface roughness not provided by wave model
-      if ( flag1 ) then
-        ! Wave age. The wind here is the mean last N days wind
-        cp = 1.2_rkx*um10
-        ! Smith et al. (1992), Carlsson et al. (2009)
-        ! Charnock parameter as power function of the wave age
-        ! We consider here dominant wind sea waves
-        ! Swell dominated sea would require a wave model...
-        charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
-        if ( iocnrough == 1 ) then
-          zo = 0.0065_rkx*regrav*ustar*ustar
-        else if ( iocnrough == 2 ) then
-          zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
-        else if ( iocnrough == 3 ) then
-          zo = 0.017_rkx*regrav*ustar*ustar
-        else if ( iocnrough == 4 ) then
-          ! C.H. Huang, 2012
-          ! Modification of the Charnock Wind Stress Formula
-          ! to Include the Effects of Free Convection and Swell
-          ! Advanced Methods for Practical Applications in Fluid Mechanics
-          zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
-        else if ( iocnrough == 5 ) then
-          if ( um10 < 10.0_rkx ) then
-            alph = 0.011_rkx
-          else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
-            alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
-          else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
-            alph = 0.018_rkx
-          else
-            alph = max(2.e-3_rkx,0.018_rkx / &
-                 (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
-                  0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
-          end if
-          zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
-        else
-          zo = charnockog*ustar*ustar
-        end if
-      end if
-      zo = max(zo,1.0e-8_rkx)
+      real(rkx) , intent (in) :: zo , ustar
+      real(rkx) , intent (out) :: zoq , zot
+      real(rkx) :: re , xtq , rt , rq
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then
         zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
@@ -496,7 +543,85 @@ module mod_ocn_zeng
         zoq = zo/exp(xtq)
         zot = zoq
       end if
-     end subroutine ocnrough
+    end subroutine roughness
+
+    subroutine ocnrough(zo,ustar,um10,wc,visa)
+      implicit none
+      real(rkx) , intent (in) :: um10 , wc , visa , ustar
+      real(rkx) , intent (out) :: zo
+      real(rkx) :: cp , charnockog , alph
+      ! Wave age. The wind here is the mean last N days wind
+      cp = 1.2_rkx*um10
+      ! Smith et al. (1992), Carlsson et al. (2009)
+      ! Charnock parameter as power function of the wave age
+      ! We consider here dominant wind sea waves
+      ! Swell dominated sea would require a wave model...
+      charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
+      if ( iocnrough == 1 ) then
+        zo = 0.0065_rkx*regrav*ustar*ustar
+      else if ( iocnrough == 2 ) then
+        zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+      else if ( iocnrough == 3 ) then
+        zo = 0.017_rkx*regrav*ustar*ustar
+      else if ( iocnrough == 4 ) then
+        ! C.H. Huang, 2012
+        ! Modification of the Charnock Wind Stress Formula
+        ! to Include the Effects of Free Convection and Swell
+        ! Advanced Methods for Practical Applications in Fluid Mechanics
+        zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
+      else if ( iocnrough == 5 ) then
+        if ( um10 < 10.0_rkx ) then
+          alph = 0.011_rkx
+        else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
+          alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
+        else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
+          alph = 0.018_rkx
+        else
+          alph = max(2.e-3_rkx,0.018_rkx / &
+               (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
+                0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
+        end if
+        zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+      else
+        zo = charnockog*ustar*ustar
+      end if
+      zo = max(zo,1.0e-8_rkx)
+    end subroutine ocnrough
+
+    real(rkx) function szo(visa,ustar)
+      implicit none
+      real(rkx) , intent(in) :: visa , ustar
+      real(rkx) , parameter :: alpham = 0.11_rkx
+      real(rkx) , parameter :: alphch = 0.018_rkx
+      szo = alpham*visa/ustar + alphch * ustar**2 * regrav
+    end function szo
+
+    ! Hans Hersbach ECMWF Technical Memoranda 630 July 2010
+    ! Sea-surface roughness and drag coefficient as function
+    !    of neutral wind speed
+    !  DOI : 10.21957/hcgkicamg
+    ! Hersbach, Hans. "Sea surface roughness and drag coefficient
+    ! as functions of neutral wind speed."
+    ! Journal of Physical Oceanography 41.1 (2011): 247-251.
+    subroutine zocd(visa,u,z,zo,cd)
+      implicit none
+      real(rkx) , intent(in) :: visa , u , z
+      real(rkx) , intent(out) :: zo , cd
+      integer(ik4) , parameter :: p = -12
+      real(rkx) , parameter :: alpham = 0.11_rkx
+      real(rkx) , parameter :: alphch = 0.018_rkx
+      real(rkx) :: unv , r , lna
+      real(rkx) :: bnv , baln , bnfit
+      ! No iteration
+      unv = vonkar*max(u,minw)
+      r = (z/(alpham*visa)) * unv                             ! Eq 15
+      bnv = -1.47_rkx + 0.93_rkx * log(r)
+      lna = log(alphch * regrav/z * unv**2)                   ! Eq 16
+      baln = 2.65_rkx - 1.44_rkx * lna - 0.015_rkx * lna**2
+      bnfit = abs(bnv**p + baln**p)**(1.0_rkx/p)              ! Eq 14
+      zo = z/(exp(bnfit)-1.0_rkx)
+      cd = (vonkar/bnfit)**2
+    end subroutine zocd
 
   end subroutine zengocndrv
 

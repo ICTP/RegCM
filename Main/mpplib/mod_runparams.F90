@@ -118,6 +118,8 @@ module mod_runparams
   !
   ! Run with idealized conditions
   integer(ik4) , public :: irceideal
+  logical , public :: lrcemip_perturb
+  real(rkx) , public :: lrcemip_noise_level
   ! Cumulus scheme index
   integer(ik4) , public :: icup_lnd
   integer(ik4) , public :: icup_ocn
@@ -175,7 +177,7 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_1 = .false.
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dzita , mo_anu2
-  real(rkx) , public :: mo_wmax , mo_cflhmax , mo_cflsmax
+  real(rkx) , public :: mo_cflhmax , mo_cflsmax
   integer(ik4) , public :: mo_nzfilt
   integer(ik4) , public :: mo_nadv
   integer(ik4) , public :: mo_nsound

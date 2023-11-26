@@ -54,7 +54,7 @@ module mod_micro_interface
   integer(ik4) , parameter :: nchi = 256
   real(rkx) , dimension(0:nchi-1) :: chis
 
-  logical , parameter :: do_cfscaling = .false.
+  logical , parameter :: do_cfscaling = .true.
 
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 
@@ -245,9 +245,14 @@ module mod_micro_interface
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
         mc2mo%fcc = d_zero
-        where ( totc > 1.0e-8_rkx )
+        where ( totc * mo2mc%delz > 1.0e-2_rkx )
           mc2mo%fcc = 1.0_rkx
         end where
+      case default
+        mc2mo%fcc = d_zero
+        if ( myid == italk ) then
+          write(stdout,*) ' No cloud fraction algorithm used.'
+        end if
     end select
 
     if ( ipptls == 1 ) then
@@ -294,29 +299,26 @@ module mod_micro_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            exlwc = d_zero
             ! Cloud Water Volume
-            if ( mc2mo%fcc(j,i,k) > lowcld ) then
-              ! Apply the parameterisation based on temperature to the
-              ! the large scale clouds.
-              exlwc = clwfromt(mo2mc%t(j,i,k))
-            end if
+            ! Apply the parameterisation based on temperature to the
+            ! the large scale clouds. This is an in-cloud here.
+            exlwc = clwfromt(mo2mc%t(j,i,k))
             if ( cldfra(j,i,k) > lowcld ) then
               ! get maximum cloud fraction between cumulus and large scale
-              cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
-                              cldlwc(j,i,k) * cldfra(j,i,k)) / &
-                              (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
               cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+              ! Compute liquid water content by summing up the two contributes
+              ! and make it an in-cloud quantity
+              cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
+                              cldlwc(j,i,k) * cldfra(j,i,k))/cldfra(j,i,k)
             else
               if ( mc2mo%fcc(j,i,k) > lowcld ) then
-                cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+                cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
                 cldlwc(j,i,k) = exlwc
+              else
+                cldfra(j,i,k) = d_zero
+                cldlwc(j,i,k) = d_zero
               end if
-            end if
-            if ( cldlwc(j,i,k) > d_zero ) then
-              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
-            else
-              cldfra(j,i,k) = d_zero
             end if
           end do
         end do
@@ -326,37 +328,33 @@ module mod_micro_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              exlwc = d_zero
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               if ( mc2mo%fcc(j,i,k) > lowcld ) then
+                ! Cloud Water Volume
+                ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
                 exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+                ! Scaling for CF
+                ! Implements CF scaling as in Liang GRL 32, 2005
+                ! doi: 10.1029/2004GL022301
+                if ( do_cfscaling ) then
+                  ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+                  exlwc = exlwc * chis(ichi)
+                end if
                 ! NOTE : IN CLOUD HERE IS NEEDED !!!
                 exlwc = exlwc/mc2mo%fcc(j,i,k)
-              end if
-              ! Scaling for CF
-              ! Implements CF scaling as in Liang GRL 32, 2005
-              ! doi: 10.1029/2004GL022301
-              if ( do_cfscaling ) then
-                ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
-                exlwc = exlwc * chis(ichi)
+              else
+                exlwc = d_zero
               end if
               if ( cldfra(j,i,k) > lowcld ) then
                 ! get maximum cloud fraction between cumulus and large scale
-                cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
-                                cldlwc(j,i,k) * cldfra(j,i,k)) / &
-                                (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
                 cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-              else
-                if ( mc2mo%fcc(j,i,k) > lowcld ) then
-                  cldfra(j,i,k) = mc2mo%fcc(j,i,k)
-                  cldlwc(j,i,k) = exlwc
-                end if
-              end if
-              if ( cldlwc(j,i,k) > d_zero ) then
                 cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+                ! Compute liquid water content by summing up the two
+                ! contributes and make it an in-cloud quantity
+                cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
+                                 cldlwc(j,i,k) * cldfra(j,i,k))/cldfra(j,i,k)
               else
-                cldfra(j,i,k) = d_zero
+                cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
+                cldlwc(j,i,k) = exlwc
               end if
             end do
           end do
@@ -365,26 +363,23 @@ module mod_micro_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              exlwc = d_zero
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               if ( mc2mo%fcc(j,i,k) > lowcld ) then
                 exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-                ! NOTE : IN CLOUD HERE IS NEEDED !!!
-                exlwc = exlwc/mc2mo%fcc(j,i,k)
-              end if
-              ! Scaling for CF
-              ! Implements CF scaling as in Liang GRL 32, 2005
-              ! doi: 10.1029/2004GL022301
-              if ( do_cfscaling ) then
-                ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
-                exlwc = exlwc * chis(ichi)
-              end if
-              cldlwc(j,i,k) = exlwc
-              if ( cldlwc(j,i,k) > d_zero ) then
+                ! Scaling for CF
+                ! Implements CF scaling as in Liang GRL 32, 2005
+                ! doi: 10.1029/2004GL022301
+                if ( do_cfscaling ) then
+                  ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
+                  exlwc = exlwc * chis(ichi)
+                end if
                 cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
+                ! NOTE : IN CLOUD HERE IS NEEDED !!!
+                cldlwc(j,i,k) = exlwc/cldfra(j,i,k)
               else
                 cldfra(j,i,k) = d_zero
+                cldlwc(j,i,k) = d_zero
               end if
             end do
           end do

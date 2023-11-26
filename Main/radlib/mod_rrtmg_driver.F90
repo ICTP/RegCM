@@ -99,7 +99,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 1_ik4
+  integer(ik4) :: permuteseed = 37_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,10 +107,6 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-    permuteseed = permuteseed + myid*(ngptlw+ngptsw)
-    do while ( permuteseed < 0 )
-      permuteseed = 2147483641+permuteseed
-    end do
     npj = (jci2-jci1+1)
     npr = npj*(ici2-ici1+1)
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
@@ -325,10 +321,12 @@ module mod_rrtmg_driver
         end do
       end do
       if ( imcica == 1 ) then
+        permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+        do while ( permuteseed < 0 )
+          permuteseed = 2147483641+permuteseed
+        end do
         ! generates cloud properties:
-        permuteseed = permuteseed+ngptlw
-        if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
+        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play, &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
@@ -360,8 +358,10 @@ module mod_rrtmg_driver
 
     ! LW call :
     if ( imcica == 1 ) then
-      permuteseed = permuteseed+ngptsw
-      if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
+      permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+      do while ( permuteseed < 0 )
+        permuteseed = 2147483641+permuteseed
+      end do
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
                            cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
                            cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
@@ -400,7 +400,7 @@ module mod_rrtmg_driver
       clrss(n)  = swdflxc(n,1) - swuflxc(n,1)
 
       firtp(n)  = -d_one * (lwdflx(n,kth) - lwuflx(n,kth))
-      lwout(n)  = -lwuflx(n,kth)
+      lwout(n)  = lwuflx(n,kth)
       lwin(n)   = -lwdflx(n,kth)
       frla(n)   = -d_one * (lwdflx(n,1) - lwuflx(n,1))
       clrlt(n)  = -d_one * (lwdflxc(n,kth) - lwuflxc(n,kth))
@@ -544,31 +544,40 @@ module mod_rrtmg_driver
 !   abari    - a coefficient for extinction optical depth
 !   bbari    - b coefficient for extinction o
 !
-    integer, dimension (nbndsw) :: indsl
-    real(rkx) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
-                                cbarl , dbari , dbarl , ebari , ebarl , &
-                                fbari , fbarl
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
-    data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
-    data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
-    data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-    data dbarl / 1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
-    data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
-    data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
+    real(rkx) , dimension(4) , parameter :: abarl = &
+         [  2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbarl = &
+         [  1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbarl = &
+         [ -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbarl = &
+         [  1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebarl = &
+         [  0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbarl = &
+         [  2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
 !
-    data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
-    data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
-    data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
-    data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
-    data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
-    data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
+    real(rkx) , dimension(4) , parameter :: abari = &
+         [  3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbari = &
+         [  2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbari = &
+         [  1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbari = &
+         [  0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebari = &
+         [  0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbari = &
+         [  5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
     !
     ! define index pointing on appropriate parameter in slingo's table
     ! for eachRRTM SW band
     !
-    data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
+    integer, dimension (nbndsw) , parameter :: indsl = &
+          [ 4, 4, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 4 ]
     ! CONVENTION : RRTMG driver takes layering from bottom to TOA.
     ! Regcm consider TOA to bottom
 
@@ -786,6 +795,16 @@ module mod_rrtmg_driver
     !
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
+#ifdef RCEMIP
+    do n = 1 , npr
+      co2vmr(n) = ghgval(igh_co2,iyear,imonth,0.0_rkx)
+      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      ch40(n) = ghgval(igh_ch4,iyear,imonth,0.0_rkx)*(amch4/amd)
+      n2o0(n) = ghgval(igh_n2o,iyear,imonth,0.0_rkx)*(amn2o/amd)
+      cfc110(n) = ghgval(igh_cfc11,iyear,imonth,0.0_rkx)*(amcfc11/amd)
+      cfc120(n) = ghgval(igh_cfc12,iyear,imonth,0.0_rkx)*(amcfc12/amd)
+    end do
+#else
     do n = 1 , npr
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
       co2mmr(n) = co2vmr(n)*(amco2/amd)
@@ -794,6 +813,7 @@ module mod_rrtmg_driver
       cfc110(n) = ghgval(igh_cfc11,iyear,imonth,dlat(n))*(amcfc11/amd)
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
+#endif
 
     do k = 1 , kz
       do n = 1 , npr

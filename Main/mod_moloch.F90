@@ -107,9 +107,7 @@ module mod_moloch
   logical , parameter :: do_filterdiv    = .true.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_massconserve = .false.
-#else
-  logical , parameter :: do_massconserve = .false.
+  logical , parameter :: do_diffutend    = .false.
 #endif
 
 
@@ -234,8 +232,13 @@ module mod_moloch
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
     end if
+#ifdef RCEMIP
+    coru = 0.0_rkx
+    corv = 0.0_rkx
+#else
     coru = eomeg2*sin(mddom%ulat(jde1:jde2,ice1:ice2)*degrad)
     corv = eomeg2*sin(mddom%vlat(jce1:jce2,ide1:ide2)*degrad)
+#endif
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
@@ -269,12 +272,7 @@ module mod_moloch
     implicit none
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice , prat
-#ifdef QUAD_PRECISION
-    real(rk16) :: tmi(kz) , tmf(kz) , tmil , tmfl
-#else
-    real(rk8) :: tmi(kz) , tmf(kz) , tmil , tmfl
-#endif
+    real(rkx) :: tv , lrt , fice
     !real(rk8) :: jday
     integer(ik4) :: i , j , k , nadv
     integer(ik4) :: iconvec
@@ -315,7 +313,7 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
-                qwitot(j,i,k) = qi(j,i,k) + qs(j,i,k)
+                qwitot(j,i,k) = qi(j,i,k)
               end do
             end do
           end do
@@ -390,13 +388,6 @@ module mod_moloch
       qf = qv(jce1:jce2,ice1:ice2,:)
     end if
 
-    if ( do_massconserve ) then
-      do k = 1 , kz
-        tmil = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmil,tmi(k))
-      end do
-    end if
-
     do nadv = 1 , mo_nadv
 
       call sound(dtsound)
@@ -417,22 +408,6 @@ module mod_moloch
         call filttheta
         tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
       end if
-    end if
-
-    if ( do_massconserve ) then
-      do k = 1 , kz
-        tmfl = sum(sum(pai(jce1:jce2,ice1:ice2,k),1))
-        call sumall(tmfl,tmf(k))
-      end do
-      do k = 1 , kz
-        prat = real(tmi(k)/tmf(k),rkx)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) * &
-              (1.0_rkx + 0.025_rkx*(prat-1.0_rkx))
-          end do
-        end do
-      end do
     end if
 
     do k = 1 , kz
@@ -760,6 +735,65 @@ module mod_moloch
         end if
       end subroutine boundary
 
+#ifdef RCEMIP
+      subroutine filt3d(p,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
+        real(rkx) , intent(in) :: nu
+        integer(ik4) :: j , i , k
+
+        do k = 1 , kz
+          do i = icii1 , icii2
+            do j = jcii1 , jcii2
+              p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+                                      p(j,i-1,k) + p(j,i+1,k)) - &
+                         d_half   * p(j,i,k)
+            end do
+          end do
+          do i = icii1 , icii2
+            do j = jcii1 , jcii2
+              p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filt3d
+
+      subroutine filtuv(u,v,nu)
+        implicit none
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+        real(rkx) , intent(in) :: nu
+        integer(ik4) :: j , i , k
+
+        do k = 1 , kz
+          do i = icii1 , icii2
+            do j = jdii1 , jdii2
+              p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
+                                      u(j,i-1,k) + u(j,i+1,k)) - &
+                         d_half   * u(j,i,k)
+            end do
+          end do
+          do i = icii1 , icii2
+            do j = jdii1 , jdii2
+              u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = idii1 , idii2
+            do j = jcii1 , jcii2
+              p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
+                                      v(j,i-1,k) + v(j,i+1,k)) - &
+                         d_half   * v(j,i,k)
+            end do
+          end do
+          do i = idii1 , idii2
+            do j = jcii1 , jcii2
+              v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filtuv
+
       subroutine filt4d(p,nu,n1,n2)
         implicit none
         real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
@@ -769,21 +803,22 @@ module mod_moloch
 
         do n = n1 , n2
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
                                         p(j,i-1,k,n) + p(j,i+1,k,n)) - &
-                           d_half   * p(j,i,k,n)
+                           d_half * p(j,i,k,n)
               end do
             end do
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+                                                                                            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
               end do
             end do
           end do
         end do
       end subroutine filt4d
+#endif
 
       subroutine divergence_filter( )
         implicit none
@@ -1692,7 +1727,7 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta,1.0e4_rkx,pmin=d_zero)
+            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=epsilon(pmin))
           end do
         end if
         if ( ibltyp == 2 ) then
@@ -1701,7 +1736,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-            call wafone(ptr,dta,1.0e8_rkx,d_zero)
+            call wafone(ptr,dta,pfac=1.0e8_rkx,pmin=d_zero)
           end do
         end if
 
@@ -1735,10 +1770,6 @@ module mod_moloch
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
         real(rkx) :: pfm
-#ifdef RCEMIP
-        logical :: solved
-        integer(ik4) :: kp1 , km1
-#endif
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
@@ -2090,6 +2121,15 @@ module mod_moloch
           end do
         end if
 
+        if ( present(pmin) ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                pp(j,i,k) = max(pp(j,i,k),pfm)
+              end do
+            end do
+          end do
+        end if
         if ( present(pfac) ) then
           do k = 1 , kz
             do i = ice1 , ice2
@@ -2099,78 +2139,6 @@ module mod_moloch
             end do
           end do
         end if
-#ifdef RCEMIP
-        if ( present(pmin) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              do k = 1 , kz
-                if ( pp(j,i,k) < pmin ) then
-                  zdv = pmin - pp(j,i,k)
-                  pp(j,i,k) = pmin
-                  solved = .false.
-                  if ( s(j,i,k+1) > d_zero ) then
-                    kp1 = k+1
-                    do while ( (.not. solved) .and. ( kp1 <= kz ) )
-                      if ( pp(j,i,kp1) > zdv+pmin ) then
-                        pp(j,i,kp1) = pp(j,i,kp1)-zdv
-                        solved = .true.
-                        exit
-                      end if
-                      kp1 = kp1 + 1
-                    end do
-                  else
-                    km1 = k-1
-                    do while ( (.not. solved) .and. ( km1 >= 1 ) )
-                      if ( pp(j,i,km1) > zdv+pmin ) then
-                        pp(j,i,km1) = pp(j,i,km1)-zdv
-                        solved = .true.
-                        exit
-                      end if
-                      km1 = km1 + 1
-                    end do
-                  end if
-                  if ( .not. solved ) then
-                    if ( k == kz ) then
-                      if ( pp(j,i,kzm1) > zdv+pmin ) then
-                        pp(j,i,kzm1) = pp(j,i,kzm1)-zdv
-                        solved = .true.
-                      end if
-                    else if ( k == 1 ) then
-                      if ( pp(j,i,2) > zdv+pmin ) then
-                        pp(j,i,2) = pp(j,i,2)-zdv
-                        solved = .true.
-                      end if
-                    else
-                      if ( pp(j,i,k+1) > 0.5_rkx*(zdv+pmin) .and. &
-                           pp(j,i,k-1) > 0.5_rkx*(zdv+pmin) ) then
-                        pp(j,i,k+1) = pp(j,i,k+1)-0.5_rkx*zdv
-                        pp(j,i,k-1) = pp(j,i,k-1)-0.5_rkx*zdv
-                        solved = .true.
-                      end if
-                    end if
-                    if ( .not. solved ) then
-                      write(stderr, *) 'NON CONSERVATION ERROR IN ADVECTION!'
-                      write(stderr, *) 'At j,i,k : ', j, i, k
-                      write(stderr, *) 'Forcibly setting value at ', pmin
-                      pp(j,i,k) = pmin
-                    end if
-                  end if
-                end if
-              end do
-            end do
-          end do
-        end if
-#else
-        if ( present(pmin) ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                pp(j,i,k) = max(pp(j,i,k),pmin)
-              end do
-            end do
-          end do
-        end if
-#endif
       end subroutine wafone
 
       subroutine reset_tendencies
@@ -2178,25 +2146,25 @@ module mod_moloch
         s(:,:,:) = d_zero
         deltaw(:,:,:) = d_zero
         zdiv2(:,:,:) = d_zero
-        mo_atm%tten = d_zero
-        mo_atm%qxten = d_zero
-        mo_atm%uten = d_zero
-        mo_atm%vten = d_zero
+        mo_atm%tten(:,:,:) = d_zero
+        mo_atm%qxten(:,:,:,:) = d_zero
+        mo_atm%uten(:,:,:) = d_zero
+        mo_atm%vten(:,:,:) = d_zero
         if ( ichem == 1 ) then
-          mo_atm%chiten = d_zero
+          mo_atm%chiten(:,:,:,:) = d_zero
         end if
         if ( ibltyp == 2 ) then
-          mo_atm%tketen = d_zero
+          mo_atm%tketen(:,:,:) = d_zero
         end if
 
         cldfra(:,:,:) = d_zero
         cldlwc(:,:,:) = d_zero
 
         if ( idiag > 0 ) then
-          ten0 = t(jci1:jci2,ici1:ici2,:)
-          qen0 = qv(jci1:jci2,ici1:ici2,:)
+          ten0 = t(jci1:jci2,ici1:ici2,1:kz)
+          qen0 = qv(jci1:jci2,ici1:ici2,1:kz)
           if ( ichem == 1 ) then
-            chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
+            chiten0 = trac(jci1:jci2,ici1:ici2,1:kz,1:ntr)
           end if
         end if
       end subroutine reset_tendencies
@@ -2389,6 +2357,17 @@ module mod_moloch
         !
         ! Update status
         !
+#ifdef RCEMIP
+        if ( do_diffutend ) then
+          call exchange_lrbt(mo_atm%tten,1,jci1,jci2,ici1,ici2,1,kz)
+          call filt3d(mo_atm%tten,mo_anu2)
+          call exchange_lrbt(mo_atm%qxten,1,jci1,jci2,ici1,ici2,1,kz,1,nqx)
+          call filt4d(mo_atm%qxten,mo_anu2,1,nqx)
+          call exchange_lrbt(mo_atm%uten,1,jdi1,jdi2,ici1,ici2,1,kz)
+          call exchange_lrbt(mo_atm%vten,1,jci1,jci2,idi1,idi2,1,kz)
+          call filtuv(mo_atm%uten,mo_atm%vten,mo_anu2)
+        end if
+#endif
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
           t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
         end do

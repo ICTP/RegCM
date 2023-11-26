@@ -827,7 +827,7 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-           qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
+            qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
           end do
         end do
       end do
@@ -836,7 +836,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))* &
-              rdt*m2p%psb(j,i)
+                           rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -919,7 +919,7 @@ module mod_pbl_holtbl
         do i = ici1 , ici2
           do j = jci1 , jci2
             qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))* &
-              rdt*m2p%psb(j,i)
+                        rdt*m2p%psb(j,i)
           end do
         end do
       end do
@@ -993,7 +993,7 @@ module mod_pbl_holtbl
           do i = ici1 , ici2
             do j = jci1 , jci2
               qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))* &
-                rdt*m2p%psb(j,i)
+                             rdt*m2p%psb(j,i)
             end do
           end do
         end do
@@ -1070,8 +1070,11 @@ module mod_pbl_holtbl
       end do
     end if
 
+#ifdef RCEMIP
     call force_water_conserve(qten,m2p%qxatm,xqfx)
-    p2m%qxten(:,:,:,:) = p2m%qxten(:,:,:,:) + qten
+#endif
+    p2m%qxten(jci1:jci2,ici1:ici2,:,:) = &
+              p2m%qxten(jci1:jci2,ici1:ici2,:,:) + qten
 
     if ( ichem == 1 ) then
       !
@@ -1377,10 +1380,9 @@ module mod_pbl_holtbl
             p2m%zpbl(j,i) = phpblm
           end if
           ! Find the k of the level of the pbl
-          p2m%kpbl(j,i) = kz
-          do k = kzm1 , kmxpbl(j,i) , -1
-            if ( m2p%za(j,i,k+1) > p2m%zpbl(j,i) ) exit
+          do k = kz, kmxpbl(j,i) , -1
             p2m%kpbl(j,i) = k
+            if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
           end do
         end do
       end do
@@ -1392,21 +1394,17 @@ module mod_pbl_holtbl
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
+          zpbl = max(p2m%zpbl(j,i),m2p%za(j,i,kz))
+          fak1 = ustr(j,i)*zpbl*vonkar
           if ( lunstb(j,i) ) then
-            xfmt = (d_one-binm*p2m%zpbl(j,i)/obklen(j,i))**onet
-            xfht = sqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
+            xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
+            xfht = sqrt(d_one-binh*zpbl/obklen(j,i))
             wsc = ustr(j,i)*xfmt
-            fak2 = wsc*p2m%zpbl(j,i)*vonkar
+            fak2 = wsc*zpbl*vonkar
           end if
           do k = kz , p2m%kpbl(j,i) , -1
-            zpbl = p2m%zpbl(j,i)
             zm = m2p%za(j,i,k)
             zp = m2p%za(j,i,k-1)
-            if ( zm > p2m%zpbl(j,i) ) then
-              ! Very low pbl below first model level
-              zpbl = zm
-            end if
             zp = min(zp,zpbl)
             z = (zm+zp)*d_half
             zh = z/zpbl

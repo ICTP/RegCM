@@ -33,14 +33,6 @@
  debug_level = 0,
  dbgfrq = 3,
  /
- &boundaryparam
- nspgx = 10,
- nspgd = 10,
- /
- &globdatparam
- gdate1 = 1900010100,
- gdate2 = 1900030100,
- /
  &restartparam
  ifrest  = .false. ,
  mdate0  = 1900010100,

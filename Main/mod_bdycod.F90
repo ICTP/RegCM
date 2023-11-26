@@ -267,6 +267,7 @@ module mod_bdycod
     real(rkx) , parameter :: p0s = 101480
 
     namelist /surface/ ps , ts
+    namelist /perturbation/ lrcemip_perturb , lrcemip_noise_level
 
     open(newunit=iunit, file='profile.in', status='old', &
          action='read', iostat=ierr, err=100)
@@ -278,6 +279,15 @@ module mod_bdycod
     if ( ierr /= 0 ) then
       call fatal(__FILE__,__LINE__, &
                  'Read error for namelist surface in profile.in')
+    end if
+    rewind(iunit)
+    lrcemip_perturb = .false.
+    lrcemip_noise_level = 0.0001_rkx
+    read(iunit, nml=perturbation, iostat=ierr)
+    if ( ierr /= 0 ) then
+      if ( myid == italk ) then
+        write(stdout, *) 'No perturbation added.'
+      end if
     end if
     close(iunit)
 
