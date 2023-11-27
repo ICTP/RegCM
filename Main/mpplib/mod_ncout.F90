@@ -3043,8 +3043,6 @@ module mod_ncout
                   ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('rayleigh_damping',ifrayd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('maximum_wind_speed',mo_wmax))
           if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_integer('rayleigh_ndamp',rayndamp))

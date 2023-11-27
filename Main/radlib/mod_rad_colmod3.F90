@@ -521,7 +521,7 @@ module mod_rad_colmod3
     !
     rt%cld  = 0.0_rkx
     rt%clwp = 0.0_rkx
-    kmaxcld = 2
+    kmaxcld = 3
     kmincld = kz - ncld
     do k = kmaxcld , kmincld
       n = 1
@@ -542,8 +542,6 @@ module mod_rad_colmod3
             rt%cld(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
             rt%cld(n,k) = min(rt%cld(n,k),cftotmax)
-          else
-            rt%cld(n,k) = 0.0_rkx
           end if
           n = n + 1
         end do
@@ -633,18 +631,23 @@ module mod_rad_colmod3
     if ( ipptls > 1 ) then
       do k = 1 , kz
         do n = rt%n1 , rt%n2
-          ! Define fractional amount of cloud that is ice
-          ! if warmer than -10 degrees C then water phase
-          if ( rt%qi(n,k) > 1.0e-11_rkx ) then
+          if ( rt%qi(n,k) > 1.0e-11_rkx .and. &
+               rt%ql(n,k) > 1.0e-11_rkx ) then
             rt%fice(n,k) = rt%qi(n,k) / (rt%ql(n,k)+rt%qi(n,k))
           else
-            rt%fice(n,k) = 0.0_rkx
+            if ( rt%qi(n,k) > 1.0e-11_rkx ) then
+              rt%fice(n,k) = 1.0_rkx
+            else
+              rt%fice(n,k) = 0.0_rkx
+            end if
           end if
         end do
       end do
     else
       do k = 1 , kz
         do n = rt%n1 , rt%n2
+          ! Define fractional amount of cloud that is ice
+          ! if warmer than -10 degrees C then water phase
           if ( rt%t(n,k) >= tzero ) then
             rt%fice(n,k) = 0.0_rkx
           else if ( rt%t(n,k) <= minus20 ) then
@@ -713,7 +716,7 @@ module mod_rad_colmod3
         kabs = kabsl*(1.0_rkx-rt%fice(n,k)) + (kabsi*rt%fice(n,k))
         ! cloud emissivity (fraction)
         arg = min(1.66_rkx*kabs*rt%clwp(n,k),25.0_rkx)
-        emis = 1.0_rkx - exp(-arg)
+        emis = max(1.0_rkx - exp(-arg),0.01_rkx)
         ! Effective cloud cover
         rt%effcld(n,k) = rt%cld(n,k)*emis
       end do

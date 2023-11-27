@@ -205,10 +205,8 @@ module mod_rad_radiation
   ! fsul    - Clear sky upwards longwave flux
   ! fdl     - Total downwards longwave flux
   ! fsdl    - Clear sky downwards longwv flux
-  ! rtclrsf - d_one/tclrsf(n,k)
   real(rkx) , pointer , dimension(:,:) :: fdl , fsdl , fsul , ful
   real(rkx) , pointer , dimension(:,:) :: fdl0 , fsdl0 , fsul0 , ful0
-  real(rkx) , pointer , dimension(:,:) :: rtclrsf
   real(rkx) , pointer , dimension(:) :: taugab , tauray
   ! tmp     - Temporary
   ! delt    - Diff t**4 mid layer to top interface
@@ -298,6 +296,7 @@ module mod_rad_radiation
   ! plco2    - Prs weighted CO2 path
   ! plh2o    - Prs weighted H2O path
   ! tclrsf   - Total clear sky fraction, level to space
+  ! rtclrsf  - d_one/tclrsf(n,k)
   ! cfc11    - cfc11 mass mixing ratio
   ! cfc12    - cfc12 mass mixing ratio
   ! ch4      - methane mass mixing ratio
@@ -306,18 +305,13 @@ module mod_rad_radiation
   real(rkx) , pointer , dimension(:) :: fslwdcs
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr
-  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
+  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm
+  real(rkx) , pointer , dimension(:,:) :: tclrsf , rtclrsf
 
-  real(rkx) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
   real(rkx) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
              c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,    &
              c28 , c29 , c30 , c31 , c8 , c9 , cfa1
-  real(rkx) , dimension(3,4) :: coefa , coefc , coefe
-  real(rkx) , dimension(4,4) :: coefb , coefd
-  real(rkx) , dimension(6,2) :: coeff , coefi
-  real(rkx) , dimension(2,4) :: coefg , coefh
-  real(rkx) , dimension(3,2) :: coefj , coefk
 
   real(rkx) , parameter :: verynearone = 0.999999_rkx
 
@@ -376,6 +370,86 @@ module mod_rad_radiation
   real(rkx) , parameter :: gray = 0.0_rkx
   real(rkx) , parameter :: fray = 0.1_rkx
   !
+  ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
+  !
+  real(rkx) , dimension(3,4) , parameter :: coefa = reshape([ &
+    1.01400e+0_rkx , 6.41695e-3_rkx , 2.85787e-5_rkx , &
+    1.01320e+0_rkx , 6.86400e-3_rkx , 2.96961e-5_rkx , &
+    1.02920e+0_rkx , 1.01680e-2_rkx , 5.30226e-5_rkx , &
+    1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx ], [3,4])
+
+  real(rkx) , dimension(4,4) , parameter :: coefb = reshape([ &
+    8.85675e+0_rkx , -3.51620e-2_rkx ,  2.38653e-4_rkx , -1.71439e-6_rkx , &
+    5.73841e+0_rkx , -1.91919e-2_rkx ,  1.65993e-4_rkx , -1.54665e-6_rkx , &
+    6.64034e+0_rkx ,  1.56651e-2_rkx , -9.73357e-5_rkx ,  0.00000e+0_rkx , &
+    7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx ,  0.00000e+0_rkx], &
+   [4,4])
+
+  real(rkx) , dimension(3,4) , parameter :: coefc = reshape([ &
+    9.90127e-1_rkx , 1.22475e-3_rkx , 4.90135e-6_rkx , &
+    9.89753e-1_rkx , 1.97081e-3_rkx , 3.42046e-6_rkx , &
+    9.75230e-1_rkx , 1.03341e-3_rkx , 0.00000e+0_rkx , &
+    9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx],[3,4])
+
+  real(rkx) , dimension(4,4) , parameter :: coefd = reshape([ &
+    7.03047e-1_rkx , -2.63501e-3_rkx , -1.57023e-6_rkx ,  0.00000e+0_rkx , &
+    5.29269e-1_rkx , -3.14754e-3_rkx ,  4.39595e-6_rkx ,  0.00000e+0_rkx , &
+    7.88193e-2_rkx ,  1.31290e-3_rkx ,  4.25827e-6_rkx , -1.23982e-8_rkx , &
+    1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , -4.30133e-8_rkx], &
+   [4,4])
+
+  real(rkx) , dimension(3,4) , parameter :: coefe = reshape([ &
+    3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx , &
+    3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx , &
+    7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
+    7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx], [3,4])
+
+  real(rkx) , dimension(6,2) , parameter :: coeff = reshape([ &
+    2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx ,   &
+   -1.40262e-8_rkx , 2.13638e-10_rkx, -2.35955e-13_rkx ,  &
+    3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx ,   &
+    3.49847e-8_rkx , 2.07835e-10_rkx, -1.98937e-12_rkx], [6,2])
+
+  real(rkx) , dimension(2,4) , parameter :: coefg = reshape([ &
+    9.04489e+0_rkx , -9.56499e-3_rkx ,  1.80898e+1_rkx , &
+   -1.91300e-2_rkx ,  8.72239e+0_rkx , -9.53359e-3_rkx , &
+    1.74448e+1_rkx , -1.90672e-2_rkx],[2,4])
+
+  real(rkx) , dimension(2,4) , parameter :: coefh = reshape([ &
+    5.46557e+1_rkx , -7.30387e-2_rkx ,  1.09311e+2_rkx ,  &
+   -1.46077e-1_rkx ,  5.11479e+1_rkx , -6.82615e-2_rkx ,  &
+    1.02296e+2_rkx , -1.36523e-1_rkx],[2,4])
+
+  real(rkx) , dimension(6,2) , parameter :: coefi = reshape([ &
+    3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,   &
+    5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx , &
+    3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,   &
+    6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx],[6,2])
+
+  real(rkx) , dimension(3,2) , parameter :: coefj = reshape([ &
+    2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx , &
+    9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx],[3,2])
+
+  real(rkx) , dimension(3,2) , parameter :: coefk = reshape([ &
+    2.48852e-1_rkx , 2.09667e-3_rkx , 2.60377e-6_rkx , &
+    1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx],[3,2])
+  !
+  ! Narrow band data for H2O
+  ! 200CM data for 800-1000 CM-1 and 1000-1200 CM-1.
+  !
+  real(rkx) , dimension(2) , parameter :: realk = [ &
+       0.18967069430426e-4_rkx ,  0.70172244841851e-4_rkx ]
+  real(rkx) , dimension(2) , parameter :: st = [ &
+       0.31930234492350e-3_rkx ,  0.97907319939060e-3_rkx ]
+  real(rkx) , dimension(2) , parameter :: a1 = [ &
+       0.28775403075736e-1_rkx ,  0.23236701470511e-1_rkx ]
+  real(rkx) , dimension(2) , parameter :: a2 = [ &
+      -0.57966222388131e-4_rkx , -0.95105504388411e-4_rkx ]
+  real(rkx) , dimension(2) , parameter :: b1 = [ &
+       0.29927771523756e-1_rkx ,  0.21737073577293e-1_rkx ]
+  real(rkx) , dimension(2) , parameter :: b2 = [ &
+      -0.86322071248593e-4_rkx , -0.78543550629536e-4_rkx ]
+  !
   ! A. Slingo's data for cloud particle radiative properties
   ! (from 'A GCM Parameterization for the Shortwave Properties of Water
   ! Clouds' JAS vol. 46 may 1989 pp 1419-1427)
@@ -399,9 +473,30 @@ module mod_rad_radiation
   ! ebari    - e coefficient for asymmetry parameter
   ! fbari    - f coefficient for asymmetry parameter
   !
-  real(rkx) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
-                             cbarl , dbari , dbarl , ebari , ebarl ,  &
-                             fbari , fbarl
+  real(rkx) , dimension(4) , parameter :: abarl = [ &
+      2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
+  real(rkx) , dimension(4) , parameter :: bbarl = [ &
+      1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: cbarl = [ &
+     -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: dbarl = [ &
+      1.630e-8_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: ebarl = [ &
+      0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: fbarl = [ &
+      2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: abari = [ &
+      3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: bbari = [ &
+      2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: cbari = [ &
+      1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: dbari = [ &
+      0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
+  real(rkx) , dimension(4) , parameter :: ebari = [ &
+      0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: fbari = [ &
+      5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
   !
   ! Next series depends on spectral interval
   !
@@ -418,148 +513,75 @@ module mod_rad_radiation
   ! po2      - Weight of o2  in spectral interval
   ! nirwgt   - Weight for intervals to simulate satellite filter
   !
-  real(rkx) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
-                                frcsol , nirwgt , pco2 , ph2o ,  &
-                                po2 , raytau
+  real(rkx) , dimension(nspi) , parameter :: frcsol = [           &
+      0.001488_rkx , 0.001389_rkx , 0.001290_rkx , 0.001686_rkx , &
+      0.002877_rkx , 0.003869_rkx , 0.026336_rkx , 0.360739_rkx , &
+      0.065392_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
+      0.526861_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
+      0.006239_rkx , 0.001834_rkx , 0.001834_rkx ]
   !
-  ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
-  !
-  data coefa/1.01400e+0_rkx , 6.41695e-3_rkx , 2.85787e-5_rkx , &
-             1.01320e+0_rkx , 6.86400e-3_rkx , 2.96961e-5_rkx , &
-             1.02920e+0_rkx , 1.01680e-2_rkx , 5.30226e-5_rkx , &
-             1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx/
-
-  data coefb/8.85675e+0_rkx , -3.51620e-2_rkx ,  2.38653e-4_rkx , &
-            -1.71439e-6_rkx ,  5.73841e+0_rkx , -1.91919e-2_rkx , &
-             1.65993e-4_rkx , -1.54665e-6_rkx ,  6.64034e+0_rkx , &
-             1.56651e-2_rkx , -9.73357e-5_rkx ,  0.00000e+0_rkx , &
-             7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx , &
-             0.00000e+0_rkx/
-
-  data coefc/9.90127e-1_rkx , 1.22475e-3_rkx , 4.90135e-6_rkx , &
-             9.89753e-1_rkx , 1.97081e-3_rkx , 3.42046e-6_rkx , &
-             9.75230e-1_rkx , 1.03341e-3_rkx , 0.00000e+0_rkx , &
-             9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx/
-
-  data coefd/7.03047e-1_rkx , -2.63501e-3_rkx , -1.57023e-6_rkx , &
-             0.00000e+0_rkx ,  5.29269e-1_rkx , -3.14754e-3_rkx , &
-             4.39595e-6_rkx ,  0.00000e+0_rkx ,  7.88193e-2_rkx , &
-             1.31290e-3_rkx ,  4.25827e-6_rkx , -1.23982e-8_rkx , &
-             1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , &
-            -4.30133e-8_rkx/
-
-  data coefe/3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx , &
-             3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx , &
-             7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
-             7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx/
-
-  data coeff/2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx ,   &
-            -1.40262e-8_rkx , 2.13638e-10_rkx , -2.35955e-13_rkx , &
-             3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx ,   &
-             3.49847e-8_rkx , 2.07835e-10_rkx , -1.98937e-12_rkx/
-
-  data coefg/9.04489e+0_rkx , -9.56499e-3_rkx ,  1.80898e+1_rkx , &
-            -1.91300e-2_rkx ,  8.72239e+0_rkx , -9.53359e-3_rkx , &
-             1.74448e+1_rkx , -1.90672e-2_rkx/
-
-  data coefh/5.46557e+1_rkx , -7.30387e-2_rkx ,  1.09311e+2_rkx ,  &
-            -1.46077e-1_rkx ,  5.11479e+1_rkx , -6.82615e-2_rkx ,  &
-             1.02296e+2_rkx , -1.36523e-1_rkx/
-
-  data coefi/3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,   &
-             5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx , &
-             3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,   &
-             6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx/
-
-  data coefj/2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx , &
-             9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx/
-
-  data coefk/2.48852e-1_rkx , 2.09667e-3_rkx , 2.60377e-6_rkx , &
-             1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx/
-  !
-  ! Narrow band data for H2O
-  ! 200CM data for 800-1000 CM-1 and 1000-1200 CM-1.
-  !
-  data realk/0.18967069430426e-4_rkx ,  0.70172244841851e-4_rkx/
-  data st   /0.31930234492350e-3_rkx ,  0.97907319939060e-3_rkx/
-  data a1   /0.28775403075736e-1_rkx ,  0.23236701470511e-1_rkx/
-  data a2  /-0.57966222388131e-4_rkx , -0.95105504388411e-4_rkx/
-  data b1   /0.29927771523756e-1_rkx ,  0.21737073577293e-1_rkx/
-  data b2  /-0.86322071248593e-4_rkx , -0.78543550629536e-4_rkx/
-
-  data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
-  data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
-  data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-  data dbarl / 1.630e-8_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
-  data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
-  data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
-
-  data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
-  data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
-  data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
-  data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
-  data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
-  data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
-
-  data frcsol/0.001488_rkx , 0.001389_rkx , 0.001290_rkx , 0.001686_rkx , &
-              0.002877_rkx , 0.003869_rkx , 0.026336_rkx , 0.360739_rkx , &
-              0.065392_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
-              0.526861_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
-              0.006239_rkx , 0.001834_rkx , 0.001834_rkx/
-
   ! weight for 0.64 - 0.7 microns  appropriate to clear skies over oceans
+  !
+  real(rkx) , dimension(nspi) , parameter :: nirwgt = [           &
+      0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
+      0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
+      0.320518_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
+      1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
+      1.000000_rkx , 1.000000_rkx , 1.000000_rkx ]
 
-  data nirwgt/0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
-              0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
-              0.320518_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
-              1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
-              1.000000_rkx , 1.000000_rkx , 1.000000_rkx/
-
-  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
-              1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
-              0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx/
+  real(rkx) , dimension(nspi) , parameter :: raytau = [     &
+      4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
+      1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
+      0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+      0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+      0.0001_rkx , 0.0001_rkx , 0.0001_rkx ]
   !
   ! Absorption coefficients
   !
-  data abh2o/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.002_rkx , &
-             0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
-           190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abh2o = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.002_rkx , &
+      0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
+    190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
-  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
-            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
-            2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abo3 = [                  &
+      5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
+      1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
+      2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+      0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+      0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx ]
 
-  data abco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.094_rkx , 0.196_rkx , 1.963_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abco2 = [            &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.094_rkx , 0.196_rkx , 1.963_rkx ]
 
-  data abo2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 1.11e-5_rkx , 6.69e-5_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abo2 = [                 &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 1.11e-5_rkx , 6.69e-5_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
   !
   ! Spectral interval weights
   !
-  data ph2o/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.505_rkx , &
-            0.210_rkx , 0.120_rkx , 0.070_rkx , 0.048_rkx , 0.029_rkx , &
-            0.018_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: ph2o = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.505_rkx , &
+      0.210_rkx , 0.120_rkx , 0.070_rkx , 0.048_rkx , 0.029_rkx , &
+      0.018_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
-  data pco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 1.000_rkx , 0.640_rkx , 0.360_rkx/
+  real(rkx) , dimension(nspi) , parameter :: pco2 = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 1.000_rkx , 0.640_rkx , 0.360_rkx ]
 
-  data po2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: po2 = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
   logical :: luse_max_rnovl = .true.
 
@@ -651,6 +673,7 @@ module mod_rad_radiation
     call getmem2d(fsdl0,1,npoints,1,kzp1,'rad:fsdl0')
     call getmem2d(ful0,1,npoints,1,kzp1,'rad:ful0')
     call getmem2d(fsul0,1,npoints,1,kzp1,'rad:fsul0')
+    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
     call getmem2d(rtclrsf,1,npoints,1,kzp1,'rad:rtclrsf')
 
     call getmem2d(dbvtly,1,npoints,1,kz,'rad:dbvtly')
@@ -719,7 +742,6 @@ module mod_rad_radiation
     call getmem2d(plco2,1,npoints,1,kzp1,'rad:plco2')
     call getmem2d(plh2o,1,npoints,1,kzp1,'rad:plh2o')
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
-    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
 
     call allocate_tracers(1,npoints)
 
@@ -897,8 +919,8 @@ module mod_rad_radiation
     !
     ! Set latitude dependent radiation input
     !
-    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
-                pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%o3vmr, &
+                pbr,pnm,plco2,plh2o,o3mmr)
     !
     ! Solar radiation computation
     !
@@ -1003,7 +1025,7 @@ module mod_rad_radiation
       call trcmix(rt%n1,rt%n2,rt%dlat,rt%xptrop,rt%pmid,n2o,ch4,cfc11,cfc12)
 
       call radclw(rt%n1,rt%n2,rt%ts,rt%t,rt%q,rt%o3vmr,pbr,pnm,         &
-                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,tclrsf, &
+                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,        &
                   rt%qrl,rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,     &
                   rt%flntc,rt%flwds,fslwdcs,rt%emiss,rt%aerlwfo,        &
                   rt%aerlwfos,rt%absgasnxt,rt%absgastot,rt%emsgastot,   &
@@ -1116,23 +1138,27 @@ module mod_rad_radiation
                     aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) :: eccf
-    real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
-             fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , solout, &
-             soll , solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , &
-             asw , alw , abv , sol , czen
+    real(rkx) , intent(in) :: eccf
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: cld , clwp , fice
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: h2ommr , o3mmr
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: rei , rel
+    real(rkx) , pointer , dimension(:) , intent(in) :: adirsw , adifsw
+    real(rkx) , pointer , dimension(:) , intent(in) :: adirlw , adiflw
+    real(rkx) , pointer , dimension(:) , intent(in) :: asw , alw
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rkx) , pointer , dimension(:,:) :: cld , pint
-    real(rkx) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
-    real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-    real(rkx) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
-             qrs , rei , rel
-    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
-           adirsw , adifsw , adirlw , adiflw , asw , alw
-    intent (inout) aeradfo , aeradfos , fsds , qrs , abv , sol , &
-            tauxcl , tauxci , outtaucl , outtauci
-    intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin , solout , soll , solld , sols , solsd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtaucl , tauxcl
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtauci , tauxci
+    real(rkx) , pointer , dimension(:) , intent(inout) :: aeradfo , aeradfos
+    real(rkx) , pointer , dimension(:) , intent(inout) :: fsds , fsnirt
+    real(rkx) , pointer , dimension(:) , intent(inout) :: fsnirtsq , fsnrtc
+    real(rkx) , pointer , dimension(:) , intent(inout) :: fsns , fsnsc
+    real(rkx) , pointer , dimension(:) , intent(inout) :: fsnt , fsntc
+    real(rkx) , pointer , dimension(:) , intent(inout) :: solin , solout
+    real(rkx) , pointer , dimension(:) , intent(inout) :: soll , solld
+    real(rkx) , pointer , dimension(:) , intent(inout) :: sols , solsd
+    real(rkx) , pointer , dimension(:) , intent(inout) :: abv , sol , czen
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: qrs
     !
     ! indxsl   - Index for cloud particle properties
     !
@@ -1246,6 +1272,7 @@ module mod_rad_radiation
     ww(:) = d_zero
 
     qrs(:,:) = d_zero
+
     !
     ! Define solar incident radiation and interface pressures:
     !
@@ -1832,24 +1859,28 @@ module mod_rad_radiation
   ! flwds   - Down longwave flux at surface
   !
   subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,n2o,ch4,&
-                    cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,lwout,lwin,   &
-                    flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
+                    cfc11,cfc12,cld,qrl,flns,flnt,lwout,lwin,flnsc,    &
+                    flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,        &
                     absgasnxt,absgastot,emsgastot,labsem)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
-    real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
-               o3vmr , pmid , pmln , qnm , qrl , tnm
-    real(rkx) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
-    real(rkx) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
-    real(rkx) , pointer , dimension(:,:) :: emsgastot
-    real(rkx) , pointer , dimension(:) :: emiss , flns , flnsc , flnt , &
-               lwout , lwin , flntc , flwds , fslwdcs , ts
-    real(rkx), pointer , dimension(:) :: aerlwfo , aerlwfos
-    intent (in) cld , emiss
-    intent (inout) flns , flnsc , flnt , lwout , lwin , flntc , flwds , qrl , &
-            aerlwfo , aerlwfos
-    intent (inout) tclrsf
+    real(rkx) , pointer , dimension(:) , intent(in) :: ts , emiss
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , qnm
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , cld
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , pint
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: piln , pmln
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ch4 , n2o
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: cfc11 , cfc12
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: qrl
+    real(rkx) , pointer , dimension(:) , intent(inout) :: flns , flnt
+    real(rkx) , pointer , dimension(:) , intent(inout) :: lwout , lwin
+    real(rkx) , pointer , dimension(:) , intent(inout) :: flnsc , flntc
+    real(rkx) , pointer , dimension(:) , intent(inout) :: flwds , fslwdcs
+    real(rkx) , pointer , dimension(:) , intent(inout) :: aerlwfo , aerlwfos
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emsgastot
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
 
     real(rkx) :: absbt , bk1 , bk2 , tmp1
     integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
@@ -1863,8 +1894,10 @@ module mod_rad_radiation
     qrl(:,:) = d_zero
 
     do n = n1 , n2
-      rtclrsf(n,1) = d_one/tclrsf(n,1)
+      tclrsf(n,1) = d_one
+      rtclrsf(n,1) = d_one
     end do
+
     do k = 1 , kz
       do n = n1 , n2
         fclb4(n,k) = d_zero
@@ -2184,7 +2217,8 @@ module mod_rad_radiation
           if ( skip(n) ) cycle
           if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
             ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
-                  rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+                  rtclrsf(n,kzp1-khiv(n)))* &
+                  (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
           end if
         end do
       end do  ! km = 1 , khighest
@@ -2515,9 +2549,8 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:) , intent(in) :: czen
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rkx) :: trayoslp
-    integer(ik4) :: ns
-    intent (in) trayoslp , ns
+    real(rkx) , intent(in) :: trayoslp
+    integer(ik4) , intent(in) :: ns
     !
     ! taugab   - Layer total gas absorption optical depth
     ! tauray   - Layer rayleigh optical depth
@@ -2832,8 +2865,8 @@ module mod_rad_radiation
   subroutine radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
-      piln , pmln
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: piln , pmln
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
     !
@@ -3900,9 +3933,8 @@ module mod_rad_radiation
   subroutine radoz2(n1,n2,o3vmr,pint)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) :: o3vmr
-    real(rkx) , pointer , dimension(:,:) :: pint
-    intent (in) o3vmr , pint
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radoz2'
@@ -3942,8 +3974,8 @@ module mod_rad_radiation
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , pointer , dimension(:) , intent(in) :: ts
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
-      qnm , piln , pint
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , qnm
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmln , piln , pint
     !
     ! dy     - Thickness of layer for tmp interp
     ! dpnm   - Pressure thickness of layer
@@ -4044,18 +4076,15 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
-                    pintrd,plco2,plh2o,tclrsf,o3mmr)
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,o3vmr,pmidrd, &
+                    pintrd,plco2,plh2o,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
-           plh2o , tclrsf
-    real(rkx) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
-           pmidrd
-    intent (in) cld , h2ommr , o3vmr , pint , pmid
-    intent (inout) o3mmr , plco2 , pmidrd
-    intent (inout) pintrd , plh2o , tclrsf
-
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , h2ommr
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pintrd , pmidrd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: plco2 , plh2o
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: o3mmr
     real(rkx) :: cpwpl , vmmr
     integer(ik4) :: n , k
     !
@@ -4075,7 +4104,6 @@ module mod_rad_radiation
     ! pintrd  - Pressure at interfaces (dynes/cm*2)
     ! plco2   - Vert. pth lngth of co2 (prs-weighted)
     ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
-    ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
     ! o3mmr   - Ozone mass mixing ratio
     ! cpwpl   - Const in co2 mixing ratio to path length conversn
     ! vmmr    - Ozone volume mixing ratio
@@ -4113,14 +4141,12 @@ module mod_rad_radiation
     do n = n1 , n2
       plh2o(n,1) = rgsslp*h2ommr(n,1)*pintrd(n,1)*pintrd(n,1)
       plco2(n,1) = co2vmr(n)*cpwpl*pintrd(n,1)*pintrd(n,1)
-      tclrsf(n,1) = d_one
     end do
     do k = 1 , kz
       do n = n1 , n2
         plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
                        pintrd(n,k)**2) * h2ommr(n,k)
         plco2(n,k+1) = co2vmr(n)*cpwpl*pintrd(n,k+1)**2
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
       end do
     end do
     !
