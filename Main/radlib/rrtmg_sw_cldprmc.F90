@@ -104,7 +104,7 @@
 ! ------- Local -------
 
 !      integer(kind=im) :: ncbands
-      integer(kind=im) :: ib, lay, istr, index, ig, icx
+      integer(kind=im) :: ib, lay, istr, indx, ig, icx
 
       real(kind=rb), parameter :: eps = 1.e-06_rb     ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
@@ -213,16 +213,16 @@
                   elseif (iceflag .eq. 2) then
                      if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) stop 'ICE RADIUS OUT OF BOUNDS'
                      factor = (radice - 2._rb)/3._rb
-                     index = int(factor)
-                     if (index .eq. 43) index = 42
-                     fint = factor - real(index,kind=rb)
+                     indx = int(factor)
+                     if (indx .eq. 43) indx = 42
+                     fint = factor - real(indx,kind=rb)
                      ib = ngb(ig)
-                     extcoice(ig) = extice2(index,ib) + fint * &
-                                   (extice2(index+1,ib) -  extice2(index,ib))
-                     ssacoice(ig) = ssaice2(index,ib) + fint * &
-                                   (ssaice2(index+1,ib) -  ssaice2(index,ib))
-                     gice(ig) = asyice2(index,ib) + fint * &
-                                   (asyice2(index+1,ib) -  asyice2(index,ib))
+                     extcoice(ig) = extice2(indx,ib) + fint * &
+                                   (extice2(indx+1,ib) -  extice2(indx,ib))
+                     ssacoice(ig) = ssaice2(indx,ib) + fint * &
+                                   (ssaice2(indx+1,ib) -  ssaice2(indx,ib))
+                     gice(ig) = asyice2(indx,ib) + fint * &
+                                   (asyice2(indx+1,ib) -  asyice2(indx,ib))
                      forwice(ig) = gice(ig)*gice(ig)
 ! Check to ensure all calculated quantities are within physical limits.
                      if (extcoice(ig) .lt. 0.0_rb) stop 'ICE EXTINCTION LESS THAN 0.0'
@@ -236,18 +236,18 @@
                   elseif (iceflag .eq. 3) then
                      if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
                      factor = (radice - 2._rb)/3._rb
-                     index = int(factor)
-                     if (index .eq. 46) index = 45
-                     fint = factor - real(index,kind=rb)
+                     indx = int(factor)
+                     if (indx .eq. 46) indx = 45
+                     fint = factor - real(indx,kind=rb)
                      ib = ngb(ig)
-                     extcoice(ig) = extice3(index,ib) + fint * &
-                                   (extice3(index+1,ib) - extice3(index,ib))
-                     ssacoice(ig) = ssaice3(index,ib) + fint * &
-                                   (ssaice3(index+1,ib) - ssaice3(index,ib))
-                     gice(ig) = asyice3(index,ib) + fint * &
-                               (asyice3(index+1,ib) - asyice3(index,ib))
-                     fdelta(ig) = fdlice3(index,ib) + fint * &
-                                 (fdlice3(index+1,ib) - fdlice3(index,ib))
+                     extcoice(ig) = extice3(indx,ib) + fint * &
+                                   (extice3(indx+1,ib) - extice3(indx,ib))
+                     ssacoice(ig) = ssaice3(indx,ib) + fint * &
+                                   (ssaice3(indx+1,ib) - ssaice3(indx,ib))
+                     gice(ig) = asyice3(indx,ib) + fint * &
+                               (asyice3(indx+1,ib) - asyice3(indx,ib))
+                     fdelta(ig) = fdlice3(indx,ib) + fint * &
+                                 (fdlice3(indx+1,ib) - fdlice3(indx,ib))
                      if (fdelta(ig) .lt. 0.0_rb) stop 'FDELTA LESS THAN 0.0'
                      if (fdelta(ig) .gt. 1.0_rb) stop 'FDELTA GT THAN 1.0'
                      forwice(ig) = fdelta(ig) + 0.5_rb / ssacoice(ig)
@@ -273,19 +273,19 @@
                      radliq = relqmc(lay)
                      if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) stop &
                         'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
-                     index = int(radliq - 1.5_rb)
-                     if (index .eq. 0) index = 1
-                     if (index .eq. 58) index = 57
-                     fint = radliq - 1.5_rb - real(index,kind=rb)
+                     indx = int(radliq - 1.5_rb)
+                     if (indx .eq. 0) indx = 1
+                     if (indx .eq. 58) indx = 57
+                     fint = radliq - 1.5_rb - real(indx,kind=rb)
                      ib = ngb(ig)
-                     extcoliq(ig) = extliq1(index,ib) + fint * &
-                                   (extliq1(index+1,ib) - extliq1(index,ib))
-                     ssacoliq(ig) = ssaliq1(index,ib) + fint * &
-                                   (ssaliq1(index+1,ib) - ssaliq1(index,ib))
+                     extcoliq(ig) = extliq1(indx,ib) + fint * &
+                                   (extliq1(indx+1,ib) - extliq1(indx,ib))
+                     ssacoliq(ig) = ssaliq1(indx,ib) + fint * &
+                                   (ssaliq1(indx+1,ib) - ssaliq1(indx,ib))
                      if (fint .lt. 0._rb .and. ssacoliq(ig) .gt. 1._rb) &
-                                    ssacoliq(ig) = ssaliq1(index,ib)
-                     gliq(ig) = asyliq1(index,ib) + fint * &
-                               (asyliq1(index+1,ib) - asyliq1(index,ib))
+                                    ssacoliq(ig) = ssaliq1(indx,ib)
+                     gliq(ig) = asyliq1(indx,ib) + fint * &
+                               (asyliq1(indx+1,ib) - asyliq1(indx,ib))
                      forwliq(ig) = gliq(ig)*gliq(ig)
 ! Check to ensure all calculated quantities are within physical limits.
                      if (extcoliq(ig) .lt. 0.0_rb) stop 'LIQUID EXTINCTION LESS THAN 0.0'

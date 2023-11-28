@@ -592,13 +592,13 @@ module mod_runparams
     real(rkx) , dimension(3) :: ncin
     real(rkx) , dimension(3) :: zcin
     real(rkx) , dimension(3) :: ycin
+    data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
     ncin(1) = high_nudge
     ncin(2) = medium_nudge
     ncin(3) = low_nudge
     zcin(1) = sigma(1)
     zcin(2) = sigma(findwhere(0.40_rkx))
     zcin(3) = sigma(kzp1)
-    ycin = [ 0.0_rkx, 0.0_rkx, 0.0_rkx ]
     call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
     if ( myid == 0 ) then
       call vprntv(nudge,kz,'Nudging coefficient profile')

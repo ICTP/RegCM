@@ -107,16 +107,6 @@ module mod_rad_aerosol
   real(rkx) , parameter :: minimum_gaer   = 1.0e-20_rkx
   real(rkx) , parameter :: fiveothree  = d_five/d_three
   !
-  ! kscoef  - specific extinction (m2/g)
-  ! wscoef  - single partical albedo
-  ! gscoef  - asymmetry parameter
-  ! ksbase  - specific extinction (m2/g) base
-  ! wsbase  - single partical albedo base
-  ! gsbase  - asymmetry parameter base
-  ! ksdust  - specific extinction (m2/g) dust
-  ! wsdust  - single partical albedo dust
-  ! gsdust  - asymmetry parameter dust
-  !
   integer(ik4) , private :: ii , jj , kk ! coefficient index
 
   ! Sulfate param for standard scheme / works only with rad standard
@@ -180,6 +170,16 @@ module mod_rad_aerosol
   !                  DATA SECTION
   !--------------------------------------------------------------------------
   !
+  ! kscoef  - specific extinction (m2/g)
+  ! wscoef  - single partical albedo
+  ! gscoef  - asymmetry parameter
+  ! ksbase  - specific extinction (m2/g) base
+  ! wsbase  - single partical albedo base
+  ! gsbase  - asymmetry parameter base
+  ! ksdust  - specific extinction (m2/g) dust
+  ! wsdust  - single partical albedo dust
+  ! gsdust  - asymmetry parameter dust
+  !
   real(rkx) , dimension(nspi) , parameter :: ksbase = [            &
        5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , &
        5.206e+0_rkx , 5.206e+0_rkx , 5.206e+0_rkx , 3.203e+0_rkx , &
@@ -187,8 +187,7 @@ module mod_rad_aerosol
        1.475e-1_rkx , 7.387e-2_rkx , 1.683e-1_rkx , 2.655e-1_rkx , &
        5.770e-2_rkx , 2.290e-1_rkx , 2.270e-1_rkx ]
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: kscoef = &
-    reshape([ &
+  real(rkx) , dimension(nspi,ncoefs) , parameter :: kscoef = reshape([ &
         1.126e+1_rkx , -2.502e-1_rkx , -1.087e+0_rkx , -1.794e+2_rkx , &
         1.556e+1_rkx ,  1.126e+1_rkx , -2.502e-1_rkx , -1.087e+0_rkx , &
        -1.794e+2_rkx ,  1.556e+1_rkx ,  1.126e+1_rkx , -2.502e-1_rkx , &
@@ -221,8 +220,7 @@ module mod_rad_aerosol
        2.855e-2_rkx , 2.126e-1_rkx , 8.433e-1_rkx , 9.653e-1_rkx , &
        6.198e-1_rkx , 9.642e-1_rkx , 9.699e-1_rkx ]
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: wscoef = &
-    reshape([ &
+  real(rkx) , dimension(nspi,ncoefs) , parameter :: wscoef = reshape([ &
       2.492e+0_rkx , -5.210e-2_rkx , -1.036e+0_rkx , -4.398e+1_rkx , &
       1.724e+1_rkx ,  2.492e+0_rkx , -5.210e-2_rkx , -1.036e+0_rkx , &
      -4.398e+1_rkx ,  1.724e+1_rkx ,  2.492e+0_rkx , -5.210e-2_rkx , &
@@ -246,7 +244,7 @@ module mod_rad_aerosol
       2.268e-1_rkx ,  3.266e-2_rkx , -1.064e+0_rkx , -2.677e-2_rkx , &
       1.309e-1_rkx ,  2.178e+0_rkx ,  1.151e-1_rkx , -1.042e+0_rkx , &
      -3.325e+1_rkx ,  1.600e+1_rkx ,  1.713e+0_rkx ,  9.166e-2_rkx , &
-     -1.039e+0_rkx , -2.660e+1_rkx ,  1.629e+1_rkx ],[nspi,ncoefs])
+     -1.039e+0_rkx , -2.660e+1_rkx ,  1.629e+1_rkx ], [nspi,ncoefs])
 
   real(rkx) , dimension(nspi) , parameter :: gsbase = [            &
        6.899e-1_rkx , 6.899e-1_rkx , 6.899e-1_rkx , 6.899e-1_rkx , &
@@ -255,8 +253,7 @@ module mod_rad_aerosol
        3.321e-1_rkx , 2.197e-1_rkx , 1.305e-1_rkx , 7.356e-2_rkx , &
        1.602e-1_rkx , 6.883e-2_rkx , 6.304e-2_rkx ]
 
-  real(rkx) , dimension(nspi,ncoefs) , parameter :: gscoef = &
-    reshape([ &
+  real(rkx) , dimension(nspi,ncoefs) , parameter :: gscoef = reshape([ &
       -9.874e-1_rkx , -3.033e+1_rkx , -2.138e+1_rkx , -2.265e+0_rkx , &
        5.238e+0_rkx , -9.874e-1_rkx , -3.033e+1_rkx , -2.138e+1_rkx , &
       -2.265e+0_rkx ,  5.238e+0_rkx , -9.874e-1_rkx , -3.033e+1_rkx , &
@@ -280,7 +277,7 @@ module mod_rad_aerosol
        4.181e+0_rkx , -4.140e-1_rkx , -1.284e+0_rkx , -4.489e+1_rkx , &
        9.950e+0_rkx ,  3.378e+0_rkx , -4.334e-1_rkx , -1.188e+0_rkx , &
       -3.664e+1_rkx ,  9.786e+0_rkx ,  3.943e+0_rkx , -3.952e-1_rkx , &
-      -1.170e+0_rkx , -4.415e+1_rkx ,  1.031e+1_rkx ],[nspi,ncoefs])
+      -1.170e+0_rkx , -4.415e+1_rkx ,  1.031e+1_rkx ], [nspi,ncoefs])
 
   real(rkx) , dimension(nspi) , parameter :: ksbc_hb_stand = [ &
        20.7830_rkx , 17.2120_rkx , 15.8640_rkx , 15.0530_rkx , &
@@ -369,8 +366,7 @@ module mod_rad_aerosol
   ! DUST OP data base for external mixing : maximum of 4 bin for the
   ! momeent , determined from Zender et al.
   !
-  real(rkx) , dimension(nspi,4) , parameter :: ksdust_stand = &
-    reshape([ &
+  real(rkx) , dimension(nspi,4) , parameter :: ksdust_stand = reshape([ &
      1.88010_rkx , 0.76017_rkx , 0.36681_rkx , 0.16933_rkx , 2.02540_rkx , &
      0.78378_rkx , 0.36845_rkx , 0.17002_rkx , 1.95470_rkx , 0.76389_rkx , &
      0.37119_rkx , 0.17032_rkx , 1.89960_rkx , 0.74916_rkx , 0.37220_rkx , &
@@ -386,10 +382,9 @@ module mod_rad_aerosol
      0.50391_rkx , 0.67245_rkx , 0.53605_rkx , 0.20599_rkx , 0.50391_rkx , &
      0.67245_rkx , 0.53605_rkx , 0.20599_rkx , 0.50391_rkx , 0.67245_rkx , &
      0.53605_rkx , 0.20599_rkx , 0.50391_rkx , 0.67245_rkx , 0.53605_rkx , &
-     0.20599_rkx ],[nspi,4])
+     0.20599_rkx ], [nspi,4])
 
-  real(rkx) , dimension(nspi,4) , parameter :: wsdust_stand = &
-    reshape([ &
+  real(rkx) , dimension(nspi,4) , parameter :: wsdust_stand = reshape([ &
      0.64328_rkx , 0.55196_rkx , 0.53748_rkx , 0.54342_rkx , 0.67757_rkx , &
      0.56909_rkx , 0.53639_rkx , 0.54232_rkx , 0.67316_rkx , 0.56027_rkx , &
      0.53875_rkx , 0.54181_rkx , 0.66245_rkx , 0.55338_rkx , 0.53947_rkx , &
@@ -405,10 +400,9 @@ module mod_rad_aerosol
      0.89568_rkx , 0.96322_rkx , 0.95008_rkx , 0.89293_rkx , 0.89568_rkx , &
      0.96322_rkx , 0.95008_rkx , 0.89293_rkx , 0.89568_rkx , 0.96322_rkx , &
      0.95008_rkx , 0.89293_rkx , 0.89568_rkx , 0.96322_rkx , 0.95008_rkx , &
-     0.89293_rkx ],[nspi,4])
+     0.89293_rkx ], [nspi,4])
 
-  real(rkx) , dimension(nspi,4) , parameter :: gsdust_stand = &
-    reshape([ &
+  real(rkx) , dimension(nspi,4) , parameter :: gsdust_stand = reshape([ &
      0.87114_rkx , 0.92556_rkx , 0.94542_rkx , 0.94831_rkx , 0.86127_rkx , &
      0.92100_rkx , 0.94355_rkx , 0.94813_rkx , 0.83800_rkx , 0.91194_rkx , &
      0.94304_rkx , 0.94803_rkx , 0.81760_rkx , 0.90442_rkx , 0.94239_rkx , &
@@ -424,10 +418,9 @@ module mod_rad_aerosol
      0.26761_rkx , 0.56045_rkx , 0.68897_rkx , 0.68174_rkx , 0.26761_rkx , &
      0.56045_rkx , 0.68897_rkx , 0.68174_rkx , 0.26761_rkx , 0.56045_rkx , &
      0.68897_rkx , 0.68174_rkx , 0.26761_rkx , 0.56045_rkx , 0.68897_rkx , &
-     0.68174_rkx ],[nspi,4])
+     0.68174_rkx ], [nspi,4])
 
-  real(rkx), dimension(nspi,12) , parameter :: ksdust12_stand = &
-    reshape([ &
+  real(rkx), dimension(nspi,12) , parameter :: ksdust12_stand = reshape([ &
       5.82605e+0_rkx, 5.30982e+0_rkx, 1.44072e+0_rkx, 6.46088e-1_rkx, &
       4.06936e-1_rkx, 2.89033e-1_rkx, 2.33752e-1_rkx, 1.84485e-1_rkx, &
       1.25724e-1_rkx, 7.30034e-2_rkx, 1.0000e-20_rkx, 1.0000e-20_rkx, &
@@ -493,8 +486,7 @@ module mod_rad_aerosol
       1.43665e-1_rkx, 9.15974e-2_rkx, 4.41742e-2_rkx, 3.00372e-2_rkx],&
     [nspi,12])
 
-  real(rkx), dimension(nspi,12) , parameter :: wsdust12_stand = &
-    reshape([ &
+  real(rkx), dimension(nspi,12) , parameter :: wsdust12_stand = reshape([ &
       8.03780e-1_rkx, 7.36897e-1_rkx, 5.78261e-1_rkx, 5.36202e-1_rkx, &
       5.34536e-1_rkx, 5.37743e-1_rkx, 5.40048e-1_rkx, 5.42302e-1_rkx, &
       5.45056e-1_rkx, 5.47463e-1_rkx, 5.00000e-1_rkx, 5.00000e-1_rkx, &
@@ -557,8 +549,7 @@ module mod_rad_aerosol
       9.63209e-1_rkx, 9.47218e-1_rkx, 9.14608e-1_rkx, 8.88785e-1_rkx],&
     [nspi,12])
 
-  real(rkx), dimension(nspi,12) , parameter :: gsdust12_stand = &
-    reshape([ &
+  real(rkx), dimension(nspi,12) , parameter :: gsdust12_stand = reshape([ &
       5.46546e-1_rkx, 7.19875e-1_rkx, 8.86115e-1_rkx, 9.36182e-1_rkx, &
       9.44853e-1_rkx, 9.47046e-1_rkx, 9.47651e-1_rkx, 9.48064e-1_rkx, &
       9.48455e-1_rkx, 9.48708e-1_rkx, 9.90000e-1_rkx, 9.90000e-1_rkx, &
@@ -621,8 +612,7 @@ module mod_rad_aerosol
       5.61306e-1_rkx, 7.59343e-1_rkx, 7.44671e-1_rkx, 8.01060e-1_rkx],&
     [nspi,12])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: ksslt = &
-    reshape([ &
+  real(rkx) , dimension(nwav,2,nih) , parameter :: ksslt = reshape([ &
     1.10670_rkx , 0.24350_rkx , 1.13470_rkx , 0.24490_rkx , 1.14490_rkx , &
     0.24530_rkx , 1.15360_rkx , 0.24570_rkx , 1.16140_rkx , 0.24610_rkx , &
     1.16810_rkx , 0.24640_rkx , 1.18630_rkx , 0.24730_rkx , 1.26130_rkx , &
@@ -685,8 +675,7 @@ module mod_rad_aerosol
     5.85120_rkx ,26.83940_rkx , 5.87590_rkx ,24.85840_rkx , 5.94260_rkx , &
    23.35360_rkx , 6.16670_rkx ,23.35360_rkx , 6.16670_rkx], [nwav,2,nih])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: wsslt = &
-    reshape([ &
+  real(rkx) , dimension(nwav,2,nih) , parameter :: wsslt = reshape([ &
     0.99970_rkx , 0.99780_rkx , 0.99980_rkx , 0.99870_rkx , 0.99980_rkx , &
     0.99900_rkx , 0.99990_rkx , 0.99920_rkx , 0.99990_rkx , 0.99940_rkx , &
     0.99990_rkx , 0.99950_rkx , 1.00000_rkx , 0.99980_rkx , 1.00000_rkx , &
@@ -749,8 +738,7 @@ module mod_rad_aerosol
     0.92440_rkx , 0.95820_rkx , 0.90420_rkx , 0.72210_rkx , 0.69280_rkx , &
     0.91180_rkx , 0.68270_rkx , 0.91180_rkx , 0.68270_rkx], [nwav,2,nih])
 
-  real(rkx) , dimension(nwav,2,nih) , parameter :: gsslt = &
-    reshape([ &
+  real(rkx) , dimension(nwav,2,nih) , parameter :: gsslt = reshape([ &
     0.73080_rkx , 0.80840_rkx , 0.71820_rkx , 0.81040_rkx , 0.71420_rkx , &
     0.81080_rkx , 0.71090_rkx , 0.81090_rkx , 0.70820_rkx , 0.81060_rkx , &
     0.70600_rkx , 0.81000_rkx , 0.70120_rkx , 0.80630_rkx , 0.69510_rkx , &
@@ -820,8 +808,7 @@ module mod_rad_aerosol
   ! DATA section for optical properties relative to RRTM
   ! based on of line calculation considering the Kok et al., 2011 distribution
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: ksdust_rrtm = &
-    reshape([ &
+  real(rkx) , dimension(nbndsw,4) , parameter :: ksdust_rrtm = reshape([ &
       3.24733e-2_rkx, 3.45723e-1_rkx, 6.11556e-1_rkx, 1.31353e-1_rkx, &
       7.33946e-2_rkx, 6.27518e-1_rkx, 6.35682e-1_rkx, 1.85898e-1_rkx, &
       1.42493e-1_rkx, 8.24609e-1_rkx, 5.49972e-1_rkx, 1.70663e-1_rkx, &
@@ -838,8 +825,7 @@ module mod_rad_aerosol
       3.92232e-3_rkx, 4.74096e-2_rkx, 1.85288e-1_rkx, 2.21978e-1_rkx],&
     [nbndsw,4])
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: wsdust_rrtm = &
-    reshape([ &
+  real(rkx) , dimension(nbndsw,4) , parameter :: wsdust_rrtm = reshape([ &
       9.07714e-1_rkx, 9.84963e-1_rkx, 9.89606e-1_rkx, 9.48398e-1_rkx, &
       9.41418e-1_rkx, 9.87864e-1_rkx, 9.86320e-1_rkx, 9.51511e-1_rkx, &
       9.59479e-1_rkx, 9.88337e-1_rkx, 9.79395e-1_rkx, 9.36367e-1_rkx, &
@@ -856,8 +842,7 @@ module mod_rad_aerosol
       5.44753e-1_rkx, 9.35908e-1_rkx, 9.85617e-1_rkx, 9.87402e-1_rkx],&
     [nbndsw,4])
 
-  real(rkx) , dimension(nbndsw,4) , parameter :: gsdust_rrtm = &
-    reshape([ &
+  real(rkx) , dimension(nbndsw,4) , parameter :: gsdust_rrtm = reshape([ &
       7.14045e-2_rkx, 5.57701e-1_rkx, 7.29551e-1_rkx, 5.25760e-1_rkx, &
       1.09877e-1_rkx, 6.18631e-1_rkx, 7.27320e-1_rkx, 7.39899e-1_rkx, &
       1.58598e-1_rkx, 6.59187e-1_rkx, 6.81214e-1_rkx, 7.68289e-1_rkx, &
@@ -874,8 +859,7 @@ module mod_rad_aerosol
       1.84466e-2_rkx, 1.34666e-1_rkx, 4.55520e-1_rkx, 6.80178e-1_rkx],&
     [nbndsw,4])
 
-  real(rkx), dimension(nbndsw,12) , parameter :: ksdust12_rrtm = &
-    reshape([ &
+  real(rkx), dimension(nbndsw,12) , parameter :: ksdust12_rrtm = reshape([ &
       2.72948e-3_rkx, 1.05097e-2_rkx, 1.28690e-1_rkx, 4.58140e-1_rkx, &
       6.25384e-1_rkx, 5.67730e-1_rkx, 4.20692e-1_rkx, 2.20517e-1_rkx, &
       1.46855e-1_rkx, 8.05498e-2_rkx, 4.74997e-2_rkx, 3.00359e-2_rkx, &
@@ -920,8 +904,7 @@ module mod_rad_aerosol
       1.94438e-1_rkx, 1.00233e-1_rkx, 4.90044e-2_rkx, 3.17719e-2_rkx],&
     [nbndsw,12])
 
-  real(rkx), dimension(nbndsw,12) , parameter :: wsdust12_rrtm = &
-    reshape([ &
+  real(rkx), dimension(nbndsw,12) , parameter :: wsdust12_rrtm = reshape([ &
       1.09340e-1_rkx, 7.44437e-1_rkx, 9.71476e-1_rkx, 9.87375e-1_rkx, &
       9.90051e-1_rkx, 9.88374e-1_rkx, 9.83892e-1_rkx, 9.67989e-1_rkx, &
       9.54207e-1_rkx, 9.28060e-1_rkx, 8.96477e-1_rkx, 8.58330e-1_rkx, &
@@ -966,8 +949,7 @@ module mod_rad_aerosol
       9.83821e-1_rkx, 9.69371e-1_rkx, 9.48524e-1_rkx, 9.28404e-1_rkx],&
     [nbndsw,12])
 
-  real(rkx), dimension(nbndsw,12) , parameter :: gsdust12_rrtm = &
-    reshape([ &
+  real(rkx), dimension(nbndsw,12) , parameter :: gsdust12_rrtm = reshape([ &
       3.46379e-3_rkx, 2.99321e-2_rkx, 2.02337e-1_rkx, 6.16252e-1_rkx, &
       7.21069e-1_rkx, 7.35882e-1_rkx, 7.00282e-1_rkx, 5.57231e-1_rkx, &
       6.99890e-1_rkx, 7.50332e-1_rkx, 7.94881e-1_rkx, 8.23712e-1_rkx, &
@@ -1012,8 +994,7 @@ module mod_rad_aerosol
       6.73365e-1_rkx, 6.39275e-1_rkx, 6.80069e-1_rkx, 7.61202e-1_rkx],&
     [nbndsw,12])
 
-  real(rkx), dimension(nbndlw,4) , parameter :: ksdust_rrtm_lw = &
-    reshape([ &
+  real(rkx), dimension(nbndlw,4) , parameter :: ksdust_rrtm_lw = reshape([ &
       9.03338e-8_rkx, 1.66503e-6_rkx, 1.39793e-5_rkx, 1.23597e-4_rkx, &
       5.29696e-5_rkx, 1.02266e-3_rkx, 1.02906e-2_rkx, 9.09172e-2_rkx, &
       1.03134e-4_rkx, 1.98371e-3_rkx, 1.88747e-2_rkx, 8.67894e-2_rkx, &
@@ -1032,8 +1013,7 @@ module mod_rad_aerosol
       2.63245e-2_rkx, 2.62229e-1_rkx, 4.06941e-1_rkx, 7.63635e-2_rkx],&
     [nbndlw,4])
 
-  real(rkx), dimension(nbndlw,12) , parameter :: ksdust12_rrtm_lw = &
-    reshape([ &
+  real(rkx), dimension(nbndlw,12) , parameter :: ksdust12_rrtm_lw = reshape([ &
       9.4332e-10_rkx, 2.42747e-8_rkx, 4.12358e-7_rkx, 2.49960e-6_rkx, &
       8.67040e-6_rkx, 2.00439e-5_rkx, 3.48134e-5_rkx, 6.39697e-5_rkx, &
       1.80706e-4_rkx, 3.62353e-4_rkx, 6.48472e-4_rkx, 1.00623e-3_rkx, &

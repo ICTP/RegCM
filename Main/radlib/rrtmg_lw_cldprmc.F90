@@ -93,7 +93,7 @@
       integer(kind=im) :: lay                         ! Layer index
       integer(kind=im) :: ib                          ! spectral band index
       integer(kind=im) :: ig                          ! g-point interval index
-      integer(kind=im) :: index
+      integer(kind=im) :: indx
 
       real(kind=rb) :: abscoice(ngptlw)               ! ice absorption coefficients
       real(kind=rb) :: abscoliq(ngptlw)               ! liquid absorption coefficients
@@ -217,13 +217,13 @@
                   if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) stop 'ICE RADIUS OUT OF BOUNDS'
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
-                     index = int(factor)
-                     if (index .eq. 43) index = 42
-                     fint = factor - real(index)
+                     indx = int(factor)
+                     if (indx .eq. 43) indx = 42
+                     fint = factor - real(indx)
                      ib = ngb(ig)
                      abscoice(ig) = &
-                         absice2(index,ib) + fint * &
-                         (absice2(index+1,ib) - (absice2(index,ib)))
+                         absice2(indx,ib) + fint * &
+                         (absice2(indx+1,ib) - (absice2(indx,ib)))
 
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
@@ -231,13 +231,13 @@
                   if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
-                     index = int(factor)
-                     if (index .eq. 46) index = 45
-                     fint = factor - real(index)
+                     indx = int(factor)
+                     if (indx .eq. 46) indx = 45
+                     fint = factor - real(indx)
                      ib = ngb(ig)
                      abscoice(ig) = &
-                         absice3(index,ib) + fint * &
-                         (absice3(index+1,ib) - (absice3(index,ib)))
+                         absice3(indx,ib) + fint * &
+                         (absice3(indx+1,ib) - (absice3(indx,ib)))
 
                endif
 
@@ -252,14 +252,14 @@
                   radliq = relqmc(lay)
                   if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) stop &
                        'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
-                  index = int(radliq - 1.5_rb)
-                  if (index .eq. 0) index = 1
-                  if (index .eq. 58) index = 57
-                  fint = radliq - 1.5_rb - real(index)
+                  indx = int(radliq - 1.5_rb)
+                  if (indx .eq. 0) indx = 1
+                  if (indx .eq. 58) indx = 57
+                  fint = radliq - 1.5_rb - real(indx)
                   ib = ngb(ig)
                   abscoliq(ig) = &
-                        absliq1(index,ib) + fint * &
-                        (absliq1(index+1,ib) - (absliq1(index,ib)))
+                        absliq1(indx,ib) + fint * &
+                        (absliq1(indx+1,ib) - (absliq1(indx,ib)))
                endif
 
                taucmc(ig,lay) = ciwpmc(ig,lay) * abscoice(ig) + &
