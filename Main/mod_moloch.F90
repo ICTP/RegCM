@@ -104,7 +104,7 @@ module mod_moloch
   logical , parameter :: do_divdamp      = .true.
   logical , parameter :: do_filterpai    = .false.
   logical , parameter :: do_filterqv     = .false.
-  logical , parameter :: do_filterdiv    = .true.
+  logical , parameter :: do_filterdiv    = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
   logical , parameter :: do_diffutend    = .false.
@@ -574,7 +574,7 @@ module mod_moloch
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        lrt = 0.75_rkx*lrt + 0.25_rkx*lrate
         tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do

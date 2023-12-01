@@ -59,7 +59,7 @@ module mod_init
 
   public :: init
 
-  real(rkx) , parameter :: mo_zfilt_fac = 1.0_rkx
+  real(rkx) , parameter :: mo_zfilt_fac = 0.8_rkx
   real(rkx) , parameter :: tlp = 50.0_rkx
   real(rkx) , parameter :: ts00 = 288.0_rkx
 

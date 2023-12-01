@@ -448,6 +448,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: tauy
     real(rkx) , pointer , dimension(:,:,:) :: swalb
     real(rkx) , pointer , dimension(:,:,:) :: lwalb
+    real(rkx) , pointer , dimension(:,:,:) :: urlwf
     real(rkx) , pointer , dimension(:,:,:) :: swdiralb
     real(rkx) , pointer , dimension(:,:,:) :: lwdiralb
     real(rkx) , pointer , dimension(:,:,:) :: swdifalb
@@ -533,6 +534,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
     real(rkx) , pointer , dimension(:,:) :: dwrlwf      ! flwd
+    real(rkx) , pointer , dimension(:,:) :: uwrlwf      ! flwu
     real(rkx) , pointer , dimension(:,:) :: zencos      ! coszrs
     real(rkx) , pointer , dimension(:,:) :: ncprate     ! pptnc
     real(rkx) , pointer , dimension(:,:) :: cprate      ! cprate

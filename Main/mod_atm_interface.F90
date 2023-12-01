@@ -95,6 +95,7 @@ module mod_atm_interface
   real(rkx) , pointer , public , dimension(:,:) :: totcf
   real(rkx) , pointer , public , dimension(:,:) :: flw
   real(rkx) , pointer , public , dimension(:,:) :: fsw
+  real(rkx) , pointer , public , dimension(:,:) :: flwu
   real(rkx) , pointer , public , dimension(:,:) :: flwd
   real(rkx) , pointer , public , dimension(:,:,:) :: cldfra
   real(rkx) , pointer , public , dimension(:,:,:) :: cldlwc
@@ -1117,8 +1118,6 @@ module mod_atm_interface
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem3d(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
-
-
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
@@ -1139,6 +1138,9 @@ module mod_atm_interface
       call getmem2d(totcf,jci1,jci2,ici1,ici2,'storage:totcf')
       call getmem2d(flw,jci1,jci2,ici1,ici2,'storage:flw')
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
+#ifdef CLM45
+      call getmem2d(flwu,jci1,jci2,ici1,ici2,'storage:flwu')
+#endif
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
       call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
       call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')
