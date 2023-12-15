@@ -106,6 +106,7 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
+      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
       uv995 = sqrt(usw(i)**2+vsw(i)**2)
       t995 = tatm(i) - tzero
       q995 = qv(i)
@@ -467,7 +468,6 @@ module mod_ocn_zeng
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))
-      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
     end do
 
 #ifdef DEBUG
@@ -545,18 +545,18 @@ module mod_ocn_zeng
       end if
     end subroutine roughness
 
-    subroutine ocnrough(zo,ustar,um10,wc,visa)
+    subroutine ocnrough(zo,ustar,u3d,wc,visa)
       implicit none
-      real(rkx) , intent (in) :: um10 , wc , visa , ustar
+      real(rkx) , intent (in) :: u3d , wc , visa , ustar
       real(rkx) , intent (out) :: zo
-      real(rkx) :: cp , charnockog , alph
-      ! Wave age. The wind here is the mean last N days wind
-      cp = 1.2_rkx*um10
+      real(rkx) :: wage , charnockog , alph
+      ! Wave age. The wind here is the mean last 3 days wind
+      wage = 1.2_rkx*u3d
       ! Smith et al. (1992), Carlsson et al. (2009)
       ! Charnock parameter as power function of the wave age
       ! We consider here dominant wind sea waves
       ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
+      charnockog = regrav*0.063_rkx*(wage/ustar)**(-0.4_rkx)
       if ( iocnrough == 1 ) then
         zo = 0.0065_rkx*regrav*ustar*ustar
       else if ( iocnrough == 2 ) then
@@ -570,11 +570,11 @@ module mod_ocn_zeng
         ! Advanced Methods for Practical Applications in Fluid Mechanics
         zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
       else if ( iocnrough == 5 ) then
-        if ( um10 < 10.0_rkx ) then
+        if ( u3d < 10.0_rkx ) then
           alph = 0.011_rkx
-        else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
-          alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
-        else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
+        else if ( u3d > 10.0_rkx .and. u3d < 18.0_rkx ) then
+          alph = 0.011_rkx + 0.000875*(u3d-10.0_rkx)
+        else if ( u3d > 18.0_rkx .and. u3d < 25.0_rkx ) then
           alph = 0.018_rkx
         else
           alph = max(2.e-3_rkx,0.018_rkx / &

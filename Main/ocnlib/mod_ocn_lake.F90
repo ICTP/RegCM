@@ -245,6 +245,7 @@ module mod_ocn_lake
       xl = lat(i)
       tp = tlak(lp,:)
       rho = rhox(i)
+      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
       visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * tc +     &
                                    8.301e-6_rkx * tc*tc -  &
                                    4.840e-9_rkx * tc*tc*tc)
@@ -357,7 +358,6 @@ module mod_ocn_lake
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       rhoa(i) = rhox(i)
-      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
       ustr(i) = max(ustr(i),1.0e-5_rkx)
