@@ -324,7 +324,7 @@ module mod_pbl_uwtcm
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
         if ( m2p%ldmsk(j,i) > 0 ) then
-          q0s = m2p%q2m(j,i)
+          q0s = m2p%q2m(j,i)/(d_one-m2p%q2m(j,i))
         else
           q0s = pfwsat(tskx,presfl(kzp1))
         end if

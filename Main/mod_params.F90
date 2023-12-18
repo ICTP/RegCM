@@ -940,7 +940,7 @@ module mod_params
           kf_tkemax = 3.0_rkx
         end if
       end if
-      if ( iocnflx < 1 .or. iocnflx > 3 ) then
+      if ( iocnflx < 0 .or. iocnflx > 3 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED OCEAN FLUX SCHEME.')
       end if

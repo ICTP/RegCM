@@ -53,6 +53,9 @@ module mod_ocn_common
     type(lm_state) , intent(inout) :: lms
     call ocn_interf(lm,lms,1)
     select case ( iocnflx )
+      case (0)
+        call ocn_interf(lm,lms,2)
+        return
       case (1)
         call ocnbats
       case (2)

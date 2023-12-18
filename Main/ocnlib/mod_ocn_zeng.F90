@@ -65,7 +65,7 @@ module mod_ocn_zeng
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2
-  logical :: ecmwf_ocnrough = .true.
+  logical , parameter :: ecmwf_ocnrough = .true.
 
   contains
   !
@@ -106,7 +106,6 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
-      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
       uv995 = sqrt(usw(i)**2+vsw(i)**2)
       t995 = tatm(i) - tzero
       q995 = qv(i)
@@ -212,7 +211,7 @@ module mod_ocn_zeng
           ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
                       (5.0_rkx*log(zeta)+zeta-1.0_rkx))
         end if
-        call roughness(zo,ustar,zot,zoq)
+        call roughness(zo,ustar,visa,zot,zoq)
         !
         ! temperature
         !
@@ -275,7 +274,7 @@ module mod_ocn_zeng
         ! main iterations (2-10 iterations would be fine)
         !
         do nconv = 1 , 5
-          call roughness(zo,ustar,zot,zoq)
+          call roughness(zo,ustar,visa,zot,zoq)
           !
           ! wind
           !
@@ -460,6 +459,7 @@ module mod_ocn_zeng
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
+      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
       facttq = log(z995*0.5_rkx)/log(z995/zo)
@@ -498,9 +498,9 @@ module mod_ocn_zeng
     !
     ! our formulation for zo,zot,zoq
     !
-    subroutine roughness(zo,ustar,zot,zoq)
+    subroutine roughness(zo,ustar,visa,zot,zoq)
       implicit none
-      real(rkx) , intent (in) :: zo , ustar
+      real(rkx) , intent (in) :: zo , ustar , visa
       real(rkx) , intent (out) :: zoq , zot
       real(rkx) :: re , xtq , rt , rq
       re = (ustar*zo)/visa

@@ -841,6 +841,7 @@ module mod_init
       end if
 #endif
       rdnnsg = d_one/real(nnsg,rkx)
+      emiss = sum(lms%emisv,1) * rdnnsg
       aldirs = sum(lms%swdiralb,1)*rdnnsg
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
       aldifs = sum(lms%swdifalb,1)*rdnnsg
