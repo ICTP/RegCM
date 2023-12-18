@@ -3029,8 +3029,6 @@ module mod_moloch
             write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
           end if
           call surface_model
-          !FAB now called in surface model
-          ! if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
         end if
         !
         !------------------------------------------------

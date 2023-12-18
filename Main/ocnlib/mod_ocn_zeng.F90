@@ -488,8 +488,8 @@ module mod_ocn_zeng
       real(rkx) :: chik
       chik = (d_one-16.0_rkx*zeta)**0.25_rkx
       if ( k == 1 ) then
-        psi = 2.0_rkx*log((d_one+chik)*0.5_rkx) +       &
-                    log((d_one+chik*chik)*0.5_rkx) -  &
+        psi = 2.0_rkx*log((d_one+chik)*0.5_rkx) +      &
+                      log((d_one+chik*chik)*0.5_rkx) - &
               2.0_rkx*atan(chik) + 2.0_rkx*atan(d_one)
       else
         psi = 2.0_rkx*log((d_one+chik*chik)*0.5_rkx)

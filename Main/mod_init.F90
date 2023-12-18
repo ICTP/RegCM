@@ -510,6 +510,8 @@ module mod_init
         if ( ipptls > 0 ) then
           fcc = fcc_io
         end if
+        cldfra = cldfra_io
+        cldlwc = cldlwc_io
         heatrt = heatrt_io
         o3prof = o3prof_io
         if ( iocnflx == 2 ) then
@@ -695,6 +697,8 @@ module mod_init
         if ( ipptls > 0 ) then
           call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
         end if
+        call grid_distribute(cldfra_io,cldfra,jci1,jci2,ici1,ici2,1,kz)
+        call grid_distribute(cldlwc_io,cldlwc,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
         if ( iocnflx == 2 .or. ibltyp == 3 ) then
