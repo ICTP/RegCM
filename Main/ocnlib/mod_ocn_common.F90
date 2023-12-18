@@ -326,6 +326,11 @@ module mod_ocn_common
           end do
         end do
       end if
+      emiss(:) = ocn_sfcemiss
+      where ( mask == 2 )
+        emiss = ice_sfcemiss
+      end where
+      call l2c_ss(ocncomm,emiss,lms%emisv)
     end if
   end subroutine ocn_interf
 
