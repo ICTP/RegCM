@@ -413,6 +413,7 @@ module mod_oasis_generic
         write(ndebug,"(' ',A,A11,A,ES12.5E2)") oasis_prefix, &
         '',                    '  ', maxval(array)
       end if
+    end if
 #endif
   end subroutine oasisxregcm_rcv
 
@@ -482,6 +483,7 @@ module mod_oasis_generic
         write(ndebug,"(' ',A,A11,A,ES12.5E2)") oasis_prefix, &
         '',                    '  ', maxval(array)
       end if
+    end if
 #endif
   end subroutine oasisxregcm_snd
 
