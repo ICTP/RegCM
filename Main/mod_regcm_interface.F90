@@ -157,7 +157,7 @@ module mod_regcm_interface
       !
       ! OASIS Log Files Setup
       !
-      call oasisxregcm_open_log(comp_name,comp_id)
+      !call oasisxregcm_open_log(comp_name,comp_id)
 #endif
       !
       ! OASIS Variables Setup
@@ -370,7 +370,7 @@ module mod_regcm_interface
       !
       ! OASIS Log Files Closing
       !
-      call oasisxregcm_close_log
+      !call oasisxregcm_close_log
 #endif
     end if
 #endif
