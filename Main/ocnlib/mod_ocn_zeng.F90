@@ -250,11 +250,11 @@ module mod_ocn_zeng
           if ( flag2 ) then  ! We don't have ustar from the wave model
             ustar = um/25.0_rkx
             do nconv = 1 , 2
-              call ocnrough(zo,ustar,u3d(i),wc,visa)
+              call ocnrough(zo,ustar,um10(i),wc,visa)
               ustar = vonkar*um/log(1.0_rkx+zu/zo)
             end do
           else
-            call ocnrough(zo,ustar,u3d(i),wc,visa)
+            call ocnrough(zo,ustar,um10(i),wc,visa)
           end if
         else
           if ( flag2 ) then  ! We don't have ustar from the wave model
@@ -334,7 +334,7 @@ module mod_ocn_zeng
           if ( .not. flag2 ) exit
           ! Recompute ustar , zo
           ustar = vonkar*um/log(1.0_rkx+zu/zo)
-          call ocnrough(zo,ustar,u3d(i),wc,visa)
+          call ocnrough(zo,ustar,um10(i),wc,visa)
         end do
         br(i) = egrav*zu*dthv/(thv*um*um)
         if ( br(i) >= d_zero ) then       ! neutral or stable
