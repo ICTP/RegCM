@@ -171,9 +171,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
   real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io
   real(rkx) , public , pointer , dimension(:,:,:) :: cldfra_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: cldlwc_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io
   real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io
@@ -348,7 +347,6 @@ module mod_savefile
       end if
 
       call getmem3d(cldfra_io,jci1,jci2,ici1,ici2,1,kz,'cldfra_io')
-      call getmem3d(cldlwc_io,jci1,jci2,ici1,ici2,1,kz,'cldlwc_io')
       call getmem3d(heatrt_io,jci1,jci2,ici1,ici2,1,kz,'heatrt_io')
       call getmem3d(o3prof_io,jci1,jci2,ici1,ici2,1,kzp1,'o3prof_io')
 
@@ -541,8 +539,6 @@ module mod_savefile
 
         call getmem3d(cldfra_io,jcross1,jcross2, &
                       icross1,icross2,1,kz,'cldfra_io')
-        call getmem3d(cldlwc_io,jcross1,jcross2, &
-                      icross1,icross2,1,kz,'cldlwc_io')
         call getmem3d(heatrt_io,jcross1,jcross2, &
                       icross1,icross2,1,kz,'heatrt_io')
         call getmem3d(o3prof_io,jcross1,jcross2, &
@@ -731,7 +727,6 @@ module mod_savefile
     end if
 #endif
     call mygetvar(ncid,'cldfra',cldfra_io)
-    call mygetvar(ncid,'cldlwc',cldlwc_io)
     call mygetvar(ncid,'heatrt',heatrt_io)
     call mygetvar(ncid,'o3prof',o3prof_io)
     call mygetvar(ncid,'flw',flw_io)
@@ -1022,7 +1017,6 @@ module mod_savefile
     wrkdim(2) = dimids(idicross)
     wrkdim(3) = dimids(idkh)
     call savedefvar(ncid,'cldfra',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'cldlwc',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
     wrkdim(3) = dimids(idkf)
     call savedefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1233,7 +1227,6 @@ module mod_savefile
     end if
 #endif
     call myputvar(ncid,'cldfra',cldfra_io,varids,ivcc)
-    call myputvar(ncid,'cldlwc',cldlwc_io,varids,ivcc)
     call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
     call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
     call myputvar(ncid,'flw',flw_io,varids,ivcc)

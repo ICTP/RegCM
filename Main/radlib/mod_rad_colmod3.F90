@@ -213,7 +213,7 @@ module mod_rad_colmod3
 
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
     real(rkx) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
-    real(rkx) :: kabs , kabsi , emis , arg
+    real(rkx) :: kabs , kabsi , cldemis , arg
     ! Longwave absorption coeff (m**2/g)
     real(rkx) , parameter :: kabsl = 0.090361_rkx
     ! real(rkx) :: tpara
@@ -261,8 +261,8 @@ module mod_rad_colmod3
     !   Fields computed from user input
     !
     ! surface air temperature
-    ! effective cloud=cld*emis
     ! cloud emissivity
+    ! effective cloud = cloud fraction * cloud emissivity
     ! fractional amount of ice
     ! ice particle size
     ! liquid effective drop size (microns)
@@ -716,9 +716,9 @@ module mod_rad_colmod3
         kabs = kabsl*(1.0_rkx-rt%fice(n,k)) + (kabsi*rt%fice(n,k))
         ! cloud emissivity (fraction)
         arg = min(1.66_rkx*kabs*rt%clwp(n,k),25.0_rkx)
-        emis = max(1.0_rkx - exp(-arg),0.01_rkx)
+        cldemis = max(1.0_rkx - exp(-arg),0.01_rkx)
         ! Effective cloud cover
-        rt%effcld(n,k) = rt%cld(n,k)*emis
+        rt%effcld(n,k) = rt%cld(n,k)*cldemis
       end do
     end do
     !

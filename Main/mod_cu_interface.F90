@@ -82,6 +82,7 @@ module mod_cu_interface
   public :: dtauc2d
   public :: k700
   public :: total_precip_points
+  public :: cu_cldfrc
 
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
@@ -208,7 +209,6 @@ module mod_cu_interface
     call assignpnt(sfs%rainc,c2m%rainc)
     call assignpnt(pptc,c2m%pcratec)
     call assignpnt(cldfra,c2m%cldfrc)
-    call assignpnt(cldlwc,c2m%cldlwc)
     call assignpnt(icumtop,c2m%kcumtop)
     call assignpnt(icumbot,c2m%kcumbot)
     if ( ichem == 1 ) call assignpnt(convpr,c2m%convpr)
@@ -228,20 +228,10 @@ module mod_cu_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),0.0_rkx)
-          if ( cu_cldfrc(j,i,k) > lowcld ) then
-            c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
-          else
-            c2m%cldlwc(j,i,k) = d_zero
-          end if
+          c2m%cldfrc(j,i,k) = cu_cldfrc(j,i,k)
         end do
       end do
     end do
-
-    contains
-
-#include <clwfromt.inc>
-
   end subroutine cucloud
 
   subroutine cumulus

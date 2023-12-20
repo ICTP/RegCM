@@ -1755,12 +1755,6 @@ module mod_tendency
         end if
         ! calculate albedo
         call surface_albedo
-        ! Update / init Ozone profiles
-        if ( iclimao3 == 1 ) then
-          call updateo3(rcmtimer%idate,scenario)
-        else
-          if ( rcmtimer%start() ) call inito3
-        end if
         if ( iclimaaer == 1 ) then
           call updateaerosol(rcmtimer%idate)
         else if ( iclimaaer == 2 ) then

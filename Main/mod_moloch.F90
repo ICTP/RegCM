@@ -2985,12 +2985,6 @@ module mod_moloch
           end if
           ! calculate albedo
           call surface_albedo
-          ! Update / init Ozone profiles
-          if ( iclimao3 == 1 ) then
-            call updateo3(rcmtimer%idate,scenario)
-          else
-            if ( rcmtimer%start() ) call inito3
-          end if
           if ( iclimaaer == 1 ) then
             call updateaerosol(rcmtimer%idate)
           else if ( iclimaaer == 2 ) then
@@ -3181,7 +3175,7 @@ module mod_moloch
   ! Fully device-resident: make sure all IO is on the GPU for this subroutine
   subroutine xtowstag(wx,w)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: wx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
     integer(ik4) :: i , j , k
 
@@ -3210,7 +3204,7 @@ module mod_moloch
   ! Fully device-resident: make sure all IO is on the GPU for this subroutine
   subroutine xtoustag(ux,u)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: ux
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u
     integer(ik4) :: i , j , k
 
@@ -3251,7 +3245,7 @@ module mod_moloch
   ! Fully device-resident: make sure all IO is on the GPU for this subroutine
   subroutine xtovstag(vx,v)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: vx
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: vx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: v
     integer(ik4) :: i , j , k
 

@@ -275,6 +275,9 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
+      if ( iclimao3 == 1 ) then
+        call updateo3(rcmtimer%idate,scenario)
+      end if
       !
       ! Send OASIS fields
       !
