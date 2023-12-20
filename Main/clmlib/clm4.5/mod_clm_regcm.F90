@@ -755,6 +755,7 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
+    call glb_l2c_ss(lndcomm,clm_l2a%eflx_lwrad_out,lms%urlwf)
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
@@ -829,7 +830,6 @@ module mod_clm_regcm
     end if
     !--------------------------------------------------
     ! Will fix
-    !clm_l2a%eflx_lwrad_out
     !clm_l2a%fsa
     !clm_l2a%nee
     !clm_l2a%rofliq

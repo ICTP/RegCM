@@ -59,7 +59,7 @@ module mod_init
 
   public :: init
 
-  real(rkx) , parameter :: mo_zfilt_fac = 1.0_rkx
+  real(rkx) , parameter :: mo_zfilt_fac = 0.8_rkx
   real(rkx) , parameter :: tlp = 50.0_rkx
   real(rkx) , parameter :: ts00 = 288.0_rkx
 
@@ -398,6 +398,14 @@ module mod_init
       !
       call mkslice
       !
+      ! Init ozone
+      !
+      if ( iclimao3 == 1 ) then
+        call updateo3(rcmtimer%idate,scenario)
+      else
+        call inito3
+      end if
+      !
       ! End of initial run case
       !
     else
@@ -490,6 +498,7 @@ module mod_init
         if ( ipptls > 0 ) then
           fcc = fcc_io
         end if
+        cu_cldfrc = cldfra_io
         heatrt = heatrt_io
         o3prof = o3prof_io
         if ( iocnflx == 2 ) then
@@ -663,6 +672,7 @@ module mod_init
         if ( ipptls > 0 ) then
           call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
         end if
+        call grid_distribute(cldfra_io,cu_cldfrc,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
         if ( iocnflx == 2 ) then
@@ -806,6 +816,7 @@ module mod_init
       end if
 #endif
       rdnnsg = d_one/real(nnsg,rkx)
+      emiss = sum(lms%emisv,1)*rdnnsg
       aldirs = sum(lms%swdiralb,1)*rdnnsg
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
       aldifs = sum(lms%swdifalb,1)*rdnnsg
@@ -944,8 +955,9 @@ module mod_init
       ! Top pressure
       do i = ice1 , ice2
         do j = jce1 , jce2
-          mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-            (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) * (1.0_rkx + egrav * &
+            (mo_atm%zetaf(j,i,2)-mo_atm%zetaf(j,i,1)) / &
+            (rgas*mo_atm%tvirt(j,i,1)))
         end do
       end do
     end if

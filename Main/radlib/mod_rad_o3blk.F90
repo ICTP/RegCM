@@ -42,8 +42,7 @@ module mod_rad_o3blk
   public :: allocate_mod_rad_o3blk , o3data , read_o3data , close_o3data
 
   real(rkx) , dimension(31) :: o3ann , ppann
-  real(rkx) , pointer , dimension(:,:) :: alon , alat , aps
-  real(rkx) , pointer , dimension(:,:,:) :: xozone1 , xozone2
+  real(rkx) , pointer , dimension(:,:) :: alon , alat
   character(len=16) , parameter :: ozname_rcp = 'ozone'
   character(len=16) , parameter :: ozname_ssp = 'vmro3'
   character(len=16) :: ozname
@@ -52,9 +51,10 @@ module mod_rad_o3blk
   real(rkx) , pointer , dimension(:) :: olat
   real(rkx) , pointer , dimension(:) :: olon
   real(rkx) , pointer , dimension(:) :: oplev
-  real(rkx) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
-  real(rkx) , pointer , dimension(:,:,:) :: yozone
+  real(rkx) , pointer , dimension(:,:,:) :: rdoz1 , rdoz2
+  real(rkx) , pointer , dimension(:,:,:) :: hzioz1 , hzioz2
+  real(rkx) , pointer , dimension(:,:,:) :: ploz1 , ploz2
+  real(rkx) , pointer , dimension(:,:,:) :: sgoz1 , sgoz2
 
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
@@ -209,15 +209,6 @@ module mod_rad_o3blk
       if ( myid == iocpu ) then
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
         call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
-        call getmem2d(aps,jcross1,jcross2,icross1,icross2,'mod_o3blk:aps')
-        call getmem3d(ozone1,jcross1,jcross2, &
-                             icross1,icross2,1,kzp1,'mod_o3blk:ozone1')
-        call getmem3d(ozone2,jcross1,jcross2, &
-                             icross1,icross2,1,kzp1,'mod_o3blk:ozone2')
-        call getmem3d(ozone,jcross1,jcross2, &
-                            icross1,icross2,1,kzp1,'mod_o3blk:ozone')
-        call getmem3d(pp3d,jcross1,jcross2, &
-                           icross1,icross2,1,kzp1,'mod_o3blk:pp3d')
       end if
     end if
   end subroutine allocate_mod_rad_o3blk
@@ -284,15 +275,15 @@ module mod_rad_o3blk
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
     integer(ik4) :: im1 , iy1 , im2 , iy2
-    integer(ik4) , save :: ism , isy
+    integer(ik4) , save :: ism , isy , np
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
     data ism /-1/
     data isy /-1/
 
-    call split_idate(idatex,iyear,imon,iday,ihour)
     imonmidd = monmiddle(idatex)
+    call split_idate(imonmidd,iyear,imon,iday,ihour)
 
     if ( iyear < 1850 ) then
       iyear = 1850
@@ -303,18 +294,28 @@ module mod_rad_o3blk
     if ( ifirst ) then
       call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
       call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
-!      ifirst = .false.
       if ( myid == iocpu ) then
         infile = o3filename(iyear)
         call init_o3data(infile,ncid,olat,olon,oplev)
-        call getmem3d(yozone,1,njcross,1,nicross,1,size(oplev),'ozone:yozone')
-        call getmem3d(xozone1,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone1')
-        call getmem3d(xozone2,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone2')
+        np = size(oplev)
+        call bcast(np)
+        call bcast(oplev)
+        call bcast(mulfac)
+        call getmem3d(rdoz1,1,size(olon),1,size(olat),1,np,'ozone:rdoz1')
+        call getmem3d(rdoz2,1,size(olon),1,size(olat),1,np,'ozone:rdoz2')
+        call getmem3d(hzioz1,1,njcross,1,nicross,1,np,'ozone:hzioz1')
+        call getmem3d(hzioz2,1,njcross,1,nicross,1,np,'ozone:hzioz2')
         call h_interpolator_create(hint,olat,olon,alat,alon)
+      else
+        call bcast(np)
+        call getmem1d(oplev,1,np,'ozone:lev')
+        call bcast(oplev)
+        call bcast(mulfac)
       endif
-
+      call getmem3d(ploz1,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz1')
+      call getmem3d(ploz2,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz2')
+      call getmem3d(sgoz1,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz1')
+      call getmem3d(sgoz2,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz2')
     end if
 
     im1 = imon
@@ -331,47 +332,42 @@ module mod_rad_o3blk
       iref2 = imonmidd
     end if
     dointerp = .false.
-      if ( ism /= im1 .or. isy /= iy1 ) then
-        ism = im1
-        isy = iy1
-        dointerp = .true.
-      end if
+    if ( ism /= im1 .or. isy /= iy1 ) then
+      ism = im1
+      isy = iy1
+      dointerp = .true.
+    end if
     if ( dointerp ) then
-      ! We need pressure
-      call grid_collect(m2r%psatms,aps,jci1,jci2,ici1,ici2)
-      call grid_collect(m2r%pfatms,pp3d,jci1,jci2,ici1,ici2,1,kzp1)
       if ( myid == iocpu ) then
         if ( ifirst ) then
-          write (stdout,*) 'Reading Ozone Data...'
-          call readvar3d_pack(ncid,iy1,im1,ozname,xozone1)
-          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone1,yozone)
-          call intlinreg(ozone1,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
-          call h_interpolate_cont(hint,xozone2,yozone)
-          call intlinreg(ozone2,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          write (stdout,*) 'Reading Initial Ozone Data...'
+          call readvar3d_pack(ncid,iy1,im1,ozname,rdoz1)
+          call readvar3d_pack(ncid,iy2,im2,ozname,rdoz2)
+          call h_interpolate_cont(hint,rdoz1,hzioz1)
+          call h_interpolate_cont(hint,rdoz2,hzioz2)
         else
-          ozone1 = ozone2
-          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone2,yozone)
-          call intlinreg(ozone2,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          write (stdout,*) 'Update Ozone Data...'
+          hzioz1 = hzioz2
+          call readvar3d_pack(ncid,iy2,im2,ozname,rdoz2)
+          call h_interpolate_cont(hint,rdoz2,hzioz2)
         end if
       end if
+      call grid_distribute(hzioz1,ploz1,jci1,jci2,ici1,ici2,1,np)
+      call grid_distribute(hzioz2,ploz2,jci1,jci2,ici1,ici2,1,np)
     end if
-
-    if ( myid == iocpu ) then
-      tdif = idatex-iref1
-      xfac1 = real(tohours(tdif),rkx)
-      tdif = idatex-iref2
-      xfac2 = real(tohours(tdif),rkx)
-      odist = xfac1 - xfac2
-      xfac1 = xfac1/odist
-      xfac2 = d_one-xfac1
-      ozone = (ozone1*xfac2+ozone2*xfac1)*mulfac
-    end if
-    call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+    ! We need pressure
+    call intlinreg(sgoz1,ploz1,m2r%psatms,oplev, &
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
+    call intlinreg(sgoz2,ploz2,m2r%psatms,oplev, &
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
+    tdif = idatex-iref1
+    xfac1 = real(tohours(tdif),rkx)
+    tdif = idatex-iref2
+    xfac2 = real(tohours(tdif),rkx)
+    odist = xfac1 - xfac2
+    xfac1 = xfac1/odist
+    xfac2 = d_one-xfac1
+    o3prof = (sgoz1*xfac2+sgoz2*xfac1)*mulfac
     if ( myid == italk .and. dointerp ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Updated ozone profile at (3,3)')

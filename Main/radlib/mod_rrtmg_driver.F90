@@ -590,6 +590,9 @@ module mod_rrtmg_driver
         ioro(n) = m2r%ldmsk(j,i)
       end do
     end do
+    !
+    ! The pressures in the RRTMG are expressed in hPa: must divide by 100.0
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         n = (j-jci1+1)+(i-ici1)*npj

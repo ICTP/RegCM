@@ -163,7 +163,6 @@ module mod_cu_common
         end do
       end do
     end if
-
   end subroutine model_cumulus_cloud
 
 end module mod_cu_common

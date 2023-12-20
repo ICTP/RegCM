@@ -33,6 +33,7 @@ module mod_oasis_interface
   use mod_bats_common , only : rdnnsg
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
+  use mod_date , only : lfdomonth , lmidnight
 
   use mod_oasis
   use mod_oasis_params
@@ -670,9 +671,19 @@ module mod_oasis_interface
     integer(ik4) :: i , j , ishift , jshift
     logical :: l_write_restart
     !--------------------------------------------------------------------------
-    l_write_restart = (write_restart_option == 1 .and. time == 0) .or. &
-                      (rcmtimer%reached_endtime .or. alarm_out_sav%act( ))
-    !
+    l_write_restart = .false.
+    if ( associated(alarm_out_sav) ) then
+      if ( alarm_out_sav%act( ) ) then
+        l_write_restart = .true.
+      else
+        if ( lfdomonth(rcmtimer%idate) .and. &
+             lmidnight(rcmtimer%idate) ) then
+          l_write_restart = .true.
+        end if
+      end if
+    end if
+    if ( rcmtimer%reached_endtime ) l_write_restart = .true.
+    if ( write_restart_option == 1 .and. time == 0 ) l_write_restart = .true.
     if ( l_cpl_ex_u10m ) then ! eatward near-surface wind (10m-height) [m.s-1]
       grd => ex_u10m%grd
       call oasisxregcm_snd( &

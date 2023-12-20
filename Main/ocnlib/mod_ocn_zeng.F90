@@ -65,7 +65,7 @@ module mod_ocn_zeng
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2
-  logical :: ecmwf_ocnrough = .true.
+  logical , parameter :: ecmwf_ocnrough = .true.
 
   contains
   !
@@ -211,7 +211,7 @@ module mod_ocn_zeng
           ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
                       (5.0_rkx*log(zeta)+zeta-1.0_rkx))
         end if
-        call roughness(zo,ustar,zot,zoq)
+        call roughness(zo,ustar,visa,zot,zoq)
         !
         ! temperature
         !
@@ -250,11 +250,11 @@ module mod_ocn_zeng
           if ( flag2 ) then  ! We don't have ustar from the wave model
             ustar = um/25.0_rkx
             do nconv = 1 , 2
-              call ocnrough(zo,ustar,um10(i),wc,visa)
+              call ocnrough(zo,ustar,u3d(i),wc,visa)
               ustar = vonkar*um/log(1.0_rkx+zu/zo)
             end do
           else
-            call ocnrough(zo,ustar,um10(i),wc,visa)
+            call ocnrough(zo,ustar,u3d(i),wc,visa)
           end if
         else
           if ( flag2 ) then  ! We don't have ustar from the wave model
@@ -274,7 +274,7 @@ module mod_ocn_zeng
         ! main iterations (2-10 iterations would be fine)
         !
         do nconv = 1 , 5
-          call roughness(zo,ustar,zot,zoq)
+          call roughness(zo,ustar,visa,zot,zoq)
           !
           ! wind
           !
@@ -334,7 +334,7 @@ module mod_ocn_zeng
           if ( .not. flag2 ) exit
           ! Recompute ustar , zo
           ustar = vonkar*um/log(1.0_rkx+zu/zo)
-          call ocnrough(zo,ustar,um10(i),wc,visa)
+          call ocnrough(zo,ustar,u3d(i),wc,visa)
         end do
         br(i) = egrav*zu*dthv/(thv*um*um)
         if ( br(i) >= d_zero ) then       ! neutral or stable
@@ -459,6 +459,7 @@ module mod_ocn_zeng
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
+      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
       facttq = log(z995*0.5_rkx)/log(z995/zo)
@@ -467,7 +468,6 @@ module mod_ocn_zeng
       rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))
-      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
     end do
 
 #ifdef DEBUG
@@ -488,8 +488,8 @@ module mod_ocn_zeng
       real(rkx) :: chik
       chik = (d_one-16.0_rkx*zeta)**0.25_rkx
       if ( k == 1 ) then
-        psi = 2.0_rkx*log((d_one+chik)*0.5_rkx) +       &
-                    log((d_one+chik*chik)*0.5_rkx) -  &
+        psi = 2.0_rkx*log((d_one+chik)*0.5_rkx) +      &
+                      log((d_one+chik*chik)*0.5_rkx) - &
               2.0_rkx*atan(chik) + 2.0_rkx*atan(d_one)
       else
         psi = 2.0_rkx*log((d_one+chik*chik)*0.5_rkx)
@@ -498,9 +498,9 @@ module mod_ocn_zeng
     !
     ! our formulation for zo,zot,zoq
     !
-    subroutine roughness(zo,ustar,zot,zoq)
+    subroutine roughness(zo,ustar,visa,zot,zoq)
       implicit none
-      real(rkx) , intent (in) :: zo , ustar
+      real(rkx) , intent (in) :: zo , ustar , visa
       real(rkx) , intent (out) :: zoq , zot
       real(rkx) :: re , xtq , rt , rq
       re = (ustar*zo)/visa
@@ -545,18 +545,18 @@ module mod_ocn_zeng
       end if
     end subroutine roughness
 
-    subroutine ocnrough(zo,ustar,um10,wc,visa)
+    subroutine ocnrough(zo,ustar,u3d,wc,visa)
       implicit none
-      real(rkx) , intent (in) :: um10 , wc , visa , ustar
+      real(rkx) , intent (in) :: u3d , wc , visa , ustar
       real(rkx) , intent (out) :: zo
-      real(rkx) :: cp , charnockog , alph
-      ! Wave age. The wind here is the mean last N days wind
-      cp = 1.2_rkx*um10
+      real(rkx) :: wage , charnockog , alph
+      ! Wave age. The wind here is the mean last 3 days wind
+      wage = 1.2_rkx*u3d
       ! Smith et al. (1992), Carlsson et al. (2009)
       ! Charnock parameter as power function of the wave age
       ! We consider here dominant wind sea waves
       ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
+      charnockog = regrav*0.063_rkx*(wage/ustar)**(-0.4_rkx)
       if ( iocnrough == 1 ) then
         zo = 0.0065_rkx*regrav*ustar*ustar
       else if ( iocnrough == 2 ) then
@@ -570,11 +570,11 @@ module mod_ocn_zeng
         ! Advanced Methods for Practical Applications in Fluid Mechanics
         zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
       else if ( iocnrough == 5 ) then
-        if ( um10 < 10.0_rkx ) then
+        if ( u3d < 10.0_rkx ) then
           alph = 0.011_rkx
-        else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
-          alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
-        else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
+        else if ( u3d > 10.0_rkx .and. u3d < 18.0_rkx ) then
+          alph = 0.011_rkx + 0.000875*(u3d-10.0_rkx)
+        else if ( u3d > 18.0_rkx .and. u3d < 25.0_rkx ) then
           alph = 0.018_rkx
         else
           alph = max(2.e-3_rkx,0.018_rkx / &

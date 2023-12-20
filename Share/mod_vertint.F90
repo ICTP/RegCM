@@ -83,7 +83,7 @@ module mod_vertint
   !   p3d(im,jm,km) - the pressure levels to interpolate to
   !   ps(im,jm)     - the surface pressure
   ! Output:
-  !   fp(im,jm,km)  - the field interpolate on regular pressure grid p
+  !   fp(im,jm,km)  - the field interpolate on target pressure grid p3d
   !
   subroutine intlinreg_p(fp,f,ps,p,im1,im2,jm1,jm2,kp,p3d,km)
     implicit none

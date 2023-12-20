@@ -53,6 +53,9 @@ module mod_ocn_common
     type(lm_state) , intent(inout) :: lms
     call ocn_interf(lm,lms,1)
     select case ( iocnflx )
+      case (0)
+        call ocn_interf(lm,lms,2)
+        return
       case (1)
         call ocnbats
       case (2)
@@ -323,6 +326,11 @@ module mod_ocn_common
           end do
         end do
       end if
+      emiss(:) = ocn_sfcemiss
+      where ( mask == 2 )
+        emiss = ice_sfcemiss
+      end where
+      call l2c_ss(ocncomm,emiss,lms%emisv)
     end if
   end subroutine ocn_interf
 

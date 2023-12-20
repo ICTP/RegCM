@@ -104,7 +104,7 @@ module mod_moloch
   logical , parameter :: do_divdamp      = .true.
   logical , parameter :: do_filterpai    = .false.
   logical , parameter :: do_filterqv     = .false.
-  logical , parameter :: do_filterdiv    = .true.
+  logical , parameter :: do_filterdiv    = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
   logical , parameter :: do_diffutend    = .false.
@@ -472,7 +472,7 @@ module mod_moloch
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*lrate
+        lrt = 0.75_rkx*lrt + 0.25_rkx*lrate
         tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
@@ -2266,12 +2266,6 @@ module mod_moloch
           end if
           ! calculate albedo
           call surface_albedo
-          ! Update / init Ozone profiles
-          if ( iclimao3 == 1 ) then
-            call updateo3(rcmtimer%idate,scenario)
-          else
-            if ( rcmtimer%start() ) call inito3
-          end if
           if ( iclimaaer == 1 ) then
             call updateaerosol(rcmtimer%idate)
           else if ( iclimaaer == 2 ) then
@@ -2310,8 +2304,6 @@ module mod_moloch
             write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
           end if
           call surface_model
-          !FAB now called in surface model
-          ! if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
         end if
         !
         !------------------------------------------------
@@ -2457,7 +2449,7 @@ module mod_moloch
 
   subroutine xtowstag(wx,w)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: wx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
     integer(ik4) :: i , j , k
 
@@ -2479,7 +2471,7 @@ module mod_moloch
 
   subroutine xtoustag(ux,u)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: ux
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u
     integer(ik4) :: i , j , k
 
@@ -2510,7 +2502,7 @@ module mod_moloch
 
   subroutine xtovstag(vx,v)
     implicit none
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: vx
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: vx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: v
     integer(ik4) :: i , j , k
 

@@ -356,8 +356,8 @@ module mod_ocn_lake
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
-      rhoa(i) = rhox(i)
       um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
+      rhoa(i) = rhox(i)
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
       ustr(i) = max(ustr(i),1.0e-5_rkx)

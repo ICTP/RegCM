@@ -267,5 +267,5 @@ module mod_rad_interface
   end subroutine export_data_from_rad
 
 end module mod_rad_interface
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

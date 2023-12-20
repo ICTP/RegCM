@@ -1589,6 +1589,7 @@ module mod_output
           if ( ipptls > 0 ) then
             fcc_io = fcc
           end if
+          cldfra_io = cu_cldfrc
           heatrt_io = heatrt
           o3prof_io = o3prof
           if ( iocnflx == 2 ) then
@@ -1756,6 +1757,7 @@ module mod_output
           if ( ipptls > 0 ) then
             call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
           end if
+          call grid_collect(cu_cldfrc,cldfra_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
           if ( iocnflx == 2 ) then

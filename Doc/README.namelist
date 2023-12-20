@@ -639,7 +639,7 @@
  epmax_lnd_min = 0.5,
  epmax_lnd_max = 1.0,
  elcrit_lnd_min = 0.0001,
- elcrit_lnd_max = 0.002, 
+ elcrit_lnd_max = 0.002,
  /
 !
 ! Tiedtke Cumulus scheme control

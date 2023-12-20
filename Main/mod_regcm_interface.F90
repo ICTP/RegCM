@@ -154,7 +154,7 @@ module mod_regcm_interface
       !
       ! OASIS Log Files Setup
       !
-      call oasisxregcm_open_log(comp_name,comp_id)
+      !call oasisxregcm_open_log(comp_name,comp_id)
 #endif
       !
       ! OASIS Variables Setup
@@ -272,6 +272,9 @@ module mod_regcm_interface
       ! Write output for this timestep if requested
       !
       call output
+      if ( iclimao3 == 1 ) then
+        call updateo3(rcmtimer%idate,scenario)
+      end if
       !
       ! Send OASIS fields
       !
@@ -367,7 +370,7 @@ module mod_regcm_interface
       !
       ! OASIS Log Files Closing
       !
-      call oasisxregcm_close_log
+      !call oasisxregcm_close_log
 #endif
     end if
 #endif
