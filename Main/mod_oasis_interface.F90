@@ -33,6 +33,7 @@ module mod_oasis_interface
   use mod_bats_common , only : rdnnsg
   use mod_atm_interface , only : atms , sfs , flwd , flw , fsw , sinc , mddom
   use mod_lm_interface , only : lms
+  use mod_date , only : lfdomonth , lmidnight
 
   use mod_oasis
   use mod_oasis_params
@@ -672,7 +673,7 @@ module mod_oasis_interface
     !--------------------------------------------------------------------------
     l_write_restart = .false.
     if ( associated(alarm_out_sav) ) then
-      if ( alarm_out_sav%act( ) then
+      if ( alarm_out_sav%act( ) ) then
         l_write_restart = .true.
       else
         if ( lfdomonth(rcmtimer%idate) .and. &
