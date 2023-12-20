@@ -675,8 +675,8 @@ module mod_oasis_interface
       if ( alarm_out_sav%act( ) then
         l_write_restart = .true.
       else
-        if (lfdomonth(rcmtimer%idate) .and. &
-            lmidnight(rcmtimer%idate)) ) then
+        if ( lfdomonth(rcmtimer%idate) .and. &
+             lmidnight(rcmtimer%idate) ) then
           l_write_restart = .true.
         end if
       end if
