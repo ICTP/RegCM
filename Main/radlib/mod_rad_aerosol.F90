@@ -64,20 +64,23 @@ module mod_rad_aerosol
   real(rk8) , pointer , dimension(:,:,:) :: asyprofr4
   real(rkx) , pointer , dimension(:) :: lat , lon
   real(rkx) , pointer , dimension(:,:) :: alon , alat
-  real(rkx) , pointer , dimension(:,:,:,:) :: ext1 , ext2
   real(rkx) , pointer , dimension(:,:,:,:) :: extprof
   real(rkx) , pointer , dimension(:,:,:,:) :: ssaprof
   real(rkx) , pointer , dimension(:,:,:,:) :: asyprof
-  real(rkx) , pointer , dimension(:,:,:,:) :: ssa1 , ssa2 , asy1 , asy2
-  real(rkx) , pointer , dimension(:,:,:,:) :: ext , ssa , asy
-  real(rkx) , pointer , dimension(:,:,:) :: zp3d , zdz3d, zpr3d , zdzr3d
-  real(rkx) , pointer , dimension(:,:,:) :: yext , yssa , yasy, ydelp , yphcl
-  real(rkx) , pointer , dimension(:,:,:) :: xext1 , xext2
-  real(rkx) , pointer , dimension(:,:,:) :: xssa1 , xssa2
-  real(rkx) , pointer , dimension(:,:,:) :: xasy1 , xasy2
-  real(rkx) , pointer , dimension(:,:,:) :: xdelp1 , xdelp2
+  real(rkx) , pointer , dimension(:,:,:) :: zpr3d , zdzr3d
+  real(rkx) , pointer , dimension(:,:,:) :: rdvar
+  real(rkx) , pointer , dimension(:,:,:) :: hzivar
+  real(rkx) , pointer , dimension(:,:,:) :: plvar , p1 , p2
+  real(rkx) , pointer , dimension(:,:,:,:) :: plext1 , plext2
+  real(rkx) , pointer , dimension(:,:,:,:) :: plssa1 , plssa2
+  real(rkx) , pointer , dimension(:,:,:,:) :: plasy1 , plasy2
+  real(rkx) , pointer , dimension(:,:,:,:) :: pldp1 , pldp2 , pl1 , pl2
+  real(rkx) , pointer , dimension(:,:,:) :: sgvar
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgext1 , sgext2
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa1 , sgssa2
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy1 , sgasy2
   type(h_interpolator) :: hint
-  integer(ik4) :: ncid1 = -1 , ncid2 = -1
+  integer(ik4) :: ncid = -1
   integer(ik4) :: clnlon , clnlat , clnlev
   !
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
@@ -1132,34 +1135,6 @@ module mod_rad_aerosol
         if ( myid == iocpu ) then
           call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
           call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
-          call getmem3d(zp3d,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:zp3d')
-          call getmem3d(zdz3d,jcross1,jcross2, &
-                             icross1,icross2,1,kz,'aerosol:zdz3d')
-          ! FAB: now define radiative OP on kth radiative levels,
-          ! including strato hat
-          call getmem3d(zpr3d,jcross1,jcross2, &
-                              icross1,icross2,1,kth,'aerosol:zpr3d')
-          call getmem3d(zdzr3d,jcross1,jcross2, &
-                              icross1,icross2,1,kth,'aerosol:zdz3d')
-          call getmem4d(ext1,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:ext1')
-          call getmem4d(ext2,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:ext2')
-          call getmem4d(ext,jcross1,jcross2, &
-                            icross1,icross2,1,kth,1,nacwb,'aerosol:ext')
-          call getmem4d(ssa1,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:ssa1')
-          call getmem4d(ssa2,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:ssa2')
-          call getmem4d(ssa,jcross1,jcross2, &
-                            icross1,icross2,1,kth,1,nacwb,'aerosol:ssa')
-          call getmem4d(asy1,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:asy1')
-          call getmem4d(asy2,jcross1,jcross2, &
-                             icross1,icross2,1,kth,1,nacwb,'aerosol:asy2')
-          call getmem4d(asy,jcross1,jcross2, &
-                            icross1,icross2,1,kth,1,nacwb,'aerosol:asy')
         end if
       end if
 
@@ -1622,7 +1597,7 @@ module mod_rad_aerosol
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
-      integer(ik4) :: k , im1 , iy1 , im2 , iy2 , wn
+      integer(ik4) :: i , j , k , im1 , iy1 , im2 , iy2 , wn
       integer(ik4) , save :: ism , isy
       type (rcm_time_and_date) :: iref1 , iref2
       type (rcm_time_interval) :: tdif
@@ -1642,34 +1617,55 @@ module mod_rad_aerosol
         call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
         call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
         if ( myid == iocpu ) then
-          call getfile(iyear,imon,ncid1,3) ! open just clim vis for latlon
+          call getfile(iyear,imon,ncid,3) ! open just clim vis for latlon
                                            ! reading
           call getmem1d(lat,1,clnlat,'aeropp:lat')
           call getmem1d(lon,1,clnlon,'aeropp:lon')
-          call getmem3d(xext1,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xext1')
-          call getmem3d(xext2,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xext2')
-          call getmem3d(xssa1,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xssa1')
-          call getmem3d(xssa2,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xssa2')
-          call getmem3d(xasy1,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xasy1')
-          call getmem3d(xasy2,1,clnlon, &
-                              1,clnlat,1,clnlev, 'aerosol:xasy2')
-          call getmem3d(xdelp1,1,clnlon, &
-                               1,clnlat,1,clnlev, 'aerosol:xasy2')
-          call getmem3d(xdelp2,1,clnlon, &
-                               1,clnlat,1,clnlev, 'aerosol:xasy2')
-          call getmem3d(yext,1,njcross,1,nicross,1,clnlev,':yext')
-          call getmem3d(yssa,1,njcross,1,nicross,1,clnlev,':yssa')
-          call getmem3d(yasy,1,njcross,1,nicross,1,clnlev,':yasy')
-          call getmem3d(ydelp,1,njcross,1,nicross,1,clnlev,':ydelp')
-          call getmem3d(yphcl,1,njcross,1,nicross,1,clnlev,':yphcl')
-          call init_aeroppdata(ncid1,lat,lon)
+          call getmem3d(rdvar,1,clnlon,1,clnlat,1,clnlev, 'aerosol:rdvar')
+          call getmem3d(hzivar,1,njcross,1,nicross,1,clnlev,'aerosol:hziext1')
+          call init_aeroppdata(ncid,lat,lon)
           call h_interpolator_create(hint,lat,lon,alat,alon)
+          call bcast(clnlev)
+        else
+          call bcast(clnlev)
         end if
+        call getmem4d(plext1,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plext1')
+        call getmem4d(plssa1,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plssa1')
+        call getmem4d(plasy1,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plasy1')
+        call getmem4d(pldp1,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:pldp1')
+        call getmem4d(pl1,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:pl1')
+        call getmem4d(plext2,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plext2')
+        call getmem4d(plssa2,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plssa2')
+        call getmem4d(plasy2,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:plasy2')
+        call getmem4d(pldp2,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:pldp2')
+        call getmem4d(pl2,jci1,jci2,ici1,ici2,1,clnlev, &
+                      1,nacwb,'aerosol:pl2')
+
+        call getmem4d(sgext1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext1')
+        call getmem4d(sgext2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgext2')
+        call getmem4d(sgssa1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa1')
+        call getmem4d(sgssa2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgssa2')
+        call getmem4d(sgasy1,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy1')
+        call getmem4d(sgasy2,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'aerosol:sgasy2')
+        call getmem3d(zpr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zpr3d')
+        call getmem3d(zdzr3d,jci1,jci2,ici1,ici2,1,kth,'aerosol:zdz3d')
+        !
+        ! RRTMG radiative hat (up to kth)
+        !
+        do k = 1, kth-kz
+          zpr3d(:,:,kth-kz-k+1) = stdplevh(kclimh+k-1)*d_100
+          zdzr3d(:,:,kth-kz-k+1) = &
+            (stdhlevf(kclimh+k)-stdhlevf(kclimh+k-1))*d_1000
+        end do
       end if
 
       im1 = imon
@@ -1692,177 +1688,227 @@ module mod_rad_aerosol
         dointerp = .true.
       end if
       if ( dointerp ) then
-        call grid_collect(m2r%phatms,zp3d,jci1,jci2,ici1,ici2,1,kz)
-        call grid_collect(m2r%deltaz,zdz3d,jci1,jci2,ici1,ici2,1,kz)
         if ( myid == iocpu ) then
-          ! First build model pressure levels (in Pa) including
-          ! radiative hat (up to kth)
-          do k = 1, kz
-            zpr3d(1:njcross,1:nicross,kth-kz+k) = zp3d(1:njcross,1:nicross,k)
-            zdzr3d(1:njcross,1:nicross,kth-kz+k) = zdz3d(1:njcross,1:nicross,k)
-          end do
-          do k = 1, kth -kz
-            zpr3d(1:njcross,1:nicross,kth-kz-k+1) = stdplevh(kclimh+k-1)*d_100
-            zdzr3d(1:njcross,1:nicross,kth-kz-k+1) = &
-              (stdhlevf(kclimh +k)-stdhlevf(kclimh +k -1)) * d_1000
-          end do
-
           if ( myid == italk ) then
             write (stdout,*) 'Reading EXT,SSA,ASY Data...'
           end if
           if ( lfirst ) then
             do wn = 1 , nacwb
-              call getfile(iy1,im1,ncid1,wn)
-              call readvar3d(ncid1,'EXTTOT',xext1)
-              call readvar3d(ncid1,'SSATOT',xssa1)
-              call readvar3d(ncid1,'GTOT',xasy1)
-              call readvar3d(ncid1,'DELP',xdelp1)
+              call getfile(iy1,im1,ncid,wn)
+              call readvar3d(ncid,'EXTTOT',rdvar)
+              call remove_nans(rdvar,d_zero)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plext1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'SSATOT',rdvar)
+              call remove_nans(rdvar,d_one)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plssa1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'GTOT',rdvar)
+              call remove_nans(rdvar,0.2_rkx)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plasy1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'DELP',rdvar)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(pldp1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
 
-              call getfile(iy2,im2,ncid1,wn)
-              call readvar3d(ncid1,'EXTTOT',xext2)
-              call readvar3d(ncid1,'SSATOT',xssa2)
-              call readvar3d(ncid1,'GTOT',xasy2)
-              call readvar3d(ncid1,'DELP',xdelp2)
-
-              call remove_nans(xext1,d_zero)
-              call remove_nans(xext2,d_zero)
-              call remove_nans(xssa1,d_one)
-              call remove_nans(xssa2,d_one)
-              call remove_nans(xasy1,0.2_rkx)
-              call remove_nans(xasy2,0.2_rkx)
-
-              call h_interpolate_cont(hint,xext1,yext)
-              call h_interpolate_cont(hint,xssa1,yssa)
-              call h_interpolate_cont(hint,xasy1,yasy)
-              call h_interpolate_cont(hint,xdelp1,ydelp)
-              !
-              ! VERTICAL Interpolation
-              !
-              ! The pressure at the MERRA top is a fixed constant:
-              !
-              !                 PTOP = 0.01 hPa (1 Pa)
-              !
-              ! Pressures at edges should be computed by summing the DELP
-              ! pressure thickness starting at PTOP.
-              ! A representative pressure for the layer can then be obtained
-              ! from these.
-              ! Here just use linear av for now, should be improved !!
-              ! MERRA grid is top down
-              yphcl(1:njcross,1:nicross,1)  = d_one + &
-                      ydelp(1:njcross,1:nicross,1)*d_half
-              do k = 2 , clnlev
-                yphcl(1:njcross,1:nicross,k) = &
-                   yphcl(1:njcross,1:nicross,k-1)  + &
-                   (ydelp(1:njcross,1:nicross,k-1) + &
-                    ydelp(1:njcross,1:nicross,k))*d_half
-              end do
-
-              call intp1(ext1(:,:,:,wn),yext,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(ssa1(:,:,:,wn),yssa,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(asy1(:,:,:,wn),yasy,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-
-              ! same for ext2
-              call h_interpolate_cont(hint,xext2,yext)
-              call h_interpolate_cont(hint,xssa2,yssa)
-              call h_interpolate_cont(hint,xasy2,yasy)
-              call h_interpolate_cont(hint,xdelp2,ydelp)
-              yphcl(1:njcross,1:nicross,1) = d_one + &
-                  ydelp(1:njcross,1:nicross,1)*d_half
-              do k = 2 , clnlev
-                yphcl(1:njcross,1:nicross,k) = &
-                    yphcl(1:njcross,1:nicross,k-1)  + &
-                    (ydelp(1:njcross,1:nicross,k-1) + &
-                     ydelp(1:njcross,1:nicross,k))*d_half
-              end do
-              call intp1(ext2(:,:,:,wn),yext,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(ssa2(:,:,:,wn),yssa,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(asy2(:,:,:,wn),yasy,zpr3d,yphcl,njcross,nicross, &
-                       kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-            end do
-          else  ! ( if not first call , just update ext2 )
+              call getfile(iy2,im2,ncid,wn)
+              call readvar3d(ncid,'EXTTOT',rdvar)
+              call remove_nans(rdvar,d_zero)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plext2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'SSATOT',rdvar)
+              call remove_nans(rdvar,d_one)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plssa2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'GTOT',rdvar)
+              call remove_nans(rdvar,0.2_rkx)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plasy2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'DELP',rdvar)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(pldp2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+            end do ! clim wav band loop
+          else
+            plext1 = plext2
+            plssa1 = plssa2
+            plasy1 = plasy2
             do wn = 1 , nacwb
-              ext1(:,:,:,wn) = ext2(:,:,:,wn)
-              ssa1(:,:,:,wn) = ssa2(:,:,:,wn)
-              asy1(:,:,:,wn) = asy2(:,:,:,wn)
-              call getfile(iy2,im2,ncid1,wn)
-              call readvar3d(ncid1,'EXTTOT',xext2)
-              call readvar3d(ncid1,'SSATOT',xssa2)
-              call readvar3d(ncid1,'GTOT',xasy2)
-              call readvar3d(ncid1,'DELP',xdelp2)
-
-              call remove_nans(xext2,d_zero)
-              call remove_nans(xssa2,d_one)
-              call remove_nans(xasy2,0.2_rkx)
-
-              call h_interpolate_cont(hint,xext2,yext)
-              call h_interpolate_cont(hint,xssa2,yssa)
-              call h_interpolate_cont(hint,xasy2,yasy)
-              call h_interpolate_cont(hint,xdelp2,ydelp)
-
-              yphcl(1:njcross,1:nicross,1) = d_one + &
-                  ydelp(1:njcross,1:nicross,1)*d_half
-              do k = 2,clnlev
-                yphcl(1:njcross,1:nicross,k) = &
-                  yphcl(1:njcross,1:nicross,k-1)  + &
-                  (ydelp(1:njcross,1:nicross,k-1) + &
-                   ydelp(1:njcross,1:nicross,k))*d_half
-              end do
-
-              call intp1(ext2(:,:,:,wn),yext,zpr3d,yphcl,njcross,nicross, &
-                         kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(ssa2(:,:,:,wn),yssa,zpr3d,yphcl,njcross,nicross, &
-                         kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
-              call intp1(asy2(:,:,:,wn),yasy,zpr3d,yphcl,njcross,nicross, &
-                         kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+              call getfile(iy2,im2,ncid,wn)
+              call readvar3d(ncid,'EXTTOT',rdvar)
+              call remove_nans(rdvar,d_zero)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plext2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'SSATOT',rdvar)
+              call remove_nans(rdvar,d_one)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plssa2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'GTOT',rdvar)
+              call remove_nans(rdvar,0.2_rkx)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(plasy2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call readvar3d(ncid,'DELP',rdvar)
+              call h_interpolate_cont(hint,rdvar,hzivar)
+              call assignpnt(pldp2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
             end do ! clim wav band loop
           end if
+        else
+          if ( lfirst ) then
+            do wn = 1 , nacwb
+              call assignpnt(plext1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plssa1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plasy1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(pldp1,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plext2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plssa2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plasy2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(pldp2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+            end do
+          else
+            plext1 = plext2
+            plssa1 = plssa2
+            plasy1 = plasy2
+            do wn = 1 , nacwb
+              call assignpnt(plext2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plssa2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(plasy2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+              call assignpnt(pldp2,plvar,wn)
+              call grid_distribute(hzivar,plvar,jci1,jci2,ici1,ici2,1,clnlev)
+            end do
+          end if
+        end if
+        ! The pressure at the MERRA top is a fixed constant:
+        !
+        !                 PTOP = 0.01 hPa (1 Pa)
+        !
+        ! Pressures at edges should be computed by summing the DELP
+        ! pressure thickness starting at PTOP.
+        ! A representative pressure for the layer can then be obtained
+        ! from these.
+        ! Here just use linear av for now, should be improved !!
+        ! MERRA grid is top down
+        if ( lfirst ) then
+          do wn = 1 , nacwb
+            pl1(:,:,1,wn)  = d_one + pldp1(:,:,1,wn)*d_half
+            do k = 2 , clnlev
+              pl1(:,:,k,wn) = pl1(:,:,k-1,wn) + &
+                (pldp1(:,:,k-1,wn) + pldp1(:,:,k,wn))*d_half
+            end do
+          end do
+          do wn = 1 , nacwb
+            pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
+            do k = 2 , clnlev
+              pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
+                (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
+            end do
+          end do
+        else
+          pl1 = pl2
+          do wn = 1 , nacwb
+            pl2(:,:,1,wn)  = d_one + pldp2(:,:,1,wn)*d_half
+            do k = 2 , clnlev
+              pl2(:,:,k,wn) = pl2(:,:,k-1,wn) + &
+                (pldp2(:,:,k-1,wn) + pldp2(:,:,k,wn))*d_half
+            end do
+          end do
         end if
       end if ! end of interp
-      if ( myid == iocpu ) then
-        ! FAB :  normally we should perform vertical interpolation here
-        ! rather than in dointerp, since it depends on instantaneous model
-        ! pressure field !
-        tdif = idatex-iref1
-        xfac1 = real(tohours(tdif),rkx)
-        tdif = idatex-iref2
-        xfac2 = real(tohours(tdif),rkx)
-        odist = xfac1 - xfac2
-        xfac1 = xfac1 / odist
-        xfac2 = d_one - xfac1
-        ! ! Important :  radiation schemes expect AOD per layer, calculated
-        !   from extinction
-        do wn = 1 , nacwb
-          ext(:,:,:,wn) = (ext1(:,:,:,wn)*xfac2 + &
-                           ext2(:,:,:,wn)*xfac1) * zdzr3d
+      !
+      ! VERTICAL Interpolation
+      !
+      ! Model pressure levels (in Pa)
+      !
+      do k = 1, kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zpr3d(j,i,kth-kz+k) = m2r%phatms(j,i,k)
+            zdzr3d(j,i,kth-kz+k) = m2r%deltaz(j,i,k)
+          end do
         end do
-        ssa = ssa1*xfac2 + ssa2*xfac1
-        asy = asy1*xfac2 + asy2*xfac1
-
-        where ( ext < 1.E-10_rkx ) ext = 1.E-10_rkx
-        where ( ssa < 1.E-10_rkx ) ssa = 0.991_rkx
-        where ( asy < 1.E-10_rkx ) ssa = 0.611_rkx
-      end if
-      call grid_distribute(ext,extprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb)
-      call grid_distribute(ssa,ssaprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb)
-      call grid_distribute(asy,asyprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb)
+      end do
+      do wn = 1 , nacwb
+        call assignpnt(pl1,p1,wn)
+        call assignpnt(pl2,p2,wn)
+        call assignpnt(plext1,plvar,wn)
+        call assignpnt(sgext1,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p1,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+        call assignpnt(plext2,plvar,wn)
+        call assignpnt(sgext2,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p2,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+        call assignpnt(plssa1,plvar,wn)
+        call assignpnt(sgssa1,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p1,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+        call assignpnt(plssa2,plvar,wn)
+        call assignpnt(sgssa2,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p2,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+        call assignpnt(plasy1,plvar,wn)
+        call assignpnt(sgasy1,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p1,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+        call assignpnt(plasy2,plvar,wn)
+        call assignpnt(sgasy2,sgvar,wn)
+        call intp1(sgvar,plvar,zpr3d,p2,jci1,jci2,ici1,ici2, &
+                   kth,clnlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      end do
+      tdif = idatex-iref1
+      xfac1 = real(tohours(tdif),rkx)
+      tdif = idatex-iref2
+      xfac2 = real(tohours(tdif),rkx)
+      odist = xfac1 - xfac2
+      xfac1 = xfac1 / odist
+      xfac2 = d_one - xfac1
+      !
+      ! Important :  radiation schemes expect AOD per layer, calculated
+      ! from extinction
+      !
+      do wn = 1 , nacwb
+        extprof(:,:,:,wn) = (sgext1(:,:,:,wn)*xfac2 + &
+                         sgext2(:,:,:,wn)*xfac1) * zdzr3d(:,:,:)
+      end do
+      ssaprof = sgssa1*xfac2 + sgssa2*xfac1
+      asyprof = sgasy1*xfac2 + sgasy2*xfac1
+      where ( extprof < 1.E-10_rkx ) extprof = 1.E-10_rkx
+      where ( ssaprof < 1.E-10_rkx ) ssaprof = 0.991_rkx
+      where ( asyprof < 1.E-10_rkx ) asyprof = 0.611_rkx
       if ( myid == italk .and. dointerp ) then
         do k = 1 , kth
           opprnt(k) = extprof(3,3,kth-k+1,3) !!vis band in MERRA clim
         end do
-        call vprntv(opprnt,kth,'Updated ext profile at (3,3)')
+        call vprntv(opprnt,kth,'Updated VIS ext profile at (3,3)')
         do k = 1 , kth
           opprnt(k) = ssaprof(3,3,kth-k+1,3)
         end do
-        call vprntv(opprnt,kth,'Updated ssa profile at (3,3)')
+        call vprntv(opprnt,kth,'Updated VIS ssa profile at (3,3)')
         do k = 1 , kth
           opprnt(k) = asyprof(3,3,kth-k+1,3)
         end do
-        call vprntv(opprnt,kth,'Updated asy profile at (3,3)')
+        call vprntv(opprnt,kth,'Updated VIS asy profile at (3,3)')
       end if
       lfirst = .false.
     end subroutine read_aeroppdata
