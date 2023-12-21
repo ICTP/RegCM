@@ -37,7 +37,7 @@ module mod_intldtr
 
   real(rk8) , dimension(4,4) :: c
   real(rk8) , dimension(16,16) :: wt
-  integer(ik4) , parameter :: maxbins = 20
+  integer(ik4) , parameter :: maxbins = 22
   integer(ik4) , dimension(maxbins) :: bincnt
   real(rk8) , dimension(maxbins) :: bmindist
   logical , dimension(2,maxbins) :: lndwt
