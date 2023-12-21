@@ -67,6 +67,11 @@ module mod_vertint
     module procedure intzps2
   end interface intzps
 
+  interface intp1
+    module procedure intp1_fixed
+    module procedure intp1_pointer
+  end interface intp1
+
   public :: intlin , intgtb , intlog , intlinz
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
@@ -1187,7 +1192,7 @@ module mod_vertint
 
   ! Vertical interpolation to P levels.
   !
-  subroutine intp1(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
+  subroutine intp1_fixed(frcm,fccm,prcm,pccm,ni,nj,krcm,kccm,a,e1,e2)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
     real(rkx) , intent(in) :: a , e1 , e2
@@ -1213,7 +1218,35 @@ module mod_vertint
         frcm(i,j,:) = fr(:)
       end do
     end do
-  end subroutine intp1
+  end subroutine intp1_fixed
+
+  subroutine intp1_pointer(frcm,fccm,prcm,pccm,i1,i2,j1,j2,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4) , intent(in) :: kccm , krcm , i1 , i2 , j1 , j2
+    real(rkx) , intent(in) :: a , e1 , e2
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: fccm , pccm
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: prcm
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: frcm
+    real(rkx) , dimension(kccm) :: xc , fc
+    real(rkx) , dimension(krcm) :: xr , fr
+    integer(ik4) :: i , j , kt , kb
+    if ( pccm(i1,j1,1) > pccm(i1,j1,kccm) ) then
+      kt = kccm
+      kb = 1
+    else
+      kt = 1
+      kb = kccm
+    end if
+    do j = j1 , j2
+      do i = i1 , i2
+        xc(:) = (pccm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        fc(:) = fccm(i,j,:)
+        xr(:) = (prcm(i,j,:)-pccm(i,j,kt))/(pccm(i,j,kb)-pccm(i,j,kt))
+        call interp1d(xc,fc,xr,fr,a,e1,e2)
+        frcm(i,j,:) = fr(:)
+      end do
+    end do
+  end subroutine intp1_pointer
 
   !
   ! INTV1 is for vertical interpolation of U, V, and RH
