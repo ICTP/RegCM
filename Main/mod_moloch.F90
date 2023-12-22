@@ -3141,6 +3141,35 @@ module mod_moloch
 #endif
       end subroutine physical_parametrizations
 
+    ! Fully device-resident: make sure all IO is on the GPU for this subroutine
+    subroutine xtowstag(wx,w)
+      implicit none
+      real(rkx) , intent(in) , dimension(:,:,:) , pointer :: wx
+      real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
+      integer(ik4) :: i , j , k
+
+!$acc parallel present(w, wx) if(on_device)
+!$acc loop collapse(3)
+      do k = 3 , kzm1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
+                       0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
+          end do
+        end do
+      end do
+!$acc end parallel
+!$acc parallel present(w, wx) if(on_device)
+!$acc loop collapse(2)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          w(j,i,2) = d_half * (wx(j,i,2)  +wx(j,i,1))
+          w(j,i,kz) = d_half * (wx(j,i,kz)+wx(j,i,kzm1))
+        end do
+      end do
+!$acc end parallel
+    end subroutine xtowstag
+
   end subroutine moloch
 
   subroutine wstagtox(w,wx)
@@ -3174,35 +3203,6 @@ module mod_moloch
     end do
 !$acc end parallel
   end subroutine wstagtox
-
-  ! Fully device-resident: make sure all IO is on the GPU for this subroutine
-  subroutine xtowstag(wx,w)
-    implicit none
-    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: wx
-    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
-    integer(ik4) :: i , j , k
-
-!$acc parallel present(w, wx) if(on_device)
-!$acc loop collapse(3)
-    do k = 3 , kzm1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
-                     0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
-        end do
-      end do
-    end do
-!$acc end parallel
-!$acc parallel present(w, wx) if(on_device)
-!$acc loop collapse(2)
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        w(j,i,2) = d_half * (wx(j,i,2)  +wx(j,i,1))
-        w(j,i,kz) = d_half * (wx(j,i,kz)+wx(j,i,kzm1))
-      end do
-    end do
-!$acc end parallel
-  end subroutine xtowstag
 
   ! Fully device-resident: make sure all IO is on the GPU for this subroutine
   subroutine xtoustag(ux,u)
