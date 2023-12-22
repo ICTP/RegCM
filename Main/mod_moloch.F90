@@ -2266,6 +2266,9 @@ module mod_moloch
           end if
           ! calculate albedo
           call surface_albedo
+          if ( iclimao3 == 1 ) then
+            call updateo3(rcmtimer%idate,scenario)
+          end if
           if ( iclimaaer == 1 ) then
             call updateaerosol(rcmtimer%idate)
           else if ( iclimaaer == 2 ) then

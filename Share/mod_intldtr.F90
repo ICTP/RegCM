@@ -67,7 +67,7 @@ module mod_intldtr
           2*0.0_rk8 , -1.0_rk8 , 1.0_rk8 , 6*0.0_rk8 , -1.0_rk8 , 1.0_rk8 , &
           2*0.0_rk8 , 2.0_rk8 , -2.0_rk8 , 2*0.0_rk8 , -1.0_rk8 , 1.0_rk8/
 
-  data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
+  data lndwt /26*.false.,.true.,.true.,.true.,15*.false./
 
   contains
 
