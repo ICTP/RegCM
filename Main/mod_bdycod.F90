@@ -1408,7 +1408,7 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2 , k = 1:kz )
             atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz , k = 1:nqx )
+          do concurrent ( j = jce1:jce2 , k = 1:kz , n = 1:nqx )
             atm2%qx(j,ice1,k,n) = atm1%qx(j,ice1,k,n)
           end do
           if ( idynamic == 2 ) then
@@ -1437,7 +1437,7 @@ module mod_bdycod
           do concurrent ( j = jce1:jce2 , k = 1:kz )
             atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
           end do
-          do concurrent ( j = jce1:jce2 , k = 1:kz , k = 1:nqx )
+          do concurrent ( j = jce1:jce2 , k = 1:kz , n = 1:nqx )
             atm2%qx(j,ice2,k,n) = atm1%qx(j,ice2,k,n)
           end do
           if ( idynamic == 2 ) then
