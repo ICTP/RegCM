@@ -568,19 +568,19 @@ module mod_runparams
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
   end subroutine allocate_mod_runparams
 
-  logical function iswater(a)
+  pure logical function iswater(a)
     real(rkx) , intent(in) :: a
     iswater = .false.
     if (a > 13.5_rkx .and. a < 15.5_rkx) iswater = .true.
   end function
 
-  logical function isocean(a)
+  pure logical function isocean(a)
     real(rkx) , intent(in) :: a
     isocean = .false.
     if (a > 14.5_rkx .and. a < 15.5_rkx) isocean = .true.
   end function
 
-  logical function islake(a)
+  pure logical function islake(a)
     real(rkx) , intent(in) :: a
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.

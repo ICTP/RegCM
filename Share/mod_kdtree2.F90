@@ -148,7 +148,7 @@ module mod_kdtree2
   ! brute force of kdtree2_[n|r]_nearest
   !----------------------------------------------------------------
 
-  integer, parameter :: bucket_size = 12
+  integer, parameter :: bucket_size = 13
 
   ! The maximum number of points to keep in a terminal node.
 
@@ -335,9 +335,9 @@ module mod_kdtree2
     type(tree_node) , pointer :: dummy => null()
     ! ..
     allocate(tp%ind(tp%n))
-    forall (j=1:tp%n)
+    do concurrent ( j = 1:tp%n )
       tp%ind(j) = j
-    end forall
+    end do
     tp%root => build_tree_for_range(tp,1,tp%n,dummy)
   end subroutine build_tree
 
@@ -417,7 +417,7 @@ module mod_kdtree2
       ! c is the identity of which coordinate has the greatest spread.
       !
 
-      if ( .true. ) then
+      if ( .false. ) then
         ! select exact median to have fully balanced tree.
         m = (l+u)/2
         call select_on_coordinate(tp%the_data,tp%ind,c,m,l,u)
@@ -467,105 +467,108 @@ module mod_kdtree2
         res%box%lower = min(res%left%box%lower,res%right%box%lower)
       end if
     end if
-  end function build_tree_for_range
 
-  integer function select_on_coordinate_value(v,ind,c,alpha,li,ui) result(res)
-    implicit none
-    ! Move elts of ind around between l and u, so that all points
-    ! <= than alpha (in c cooordinate) are first, and then
-    ! all points > alpha are second.
+    contains
 
-    !
-    ! Algorithm (matt kennel).
-    !
-    ! Consider the list as having three parts: on the left,
-    ! the points known to be <= alpha.  On the right, the points
-    ! known to be > alpha, and in the middle, the currently unknown
-    ! points.   The algorithm is to scan the unknown points, starting
-    ! from the left, and swapping them so that they are added to
-    ! the left stack or the right stack, as appropriate.
-    !
-    ! The algorithm finishes when the unknown stack is empty.
-    !
-    ! .. Scalar Arguments ..
-    integer , intent (in) :: c , li , ui
-    real(kdkind) , intent(in) :: alpha
-    ! ..
-    real(kdkind) , dimension(1:,1:) :: v
-    integer , dimension(1:) :: ind
-    integer :: tmp
-    ! ..
-    integer :: lb , rb
-    !
-    ! The points known to be <= alpha are in
-    ! [l,lb-1]
-    !
-    ! The points known to be > alpha are in
-    ! [rb+1,u].
-    !
-    ! Therefore we add new points into lb or
-    ! rb as appropriate.  When lb=rb
-    ! we are done.  We return the location of the last point <= alpha.
-    !
-    !
-    lb = li
-    rb = ui
+    integer function select_on_coordinate_value(v,ind,c,alpha,li,ui) result(res)
+      implicit none
+      ! Move elts of ind around between l and u, so that all points
+      ! <= than alpha (in c cooordinate) are first, and then
+      ! all points > alpha are second.
 
-    do while ( lb < rb )
-      if ( v(c,ind(lb)) <= alpha ) then
-        ! it is good where it is.
-        lb = lb+1
-      else
-        ! swap it with rb.
-        tmp = ind(lb)
-        ind(lb) = ind(rb)
-        ind(rb) = tmp
-        rb = rb-1
-      end if
-    end do
+      !
+      ! Algorithm (matt kennel).
+      !
+      ! Consider the list as having three parts: on the left,
+      ! the points known to be <= alpha.  On the right, the points
+      ! known to be > alpha, and in the middle, the currently unknown
+      ! points.   The algorithm is to scan the unknown points, starting
+      ! from the left, and swapping them so that they are added to
+      ! the left stack or the right stack, as appropriate.
+      !
+      ! The algorithm finishes when the unknown stack is empty.
+      !
+      ! .. Scalar Arguments ..
+      integer , intent (in) :: c , li , ui
+      real(kdkind) , intent(in) :: alpha
+      ! ..
+      real(kdkind) , dimension(1:,1:) :: v
+      integer , dimension(1:) :: ind
+      integer :: tmp
+      ! ..
+      integer :: lb , rb
+      !
+      ! The points known to be <= alpha are in
+      ! [l,lb-1]
+      !
+      ! The points known to be > alpha are in
+      ! [rb+1,u].
+      !
+      ! Therefore we add new points into lb or
+      ! rb as appropriate.  When lb=rb
+      ! we are done.  We return the location of the last point <= alpha.
+      !
+      !
+      lb = li
+      rb = ui
 
-    ! now lb .eq. ub
-    if ( v(c,ind(lb)) <= alpha ) then
-      res = lb
-    else
-      res = lb-1
-    end if
-
-  end function select_on_coordinate_value
-
-  subroutine select_on_coordinate(v,ind,c,k,li,ui)
-    implicit none
-    ! Move elts of ind around between l and u, so that the kth
-    ! element
-    ! is >= those below, <= those above, in the coordinate c.
-    ! .. Scalar Arguments ..
-    integer , intent (in) :: c , k , li , ui
-    ! ..
-    integer :: i , l , m , s , t , u
-    ! ..
-    real(kdkind) , dimension(:,:) :: v
-    integer , dimension(:) :: ind
-    ! ..
-    l = li
-    u = ui
-    do while ( l < u )
-      t = ind(l)
-      m = l
-      do i = l + 1 , u
-        if ( v(c,ind(i)) < v(c,t) ) then
-          m = m + 1
-          s = ind(m)
-          ind(m) = ind(i)
-          ind(i) = s
+      do while ( lb < rb )
+        if ( v(c,ind(lb)) <= alpha ) then
+          ! it is good where it is.
+          lb = lb+1
+        else
+          ! swap it with rb.
+          tmp = ind(lb)
+          ind(lb) = ind(rb)
+          ind(rb) = tmp
+          rb = rb-1
         end if
       end do
-      s = ind(l)
-      ind(l) = ind(m)
-      ind(m) = s
-      if ( m <= k ) l = m + 1
-      if ( m >= k ) u = m - 1
-    end do
-  end subroutine select_on_coordinate
+
+      ! now lb .eq. ub
+      if ( v(c,ind(lb)) <= alpha ) then
+        res = lb
+      else
+        res = lb-1
+      end if
+
+    end function select_on_coordinate_value
+
+    subroutine select_on_coordinate(v,ind,c,k,li,ui)
+      implicit none
+      ! Move elts of ind around between l and u, so that the kth
+      ! element
+      ! is >= those below, <= those above, in the coordinate c.
+      ! .. Scalar Arguments ..
+      integer , intent (in) :: c , k , li , ui
+      ! ..
+      integer :: i , l , m , s , t , u
+      ! ..
+      real(kdkind) , dimension(:,:) :: v
+      integer , dimension(:) :: ind
+      ! ..
+      l = li
+      u = ui
+      do while ( l < u )
+        t = ind(l)
+        m = l
+        do i = l + 1 , u
+          if ( v(c,ind(i)) < v(c,t) ) then
+            m = m + 1
+            s = ind(m)
+            ind(m) = ind(i)
+            ind(i) = s
+          end if
+        end do
+        s = ind(l)
+        ind(l) = ind(m)
+        ind(m) = s
+        if ( m <= k ) l = m + 1
+        if ( m >= k ) u = m - 1
+      end do
+    end subroutine select_on_coordinate
+
+  end function build_tree_for_range
 
   subroutine spread_in_coordinate(tp,c,l,u,interv)
     implicit none

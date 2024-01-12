@@ -256,13 +256,9 @@ module mod_rad_interface
     implicit none
     type(exp_data3d) , intent(inout) :: expfie
     integer(ik4) :: k , j , i
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          expfie%cldfrc(j,i,k) = m2r%cldfrc(j,i,k)
-          expfie%cldlwc(j,i,k) = m2r%cldlwc(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      expfie%cldfrc(j,i,k) = m2r%cldfrc(j,i,k)
+      expfie%cldlwc(j,i,k) = m2r%cldlwc(j,i,k)
     end do
   end subroutine export_data_from_rad
 

@@ -98,80 +98,52 @@ module mod_init
       ! Data are from the ICBC input at first timestep.
       !
       if ( idynamic < 3 ) then
-        do k = 1 , kz
-          do i = ide1 , ide2
-            do j = jde1 , jde2
-              atm1%u(j,i,k) = xub%b0(j,i,k)
-              atm1%v(j,i,k) = xvb%b0(j,i,k)
-              atm2%u(j,i,k) = xub%b0(j,i,k)
-              atm2%v(j,i,k) = xvb%b0(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+          atm1%u(j,i,k) = xub%b0(j,i,k)
+          atm1%v(j,i,k) = xvb%b0(j,i,k)
+          atm2%u(j,i,k) = xub%b0(j,i,k)
+          atm2%v(j,i,k) = xvb%b0(j,i,k)
         end do
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atm1%t(j,i,k) = xtb%b0(j,i,k)
-              atm2%t(j,i,k) = xtb%b0(j,i,k)
-              atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-              atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          atm1%t(j,i,k) = xtb%b0(j,i,k)
+          atm2%t(j,i,k) = xtb%b0(j,i,k)
+          atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
+          atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
         end do
         if ( ipptls > 0 ) then
           if ( is_present_qc( ) ) then
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-                  atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+              atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
           end if
           if ( ipptls > 1 ) then
             if ( is_present_qi( ) ) then
-              do k = 1 , kz
-                do i = ice1 , ice2
-                  do j = jce1 , jce2
-                    atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
-                    atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
-                  end do
-                end do
+              do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+                atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
               end do
             end if
           end if
         end if
         if ( idynamic == 1 ) then
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              sfs%psa(j,i) = xpsb%b0(j,i)
-              sfs%psb(j,i) = xpsb%b0(j,i)
-            end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            sfs%psa(j,i) = xpsb%b0(j,i)
+            sfs%psb(j,i) = xpsb%b0(j,i)
           end do
         else
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
-              sfs%psb(j,i) = sfs%psa(j,i)
-              sfs%psc(j,i) = sfs%psa(j,i)
-            end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
+            sfs%psb(j,i) = sfs%psa(j,i)
+            sfs%psc(j,i) = sfs%psa(j,i)
           end do
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                atm1%pp(j,i,k) = xppb%b0(j,i,k)
-                atm2%pp(j,i,k) = xppb%b0(j,i,k)
-              end do
-            end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            atm1%pp(j,i,k) = xppb%b0(j,i,k)
+            atm2%pp(j,i,k) = xppb%b0(j,i,k)
           end do
-          do k = 1 , kzp1
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                atm1%w(j,i,k) = xwwb%b0(j,i,k)
-                atm2%w(j,i,k) = xwwb%b0(j,i,k)
-              end do
-            end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+            atm1%w(j,i,k) = xwwb%b0(j,i,k)
+            atm2%w(j,i,k) = xwwb%b0(j,i,k)
           end do
         end if
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
@@ -181,141 +153,87 @@ module mod_init
         call psc2psd(sfs%psb,sfs%psdotb)
         call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
-        do k = 1 , kz
-          do i = ide1 , ide2
-            do j = jce1 , jce2
-              mo_atm%v(j,i,k) = xvb%b0(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jce1:jce2 , i = ide1:ide2 , k = 1:kz )
+          mo_atm%v(j,i,k) = xvb%b0(j,i,k)
         end do
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jde1 , jde2
-              mo_atm%u(j,i,k) = xub%b0(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jde1:jde2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%u(j,i,k) = xub%b0(j,i,k)
         end do
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%t(j,i,k) = xtb%b0(j,i,k)
-              mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%t(j,i,k) = xtb%b0(j,i,k)
+          mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
         end do
         if ( ipptls > 1 ) then
           if ( is_present_qc( ) ) then
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
           else
 #ifndef RCEMIP
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  if ( mo_atm%t(j,i,k) > 253.15 ) then
-                    mo_atm%qx(j,i,k,iqc) = minqc
-                  end if
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              if ( mo_atm%t(j,i,k) > 253.15 ) then
+                mo_atm%qx(j,i,k,iqc) = minqc
+              end if
             end do
 #endif
           end if
           if ( is_present_qi( ) ) then
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
             end do
           else
 #ifndef RCEMIP
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  if ( mo_atm%t(j,i,k) < 253.15 ) then
-                    mo_atm%qx(j,i,k,iqi) = minqc
-                  end if
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              if ( mo_atm%t(j,i,k) < 253.15 ) then
+                mo_atm%qx(j,i,k,iqi) = minqc
+              end if
             end do
 #endif
           end if
         else if ( ipptls == 1 ) then
           if ( is_present_qc( ) ) then
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
             end do
           else
-            do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
-                  mo_atm%qx(j,i,k,iqc) = minqc
-                end do
-              end do
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+              mo_atm%qx(j,i,k,iqc) = minqc
             end do
           end if
         end if
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-              mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
-            end do
-          end do
+          mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
         end do
         ! Compute pressure and density
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
-              mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas* mo_atm%t(j,i,k))
-            end do
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psa(j,i) = xpsb%b0(j,i)
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas* mo_atm%t(j,i,k))
         end do
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
-              ! Remove excessive supersaturation
-              mo_atm%qx(j,i,k,iqv) = &
-                  min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k))
-            end do
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          sfs%psa(j,i) = xpsb%b0(j,i)
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
         end do
-        do k = kz , 2 , -1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%pf(j,i,k) = p00 * &
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          ! Remove excessive supersaturation
+          mo_atm%qx(j,i,k,iqv) = min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k))
+        end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
+        end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+          mo_atm%pf(j,i,k) = p00 * &
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
-            end do
-          end do
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-              (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) * (1.0_rkx + egrav * &
+            (mo_atm%zetaf(j,i,2)-mo_atm%zetaf(j,i,1)) / &
+            (rgas*mo_atm%tvirt(j,i,1)))
         end do
 
         call exchange_lr(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)
@@ -323,21 +241,17 @@ module mod_init
         mo_atm%w(:,:,1) = d_zero
         mo_atm%w(:,:,kzp1) = d_zero
         do k = 2 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%w(j,i,k) = mo_atm%w(j,i,k-1) + &
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            mo_atm%w(j,i,k) = mo_atm%w(j,i,k-1) + &
                  (mo_atm%zetaf(j,i,k-1)-mo_atm%zetaf(j,i,k)) * rdx * &
                  ((mo_atm%u(j+1,i,k)-mo_atm%u(j,i,k)) + &
                   (mo_atm%v(j,i+1,k)-mo_atm%v(j,i,k)))
-            end do
           end do
         end do
       end if
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%tg(j,i) = xtsb%b0(j,i)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        sfs%tg(j,i) = xtsb%b0(j,i)
       end do
       !
       ! Initialize PBL Hgt
@@ -346,10 +260,8 @@ module mod_init
       !
       ! Inizialize the surface atmospheric temperature
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%tgbb(j,i) = sfs%tg(j,i)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        sfs%tgbb(j,i) = sfs%tg(j,i)
       end do
       !
       ! Initialize surface parameters for aerosol scheme
@@ -387,23 +299,15 @@ module mod_init
       ! Init the diurnal cycle SST scheme
       !
       if ( idcsst == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n = 1 , nnsg
-              lms%sst(n,j,i) = xtsb%b0(j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+          lms%sst(n,j,i) = xtsb%b0(j,i)
         end do
         lms%tskin(:,:,:) = lms%sst
         lms%deltas(:,:,:) = 0.001_rkx
         lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
-            lms%um10(n,j,i) = 1.0_rkx
-          end do
-        end do
+      do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+        lms%um10(n,j,i) = 1.0_rkx
       end do
       !
       ! Some output fields rely on atms structure.
@@ -439,47 +343,68 @@ module mod_init
       !
       if ( do_parallel_save ) then
         if ( idynamic == 3 ) then
-          mo_atm%u(jde1:jde2,ice1:ice2,:) = atm_u_io(jde1:jde2,ice1:ice2,:)
-          mo_atm%v(jce1:jce2,ide1:ide2,:) = atm_v_io(jce1:jce2,ide1:ide2,:)
-          mo_atm%w(jce1:jce2,ice1:ice2,:) = atm_w_io(jce1:jce2,ice1:ice2,:)
-          mo_atm%t(jce1:jce2,ice1:ice2,:) = atm_t_io(jce1:jce2,ice1:ice2,:)
-          mo_atm%pai(jce1:jce2,ice1:ice2,:) = atm_pai_io(jce1:jce2,ice1:ice2,:)
-          mo_atm%qx(jce1:jce2,ice1:ice2,:,:) = &
-                             atm_qx_io(jce1:jce2,ice1:ice2,:,:)
+          do concurrent ( j = jde1:jde2 , i = ice1:ice2 , k = 1:kz )
+            mo_atm%u(j,i,k) = atm_u_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ide1:ide2 , k = 1:kz )
+            mo_atm%v(j,i,k) = atm_v_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+            mo_atm%w(j,i,k) = atm_w_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            mo_atm%t(j,i,k) = atm_t_io(j,i,k)
+            mo_atm%pai(j,i,k) = atm_pai_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:nqx )
+            mo_atm%qx(j,i,k,n) = atm_qx_io(j,i,k,n)
+          end do
           if ( ibltyp == 2 ) then
-            mo_atm%tke(jce1:jce2,ice1:ice2,:) = &
-                     atm_tke_io(jce1:jce2,ice1:ice2,:)
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+              mo_atm%tke(j,i,k) = atm_tke_io(j,i,k)
+            end do
           end if
           if ( ichem == 1 .and. ichecold == 0 ) then
-            mo_atm%trac(jce1:jce2,ice1:ice2,:,:) = &
-                       trac_io(jce1:jce2,ice1:ice2,:,:)
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , &
+                            k = 1:kz , n = 1:ntr )
+              mo_atm%trac(j,i,k,n) = trac_io(j,i,k,n)
+            end do
           end if
-          sfs%psa(jce1:jce2,ice1:ice2) = ps_io(jce1:jce2,ice1:ice2)
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            sfs%psa(j,i) = ps_io(j,i)
+          end do
         else
-          atm1%u(jde1:jde2,ide1:ide2,:) = atm1_u_io(jde1:jde2,ide1:ide2,:)
-          atm1%v(jde1:jde2,ide1:ide2,:) = atm1_v_io(jde1:jde2,ide1:ide2,:)
-          atm1%t(jce1:jce2,ice1:ice2,:) = atm1_t_io(jce1:jce2,ice1:ice2,:)
-          atm1%qx(jce1:jce2,ice1:ice2,:,:) = &
-                             atm1_qx_io(jce1:jce2,ice1:ice2,:,:)
-          atm2%u(jde1:jde2,ide1:ide2,:) = atm2_u_io(jde1:jde2,ide1:ide2,:)
-          atm2%v(jde1:jde2,ide1:ide2,:) = atm2_v_io(jde1:jde2,ide1:ide2,:)
-          atm2%t(jce1:jce2,ice1:ice2,:) = atm2_t_io(jce1:jce2,ice1:ice2,:)
-          atm2%qx(jce1:jce2,ice1:ice2,:,:) = &
-                             atm2_qx_io(jce1:jce2,ice1:ice2,:,:)
+          do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+            atm1%u(j,i,k) = atm1_u_io(j,i,k)
+            atm1%v(j,i,k) = atm1_v_io(j,i,k)
+            atm2%u(j,i,k) = atm2_u_io(j,i,k)
+            atm2%v(j,i,k) = atm2_v_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            atm1%t(j,i,k) = atm1_t_io(j,i,k)
+            atm2%t(j,i,k) = atm2_t_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:nqx )
+            atm1%qx(j,i,k,n) = atm1_qx_io(j,i,k,n)
+            atm2%qx(j,i,k,n) = atm2_qx_io(j,i,k,n)
+          end do
           if ( ibltyp == 2 ) then
-            atm1%tke(jce1:jce2,ice1:ice2,:) = &
-                     atm1_tke_io(jce1:jce2,ice1:ice2,:)
-            atm2%tke(jce1:jce2,ice1:ice2,:) = &
-                     atm2_tke_io(jce1:jce2,ice1:ice2,:)
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+              atm1%tke(j,i,k) = atm1_tke_io(j,i,k)
+              atm2%tke(j,i,k) = atm2_tke_io(j,i,k)
+            end do
           end if
           if ( ichem == 1 .and. ichecold == 0 ) then
-            atm1%chi(jce1:jce2,ice1:ice2,:,:) = &
-                     chia_io(jce1:jce2,ice1:ice2,:,:)
-            atm2%chi(jce1:jce2,ice1:ice2,:,:) = &
-                     chib_io(jce1:jce2,ice1:ice2,:,:)
+            do concurrent ( j = jce1:jce2 , i = ice1:ice2 , &
+                            k = 1:kz , n = 1:ntr )
+              atm1%chi(j,i,k,n) = chia_io(j,i,k,n)
+              atm2%chi(j,i,k,n) = chib_io(j,i,k,n)
+            end do
           end if
-          sfs%psa(jce1:jce2,ice1:ice2) = psa_io(jce1:jce2,ice1:ice2)
-          sfs%psb(jce1:jce2,ice1:ice2) = psb_io(jce1:jce2,ice1:ice2)
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            sfs%psa(j,i) = psa_io(j,i)
+            sfs%psb(j,i) = psb_io(j,i)
+          end do
         end if
         if ( ibltyp == 2 ) then
           kpbl = kpbl_io
@@ -493,10 +418,14 @@ module mod_init
           sfs%qz0 = myjsf_qz0_io
         end if
         if ( idynamic == 2 ) then
-          atm1%pp(jce1:jce2,ice1:ice2,:) = atm1_pp_io(jce1:jce2,ice1:ice2,:)
-          atm2%pp(jce1:jce2,ice1:ice2,:) = atm2_pp_io(jce1:jce2,ice1:ice2,:)
-          atm1%w(jce1:jce2,ice1:ice2,:) = atm1_w_io(jce1:jce2,ice1:ice2,:)
-          atm2%w(jce1:jce2,ice1:ice2,:) = atm2_w_io(jce1:jce2,ice1:ice2,:)
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            atm1%pp(j,i,k) = atm1_pp_io(j,i,k)
+            atm2%pp(j,i,k) = atm2_pp_io(j,i,k)
+          end do
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+            atm1%w(j,i,k) = atm1_w_io(j,i,k)
+            atm2%w(j,i,k) = atm2_w_io(j,i,k)
+          end do
         end if
         sfs%hfx = hfx_io
         sfs%qfx = qfx_io
@@ -563,7 +492,9 @@ module mod_init
         lms%swdifalb = swdifalb_io
         lms%lwdiralb = lwdiralb_io
         lms%lwdifalb = lwdifalb_io
-        mdsub%ldmsk(:,jci1:jci2,ici1:ici2) = ldmsk1_io(:,jci1:jci2,ici1:ici2)
+        do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+          mdsub%ldmsk(n,j,i) = ldmsk1_io(n,j,i)
+        end do
         solis = solis_io
         solvs = solvs_io
         solvsd = solvsd_io
@@ -584,7 +515,9 @@ module mod_init
         end if
 #else
         if ( imask == 2 ) then
-          mddom%lndcat(jce1:jce2,ice1:ice2) = lndcat_io(jce1:jce2,ice1:ice2)
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+            mddom%lndcat(j,i) = lndcat_io(j,i)
+          end do
         end if
 #endif
         if ( idcsst == 1 ) then
@@ -833,10 +766,8 @@ module mod_init
       end if
 
       if ( idynamic == 2 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psc(j,i) = sfs%psa(j,i)
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          sfs%psc(j,i) = sfs%psa(j,i)
         end do
       end if
 #ifdef CLM
@@ -844,9 +775,8 @@ module mod_init
       ! CLM modifies landuse table. Get the modified one from restart file
       !
       if ( imask == 2 ) then
-        do n = 1 , nnsg
-          mdsub%lndcat(n,jci1:jci2,ici1:ici2) = &
-                              mddom%lndcat(jci1:jci2,ici1:ici2)
+        do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+          mdsub%lndcat(n,j,i) = mddom%lndcat(j,i)
         end do
       end if
 #endif
@@ -911,89 +841,61 @@ module mod_init
     end if
 
     if ( idynamic == 1 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-          end do
-        end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+        atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
       end do
     else if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm1%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)/sfs%psa(j,i)
-            atm1%rho(j,i,k) = atm1%pr(j,i,k) /        &
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        atm1%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)/sfs%psa(j,i)
+        atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)/sfs%psb(j,i)
+      end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        atm1%rho(j,i,k) = atm1%pr(j,i,k) /        &
                 (rgas*atm1%t(j,i,k)/sfs%psa(j,i) *    &
                 (d_one+ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i)))
-            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)/sfs%psb(j,i)
-          end do
-        end do
       end do
     else if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
-            mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
-            mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
+      end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
+        mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
       end do
       if ( ipptls > 0 ) then
         if ( ipptls > 1 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                        (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
                         mo_atm%qx(j,i,k,iqc) - mo_atm%qx(j,i,k,iqi) - &
                         mo_atm%qx(j,i,k,iqr) - mo_atm%qx(j,i,k,iqs))
-              end do
-            end do
           end do
         else
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+            mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                                (d_one + ep1*mo_atm%qx(j,i,k,iqv) - &
                                 mo_atm%qx(j,i,k,iqc))
-              end do
-            end do
           end do
         end if
       else
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                              (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-            end do
-          end do
         end do
       end if
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
-        end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
       end do
-      do k = kz , 2 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mo_atm%pf(j,i,k) = p00 * &
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+        mo_atm%pf(j,i,k) = p00 * &
               (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
-          end do
-        end do
       end do
       ! Top pressure
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) * (1.0_rkx + egrav * &
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) * (1.0_rkx + egrav * &
             (mo_atm%zetaf(j,i,2)-mo_atm%zetaf(j,i,1)) / &
             (rgas*mo_atm%tvirt(j,i,1)))
-        end do
       end do
     end if
 !$acc update device(mo_atm%pf, mo_atm%tvirt, mo_atm%p, mo_atm%rho, mo_atm%qs)
@@ -1001,12 +903,12 @@ module mod_init
     ! pressure of tropopause
     !
     if ( irceideal == 1 ) then
-      ptrop(:,:) = 10000.0_rkx
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        ptrop(j,i) = 10000.0_rkx
+      end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ptrop(j,i) = 25.0e3_rkx - 15.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        ptrop(j,i) = 25.0e3_rkx - 15.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
       end do
     end if
 !$acc update device(ptrop)
@@ -1014,19 +916,15 @@ module mod_init
     if ( .not. ifrest ) then
       if ( any(icup == 6)  .or. any(icup == 5) ) then
         if ( idynamic == 2 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = 0.5_rkx * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            if ( cuscheme(j,i) == 6 ) then
+              avg_ww(j,i,k) = 0.5_rkx * &
                     (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
-                end if
-                if ( cuscheme(j,i) == 5 ) then
-                  avg_ww(j,i,k) = -0.5_rkx * egrav * atm1%rho(j,i,k) * &
+            end if
+            if ( cuscheme(j,i) == 5 ) then
+              avg_ww(j,i,k) = -0.5_rkx * egrav * atm1%rho(j,i,k) * &
                     (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
-                end if
-              end do
-            end do
+            end if
           end do
         end if
       end if
@@ -1034,15 +932,13 @@ module mod_init
     !
     ! The following allows to change landuse on restart.
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
-        mddom%itex(j,i) = nint(mddom%lndtex(j,i))
-        do n = 1 , nnsg
-          mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
-          mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
+      mddom%itex(j,i) = nint(mddom%lndtex(j,i))
+    end do
+    do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
+      mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
+      mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
     end do
     !
     ! Initialize solar elevation (zenith angle)
