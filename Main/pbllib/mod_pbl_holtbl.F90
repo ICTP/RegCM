@@ -877,7 +877,7 @@ module mod_pbl_holtbl
 #ifdef RCEMIP
     call force_water_conserve(qten,m2p%qxatm,xqfx)
 #endif
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzm1 , n = 1:nqx )
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
       p2m%qxten(j,i,k,n) = p2m%qxten(j,i,k,n) + qten(j,i,k,n)
     end do
 
