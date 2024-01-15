@@ -226,17 +226,17 @@ module mod_micro_interface
 
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
                         mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
         end do
       else
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
         end do
       end if
     else
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         totc(j,i,k) = mo2mc%qcn(j,i,k)
       end do
     end if
@@ -280,7 +280,7 @@ module mod_micro_interface
     !------------------------------------------
 
     if ( icldmstrat == 1 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( mo2mc%iveg(j,i) == 15 ) then
           if ( mo2mc%phs(j,i,k) >= 70000.0_rkx ) then
             ! Klein, S. A., and D. L. Hartmann,
@@ -294,7 +294,7 @@ module mod_micro_interface
       end do
     end if
 
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       mc2mo%fcc(j,i,k) = max(min(mc2mo%fcc(j,i,k),hicld),d_zero)
     end do
 
@@ -304,7 +304,7 @@ module mod_micro_interface
     !-----------------------------------------------------------------
 
     if ( iconvlwp == 1 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         ! get maximum cloud fraction between cumulus and large scale
         cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
         cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)

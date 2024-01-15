@@ -291,28 +291,26 @@ module mod_moloch
 
     call reset_tendencies
 
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
-    end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
 
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
                                      qc(j,i,k) - qi(j,i,k) - &
                                      qr(j,i,k) - qs(j,i,k))
         end do
         if ( do_fulleq ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
             qwitot(j,i,k) = qi(j,i,k)
           end do
         end if
       else
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
         if ( do_fulleq ) then
@@ -334,7 +332,7 @@ module mod_moloch
         end if
       end if
     else
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
       end do
       if ( do_fulleq ) then
@@ -343,7 +341,7 @@ module mod_moloch
       end if
     end if
 
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
     end do
 
@@ -391,23 +389,23 @@ module mod_moloch
       end if
     end if
 
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
     end do
 
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
                          qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
         end do
       else
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
       end if
     else
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
       end do
     end if
@@ -423,10 +421,8 @@ module mod_moloch
       end if
     end if
 
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       p(j,i,k) = (pai(j,i,k)**cpovr) * p00
-    end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
       rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
     end do
 
@@ -444,7 +440,7 @@ module mod_moloch
     !
     ! Recompute saturation
     !
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
       qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
     end do
     !
@@ -618,12 +614,12 @@ module mod_moloch
         integer(ik4) :: j , i , k
 
         do k = 1 , kz
-          do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 )
+          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
             p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
                                     p(j,i-1,k) + p(j,i+1,k)) - &
                          d_half   * p(j,i,k)
           end do
-          do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 )
+          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
             p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
           end do
         end do
@@ -636,22 +632,22 @@ module mod_moloch
         integer(ik4) :: j , i , k
 
         do k = 1 , kz
-          do concurrent ( j = jdii1:jdii2 , i = icii1:icii2 )
+          do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
             p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
                                     u(j,i-1,k) + u(j,i+1,k)) - &
                          d_half   * u(j,i,k)
           end do
-          do concurrent ( j = jdii1:jdii2 , i = icii1:icii2 )
+          do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
             u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
           end do
         end do
         do k = 1 , kz
-          do concurrent ( j = jcii1:jcii2 , i = idii1:idii2 )
+          do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
             p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
                                     v(j,i-1,k) + v(j,i+1,k)) - &
                          d_half   * v(j,i,k)
           end do
-          do concurrent ( j = jcii1:jcii2 , i = idii1:idii2 )
+          do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
             v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
           end do
         end do
@@ -666,12 +662,12 @@ module mod_moloch
 
         do n = n1 , n2
           do k = 1 , kz
-            do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 )
+            do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
               p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
                                       p(j,i-1,k,n) + p(j,i+1,k,n)) - &
                              d_half * p(j,i,k,n)
             end do
-            do concurrent ( j = jcii1:jcii2 , i = icii1:icii2 )
+            do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
               p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
             end do
           end do
@@ -686,12 +682,12 @@ module mod_moloch
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                     zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                          d_half   * zdiv2(j,i,k)
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
           end do
         end do
@@ -704,12 +700,12 @@ module mod_moloch
         call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
                                     pai(j,i-1,k) + pai(j,i+1,k)) - &
                          d_half   * pai(j,i,k)
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
           end do
         end do
@@ -722,12 +718,12 @@ module mod_moloch
         call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
                                     tetav(j,i-1,k) + tetav(j,i+1,k)) - &
                          d_half   * tetav(j,i,k)
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
           end do
         end do
@@ -740,12 +736,12 @@ module mod_moloch
         call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
                                     qv(j,i-1,k) + qv(j,i+1,k)) - &
                          d_half   * qv(j,i,k)
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             qv(j,i,k) = qv(j,i,k) + nupaitq * p2d(j,i)
           end do
         end do
@@ -776,19 +772,19 @@ module mod_moloch
 
           ! partial definition of the generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             w(j,i,kzp1) = d_half * &
                 ((u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)) + &
                  (v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)))
           end do
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             s(j,i,kzp1) = -w(j,i,kzp1)
           end do
 
           ! Equation 10, generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             s(j,i,k) = -0.25_rkx * &
                   (((u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
                     (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)) + &
@@ -800,7 +796,7 @@ module mod_moloch
           ! Equation 16
 
           if ( lrotllr ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * &
                   ( ( (dtrdx * u(j+1,i,k) * d_two / &
                        (fmz(j,i,k)+fmz(j+1,i,k))) - &
@@ -812,7 +808,7 @@ module mod_moloch
                        (fmz(j,i,k)+fmz(j,i-1,k))*rmv(j,i  ) ) ) )
             end do
           else
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
               zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) * &
                   ( ( (dtrdx * u(j+1,i,k) * d_two / &
                        (fmz(j,i,k)+fmz(j+1,i,k))*rmu(j+1,i)) - &
@@ -833,18 +829,18 @@ module mod_moloch
             call divdamp
           end if
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                        dtrdz * (s(j,i,k) - s(j,i,k+1))
           end do
 
           ! new w (implicit scheme) from Equation 19
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             deltaw(j,i,k) = -w(j,i,k)
           end do
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             zrom1w(j,i,k) = (d_half * cpd * fmzf(j,i,k) * &
               (tetav(j,i,k-1)+tetav(j,i,k))) - &
               (cpd * w(j,i,k) * fmzf(j,i,k)*fmzf(j,i,k) * &
@@ -860,7 +856,7 @@ module mod_moloch
 
           ! explicit w:
           !    it must be consistent with the initialization of pai
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             zwexpl(j,i,k) = (w(j,i,k) - zrom1w(j,i,k) * dtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts) + &
                          (rdrcv * zrom1w(j,i,k) * dtrdz * &
@@ -888,31 +884,31 @@ module mod_moloch
 
           ! 2nd loop for the tridiagonal inversion
           do k = 2 , kz
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
             end do
           end do
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
             deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
           end do
 
           ! new Exner function (Equation 19)
 
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
                       (w(j,i,k) - w(j,i,k+1))
           end do
 
           if ( do_fulleq ) then
             if ( ipptls > 0 ) then
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 zdiv2(j,i,k) = zdiv2(j,i,k) * &
                        (d_one + 0.86_rkx * qv(j,i,k) + &
                                 3.2_rkx * qc(j,i,k)) / &
                        (d_one + 0.96_rkx * qv(j,i,k) + &
                                 4.8_rkx * qc(j,i,k))
               end do
-              do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tetav(j,i,k) = tetav(j,i,k) * &
                        (d_one + rdrcv*zdiv2(j,i,k) * &
                         (0.25_rkx * qv(j,i,k) +      &
@@ -926,7 +922,7 @@ module mod_moloch
           if ( do_filterdiv ) call divergence_filter( )
 
           ! horizontal momentum equations
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
           end do
 
@@ -942,7 +938,7 @@ module mod_moloch
 
           if ( lrotllr ) then
             ! Equation 17
-            do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
               u(j,i,k) = u(j,i,k) + &
                    (coru(j,i) * dts * 0.25_rkx * &
                         (vd(j,i,k) + vd(j-1,i,k) + &
@@ -955,7 +951,7 @@ module mod_moloch
                     (pai(j,i,k) - pai(j-1,i,k)))
             end do
             ! Equation 18
-            do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
               v(j,i,k) = v(j,i,k) - &
                    (corv(j,i) * dts * 0.25_rkx * &
                         (ud(j,i,k) + ud(j,i-1,k) + &
@@ -968,7 +964,7 @@ module mod_moloch
                     (pai(j,i,k) - pai(j,i-1,k)))
             end do
           else
-            do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
               u(j,i,k) = u(j,i,k) + &
                    (coru(j,i) * dts * 0.25_rkx * &
                         (vd(j,i,k) + vd(j-1,i,k) + &
@@ -980,7 +976,7 @@ module mod_moloch
                     d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k)) * &
                     (pai(j,i,k) - pai(j-1,i,k)))
             end do
-            do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
               v(j,i,k) = v(j,i,k) - &
                    (corv(j,i) * dts * 0.25_rkx * &
                         (ud(j,i,k) + ud(j,i-1,k) + &
@@ -998,13 +994,11 @@ module mod_moloch
 
         ! complete computation of generalized vertical velocity
         ! Complete Equation 10
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
           s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
           s(j,i,1) = d_zero
-        end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           s(j,i,kzp1) = d_zero
         end do
 
@@ -1093,7 +1087,7 @@ module mod_moloch
           pfm = pmin
         end if
         if ( present(pfac) ) then
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             pp(j,i,k) = pp(j,i,k) * pfac
           end do
           if ( present(pmin) ) then
@@ -1108,12 +1102,12 @@ module mod_moloch
         end do
 
         if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, k = 1:kz )
             wz(j,ice1,k) = 0.5_rkx * (pp(j,ice1,k)+pp(j,ici1,k))
           end do
         end if
         if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, k = 1:kz )
             wz(j,ice2,k) = 0.5_rkx * (pp(j,ice2,k)+pp(j,ici2,k))
           end do
         end if
@@ -1196,13 +1190,13 @@ module mod_moloch
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
         if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             p0(jce1,i,k) = 0.5_rkx * (pp(jce1,i,k)+pp(jci1,i,k))
           end do
         end if
 
         if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2 , k = 1:kz )
+          do concurrent ( i = ici1:ici2, k = 1:kz )
             p0(jce2,i,k) = 0.5_rkx * (pp(jce2,i,k)+pp(jci2,i,k))
           end do
         end if
@@ -1356,12 +1350,12 @@ module mod_moloch
         end if
 
         if ( present(pmin) ) then
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             pp(j,i,k) = max(pp(j,i,k),pfm)
           end do
         end if
         if ( present(pfac) ) then
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             pp(j,i,k) = pp(j,i,k) / pfac
           end do
         end if
@@ -1520,7 +1514,7 @@ module mod_moloch
         ! Add radiative transfer package-calculated heating rates to
         ! temperature tendency (deg/sec)
         !
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
         end do
         if ( idiag > 0 ) tdiag%rad = heatrt
@@ -1589,31 +1583,31 @@ module mod_moloch
           call filtuv(mo_atm%uten,mo_atm%vten,mo_anu2)
         end if
 #endif
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
         end do
-        do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
           u(j,i,k) = u(j,i,k) + dtsec * mo_atm%uten(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
           qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                        k = 1:kz , n = iqfrst:iqlst)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                        k = 1:kz, n = iqfrst:iqlst)
           qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
           qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
         end do
         if ( ibltyp == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
             tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
           end do
         end if
         if ( ichem == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
             trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
             trac(j,i,k,n) = max(trac(j,i,k,n),d_zero)
           end do
@@ -1652,11 +1646,11 @@ module mod_moloch
     j1 = lbound(wx,1)
     j2 = ubound(wx,1)
 
-    do concurrent ( j = j1:j2 , i = i1:i2 , k = 2:kzm1 )
+    do concurrent ( j = j1:j2, i = i1:i2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
-    do concurrent ( j = j1:j2 , i = i1:i2 )
+    do concurrent ( j = j1:j2, i = i1:i2 )
       wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
       wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
     end do
@@ -1668,11 +1662,11 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
     integer(ik4) :: i , j , k
 
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 3:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 3:kzm1 )
       w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
                  0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
     end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,2) = d_half * (wx(j,i,2)  +wx(j,i,1))
       w(j,i,kz) = d_half * (wx(j,i,kz)+wx(j,i,kzm1))
     end do
@@ -1684,18 +1678,18 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u
     integer(ik4) :: i , j , k
 
-    do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
       u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
                  0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
     end do
     if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2 , k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
       end do
     end if
 
     if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2 , k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
       end do
     end if
@@ -1707,17 +1701,17 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: v
     integer(ik4) :: i , j , k
 
-    do concurrent ( j = jci1:jci2 , i = idii1:idii2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
       v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
                  0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
     end do
     if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, k = 1:kz )
         v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, k = 1:kz )
         v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
       end do
     end if
@@ -1734,34 +1728,34 @@ module mod_moloch
 
     ! Back to wind points: U (fourth order)
 
-    do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
       u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
                  0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
     end do
     if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2 , k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
       end do
     end if
     if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2 , k = 1:kz )
+      do concurrent ( i = ici1:ici2, k = 1:kz )
         u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
       end do
     end if
 
     ! Back to wind points: V (fourth order)
 
-    do concurrent ( j = jci1:jci2 , i = idii1:idii2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
       v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
                  0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
     end do
     if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, k = 1:kz )
         v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, k = 1:kz )
         v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
       end do
     end if
@@ -1778,34 +1772,34 @@ module mod_moloch
 
     ! Compute U-wind on T points
 
-    do concurrent ( j = jci1:jci2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
       ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
                   0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
     end do
     if ( ma%has_bdyleft ) then
-      do concurrent ( i = ice1:ice2 , k = 1:kz )
+      do concurrent ( i = ice1:ice2, k = 1:kz )
         ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
       end do
     end if
     if ( ma%has_bdyright ) then
-      do concurrent ( i = ice1:ice2 , k = 1:kz )
+      do concurrent ( i = ice1:ice2, k = 1:kz )
         ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
       end do
     end if
 
     ! Compute V-wind on T points
 
-    do concurrent ( j = jce1:jce2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
       vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
                   0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
     end do
     if ( ma%has_bdybottom ) then
-      do concurrent ( j = jce1:jce2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, k = 1:kz )
         vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
       end do
     end if
     if ( ma%has_bdytop ) then
-      do concurrent ( j = jce1:jce2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, k = 1:kz )
         vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
       end do
     end if
@@ -1818,20 +1812,20 @@ module mod_moloch
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 zprof(k)/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 zprof(k)/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do

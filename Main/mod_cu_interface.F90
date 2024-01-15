@@ -100,7 +100,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i , j
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( isocean(mddom%lndcat(j,i)) ) then
         cuscheme(j,i) = icup_ocn
       else
@@ -223,7 +223,7 @@ module mod_cu_interface
     if ( any(icup == 1) .or. any(icup == 3) ) then
       call model_cumulus_cloud(m2c)
     end if
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
       c2m%cldfrc(j,i,k) = cu_cldfrc(j,i,k)
     end do
   end subroutine cucloud
@@ -237,7 +237,7 @@ module mod_cu_interface
 
     if ( any(icup == 6) ) then
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( cuscheme(j,i) == 6 ) then
           avg_ww(j,i,k) = (d_one - w1) * avg_ww(j,i,k) + &
                             w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
@@ -271,7 +271,7 @@ module mod_cu_interface
       end if
 
       w1 = d_one/real(max(int(max(dtcum,300.0_rkx)/dtsec),1),rkx)
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( cuscheme(j,i) == 5 ) then
           avg_ww(j,i,k) = (d_one-w1)*avg_ww(j,i,k) + w1*m2c%wpas(j,i,k)
         end if
@@ -370,7 +370,7 @@ module mod_cu_interface
         end if
 
         if ( ipptls == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             if ( cuscheme(j,i) == 5 ) then
               cu_qten(j,i,k,iqc) = d_zero
               cu_qten(j,i,k,iqi) = d_zero
@@ -382,7 +382,7 @@ module mod_cu_interface
 
       ! Sum cumulus tendencies
 
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         c2m%pcratec(j,i) = c2m%pcratec(j,i) + cu_prate(j,i)
         c2m%trrate(j,i) = cu_prate(j,i)
         c2m%rainc(j,i) = c2m%rainc(j,i) + cu_prate(j,i) * dtsec
@@ -392,49 +392,49 @@ module mod_cu_interface
 
       if ( idynamic == 3 ) then
 
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k)
         end do
 
         if ( any(icup == 5) .or. any(icup == 4) ) then
-          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
             c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
           end do
-          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
             c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
           end do
         end if
 
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
           c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + cu_qten(j,i,k,n)
         end do
 
         if ( ichem == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
             c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + cu_chiten(j,i,k,n)
           end do
         end if
 
       else
 
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k) * m2c%psb(j,i)
         end do
 
         if ( any(icup == 5) .or. any(icup == 4) ) then
-          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
             c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)*m2c%psdotb(j,i)
             c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)*m2c%psdotb(j,i)
           end do
         end if
 
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
           c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
                               cu_qten(j,i,k,n) * m2c%psb(j,i)
         end do
 
         if ( ichem == 1 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
             c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
                                    cu_chiten(j,i,k,n) * m2c%psb(j,i)
           end do
@@ -442,18 +442,18 @@ module mod_cu_interface
       end if
 
       if ( ichem == 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           c2m%convpr(j,i,k) = cu_convpr(j,i,k)
         end do
       end if
 
       if ( any(icup == 5) ) then
         if ( ipptls == 2 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * dt
           end do
         end if
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
         end do
       end if
@@ -470,18 +470,18 @@ module mod_cu_interface
       call shallcu(m2c)
 
       if ( idynamic == 3 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%tten(j,i,k) = cu_tten(j,i,k)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%qxten(j,i,k,iqv) = cu_qten(j,i,k,iqv)
         end do
       else
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
                           cu_tten(j,i,k) * m2c%psb(j,i)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
                           cu_qten(j,i,k,iqv) * m2c%psb(j,i)
         end do

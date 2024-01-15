@@ -369,7 +369,7 @@ module mod_micro_nogtom
     ! modify autoconversion threshold dependent on:
     ! land (polluted, high ccn, smaller droplets, higher threshold)
     ! sea  (clean, low ccn, larger droplets, lower threshold)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       if ( ldmsk(j,i) == 1 ) then ! landmask =1 land
         xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
         rhcrit(j,i) = rhcrit_lnd
@@ -441,7 +441,7 @@ module mod_micro_nogtom
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
     real(rkx) :: qsmixv , ccover , lccover
-    real(rkx) :: tk , tc , dens , pbot , ccnv
+    real(rkx) :: tk , tc , dens , pbot
     real(rkx) :: snowp , rainp
 
 #ifndef __PGI
@@ -487,29 +487,29 @@ module mod_micro_nogtom
 #endif
 
     if ( idynamic == 3 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+      do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         qxtendc(n,k,j,i) = mc2mo%qxten(j,i,k,n)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         ttendc(k,j,i) = mc2mo%tten(j,i,k)
       end do
     else
       ! Decouple tendencies
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+      do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         qxtendc(n,k,j,i) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         ttendc(k,j,i) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
       end do
     end if
 
     ! Define the initial array qx
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+    do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       qx(n,k,j,i) = mo2mc%qxx(j,i,k,n)
     end do
 
     ! Define the initial array qx
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       tx(k,j,i) = mo2mc%t(j,i,k)
       ph(k,j,i) = mo2mc%phs(j,i,k)
       qdetr(k,j,i) = mo2mc%qdetr(j,i,k)
@@ -517,21 +517,21 @@ module mod_micro_nogtom
       rho(k,j,i) = mo2mc%rho(j,i,k)
       pverv(k,j,i) = mo2mc%pverv(j,i,k)
       heatrt(k,j,i) = mo2mc%heatrt(j,i,k)
-      fcc(k,j,i) = mc2mo%fcc(j,i,k)
+      fcc(k,j,i) = mo2mc%cldf(j,i,k)
     end do
 
     if ( lccn ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         ccn(k,j,i) = mo2mc%ccn(j,i,k)
       end do
     end if
 
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+    do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
       pf(k,j,i) = mo2mc%pfs(j,i,k)
     end do
 
     ! Delta pressure
-    do concurrent ( k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       dpfs(k,j,i) = pf(k+1,j,i)-pf(k,j,i)
     end do
 
@@ -547,7 +547,7 @@ module mod_micro_nogtom
     ! pf = Pressure on fuLL levels (Pa)
     ! Define a new array for detrainment
 
-    do concurrent ( k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       qliq(k,j,i) = max(min(d_one,((max(rtice,min(tzero, &
                         tx(k,j,i)))-rtice)*rtwat_rtice_r)**2),d_zero)
     end do
@@ -556,7 +556,7 @@ module mod_micro_nogtom
     pfplsx(:,:,:,:) = d_zero
 
     ! Compute supersaturations
-    do concurrent ( k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       eeliq(k,j,i) = c2es*exp(c3les*((tx(k,j,i)-tzero)/(tx(k,j,i)-c4les)))
       eeice(k,j,i) = c2es*exp(c3ies*((tx(k,j,i)-tzero)/(tx(k,j,i)-c4ies)))
       koop(k,j,i) = min(rkoop1-rkoop2*tx(k,j,i),eeliq(k,j,i)/eeice(k,j,i))
@@ -575,10 +575,10 @@ module mod_micro_nogtom
       tenqkp(:,:,:,:) = d_zero
 
       ! Record the tendencies
-      do concurrent ( n = 1:nqx , k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tenqkp(n,k,j,i) = qxtendc(n,k,j,i)
       end do
-      do concurrent ( k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tentkp(k,j,i) = ttendc(k,j,i)
       end do
 
@@ -613,7 +613,7 @@ module mod_micro_nogtom
           end do
         end do
       end do
-      do concurrent ( k = 1:kz , j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh0(k,j,i) = sumh0(k,j,i)/pf(k+1,j,i)
       end do
     end if ! budget_compute
@@ -715,6 +715,7 @@ module mod_micro_nogtom
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
+        pbot = pf(kzp1,j,i)
         do k = 1 , kz
 
           supsat      = d_zero
@@ -792,7 +793,6 @@ module mod_micro_nogtom
           end do
 
           critauto = xlcrit(j,i)
-          pbot     = pf(kzp1,j,i)
           dp       = dpfs(k,j,i)
           tk       = tx(k,j,i)
           tc       = tk - tzero
@@ -811,8 +811,6 @@ module mod_micro_nogtom
             rainp   = pfplsx(iqqr,k,j,i)
             snowp   = pfplsx(iqqs,k,j,i)
           end if
-
-          if ( lccn ) ccnv = ccn(k,j,i)
 
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
@@ -1818,29 +1816,27 @@ module mod_micro_nogtom
               else if ( iphase(n) == 2 ) then
                 ttendc(k,j,i) = ttendc(k,j,i)+wlhsocp*(chng-fluxq)*rdt
               end if
-            else
-              qxn(n) = qx0(n)
             end if
           end do
-        end do ! jx : end of longitude loop
-      end do   ! iy : end of latitude loop
-    end do     ! kz : end of vertical loop
+        end do  ! kz : end of vertical loop
+      end do    ! jx : end of longitude loop
+    end do      ! iy : end of latitude loop
 
     if ( idynamic == 3 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
         mc2mo%qxten(j,i,k,n) = qxtendc(n,k,j,i)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         mc2mo%tten(j,i,k) = ttendc(k,j,i)
       end do
     else
       !
       ! Couple tendencies with pressure
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
         mc2mo%qxten(j,i,k,n) = qxtendc(n,k,j,i)*mo2mc%psb(j,i)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         mc2mo%tten(j,i,k) = ttendc(k,j,i)*mo2mc%psb(j,i)
       end do
     end if
@@ -1945,8 +1941,8 @@ module mod_micro_nogtom
     !--------------------------------------------------------------------
 
     ! Rain+liquid, snow+ice
-    ! for each level k = 1 , kz, sum of the same phase elements
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+    ! for each level k = 1 , kzp1, sum of the same phase elements
+    do concurrent ( n = 1:nqx, k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
       if ( iphase(n) == 1 ) then
         pfplsl(k,j,i) = pfplsl(k,j,i) + pfplsx(n,k,j,i)
       else if ( iphase(n) == 2 ) then
@@ -1955,7 +1951,7 @@ module mod_micro_nogtom
     end do
     !
     if ( ichem == 1 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         mc2mo%rainls(j,i,k) = pfplsl(k+1,j,i)
         ! save the 3D precip for chemical washout
         mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)
@@ -2061,12 +2057,12 @@ module mod_micro_nogtom
       alpha1 = rkconv*dt
       acrit = critauto
       if ( lccn ) then
-        if ( ccnv > 0._rkx ) then
+        if ( ccn(k,j,i) > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
           ! threshold, rcrit is a critical cloud radius for cloud
           ! water undergoing autoconversion
-          ! ccnv = number of ccn /m3
-          acrit = ccnv*spherefac*((rcrit*1e-6_rkx)**3)*rhoh2o
+          ! ccn = number of ccn /m3
+          acrit = ccn(k,j,i)*spherefac*((rcrit*1e-6_rkx)**3)*rhoh2o
         endif
       endif
       !-----------------------------------------------------------
