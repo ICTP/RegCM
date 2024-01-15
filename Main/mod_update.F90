@@ -135,7 +135,7 @@ module mod_update
     !
     ! Initialize arrays
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ci2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       exportFields%psfc(j,i) = initval
       exportFields%tsfc(j,i) = initval
       exportFields%qsfc(j,i) = initval
