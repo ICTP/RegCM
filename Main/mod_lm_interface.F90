@@ -405,23 +405,17 @@ module mod_lm_interface
       call initclm(lm,lms)
       if ( rcmtimer%start( ) .and. imask == 2 ) then
         ! CLM may have changed the landuse again !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            lm%iveg(j,i) = nint(lm%lndcat(j,i))
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          lm%iveg(j,i) = nint(lm%lndcat(j,i))
         end do
         ! Correct land/water misalign : set to short grass
         where ( (lm%iveg == 14 .or. lm%iveg == 15) .and. lm%ldmsk == 1 )
           lm%iveg = 2
           lm%lndcat = d_two
         end where
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n = 1 , nnsg
-              lm%iveg1(n,j,i) = lm%iveg(j,i)
-              lm%lndcat1(n,j,i) = lm%lndcat(j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+          lm%iveg1(n,j,i) = lm%iveg(j,i)
+          lm%lndcat1(n,j,i) = lm%lndcat(j,i)
         end do
       end if
     end if
@@ -453,35 +447,21 @@ module mod_lm_interface
     if ( irceideal == 0 ) call runclm45(lm,lms)
     !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
     if ( ichem == 1 ) then
-      do n = 1 , ntr
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
-          end do
-        end do
+      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+        voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
       end do
-      do n = 1 , 4
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
-          end do
-        end do
+      do concurrent ( n = 1:4, j = jci1:jci2, i = ici1:ici2 )
+        dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
       end do
-      do n = 1 , ntr
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
-          end do
-        end do
+      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+        ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
       end do
     end if
-    do i = ici1, ici2
-      do j = jci1 , jci2
-        if ( lm%ldmsk(j,i) == 1 ) then
-          lm%uwrlwf(j,i) = sum(lms%urlwf(:,j,i)) * rdnnsg
-          lm%rlwf(j,i) = lm%uwrlwf(j,i) - lm%dwrlwf(j,i)
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk(j,i) == 1 ) then
+        lm%uwrlwf(j,i) = sum(lms%urlwf(:,j,i)) * rdnnsg
+        lm%rlwf(j,i) = lm%uwrlwf(j,i) - lm%dwrlwf(j,i)
+      end if
     end do
 #else
     if ( irceideal == 0 ) call vecbats(lm,lms)
@@ -492,30 +472,22 @@ module mod_lm_interface
 
     call vecocn(lm,lms)
     ! Fill land part of this output vars
-    do i = ici1, ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
-            lms%ustar(n,j,i) = sqrt(sqrt( &
-                                  (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
-                                  (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
-                                  lms%rhoa(n,j,i))
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
+        lms%ustar(n,j,i) = sqrt(sqrt( &
+                              (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
+                              (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
+                               lms%rhoa(n,j,i))
+      end if
     end do
 #ifndef CLM45
-    do i = ici1, ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%taux(n,j,i) = lms%drag(n,j,i) * (lms%u10m(n,j,i)/lm%uatm(j,i))
-            lms%tauy(n,j,i) = lms%drag(n,j,i) * (lms%v10m(n,j,i)/lm%vatm(j,i))
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) then
+        lms%taux(n,j,i) = lms%drag(n,j,i) * (lms%u10m(n,j,i)/lm%uatm(j,i))
+        lms%tauy(n,j,i) = lms%drag(n,j,i) * (lms%v10m(n,j,i)/lm%vatm(j,i))
+      end if
     end do
 #endif
     lm%hfx = sum(lms%sent,1)*rdnnsg
@@ -615,45 +587,41 @@ module mod_lm_interface
       call fatal(__FILE__,__LINE__, &
         'RUNNING COUPLED WITHOUT COUPLER INITIALIZATION')
     end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        expfie%psfc(j,i) = lm%sfps(j,i)*d_r100
-        expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
-        expfie%qsfc(j,i) = lm%q2m(j,i)
-        expfie%swrd(j,i) = lm%rswf(j,i)
-        expfie%lwrd(j,i) = lm%rlwf(j,i)
-        expfie%dlwr(j,i) = lm%dwrlwf(j,i)
-        expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
-        expfie%lhfx(j,i) = sum(lms%evpr(:,j,i)*wlh(lms%tgrd(:,j,i)))*rdnnsg
-        expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
-        expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
-        expfie%wndu(j,i) = lm%u10m(j,i)
-        expfie%wndv(j,i) = lm%v10m(j,i)
-        expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
-        expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
-        expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
-        expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
-        expfie%wspd(j,i) = sqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
-        expfie%wdir(j,i) = atan2(expfie%wndu(j,i), expfie%wndv(j,i))
-        if (expfie%wdir(j,i) < d_zero) then
-          expfie%wdir(j,i) = expfie%wdir(j,i)+twopi
-        end if
-        expfie%ustr(j,i) = sum(lms%ustar(:,j,i))*rdnnsg
-        expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
-                           expfie%shfx(j,i) - lm%rlwf(j,i)
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      expfie%psfc(j,i) = lm%sfps(j,i)*d_r100
+      expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
+      expfie%qsfc(j,i) = lm%q2m(j,i)
+      expfie%swrd(j,i) = lm%rswf(j,i)
+      expfie%lwrd(j,i) = lm%rlwf(j,i)
+      expfie%dlwr(j,i) = lm%dwrlwf(j,i)
+      expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
+      expfie%lhfx(j,i) = sum(lms%evpr(:,j,i)*wlh(lms%tgrd(:,j,i)))*rdnnsg
+      expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
+      expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
+      expfie%wndu(j,i) = lm%u10m(j,i)
+      expfie%wndv(j,i) = lm%v10m(j,i)
+      expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
+      expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
+      expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
+      expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
+      expfie%wspd(j,i) = sqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
+      expfie%wdir(j,i) = atan2(expfie%wndu(j,i), expfie%wndv(j,i))
+      if (expfie%wdir(j,i) < d_zero) then
+        expfie%wdir(j,i) = expfie%wdir(j,i)+twopi
+      end if
+      expfie%ustr(j,i) = sum(lms%ustar(:,j,i))*rdnnsg
+      expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
+                         expfie%shfx(j,i) - lm%rlwf(j,i)
     end do
     if ( rcmtimer%lcount == 1 .or. alarm_day%will_act(dtsec) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( lm%ldmsk(j,i) == 1 ) then
-            expfie%rnof(j,i) = lm%dtrnof(j,i)/runoffcount
-            expfie%snof(j,i) = lm%dsrnof(j,i)/runoffcount
-          else
-            expfie%rnof(j,i) = d_zero
-            expfie%snof(j,i) = d_zero
-          end if
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( lm%ldmsk(j,i) == 1 ) then
+          expfie%rnof(j,i) = lm%dtrnof(j,i)/runoffcount
+          expfie%snof(j,i) = lm%dsrnof(j,i)/runoffcount
+        else
+          expfie%rnof(j,i) = d_zero
+          expfie%snof(j,i) = d_zero
+        end if
       end do
       runoffcount = d_one
       lm%dtrnof(:,:) = d_zero

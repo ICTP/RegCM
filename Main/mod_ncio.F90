@@ -1121,12 +1121,10 @@ module mod_ncio
     end if
     if ( itweak == 1 ) then
       if ( itweak_sst == 1 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( ilnd(j,i) == 0 ) then
-              ts(j,i) = ts(j,i) + sst_tweak
-            end if
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          if ( ilnd(j,i) == 0 ) then
+            ts(j,i) = ts(j,i) + sst_tweak
+          end if
         end do
       end if
       if ( itweak_temperature == 1 ) then

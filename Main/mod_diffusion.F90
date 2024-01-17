@@ -120,10 +120,8 @@ module mod_diffusion
       !
       ! Calculate topographical correction to diffusion coefficient
       !
-      do i = ice1ga , ice2ga
-        do j = jce1ga , jce2ga
-          hgfact(j,i) = xkhz
-        end do
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
+        hgfact(j,i) = xkhz
       end do
       if ( diffu_hgtf == 1 ) then
         ! Should we have a vertical profile for this?
