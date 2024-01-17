@@ -1000,17 +1000,12 @@ module mod_rad_radiation
       !
       ! Calculate/outfld albedo and clear sky albedo
       !
-      do n = rt%n1 , rt%n2
+      do concurrent ( n = rt%n1:rt%n2 )
         if ( rt%solin(n) > d_zero ) then
           rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
-        else
-          rt%alb(n) = d_zero
-        end if
-      end do
-      do n = rt%n1 , rt%n2
-        if ( rt%solin(n) > d_zero ) then
           rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
         else
+          rt%alb(n) = d_zero
           rt%albc(n) = d_zero
         end if
       end do
@@ -1033,7 +1028,7 @@ module mod_rad_radiation
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
-      do n = rt%n1 , rt%n2
+      do concurrent ( n = rt%n1:rt%n2 )
         rt%flnt(n) = rt%flnt(n)*1.0e-3_rkx
         rt%lwout(n) = rt%lwout(n)*1.0e-3_rkx
         rt%lwin(n) = rt%lwin(n)*1.0e-3_rkx
@@ -1276,18 +1271,16 @@ module mod_rad_radiation
     !
     ! Define solar incident radiation and interface pressures:
     !
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       if ( czengt0(n) ) then
         solin(n) = scon*eccf*czen(n)
         pflx(n,0) = d_zero
       end if
     end do
-    do k = 1 , kzp1
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          pflx(n,k) = pint(n,k)
-        end if
-      end do
+    do concurrent ( n = n1:n2, k = 1:kzp1 )
+      if ( czengt0(n) ) then
+        pflx(n,k) = pint(n,k)
+      end if
     end do
     !
     ! Compute optical paths:
@@ -1336,7 +1329,7 @@ module mod_rad_radiation
     !
     ! Compute column absorber amounts for the clear sky computation:
     !
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       if ( czengt0(n) ) then
         uth2o(n) = d_zero
         uto3(n) = d_zero
@@ -1344,27 +1337,23 @@ module mod_rad_radiation
         uto2(n) = d_zero
       end if
     end do
-    do k = 1 , kz
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          uth2o(n) = uth2o(n) + uh2o(n,k)
-          uto3(n) = uto3(n) + uo3(n,k)
-          utco2(n) = utco2(n) + uco2(n,k)
-          uto2(n) = uto2(n) + uo2(n,k)
-        end if
-      end do
+    do concurrent ( n = n1:n2, k = 1:kz )
+      if ( czengt0(n) ) then
+        uth2o(n) = uth2o(n) + uh2o(n,k)
+        uto3(n) = uto3(n) + uo3(n,k)
+        utco2(n) = utco2(n) + uco2(n,k)
+        uto2(n) = uto2(n) + uo2(n,k)
+      end if
     end do
     !
     ! Initialize spectrally integrated totals:
     !
-    do k = 0 , kz
-      do n = n1 , n2
-        totfld(n,k) = d_zero
-        fswup(n,k) = d_zero
-        fswdn(n,k) = d_zero
-      end do
+    do concurrent ( n = n1:n2, k = 0:kz )
+      totfld(n,k) = d_zero
+      fswup(n,k) = d_zero
+      fswdn(n,k) = d_zero
     end do
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       fswup(n,kzp1) = d_zero
       fswdn(n,kzp1) = d_zero
     end do
@@ -1373,7 +1362,7 @@ module mod_rad_radiation
     ! there is no cloud above top of model; the other cloud properties
     ! are arbitrary:
     !
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       if ( czengt0(n) ) then
         tauxcl(n,0,:) = d_zero
         wcl(n,0) = verynearone
@@ -1893,18 +1882,16 @@ module mod_rad_radiation
 
     qrl(:,:) = d_zero
 
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       tclrsf(n,1) = d_one
       rtclrsf(n,1) = d_one
     end do
 
-    do k = 1 , kz
-      do n = n1 , n2
-        fclb4(n,k) = d_zero
-        fclt4(n,k) = d_zero
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
-      end do
+    do concurrent ( n = n1:n2, k = 1:kz )
+      fclb4(n,k) = d_zero
+      fclt4(n,k) = d_zero
+      tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
+      rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
     end do
     !
     ! Calculate some temperatures needed to derive absorptivity and
@@ -2260,7 +2247,7 @@ module mod_rad_radiation
     !
     ! All longitudes: store history tape quantities
     !
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       !
       ! Downward longwave flux
       !
@@ -2284,11 +2271,9 @@ module mod_rad_radiation
     !
     ! Computation of longwave heating (k per sec)
     !
-    do k = 1 , kz
-      do n = n1 , n2
-        qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
+    do concurrent ( n = n1:n2, k = 1:kz )
+      qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
                     ((pint(n,k)-pint(n,k+1)))
-      end do
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)

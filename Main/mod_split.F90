@@ -201,16 +201,10 @@ module mod_split
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 
-    do l = 1 , nsplit
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * map(j,i) * rdx2 * &
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz, l = 1:nsplit )
+      dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * map(j,i) * rdx2 * &
                  (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
                    vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
-          end do
-        end do
-      end do
     end do
     !
     ! Geopotential manipulations
@@ -281,29 +275,19 @@ module mod_split
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 
     do l = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          deld(j,i,l,3) = d_zero
-        end do
+      do concurrent ( j = jde1:jde2 , i = ide1:ide2 )
+        deld(j,i,l,3) = d_zero
       end do
 
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * rdx2 * map(j,i) * &
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * rdx2 * map(j,i) * &
                (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
                  vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
-          end do
-        end do
       end do
     end do
 
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          deld(j,i,n,3) = deld(j,i,n,3) - deld(j,i,n,1)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2, i = ide1:ide2, n = 1:nsplit )
+      deld(j,i,n,3) = deld(j,i,n,3) - deld(j,i,n,1)
     end do
     !
     ! Divergence manipulations (0)
@@ -317,28 +301,18 @@ module mod_split
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
 
     do l = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          deld(j,i,l,2) = d_zero
-        end do
+      do concurrent ( j = jde1:jde2 , i = ide1:ide2 )
+        deld(j,i,l,2) = d_zero
       end do
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * rdx2 * map(j,i) * &
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * rdx2 * map(j,i) * &
               (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
                 vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
-          end do
-        end do
       end do
     end do
 
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          deld(j,i,n,1) = deld(j,i,n,1) - deld(j,i,n,2)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2, i = ide1:ide2, n = 1:nsplit )
+      deld(j,i,n,1) = deld(j,i,n,1) - deld(j,i,n,2)
     end do
     !
     ! Geopotential manipulations (f)
@@ -365,12 +339,8 @@ module mod_split
       end do
     end do
 
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          delh(j,i,n,3) = delh(j,i,n,3) - delh(j,i,n,1)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2, i = ide1:ide2, n = 1:nsplit )
+      delh(j,i,n,3) = delh(j,i,n,3) - delh(j,i,n,1)
     end do
     !
     ! Geopotential manipulations (0)
@@ -397,12 +367,8 @@ module mod_split
       end do
     end do
 
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          delh(j,i,n,1) = delh(j,i,n,1) - delh(j,i,n,2)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2, i = ide1:ide2, n = 1:nsplit )
+      delh(j,i,n,1) = delh(j,i,n,1) - delh(j,i,n,2)
     end do
     !
     ! put deld(0), delh(0) into storage
@@ -420,21 +386,17 @@ module mod_split
     !
     do l = 1 , nsplit
       gnuan = gnu1*an(l)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%psa(j,i) = sfs%psa(j,i) - an(l)*ddsum(j,i,l)
-          sfs%psb(j,i) = sfs%psb(j,i) - gnuan*ddsum(j,i,l)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        sfs%psa(j,i) = sfs%psa(j,i) - an(l)*ddsum(j,i,l)
+        sfs%psb(j,i) = sfs%psb(j,i) - gnuan*ddsum(j,i,l)
       end do
     end do
     do l = 1 , nsplit
       do k = 1 , kz
         gnuam = gnu1*am(k,l)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atm1%t(j,i,k) = atm1%t(j,i,k) + am(k,l)*ddsum(j,i,l)
-            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuam*ddsum(j,i,l)
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          atm1%t(j,i,k) = atm1%t(j,i,k) + am(k,l)*ddsum(j,i,l)
+          atm2%t(j,i,k) = atm2%t(j,i,k) + gnuam*ddsum(j,i,l)
         end do
       end do
     end do
@@ -511,12 +473,8 @@ module mod_split
         end do
       end do
 
-      do nw = 1 , 2
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, nw = 1:2 )
+        work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
       end do
       !
       ! compute divergence z from u and v
@@ -537,13 +495,11 @@ module mod_split
                  +vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))
       end do
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          deld(j,i,ns,n1) = deld(j,i,ns,n0) - dtau(ns)*work(j,i,3) + &
-                            deld(j,i,ns,3)/m2
-          delh(j,i,ns,n1) = delh(j,i,ns,n0) - dtau(ns)*hbar(ns) * &
-                            deld(j,i,ns,n0)/sfs%psa(j,i)+delh(j,i,ns,3)/m2
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        deld(j,i,ns,n1) = deld(j,i,ns,n0) - dtau(ns)*work(j,i,3) + &
+                          deld(j,i,ns,3)/m2
+        delh(j,i,ns,n1) = delh(j,i,ns,n0) - dtau(ns)*hbar(ns) * &
+                          deld(j,i,ns,n0)/sfs%psa(j,i)+delh(j,i,ns,3)/m2
       end do
       !
       ! not in Madala (1987)
@@ -570,11 +526,9 @@ module mod_split
         end do
       end if
 
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n1)
-          dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n1)
-        end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n1)
+        dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n1)
       end do
       !
       ! subsequent steps, use leapfrog scheme
@@ -595,12 +549,8 @@ module mod_split
           end do
         end do
 
-        do nw = 1 , 2
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
-            end do
-          end do
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, nw = 1:2 )
+          work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
         end do
         !
         ! compute divergence z from u and v
@@ -621,14 +571,12 @@ module mod_split
                     vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))
         end do
 
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            deld(j,i,ns,n2) = deld(j,i,ns,n0) - dtau2*work(j,i,3) + &
-                              deld(j,i,ns,3)/aam(ns)
-            delh(j,i,ns,n2) = delh(j,i,ns,n0) - dtau2*hbar(ns) * &
-                              deld(j,i,ns,n1)/sfs%psa(j,i) +     &
-                              delh(j,i,ns,3)/aam(ns)
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          deld(j,i,ns,n2) = deld(j,i,ns,n0) - dtau2*work(j,i,3) + &
+                            deld(j,i,ns,3)/aam(ns)
+          delh(j,i,ns,n2) = delh(j,i,ns,n0) - dtau2*hbar(ns) * &
+                            deld(j,i,ns,n1)/sfs%psa(j,i) +     &
+                            delh(j,i,ns,3)/aam(ns)
         end do
         !
         ! not in Madala (1987)
@@ -654,11 +602,9 @@ module mod_split
           end do
         end if
 
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n2)
-            dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n2)
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n2)
+          dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n2)
         end do
 
         n0 = n1

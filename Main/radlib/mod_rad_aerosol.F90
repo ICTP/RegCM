@@ -1840,13 +1840,9 @@ module mod_rad_aerosol
       !
       ! Model pressure levels (in Pa)
       !
-      do k = 1, kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            zpr3d(j,i,kth-kz+k) = m2r%phatms(j,i,k)
-            zdzr3d(j,i,kth-kz+k) = m2r%deltaz(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        zpr3d(j,i,kth-kz+k) = m2r%phatms(j,i,k)
+        zdzr3d(j,i,kth-kz+k) = m2r%deltaz(j,i,k)
       end do
       do wn = 1 , nacwb
         call assignpnt(pl1,p1,wn)
@@ -1887,9 +1883,9 @@ module mod_rad_aerosol
       ! Important :  radiation schemes expect AOD per layer, calculated
       ! from extinction
       !
-      do wn = 1 , nacwb
-        extprof(:,:,:,wn) = (sgext1(:,:,:,wn)*xfac2 + &
-                         sgext2(:,:,:,wn)*xfac1) * zdzr3d(:,:,:)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz , wn = 1:nacwb )
+        extprof(j,i,k,wn) = (sgext1(j,i,k,wn)*xfac2 + &
+                         sgext2(j,i,k,wn)*xfac1) * zdzr3d(j,i,k)
       end do
       ssaprof = sgssa1*xfac2 + sgssa2*xfac1
       asyprof = sgasy1*xfac2 + sgasy2*xfac1
@@ -2247,10 +2243,8 @@ module mod_rad_aerosol
       !
       !   Spectral loop
       !
-      do k = 1 , kz
-        do n = n1 , n2
-          path(n,k) = (pint(n,k+1)-pint(n,k))*regravgts
-        end do
+      do concurrent ( n = n1:n2, k = 1:kz )
+        path(n,k) = (pint(n,k+1)-pint(n,k))*regravgts
       end do
 
       do ns = 1 , nband

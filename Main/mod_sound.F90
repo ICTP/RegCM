@@ -727,17 +727,13 @@ module mod_sound
       real(rkx) , dimension(jcii1:jcii2,icii1:icii2) :: e2
       call exchange(e,1,jci1,jci2,ici1,ici2,1,kz)
       do k = 1 , kz
-        do i = icii1 , icii2
-          do j = jcii1 , jcii2
-            e2(j,i) = 0.125_rkx * (e(j-1,i,k) + e(j+1,i,k) + &
-                                   e(j,i-1,k) + e(j,i+1,k)) - &
-                      0.5_rkx   * e(j,i,k)
-          end do
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          e2(j,i) = 0.125_rkx * (e(j-1,i,k) + e(j+1,i,k) + &
+                                 e(j,i-1,k) + e(j,i+1,k)) - &
+                    0.5_rkx   * e(j,i,k)
         end do
-        do i = icii1 , icii2
-          do j = jcii1 , jcii2
-            e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i)
-          end do
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i)
         end do
       end do
     end subroutine smallfilter
