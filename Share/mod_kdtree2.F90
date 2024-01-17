@@ -245,7 +245,7 @@ module mod_kdtree2
 
   contains
 
-  function kdtree2_create(input_data,indim,sort,rearrange) result (mr)
+  function kdtree2_create(input_data,indim,balanced,sort,rearrange) result (mr)
     implicit none
     !
     ! create the actual tree structure, given an input array of data.
@@ -258,6 +258,10 @@ module mod_kdtree2
     !                      will only search the first 'dim' components
     !                      of input_data, otherwise, dim is inferred
     !                      from SIZE(input_data,1).
+    !
+    !                      if balanced .eqv. .true. then the tree
+    !                      buildin select exact median to have fully
+    !                      balanced tree.
     !
     !                      if sort .eqv. .true. then output results
     !                      will be sorted by increasing distance.
@@ -272,6 +276,7 @@ module mod_kdtree2
     ! .. Function Return Cut_value ..
     type(kdtree2) , pointer :: mr
     integer , intent(in) , optional :: indim
+    logical , intent(in) , optional :: balanced
     logical , intent(in) , optional :: sort
     logical , intent(in) , optional :: rearrange
     ! ..
@@ -279,6 +284,8 @@ module mod_kdtree2
     real(kdkind) , target , dimension(:,:) :: input_data
     !
     integer :: i
+    !
+    logical :: lbal
     ! ..
     allocate (mr)
     mr%the_data => input_data
@@ -290,6 +297,10 @@ module mod_kdtree2
       mr%dimen = size(input_data,1)
     end if
     mr%n = size(input_data,2)
+    lbal = .false.
+    if ( present(balanced) ) then
+      lbal = .true.
+    end if
 
     if ( mr%dimen > mr%n ) then
       !  unlikely to be correct
@@ -303,7 +314,7 @@ module mod_kdtree2
       call die('KD_TREE_TRANS','not appropriate',1)
     end if
 
-    call build_tree(mr)
+    call build_tree(mr,lbal)
 
     if ( present(sort) ) then
       mr%sort = sort
@@ -327,9 +338,10 @@ module mod_kdtree2
     endif
   end function kdtree2_create
 
-  subroutine build_tree(tp)
+  subroutine build_tree(tp,lbal)
     implicit none
     type (kdtree2) , pointer :: tp
+    logical :: lbal
     ! ..
     integer :: j
     type(tree_node) , pointer :: dummy => null()
@@ -338,10 +350,10 @@ module mod_kdtree2
     do concurrent ( j = 1:tp%n )
       tp%ind(j) = j
     end do
-    tp%root => build_tree_for_range(tp,1,tp%n,dummy)
+    tp%root => build_tree_for_range(tp,1,tp%n,dummy,lbal)
   end subroutine build_tree
 
-  recursive function build_tree_for_range(tp,l,u,parent) result (res)
+  recursive function build_tree_for_range(tp,l,u,parent,lbal) result (res)
     implicit none
     ! .. Function Return Cut_value ..
     type (tree_node) , pointer :: res
@@ -352,6 +364,7 @@ module mod_kdtree2
     ! ..
     ! .. Scalar Arguments ..
     integer , intent (in) :: l , u
+    logical , intent (in) :: lbal
     ! ..
     ! .. Local Scalars ..
     integer :: i , c , m , dimen
@@ -417,7 +430,7 @@ module mod_kdtree2
       ! c is the identity of which coordinate has the greatest spread.
       !
 
-      if ( .false. ) then
+      if ( lbal ) then
         ! select exact median to have fully balanced tree.
         m = (l+u)/2
         call select_on_coordinate(tp%the_data,tp%ind,c,m,l,u)
@@ -443,8 +456,8 @@ module mod_kdtree2
       res%l = l
       res%u = u
 
-      res%left => build_tree_for_range(tp,l,m,res)
-      res%right => build_tree_for_range(tp,m+1,u,res)
+      res%left => build_tree_for_range(tp,l,m,res,lbal)
+      res%right => build_tree_for_range(tp,m+1,u,res,lbal)
 
       if ( associated(res%right) .eqv. .false. ) then
         res%box = res%left%box
