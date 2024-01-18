@@ -171,7 +171,7 @@ module mod_pbl_holtbl
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
       exns(j,i) = (m2p%patmf(j,i,kzp1)/p00)**rovcp
-      pfcor(j,i) = min(max(abs(m2p%coriol(j,i)),2.0e-5_rkx),1.0e-4_rkx)
+      pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
     end do
     !
     ! Compute the diffusion coefficient using Blackadar scheme above boundary
@@ -198,7 +198,7 @@ module mod_pbl_holtbl
           n2 = egrav * (m2p%thatm(j,i,k-1)-m2p%thatm(j,i,k)) / &
               (dza(j,i,k-1)*0.5_rkx*(m2p%thatm(j,i,k-1)+m2p%thatm(j,i,k)))
           ! Compute the gradient Richardson number
-          rin = n2/ss
+          rin = max(-5.0_rkx,min(10.0_rkx,n2/ss))
           if ( rin < 0.0_rkx ) then
             fofri = sqrt(max(1.0_rkx-18.0_rkx*rin,0.0_rkx))
           else
@@ -332,7 +332,11 @@ module mod_pbl_holtbl
       end do
     end do
 
-    uvdrage(jci1:jci2,ici1:ici2) = m2p%uvdrag(jci1:jci2,ici1:ici2)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        uvdrage(j,i) = m2p%uvdrag(j,i)
+      end do
+    end do
 
     call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
     call exchange_lb(akzz2,1,jci1,jci2,ici1,ici2,1,kz)
@@ -1263,6 +1267,7 @@ module mod_pbl_holtbl
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
               vvk = vvk + 1.0e-10_rkx
               ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end do
         end do
@@ -1272,6 +1277,7 @@ module mod_pbl_holtbl
             do k = kzm1 , kmxpbl(j,i) , -1
               ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
                           (thv10(j,i)*vv(j,i,k))
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end do
         end do
@@ -1309,6 +1315,7 @@ module mod_pbl_holtbl
               !tlv = thv10(j,i) + therm
               vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
               ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
+              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
               ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 zkv = m2p%za(j,i,k)
@@ -1316,6 +1323,7 @@ module mod_pbl_holtbl
                 vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
                 vvk = vvk + 1.0e-10_rkx
                 ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
+                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
               end do
             end if
           end do
@@ -1331,11 +1339,13 @@ module mod_pbl_holtbl
               therm = fak * hfxv(j,i)/wsc
               tlv = thv10(j,i) + therm
               ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vv(j,i,kz))
+              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
               ! recompute richardson no. at other model levels
               do k = kzm1 , kmxpbl(j,i) , -1
                 tkv = thvx(j,i,k)
                 ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
                    (thv10(j,i)*vv(j,i,k))
+                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
               end do
             end if
           end do

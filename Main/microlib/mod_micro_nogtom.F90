@@ -241,7 +241,7 @@ module mod_micro_nogtom
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
-  real(rkx) , parameter :: activqx = 1.0e-8_rkx
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
   real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
@@ -1831,22 +1831,18 @@ module mod_micro_nogtom
           !-------------------------------------------------------------------
           do n = 1 , nqx
             chng = qxn(n) - qx0(n)
-            if ( abs(chng) > 1.0e-16_rkx ) then
-              pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
-              ! Generalized precipitation flux
-              ! this will be the source for the k
-              ! Calculate fluxes in and out of box for conservation of TL
-              fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
-              ! Calculate the water variables tendencies
-              qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
-              ! Calculate the temperature tendencies
-              if ( iphase(n) == 1 ) then
-                ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
-              else if ( iphase(n) == 2 ) then
-                ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
-              end if
-            else
-              qxn(n) = qx0(n)
+            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
+            ! Generalized precipitation flux
+            ! this will be the source for the k
+            ! Calculate fluxes in and out of box for conservation of TL
+            fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
+            ! Calculate the water variables tendencies
+            qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
+            ! Calculate the temperature tendencies
+            if ( iphase(n) == 1 ) then
+              ttendc(j,i,k) = ttendc(j,i,k)+wlhvocp*(chng-fluxq)*rdt
+            else if ( iphase(n) == 2 ) then
+              ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
             end if
           end do
         end do ! jx : end of longitude loop
