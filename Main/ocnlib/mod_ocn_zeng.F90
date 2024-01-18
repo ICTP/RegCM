@@ -65,7 +65,7 @@ module mod_ocn_zeng
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2
-  logical , parameter :: ecmwf_ocnrough = .true.
+  logical , parameter :: ecmwf_ocnrough = .false.
 
   contains
   !
@@ -121,7 +121,7 @@ module mod_ocn_zeng
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.98_rkx
+      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T

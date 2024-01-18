@@ -247,7 +247,7 @@ module mod_micro_nogtom
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
 
-  real(rkx) , parameter :: activqx = 1.0e-8_rkx
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
   real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
@@ -1802,20 +1802,18 @@ module mod_micro_nogtom
           !-------------------------------------------------------------------
           do n = 1 , nqx
             chng = qxn(n) - qx0(n)
-            if ( abs(chng) > 1.0e-16_rkx ) then
-              pfplsx(n,k+1,j,i) = fallsink(n)*qxn(n)*rdtgdp
-              ! Generalized precipitation flux
-              ! this will be the source for the k
-              ! Calculate fluxes in and out of box for conservation of TL
-              fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
-              ! Calculate the water variables tendencies
-              qxtendc(n,k,j,i) = qxtendc(n,k,j,i) + chng*rdt
-              ! Calculate the temperature tendencies
-              if ( iphase(n) == 1 ) then
-                ttendc(k,j,i) = ttendc(k,j,i)+wlhvocp*(chng-fluxq)*rdt
-              else if ( iphase(n) == 2 ) then
-                ttendc(k,j,i) = ttendc(k,j,i)+wlhsocp*(chng-fluxq)*rdt
-              end if
+            pfplsx(n,k+1,j,i) = fallsink(n)*qxn(n)*rdtgdp
+            ! Generalized precipitation flux
+            ! this will be the source for the k
+            ! Calculate fluxes in and out of box for conservation of TL
+            fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
+            ! Calculate the water variables tendencies
+            qxtendc(n,k,j,i) = qxtendc(n,k,j,i) + chng*rdt
+            ! Calculate the temperature tendencies
+            if ( iphase(n) == 1 ) then
+              ttendc(k,j,i) = ttendc(k,j,i)+wlhvocp*(chng-fluxq)*rdt
+            else if ( iphase(n) == 2 ) then
+              ttendc(k,j,i) = ttendc(k,j,i)+wlhsocp*(chng-fluxq)*rdt
             end if
           end do
         end do  ! kz : end of vertical loop
