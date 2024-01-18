@@ -403,6 +403,7 @@ module mod_runparams
 
   integer(ik4) , public :: iclimao3
   integer(ik4) , public :: iclimaaer
+  integer(ik4) , public :: iaervisonly
   character(len=256) , public :: radclimpath
 
   ! UW PBL parameters
