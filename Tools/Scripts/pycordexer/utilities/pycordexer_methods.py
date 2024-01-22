@@ -386,12 +386,21 @@ class AddDephtVariable(Filter):
             LOGGER.debug('Reading soil_layer variable from regcm file')
             try:
                 soil_layer = get_var_with_name(soil_names, f)
-                LOGGER.debug('soil_layer variable found in regcm file')
                 depth_var = Variable(
-                        name=soil_layer.name,
-                        data=MemoryData(soil_layer.data),
-                        dimensions=(('soil_layer',size(soil_layer.data)),),
-                        attributes=soil_layer.attributes,)
+                    name='soil_layer',
+                    data=MemoryData(copy(f.variables['soil_layer'][:])),
+                    dimensions=list(zip(f.variables['soil_layer'].dimensions,
+                                   np.shape(f.variables['soil_layer']))),
+                    attributes={
+                        'standard_name': 'depth',
+                        'long_name': 'Soil layer depth',
+                        'positive': 'down',
+                        'bounds': 'soil_bounds',
+                        'units': 'm',
+                        'axis': 'Z'
+                    }
+                )
+                LOGGER.debug('soil_layer variable found in regcm file')
             except:
                 soil_layer = np.array([0.00710063541719354, 0.0279250004153169,
                  0.062258573936546, 0.118865066900143, 0.212193395908963,
@@ -413,12 +422,18 @@ class AddDephtVariable(Filter):
             LOGGER.debug('Reading soil_bounds variable from regcm file')
             try:
                 soil_bounds = get_var_with_name(bound_names, f)
-                LOGGER.debug('soil_bounds variable found in regcm file')
                 bounds_var = Variable(
-                        name=soil_bounds.name,
-                        data=MemoryData(soil_bounds.data),
-                        dimensions=soil_bounds.dimensions,
-                        attributes=soil_bounds.attributes,)
+                    name='soil_bounds',
+                    data=MemoryData(copy(f.variables['soil_bounds'][:])),
+                    dimensions=list(zip(f.variables['soil_bounds'].dimensions,
+                                    np.shape(f.variables['soil_bounds']))),
+                    attributes={
+                        'standard_name': 'depth',
+                        'long_name': 'Soil layer depth',
+                        'units': 'm',
+                    }
+                )
+                LOGGER.debug('soil_bounds variable found in regcm file')
             except:
                 soil_bounds = np.array([[0, 0.0175128179162552],
                       [0.0175128179162552, 0.0450917871759315],
@@ -1006,13 +1021,11 @@ class Thin(Filter):
         )
 
         if current_step > self.new_time_step:
-            raise ValueError(
-                'Trying to extract from a variable that has a value every {} '
-                'a new variable with a value every {}'.format(
-                    current_step,
-                    self.new_time_step
-                )
+            LOGGER.debug(
+                'Cannot operate: (the timestep is %s hours)',
+                current_step
             )
+            return prev_result
 
         thin_step = self.new_time_step / current_step
         if abs(thin_step - int(thin_step)) > 0.1:
@@ -1100,13 +1113,11 @@ class ComputeMaximum(Filter):
         )
 
         if current_step > self.new_time_step:
-            raise ValueError(
-                'Trying to create maximums of length {} from a variable that '
-                'has a value every {} hours'.format(
-                    self.new_time_step,
-                    current_step
-                )
+            LOGGER.debug(
+                'Cannot operate: (the timestep is %s hours)',
+                current_step
             )
+            return prev_result
 
         maximum_step = self.new_time_step / current_step
         if abs(maximum_step - int(maximum_step)) > 0.1:
@@ -1471,13 +1482,11 @@ class ComputeAverage(Filter):
         )
 
         if current_step > self.new_time_step:
-            raise ValueError(
-                'Trying to create averages of length {} from a variable that '
-                'has a value every {} hours'.format(
-                    self.new_time_step,
-                    current_step
-                )
+            LOGGER.debug(
+                'Cannot operate: (the timestep is %s hours)',
+                current_step
             )
+            return prev_result
 
         average_step = self.new_time_step / current_step
         if abs(average_step - int(average_step)) > 0.1:
