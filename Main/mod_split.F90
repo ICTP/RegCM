@@ -249,8 +249,10 @@ module mod_split
     call time_begin(subroutine_name,idindx)
 #endif
     rdx2 = d_one/dx2
-    deld(:,:,:,:) = d_zero
-    delh(:,:,:,:) = d_zero
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , n = 1:nsplit, l = 1:3 )
+      deld(j,i,n,l) = d_zero
+      delh(j,i,n,l) = d_zero
+    end do
     !
     ! compute pressure on dot grid
     !

@@ -190,6 +190,7 @@ module mod_moloch
 
   subroutine init_moloch
     implicit none
+    integer(ik4) :: i , j
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
     call assignpnt(mddom%msfx,mx)
@@ -248,8 +249,12 @@ module mod_moloch
     gzitak = gzita(zita)
     gzitakh = gzita(zitah)
     dzita = mo_dzita
-    wwkw(:,:,kzp1) = d_zero
-    w(:,:,1) = d_zero
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      wwkw(j,i,kzp1) = d_zero
+    end do
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      w(j,i,1) = d_zero
+    end do
     lrotllr = (iproj == 'ROTLLR')
 
     jmin = jcross1
@@ -277,7 +282,7 @@ module mod_moloch
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
     real(rkx) :: tv , lrt , fice
     !real(rk8) :: jday
-    integer(ik4) :: i , j , k , nadv
+    integer(ik4) :: i , j , k , n , nadv
     integer(ik4) :: iconvec
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
@@ -336,8 +341,10 @@ module mod_moloch
         tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
       end do
       if ( do_fulleq ) then
-        qwltot(:,:,:) = d_zero
-        qwitot(:,:,:) = d_zero
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          qwltot(j,i,k) = d_zero
+          qwitot(j,i,k) = d_zero
+        end do
       end if
     end if
 
@@ -346,25 +353,35 @@ module mod_moloch
     end do
 
     if ( idiag > 0 ) then
-      ten0 = t(jci1:jci2,ici1:ici2,:)
-      qen0 = qv(jci1:jci2,ici1:ici2,:)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        ten0(j,i,k) = t(j,i,k)
+        qen0(j,i,k) = qv(j,i,k)
+      end do
     end if
     if ( ichem == 1 ) then
       if ( ichdiag > 0 ) then
-        chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+          chiten0(j,i,k,n) = trac(j,i,k,n)
+        end do
       end if
     end if
 
     if ( do_filterpai ) then
-      pf = pai(jce1:jce2,ice1:ice2,:)
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        pf(j,i,k) = pai(j,i,k)
+      end do
     end if
     if ( do_fulleq ) then
       if ( do_filtertheta ) then
-        tf = tetav(jce1:jce2,ice1:ice2,:)
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          tf(j,i,k) = tetav(j,i,k)
+        end do
       end if
     end if
     if ( do_filterqv ) then
-      qf = qv(jce1:jce2,ice1:ice2,:)
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        qf(j,i,k) = qv(j,i,k)
+      end do
     end if
 
     do nadv = 1 , mo_nadv
@@ -376,16 +393,24 @@ module mod_moloch
     end do ! Advection loop
 
     if ( do_filterpai ) then
-      pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) - pf
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        pai(j,i,k) = pai(j,i,k) - pf(j,i,k)
+      end do
       call filtpai
-      pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        pai(j,i,k) = pai(j,i,k) + pf(j,i,k)
+      end do
     end if
 
     if ( do_fulleq ) then
       if ( do_filtertheta ) then
-        tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) - tf
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
+        end do
         call filttheta
-        tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
+        end do
       end if
     end if
 
@@ -411,13 +436,17 @@ module mod_moloch
     end if
 
     if ( idiag > 0 ) then
-      tdiag%adh = (t(jci1:jci2,ici1:ici2,:) - ten0) * rdt
-      qdiag%adh = (qv(jci1:jci2,ici1:ici2,:) - qen0) * rdt
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        tdiag%adh(j,i,k) = (t(j,i,k) - ten0(j,i,k)) * rdt
+        qdiag%adh(j,i,k) = (qv(j,i,k) - qen0(j,i,k)) * rdt
+      end do
     end if
 
     if ( ichem == 1 ) then
       if ( ichdiag > 0 ) then
-        cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+          cadvhdiag(j,i,k,n) = (trac(j,i,k,n) - chiten0(j,i,k,n)) * rdt
+        end do
       end if
     end if
 
@@ -556,12 +585,16 @@ module mod_moloch
           call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
         if ( idiag > 0 ) then
-          ten0 = t(jci1:jci2,ici1:ici2,:)
-          qen0 = qv(jci1:jci2,ici1:ici2,:)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            ten0(j,i,k) = t(j,i,k)
+            qen0(j,i,k) = qv(j,i,k)
+          end do
         end if
         if ( ichem == 1 ) then
           if ( ichdiag > 0 ) then
-            chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = trac(j,i,k,n)
+            end do
           end if
         end if
 
@@ -572,8 +605,10 @@ module mod_moloch
           call nudge(iboudy,qv,xqb)
           call nudge(iboudy,pai,xpaib)
           if ( idiag > 0 ) then
-            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
+              qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+            end do
           end if
           if ( is_present_qc( ) ) then
             call nudge(iboudy,qc,xlb)
@@ -584,7 +619,10 @@ module mod_moloch
           if ( ichem == 1 ) then
             call nudge_chi(trac)
             if ( ichdiag > 0 ) then
-              cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                              k = 1:kz, n = 1:ntr )
+                cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
+              end do
             end if
           end if
         else if ( iboudy == 4 ) then
@@ -600,8 +638,10 @@ module mod_moloch
             call sponge(qi,xib)
           end if
           if ( idiag > 0 ) then
-            tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
+              qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+            end do
           end if
         end if
       end subroutine boundary
@@ -1363,28 +1403,49 @@ module mod_moloch
 
       subroutine reset_tendencies
         implicit none
-        s(:,:,:) = d_zero
-        deltaw(:,:,:) = d_zero
-        zdiv2(:,:,:) = d_zero
-        mo_atm%tten(:,:,:) = d_zero
-        mo_atm%qxten(:,:,:,:) = d_zero
-        mo_atm%uten(:,:,:) = d_zero
-        mo_atm%vten(:,:,:) = d_zero
+        integer(ik4) :: i , j , k , n
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+          s(j,i,k) = d_zero
+        end do
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
+          deltaw(j,i,k) = d_zero
+        end do
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+          zdiv2(j,i,k) = d_zero
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          mo_atm%tten(j,i,k) = d_zero
+          mo_atm%uten(j,i,k) = d_zero
+          mo_atm%vten(j,i,k) = d_zero
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
+          mo_atm%qxten(j,i,k,n) = d_zero
+        end do
         if ( ichem == 1 ) then
-          mo_atm%chiten(:,:,:,:) = d_zero
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+            mo_atm%chiten(j,i,k,n) = d_zero
+          end do
         end if
         if ( ibltyp == 2 ) then
-          mo_atm%tketen(:,:,:) = d_zero
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+            mo_atm%tketen(j,i,k) = d_zero
+          end do
         end if
 
-        cldfra(:,:,:) = d_zero
-        cldlwc(:,:,:) = d_zero
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          cldfra(j,i,k) = d_zero
+          cldlwc(j,i,k) = d_zero
+        end do
 
         if ( idiag > 0 ) then
-          ten0 = t(jci1:jci2,ici1:ici2,1:kz)
-          qen0 = qv(jci1:jci2,ici1:ici2,1:kz)
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            ten0(j,i,k) = t(j,i,k)
+            qen0(j,i,k) = qv(j,i,k)
+          end do
           if ( ichem == 1 ) then
-            chiten0 = trac(jci1:jci2,ici1:ici2,1:kz,1:ntr)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = trac(j,i,k,n)
+            end do
           end if
         end if
       end subroutine reset_tendencies
@@ -1416,11 +1477,15 @@ module mod_moloch
 #endif
         if ( any(icup > 0) ) then
           if ( idiag > 0 ) then
-            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
           end if
           if ( ichem == 1 .and. ichdiag > 0 ) then
-            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            end do
           end if
           call cumulus
           if ( ichem == 1 ) then
@@ -1433,18 +1498,24 @@ module mod_moloch
             end if
           end if
           if ( idiag > 0 ) then
-            tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
           if ( ichem == 1 .and. ichdiag > 0 ) then
-            cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            end do
           end if
         else
           if ( any(icup < 0) ) then
             call shallow_convection
             if ( idiag > 0 ) then
-              tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-              qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+                qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+              end do
             end if
           end if
         end if
@@ -1455,8 +1526,10 @@ module mod_moloch
         !
         if ( ipptls > 0 ) then
           if ( idiag > 0 ) then
-            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
           end if
           ! Cumulus clouds
           if ( icldfrac /= 2 ) then
@@ -1465,14 +1538,18 @@ module mod_moloch
           ! Save cumulus cloud fraction for chemistry before it is
           ! overwritten in cldfrac
           if ( ichem == 1 ) then
-            convcldfra(:,:,:) = cldfra(:,:,:)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              convcldfra(j,i,k) = cldfra(j,i,k)
+            end do
           end if
           ! Clouds and large scale precipitation
           call cldfrac(cldlwc,cldfra)
           call microscheme
           if ( idiag > 0 ) then
-            tdiag%lsc = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%lsc = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
         end if
         !
@@ -1536,31 +1613,44 @@ module mod_moloch
         !
         if ( ibltyp > 0 ) then
           if ( idiag > 0 ) then
-            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
           end if
           if ( ichem == 1 .and. ichdiag > 0 ) then
-            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            end do
           end if
           call pblscheme
           if ( idiag > 0 ) then
-            tdiag%tbl = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%tbl = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
           if ( ichem == 1 .and. ichdiag > 0 ) then
-            ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+              ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            end do
           end if
         end if
         if ( ipptls == 1 ) then
           if ( idiag > 0 ) then
-            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
           end if
           call condtq
           if ( idiag > 0 ) then
-            tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%lsc = qdiag%lsc + &
-                 mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
+                mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
+                 mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
         end if
         !-------------------------------------------------------------

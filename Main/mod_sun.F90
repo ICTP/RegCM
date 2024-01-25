@@ -332,7 +332,9 @@ module mod_sun
     scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
 #ifdef RCEMIP
-      coszrs(:,:) = cos(degrad*42.05_rkx)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        coszrs(j,i) = cos(degrad*42.05_rkx)
+      end do
       eccf = 1.0_rkx
       declin = 0.0_rkx
       if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then

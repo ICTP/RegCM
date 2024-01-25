@@ -179,9 +179,15 @@ module mod_diffusion
         xkd(j,i,k) = diff_6th_coef * pd(j,i)
       end do
     else
-      xkc(:,:,:)  = d_zero
-      xkd(:,:,:)  = d_zero
-      xkcf(:,:,:) = d_zero
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        xkc(j,i,k)  = d_zero
+      end do
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+        xkd(j,i,k)  = d_zero
+      end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+        xkcf(j,i,k) = d_zero
+      end do
       !
       ! compute the horizontal diffusion coefficient and stored in xkc:
       ! the values are calculated at cross points, but they also used
@@ -226,7 +232,9 @@ module mod_diffusion
           end do
         end do
       end if
-      xkcf(:,:,1) = xkc(jci1:jci2,ici1:ici2,1)
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        xkcf(j,i,1) = xkc(j,i,1)
+      end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
         xkcf(j,i,k+1) = xkc(j,i,k)
       end do
