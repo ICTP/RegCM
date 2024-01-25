@@ -417,7 +417,7 @@ module mod_cmip6_mpilr
       end if
 
       tdif = idate - v%first_date
-      irec = nint((tohours(tdif)+12)/24) + 1
+      irec = int((tohours(tdif)+12)/24) + 1
 
       if ( irec > v%nrec ) then
         istatus = nf90_close(v%ncid)
