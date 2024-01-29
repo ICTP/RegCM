@@ -704,7 +704,9 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
-    qten(:,:,:,:) = d_zero
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz, n = 1:nqx )
+      qten(j,i,k,n) = d_zero
+    end do
     if ( idynamic == 3 ) then
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
         qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
@@ -1175,7 +1177,7 @@ module mod_pbl_holtbl
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zpbl = max(p2m%zpbl(j,i),m2p%za(j,i,kz))
+          zpbl = p2m%zpbl(j,i)
           fak1 = ustr(j,i)*zpbl*vonkar
           if ( lunstb(j,i) ) then
             xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
@@ -1185,57 +1187,58 @@ module mod_pbl_holtbl
           end if
           do k = kz , p2m%kpbl(j,i) , -1
             zm = m2p%za(j,i,k)
-            zp = m2p%za(j,i,k-1)
-            zp = min(zp,zpbl)
-            z = (zm+zp)*d_half
-            zh = z/zpbl
-            zl = z/obklen(j,i)
-            term = max(d_one-zh,d_zero)
-            zzh = zh*term**pink
-            zzhnew = zh*zhnew_fac*term
-            zzhnew2 = zh*(zhnew_fac*term)**pink
-            if ( lunstb(j,i) ) then
-              ! Convective velocity scale
-              wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
-              fak3 = fakn*wstr/wsc
-              if ( zh < sffrac ) then
-                term = (d_one-betam*zl)**onet
-                pblk = fak1*zzh*term
-                pblk1 = fak1*zzhnew*term
-                pblk2 = fak1*zzhnew2*term
-                pr = term/sqrt(d_one-betah*zl)
+            if ( zm < zpbl ) then
+              zp = m2p%za(j,i,k-1)
+              zp = min(zp,zpbl)
+              z = (zm+zp)*d_half
+              zh = z/zpbl
+              zl = z/obklen(j,i)
+              term = max(d_one-zh,d_zero)
+              zzh = zh*term**pink
+              zzhnew = zh*zhnew_fac*term
+              zzhnew2 = zh*(zhnew_fac*term)**pink
+              if ( lunstb(j,i) ) then
+                ! Convective velocity scale
+                wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
+                fak3 = fakn*wstr/wsc
+                if ( zh < sffrac ) then
+                  term = (d_one-betam*zl)**onet
+                  pblk = fak1*zzh*term
+                  pblk1 = fak1*zzhnew*term
+                  pblk2 = fak1*zzhnew2*term
+                  pr = term/sqrt(d_one-betah*zl)
+                else
+                  pblk = fak2*zzh
+                  pblk1 = fak2*zzhnew
+                  pblk2 = fak2*zzhnew2
+                  ! compute counter gradient term
+                  pr = (xfmt/xfht) + ccon*fak3/fak
+                  cgs(j,i,k) = fak3/(zpbl*wsc)
+                  cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+               end if
               else
-                pblk = fak2*zzh
-                pblk1 = fak2*zzhnew
-                pblk2 = fak2*zzhnew2
-                ! compute counter gradient term
-                pr = (xfmt/xfht) + ccon*fak3/fak
-                cgs(j,i,k) = fak3/(zpbl*wsc)
-                cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+                if ( zl < d_one ) then
+                  pblk = fak1*zzh/(d_one+betas*zl)
+                  pblk1 = fak1*zzhnew/(d_one+betas*zl)
+                  pblk2 = fak1*zzhnew2/(d_one+betas*zl)
+                else
+                  pblk = fak1*zzh/(betas+zl)
+                  pblk1 = fak1*zzhnew/(betas+zl)
+                  pblk2 = fak1*zzhnew2/(betas+zl)
+                end if
+                pr = 1.0_rkx
               end if
-            else
-              if ( zl < d_one ) then
-                pblk = fak1*zzh/(d_one+betas*zl)
-                pblk1 = fak1*zzhnew/(d_one+betas*zl)
-                pblk2 = fak1*zzhnew2/(d_one+betas*zl)
-              else
-                pblk = fak1*zzh/(betas+zl)
-                pblk1 = fak1*zzhnew/(betas+zl)
-                pblk2 = fak1*zzhnew2/(betas+zl)
+              ! compute eddy diffusivities
+              kvm(j,i,k) = max(pblk,kvm(j,i,k))
+              kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
+              kvq(j,i,k) = max(pblk1,kvq(j,i,k))
+              if ( ichem == 1 ) then
+                kvc(j,i,k) = max(pblk2,kvc(j,i,k))
               end if
-              pr = 1.0_rkx
-            end if
-            ! compute eddy diffusivities
-            kvm(j,i,k) = max(pblk,kvm(j,i,k))
-            kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
-            kvq(j,i,k) = max(pblk1,kvq(j,i,k))
-            if ( ichem == 1 ) then
-              kvc(j,i,k) = max(pblk2,kvc(j,i,k))
             end if
           end do
         end do
       end do
-
     end subroutine blhnew
 
     pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)

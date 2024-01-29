@@ -175,7 +175,7 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1),rkx)/kz))*mo_anu2
+      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1),rkx)/kz))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -728,7 +728,7 @@ module mod_moloch
                          d_half   * zdiv2(j,i,k)
           end do
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            zdiv2(j,i,k) = zdiv2(j,i,k) + xknu(k) * p2d(j,i)
+            zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
           end do
         end do
       end subroutine divergence_filter
@@ -1212,7 +1212,7 @@ module mod_moloch
               zdv = -s(j,i,2) * zrfmd * wz(j,i,1)
               wz(j,i,1) = wz(j,i,1) + wfw(j,2) * zrfmd + zdv
             end do
-            do k = 2 , kz
+            do k = 1 , kz
               do j = jci1 , jci2
                 zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
                 zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)

@@ -359,7 +359,10 @@ module mod_constants
 
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
-  real(rkx) , parameter :: ocn_sfcemiss = 1.000_rkx
+  ! Nasa numbers
+  ! Monitoring surface climate with its emissivity derived from satellite
+  ! measurements, Daniel K. Zhou, Allen M. Larar, and Xu Liu
+  real(rkx) , parameter :: ocn_sfcemiss = 0.990_rkx
   real(rkx) , parameter :: ice_sfcemiss = 0.982_rkx
 
   ! Constants used in Kain-Fritsch and WSM5
