@@ -716,7 +716,7 @@ module mod_rad_colmod3
         kabs = kabsl*(1.0_rkx-rt%fice(n,k)) + (kabsi*rt%fice(n,k))
         ! cloud emissivity (fraction)
         arg = min(1.66_rkx*kabs*rt%clwp(n,k),25.0_rkx)
-        cldemis = max(1.0_rkx - exp(-arg),0.01_rkx)
+        cldemis = max(1.0_rkx - exp(-arg),0.0001_rkx)
         ! Effective cloud cover
         rt%effcld(n,k) = rt%cld(n,k)*cldemis
       end do

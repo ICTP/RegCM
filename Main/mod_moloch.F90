@@ -111,6 +111,11 @@ module mod_moloch
 #ifdef RCEMIP
   logical , parameter :: do_diffutend    = .false.
 #endif
+  logical , parameter :: do_convection    = .true.
+  logical , parameter :: do_microphysics  = .true.
+  logical , parameter :: do_radiation     = .true.
+  logical , parameter :: do_surface       = .true.
+  logical , parameter :: do_pbl           = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -175,7 +180,7 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real((k-1),rkx)/kz))
+      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -863,8 +868,7 @@ module mod_moloch
 
           if ( do_divdamp ) then
             do concurrent ( k = 1:kz )
-              zprof(k) = (ddamp + (1.0_rkx-ddamp)*xknu(k)) * &
-                      0.125_rkx*(dx**2)/dtsound
+              zprof(k) = xknu(k)*ddamp*0.125_rkx*(dx**2)/dtsound
             end do
             call divdamp
           end if
@@ -1489,47 +1493,51 @@ module mod_moloch
           end do
         end do
 #endif
-        if ( any(icup > 0) ) then
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              ten0(j,i,k) = mo_atm%tten(j,i,k)
-              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-            end do
-          end if
-          if ( ichem == 1 .and. ichdiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
-            end do
-          end if
-          call cumulus
-          if ( ichem == 1 ) then
-            if ( ichcumtra == 1 ) then
-              if ( debug_level > 3 .and. myid == italk ) then
-                write(stdout,*) 'Calling cumulus transport at ', &
-                           trim(rcmtimer%str())
-              end if
-              call cumtran(trac)
+        if ( do_convection ) then
+          if ( any(icup > 0) ) then
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                ten0(j,i,k) = mo_atm%tten(j,i,k)
+                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+              end do
             end if
-          end if
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-              qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-            end do
-          end if
-          if ( ichem == 1 .and. ichdiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
-            end do
-          end if
-        else
-          if ( any(icup < 0) ) then
-            call shallow_convection
+            if ( ichem == 1 .and. ichdiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                              k = 1:kz, n = 1:ntr )
+                chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+              end do
+            end if
+            call cumulus
+            if ( ichem == 1 ) then
+              if ( ichcumtra == 1 ) then
+                if ( debug_level > 3 .and. myid == italk ) then
+                  write(stdout,*) 'Calling cumulus transport at ', &
+                             trim(rcmtimer%str())
+                end if
+                call cumtran(trac)
+              end if
+            end if
             if ( idiag > 0 ) then
               do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
                 qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
               end do
+            end if
+            if ( ichem == 1 .and. ichdiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                              k = 1:kz, n = 1:ntr )
+                cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+              end do
+            end if
+          else
+            if ( any(icup < 0) ) then
+              call shallow_convection
+              if ( idiag > 0 ) then
+                do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                  tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+                  qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+                end do
+              end if
             end if
           end if
         end if
@@ -1538,32 +1546,34 @@ module mod_moloch
         ! Large scale precipitation microphysical schemes
         !------------------------------------------------
         !
-        if ( ipptls > 0 ) then
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              ten0(j,i,k) = mo_atm%tten(j,i,k)
-              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-            end do
-          end if
-          ! Cumulus clouds
-          if ( icldfrac /= 2 ) then
-            call cucloud
-          end if
-          ! Save cumulus cloud fraction for chemistry before it is
-          ! overwritten in cldfrac
-          if ( ichem == 1 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              convcldfra(j,i,k) = cldfra(j,i,k)
-            end do
-          end if
-          ! Clouds and large scale precipitation
-          call cldfrac(cldlwc,cldfra)
-          call microscheme
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-              qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-            end do
+        if ( do_microphysics ) then
+          if ( ipptls > 0 ) then
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                ten0(j,i,k) = mo_atm%tten(j,i,k)
+                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+              end do
+            end if
+            ! Cumulus clouds
+            if ( icldfrac /= 2 ) then
+              call cucloud
+            end if
+            ! Save cumulus cloud fraction for chemistry before it is
+            ! overwritten in cldfrac
+            if ( ichem == 1 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                convcldfra(j,i,k) = cldfra(j,i,k)
+              end do
+            end if
+            ! Clouds and large scale precipitation
+            call cldfrac(cldlwc,cldfra)
+            call microscheme
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+                qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+              end do
+            end if
           end if
         end if
         !
@@ -1571,100 +1581,111 @@ module mod_moloch
         !       Call radiative transfer package
         !------------------------------------------------
         !
-        if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
-          if ( debug_level > 3 .and. myid == italk ) then
-            write(stdout,*) &
-              'Calling radiative transfer at ',trim(rcmtimer%str())
-          end if
-          ! calculate albedo
-          call surface_albedo
-          if ( iclimao3 == 1 ) then
-            call updateo3(rcmtimer%idate,scenario)
-          end if
-          if ( iclimaaer == 1 ) then
-            call updateaerosol(rcmtimer%idate)
-          else if ( iclimaaer == 2 ) then
-            call updateaeropp(rcmtimer%idate)
-          else if ( iclimaaer == 3 ) then
-            call updateaeropp_cmip6(rcmtimer%idate)
-          end if
-          loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-          labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
-          if ( debug_level > 3 .and. myid == italk ) then
-            if ( labsem ) then
-              write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+        if ( do_radiation ) then
+          if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+            if ( debug_level > 3 .and. myid == italk ) then
+              write(stdout,*) &
+                'Calling radiative transfer at ',trim(rcmtimer%str())
             end if
-            if ( loutrad ) then
-              write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
+            ! calculate albedo
+            call surface_albedo
+            if ( iclimao3 == 1 ) then
+              call updateo3(rcmtimer%idate,scenario)
             end if
+            if ( iclimaaer == 1 ) then
+              call updateaerosol(rcmtimer%idate)
+            else if ( iclimaaer == 2 ) then
+              call updateaeropp(rcmtimer%idate)
+            else if ( iclimaaer == 3 ) then
+              call updateaeropp_cmip6(rcmtimer%idate)
+            end if
+            loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
+            labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+            if ( debug_level > 3 .and. myid == italk ) then
+              if ( labsem ) then
+                write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+              end if
+              if ( loutrad ) then
+                write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
+              end if
+            end if
+            call radiation(rcmtimer%year,rcmtimer%month, &
+                           rcmtimer%day,loutrad,labsem)
           end if
-          call radiation(rcmtimer%year,rcmtimer%month, &
-                         rcmtimer%day,loutrad,labsem)
+          !
+          ! Add radiative transfer package-calculated heating rates to
+          ! temperature tendency (deg/sec)
+          !
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
+          end do
+          if ( idiag > 0 ) tdiag%rad = heatrt
         end if
-        !
-        ! Add radiative transfer package-calculated heating rates to
-        ! temperature tendency (deg/sec)
-        !
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
-        end do
-        if ( idiag > 0 ) tdiag%rad = heatrt
         !
         !------------------------------------------------
         !            Call Surface model
         !------------------------------------------------
         !
-        if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
-          if ( debug_level > 3 .and. myid == italk ) then
-            write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+        if ( do_surface ) then
+          if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
+            if ( debug_level > 3 .and. myid == italk ) then
+              write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+            end if
+            call surface_model
           end if
-          call surface_model
         end if
         !
         !------------------------------------------------
         !             Call PBL scheme
         !------------------------------------------------
         !
-        if ( ibltyp > 0 ) then
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              ten0(j,i,k) = mo_atm%tten(j,i,k)
-              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-            end do
-          end if
-          if ( ichem == 1 .and. ichdiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
-            end do
-          end if
-          call pblscheme
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-              qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-            end do
-          end if
-          if ( ichem == 1 .and. ichdiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
-            end do
+        if ( do_pbl ) then
+          if ( ibltyp > 0 ) then
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                ten0(j,i,k) = mo_atm%tten(j,i,k)
+                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+              end do
+            end if
+            if ( ichem == 1 .and. ichdiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                              k = 1:kz, n = 1:ntr )
+                chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+              end do
+            end if
+            call pblscheme
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+                qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+              end do
+            end if
+            if ( ichem == 1 .and. ichdiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                              k = 1:kz, n = 1:ntr )
+                ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+              end do
+            end if
           end if
         end if
-        if ( ipptls == 1 ) then
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              ten0(j,i,k) = mo_atm%tten(j,i,k)
-              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-            end do
-          end if
-          call condtq
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
-                mo_atm%tten(j,i,k) - ten0(j,i,k)
-              qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
-                 mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-            end do
+
+        if ( do_microphysics ) then
+          if ( ipptls == 1 ) then
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                ten0(j,i,k) = mo_atm%tten(j,i,k)
+                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+              end do
+            end if
+            call condtq
+            if ( idiag > 0 ) then
+              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+                tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
+                  mo_atm%tten(j,i,k) - ten0(j,i,k)
+                qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
+                   mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+              end do
+            end if
           end if
         end if
         !-------------------------------------------------------------
@@ -1916,20 +1937,20 @@ module mod_moloch
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 zprof(k)/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 zprof(k)/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do

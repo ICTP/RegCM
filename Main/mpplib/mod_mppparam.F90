@@ -19524,44 +19524,11 @@ module mod_mppparam
       u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
                  0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
     end do
-    if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi2,i,k) = 1.03125_rkx * ux(jci2,i,k) - &
-                        0.03125_rkx * ux(jcii2,i,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi1,i,k) = 1.03125_rkx * ux(jci1,i,k) - &
-                        0.03125_rkx * ux(jcii1,i,k)
-        end do
-      end do
-    end if
-
     ! Back to wind points: V (fourth order)
     do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
       v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
                  0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
     end do
-    if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi2,k) = 1.03125_rkx * vx(j,ici2,k) - &
-                        0.03125_rkx * vx(j,icii2,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi1,k) = 1.03125_rkx * vx(j,ici1,k) - &
-                        0.03125_rkx * vx(j,icii1,k)
-        end do
-      end do
-    end if
   end subroutine tenxtouvten
   !
   ! Takes u and v tendencies on the cross grid (as t, qv, qc, etc.)
