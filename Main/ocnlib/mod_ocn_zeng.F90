@@ -111,7 +111,7 @@ module mod_ocn_zeng
       q995 = qv(i)
       z995 = ht(i)
       tsurf = tgrd(i)
-      rlv = wlh(tatm(i))
+      rlv = wlh(tsurf)
       cpm = cpd*(d_one-q995) + cpv*q995
       zi = hpbl(i)
       zu = z995
@@ -459,7 +459,7 @@ module mod_ocn_zeng
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
-      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
+      um10(i) = um10(i)*wt1 + uv10*wt2
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
       facttq = log(z995*0.5_rkx)/log(z995/zo)

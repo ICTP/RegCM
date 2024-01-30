@@ -1111,13 +1111,15 @@ module mod_moloch
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: dtrdx , dtrdy , dtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
-        real(rkx) :: pfm
+        real(rkx) :: pfm , xw1 , xw2
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
         dtrdx = dta/dx
         dtrdy = dta/dx
         dtrdz = dta/dzita
+        xw2 = dta/dtsec
+        xw1 = 1.0_rkx - xw2
         if ( do_vadvtwice ) then
           dtrdz = 0.5_rkx * dtrdz
         end if
@@ -1140,17 +1142,6 @@ module mod_moloch
           wfw(j,1) = d_zero
           wfw(j,kzp1) = d_zero
         end do
-
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice1,k) = 0.5_rkx * (pp(j,ice1,k)+pp(j,ici1,k))
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice2,k) = 0.5_rkx * (pp(j,ice2,k)+pp(j,ici2,k))
-          end do
-        end if
 
         do i = ici1 , ici2
           do k = 1 , kzm1
@@ -1223,23 +1214,22 @@ module mod_moloch
           end do
         end if
 
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            wz(j,ice1,k) = xw1 * pp(j,ice1,k) + xw2 * wz(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            wz(j,ice2,k) = xw1 * pp(j,ice2,k) + xw2 * wz(j,ici2,k)
+          end do
+        end if
+
         if ( present(pmin) ) then
           wz = max(wz,pfm)
         end if
 
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
-
-        if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce1,i,k) = 0.5_rkx * (pp(jce1,i,k)+pp(jci1,i,k))
-          end do
-        end if
-
-        if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            p0(jce2,i,k) = 0.5_rkx * (pp(jce2,i,k)+pp(jci2,i,k))
-          end do
-        end if
 
         if ( lrotllr ) then
 
@@ -1275,6 +1265,18 @@ module mod_moloch
               end do
             end do
           end do
+
+          if ( ma%has_bdyleft ) then
+            do concurrent ( i = ici1:ici2, k = 1:kz )
+              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+            end do
+          end if
+
+          if ( ma%has_bdyright ) then
+            do concurrent ( i = ici1:ici2, k = 1:kz )
+              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+            end do
+          end if
 
           if ( present(pmin) ) then
             p0 = max(p0,pfm)
@@ -1349,6 +1351,18 @@ module mod_moloch
               end do
             end do
           end do
+
+          if ( ma%has_bdyleft ) then
+            do concurrent ( i = ici1:ici2, k = 1:kz )
+              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+            end do
+          end if
+
+          if ( ma%has_bdyright ) then
+            do concurrent ( i = ici1:ici2, k = 1:kz )
+              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+            end do
+          end if
 
           if ( present(pmin) ) then
             p0 = max(p0,pfm)

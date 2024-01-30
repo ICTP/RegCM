@@ -2021,8 +2021,6 @@ module mod_bdycod
       ! determine QV boundary values depends on inflow/outflow:
       !
       if ( idynamic == 3 ) then
-!$acc wait(2) if(ma%has_bdyleft .or. ma%has_bdyright&
-!$acc& .or. ma%has_bdybottom .or. ma%has_bdytop)
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
@@ -2453,9 +2451,6 @@ module mod_bdycod
       end if
     end if
 
-!$acc update device(mo_atm%t, mo_atm%qx, mo_atm%pai) async(2) if(ma%has_bdyleft&
-!$acc .or. ma%has_bdyright .or. ma%has_bdybottom .or. ma%has_bdytop)
-
     if ( ibltyp == 2 ) then
       if ( idynamic == 3 ) then
         if ( rcmtimer%start( ) ) then
@@ -2723,8 +2718,6 @@ module mod_bdycod
         call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
       end if
     end if
-
-!$acc wait(2)
 
     xbctime = xbctime + dtsec
 
@@ -5241,10 +5234,8 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j
-    do i = i1 , i2
-      do j = j1 , j2
-        c(j,i) = (a(j,i)-b(j,i))*rdtb
-      end do
+    do concurrent ( j = j1:j2, i = i1:i2 )
+      c(j,i) = (a(j,i)-b(j,i))*rdtb
     end do
   end subroutine timeint2
 
@@ -5255,12 +5246,8 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: i , j , k
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtb
-        end do
-      end do
+    do concurrent ( j = j1:j2, i = i1:i2, k = k1:k2 )
+      c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtb
     end do
   end subroutine timeint3
 

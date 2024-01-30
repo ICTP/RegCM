@@ -28,7 +28,7 @@ module mod_pbl_holtbl
   use mod_constants
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
         ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter , &
-        ipptls , iqc , iqi , dsigma , nqx
+        ipptls , iqc , iqi , dsigma
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -52,7 +52,9 @@ module mod_pbl_holtbl
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2 , cfac , vv
   real(rkx) , pointer , dimension(:,:,:) :: kzm , ttnp
-  real(rkx) , pointer , dimension(:,:,:,:) :: qten
+  real(rkx) , pointer , dimension(:,:,:) :: qtenv
+  real(rkx) , pointer , dimension(:,:,:) :: qtenc
+  real(rkx) , pointer , dimension(:,:,:) :: qteni
   real(rkx) , pointer , dimension(:,:) :: uvdrage
   real(rkx) , pointer , dimension(:,:,:) :: hydf
 
@@ -91,7 +93,11 @@ module mod_pbl_holtbl
     call getmem3d(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem3d(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
     call getmem3d(kzm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kzm')
-    call getmem4d(qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'mod_holtbl:qten')
+    call getmem3d(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
+    call getmem3d(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
+    if ( ipptls > 1 ) then
+      call getmem3d(qteni,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qteni')
+    end if
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
@@ -111,8 +117,8 @@ module mod_pbl_holtbl
     call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
-    call getmem3d(alphak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:alphak')
-    call getmem3d(betak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:betak')
+    call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
+    call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
     call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
     call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
     call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
@@ -704,17 +710,16 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz, n = 1:nqx )
-      qten(j,i,k,n) = d_zero
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      qtenv(j,i,k) = d_zero
     end do
     if ( idynamic == 3 ) then
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-        qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
+        qtenv(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
       end do
     else
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-        qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))* &
-                           rdt*m2p%psb(j,i)
+        qtenv(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
       end do
     end if
     !
@@ -768,14 +773,16 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      qtenc(j,i,k) = d_zero
+    end do
     if ( idynamic == 3 ) then
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-        qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
+        qtenc(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
       end do
     else
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-        qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))* &
-                        rdt*m2p%psb(j,i)
+        qtenc(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
       end do
     end if
 
@@ -824,14 +831,16 @@ module mod_pbl_holtbl
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qteni(j,i,k) = d_zero
+      end do
       if ( idynamic == 3 ) then
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
+          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
         end do
       else
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))* &
-                             rdt*m2p%psb(j,i)
+          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt*m2p%psb(j,i)
         end do
       end if
     end if
@@ -871,19 +880,25 @@ module mod_pbl_holtbl
       !   compute the tendencies:
       !
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzm1 )
-        qten(j,i,k,iqv) = qten(j,i,k,iqv) + (ttnp(j,i,k+1)-ttnp(j,i,k))
+        qtenv(j,i,k) = qtenv(j,i,k) + (ttnp(j,i,k+1)-ttnp(j,i,k))
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-        qten(j,i,kz,iqv) = qten(j,i,kz,iqv) - ttnp(j,i,kz)
+        qtenv(j,i,kz) = qtenv(j,i,kz) - ttnp(j,i,kz)
       end do
     end if
 
 #ifdef RCEMIP
-    call force_water_conserve(qten,m2p%qxatm,xqfx)
+    call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx)
 #endif
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
-      p2m%qxten(j,i,k,n) = p2m%qxten(j,i,k,n) + qten(j,i,k,n)
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
+      p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + qtenc(j,i,k)
     end do
+    if ( ipptls > 1 ) then
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + qteni(j,i,k)
+      end do
+    end if
 
     if ( ichem == 1 ) then
       !
@@ -1034,7 +1049,7 @@ module mod_pbl_holtbl
             tlv = thv10(j,i)
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
-            do k = kzm1 , kmxpbl(j,i) , -1
+            do k = kz , kmxpbl(j,i) , -1
               zkv = m2p%za(j,i,k)
               tkv = thvx(j,i,k)
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
@@ -1047,7 +1062,7 @@ module mod_pbl_holtbl
       else
         do i = ici1 , ici2
           do j = jci1 , jci2
-            do k = kzm1 , kmxpbl(j,i) , -1
+            do k = kz , kmxpbl(j,i) , -1
               ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
                           (thv10(j,i)*vv(j,i,k))
               ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
@@ -1055,11 +1070,27 @@ module mod_pbl_holtbl
           end do
         end do
       end if
-      ! looking for bl top
+
+      ! looking for first guess bl top
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%zpbl(j,i) = m2p%za(j,i,kz)
-          do k = kzm1 , kmxpbl(j,i) + 1 , -1
+          ! BL height is at least the mechanical mixing depth
+          ! PBL height must be greater than some minimum mechanical mixing depth
+          ! Several investigators have proposed minimum mechanical mixing depth
+          ! relationships as a function of the local friction velocity, u*.  We
+          ! make use of a linear relationship of the form h = c u* where c=700.
+          ! The scaling arguments that give rise to this relationship most often
+          ! represent the coefficient c as some constant over the local coriolis
+          ! parameter.  Here we make use of the experimental results of Koracin
+          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+          ! latitude value for f so that c = 0.07/f = 700.
+          !phpblm = 700.0_rkx*ustr(j,i)
+          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
+          if ( p2m%zpbl(j,i) < phpblm ) then
+            p2m%zpbl(j,i) = phpblm
+          end if
+          do k = kz , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
@@ -1070,6 +1101,7 @@ module mod_pbl_holtbl
           end do
         end do
       end do
+
       ! recompute richardson no. at lowest model level
       if ( idynamic == 3 ) then
         do i = ici1 , ici2
@@ -1144,25 +1176,9 @@ module mod_pbl_holtbl
         end do
       end do
 
+      ! Find the k of the level of the pbl
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! BL height is at least the mechanical mixing depth
-          ! PBL height must be greater than some minimum mechanical mixing depth
-          ! Several investigators have proposed minimum mechanical mixing depth
-          ! relationships as a function of the local friction velocity, u*.  We
-          ! make use of a linear relationship of the form h = c u* where c=700.
-          ! The scaling arguments that give rise to this relationship most often
-          ! represent the coefficient c as some constant over the local coriolis
-          ! parameter.  Here we make use of the experimental results of Koracin
-          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
-          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
-          ! latitude value for f so that c = 0.07/f = 700.
-          !phpblm = 700.0_rkx*ustr(j,i)
-          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
-          if ( p2m%zpbl(j,i) < phpblm ) then
-            p2m%zpbl(j,i) = phpblm
-          end if
-          ! Find the k of the level of the pbl
           do k = kz, kmxpbl(j,i) , -1
             p2m%kpbl(j,i) = k
             if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
@@ -1247,34 +1263,68 @@ module mod_pbl_holtbl
       obk = - thvs * ustar**3 / (gvk*bfs+sign(1.0e-10_rkx,bfs))
     end function comp_obklen
 
-    subroutine force_water_conserve(tend,start,sflux)
+    subroutine force_water_conserve(tendv,tendc,tendi,start,sflux)
       implicit none
-      real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: tend
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendv
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendc
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendi
       real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
       real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux
       real(rkx) , dimension(kz) :: qi , qf
       real(rkx) :: sqtoti , sqtotf
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i , j , k
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do n = 1 , nqx
-            qi(1:kz) = start(j,i,1:kz,n)
-            qf(1:kz) = qi(1:kz) + tend(j,i,1:kz,n) * dt
+          qi(1:kz) = start(j,i,1:kz,iqv)
+          qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
+          if ( idynamic /= 3 ) then
+            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
+            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
+          end if
+          sqtoti = sum(qi)
+          sqtotf = sum(qf)
+          sqtoti = sqtoti + sflux(j,i)
+          if ( abs(sqtotf-sqtoti) > minqq ) then
+            k = maxloc(qi,1)
+            tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
+          end if
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          qi(1:kz) = start(j,i,1:kz,iqc)
+          qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
+          if ( idynamic /= 3 ) then
+            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
+            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
+          end if
+          sqtoti = sum(qi)
+          sqtotf = sum(qf)
+          if ( abs(sqtotf-sqtoti) > minqq ) then
+            k = maxloc(qi,1)
+            tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
+          end if
+        end do
+      end do
+      if ( ipptls > 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qi(1:kz) = start(j,i,1:kz,iqi)
+            qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
             if ( idynamic /= 3 ) then
               qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
               qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
             end if
             sqtoti = sum(qi)
             sqtotf = sum(qf)
-            if ( n == iqv ) sqtoti = sqtoti + sflux(j,i)
             if ( abs(sqtotf-sqtoti) > minqq ) then
               k = maxloc(qi,1)
-              tend(j,i,k,n) = tend(j,i,k,n) + (sqtoti-sqtotf) * rdt
+              tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
             end if
           end do
         end do
-      end do
+      end if
     end subroutine force_water_conserve
 
   end subroutine holtbl
