@@ -28,7 +28,7 @@ module mod_pbl_holtbl
   use mod_constants
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
         ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter , &
-        ipptls , iqc , iqi , dsigma , nqx
+        ipptls , iqc , iqi , dsigma
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -52,7 +52,9 @@ module mod_pbl_holtbl
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2 , cfac , vv
   real(rkx) , pointer , dimension(:,:,:) :: kzm , ttnp
-  real(rkx) , pointer , dimension(:,:,:,:) :: qten
+  real(rkx) , pointer , dimension(:,:,:) :: qtenv
+  real(rkx) , pointer , dimension(:,:,:) :: qtenc
+  real(rkx) , pointer , dimension(:,:,:) :: qteni
   real(rkx) , pointer , dimension(:,:) :: uvdrage
   real(rkx) , pointer , dimension(:,:,:) :: hydf
 
@@ -91,7 +93,11 @@ module mod_pbl_holtbl
     call getmem3d(vv,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:vv')
     call getmem3d(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
     call getmem3d(kzm,jci1,jci2,ici1,ici2,2,kz,'mod_holtbl:kzm')
-    call getmem4d(qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'mod_holtbl:qten')
+    call getmem3d(qtenv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenv')
+    call getmem3d(qtenc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qtenc')
+    if ( ipptls > 1 ) then
+      call getmem3d(qteni,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:qteni')
+    end if
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
@@ -111,8 +117,8 @@ module mod_pbl_holtbl
     call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
     call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
     call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
-    call getmem3d(alphak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:alphak')
-    call getmem3d(betak,jdi1,jdi2,idi1,idi2,1,kz,'mod_holtbl:betak')
+    call getmem3d(alphak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:alphak')
+    call getmem3d(betak,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:betak')
     call getmem3d(coef1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef1')
     call getmem3d(coef2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef2')
     call getmem3d(coef3,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coef3')
@@ -135,7 +141,7 @@ module mod_pbl_holtbl
     type(pbl_2_mod) , intent(inout) :: p2m
     real(rkx) :: drgdot , kzmax , rin , uu , n2 , ss , dudz , dvdz , &
       uflxsf , uflxsfx , vflxsf , vflxsfx , fofri , rrho , oblen , sh10
-    integer(ik4) :: i , j , k , itr , iter
+    integer(ik4) :: i , j , k , n , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
     integer(ik4) , save :: idindx = 0
@@ -145,14 +151,10 @@ module mod_pbl_holtbl
     ! density at surface is stored in rhox2d
     ! the full level density is stored in rhohf.
     !
-    do k = 1 , kzm1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          dza(j,i,k) = m2p%za(j,i,k) - m2p%za(j,i,k+1)
-          rhohf(j,i,k) = (m2p%patm(j,i,k+1)-m2p%patm(j,i,k)) / &
-                         (egrav*dza(j,i,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzm1 )
+      dza(j,i,k) = m2p%za(j,i,k) - m2p%za(j,i,k+1)
+      rhohf(j,i,k) = (m2p%patm(j,i,k+1)-m2p%patm(j,i,k)) / &
+                     (egrav*dza(j,i,k))
     end do
     !
     ! Compute the g/dp term
@@ -234,29 +236,21 @@ module mod_pbl_holtbl
     ! Initialize bl diffusion coefficients and counter-gradient terms
     ! with free atmosphere values
     !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! eddy diffusivities for momentum, heat and moisture
-          kvm(j,i,k) = kzm(j,i,k)
-          kvh(j,i,k) = kzm(j,i,k)
-          kvq(j,i,k) = kzm(j,i,k)
-          if ( ichem == 1 ) then
-            kvc(j,i,k) = kzm(j,i,k)
-          end if
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      ! eddy diffusivities for momentum, heat and moisture
+      kvm(j,i,k) = kzm(j,i,k)
+      kvh(j,i,k) = kzm(j,i,k)
+      kvq(j,i,k) = kzm(j,i,k)
+      if ( ichem == 1 ) then
+        kvc(j,i,k) = kzm(j,i,k)
+      end if
     end do
     !
     ! counter gradient terms for heat and moisture
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          cgs(j,i,k) = 0.0_rkx
-          cgh(j,i,k) = 0.0_rkx
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      cgs(j,i,k) = 0.0_rkx
+      cgh(j,i,k) = 0.0_rkx
     end do
     !
     ! estimate potential temperature at 10m via log temperature
@@ -317,25 +311,15 @@ module mod_pbl_holtbl
 
     call blhnew( )
 
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          akzz2(j,i,k) = hydf(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      akzz2(j,i,k) = hydf(j,i,k)
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        uvdrage(j,i) = m2p%uvdrag(j,i)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      uvdrage(j,i) = m2p%uvdrag(j,i)
     end do
 
     call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
@@ -346,19 +330,11 @@ module mod_pbl_holtbl
       !
       !   calculate coefficients at dot points for u
       !
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jdii1 , jdii2
-            betak(j,i,k) = 0.5_rkx * (akzz1(j-1,i,k)+akzz1(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 , k = 2:kz )
+        betak(j,i,k) = 0.5_rkx * (akzz1(j-1,i,k)+akzz1(j,i,k))
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jdii1 , jdii2
-            alphak(j,i,k) = 0.5_rkx * (akzz2(j-1,i,k)+akzz2(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 , k = 1:kz )
+        alphak(j,i,k) = 0.5_rkx * (akzz2(j-1,i,k)+akzz2(j,i,k))
       end do
       !
       ! start now procedure for implicit diffusion calculations
@@ -374,29 +350,25 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
-      do i = ici1 , ici2
-        do j = jdii1 , jdii2
-          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-          coef3(j,i,1) = d_zero
-          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
       end do
 
       ! top to bottom
       do k = 2 , kz - 1
-        do i = ici1 , ici2
-          do j = jdii1 , jdii2
-            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-            coefe(j,i,k) = coef1(j,i,k)/ &
+        do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
+          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1(j,i,k)/ &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-            coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
+          coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
                     coef3(j,i,k)*coeff1(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          end do
         end do
       end do
 
@@ -418,47 +390,31 @@ module mod_pbl_holtbl
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-      do i = ici1 , ici2
-        do j = jdii1 , jdii2
-          tpred1(j,i,kz) = coeff1(j,i,kz)
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
+        tpred1(j,i,kz) = coeff1(j,i,kz)
       end do
 
       do k = kz - 1 , 1 , -1
-        do i = ici1 , ici2
-          do j = jdii1 , jdii2
-            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-          end do
+        do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
+          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jdii1 , jdii2
-            p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+      do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 , k = 1:kz )
+        p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
                           (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt
-          end do
-        end do
       end do
       !
       !   calculate coefficients at dot points for v wind
       !
-      do k = 2 , kz
-        do i = idii1 , idii2
-          do j = jci1 , jci2
-            betak(j,i,k) = 0.5_rkx * (akzz1(j,i-1,k)+akzz1(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = idii1:idii2 , k = 2:kz )
+        betak(j,i,k) = 0.5_rkx * (akzz1(j,i-1,k)+akzz1(j,i,k))
       end do
-      do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jci1 , jci2
-            alphak(j,i,k) = 0.5_rkx * (akzz2(j,i-1,k)+akzz2(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = idii1:idii2 , k = 1:kz )
+        alphak(j,i,k) = 0.5_rkx * (akzz2(j,i-1,k)+akzz2(j,i,k))
       end do
       !
       ! start now procedure for implicit diffusion calculations
@@ -474,29 +430,25 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
-      do i = idii1 , idii2
-        do j = jci1 , jci2
-          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-          coef3(j,i,1) = d_zero
-          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
-        end do
+      do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
       end do
 
       ! top to bottom
       do k = 2 , kz - 1
-        do i = idii1 , idii2
-          do j = jci1 , jci2
-            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-            coefe(j,i,k) = coef1(j,i,k)/ &
+        do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
+          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1(j,i,k)/ &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-            coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
+          coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
                     coef3(j,i,k)*coeff2(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          end do
         end do
       end do
 
@@ -518,51 +470,35 @@ module mod_pbl_holtbl
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-      do i = idii1 , idii2
-        do j = jci1 , jci2
-          tpred2(j,i,kz) = coeff2(j,i,kz)
-        end do
+      do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
+        tpred2(j,i,kz) = coeff2(j,i,kz)
       end do
 
       do k = kz - 1 , 1 , -1
-        do i = idii1 , idii2
-          do j = jci1 , jci2
-            tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
-          end do
+        do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
+          tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
-      do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jci1 , jci2
-            p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+      do concurrent ( j = jci1:jci2 , i = idii1:idii2 , k = 1:kz )
+        p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
                           (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt
-          end do
-        end do
       end do
 
     else
       !
       !   calculate coefficients at dot points for u and v wind
       !
-      do k = 2 , kz
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
-                            akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
-          end do
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 , k = 2:kz )
+        betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
+                        akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
       end do
-      do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
-                             akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
-          end do
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 , k = 1:kz )
+        alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
+                         akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
       end do
       !
       ! start now procedure for implicit diffusion calculations
@@ -578,33 +514,29 @@ module mod_pbl_holtbl
       ! first compute coefficients of the tridiagonal matrix
       !
       ! Atmosphere top
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-          coef3(j,i,1) = d_zero
-          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
-          coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
+        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
       end do
 
       ! top to bottom
       do k = 2 , kz - 1
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-            coefe(j,i,k) = coef1(j,i,k)/ &
+        do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
+          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1(j,i,k)/ &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-            coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
+          coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
                     coef3(j,i,k)*coeff1(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-            coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
+          coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
                     coef3(j,i,k)*coeff2(j,i,k-1)) / &
                     (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          end do
         end do
       end do
 
@@ -631,108 +563,82 @@ module mod_pbl_holtbl
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          tpred1(j,i,kz) = coeff1(j,i,kz)
-          tpred2(j,i,kz) = coeff2(j,i,kz)
-        end do
+      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
+        tpred1(j,i,kz) = coeff1(j,i,kz)
+        tpred2(j,i,kz) = coeff2(j,i,kz)
       end do
 
       do k = kz - 1 , 1 , -1
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-            tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
-          end do
+        do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
+          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+          tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
-      do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+      do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 , k = 1:kz )
+        p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
                           (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdotb(j,i)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+        p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
                           (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdotb(j,i)
-          end do
-        end do
       end do
     end if
     !
     !   Common coefficients.
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          alphak(j,i,k) = hydf(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      alphak(j,i,k) = hydf(j,i,k)
     end do
     !
     !   temperature
     !   calculate coefficients at cross points for temperature
     !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          betak(j,i,k) = rhohf(j,i,k-1)*kvh(j,i,k)/dza(j,i,k-1)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      betak(j,i,k) = rhohf(j,i,k-1)*kvh(j,i,k)/dza(j,i,k-1)
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
     end do
 
     do k = 2 , kz - 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%thatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (m2p%thatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        end do
       end do
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
                 dt*alphak(j,i,kz)*rcpd*m2p%hfx(j,i) + &
                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                 (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      end do
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
 
     do k = kz - 1 , 1 , -1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
     !
@@ -740,345 +646,259 @@ module mod_pbl_holtbl
     !   predicted field
     !
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
                  (tpred1(j,i,k)-m2p%thatm(j,i,k))*cfac(j,i,k)*rdt
-          end do
-        end do
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
                  (tpred1(j,i,k)-m2p%thatm(j,i,k))*cfac(j,i,k)*rdt*m2p%psb(j,i)
-          end do
-        end do
       end do
     end if
     !
     !   water vapor calculate coefficients at cross points for water vapor
     !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
     end do
 
     do k = 2 , kz - 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqv) +         &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+        coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqv) +         &
                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        end do
       end do
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
                  dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
                  coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      end do
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
 
     do k = kz - 1 , 1 , -1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
     !
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
-    qten(:,:,:,:) = d_zero
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      qtenv(j,i,k) = d_zero
+    end do
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qtenv(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qten(j,i,k,iqv) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))* &
-                           rdt*m2p%psb(j,i)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qtenv(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
       end do
     end if
     !
     !   calculate coefficients at cross points for cloud water
     !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      betak(j,i,k) = rhohf(j,i,k-1)*kvq(j,i,k)/dza(j,i,k-1)
     end do
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+      coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+      coef3(j,i,1) = d_zero
+      coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
     end do
     do k = 2 , kz - 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k) / &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+        coefe(j,i,k) = coef1(j,i,k) / &
                          (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
+        coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
                            coef3(j,i,k)*coeff1(j,i,k-1)) / &
                            (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        end do
       end do
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      coef1(j,i,kz) = d_zero
+      coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+      coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+      coefe(j,i,kz) = d_zero
+      coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                 (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      end do
     end do
     !
     !   all coefficients have been computed, predict field and put it in
     !   temporary work space tpred
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
     do k = kz - 1 , 1 , -1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
     end do
     !
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      qtenc(j,i,k) = d_zero
+    end do
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qtenc(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qten(j,i,k,iqc) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))* &
-                        rdt*m2p%psb(j,i)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qtenc(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
       end do
     end if
 
     if ( ipptls > 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-          coef3(j,i,1) = d_zero
-          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-          coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2(j,i,1)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2(j,i,1)
       end do
       do k = 2 , kz - 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-            coefe(j,i,k) = coef1(j,i,k) / &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+          coefe(j,i,k) = coef1(j,i,k) / &
                            (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-            coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
+          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
                              coef3(j,i,k)*coeff1(j,i,k-1)) / &
                              (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          end do
         end do
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,kz) = d_zero
-          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-          coefe(j,i,kz) = d_zero
-          coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,kz) = d_zero
+        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+        coefe(j,i,kz) = d_zero
+        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqi) + &
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-        end do
       end do
       !
       !   all coefficients have been computed, predict field and put it in
       !   temporary work space tpred
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tpred1(j,i,kz) = coeff1(j,i,kz)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        tpred1(j,i,kz) = coeff1(j,i,kz)
       end do
       do k = kz - 1 , 1 , -1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
       end do
       !
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        qteni(j,i,k) = d_zero
+      end do
       if ( idynamic == 3 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qten(j,i,k,iqi) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))* &
-                             rdt*m2p%psb(j,i)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          qteni(j,i,k) = (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqi))*rdt*m2p%psb(j,i)
         end do
       end if
     end if
     !
     !  now add countergradient term to temperature and water vapor equation
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ttnp(j,i,1) = d_zero
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      ttnp(j,i,1) = d_zero
     end do
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ttnp(j,i,k) = cfac(j,i,k)*hydf(j,i,k)*rhohf(j,i,k-1) * &
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      ttnp(j,i,k) = cfac(j,i,k)*hydf(j,i,k)*rhohf(j,i,k-1) * &
                         kvh(j,i,k)*cgh(j,i,k)
-        end do
-      end do
     end do
     if ( idynamic /= 3 ) then
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        ttnp(j,i,k) = ttnp(j,i,k) * m2p%psb(j,i)
       end do
     end if
     !
     !   compute the tendencies:
     !
-    do k = 1 , kzm1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%tten(j,i,k) = p2m%tten(j,i,k)+(ttnp(j,i,k+1)-ttnp(j,i,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzm1 )
+      p2m%tten(j,i,k) = p2m%tten(j,i,k)+(ttnp(j,i,k+1)-ttnp(j,i,k))
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - ttnp(j,i,kz)
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - ttnp(j,i,kz)
     end do
     if ( idynamic == 3 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ttnp(j,i,1) = d_zero
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        ttnp(j,i,1) = d_zero
       end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ttnp(j,i,k) = hydf(j,i,k)*rhohf(j,i,k-1) * &
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        ttnp(j,i,k) = hydf(j,i,k)*rhohf(j,i,k-1) * &
                           kvh(j,i,k)*cgs(j,i,k)*xqfx(j,i)
-          end do
-        end do
       end do
       !
       !   compute the tendencies:
       !
-      do k = 1 , kzm1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qten(j,i,k,iqv) = qten(j,i,k,iqv) + (ttnp(j,i,k+1)-ttnp(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzm1 )
+        qtenv(j,i,k) = qtenv(j,i,k) + (ttnp(j,i,k+1)-ttnp(j,i,k))
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          qten(j,i,kz,iqv) = qten(j,i,kz,iqv) - ttnp(j,i,kz)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        qtenv(j,i,kz) = qtenv(j,i,kz) - ttnp(j,i,kz)
       end do
     end if
 
 #ifdef RCEMIP
-    call force_water_conserve(qten,m2p%qxatm,xqfx)
+    call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx)
 #endif
-    p2m%qxten(jci1:jci2,ici1:ici2,:,:) = &
-              p2m%qxten(jci1:jci2,ici1:ici2,:,:) + qten
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
+      p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + qtenc(j,i,k)
+    end do
+    if ( ipptls > 1 ) then
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + qteni(j,i,k)
+      end do
+    end if
 
     if ( ichem == 1 ) then
       !
@@ -1086,79 +906,59 @@ module mod_pbl_holtbl
       !     and cloud water so they do not need to be recalculated
       !     recalculation of coef1,2,3  with tracer diffusivity kvc
       !
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            betak(j,i,k) = rhohf(j,i,k-1)*kvc(j,i,k)/dza(j,i,k-1)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        betak(j,i,k) = rhohf(j,i,k-1)*kvc(j,i,k)/dza(j,i,k-1)
       end do
-      do k = 2 , kz - 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kzm1 )
+        coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+        coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+        coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-          coef3(j,i,1) = d_zero
-          coef1(j,i,kz) = d_zero
-          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+        coef3(j,i,1) = d_zero
+        coef1(j,i,kz) = d_zero
+        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       end do
-      do itr = 1 , ntr
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-            coeff1(j,i,1) = m2p%chib(j,i,1,itr)/coef2(j,i,1)
-            if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
-            if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
-          end do
+      do n = 1 , ntr
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff1(j,i,1) = m2p%chib(j,i,1,n)/coef2(j,i,1)
+          if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
+          if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
         end do
         do k = 2 , kz - 1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
                              coef3(j,i,k)*coefe(j,i,k-1))
-              coeff1(j,i,k) = (m2p%chib(j,i,k,itr) + &
+            coeff1(j,i,k) = (m2p%chib(j,i,k,n) + &
                       coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-              if ( abs(coeff1(j,i,k)) < dlowval ) coeff1(j,i,k) = d_zero
-              if ( abs(coefe(j,i,k)) < dlowval ) coefe(j,i,k) = d_zero
-            end do
+            if ( abs(coeff1(j,i,k)) < dlowval ) coeff1(j,i,k) = d_zero
+            if ( abs(coefe(j,i,k)) < dlowval ) coefe(j,i,k) = d_zero
           end do
         end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            coefe(j,i,kz) = d_zero
-            ! add dry deposition option1
-            coeff1(j,i,kz) = (m2p%chib(j,i,kz,itr)-dt*alphak(j,i,kz) * &
-                  m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr)*m2p%rhox2d(j,i) + &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          coefe(j,i,kz) = d_zero
+          ! add dry deposition option1
+          coeff1(j,i,kz) = (m2p%chib(j,i,kz,n)-dt*alphak(j,i,kz) * &
+                  m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n)*m2p%rhox2d(j,i) + &
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-            if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
-          end do
+          if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
         end do
         !
         !       all coefficients have been computed, predict field and put
         !       it in temporary work space tpred1
         !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tpred1(j,i,kz) = coeff1(j,i,kz)
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          tpred1(j,i,kz) = coeff1(j,i,kz)
         end do
         do k = kz - 1 , 1 , -1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           end do
         end do
         !
@@ -1167,36 +967,24 @@ module mod_pbl_holtbl
         !       Dry deposition option 1 is included
         !
         if ( idynamic == 3 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) +  &
-                          (tpred1(j,i,k)-m2p%chib(j,i,k,itr))*rdt
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) +  &
+                          (tpred1(j,i,k)-m2p%chib(j,i,k,n))*rdt
           end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + &
-                m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            p2m%remdrd(j,i,n) = p2m%remdrd(j,i,n) + &
+                m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n) * &
                 dt*d_half*m2p%rhox2d(j,i)*hydf(j,i,kz)
-            end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) +  &
-                          (tpred1(j,i,k)-m2p%chib(j,i,k,itr))*rdt*m2p%psb(j,i)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) +  &
+                          (tpred1(j,i,k)-m2p%chib(j,i,k,n))*rdt*m2p%psb(j,i)
           end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + &
-                m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            p2m%remdrd(j,i,n) = p2m%remdrd(j,i,n) + &
+                m2p%chib(j,i,kz,n)*m2p%drydepv(j,i,n) * &
                 dt*d_half*m2p%rhox2d(j,i)*hydf(j,i,kz)*m2p%psb(j,i)
-            end do
           end do
         end if
       end do
@@ -1261,7 +1049,7 @@ module mod_pbl_holtbl
             tlv = thv10(j,i)
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
-            do k = kzm1 , kmxpbl(j,i) , -1
+            do k = kz , kmxpbl(j,i) , -1
               zkv = m2p%za(j,i,k)
               tkv = thvx(j,i,k)
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
@@ -1274,7 +1062,7 @@ module mod_pbl_holtbl
       else
         do i = ici1 , ici2
           do j = jci1 , jci2
-            do k = kzm1 , kmxpbl(j,i) , -1
+            do k = kz , kmxpbl(j,i) , -1
               ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
                           (thv10(j,i)*vv(j,i,k))
               ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
@@ -1282,11 +1070,27 @@ module mod_pbl_holtbl
           end do
         end do
       end if
-      ! looking for bl top
+
+      ! looking for first guess bl top
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%zpbl(j,i) = m2p%za(j,i,kz)
-          do k = kzm1 , kmxpbl(j,i) + 1 , -1
+          ! BL height is at least the mechanical mixing depth
+          ! PBL height must be greater than some minimum mechanical mixing depth
+          ! Several investigators have proposed minimum mechanical mixing depth
+          ! relationships as a function of the local friction velocity, u*.  We
+          ! make use of a linear relationship of the form h = c u* where c=700.
+          ! The scaling arguments that give rise to this relationship most often
+          ! represent the coefficient c as some constant over the local coriolis
+          ! parameter.  Here we make use of the experimental results of Koracin
+          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+          ! latitude value for f so that c = 0.07/f = 700.
+          !phpblm = 700.0_rkx*ustr(j,i)
+          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
+          if ( p2m%zpbl(j,i) < phpblm ) then
+            p2m%zpbl(j,i) = phpblm
+          end if
+          do k = kz , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
@@ -1297,6 +1101,7 @@ module mod_pbl_holtbl
           end do
         end do
       end do
+
       ! recompute richardson no. at lowest model level
       if ( idynamic == 3 ) then
         do i = ici1 , ici2
@@ -1371,25 +1176,9 @@ module mod_pbl_holtbl
         end do
       end do
 
+      ! Find the k of the level of the pbl
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! BL height is at least the mechanical mixing depth
-          ! PBL height must be greater than some minimum mechanical mixing depth
-          ! Several investigators have proposed minimum mechanical mixing depth
-          ! relationships as a function of the local friction velocity, u*.  We
-          ! make use of a linear relationship of the form h = c u* where c=700.
-          ! The scaling arguments that give rise to this relationship most often
-          ! represent the coefficient c as some constant over the local coriolis
-          ! parameter.  Here we make use of the experimental results of Koracin
-          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
-          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
-          ! latitude value for f so that c = 0.07/f = 700.
-          !phpblm = 700.0_rkx*ustr(j,i)
-          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
-          if ( p2m%zpbl(j,i) < phpblm ) then
-            p2m%zpbl(j,i) = phpblm
-          end if
-          ! Find the k of the level of the pbl
           do k = kz, kmxpbl(j,i) , -1
             p2m%kpbl(j,i) = k
             if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
@@ -1404,7 +1193,7 @@ module mod_pbl_holtbl
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zpbl = max(p2m%zpbl(j,i),m2p%za(j,i,kz))
+          zpbl = p2m%zpbl(j,i)
           fak1 = ustr(j,i)*zpbl*vonkar
           if ( lunstb(j,i) ) then
             xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
@@ -1414,57 +1203,58 @@ module mod_pbl_holtbl
           end if
           do k = kz , p2m%kpbl(j,i) , -1
             zm = m2p%za(j,i,k)
-            zp = m2p%za(j,i,k-1)
-            zp = min(zp,zpbl)
-            z = (zm+zp)*d_half
-            zh = z/zpbl
-            zl = z/obklen(j,i)
-            term = max(d_one-zh,d_zero)
-            zzh = zh*term**pink
-            zzhnew = zh*zhnew_fac*term
-            zzhnew2 = zh*(zhnew_fac*term)**pink
-            if ( lunstb(j,i) ) then
-              ! Convective velocity scale
-              wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
-              fak3 = fakn*wstr/wsc
-              if ( zh < sffrac ) then
-                term = (d_one-betam*zl)**onet
-                pblk = fak1*zzh*term
-                pblk1 = fak1*zzhnew*term
-                pblk2 = fak1*zzhnew2*term
-                pr = term/sqrt(d_one-betah*zl)
+            if ( zm < zpbl ) then
+              zp = m2p%za(j,i,k-1)
+              zp = min(zp,zpbl)
+              z = (zm+zp)*d_half
+              zh = z/zpbl
+              zl = z/obklen(j,i)
+              term = max(d_one-zh,d_zero)
+              zzh = zh*term**pink
+              zzhnew = zh*zhnew_fac*term
+              zzhnew2 = zh*(zhnew_fac*term)**pink
+              if ( lunstb(j,i) ) then
+                ! Convective velocity scale
+                wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
+                fak3 = fakn*wstr/wsc
+                if ( zh < sffrac ) then
+                  term = (d_one-betam*zl)**onet
+                  pblk = fak1*zzh*term
+                  pblk1 = fak1*zzhnew*term
+                  pblk2 = fak1*zzhnew2*term
+                  pr = term/sqrt(d_one-betah*zl)
+                else
+                  pblk = fak2*zzh
+                  pblk1 = fak2*zzhnew
+                  pblk2 = fak2*zzhnew2
+                  ! compute counter gradient term
+                  pr = (xfmt/xfht) + ccon*fak3/fak
+                  cgs(j,i,k) = fak3/(zpbl*wsc)
+                  cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+               end if
               else
-                pblk = fak2*zzh
-                pblk1 = fak2*zzhnew
-                pblk2 = fak2*zzhnew2
-                ! compute counter gradient term
-                pr = (xfmt/xfht) + ccon*fak3/fak
-                cgs(j,i,k) = fak3/(zpbl*wsc)
-                cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+                if ( zl < d_one ) then
+                  pblk = fak1*zzh/(d_one+betas*zl)
+                  pblk1 = fak1*zzhnew/(d_one+betas*zl)
+                  pblk2 = fak1*zzhnew2/(d_one+betas*zl)
+                else
+                  pblk = fak1*zzh/(betas+zl)
+                  pblk1 = fak1*zzhnew/(betas+zl)
+                  pblk2 = fak1*zzhnew2/(betas+zl)
+                end if
+                pr = 1.0_rkx
               end if
-            else
-              if ( zl < d_one ) then
-                pblk = fak1*zzh/(d_one+betas*zl)
-                pblk1 = fak1*zzhnew/(d_one+betas*zl)
-                pblk2 = fak1*zzhnew2/(d_one+betas*zl)
-              else
-                pblk = fak1*zzh/(betas+zl)
-                pblk1 = fak1*zzhnew/(betas+zl)
-                pblk2 = fak1*zzhnew2/(betas+zl)
+              ! compute eddy diffusivities
+              kvm(j,i,k) = max(pblk,kvm(j,i,k))
+              kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
+              kvq(j,i,k) = max(pblk1,kvq(j,i,k))
+              if ( ichem == 1 ) then
+                kvc(j,i,k) = max(pblk2,kvc(j,i,k))
               end if
-              pr = 1.0_rkx
-            end if
-            ! compute eddy diffusivities
-            kvm(j,i,k) = max(pblk,kvm(j,i,k))
-            kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
-            kvq(j,i,k) = max(pblk1,kvq(j,i,k))
-            if ( ichem == 1 ) then
-              kvc(j,i,k) = max(pblk2,kvc(j,i,k))
             end if
           end do
         end do
       end do
-
     end subroutine blhnew
 
     pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
@@ -1473,34 +1263,68 @@ module mod_pbl_holtbl
       obk = - thvs * ustar**3 / (gvk*bfs+sign(1.0e-10_rkx,bfs))
     end function comp_obklen
 
-    subroutine force_water_conserve(tend,start,sflux)
+    subroutine force_water_conserve(tendv,tendc,tendi,start,sflux)
       implicit none
-      real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: tend
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendv
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendc
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendi
       real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
       real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux
       real(rkx) , dimension(kz) :: qi , qf
       real(rkx) :: sqtoti , sqtotf
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i , j , k
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do n = 1 , nqx
-            qi(1:kz) = start(j,i,1:kz,n)
-            qf(1:kz) = qi(1:kz) + tend(j,i,1:kz,n) * dt
+          qi(1:kz) = start(j,i,1:kz,iqv)
+          qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
+          if ( idynamic /= 3 ) then
+            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
+            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
+          end if
+          sqtoti = sum(qi)
+          sqtotf = sum(qf)
+          sqtoti = sqtoti + sflux(j,i)
+          if ( abs(sqtotf-sqtoti) > minqq ) then
+            k = maxloc(qi,1)
+            tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
+          end if
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          qi(1:kz) = start(j,i,1:kz,iqc)
+          qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
+          if ( idynamic /= 3 ) then
+            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
+            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
+          end if
+          sqtoti = sum(qi)
+          sqtotf = sum(qf)
+          if ( abs(sqtotf-sqtoti) > minqq ) then
+            k = maxloc(qi,1)
+            tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
+          end if
+        end do
+      end do
+      if ( ipptls > 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qi(1:kz) = start(j,i,1:kz,iqi)
+            qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
             if ( idynamic /= 3 ) then
               qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
               qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
             end if
             sqtoti = sum(qi)
             sqtotf = sum(qf)
-            if ( n == iqv ) sqtoti = sqtoti + sflux(j,i)
             if ( abs(sqtotf-sqtoti) > minqq ) then
               k = maxloc(qi,1)
-              tend(j,i,k,n) = tend(j,i,k,n) + (sqtoti-sqtotf) * rdt
+              tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
             end if
           end do
         end do
-      end do
+      end if
     end subroutine force_water_conserve
 
   end subroutine holtbl

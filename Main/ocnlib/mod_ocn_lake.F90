@@ -228,7 +228,7 @@ module mod_ocn_lake
     end if
 
     wt1 = (threedays-dtlake)/threedays
-    wt2 = dtlake/threedays
+    wt2 = 1.0_rkx - wt1
 
     do lp = 1 , nlakep
       i = ilp(lp)

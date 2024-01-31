@@ -1789,10 +1789,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = mg(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        ml(j,i) = mg(j,i)
       end do
       return
     end if
@@ -1815,6 +1813,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
 #endif
+    !ml(j1:j2,i1:i2) = reshape(r8vector2,shape(ml(j1:j2,i1:i2)))
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -1831,10 +1830,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = mg(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        ml(j,i) = mg(j,i)
       end do
       return
     end if
@@ -1873,10 +1870,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = mg(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        ml(j,i) = mg(j,i)
       end do
       return
     end if
@@ -1915,10 +1910,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = mg(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        ml(j,i) = mg(j,i)
       end do
       return
     end if
@@ -2135,20 +2128,12 @@ module mod_mppparam
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
         end do
       else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          ml(n,j,i) = mg(n,j,i)
         end do
       end if
       return
@@ -2205,20 +2190,12 @@ module mod_mppparam
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
         end do
       else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          ml(n,j,i) = mg(n,j,i)
         end do
       end if
       return
@@ -2275,20 +2252,12 @@ module mod_mppparam
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
         end do
       else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          ml(n,j,i) = mg(n,j,i)
         end do
       end if
       return
@@ -2345,20 +2314,12 @@ module mod_mppparam
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
         end do
       else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
+        do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+          ml(n,j,i) = mg(n,j,i)
         end do
       end if
       return
@@ -2508,10 +2469,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        mg(j,i) = ml(j,i)
       end do
       return
     end if
@@ -2551,10 +2510,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        mg(j,i) = ml(j,i)
       end do
       return
     end if
@@ -2594,10 +2551,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        mg(j,i) = ml(j,i)
       end do
       return
     end if
@@ -2637,10 +2592,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        mg(j,i) = ml(j,i)
       end do
       return
     end if
@@ -2902,12 +2855,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            mg(n,j,i) = ml(n,j,i)
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        mg(n,j,i) = ml(n,j,i)
       end do
       return
     end if
@@ -2951,12 +2900,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            mg(n,j,i) = ml(n,j,i)
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        mg(n,j,i) = ml(n,j,i)
       end do
       return
     end if
@@ -3000,12 +2945,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            mg(n,j,i) = ml(n,j,i)
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        mg(n,j,i) = ml(n,j,i)
       end do
       return
     end if
@@ -3049,12 +2990,8 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
     integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            mg(n,j,i) = ml(n,j,i)
-          end do
-        end do
+      do concurrent ( n = 1:nnsg, j = j1:j2, i = i1:i2 )
+        mg(n,j,i) = ml(n,j,i)
       end do
       return
     end if
@@ -9175,6 +9112,7 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
     end if
 
+
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
@@ -12046,6 +11984,7 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_right_bottom_top')
     end if
 
+
     if ( ma%bandflag ) then
       ssize = nex*isize
       !********************************************************
@@ -12305,6 +12244,7 @@ module mod_mppparam
     if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right_bottom_top')
     end if
+
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
@@ -15103,6 +15043,7 @@ module mod_mppparam
     if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom_top')
     end if
+
 
     if ( ma%crmflag ) then
       !*********************************************************
@@ -19275,13 +19216,9 @@ module mod_mppparam
     call exchange_lr(u,2,jdi1,jdi2,ici1,ici2,1,kz)
     call exchange_bt(v,2,jci1,jci2,idi1,idi2,1,kz)
     ! Back to wind points
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jcii1 , jcii2
-          ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
-                      0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
-        end do
-      end do
+    do concurrent ( j = jcii1:jcii2, i = ici1:ici2, k = 1:kz )
+      ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                  0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
     end do
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
@@ -19297,13 +19234,9 @@ module mod_mppparam
         end do
       end do
     end if
-    do k = 1 , kz
-      do i = icii1 , icii2
-        do j = jci1 , jci2
-          vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
-                      0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = icii1:icii2, k = 1:kz )
+      vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                  0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
     end do
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
@@ -19331,56 +19264,15 @@ module mod_mppparam
     call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
 
     ! Back to wind points: U (fourth order)
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jdii1 , jdii2
-          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
-                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
-        end do
-      end do
+    do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                 0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
     end do
-    if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi2,i,k) = 1.03125_rkx * ux(jci2,i,k) - &
-                        0.03125_rkx * ux(jcii2,i,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi1,i,k) = 1.03125_rkx * ux(jci1,i,k) - &
-                        0.03125_rkx * ux(jcii1,i,k)
-        end do
-      end do
-    end if
-
     ! Back to wind points: V (fourth order)
-    do k = 1 , kz
-      do i = idii1 , idii2
-        do j = jci1 , jci2
-          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
-                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                 0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
     end do
-    if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi2,k) = 1.03125_rkx * vx(j,ici2,k) - &
-                        0.03125_rkx * vx(j,icii2,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi1,k) = 1.03125_rkx * vx(j,ici1,k) - &
-                        0.03125_rkx * vx(j,icii1,k)
-        end do
-      end do
-    end if
   end subroutine tenxtouvten
   !
   ! Takes u and v tendencies on the cross grid (as t, qv, qc, etc.)
@@ -19421,15 +19313,11 @@ module mod_mppparam
     ! Perform the bilinear interpolation necessary
     ! to put the u and v variables on the dot grid.
 
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          ud(j,i,k) =  d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
-                                ux(j,i-1,k) + ux(j-1,i-1,k))
-          vd(j,i,k) =  d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
-                                vx(j,i-1,k) + vx(j-1,i-1,k))
-        end do
-      end do
+    do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+      ud(j,i,k) =  d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
+                            ux(j,i-1,k) + ux(j-1,i-1,k))
+      vd(j,i,k) =  d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
+                            vx(j,i-1,k) + vx(j-1,i-1,k))
     end do
   end subroutine uvcross2dot
 
@@ -19461,15 +19349,11 @@ module mod_mppparam
     ! Perform the bilinear interpolation necessary
     ! to put the u and v variables on the cross grid.
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ux(j,i,k) =  d_rfour*(ud(j,i,  k) + ud(j+1,i,  k) + &
-                                ud(j,i+1,k) + ud(j+1,i+1,k))
-          vx(j,i,k) =  d_rfour*(vd(j,i  ,k) + vd(j+1,i  ,k) + &
-                                vd(j,i+1,k) + vd(j+1,i+1,k))
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      ux(j,i,k) =  d_rfour*(ud(j,i,  k) + ud(j+1,i,  k) + &
+                            ud(j,i+1,k) + ud(j+1,i+1,k))
+      vx(j,i,k) =  d_rfour*(vd(j,i  ,k) + vd(j+1,i  ,k) + &
+                            vd(j,i+1,k) + vd(j+1,i+1,k))
     end do
   end subroutine uvdot2cross
 
@@ -19481,11 +19365,9 @@ module mod_mppparam
 
     call exchange(x,1,jci1,jci2,ici1,ici2)
 
-    do i = idii1 , idii2
-      do j = jdii1 , jdii2
-        d(j,i) =  d_rfour*(x(j,i)   + x(j-1,i)   + &
+    do concurrent ( j = jdii1:jdii2, i = idii1:idii2 )
+      d(j,i) =  d_rfour*(x(j,i)   + x(j-1,i)   + &
                            x(j,i-1) + x(j-1,i-1))
-      end do
     end do
     if ( ma%has_bdyleft ) then
       do i = idii1 , idii2
@@ -19529,46 +19411,58 @@ module mod_mppparam
 
     call exchange(x,1,jci1,jci2,ici1,ici2,1,kz)
 
-    do k = 1 , kz
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          d(j,i,k) =  d_rfour*(x(j,i,k)   + x(j-1,i,k)   + &
-                               x(j,i-1,k) + x(j-1,i-1,k))
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
+    do concurrent ( j = jdii1:jdii2, i = idii1:idii2, k = 1:kz )
+      d(j,i,k) =  d_rfour*(x(j,i,k)   + x(j-1,i,k)   + &
+                           x(j,i-1,k) + x(j-1,i-1,k))
+    end do
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
         do i = idii1 , idii2
           d(jdi1,i,k) = d_half*(x(jci1,i,k) + x(jci1,i-1,k))
         end do
-      end if
-      if ( ma%has_bdyright ) then
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
         do i = idii1 , idii2
           d(jdi2,i,k) = d_half*(x(jci2,i,k) + x(jci2,i-1,k))
         end do
-      end if
-      if ( ma%has_bdytop ) then
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
         do j = jdii1 , jdii2
           d(j,idi2,k) = d_half*(x(j,ici2,k) + x(j-1,ici2,k))
         end do
-      end if
-      if ( ma%has_bdybottom ) then
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
         do j = jdii1 , jdii2
           d(j,idi1,k) = d_half*(x(j,ici1,k) + x(j-1,ici1,k))
         end do
-      end if
-      if ( ma%has_bdytopleft ) then
+      end do
+    end if
+    if ( ma%has_bdytopleft ) then
+      do k = 1 , kz
         d(jdi1,idi2,k) = x(jci1,ici2,k)
-      end if
-      if ( ma%has_bdybottomleft ) then
+      end do
+    end if
+    if ( ma%has_bdybottomleft ) then
+      do k = 1 , kz
         d(jdi1,idi1,k) = x(jci1,ici1,k)
-      end if
-      if ( ma%has_bdytopright ) then
+      end do
+    end if
+    if ( ma%has_bdytopright ) then
+      do k = 1 , kz
         d(jdi2,idi2,k) = x(jci2,ici2,k)
-      end if
-      if ( ma%has_bdybottomright ) then
+      end do
+    end if
+    if ( ma%has_bdybottomright ) then
+      do k = 1 , kz
         d(jdi2,idi1,k) = x(jci2,ici1,k)
-      end if
-    end do
+      end do
+    end if
   end subroutine cross2dot3d
 
   subroutine psc2psd(pc,pd)
@@ -19579,10 +19473,8 @@ module mod_mppparam
     !
     ! Internal points
     !
-    do i = idi1 , idi2
-      do j = jdi1 , jdi2
-        pd(j,i) = (pc(j,i)+pc(j,i-1)+pc(j-1,i)+pc(j-1,i-1))*d_rfour
-      end do
+    do concurrent ( j = jdi1:jdi2, i = idi1:idi2 )
+      pd(j,i) = (pc(j,i)+pc(j,i-1)+pc(j-1,i)+pc(j-1,i-1))*d_rfour
     end do
     !
     ! Boundaries
@@ -21307,12 +21199,8 @@ module mod_mppparam
     logical , pointer , dimension(:,:) , intent(in) :: matrix
     logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          lsubgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lsubgrid(n,j,i) = matrix(j,i)
     end do
     call cartesian_to_linear_logical_subgrid_subgrid(cl,lsubgrid,vector)
   end subroutine cartesian_to_linear_logical_grid_subgrid
@@ -21323,12 +21211,8 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          i4subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      i4subgrid(n,j,i) = matrix(j,i)
     end do
     call cartesian_to_linear_integer_subgrid_subgrid(cl,i4subgrid,vector)
   end subroutine cartesian_to_linear_integer_grid_subgrid
@@ -21339,12 +21223,8 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
     real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          r8subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      r8subgrid(n,j,i) = matrix(j,i)
     end do
     call cartesian_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
   end subroutine cartesian_to_linear_real8_grid_subgrid
@@ -21355,12 +21235,8 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
     real(rk4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          r4subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      r4subgrid(n,j,i) = matrix(j,i)
     end do
     call cartesian_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
   end subroutine cartesian_to_linear_real4_grid_subgrid
@@ -21768,12 +21644,8 @@ module mod_mppparam
     logical , pointer , dimension(:,:) , intent(in) :: matrix
     logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          lsubgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      lsubgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_logical_subgrid_subgrid(cl,lsubgrid,vector)
   end subroutine global_to_linear_logical_grid_subgrid
@@ -21784,12 +21656,8 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          i4subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      i4subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_integer_subgrid_subgrid(cl,i4subgrid,vector)
   end subroutine global_to_linear_integer_grid_subgrid
@@ -21800,12 +21668,8 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
     real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          r8subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      r8subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
   end subroutine global_to_linear_real8_grid_subgrid
@@ -21816,12 +21680,8 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
     real(rk4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          r4subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      r4subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
   end subroutine global_to_linear_real4_grid_subgrid
@@ -21832,12 +21692,8 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
     real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          r4subgrid(n,j,i) = matrix(j,i)
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      r4subgrid(n,j,i) = matrix(j,i)
     end do
     call global_to_linear_real4_real8_subgrid_subgrid(cl,r4subgrid,vector)
   end subroutine global_to_linear_real4_real8_grid_subgrid
