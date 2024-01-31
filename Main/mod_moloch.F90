@@ -122,7 +122,6 @@ module mod_moloch
   logical :: lrotllr
 
   real(rkx) , parameter :: nupaitq = 0.05_rkx
-  real(rkx) , parameter :: ddamp = 0.25_rkx
 
   real(rkx) :: dzita
   integer(ik4) :: jmin , jmax , imin , imax
@@ -180,7 +179,8 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = 0.20_rkx + &
+        0.80_rkx * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -868,7 +868,7 @@ module mod_moloch
 
           if ( do_divdamp ) then
             do concurrent ( k = 1:kz )
-              zprof(k) = xknu(k)*ddamp*0.125_rkx*(dx**2)/dtsound
+              zprof(k) = xknu(k)*mo_anu2*0.125_rkx*(dx**2)/dtsound
             end do
             call divdamp
           end if
