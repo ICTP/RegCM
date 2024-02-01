@@ -1176,17 +1176,21 @@ module mod_atm_interface
           expfie%v(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
                             atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) /     &
                             sfs%psa(j,i)
-          if ( idynamic == 2 ) then
-            expfie%w(j,i,k) = d_half*(atm1%w(j,i,k+1)+atm1%w(j,i,k)) / &
-                              sfs%psa(j,i)
-          else
-            expfie%w(j,i,k) = (-1.0d0*omega(j,i,k)*d_1000) / &
-                              (atm1%rho(j,i,k)*egrav)
-          end if
           expfie%t(j,i,k) = atm1%t(j,i,k)/sfs%psa(j,i)
           !expfie%q(j,i,k) = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
           expfie%q(j,i,k) = atms%rhb3d(j,i,k)
         end do
+        if ( idynamic == 2 ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            expfie%w(j,i,k) = d_half*(atm1%w(j,i,k+1)+atm1%w(j,i,k)) / &
+                              sfs%psa(j,i)
+          end do
+        else
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            expfie%w(j,i,k) = (-1.0d0*omega(j,i,k)*d_1000) / &
+                              (atm1%rho(j,i,k)*egrav)
+          end do
+        end if
       end if
     end subroutine export_data_from_atm
 
