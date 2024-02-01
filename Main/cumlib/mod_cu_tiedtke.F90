@@ -259,7 +259,7 @@ module mod_cu_tiedtke
     else
       pxtm1(:,:,:) = d_zero ! tracers input profiles
       pxtte(:,:,:) = d_zero ! tracer tendencies
-    end if    
+    end if
     do ii = 1 , nipoi
       ! AMT NOTE: This is used in the switch between deep and shallow
       ! convection. The simpler switch on pressure difference still
@@ -519,13 +519,13 @@ module mod_cu_tiedtke
         end do
       end if
       ! build for chemistry 3d table of conv. precipitation
-      ! tend. Kg/kg/s 
+      ! tend. Kg/kg/s
       do k = 1 , kz
         do ii = 1 , nipoi
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_convpr(j,i,k) = zcvrout(ii,k)/dtc 
+            cu_convpr(j,i,k) = zcvrout(ii,k)/dtc
           end if
         end do
       end do
@@ -4668,7 +4668,7 @@ module mod_cu_tiedtke
     ! Updraft Cloud Liquid Water mixing ratio kg/kg
     real(rkx) , dimension(np,nk) , intent(out) :: lu
     ! rainfall Production in updraft
-    real(rkx) , dimension(np,nk) , intent(out) :: cvrainout 
+    real(rkx) , dimension(np,nk) , intent(out) :: cvrainout
     ! Rain Mass Flux kg/(m^2*s)
     real(rkx) , dimension(np,nk+1) , intent(out) :: mflxr
     ! Snow Mass Flux kg/(m^2*s)
