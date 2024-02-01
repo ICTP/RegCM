@@ -179,8 +179,8 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
-      xknu(k) = 0.20_rkx + &
-        0.80_rkx * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = 0.50_rkx + &
+        0.50_rkx * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -464,10 +464,10 @@ module mod_moloch
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = zeta(j,i,kz)*egrav
-        lrt = (tvirt(j,i,kz)-tvirt(j,i,kz-1))/(zeta(j,i,kz-1)-zeta(j,i,kz))
+        lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        lrt = 0.75_rkx*lrt + 0.25_rkx*lrate
-        tv = tvirt(j,i,kz) + 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
+        lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
+        tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do

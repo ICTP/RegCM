@@ -1049,7 +1049,7 @@ module mod_pbl_holtbl
             tlv = thv10(j,i)
             ulv = m2p%uxatm(j,i,kz)
             vlv = m2p%vxatm(j,i,kz)
-            do k = kz , kmxpbl(j,i) , -1
+            do k = kzm1 , kmxpbl(j,i) , -1
               zkv = m2p%za(j,i,k)
               tkv = thvx(j,i,k)
               vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
@@ -1062,7 +1062,7 @@ module mod_pbl_holtbl
       else
         do i = ici1 , ici2
           do j = jci1 , jci2
-            do k = kz , kmxpbl(j,i) , -1
+            do k = kzm1 , kmxpbl(j,i) , -1
               ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
                           (thv10(j,i)*vv(j,i,k))
               ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
@@ -1086,11 +1086,12 @@ module mod_pbl_holtbl
           ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
           ! latitude value for f so that c = 0.07/f = 700.
           !phpblm = 700.0_rkx*ustr(j,i)
+          p2m%zpbl(j,i) = m2p%za(j,i,kz)
           phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
           if ( p2m%zpbl(j,i) < phpblm ) then
-            p2m%zpbl(j,i) = phpblm
+            p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
           end if
-          do k = kz , kmxpbl(j,i) + 1 , -1
+          do k = kzm1 , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
             if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
@@ -1181,7 +1182,7 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
           do k = kz, kmxpbl(j,i) , -1
             p2m%kpbl(j,i) = k
-            if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
+            if ( m2p%za(j,i,k) >= p2m%zpbl(j,i) ) exit
           end do
         end do
       end do
