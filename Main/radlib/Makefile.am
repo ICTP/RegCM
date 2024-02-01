@@ -48,7 +48,7 @@ librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   rrtmg_lw_cldprop.F90 rrtmg_lw_rad.F90 rrtmg_lw_rtrn.F90 \
   rrtmg_lw_setcoef.F90 mcica_subcol_gen_lw.F90 rrtmg_lw_init.F90 \
   rrtmg_lw_rad.nomcica.F90 rrtmg_lw_rtrnmc.F90 rrtmg_lw_taumol.F90  \
-  rrtmg_lw_cldprmc.F90  rrtmg_lw_read_nc.F90 rrtmg_lw_rtrnmr.F90
+  rrtmg_lw_cldprmc.F90 rrtmg_lw_read_nc.F90 rrtmg_lw_rtrnmr.F90
 else
 librad_a_SOURCES = mod_rad_colmod3.F90 mod_rad_o3blk.F90 mod_rad_outrad.F90 \
   mod_rad_common.F90 mod_rad_radiation.F90 mod_rad_tracer.F90 \

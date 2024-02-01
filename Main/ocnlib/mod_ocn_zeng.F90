@@ -106,7 +106,7 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
-      uv995 = sqrt(usw(i)**2+vsw(i)**2)
+      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
@@ -140,7 +140,7 @@ module mod_ocn_zeng
       ! initial values of u* and convective velocity
       !
       wc = minw
-      um = max(sqrt(uv995*uv995),wc)
+      um = max(sqrt(uv995*uv995),minw)
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo
