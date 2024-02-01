@@ -322,16 +322,14 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atms%th700(j,i) = atms%th3d(j,i,kz)
-            do k = 1 , kz-1
-              if ( atms%pb3d(j,i,k) > 70000.0 ) then
-                atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
-                                  twt(k,2) * atms%th3d(j,i,k)
-                exit
-              end if
-            end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          atms%th700(j,i) = atms%th3d(j,i,kz)
+          do k = 1 , kz-1
+            if ( atms%pb3d(j,i,k) > 70000.0 ) then
+              atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
+                                twt(k,2) * atms%th3d(j,i,k)
+              exit
+            end if
           end do
         end do
       end if
@@ -339,25 +337,19 @@ module mod_slice
     !
     ! Find tropopause hgt.
     !
-    ktrop(:,:) = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do k = kz , 1 , -1
-          if ( atms%pb3d(j,i,k) < ptrop(j,i) ) then
-            ktrop(j,i) = k
-            exit
-          end if
-        end do
+    ktrop(:,:) = kz
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do k = kzm1 , 2 , -1
+        if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
+        ktrop(j,i) = k
       end do
     end do
     if ( ibltyp == 1 ) then
       kmxpbl(:,:) = kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do k = kzm1 , 2 , -1
-            if ( atms%za(j,i,k) > 4000.0 ) exit
-            kmxpbl(j,i) = k
-          end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = kzm1 , 2 , -1
+          if ( atms%za(j,i,k) > 4000.0 ) exit
+          kmxpbl(j,i) = k
         end do
       end do
     end if

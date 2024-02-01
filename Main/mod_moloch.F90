@@ -177,8 +177,8 @@ module mod_moloch
     call getmem1d(xknu,1,kz,'moloch:xknu')
     call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
-      xknu(k) = 0.20_rkx + &
-        0.80_rkx * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = 0.50_rkx + &
+        0.50_rkx * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
