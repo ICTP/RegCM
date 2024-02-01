@@ -436,9 +436,6 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    if (ichem == 1) then 
-       
-    end if 
     if ( ipptls > 1 ) then
       if ( idynamic == 3 ) then
         do k = 1 , kz
@@ -528,7 +525,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-               cu_convpr(j,i,k) = zcvrout(ii,k)/dtc 
+            cu_convpr(j,i,k) = zcvrout(ii,k)/dtc 
           end if
         end do
       end do
