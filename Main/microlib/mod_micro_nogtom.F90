@@ -179,10 +179,6 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:) :: pfplsl
   ! ice+snow sedim flux
   real(rkx) , pointer , dimension(:,:,:) :: pfplsn
-  ! Flux of liquid
-  real(rkx) , pointer , dimension(:,:,:) :: pfsqlf
-  ! Flux of ice
-  real(rkx) , pointer , dimension(:,:,:) :: pfsqif
   ! decoupled temperature tendency
   real(rkx) , pointer , dimension(:,:,:) :: ttendc
   ! critical factors
@@ -281,8 +277,6 @@ module mod_micro_nogtom
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
     call getmem3d(pfplsl,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsl')
     call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsn')
-    call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqlf')
-    call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqif')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
     call getmem2d(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
