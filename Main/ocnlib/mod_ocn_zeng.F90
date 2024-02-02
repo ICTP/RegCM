@@ -106,12 +106,12 @@ module mod_ocn_zeng
       end if
       tgbrd(i) = tgb(i)
 
-      uv995 = sqrt(usw(i)**2+vsw(i)**2)
+      uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
       t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
       tsurf = tgrd(i)
-      rlv = wlh(tatm(i))
+      rlv = wlh(tsurf)
       cpm = cpd*(d_one-q995) + cpv*q995
       zi = hpbl(i)
       zu = z995
@@ -140,7 +140,7 @@ module mod_ocn_zeng
       ! initial values of u* and convective velocity
       !
       wc = minw
-      um = max(sqrt(uv995*uv995),wc)
+      um = max(sqrt(uv995*uv995),minw)
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo
@@ -250,11 +250,11 @@ module mod_ocn_zeng
           if ( flag2 ) then  ! We don't have ustar from the wave model
             ustar = um/25.0_rkx
             do nconv = 1 , 2
-              call ocnrough(zo,ustar,um10(i),wc,visa)
+              zo = ocnrough(ustar,um10(i),wc,visa)
               ustar = vonkar*um/log(1.0_rkx+zu/zo)
             end do
           else
-            call ocnrough(zo,ustar,um10(i),wc,visa)
+            zo = ocnrough(ustar,um10(i),wc,visa)
           end if
         else
           if ( flag2 ) then  ! We don't have ustar from the wave model
@@ -334,7 +334,7 @@ module mod_ocn_zeng
           if ( .not. flag2 ) exit
           ! Recompute ustar , zo
           ustar = vonkar*um/log(1.0_rkx+zu/zo)
-          call ocnrough(zo,ustar,um10(i),wc,visa)
+          zo = ocnrough(ustar,um10(i),wc,visa)
         end do
         br(i) = egrav*zu*dthv/(thv*um*um)
         if ( br(i) >= d_zero ) then       ! neutral or stable
@@ -459,7 +459,7 @@ module mod_ocn_zeng
       zoo(i)  = zo
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
-      um10(i) = max(um10(i)*wt1+sqrt(u10m(i)**2+v10m(i)**2)*wt2,minw)
+      um10(i) = um10(i)*wt1 + uv10*wt2
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
       facttq = log(z995*0.5_rkx)/log(z995/zo)
@@ -545,48 +545,49 @@ module mod_ocn_zeng
       end if
     end subroutine roughness
 
-    subroutine ocnrough(zo,ustar,u3d,wc,visa)
+    pure real(rkx) function ocnrough(ustar,u3d,wc,visa) result(zo)
       implicit none
       real(rkx) , intent (in) :: u3d , wc , visa , ustar
-      real(rkx) , intent (out) :: zo
       real(rkx) :: wage , charnockog , alph
-      ! Wave age. The wind here is the mean last 3 days wind
-      wage = 1.2_rkx*u3d
-      ! Smith et al. (1992), Carlsson et al. (2009)
-      ! Charnock parameter as power function of the wave age
-      ! We consider here dominant wind sea waves
-      ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063_rkx*(wage/ustar)**(-0.4_rkx)
       if ( iocnrough == 1 ) then
         zo = 0.0065_rkx*regrav*ustar*ustar
       else if ( iocnrough == 2 ) then
         zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
       else if ( iocnrough == 3 ) then
         zo = 0.017_rkx*regrav*ustar*ustar
-      else if ( iocnrough == 4 ) then
-        ! C.H. Huang, 2012
-        ! Modification of the Charnock Wind Stress Formula
-        ! to Include the Effects of Free Convection and Swell
-        ! Advanced Methods for Practical Applications in Fluid Mechanics
-        zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
-      else if ( iocnrough == 5 ) then
-        if ( u3d < 10.0_rkx ) then
-          alph = 0.011_rkx
-        else if ( u3d > 10.0_rkx .and. u3d < 18.0_rkx ) then
-          alph = 0.011_rkx + 0.000875*(u3d-10.0_rkx)
-        else if ( u3d > 18.0_rkx .and. u3d < 25.0_rkx ) then
-          alph = 0.018_rkx
-        else
-          alph = max(2.e-3_rkx,0.018_rkx / &
-               (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
-                0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
-        end if
-        zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
       else
-        zo = charnockog*ustar*ustar
+        ! Wave age. The wind here is the mean last 3 days wind
+        wage = 1.2_rkx*u3d
+        ! Smith et al. (1992), Carlsson et al. (2009)
+        ! Charnock parameter as power function of the wave age
+        ! We consider here dominant wind sea waves
+        ! Swell dominated sea would require a wave model...
+        charnockog = regrav*0.063_rkx*(wage/ustar)**(-0.4_rkx)
+        if ( iocnrough == 4 ) then
+          ! C.H. Huang, 2012
+          ! Modification of the Charnock Wind Stress Formula
+          ! to Include the Effects of Free Convection and Swell
+          ! Advanced Methods for Practical Applications in Fluid Mechanics
+          zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
+        else if ( iocnrough == 5 ) then
+          if ( u3d < 10.0_rkx ) then
+            alph = 0.011_rkx
+          else if ( u3d > 10.0_rkx .and. u3d < 18.0_rkx ) then
+            alph = 0.011_rkx + 0.000875*(u3d-10.0_rkx)
+          else if ( u3d > 18.0_rkx .and. u3d < 25.0_rkx ) then
+            alph = 0.018_rkx
+          else
+            alph = max(2.e-3_rkx,0.018_rkx / &
+                 (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
+                  0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
+          end if
+          zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+        else
+          zo = charnockog*ustar*ustar
+        end if
       end if
-      zo = max(zo,1.0e-8_rkx)
-    end subroutine ocnrough
+      zo = max(zo,1.0e-4_rkx)
+    end function ocnrough
 
     real(rkx) function szo(visa,ustar)
       implicit none

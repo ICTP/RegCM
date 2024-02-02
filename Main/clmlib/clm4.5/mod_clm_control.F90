@@ -89,7 +89,7 @@ module mod_clm_control
   use mod_clm_hydrology1 , only : Hydrology1_readnl
   use mod_clm_soilhydrology , only : SoilHydrology_readnl
   use mod_clm_megan, only : shr_megan_readnl , shr_megan_mechcomps_n
-  use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init  
+  use mod_clm_drydep, only : seq_drydep_read, seq_drydep_init
   implicit none
 
   private
