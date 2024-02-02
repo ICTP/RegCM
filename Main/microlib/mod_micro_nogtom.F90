@@ -258,7 +258,7 @@ module mod_micro_nogtom
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:qliq')
+    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliq')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
     call getmem3d(qsmix,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsmix')
     call getmem1d(iorder,1,nqx,'cmicro:iorder')
