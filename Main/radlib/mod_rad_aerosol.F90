@@ -1883,25 +1883,14 @@ module mod_rad_aerosol
       ! Important :  radiation schemes expect AOD per layer, calculated
       ! from extinction
       !
-      if ( iaervisonly == 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz , wn = 1:nacwb )
-          extprof(j,i,k,wn) = (sgext1(j,i,k,wn)*xfac2 + &
-                               sgext2(j,i,k,wn)*xfac1) * zdzr3d(j,i,k)
-          ssaprof(j,i,k,wn) = (sgssa1(j,i,k,wn)*xfac2 + &
-                               sgssa2(j,i,k,wn)*xfac1)
-          asyprof(j,i,k,wn) = (sgasy1(j,i,k,wn)*xfac2 + &
-                               sgasy2(j,i,k,wn)*xfac1)
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz , wn = 1:nacwb )
-          extprof(j,i,k,3) = (sgext1(j,i,k,3)*xfac2 + &
-                              sgext2(j,i,k,3)*xfac1) * zdzr3d(j,i,k)
-          ssaprof(j,i,k,3) = (sgssa1(j,i,k,3)*xfac2 + &
-                              sgssa2(j,i,k,3)*xfac1)
-          asyprof(j,i,k,3) = (sgasy1(j,i,k,3)*xfac2 + &
-                              sgasy2(j,i,k,3)*xfac1)
-        end do
-      end if
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz , wn = 1:nacwb )
+        extprof(j,i,k,wn) = (sgext1(j,i,k,wn)*xfac2 + &
+                             sgext2(j,i,k,wn)*xfac1) * zdzr3d(j,i,k)
+        ssaprof(j,i,k,wn) = (sgssa1(j,i,k,wn)*xfac2 + &
+                             sgssa2(j,i,k,wn)*xfac1)
+        asyprof(j,i,k,wn) = (sgasy1(j,i,k,wn)*xfac2 + &
+                             sgasy2(j,i,k,wn)*xfac1)
+      end do
       where ( extprof < 1.E-10_rkx ) extprof = 1.E-10_rkx
       where ( ssaprof < 1.E-10_rkx ) ssaprof = 0.991_rkx
       where ( asyprof < 1.E-10_rkx ) asyprof = 0.611_rkx
