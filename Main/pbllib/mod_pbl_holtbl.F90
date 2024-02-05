@@ -215,28 +215,13 @@ module mod_pbl_holtbl
     !
     ! Holtslag pbl
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ! compute friction velocity
-        rrho = 1.0_rkx/m2p%rhox2d(j,i)
-        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho
-        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho
-        ! Minimum allowed ustr = 0.01
-        uu = uflxsfx*uflxsfx+vflxsfx*vflxsfx
-        ustr(j,i) = max(sqrt(sqrt(uu)),ustarmin)
-        ! convert surface fluxes to kinematic units
-        xhfx(j,i) = m2p%hfx(j,i)*rrho*rcpd
-        xqfx(j,i) = m2p%qfx(j,i)*rrho
-        ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
-        hfxv(j,i) = xhfx(j,i) + ep1 * m2p%thatm(j,i,kz) * xqfx(j,i)
-        lunstb(j,i) = (hfxv(j,i) > 0.0_rkx)
-      end do
-    end do
-    !
     ! Initialize bl diffusion coefficients and counter-gradient terms
     ! with free atmosphere values
     !
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+      ! counter gradient terms for heat and moisture
+      cgs(j,i,k) = 0.0_rkx
+      cgh(j,i,k) = 0.0_rkx
       ! eddy diffusivities for momentum, heat and moisture
       kvm(j,i,k) = kzm(j,i,k)
       kvh(j,i,k) = kzm(j,i,k)
@@ -245,12 +230,23 @@ module mod_pbl_holtbl
         kvc(j,i,k) = kzm(j,i,k)
       end if
     end do
-    !
-    ! counter gradient terms for heat and moisture
-    !
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-      cgs(j,i,k) = 0.0_rkx
-      cgh(j,i,k) = 0.0_rkx
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ! compute friction velocity
+        rrho = 1.0_rkx/m2p%rhox2d(j,i)
+        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho
+        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho
+        ! Minimum allowed ustr = 0.01
+        uu = max(uflxsfx*uflxsfx+vflxsfx*vflxsfx,0.00000001_rkx)
+        ustr(j,i) = sqrt(sqrt(uu))
+        ! convert surface fluxes to kinematic units
+        xhfx(j,i) = m2p%hfx(j,i)*rrho*rcpd
+        xqfx(j,i) = m2p%qfx(j,i)*rrho
+        ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
+        hfxv(j,i) = xhfx(j,i) + ep1 * m2p%thatm(j,i,kz) * xqfx(j,i)
+        lunstb(j,i) = (hfxv(j,i) > 0.0_rkx)
+      end do
     end do
     !
     ! estimate potential temperature at 10m via log temperature
@@ -742,10 +738,10 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k) / &
-                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
-                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                         coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
@@ -800,10 +796,10 @@ module mod_pbl_holtbl
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
           coefe(j,i,k) = coef1(j,i,k) / &
-                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                         (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
           coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqi) + &
-                             coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                             (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
@@ -918,6 +914,8 @@ module mod_pbl_holtbl
         coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
         coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
         coef3(j,i,1) = d_zero
+      end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         coef1(j,i,kz) = d_zero
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
@@ -1074,23 +1072,7 @@ module mod_pbl_holtbl
       ! looking for first guess bl top
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! BL height is at least the mechanical mixing depth
-          ! PBL height must be greater than some minimum mechanical mixing depth
-          ! Several investigators have proposed minimum mechanical mixing depth
-          ! relationships as a function of the local friction velocity, u*.  We
-          ! make use of a linear relationship of the form h = c u* where c=700.
-          ! The scaling arguments that give rise to this relationship most often
-          ! represent the coefficient c as some constant over the local coriolis
-          ! parameter.  Here we make use of the experimental results of Koracin
-          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
-          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
-          ! latitude value for f so that c = 0.07/f = 700.
-          !phpblm = 700.0_rkx*ustr(j,i)
           p2m%zpbl(j,i) = m2p%za(j,i,kz)
-          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
-          if ( p2m%zpbl(j,i) < phpblm ) then
-            p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
-          end if
           do k = kzm1 , kmxpbl(j,i) + 1 , -1
             ! bl height lies between this level and the last
             ! use linear interp. of rich. no. to height of ri=ricr
@@ -1180,9 +1162,25 @@ module mod_pbl_holtbl
       ! Find the k of the level of the pbl
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do k = kz, kmxpbl(j,i) , -1
+          ! BL height is at least the mechanical mixing depth
+          ! PBL height must be greater than some minimum mechanical mixing depth
+          ! Several investigators have proposed minimum mechanical mixing depth
+          ! relationships as a function of the local friction velocity, u*.  We
+          ! make use of a linear relationship of the form h = c u* where c=700.
+          ! The scaling arguments that give rise to this relationship most often
+          ! represent the coefficient c as some constant over the local coriolis
+          ! parameter.  Here we make use of the experimental results of Koracin
+          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+          ! latitude value for f so that c = 0.07/f = 700.
+          !phpblm = 700.0_rkx*ustr(j,i)
+          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
+          if ( p2m%zpbl(j,i) < phpblm ) then
+            p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
+          end if
+          do k = kz , kmxpbl(j,i) , -1
             p2m%kpbl(j,i) = k
-            if ( m2p%za(j,i,k) >= p2m%zpbl(j,i) ) exit
+            if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
           end do
         end do
       end do
@@ -1204,8 +1202,8 @@ module mod_pbl_holtbl
           end if
           do k = kz , p2m%kpbl(j,i) , -1
             zm = m2p%za(j,i,k)
+            zp = m2p%za(j,i,k-1)
             if ( zm < zpbl ) then
-              zp = m2p%za(j,i,k-1)
               zp = min(zp,zpbl)
               z = (zm+zp)*d_half
               zh = z/zpbl
@@ -1261,7 +1259,7 @@ module mod_pbl_holtbl
     pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
       implicit none
       real(rkx) , intent(in) :: thvs , ustar , bfs
-      obk = - thvs * ustar**3 / (gvk*bfs+sign(1.0e-10_rkx,bfs))
+      obk = -(thvs*ustar**3) / (gvk*bfs+sign(1.0e-10_rkx,bfs))
     end function comp_obklen
 
     subroutine force_water_conserve(tendv,tendc,tendi,start,sflux)
