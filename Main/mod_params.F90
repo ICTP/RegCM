@@ -118,7 +118,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_anu2 , mo_nadv , mo_nsound , mo_nzfilt
+      mo_divfilter , mo_anu2 , mo_nadv , mo_nsound , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo , rrtm_extend
@@ -347,7 +347,8 @@ module mod_params
     rayhd = 10000.0_rkx
     mo_nadv = 3
     mo_nsound = 5
-    mo_anu2 = 0.5_rkx
+    mo_divfilter = .false.
+    mo_anu2 = 0.6_rkx
     mo_nzfilt = kz/5
     !
     ! Rrtm radiation param ;
@@ -1318,6 +1319,7 @@ module mod_params
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
       ! Moloch paramters here
+      call bcast(mo_divfilter)
       call bcast(mo_anu2)
       call bcast(mo_nzfilt)
       call bcast(mo_nadv)
