@@ -74,7 +74,7 @@ module mod_moloch
 
   real(rkx) , dimension(:) , pointer :: gzitak
   real(rkx) , dimension(:) , pointer :: gzitakh
-  real(rkx) , dimension(:) , pointer :: xknu
+  real(rkx) , dimension(:) , pointer :: xknu , zprof
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
@@ -176,6 +176,7 @@ module mod_moloch
       call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
     end if
     call getmem1d(xknu,1,kz,'moloch:xknu')
+    call getmem1d(zprof,1,kz,'moloch:zprof')
     do concurrent ( k = 1:kz )
       xknu(k) = sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
@@ -864,7 +865,10 @@ module mod_moloch
           end if
 
           if ( do_divdamp ) then
-            call divdamp(dts)
+            do concurrent ( k = 1:kz )
+              zprof(k) = xknu(k)*0.250_rkx*0.125_rkx*(dx**2)/dts
+            end do
+            call divdamp
           end if
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1924,33 +1928,29 @@ module mod_moloch
     end if
   end subroutine uvstagtox
 
-  subroutine divdamp(dts)
+  subroutine divdamp
     implicit none
-    real(rkx) , intent(in) :: dts
     integer(ik4) :: i , j , k
-    real(rkx) , parameter :: ddamp = 0.250_rkx*0.125_rkx
-    real(rkx) :: ddamp1
 
-    ddamp1 = ddamp*(dx**2)/dts
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
       do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
-               ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+               zprof(k)/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
       do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+                zprof(k)/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
       do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
-                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+                zprof(k)/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
   end subroutine divdamp
