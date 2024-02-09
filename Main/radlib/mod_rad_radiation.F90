@@ -205,8 +205,10 @@ module mod_rad_radiation
   ! fsul    - Clear sky upwards longwave flux
   ! fdl     - Total downwards longwave flux
   ! fsdl    - Clear sky downwards longwv flux
+  ! rtclrsf - d_one/tclrsf(n,k)
   real(rkx) , pointer , dimension(:,:) :: fdl , fsdl , fsul , ful
   real(rkx) , pointer , dimension(:,:) :: fdl0 , fsdl0 , fsul0 , ful0
+  real(rkx) , pointer , dimension(:,:) :: rtclrsf
   real(rkx) , pointer , dimension(:) :: taugab , tauray
   ! tmp     - Temporary
   ! delt    - Diff t**4 mid layer to top interface
@@ -296,7 +298,6 @@ module mod_rad_radiation
   ! plco2    - Prs weighted CO2 path
   ! plh2o    - Prs weighted H2O path
   ! tclrsf   - Total clear sky fraction, level to space
-  ! rtclrsf  - d_one/tclrsf(n,k)
   ! cfc11    - cfc11 mass mixing ratio
   ! cfc12    - cfc12 mass mixing ratio
   ! ch4      - methane mass mixing ratio
@@ -305,8 +306,7 @@ module mod_rad_radiation
   real(rkx) , pointer , dimension(:) :: fslwdcs
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
           o3mmr , pbr
-  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm
-  real(rkx) , pointer , dimension(:,:) :: tclrsf , rtclrsf
+  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
 
   real(rkx) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
@@ -673,7 +673,6 @@ module mod_rad_radiation
     call getmem2d(fsdl0,1,npoints,1,kzp1,'rad:fsdl0')
     call getmem2d(ful0,1,npoints,1,kzp1,'rad:ful0')
     call getmem2d(fsul0,1,npoints,1,kzp1,'rad:fsul0')
-    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
     call getmem2d(rtclrsf,1,npoints,1,kzp1,'rad:rtclrsf')
 
     call getmem2d(dbvtly,1,npoints,1,kz,'rad:dbvtly')
@@ -742,6 +741,7 @@ module mod_rad_radiation
     call getmem2d(plco2,1,npoints,1,kzp1,'rad:plco2')
     call getmem2d(plh2o,1,npoints,1,kzp1,'rad:plh2o')
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
+    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
 
     call allocate_tracers(1,npoints)
 
@@ -919,8 +919,8 @@ module mod_rad_radiation
     !
     ! Set latitude dependent radiation input
     !
-    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%o3vmr, &
-                pbr,pnm,plco2,plh2o,o3mmr)
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
+                pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
     !
     ! Solar radiation computation
     !
@@ -1025,7 +1025,7 @@ module mod_rad_radiation
       call trcmix(rt%n1,rt%n2,rt%dlat,rt%xptrop,rt%pmid,n2o,ch4,cfc11,cfc12)
 
       call radclw(rt%n1,rt%n2,rt%ts,rt%t,rt%q,rt%o3vmr,pbr,pnm,         &
-                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,        &
+                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,tclrsf, &
                   rt%qrl,rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,     &
                   rt%flntc,rt%flwds,fslwdcs,rt%emiss,rt%aerlwfo,        &
                   rt%aerlwfos,rt%absgasnxt,rt%absgastot,rt%emsgastot,   &
@@ -1138,27 +1138,23 @@ module mod_rad_radiation
                     aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , intent(in) :: eccf
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: cld , clwp , fice
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: h2ommr , o3mmr
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: rei , rel
-    real(rkx) , pointer , dimension(:) , intent(in) :: adirsw , adifsw
-    real(rkx) , pointer , dimension(:) , intent(in) :: adirlw , adiflw
-    real(rkx) , pointer , dimension(:) , intent(in) :: asw , alw
+    real(rkx) :: eccf
+    real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
+             fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , solout, &
+             soll , solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , &
+             asw , alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtaucl , tauxcl
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: outtauci , tauxci
-    real(rkx) , pointer , dimension(:) , intent(inout) :: aeradfo , aeradfos
-    real(rkx) , pointer , dimension(:) , intent(inout) :: fsds , fsnirt
-    real(rkx) , pointer , dimension(:) , intent(inout) :: fsnirtsq , fsnrtc
-    real(rkx) , pointer , dimension(:) , intent(inout) :: fsns , fsnsc
-    real(rkx) , pointer , dimension(:) , intent(inout) :: fsnt , fsntc
-    real(rkx) , pointer , dimension(:) , intent(inout) :: solin , solout
-    real(rkx) , pointer , dimension(:) , intent(inout) :: soll , solld
-    real(rkx) , pointer , dimension(:) , intent(inout) :: sols , solsd
-    real(rkx) , pointer , dimension(:) , intent(inout) :: abv , sol , czen
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: qrs
+    real(rkx) , pointer , dimension(:,:) :: cld , pint
+    real(rkx) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
+    real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
+    real(rkx) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
+             qrs , rei , rel
+    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
+           adirsw , adifsw , adirlw , adiflw , asw , alw
+    intent (inout) aeradfo , aeradfos , fsds , qrs , abv , sol , &
+            tauxcl , tauxci , outtaucl , outtauci
+    intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
+                   fsntc , solin , solout , soll , solld , sols , solsd
     !
     ! indxsl   - Index for cloud particle properties
     !
@@ -1272,7 +1268,6 @@ module mod_rad_radiation
     ww(:) = d_zero
 
     qrs(:,:) = d_zero
-
     !
     ! Define solar incident radiation and interface pressures:
     !
@@ -1859,28 +1854,24 @@ module mod_rad_radiation
   ! flwds   - Down longwave flux at surface
   !
   subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,n2o,ch4,&
-                    cfc11,cfc12,cld,qrl,flns,flnt,lwout,lwin,flnsc,    &
-                    flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,        &
+                    cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,lwout,lwin,   &
+                    flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
                     absgasnxt,absgastot,emsgastot,labsem)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
-    real(rkx) , pointer , dimension(:) , intent(in) :: ts , emiss
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , qnm
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , cld
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , pint
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: piln , pmln
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ch4 , n2o
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: cfc11 , cfc12
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: qrl
-    real(rkx) , pointer , dimension(:) , intent(inout) :: flns , flnt
-    real(rkx) , pointer , dimension(:) , intent(inout) :: lwout , lwin
-    real(rkx) , pointer , dimension(:) , intent(inout) :: flnsc , flntc
-    real(rkx) , pointer , dimension(:) , intent(inout) :: flwds , fslwdcs
-    real(rkx) , pointer , dimension(:) , intent(inout) :: aerlwfo , aerlwfos
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emsgastot
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
+    real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
+               o3vmr , pmid , pmln , qnm , qrl , tnm
+    real(rkx) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
+    real(rkx) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
+    real(rkx) , pointer , dimension(:,:) :: emsgastot
+    real(rkx) , pointer , dimension(:) :: emiss , flns , flnsc , flnt , &
+               lwout , lwin , flntc , flwds , fslwdcs , ts
+    real(rkx), pointer , dimension(:) :: aerlwfo , aerlwfos
+    intent (in) cld , emiss
+    intent (inout) flns , flnsc , flnt , lwout , lwin , flntc , flwds , qrl , &
+            aerlwfo , aerlwfos
+    intent (inout) tclrsf
 
     real(rkx) :: absbt , bk1 , bk2 , tmp1
     integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
@@ -1890,14 +1881,9 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-
-    qrl(:,:) = d_zero
-
     do n = n1 , n2
-      tclrsf(n,1) = d_one
-      rtclrsf(n,1) = d_one
+      rtclrsf(n,1) = d_one/tclrsf(n,1)
     end do
-
     do k = 1 , kz
       do n = n1 , n2
         fclb4(n,k) = d_zero
@@ -2217,8 +2203,7 @@ module mod_rad_radiation
           if ( skip(n) ) cycle
           if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
             ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
-                  rtclrsf(n,kzp1-khiv(n)))* &
-                  (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+                  rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
           end if
         end do
       end do  ! km = 1 , khighest
@@ -2549,8 +2534,9 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:) , intent(in) :: czen
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rkx) , intent(in) :: trayoslp
-    integer(ik4) , intent(in) :: ns
+    real(rkx) :: trayoslp
+    integer(ik4) :: ns
+    intent (in) trayoslp , ns
     !
     ! taugab   - Layer total gas absorption optical depth
     ! tauray   - Layer rayleigh optical depth
@@ -2865,8 +2851,8 @@ module mod_rad_radiation
   subroutine radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: piln , pmln
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
+      piln , pmln
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
     !
@@ -3933,8 +3919,9 @@ module mod_rad_radiation
   subroutine radoz2(n1,n2,o3vmr,pint)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint
+    real(rkx) , pointer , dimension(:,:) :: o3vmr
+    real(rkx) , pointer , dimension(:,:) :: pint
+    intent (in) o3vmr , pint
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radoz2'
@@ -3974,8 +3961,8 @@ module mod_rad_radiation
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , pointer , dimension(:) , intent(in) :: ts
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , qnm
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmln , piln , pint
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
+      qnm , piln , pint
     !
     ! dy     - Thickness of layer for tmp interp
     ! dpnm   - Pressure thickness of layer
@@ -4076,15 +4063,18 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,o3vmr,pmidrd, &
-                    pintrd,plco2,plh2o,o3mmr)
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
+                    pintrd,plco2,plh2o,tclrsf,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: pint , pmid
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: o3vmr , h2ommr
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pintrd , pmidrd
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: plco2 , plh2o
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: o3mmr
+    real(rkx) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
+           plh2o , tclrsf
+    real(rkx) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
+           pmidrd
+    intent (in) cld , h2ommr , o3vmr , pint , pmid
+    intent (inout) o3mmr , plco2 , pmidrd
+    intent (inout) pintrd , plh2o , tclrsf
+
     real(rkx) :: cpwpl , vmmr
     integer(ik4) :: n , k
     !
@@ -4104,6 +4094,7 @@ module mod_rad_radiation
     ! pintrd  - Pressure at interfaces (dynes/cm*2)
     ! plco2   - Vert. pth lngth of co2 (prs-weighted)
     ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
+    ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
     ! o3mmr   - Ozone mass mixing ratio
     ! cpwpl   - Const in co2 mixing ratio to path length conversn
     ! vmmr    - Ozone volume mixing ratio
@@ -4141,12 +4132,14 @@ module mod_rad_radiation
     do n = n1 , n2
       plh2o(n,1) = rgsslp*h2ommr(n,1)*pintrd(n,1)*pintrd(n,1)
       plco2(n,1) = co2vmr(n)*cpwpl*pintrd(n,1)*pintrd(n,1)
+      tclrsf(n,1) = d_one
     end do
     do k = 1 , kz
       do n = n1 , n2
         plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
                        pintrd(n,k)**2) * h2ommr(n,k)
         plco2(n,k+1) = co2vmr(n)*cpwpl*pintrd(n,k+1)**2
+        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
       end do
     end do
     !
