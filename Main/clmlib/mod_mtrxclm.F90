@@ -633,6 +633,7 @@ module mod_mtrxclm
               lms%srnof(n,j,i)  = c2rro_sur(j,i)
               lms%trnof(n,j,i)  = (c2rro_sub(j,i)+c2rro_sur(j,i))
               lms%q2m(n,j,i)    = c2r2mq(j,i)
+              lms%emisv(n,j,i)  = d_one
               lms%deltat(n,j,i) = lms%tgbrd(n,j,i)-lm%tatm(j,i)
               lms%deltaq(n,j,i) = (lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))) - &
                       c2r2mq(j,i)
