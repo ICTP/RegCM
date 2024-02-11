@@ -1109,7 +1109,7 @@ module mod_moloch
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: dtrdx , dtrdy , dtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
-        real(rkx) :: pfm , xw1 , xw2
+        real(rkx) :: xw1 , xw2
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
 
@@ -1122,17 +1122,10 @@ module mod_moloch
           dtrdz = 0.5_rkx * dtrdz
         end if
 
-        pfm = 0.0_rkx
-        if ( present(pmin) ) then
-          pfm = pmin
-        end if
         if ( present(pfac) ) then
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             pp(j,i,k) = pp(j,i,k) * pfac
           end do
-          if ( present(pmin) ) then
-            pfm = pfm*pfac
-          end if
         end if
 
         ! Vertical advection
@@ -1223,10 +1216,6 @@ module mod_moloch
           end do
         end if
 
-        if ( present(pmin) ) then
-          wz = max(wz,pfm)
-        end if
-
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
         if ( lrotllr ) then
@@ -1274,10 +1263,6 @@ module mod_moloch
             do concurrent ( i = ici1:ici2, k = 1:kz )
               p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
             end do
-          end if
-
-          if ( present(pmin) ) then
-            p0 = max(p0,pfm)
           end if
 
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
@@ -1362,13 +1347,10 @@ module mod_moloch
             end do
           end if
 
-          if ( present(pmin) ) then
-            p0 = max(p0,pfm)
-          end if
-
           call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
           ! Zonal advection
+
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jce2ga
@@ -1401,14 +1383,14 @@ module mod_moloch
           end do
         end if
 
-        if ( present(pmin) ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = max(pp(j,i,k),pfm)
-          end do
-        end if
         if ( present(pfac) ) then
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
             pp(j,i,k) = pp(j,i,k) / pfac
+          end do
+        end if
+        if ( present(pmin) ) then
+          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            pp(j,i,k) = max(pp(j,i,k),pmin)
           end do
         end if
       end subroutine wafone
@@ -1928,8 +1910,8 @@ module mod_moloch
     implicit none
     real(rkx) , intent(in) :: dts
     integer(ik4) :: i , j , k
-    real(rkx) , parameter :: ddamp = 0.03333
-    real(rkx) , parameter :: nu2 = 0.6
+    real(rkx) , parameter :: ddamp = 0.03125
+    real(rkx) , parameter :: nu2 = 0.05
     real(rkx) :: ddamp1
 
     ddamp1 = ddamp * ((dx**2)/dts)

@@ -270,7 +270,7 @@ module mod_cu_interface
         end do
       end if
 
-      w1 = d_one/real(max(int(max(dtcum,300.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( cuscheme(j,i) == 5 ) then
           avg_ww(j,i,k) = (d_one-w1)*avg_ww(j,i,k) + w1*m2c%wpas(j,i,k)
