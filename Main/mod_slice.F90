@@ -236,8 +236,8 @@ module mod_slice
           atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
-          atms%pf3d(j,i,k) = atm0%pf(j,i,k) + &
-                     d_half*(atms%ppb3d(j,i,k-1)+atms%ppb3d(j,i,k))
+          atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
+                        (atms%zq(j,i,1)-atms%za(j,i,1))
         end do
       else
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
