@@ -298,10 +298,14 @@ module mod_ncio
         end if
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
-          write(stdout,*) 'Applying perturbation to input dataset:'
+          if ( myid == italk ) then
+            write(stdout,*) 'Applying perturbation to input dataset:'
+          end if
           if ( lperturb_topo ) then
-            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-              perturb_frac_topo*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+                perturb_frac_topo*d_100,'%'
+            end if
             call randify(rspace,perturb_frac_topo,icount(1),icount(2))
           end if
         end if
@@ -479,10 +483,14 @@ module mod_ncio
         call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
-          write(stdout,*) 'Applying perturbation to input dataset:'
+          if ( myid == italk ) then
+            write(stdout,*) 'Applying perturbation to input dataset:'
+          end if
           if ( lperturb_topo ) then
-            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-              perturb_frac_topo*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+                perturb_frac_topo*d_100,'%'
+            end if
             call randify(rspace,perturb_frac_topo,icount(1),icount(2))
           end if
         end if
@@ -894,7 +902,9 @@ module mod_ncio
       istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
       if ( ensemble_run ) then
-        write(stdout,*) 'Applying perturbation to input dataset:'
+        if ( myid == italk ) then
+          write(stdout,*) 'Applying perturbation to input dataset:'
+        end if
         if ( lperturb_ts ) then
           if ( myid == italk ) then
             write(stdout,'(a,f7.2,a)') &
@@ -953,21 +963,19 @@ module mod_ncio
             write(stdout,'(a,f7.2,a)') 'Q with value ',perturb_frac_q*d_100,'%'
           end if
           call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
+          where ( rspace3 < 1.0e-8_rkx ) rspace3 = 1.0e-8_rkx
         end if
       end if
-      qv(jce1:jce2,ice1:ice2,1:kz) = &
-               max(rspace3(jce1:jce2,ice1:ice2,1:kz),1.0e-8_rkx)
+      qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
       if ( has_qc ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
-        qc(jce1:jce2,ice1:ice2,1:kz) = &
-                 max(rspace3(jce1:jce2,ice1:ice2,1:kz),0.0_rkx)
+        qc(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
       end if
       if ( has_qi ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
-        qi(jce1:jce2,ice1:ice2,1:kz) = &
-                 max(rspace3(jce1:jce2,ice1:ice2,1:kz),0.0_rkx)
+        qi(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
       end if
       if ( idynamic == 2 ) then
         istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
@@ -1001,8 +1009,10 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_ps ) then
-            write(stdout,'(a,f7.2,a)') &
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
                     'PS with value ',perturb_frac_ps*d_100,'%'
+            end if
             call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
           end if
         end if
@@ -1011,10 +1021,14 @@ module mod_ncio
                 rspace2,istart(1:3),icount(1:3))
         call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
         if ( ensemble_run ) then
-          write(stdout,*) 'Applying perturbation to input dataset:'
+          if ( myid == italk ) then
+            write(stdout,*) 'Applying perturbation to input dataset:'
+          end if
           if ( lperturb_ts ) then
-            write(stdout,'(a,f7.2,a)') &
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
                     'TS with value ',perturb_frac_ts*d_100,'%'
+            end if
             call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
           end if
         end if
@@ -1031,7 +1045,10 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_u ) then
-            write(stdout,'(a,f7.2,a)') 'U with value ',perturb_frac_u*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
+                'U with value ',perturb_frac_u*d_100,'%'
+            end if
             call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1040,7 +1057,10 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_v ) then
-            write(stdout,'(a,f7.2,a)') 'V with value ',perturb_frac_v*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
+                'V with value ',perturb_frac_v*d_100,'%'
+            end if
             call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1049,7 +1069,10 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_t ) then
-            write(stdout,'(a,f7.2,a)') 'T with value ',perturb_frac_t*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
+                'T with value ',perturb_frac_t*d_100,'%'
+            end if
             call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
           end if
         end if
@@ -1058,22 +1081,23 @@ module mod_ncio
         call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
         if ( ensemble_run ) then
           if ( lperturb_q ) then
-            write(stdout,'(a,f7.2,a)') 'Q with value ',perturb_frac_q*d_100,'%'
+            if ( myid == italk ) then
+              write(stdout,'(a,f7.2,a)') &
+                'Q with value ',perturb_frac_q*d_100,'%'
+            end if
             call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
+            where ( rspace3 < 1.0e-8_rkx ) rspace3 = 1.0e-8_rkx
           end if
         end if
-        where ( rspace3 < 0.0_rkx ) rspace3 = 1.0e-8_rkx
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
         if ( has_qc ) then
           istatus = nf90_get_var(ibcin,icbc_ivar(10),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable qc read error', 'ICBC FILE')
-          where ( rspace3 < 0.0_rkx ) rspace3 = 0.0_rkx
           call grid_distribute(rspace3,qc,jce1,jce2,ice1,ice2,1,kz)
         end if
         if ( has_qi ) then
           istatus = nf90_get_var(ibcin,icbc_ivar(11),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable qi read error', 'ICBC FILE')
-          where ( rspace3 < 0.0_rkx ) rspace3 = 0.0_rkx
           call grid_distribute(rspace3,qi,jce1,jce2,ice1,ice2,1,kz)
         end if
         if ( idynamic == 2 ) then
@@ -1121,12 +1145,10 @@ module mod_ncio
     end if
     if ( itweak == 1 ) then
       if ( itweak_sst == 1 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( ilnd(j,i) == 0 ) then
-              ts(j,i) = ts(j,i) + sst_tweak
-            end if
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          if ( ilnd(j,i) == 0 ) then
+            ts(j,i) = ts(j,i) + sst_tweak
+          end if
         end do
       end if
       if ( itweak_temperature == 1 ) then
