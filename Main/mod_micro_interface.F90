@@ -220,7 +220,7 @@ module mod_micro_interface
   subroutine cldfrac(cldlwc,cldfra)
     use mod_atm_interface , only : atms
     implicit none
-    real(rkx) :: exlwc
+    real(rkx) :: exlwc , conv_exlwc , ls_exlwc
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
     integer(ik4) :: i , j , k , ichi
 
@@ -323,11 +323,15 @@ module mod_micro_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
+              ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+              ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
+              exlwc = (conv_exlwc*cldfra(j,i,k)+ls_exlwc) / &
+                      (cldfra(j,i,k)+mc2mo%fcc(j,i,k))
               ! get maximum cloud fraction between cumulus and large scale
               cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
               cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
               if ( cldfra(j,i,k) > lowcld ) then
-                exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
                 ! Cloud Water Volume
                 ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
                 ! Scaling for CF
@@ -337,8 +341,7 @@ module mod_micro_interface
                   ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
                   exlwc = exlwc * chis(ichi)
                 end if
-                ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
-                cldlwc(j,i,k) = exlwc/cldfra(j,i,k)
+                cldlwc(j,i,k) = exlwc
               else
                 cldfra(j,i,k) = d_zero
                 cldlwc(j,i,k) = d_zero

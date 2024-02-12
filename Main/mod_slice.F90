@@ -342,8 +342,8 @@ module mod_slice
     ktrop(:,:) = kz
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       do k = kzm1 , 2 , -1
-        if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
         ktrop(j,i) = k
+        if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
       end do
     end do
     if ( ibltyp == 1 ) then
