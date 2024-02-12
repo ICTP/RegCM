@@ -140,7 +140,11 @@ module mod_ocn_zeng
       ! initial values of u* and convective velocity
       !
       wc = minw
-      um = max(sqrt(uv995*uv995),minw)
+      if ( dthv < d_zero ) then
+        um = max(sqrt(uv995*uv995),minw)
+      else
+        um = sqrt(uv995*uv995)
+      end if
       !
       ! zo comes from wave model
       ! flag1 is used as mask for zo

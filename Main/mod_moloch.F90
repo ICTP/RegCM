@@ -311,7 +311,7 @@ module mod_moloch
         if ( do_fulleq ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
             qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
-            qwitot(j,i,k) = qi(j,i,k)
+            qwitot(j,i,k) = qi(j,i,k) + qs(j,i,k)
           end do
         end if
       else
@@ -837,27 +837,23 @@ module mod_moloch
 
           if ( lrotllr ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * &
-                  ( ( (dtrdx * u(j+1,i,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j+1,i,k))) - &
-                      (dtrdx * u(j  ,i,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j-1,i,k))) ) + &
-                    ( (dtrdy * v(j,i+1,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j,i+1,k))*rmv(j,i+1) ) - &
-                      (dtrdy * v(j,i  ,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j,i-1,k))*rmv(j,i  ) ) ) )
+              zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) *                           &
+                 ((d_two*dtrdx*(                                              &
+                      ((u(j+1,i,k)           )/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
+                      ((u(j  ,i,k)           )/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
+                  (d_two*dtrdy*(                                              &
+                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
+                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
             end do
           else
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) * &
-                  ( ( (dtrdx * u(j+1,i,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j+1,i,k))*rmu(j+1,i)) - &
-                      (dtrdx * u(j  ,i,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j-1,i,k))*rmu(j  ,i)) ) + &
-                    ( (dtrdy * v(j,i+1,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j,i+1,k))*rmv(j,i+1) ) - &
-                      (dtrdy * v(j,i  ,k) * d_two / &
-                       (fmz(j,i,k)+fmz(j,i-1,k))*rmv(j,i  ) ) ) )
+              zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) *                          &
+                 ((d_two*dtrdx*(                                              &
+                      ((u(j+1,i,k)*rmu(j+1,i))/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
+                      ((u(j  ,i,k)*rmu(j  ,i))/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
+                  (d_two*dtrdy*(                                              &
+                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
+                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
             end do
           end if
 
@@ -883,18 +879,18 @@ module mod_moloch
                real(nsound,rkx) * dtrdz * (tetav(j,i,k-1)-tetav(j,i,k))) !! GW
             if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                  w(j,i,k) > 0.1_rkx ) then
-              zrom1w(j,i,k) = zrom1w(j,i,k) + &
+              zrom1w(j,i,k) = zrom1w(j,i,k) + fmzf(j,i,k) * &
                 ((egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv * &
                     (d_half*(qsat(j,i,k)+qsat(j,i,k-1)))) / &
-                    (cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1)))*fmzf(j,i,k)
+                    (cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1)))
             end if
           end do
 
           ! explicit w:
           !    it must be consistent with the initialization of pai
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            zwexpl(j,i,k) = (w(j,i,k) - zrom1w(j,i,k) * dtrdz * &
-                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts) + &
+            zwexpl(j,i,k) = w(j,i,k) - (zrom1w(j,i,k) * dtrdz * &
+                         (pai(j,i,k-1) - pai(j,i,k))) - egrav*dts + &
                          (rdrcv * zrom1w(j,i,k) * dtrdz * &
                           (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                            pai(j,i,k)   * zdiv2(j,i,k)))
@@ -962,15 +958,15 @@ module mod_moloch
             pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
           end do
 
+          call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
+
           do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
             ud(j,i,k) = u(j,i,k)
           end do
           do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
             vd(j,i,k) = v(j,i,k)
           end do
-
-          call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
           if ( lrotllr ) then
             ! Equation 17
@@ -1042,8 +1038,8 @@ module mod_moloch
 
       subroutine advection(dta)
         implicit none
+        real(rkx) , intent(in) :: dta
         integer(ik4) :: n
-        real(rkx) :: dta
         real(rkx) , pointer , dimension(:,:,:) :: ptr
 
         call uvstagtox(u,v,ux,vx)
@@ -1065,7 +1061,7 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=epsilon(pmin))
+            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=d_zero)
           end do
         end if
         if ( ibltyp == 2 ) then
