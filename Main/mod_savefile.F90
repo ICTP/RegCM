@@ -1716,7 +1716,12 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
-    integer(ik4) :: int10d , ical
+#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
+    integer(ik8) :: int10d
+#else
+    integer(ik4) :: int10d
+#endif
+    integer(ik4) :: ical
     type (rcm_time_and_date) :: idatex
     real(rk8) :: rtmp
     imode = nf90_nowrite
@@ -1804,7 +1809,11 @@ module mod_savefile
 #endif
       if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
     end if
+#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
+    idatex = i8wcal(int10d,ical)
+#else
     idatex = i4wcal(int10d,ical)
+#endif
     if ( idatex /= rcmtimer%idate ) then
       write(stderr,*) 'Mismatch in dates namelist vs SAV file'
       write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
@@ -1878,12 +1887,12 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     type (rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: ncid
-#ifndef NETCDF_CDF5
-    integer(ik4) :: itemp
-    itemp = int(toint10(idate),ik4)
-#else
+#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
     integer(ik8) :: itemp
     itemp = toint10(idate)
+#else
+    integer(ik4) :: itemp
+    itemp = int(toint10(idate),ik4)
 #endif
 #ifdef PNETCDF
     ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',itemp)
