@@ -69,7 +69,12 @@ module mod_date
     integer(ik4) :: cal
   end type i8wcal
 
-  public :: i4wcal , i8wcal
+  type c10wcal
+    character(len=11) :: c
+    integer(ik4) :: cal
+  end type c10wcal
+
+  public :: i4wcal , i8wcal , c10wcal
 
   type rcm_time_and_date
     integer(ik4) :: calendar = gregorian
@@ -96,7 +101,8 @@ module mod_date
   end type iatime
 
   interface assignment(=)
-    module procedure initfromintdt ,    &
+    module procedure initfromchar,      &
+                     initfromintdt ,    &
                      initfromintdtwc ,  &
                      initfromint8dt ,   &
                      initfromint8dtwc , &
@@ -447,6 +453,16 @@ module mod_date
     id = int(id8,ik4)
     ih = int(ih8,ik4)
   end subroutine split_i10_8
+
+  subroutine initfromchar(x, cwc)
+    implicit none
+    type(c10wcal) , intent(in) :: cwc
+    type (rcm_time_and_date) , intent(out) :: x
+    type(i8wcal) :: iwc
+    read(cwc%c,'(i0.10)') iwc%i
+    iwc%cal = cwc%cal
+    call initfromint8dtwc(x, iwc)
+  end subroutine initfromchar
 
   subroutine initfromintdtwc(x, iwc)
     implicit none

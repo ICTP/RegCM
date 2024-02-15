@@ -1716,11 +1716,7 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
-#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
-    integer(ik8) :: int10d
-#else
-    integer(ik4) :: int10d
-#endif
+    character (len=11) :: ctemp
     integer(ik4) :: ical
     type (rcm_time_and_date) :: idatex
     real(rk8) :: rtmp
@@ -1751,9 +1747,9 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(sname))
 
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_att(ncid,nf90_global,'idatex',int10d)
+    ncstatus = nf90mpi_get_att(ncid,nf90_global,'idatex',ctemp)
 #else
-    ncstatus = nf90_get_att(ncid,nf90_global,'idatex',int10d)
+    ncstatus = nf90_get_att(ncid,nf90_global,'idatex',ctemp)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
 #ifdef PNETCDF
@@ -1809,11 +1805,7 @@ module mod_savefile
 #endif
       if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
     end if
-#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
-    idatex = i8wcal(int10d,ical)
-#else
-    idatex = i4wcal(int10d,ical)
-#endif
+    idatex = c10wcal(ctemp,ical)
     if ( idatex /= rcmtimer%idate ) then
       write(stderr,*) 'Mismatch in dates namelist vs SAV file'
       write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
@@ -1887,17 +1879,12 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     type (rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: ncid
-#if defined(NETCDF_CDF5) || defined(NETCDF4_HDF5) || defined(PNETCDF)
-    integer(ik8) :: itemp
-    itemp = toint10(idate)
-#else
-    integer(ik4) :: itemp
-    itemp = int(toint10(idate),ik4)
-#endif
+    character (len=11) :: ctemp
+    ctemp = tochar10(idate)
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',itemp)
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',ctemp)
 #else
-    ncstatus = nf90_put_att(ncid,nf90_global,'idatex',itemp)
+    ncstatus = nf90_put_att(ncid,nf90_global,'idatex',ctemp)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot save idatex')
 #ifdef PNETCDF
