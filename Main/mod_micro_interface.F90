@@ -323,17 +323,17 @@ module mod_micro_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
+              ! Cloud Water Volume
+              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-              ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
-              exlwc = (conv_exlwc*cldfra(j,i,k)+ls_exlwc) / &
-                      (cldfra(j,i,k)+mc2mo%fcc(j,i,k))
+              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
+              exlwc = min((conv_exlwc*cldfra(j,i,k) + ls_exlwc), 6.0_rkx)
               ! get maximum cloud fraction between cumulus and large scale
               cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
               if ( cldfra(j,i,k) > lowcld ) then
-                ! Cloud Water Volume
-                ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+                ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
+                exlwc = exlwc/cldfra(j,i,k)
                 ! Scaling for CF
                 ! Implements CF scaling as in Liang GRL 32, 2005
                 ! doi: 10.1029/2004GL022301
@@ -355,7 +355,6 @@ module mod_micro_interface
             do j = jci1 , jci2
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              ! get maximum cloud fraction between cumulus and large scale
               cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
               if ( cldfra(j,i,k) > lowcld ) then
                 exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
