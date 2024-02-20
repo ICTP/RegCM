@@ -65,7 +65,6 @@ module mod_ifs
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: ghelp
   real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: slev
   real(rkx) , pointer , dimension(:) :: hyam , hybm
@@ -131,7 +130,6 @@ module mod_ifs
     call getmem1d(hybm,1,hynlev,'mod_ifs:hybm')
     call getmem1d(glat,1,jlat,'mod_ifs:glat')
     call getmem1d(glon,1,ilon,'mod_ifs:glon')
-    call getmem1d(ghelp,1,max(jlat,ilon),'mod_ifs:ghelp')
     call getmem3d(b3,1,jx,1,iy,1,klev*5,'mod_ifs:b3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
@@ -183,22 +181,6 @@ module mod_ifs
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    !
-    ! Find window to read
-    !
-    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
-
-    ghelp(1:jlat) = glat
-    jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_ifs:glat')
-    glat = ghelp(gdomain%jgstart:gdomain%jgstop)
-    ghelp(1:ilon) = glon
-    ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_ifs:glon')
-    glon(1:gdomain%ni(1)) = ghelp(gdomain%igstart(1):gdomain%igstop(1))
-    if ( gdomain%ntiles == 2 ) then
-      glon(gdomain%ni(1)+1:ilon) = ghelp(gdomain%igstart(2):gdomain%igstop(2))
-    end if
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then

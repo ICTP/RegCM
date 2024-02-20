@@ -189,7 +189,7 @@ module mod_kdinterp
     ni = size(tlat,2)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a,f12.8,a)',advance='no') &
+    write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
     do i = 1 , ni
@@ -258,7 +258,7 @@ module mod_kdinterp
     dx1 = rin1/erkm
     lbil = .true.
     if ( rin < rin1 ) then
-      dx = dx1/erkm
+      dx = dx1
       lbil = .false.
     end if
     if ( present(roi) ) then
@@ -271,7 +271,7 @@ module mod_kdinterp
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a,f12.8,a)',advance='no') &
+    write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
     do i = 1 , ni
@@ -398,7 +398,7 @@ module mod_kdinterp
     nj = size(tlat,1)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a,f12.8,a)',advance='no') &
+    write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
     do i = 1 , ni
@@ -470,7 +470,7 @@ module mod_kdinterp
     dx1 = rin1/erkm
     lbil = .true.
     if ( rin < rin1 ) then
-      dx = dx1/erkm
+      dx = dx1
       lbil = .false.
     end if
     if ( present(roi) ) then
@@ -483,7 +483,7 @@ module mod_kdinterp
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a,f12.8,a)',advance='no') &
+    write(stdout,'(a,f16.8,a)',advance='no') &
       ' Computing weights, R = ',sqrt(r2)*erkm, ' '
     i10 = ni/10
     do i = 1 , ni
