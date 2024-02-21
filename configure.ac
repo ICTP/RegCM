@@ -455,7 +455,7 @@ AM_CONDITIONAL(OSNAME_AIX, [ test -z "${osname##AIX}" ] )
 AM_CONDITIONAL(OSNAME_LINUX, [ test -z "${osname##Linux}" ] )
 
 # Cut away flags for this test
-FCPROG=`echo $FC | cut -d " " -f 1`
+FCPROG=`basename $(echo $FC | cut -d " " -f 1)`
 AC_SUBST(FCPROG)
 
 AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xlf200*}" -o \
@@ -473,6 +473,7 @@ AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
+AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 DEFINE="-D"
@@ -519,6 +520,16 @@ if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="$FCFLAGS -march=nehalem"
     AC_SUBST(FCFLAGS)
   fi
+fi
+if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+  FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
+           -heap-arrays -fPIC"
+  OMPFLAGS="-qopenmp"
+  CPRDEF="INTEL"
+  AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
+  LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
+  AC_SUBST(LIBS)
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
@@ -611,6 +622,13 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
+  if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+    FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
+             -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
+    NOOPTFC="$FCFLAGS"
+    AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
+  fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
              -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
@@ -667,6 +685,19 @@ else
       fi
     fi
     AC_SUBST(FCFLAGS)
+    AC_SUBST(NOOPTFC)
+  fi
+  if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+    AR=xiar
+    AC_SUBST(AR)
+    NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
+    if eval "test x"$USE_PROF" = x1"; then
+      FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
+      AC_SUBST(FCFLAGS)
+    else
+      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+      AC_SUBST(FCFLAGS)
+    fi
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
