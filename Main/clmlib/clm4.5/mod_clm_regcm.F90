@@ -752,8 +752,9 @@ module mod_clm_regcm
     ! but still could be potentuially usefull
     call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
 
+    clm_l2a%notused = clm_l2a%qflx_surf + clm_l2a%qflx_sub
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%trnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_lwrad_out,lms%urlwf)
     lms%snwm = lms%snwm * dtsrf
