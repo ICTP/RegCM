@@ -16,13 +16,19 @@ module mod_clm_mkarbinit
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
-  use mod_bats_param , only : xmopor , slmo
 
   implicit none
 
   private
 
   logical , parameter :: lsnowhack = .false.
+
+  real(rk8) , dimension(22) , parameter :: slmo = &
+    [ 0.20_rk8 , 0.20_rk8 , 0.20_rk8 , 0.35_rk8 , 0.60_rk8 , &
+      0.30_rk8 , 0.30_rk8 , 0.00_rk8 , 0.80_rk8 , 0.70_rk8 , &
+      0.001_rk8, 1.00_rk8 , 0.50_rk8 , 1.00_rk8 , 1.00_rk8 , &
+      0.10_rk8 , 0.20_rk8 , 0.30_rk8 , 0.40_rk8 , 0.80_rk8 , &
+      0.01_rk8 , 0.01_rk8 ]
 
   save
 
@@ -1154,7 +1160,7 @@ module mod_clm_mkarbinit
               if ( lsmoist ) then
                 h2osoi_vol(c,j) = adomain%smoist(g)
               else
-                h2osoi_vol(c,j) = slmo(adomain%iveg(g))*xmopor(adomain%itex(g))
+                h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
               end if
             end if
           end do
@@ -1163,7 +1169,7 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.5_rk8*xmopor(adomain%itex(g))
+                h2osoi_vol(c,j) = 0.3_rk8*watsat(c,j)
                 !h2osoi_vol(c,j) = 0.3_rk8
               else
                 h2osoi_vol(c,j) = 0.0_rk8

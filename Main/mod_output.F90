@@ -902,8 +902,12 @@ module mod_output
           end do
         end if
         ! Averaged values
-        if ( associated(srf_tpr_out) ) &
+        if ( associated(srf_tpr_out) ) then
           srf_tpr_out = srf_tpr_out*srffac
+          where ( srf_tpr_out < 1.0e-8_rkx )
+            srf_tpr_out = 0.0_rkx
+          end where
+        end if
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out*srffac
         if ( associated(srf_zpbl_out) ) &
