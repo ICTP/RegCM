@@ -166,7 +166,11 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: tsoi
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
-    ! Sub-surface runoff
+    ! Surface subsurface drain
+    real(rk8) , pointer , dimension(:) :: qflx_drain
+    ! Surface liquid runoff from glaciers, wetlands, and lakes
+    real(rk8) , pointer , dimension(:) :: qflx_qrgwl
+    ! Total runoff
     real(rk8) , pointer , dimension(:) :: qflx_tot
     ! Snow melt
     real(rk8) , pointer , dimension(:) :: qflx_snow_melt
@@ -321,6 +325,8 @@ end subroutine init_atm2lnd_type
     allocate(l2a%h2osoi_vol(ibeg:iend,nlevsoi))
     allocate(l2a%h2o10cm(ibeg:iend))
     allocate(l2a%qflx_surf(ibeg:iend))
+    allocate(l2a%qflx_drain(ibeg:iend))
+    allocate(l2a%qflx_qrgwl(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
     allocate(l2a%qflx_snow_melt(ibeg:iend))
     allocate(l2a%rofliq(ibeg:iend))
@@ -370,6 +376,8 @@ end subroutine init_atm2lnd_type
     l2a%tsoi(ibeg:iend,:) = ival
     l2a%h2o10cm(ibeg:iend) = ival
     l2a%qflx_surf(ibeg:iend) = ival
+    l2a%qflx_drain(ibeg:iend) = ival
+    l2a%qflx_qrgwl(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
     l2a%qflx_snow_melt(ibeg:iend) = ival
     l2a%rofliq(ibeg:iend) = ival
@@ -517,10 +525,16 @@ end subroutine init_atm2lnd_type
                cptr%cwf%qflx_surf,clm_l2a%qflx_surf, &
                c2l_scale_type='unity',               &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,         &
-               cptr%cwf%qflx_runoff,clm_l2a%qflx_tot, &
-               c2l_scale_type='unity',                &
+      call c2g(begc,endc,begl,endl,begg,endg,          &
+               cptr%cwf%qflx_drain,clm_l2a%qflx_drain, &
+               c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,          &
+               cptr%cwf%qflx_qrgwl,clm_l2a%qflx_qrgwl, &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
+      clm_l2a%qflx_tot = clm_l2a%qflx_surf + clm_l2a%qflx_drain + &
+               clm_l2a%qflx_qrgwl
       call c2g(begc,endc,begl,endl,begg,endg,                  &
                cptr%cwf%qflx_snow_melt,clm_l2a%qflx_snow_melt, &
                c2l_scale_type='unity',                         &
