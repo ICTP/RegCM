@@ -459,7 +459,7 @@ module mod_date
     type(c10wcal) , intent(in) :: cwc
     type (rcm_time_and_date) , intent(out) :: x
     type(i8wcal) :: iwc
-    read(cwc%c,'(i10)') iwc%i
+    read(cwc%c,'(i11)') iwc%i
     iwc%cal = cwc%cal
     call initfromint8dtwc(x, iwc)
   end subroutine initfromchar

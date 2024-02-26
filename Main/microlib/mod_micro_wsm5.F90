@@ -341,8 +341,8 @@ module mod_micro_wsm5
       do j = jci1 , jci2
         mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)
         mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)
-        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + rain(n)*rdt
-        mc2mo%trrate(j,i) = rain(n)*rdt
+        mc2mo%trrate(j,i) = (rain(n) + snow(n))*rdt 
+        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
         n = n + 1
       end do
     end do
@@ -425,6 +425,8 @@ module mod_micro_wsm5
     ! variables for optimization
     real(rkx) :: temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
+    ! Latent heat of melting
+    real(rkx) , parameter :: xlf0 = 3.5e5_rkx
 
     nval = ime-ims+1
     !
@@ -561,7 +563,7 @@ module mod_micro_wsm5
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
             !
-            xlf = wlhf
+            xlf = xlf0
             !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
                        ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
@@ -635,7 +637,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = wlhf
+          if ( supcol < d_zero ) xlf = xlf0
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
