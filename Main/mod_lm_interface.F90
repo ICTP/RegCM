@@ -336,6 +336,9 @@ module mod_lm_interface
     call assignpnt(sfs%q2m,lm%q2m)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
+    call assignpnt(sfs%snownc,lm%snwrat)
+    call assignpnt(sfs%grplnc,lm%grprat)
+    call assignpnt(sfs%hailnc,lm%hairat)
     call assignpnt(pptnc,lm%ncprate)
     call assignpnt(coszrs,lm%zencos)
     call assignpnt(fsw,lm%rswf)
@@ -879,6 +882,15 @@ module mod_lm_interface
           srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
+        if ( associated(srf_snow_out) ) then
+          if ( associated(lm%grprat) ) then
+            srf_snow_out = srf_snow_out + (lm%snwrat+lm%grprat)*syncro_srf%rw
+          else
+            srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+          end if
+        end if
+        if ( associated(srf_hail_out) ) &
+          srf_hail_out = srf_hail_out + lm%hairat*syncro_srf%rw
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out + lm%hpbl
         if ( associated(srf_scv_out) ) &
@@ -1198,6 +1210,9 @@ module mod_lm_interface
     ! Reset accumulation from precip and cumulus
     lm%ncprate(:,:) = d_zero
     lm%cprate(:,:)  = d_zero
+    if ( associated(lm%snwrat) ) lm%snwrat(:,:) = d_zero
+    if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
+    if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
 
     contains
 

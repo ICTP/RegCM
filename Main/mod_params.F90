@@ -1554,14 +1554,16 @@ module mod_params
       call bcast(rcldiff)
     end if
 
-    if ( ipptls > 1 ) then
+    iqfrst = iqc
+    if ( ipptls < 2 ) then
+      nqx = 2
+      iqlst  = iqc
+    else if ( ipptls < 4 ) then
       nqx = 5
-      iqfrst = iqc
       iqlst  = iqs
     else
-      nqx = 2
-      iqfrst = iqc
-      iqlst  = iqc
+      nqx = 7
+      iqlst  = iqh
     end if
 
     if ( irrtm == 1 ) then
