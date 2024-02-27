@@ -43,6 +43,8 @@ module mod_runparams
   integer(ik4) , public , parameter :: iqr = 3
   integer(ik4) , public , parameter :: iqi = 4
   integer(ik4) , public , parameter :: iqs = 5
+  integer(ik4) , public , parameter :: iqg = 6
+  integer(ik4) , public , parameter :: iqh = 7
 
   integer(ik4) , public , parameter :: number_of_prognostic_components = 3
   integer(ik4) , public , parameter :: pc_total      = 1

@@ -338,6 +338,28 @@ module mod_output
             end do
           end if
         end if
+        if ( associated(atm_qg_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qg_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqg)
+            end do
+          else
+            do k = 1 , kz
+              atm_qg_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqg)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_qh_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qh_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqh)
+            end do
+          else
+            do k = 1 , kz
+              atm_qh_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqh)/ps_out
+            end do
+          end if
+        end if
         if ( associated(atm_rh_out) ) then
           if ( idynamic == 3 ) then
             do k = 1 , kz
@@ -600,9 +622,6 @@ module mod_output
 
         if ( associated(atm_tpr_out) ) then
           atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
-        end if
-        if ( associated(atm_tsn_out) ) then
-          atm_tsn_out = sfs%snownc/(atmfrq*secph)
         end if
         if ( associated(atm_tgb_out) .and. rcmtimer%lcount == 0 ) then
           atm_tgb_out = sfs%tgbb(jci1:jci2,ici1:ici2)
@@ -907,7 +926,6 @@ module mod_output
         if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
-        if ( ipptls > 1 ) sfs%snownc  = d_zero
         rnsrf_for_atmfrq = d_zero
       end if
     end if
@@ -928,10 +946,30 @@ module mod_output
           ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         ! Averaged values
-        if ( associated(srf_tpr_out) ) &
+        if ( associated(srf_tpr_out) ) then
           srf_tpr_out = srf_tpr_out*srffac
-        if ( associated(srf_prcv_out) ) &
+          where ( srf_tpr_out < 1.0e-8_rkx )
+            srf_tpr_out = 0.0_rkx
+          end where
+        end if
+        if ( associated(srf_prcv_out) ) then
           srf_prcv_out = srf_prcv_out*srffac
+          where ( srf_prcv_out < 1.0e-8_rkx )
+            srf_prcv_out = 0.0_rkx
+          end where
+        end if
+        if ( associated(srf_snow_out) ) then
+          srf_snow_out = srf_snow_out*srffac
+          where ( srf_snow_out < 1.0e-8_rkx )
+            srf_snow_out = 0.0_rkx
+          end where
+        end if
+        if ( associated(srf_hail_out) ) then
+          srf_hail_out = srf_hail_out*srffac
+          where ( srf_hail_out < 1.0e-8_rkx )
+            srf_hail_out = 0.0_rkx
+          end where
+        end if
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out*srffac
         if ( associated(srf_dew_out) .and. associated(srf_evp_out) ) then
@@ -1143,6 +1181,8 @@ module mod_output
 
         if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
         if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
+        if ( associated(srf_snow_out) ) srf_snow_out = d_zero
+        if ( associated(srf_hail_out) ) srf_hail_out = d_zero
         if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
         if ( associated(srf_evp_out) ) srf_evp_out = d_zero
         if ( associated(srf_scv_out) ) srf_scv_out = d_zero

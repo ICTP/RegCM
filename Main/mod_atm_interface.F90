@@ -910,6 +910,10 @@ module mod_atm_interface
       if ( ipptls > 1 ) then
         call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
       end if
+      if ( ipptls > 3 ) then
+        call getmem2d(sfs%grplnc,jci1,jci2,ici1,ici2,'surf:grplnc')
+        call getmem2d(sfs%hailnc,jci1,jci2,ici1,ici2,'surf:hailnc')
+      end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')

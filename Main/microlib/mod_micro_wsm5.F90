@@ -339,10 +339,10 @@ module mod_micro_wsm5
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)
-        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)
-        mc2mo%trrate(j,i) = (rain(n) + snow(n))*rdt 
+        mc2mo%trrate(j,i) = (rain(n) + snow(n))*rdt
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n) + snow(n)
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
+        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
         n = n + 1
       end do
     end do

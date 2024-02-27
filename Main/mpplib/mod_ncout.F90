@@ -57,13 +57,13 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 7 + nbase
-  integer(ik4) , parameter :: natm3dvars = 62
+  integer(ik4) , parameter :: natm2dvars = 6 + nbase
+  integer(ik4) , parameter :: natm3dvars = 64
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 35 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 37 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -172,11 +172,10 @@ module mod_ncout
   integer(ik4) , parameter :: atm_ps    = 6
   integer(ik4) , parameter :: atm_p0    = 7
   integer(ik4) , parameter :: atm_tpr   = 8
-  integer(ik4) , parameter :: atm_tsn   = 9
-  integer(ik4) , parameter :: atm_tgb   = 10
-  integer(ik4) , parameter :: atm_tsw   = 11
-  integer(ik4) , parameter :: atm_cape  = 12
-  integer(ik4) , parameter :: atm_cin   = 13
+  integer(ik4) , parameter :: atm_tgb   = 9
+  integer(ik4) , parameter :: atm_tsw   = 10
+  integer(ik4) , parameter :: atm_cape  = 11
+  integer(ik4) , parameter :: atm_cin   = 12
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -191,55 +190,57 @@ module mod_ncout
   integer(ik4) , parameter :: atm_qi           = 11
   integer(ik4) , parameter :: atm_qr           = 12
   integer(ik4) , parameter :: atm_qs           = 13
-  integer(ik4) , parameter :: atm_zf           = 14
-  integer(ik4) , parameter :: atm_zh           = 15
-  integer(ik4) , parameter :: atm_pf           = 16
-  integer(ik4) , parameter :: atm_ph           = 17
-  integer(ik4) , parameter :: atm_q_detr       = 18
-  integer(ik4) , parameter :: atm_rainls       = 19
-  integer(ik4) , parameter :: atm_raincc       = 20
-  integer(ik4) , parameter :: atm_tke          = 21
-  integer(ik4) , parameter :: atm_kth          = 22
-  integer(ik4) , parameter :: atm_kzm          = 23
-  integer(ik4) , parameter :: atm_tten_adh     = 24
-  integer(ik4) , parameter :: atm_tten_adv     = 25
-  integer(ik4) , parameter :: atm_tten_tbl     = 26
-  integer(ik4) , parameter :: atm_tten_dif     = 27
-  integer(ik4) , parameter :: atm_tten_bdy     = 28
-  integer(ik4) , parameter :: atm_tten_con     = 29
-  integer(ik4) , parameter :: atm_tten_adi     = 30
-  integer(ik4) , parameter :: atm_tten_rad     = 31
-  integer(ik4) , parameter :: atm_tten_lsc     = 32
-  integer(ik4) , parameter :: atm_qten_adh     = 33
-  integer(ik4) , parameter :: atm_qten_adv     = 34
-  integer(ik4) , parameter :: atm_qten_tbl     = 35
-  integer(ik4) , parameter :: atm_qten_dif     = 36
-  integer(ik4) , parameter :: atm_qten_bdy     = 37
-  integer(ik4) , parameter :: atm_qten_con     = 38
-  integer(ik4) , parameter :: atm_qten_adi     = 39
-  integer(ik4) , parameter :: atm_qten_rad     = 40
-  integer(ik4) , parameter :: atm_qten_lsc     = 41
-  integer(ik4) , parameter :: atm_stats_supw   = 42
-  integer(ik4) , parameter :: atm_stats_supc   = 43
-  integer(ik4) , parameter :: atm_stats_detw   = 44
-  integer(ik4) , parameter :: atm_stats_detc   = 45
-  integer(ik4) , parameter :: atm_stats_erow   = 46
-  integer(ik4) , parameter :: atm_stats_eroc   = 47
-  integer(ik4) , parameter :: atm_stats_evw    = 48
-  integer(ik4) , parameter :: atm_stats_evc    = 49
-  integer(ik4) , parameter :: atm_stats_con1w  = 50
-  integer(ik4) , parameter :: atm_stats_con1c  = 51
-  integer(ik4) , parameter :: atm_stats_dep    = 52
-  integer(ik4) , parameter :: atm_stats_melt   = 53
-  integer(ik4) , parameter :: atm_stats_frz    = 54
-  integer(ik4) , parameter :: atm_stats_rainev = 55
-  integer(ik4) , parameter :: atm_stats_snowev = 56
-  integer(ik4) , parameter :: atm_stats_autocw = 57
-  integer(ik4) , parameter :: atm_stats_autocc = 58
-  integer(ik4) , parameter :: atm_qcrit        = 59
-  integer(ik4) , parameter :: atm_ccnnum       = 60
-  integer(ik4) , parameter :: atm_qincl        = 61
-  integer(ik4) , parameter :: atm_autoconvr    = 62
+  integer(ik4) , parameter :: atm_qg           = 14
+  integer(ik4) , parameter :: atm_qh           = 15
+  integer(ik4) , parameter :: atm_zf           = 16
+  integer(ik4) , parameter :: atm_zh           = 17
+  integer(ik4) , parameter :: atm_pf           = 18
+  integer(ik4) , parameter :: atm_ph           = 19
+  integer(ik4) , parameter :: atm_q_detr       = 20
+  integer(ik4) , parameter :: atm_rainls       = 21
+  integer(ik4) , parameter :: atm_raincc       = 22
+  integer(ik4) , parameter :: atm_tke          = 23
+  integer(ik4) , parameter :: atm_kth          = 24
+  integer(ik4) , parameter :: atm_kzm          = 25
+  integer(ik4) , parameter :: atm_tten_adh     = 26
+  integer(ik4) , parameter :: atm_tten_adv     = 27
+  integer(ik4) , parameter :: atm_tten_tbl     = 28
+  integer(ik4) , parameter :: atm_tten_dif     = 29
+  integer(ik4) , parameter :: atm_tten_bdy     = 30
+  integer(ik4) , parameter :: atm_tten_con     = 31
+  integer(ik4) , parameter :: atm_tten_adi     = 32
+  integer(ik4) , parameter :: atm_tten_rad     = 33
+  integer(ik4) , parameter :: atm_tten_lsc     = 34
+  integer(ik4) , parameter :: atm_qten_adh     = 35
+  integer(ik4) , parameter :: atm_qten_adv     = 36
+  integer(ik4) , parameter :: atm_qten_tbl     = 37
+  integer(ik4) , parameter :: atm_qten_dif     = 38
+  integer(ik4) , parameter :: atm_qten_bdy     = 39
+  integer(ik4) , parameter :: atm_qten_con     = 40
+  integer(ik4) , parameter :: atm_qten_adi     = 41
+  integer(ik4) , parameter :: atm_qten_rad     = 42
+  integer(ik4) , parameter :: atm_qten_lsc     = 43
+  integer(ik4) , parameter :: atm_stats_supw   = 44
+  integer(ik4) , parameter :: atm_stats_supc   = 45
+  integer(ik4) , parameter :: atm_stats_detw   = 46
+  integer(ik4) , parameter :: atm_stats_detc   = 47
+  integer(ik4) , parameter :: atm_stats_erow   = 48
+  integer(ik4) , parameter :: atm_stats_eroc   = 49
+  integer(ik4) , parameter :: atm_stats_evw    = 50
+  integer(ik4) , parameter :: atm_stats_evc    = 51
+  integer(ik4) , parameter :: atm_stats_con1w  = 52
+  integer(ik4) , parameter :: atm_stats_con1c  = 53
+  integer(ik4) , parameter :: atm_stats_dep    = 54
+  integer(ik4) , parameter :: atm_stats_melt   = 56
+  integer(ik4) , parameter :: atm_stats_frz    = 56
+  integer(ik4) , parameter :: atm_stats_rainev = 57
+  integer(ik4) , parameter :: atm_stats_snowev = 58
+  integer(ik4) , parameter :: atm_stats_autocw = 59
+  integer(ik4) , parameter :: atm_stats_autocc = 60
+  integer(ik4) , parameter :: atm_qcrit        = 61
+  integer(ik4) , parameter :: atm_ccnnum       = 62
+  integer(ik4) , parameter :: atm_qincl        = 63
+  integer(ik4) , parameter :: atm_autoconvr    = 64
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -293,6 +294,8 @@ module mod_ncout
   integer(ik4) , parameter :: srf_evpot    = 39
   integer(ik4) , parameter :: srf_pcpmax   = 40
   integer(ik4) , parameter :: srf_twetb    = 41
+  integer(ik4) , parameter :: srf_snow     = 42
+  integer(ik4) , parameter :: srf_hail     = 43
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -620,16 +623,6 @@ module mod_ncout
         else
           enable_atm2d_vars(atm_tpr) = .false.
         end if
-        if ( ipptls == 2 .and. icosp == 1 ) then
-          if ( enable_atm2d_vars(atm_tsn) ) then
-            call setup_var(v2dvar_atm,atm_tsn,vsize,'snw','kg m-2 s-1', &
-              'Total snow precipitation flux','snow_flux',.true., &
-              'time: mean')
-            atm_tsn_out => v2dvar_atm(atm_tsn)%rval
-          end if
-        else
-          enable_atm2d_vars(atm_tsn) = .false.
-        end if
         if ( enable_atm2d_vars(atm_tgb) ) then
           call setup_var(v2dvar_atm,atm_tgb,vsize,'ts','K', &
             'Surface Temperature','surface_temperature',.true.)
@@ -796,14 +789,32 @@ module mod_ncout
                 'mass_fraction_of_snow_in_air',.true.)
               atm_qs_out => v3dvar_atm(atm_qs)%rval
             end if
+            if ( ipptls > 3 ) then
+              if ( enable_atm3d_vars(atm_qg) ) then
+                call setup_var(v3dvar_atm,atm_qg,vsize,'gra','kg kg-1', &
+                  'Mass Fraction of Graupel', &
+                  'mass_fraction_of_graupel',.true.)
+                atm_qg_out => v3dvar_atm(atm_qg)%rval
+              end if
+              if ( enable_atm3d_vars(atm_qh) ) then
+                call setup_var(v3dvar_atm,atm_qh,vsize,'hail','kg kg-1', &
+                  'Mass Fraction of Hail', &
+                  'mass_fraction_of_hail_in_air',.true.)
+                atm_qh_out => v3dvar_atm(atm_qh)%rval
+              end if
+            end if
           else
             enable_atm3d_vars(atm_qr) = .false.
             enable_atm3d_vars(atm_qs) = .false.
+            enable_atm3d_vars(atm_qg) = .false.
+            enable_atm3d_vars(atm_qh) = .false.
           end if
         else
           enable_atm3d_vars(atm_qi) = .false.
           enable_atm3d_vars(atm_qr) = .false.
           enable_atm3d_vars(atm_qs) = .false.
+          enable_atm3d_vars(atm_qg) = .false.
+          enable_atm3d_vars(atm_qh) = .false.
         end if
         if ( ipptls == 2 ) then
           if ( any(icup == 5) .and. icosp == 1 ) then
@@ -1368,6 +1379,29 @@ module mod_ncout
           end if
         else
           enable_srf2d_vars(srf_prcv) = .false.
+        end if
+        if ( ipptls > 1 ) then
+          if ( enable_srf2d_vars(srf_snow) ) then
+            call setup_var(v2dvar_srf,srf_snow,vsize,'snow','kg m-2 s-1', &
+              'Frozen large scale precipitation rate', &
+              'lwe_large_scale_snowfall_rate', &
+              .true.,'time: mean')
+            srf_snow_out => v2dvar_srf(srf_snow)%rval
+          end if
+          if ( ipptls > 3 ) then
+            if ( enable_srf2d_vars(srf_hail) ) then
+              call setup_var(v2dvar_srf,srf_hail,vsize,'hail','kg m-2 s-1', &
+                'Hail precipitation rate.', &
+                'hail_fall_flux', &
+                .true.,'time: mean')
+              srf_hail_out => v2dvar_srf(srf_hail)%rval
+            end if
+          else
+            enable_srf2d_vars(srf_hail) = .false.
+          end if
+        else
+          enable_srf2d_vars(srf_snow) = .false.
+          enable_srf2d_vars(srf_hail) = .false.
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
