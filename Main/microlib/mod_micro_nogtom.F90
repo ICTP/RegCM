@@ -1965,14 +1965,15 @@ module mod_micro_nogtom
         prainx = pfplsl(kzp1,j,i)*dt
         psnowx = pfplsn(kzp1,j,i)*dt
         if ( prainx > d_zero ) then
-          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx   !mm
+          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
           mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsl(kzp1,j,i)
           mc2mo%trrate(j,i) = pfplsl(kzp1,j,i)
         end if
         if ( psnowx > d_zero ) then
-          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + psnowx
+          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + psnowx
           mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsn(kzp1,j,i)
-          mc2mo%trrate(j,i) = pfplsn(kzp1,j,i)
+          mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
+          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
         end if
       end do
     end do

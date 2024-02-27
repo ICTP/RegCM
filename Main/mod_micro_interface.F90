@@ -31,6 +31,7 @@ module mod_micro_interface
   use mod_micro_nogtom
   use mod_micro_subex
   use mod_micro_wsm5
+  use mod_micro_wsm7
   use mod_cloud_subex
   use mod_cloud_xuran
   use mod_cloud_thomp
@@ -114,6 +115,8 @@ module mod_micro_interface
 #endif
     else if ( ipptls == 3 ) then
       call allocate_mod_wsm5
+    else if ( ipptls == 4 ) then
+      call allocate_mod_wsm7
     end if
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
@@ -177,6 +180,8 @@ module mod_micro_interface
     end if
     call assignpnt(sfs%rainnc,mc2mo%rainnc)
     call assignpnt(sfs%snownc,mc2mo%snownc)
+    call assignpnt(sfs%grplnc,mc2mo%grplnc)
+    call assignpnt(sfs%hailnc,mc2mo%hailnc)
     call assignpnt(pptnc,mc2mo%lsmrnc)
     call assignpnt(rain_ls,mc2mo%rainls)
     call assignpnt(remrat,mc2mo%remrat)
@@ -190,6 +195,8 @@ module mod_micro_interface
         call init_nogtom(mddom%ldmsk)
       case(3)
         call init_wsm5
+      case(4)
+        call init_wsm7
       case default
         return
     end select
@@ -208,6 +215,8 @@ module mod_micro_interface
 #endif
       case (3)
         call wsm5(mo2mc,mc2mo)
+      case (4)
+        call wsm7(mo2mc,mc2mo)
       case default
         return
     end select
