@@ -215,7 +215,7 @@ module mod_micro_wsm5
     type(micro_2_mod) , intent(out) :: mc2mo
 
     integer(ik4) :: i , j , k , kk , n
-    real(rkx) :: pf1 , pf2 , qcw
+    real(rkx) :: pf1 , pf2 , qcw , totp
 
     ! to calculate effective radius for radiation
     !real(rkx) , dimension(kz) :: qv1d , t1d , p1d , qr1d , qs1d
@@ -241,13 +241,13 @@ module mod_micro_wsm5
       kk = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          t(n,kk) = mo2mc%t(j,i,k) + mc2mo%tten(j,i,k)/ptfac(n)
+          t(n,kk) = mo2mc%t(j,i,k)
           p(n,kk) = mo2mc%phs(j,i,k)
-          qv(n,kk) = mo2mc%qxx(j,i,k,iqv) + mc2mo%qxten(j,i,k,iqv)/ptfac(n)
-          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc) + mc2mo%qxten(j,i,k,iqc)/ptfac(n)
-          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi) + mc2mo%qxten(j,i,k,iqi)/ptfac(n)
-          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr) + mc2mo%qxten(j,i,k,iqr)/ptfac(n)
-          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs) + mc2mo%qxten(j,i,k,iqs)/ptfac(n)
+          qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
+          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
+          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
+          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
+          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
           delz(n,kk) = mo2mc%delz(j,i,k)
           !qs(n,kk) = mo2mc%qs(j,i,k)
           !rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
@@ -339,8 +339,9 @@ module mod_micro_wsm5
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        mc2mo%trrate(j,i) = (rain(n) + snow(n))*rdt
-        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n) + snow(n)
+        totp = rain(n) + snow(n)
+        mc2mo%trrate(j,i) = totp * rdt
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
         mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
         n = n + 1
