@@ -141,9 +141,9 @@ module mod_ocn_zeng
       !
       wc = minw
       if ( dthv < d_zero ) then
-        um = max(sqrt(uv995*uv995),minw)
+        um = sqrt(uv995*uv995+minw*minw)
       else
-        um = sqrt(uv995*uv995)
+        um = uv995
       end if
       !
       ! zo comes from wave model
@@ -332,9 +332,9 @@ module mod_ocn_zeng
             zeta = min(2.0_rkx,max(zeta,minz))
           else                           ! unstable
             wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
+            um = sqrt(uv995*uv995+wc*wc)
             zeta = max(-100.0_rkx,min(zeta,-minz))
           end if
-          um = max(sqrt(uv995*uv995),wc)
           if ( .not. flag2 ) exit
           ! Recompute ustar , zo
           ustar = vonkar*um/log(1.0_rkx+zu/zo)
