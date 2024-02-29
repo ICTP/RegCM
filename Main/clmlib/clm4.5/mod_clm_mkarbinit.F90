@@ -24,11 +24,11 @@ module mod_clm_mkarbinit
   logical , parameter :: lsnowhack = .false.
 
   real(rk8) , dimension(22) , parameter :: slmo = &
-    [ 0.20_rk8 , 0.20_rk8 , 0.20_rk8 , 0.35_rk8 , 0.60_rk8 , &
-      0.30_rk8 , 0.30_rk8 , 0.00_rk8 , 0.80_rk8 , 0.70_rk8 , &
-      0.001_rk8, 1.00_rk8 , 0.50_rk8 , 1.00_rk8 , 1.00_rk8 , &
-      0.10_rk8 , 0.20_rk8 , 0.30_rk8 , 0.40_rk8 , 0.80_rk8 , &
-      0.01_rk8 , 0.01_rk8 ]
+    [ 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+      0.50_rkx , 0.50_rkx , 0.01_rkx , 0.50_rkx , 0.50_rkx , &
+      0.10_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
+      0.50_rkx , 0.30_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
+      0.10_rkx , 0.50_rkx ]
 
   save
 
