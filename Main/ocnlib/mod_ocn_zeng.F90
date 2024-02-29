@@ -117,11 +117,11 @@ module mod_ocn_zeng
       zu = z995
       zh = z995
       zq = z995
+      dth = tatm(i)+0.0098*zh-tsurf
       ! potential T
       th = tsurf*(p00/sfps(i))**rovcp
       tha = tatm(i)*(p00/patm(i))**rovcp
-      dth = tha - th
-      qs = pfwsat(tsurf,sfps(i))*0.995_rkx
+      qs = pfwsat(tsurf,sfps(i))*0.998_rkx
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -553,7 +553,9 @@ module mod_ocn_zeng
       implicit none
       real(rkx) , intent (in) :: u3d , wc , visa , ustar
       real(rkx) :: wage , charnockog , alph
-      if ( iocnrough == 1 ) then
+      if ( iocnrough == 0 ) then
+        zo = szo(visa,ustar)
+      else if ( iocnrough == 1 ) then
         zo = 0.0065_rkx*regrav*ustar*ustar
       else if ( iocnrough == 2 ) then
         zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
@@ -593,7 +595,7 @@ module mod_ocn_zeng
       zo = max(zo,1.0e-4_rkx)
     end function ocnrough
 
-    real(rkx) function szo(visa,ustar)
+    pure real(rkx) function szo(visa,ustar)
       implicit none
       real(rkx) , intent(in) :: visa , ustar
       real(rkx) , parameter :: alpham = 0.11_rkx
