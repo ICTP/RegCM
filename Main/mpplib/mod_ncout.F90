@@ -802,6 +802,9 @@ module mod_ncout
                   'mass_fraction_of_hail_in_air',.true.)
                 atm_qh_out => v3dvar_atm(atm_qh)%rval
               end if
+            else
+              enable_atm3d_vars(atm_qg) = .false.
+              enable_atm3d_vars(atm_qh) = .false.
             end if
           else
             enable_atm3d_vars(atm_qr) = .false.
