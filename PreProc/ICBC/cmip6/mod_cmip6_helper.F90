@@ -85,9 +85,16 @@ module mod_cmip6_helper
       if ( dattyp == 'CMIP6' ) then
         select case ( cmip6_model )
           case ( 'MPI-ESM1-2-HR' )
-            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
-            fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
-            fpath = trim(fpath)//'historical'//pthsep
+            if ( index(cmip6_inp,'esgf.dwd.de') > 0 ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgf2_1'//pthsep//'CMIP6'//&
+                pthsep//'CMIP'//pthsep
+              fpath = trim(fpath)//'DWD'//pthsep//'MPI-ESM1-2-HR'//pthsep
+              fpath = trim(fpath)//'historical'//pthsep
+            else
+              fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep//'CMIP'//pthsep
+              fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
+              fpath = trim(fpath)//'historical'//pthsep
+            end if
             fx_variant = cmip6_variant
             fx_experiment = '_historical_'
             fx_model = cmip6_model
@@ -248,15 +255,28 @@ module mod_cmip6_helper
       if ( dattyp == 'CMIP6' ) then
         select case ( cmip6_model )
           case ( 'MPI-ESM1-2-HR' )
-            fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
-            if ( year < 2015 ) then
-              fpath = trim(fpath)//'CMIP'//pthsep
-              fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
-              experiment = 'historical'
+            if ( index(cmip6_inp,'esgf.dwd.de') > 0 ) then
+              fpath = trim(cmip6_inp)//pthsep//'esgf2_1'//pthsep//'CMIP6'
+              if ( year < 2015 ) then
+                fpath = trim(fpath)//pthsep//'CMIP'//pthsep//'DWD'//pthsep
+                fpath = trim(fpath)//'MPI-ESM1-2-HR'//pthsep
+                experiment = 'historical'
+              else
+                fpath = trim(fpath)//pthsep//'ScenarioMIP'//pthsep
+                fpath = trim(fpath)//'DWD'//pthsep//'MPI-ESM1-2-HR'//pthsep
+                experiment = trim(cmip6_experiment)
+              end if
             else
-              fpath = trim(fpath)//'ScenarioMIP'//pthsep
-              fpath = trim(fpath)//'DKRZ'//pthsep//'MPI-ESM1-2-HR'//pthsep
-              experiment = trim(cmip6_experiment)
+              fpath = trim(cmip6_inp)//pthsep//'cmip6'//pthsep
+              if ( year < 2015 ) then
+                fpath = trim(fpath)//'CMIP'//pthsep
+                fpath = trim(fpath)//'MPI-M'//pthsep//'MPI-ESM1-2-HR'//pthsep
+                experiment = 'historical'
+              else
+                fpath = trim(fpath)//'ScenarioMIP'//pthsep
+                fpath = trim(fpath)//'DKRZ'//pthsep//'MPI-ESM1-2-HR'//pthsep
+                experiment = trim(cmip6_experiment)
+              end if
             end if
             grid = cmip6_grid
           case ( 'HadGEM3-GC31-MM' )
