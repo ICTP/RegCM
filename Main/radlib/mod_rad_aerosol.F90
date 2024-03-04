@@ -123,6 +123,7 @@ module mod_rad_aerosol
     ksoc_hb_rrtm , ksoc_hl_rrtm , wsbc_hb_rrtm , wsbc_hl_rrtm ,  &
     wsoc_hb_rrtm , wsoc_hl_rrtm
 
+  real(rkx) , dimension(nwav,2,nih) :: ksslt , wsslt , gsslt
   real(rkx) , dimension(nspi,2) :: gssslt , kssslt , wssslt
   !
   ! Depth
