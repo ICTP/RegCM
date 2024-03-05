@@ -183,7 +183,7 @@ module mod_ocn_common
       lms%lakmsk = .false.
       call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
-    emiss(:) = ocn_sfcemiss
+    emiss = ocean_emissivity(um10,czenith)
     where ( mod(mask,2) > 0 )
       emiss = ice_sfcemiss
     end where
@@ -326,7 +326,7 @@ module mod_ocn_common
           end do
         end do
       end if
-      emiss(:) = ocn_sfcemiss
+      emiss = ocean_emissivity(um10,czenith)
       where ( mask == 2 )
         emiss = ice_sfcemiss
       end where
@@ -355,6 +355,29 @@ module mod_ocn_common
       end do
     end do
   end subroutine albedoocn
+  !
+  ! Ocean emissivity estimate function of observation angle and wind speed
+  ! International Journal of Remote Sensing
+  ! Vol. 30, No. 6, 20 March 2009, 1603–1619
+  !
+  pure elemental real(rk8) function ocean_emissivity(speed,cosz)
+    ! Here the observation angle is NOT what is supposed to be. We pass the
+    ! sun zenith angle, and thus what we impose here is a diurnal and seasonal
+    ! cycle of the longwave ocean surface emissivity with a maximum over the
+    ! equator and a minimum at the poles, a maximum in broad daylight and a
+    ! minimum overnight.
+    implicit none
+    real(rk8) , intent(in) :: speed , cosz
+    real(rk8) , parameter :: em0 = 0.99176_rk8    ! Seviri Channel 7
+    real(rk8) , parameter :: cpaper = -0.037_rk8
+    real(rk8) , parameter :: dpaper = 2.36_rk8
+    real(rk8) , parameter :: bipaper = 0.0449_rk8 ! Seviri Channel 7
+    real(rk8) :: xcos
+    real(rk8) :: xspeed
+    xspeed = max(0.5_rk8,min(15.0_rk8,speed))
+    xcos = max(0.4_rk8,min(0.9_rk8,cosz))
+    ocean_emissivity = em0 * cos(acos(xcos)**(cpaper*xspeed+dpaper) )**bipaper
+  end function ocean_emissivity
 
 end module mod_ocn_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
