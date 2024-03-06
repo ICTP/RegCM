@@ -61,7 +61,8 @@ module mod_cloud_xuran
               fcc(j,i,k) = d_one
             else
               botm = rhrng ** parm_p
-              rm = -(parm_alpha0 * qcld)/((d_one-rhrng)*qs(j,i,k))**parm_gamma
+              rm = -min((parm_alpha0 * qcld) / &
+                ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
               fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
             end if
           else

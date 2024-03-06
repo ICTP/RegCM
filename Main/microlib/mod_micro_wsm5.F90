@@ -426,8 +426,6 @@ module mod_micro_wsm5
     ! variables for optimization
     real(rkx) :: temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
-    ! Latent heat of melting
-    real(rkx) , parameter :: xlf0 = 3.5e5_rkx
 
     nval = ime-ims+1
     !
@@ -564,7 +562,7 @@ module mod_micro_wsm5
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
             !
-            xlf = xlf0
+            xlf = wlhf
             !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
                        ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
@@ -638,7 +636,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = xlf0
+          if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
@@ -658,9 +656,13 @@ module mod_micro_wsm5
           !        (t0>t>-40c: c->i)
           !
           if ( supcol > d_zero .and. qci(i,k,1) > d_zero ) then
-            supcolt = min(supcol,50.0_rkx)
-            pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
-               den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+            if ( qci(i,k,1) > 1.0e-9_rkx ) then
+              supcolt = min(supcol,50.0_rkx)
+              pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
+                 den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+            else
+              pfrzdtc = 0.9_rkx*qci(i,k,1)
+            end if
             qci(i,k,2) = qci(i,k,2) + pfrzdtc
             t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
             qci(i,k,1) = qci(i,k,1)-pfrzdtc
@@ -827,7 +829,7 @@ module mod_micro_wsm5
             ! pidep: deposition/sublimation rate of ice [hdc 9]
             !       (t<t0: v->i or i->v)
             !
-            if ( qci(i,k,2) > d_zero .and. ifsat /= 1 ) then
+            if ( qci(i,k,2) > 1.0e-15_rkx .and. ifsat /= 1 ) then
               xmi = den(i,k)*qci(i,k,2)/xni(i,k)
               diameter = dicon * sqrt(xmi)
               !pidep(i,k) = d_four*diameter*xni(i,k) * &
@@ -1074,9 +1076,8 @@ module mod_micro_wsm5
     pure real(rkx) function xlcal(t)
       implicit none
       real(rkx) , intent(in) :: t
-      real(rkx) , parameter :: xlv0 = 3.15e6_rkx
       real(rkx) , parameter :: xlv1 = 2370.0_rkx
-      xlcal = xlv0-xlv1*(t-tzero)
+      xlcal = wlhv-xlv1*(t-tzero)
     end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
