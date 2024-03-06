@@ -32,6 +32,7 @@ module mod_micro_interface
   use mod_micro_subex
   use mod_micro_wsm5
   use mod_micro_wsm7
+  use mod_micro_wdm7
   use mod_cloud_subex
   use mod_cloud_xuran
 
@@ -112,6 +113,8 @@ module mod_micro_interface
       call allocate_mod_wsm5
     else if ( ipptls == 4 ) then
       call allocate_mod_wsm7
+    else if ( ipptls == 5 ) then
+      call allocate_mod_wdm7
     end if
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
@@ -192,6 +195,8 @@ module mod_micro_interface
         call init_wsm5
       case(4)
         call init_wsm7
+      case(5)
+        call init_wdm7
       case default
         return
     end select
@@ -212,6 +217,8 @@ module mod_micro_interface
         call wsm5(mo2mc,mc2mo)
       case (4)
         call wsm7(mo2mc,mc2mo)
+      case (5)
+        call wdm7(mo2mc,mc2mo)
       case default
         return
     end select

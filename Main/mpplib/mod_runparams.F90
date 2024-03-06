@@ -45,6 +45,9 @@ module mod_runparams
   integer(ik4) , public , parameter :: iqs = 5
   integer(ik4) , public , parameter :: iqg = 6
   integer(ik4) , public , parameter :: iqh = 7
+  integer(ik4) , public , parameter :: cqn = 8
+  integer(ik4) , public , parameter :: cqc = 9
+  integer(ik4) , public , parameter :: cqr = 10
 
   integer(ik4) , public , parameter :: number_of_prognostic_components = 3
   integer(ik4) , public , parameter :: pc_total      = 1
