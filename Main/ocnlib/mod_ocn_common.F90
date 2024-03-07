@@ -183,7 +183,7 @@ module mod_ocn_common
       lms%lakmsk = .false.
       call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
-    emiss = ocean_emissivity(um10,czenith)
+    emiss = ocean_emissivity(um10)
     where ( mod(mask,2) > 0 )
       emiss = ice_sfcemiss
     end where
@@ -326,7 +326,7 @@ module mod_ocn_common
           end do
         end do
       end if
-      emiss = ocean_emissivity(um10,czenith)
+      emiss = ocean_emissivity(um10)
       where ( mask == 2 )
         emiss = ice_sfcemiss
       end where
@@ -360,23 +360,25 @@ module mod_ocn_common
   ! International Journal of Remote Sensing
   ! Vol. 30, No. 6, 20 March 2009, 1603–1619
   !
-  pure elemental real(rk8) function ocean_emissivity(speed,cosz)
-    ! Here the observation angle is NOT what is supposed to be. We pass the
-    ! sun zenith angle, and thus what we impose here is a diurnal and seasonal
-    ! cycle of the longwave ocean surface emissivity with a maximum over the
-    ! equator and a minimum at the poles, a maximum in broad daylight and a
-    ! minimum overnight.
+  pure elemental real(rk8) function ocean_emissivity(speed)
     implicit none
-    real(rk8) , intent(in) :: speed , cosz
-    real(rk8) , parameter :: em0 = 0.99176_rk8    ! Seviri Channel 7
+    real(rk8) , intent(in) :: speed
+    real(rk8) , parameter :: em0 = 0.99176_rk8    ! Seviri Channel 9
     real(rk8) , parameter :: cpaper = -0.037_rk8
     real(rk8) , parameter :: dpaper = 2.36_rk8
-    real(rk8) , parameter :: bipaper = 0.0449_rk8 ! Seviri Channel 7
-    real(rk8) :: xcos
-    real(rk8) :: xspeed
-    xspeed = max(0.5_rk8,min(15.0_rk8,speed))
-    xcos = max(0.4_rk8,min(0.9_rk8,cosz))
-    ocean_emissivity = em0 * cos(acos(xcos)**(cpaper*xspeed+dpaper) )**bipaper
+    real(rk8) , parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
+    real(rk8) :: angle
+    real(rk8) :: x , xspeed
+    integer :: i
+    xspeed = max(0.1_rk8,min(20.0_rk8,speed))
+    ocean_emissivity = 0.01_rk8 !  Baseline
+    ! Integrate
+    do i = 1 , 10
+      angle = 0.44_rk8 + 0.08_rk8 * (i-1)
+      ocean_emissivity = ocean_emissivity + &
+            0.080_rk8 * em0 * cos(angle**(cpaper*xspeed+dpaper))**bipaper
+    end do
+    ocean_emissivity = ocean_emissivity/0.80_rk8
   end function ocean_emissivity
 
 end module mod_ocn_common
