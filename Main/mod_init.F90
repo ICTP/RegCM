@@ -334,6 +334,33 @@ module mod_init
         end do
       end if
 
+      if ( ipptls == 5 ) then
+        if ( idynamic < 3 ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                atm1%qx(j,i,k,cqn) = 1e-12_rkx
+                atm1%qx(j,i,k,cqc) = 1e-12_rkx
+                atm1%qx(j,i,k,cqr) = 1e-12_rkx
+                atm2%qx(j,i,k,cqn) = 1e-12_rkx
+                atm2%qx(j,i,k,cqc) = 1e-12_rkx
+                atm2%qx(j,i,k,cqr) = 1e-12_rkx
+              end do
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                mo_atm%qx(j,i,k,cqn) = 1e-12_rkx
+                mo_atm%qx(j,i,k,cqc) = 1e-12_rkx
+                mo_atm%qx(j,i,k,cqr) = 1e-12_rkx
+              end do
+            end do
+          end do
+        end if
+      end if
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%tg(j,i) = xtsb%b0(j,i)
