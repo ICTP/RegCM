@@ -2166,6 +2166,14 @@ module mod_moloch
             call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=epsilon(pmin))
           end do
         end if
+        if ( ipptls == 5 ) then
+          call assignpnt(qx,ptr,cqn)
+          call wafone(ptr,dta,pmin=d_zero)
+          call assignpnt(qx,ptr,cqc)
+          call wafone(ptr,dta,pmin=d_zero)
+          call assignpnt(qx,ptr,cqr)
+          call wafone(ptr,dta,pmin=d_zero)
+        end if
         if ( ibltyp == 2 ) then
           call wafone(tkex,dta)
         end if
