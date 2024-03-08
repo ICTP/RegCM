@@ -252,18 +252,18 @@ module mod_init
       if ( ipptls == 5 ) then
         if ( idynamic < 3 ) then
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-            atm1%qx(j,i,k,cqn) = 1e-12_rkx
-            atm1%qx(j,i,k,cqc) = 1e-12_rkx
-            atm1%qx(j,i,k,cqr) = 1e-12_rkx
-            atm2%qx(j,i,k,cqn) = 1e-12_rkx
-            atm2%qx(j,i,k,cqc) = 1e-12_rkx
-            atm2%qx(j,i,k,cqr) = 1e-12_rkx
+            atm1%qx(j,i,k,cqn) = 1.0e8_rkx
+            atm1%qx(j,i,k,cqc) = 10.0_rkx
+            atm1%qx(j,i,k,cqr) = 1.0e-2_rkx
+            atm2%qx(j,i,k,cqn) = 1.0e8_rkx
+            atm2%qx(j,i,k,cqc) = 10.0_rkx
+            atm2%qx(j,i,k,cqr) = 1.0e-2_rkx
           end do
         else
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-            mo_atm%qx(j,i,k,cqn) = 1e-12_rkx
-            mo_atm%qx(j,i,k,cqc) = 1e-12_rkx
-            mo_atm%qx(j,i,k,cqr) = 1e-12_rkx
+            mo_atm%qx(j,i,k,cqn) = 1.0e8_rkx
+            mo_atm%qx(j,i,k,cqc) = 10.0_rkx
+            mo_atm%qx(j,i,k,cqr) = 1.0e-2_rkx
           end do
         end if
       end if
