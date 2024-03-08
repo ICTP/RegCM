@@ -1656,7 +1656,7 @@ module mod_micro_wdm7
             ! nseml: Enhanced melt of snow by accretion of water    [LH A29]
             !        (T>=T0: ->NR)
             !
-            if  (qrs(i,k,2) > dlowval) then
+            if  (qrs(i,k,2) > d_zero ) then
               sfac = rslope(i,k,2)*n0s*n0sfac(i,k)/qrs(i,k,2)
               nseml(i,k) = -sfac*pseml(i,k)
             end if
