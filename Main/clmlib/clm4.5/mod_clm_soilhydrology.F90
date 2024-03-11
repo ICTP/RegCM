@@ -1075,7 +1075,6 @@ module mod_clm_soilhydrology
         end if
         s1 = min(1.0_rk8, s1)
         s2 = hksat(c,j)*s1**(2.0_rk8*bsw(c,j)+2.0_rk8)
-
         ! replace fracice with impedance factor, as in zhao 97,99
         if ( origflag == 1 ) then
           imped(c,j) = (1.0_rk8 - 0.5_rk8*(fracice(c,j) + &
@@ -1084,11 +1083,7 @@ module mod_clm_soilhydrology
           imped(c,j) = 10.0_rk8**(-e_ice*(0.5_rk8*(icefrac(c,j) + &
                   icefrac(c,min(nlevsoi, j+1)))))
         end if
-        if ( imped(c,j) > dlowval .and. s1 > dlowval .and. s2 > dlowval ) then
-          hk(c,j) = imped(c,j)*s1*s2
-        else
-          hk(c,j) = d_zero
-        end if
+        hk(c,j) = imped(c,j)*s1*s2
         dhkdw(c,j) = imped(c,j)*(2.0_rk8*bsw(c,j)+3.0_rk8)*s2* &
                        (1.0_rk8/(watsat(c,j)+watsat(c,min(nlevsoi, j+1))))
 
@@ -1782,7 +1777,7 @@ module mod_clm_soilhydrology
 #else
           fracice_rsub(c) = max(0.0_rk8,exp(-3.0_rk8*(1.0_rk8-(icefracsum/dzsum))) &
                - exp(-3.0_rk8))/(1.0_rk8-exp(-3.0_rk8))
-          imped = max(0.0_rk8,(1.0_rk8 - fracice_rsub(c)))
+          imped = (1.0_rk8 - fracice_rsub(c))
           rsub_top_max = 5.5e-3_rk8
 #endif
         else
@@ -1812,7 +1807,7 @@ module mod_clm_soilhydrology
         ! make sure baseflow isn't negative
         rsub_top(c) = max(0.0_rk8, rsub_top(c))
 #else
-        rsub_top(c) = max(0.0_rk8, imped * rsub_top_max* exp(-fff(c)*zwt(c)))
+        rsub_top(c) = imped * rsub_top_max* exp(-fff(c)*zwt(c))
 #endif
         ! use analytical expression for aquifer specific yield
         rous = watsat(c,nlevsoi) * ( 1.0_rk8 - &
