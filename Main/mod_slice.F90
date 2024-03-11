@@ -133,7 +133,7 @@ module mod_slice
         atms%qxb3d(j,i,k,iqv) = max(atms%qxb3d(j,i,k,iqv),minqq)
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                      k = 1:kz , n = iqfrst:iqlst )
+                      k = 1:kz , n = iqfrst:nqx )
         atms%qxb3d(j,i,k,n) = max(atms%qxb3d(j,i,k,n),d_zero)
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -194,6 +194,11 @@ module mod_slice
       do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = iqfrst:iqlst )
         atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),d_zero)
       end do
+      if ( ipptls == 5 ) then
+        do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz, n = iqlst+1:nqx )
+          atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),d_zero)
+        end do
+      end if
       if ( ichem == 1 ) then
         do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = 1:ntr )
           atms%chib3d(j,i,k,n) = max(atm2%chi(j,i,k,n)*rpsb(j,i),d_zero)

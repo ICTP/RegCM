@@ -1563,7 +1563,7 @@ module mod_params
       iqlst  = iqh
     else if ( ipptls == 5 ) then
       nqx = 10
-      iqlst = cqr
+      iqlst = iqh
     else
       nqx = 2
       iqlst  = iqc

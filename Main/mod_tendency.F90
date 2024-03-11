@@ -334,7 +334,7 @@ module mod_tendency
 
     if ( ipptls > 0 ) then
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                      k = 1:kz , n = iqfrst:iqlst)
+                      k = 1:kz , n = iqfrst:nqx)
         qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + qxphy(j,i,k,n)
       end do
       if ( ipptls == 1 ) then
@@ -429,6 +429,10 @@ module mod_tendency
                           0.53_rkx,sfs%psa,sfs%psb)
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
                           iqfrst,iqlst,1.0e-16_rkx)
+    if ( ipptls == 5 ) then
+      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
+                            iqlst+1,nqx,0.0_rkx)
+    end if
 
     if ( idynamic == 1 ) then
       !
@@ -1371,16 +1375,16 @@ module mod_tendency
       end if
       if ( ipptls > 0 ) then
         if ( isladvec == 1 ) then
-          call slhadv_x(qxdyn,atm2%qx,iqfrst,iqlst)
-          call hdvg_x(qxdyn,atm1%qx,iqfrst,iqlst)
+          call slhadv_x(qxdyn,atm2%qx,iqfrst,nqx)
+          call hdvg_x(qxdyn,atm1%qx,iqfrst,nqx)
         else
-          call hadv(qxdyn,atmx%qx,iqfrst,iqlst)
+          call hadv(qxdyn,atmx%qx,iqfrst,nqx)
         end if
         if ( idiag > 0 .and. idgq /= iqv ) then
           call ten2diag(aten%qx,qdiag%adh,pc_dynamic)
           qen0 = qxdyn(:,:,:,idgq)
         end if
-        call vadv(qxdyn,atm1%qx,iqfrst,iqlst,iqxvadv)
+        call vadv(qxdyn,atm1%qx,iqfrst,nqx,iqxvadv)
         if ( idiag > 0 .and. idgq /= iqv ) then
           call ten2diag(aten%qx,qdiag%adv,pc_dynamic,qen0)
         end if

@@ -339,12 +339,12 @@ module mod_init
           do k = 1 , kz
             do i = ice1 , ice2
               do j = jce1 , jce2
-                atm1%qx(j,i,k,cqn) = 1e-12_rkx
-                atm1%qx(j,i,k,cqc) = 1e-12_rkx
-                atm1%qx(j,i,k,cqr) = 1e-12_rkx
-                atm2%qx(j,i,k,cqn) = 1e-12_rkx
-                atm2%qx(j,i,k,cqc) = 1e-12_rkx
-                atm2%qx(j,i,k,cqr) = 1e-12_rkx
+                atm1%qx(j,i,k,cqn) = 1.0e7_rkx
+                atm1%qx(j,i,k,cqc) = 1.0_rkx
+                atm1%qx(j,i,k,cqr) = 1.0e-3_rkx
+                atm2%qx(j,i,k,cqn) = 1.0e7_rkx
+                atm2%qx(j,i,k,cqc) = 1.0_rkx
+                atm2%qx(j,i,k,cqr) = 1.0e-3_rkx
               end do
             end do
           end do
@@ -352,9 +352,9 @@ module mod_init
           do k = 1 , kz
             do i = ice1 , ice2
               do j = jce1 , jce2
-                mo_atm%qx(j,i,k,cqn) = 1e-12_rkx
-                mo_atm%qx(j,i,k,cqc) = 1e-12_rkx
-                mo_atm%qx(j,i,k,cqr) = 1e-12_rkx
+                mo_atm%qx(j,i,k,cqn) = 1.0e7_rkx
+                mo_atm%qx(j,i,k,cqc) = 1.0_rkx
+                mo_atm%qx(j,i,k,cqr) = 1.0e-3_rkx
               end do
             end do
           end do
