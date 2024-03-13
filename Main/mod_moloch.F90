@@ -720,9 +720,27 @@ module mod_moloch
       subroutine divergence_filter( )
         implicit none
         integer(ik4) :: j , i , k
-
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+          end do
+        end if
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
         do k = 1 , kz
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
@@ -1919,23 +1937,43 @@ module mod_moloch
     real(rkx) :: ddamp1
 
     ddamp1 = ddamp * ((dx**2)/dts)
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+      end do
+    end if
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
