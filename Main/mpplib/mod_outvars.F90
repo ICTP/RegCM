@@ -140,6 +140,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_prcv_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_snow_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_hail_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_grau_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_zpbl_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_aldirs_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_aldifs_out => null()

@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 37 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 38 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -296,6 +296,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_twetb    = 41
   integer(ik4) , parameter :: srf_snow     = 42
   integer(ik4) , parameter :: srf_hail     = 43
+  integer(ik4) , parameter :: srf_grau     = 44
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1394,17 +1395,26 @@ module mod_ncout
           if ( ipptls > 3 ) then
             if ( enable_srf2d_vars(srf_hail) ) then
               call setup_var(v2dvar_srf,srf_hail,vsize,'hail','kg m-2 s-1', &
-                'Hail precipitation rate.', &
+                'Hail precipitation rate', &
                 'hail_fall_flux', &
                 .true.,'time: mean')
               srf_hail_out => v2dvar_srf(srf_hail)%rval
             end if
+            if ( enable_srf2d_vars(srf_grau) ) then
+              call setup_var(v2dvar_srf,srf_grau,vsize,'graupel','kg m-2 s-1', &
+                'Graupel precipitation rate', &
+                'graupel_fall_flux', &
+                .true.,'time: mean')
+              srf_grau_out => v2dvar_srf(srf_grau)%rval
+            end if
           else
             enable_srf2d_vars(srf_hail) = .false.
+            enable_srf2d_vars(srf_grau) = .false.
           end if
         else
           enable_srf2d_vars(srf_snow) = .false.
           enable_srf2d_vars(srf_hail) = .false.
+          enable_srf2d_vars(srf_grau) = .false.
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
