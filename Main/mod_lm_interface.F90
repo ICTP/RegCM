@@ -850,13 +850,10 @@ module mod_lm_interface
           srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
-        if ( associated(srf_snow_out) ) then
-          if ( associated(lm%grprat) ) then
-            srf_snow_out = srf_snow_out + (lm%snwrat+lm%grprat)*syncro_srf%rw
-          else
-            srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
-          end if
-        end if
+        if ( associated(srf_snow_out) ) &
+          srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+        if ( associated(srf_grau_out) ) &
+          srf_grau_out = srf_grau_out + lm%grprat*syncro_srf%rw
         if ( associated(srf_hail_out) ) &
           srf_hail_out = srf_hail_out + lm%hairat*syncro_srf%rw
         if ( associated(srf_zpbl_out) ) &

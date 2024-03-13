@@ -1155,6 +1155,7 @@ module mod_output
         if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
         if ( associated(srf_snow_out) ) srf_snow_out = d_zero
         if ( associated(srf_hail_out) ) srf_hail_out = d_zero
+        if ( associated(srf_grau_out) ) srf_grau_out = d_zero
         if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
         if ( associated(srf_evp_out) ) srf_evp_out = d_zero
         if ( associated(srf_scv_out) ) srf_scv_out = d_zero
