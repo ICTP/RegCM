@@ -54,6 +54,7 @@ module mod_ocn_coare
       real(rkx) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
       real(rkx) :: le , visa , rhoa , cpv , Rns , Rnl
       real(rkx) :: hsb , hlb , tau , uv10 , facttq
+      real(rkx) :: charnock
       integer(ik4) :: i , k , niter
       logical :: iflag
 
@@ -92,6 +93,15 @@ module mod_ocn_coare
         zu = z995
         zt = z995
         zq = z995
+
+        ! speed-dependent Charnock parameter
+        if (uv995 < 10_rkx) then
+          charnock = 0.011_rkx
+        else if (uv995 > 18_rkx) then
+          charnock = 0.018_rkx
+        else
+          charnock = 0.011_rkx + (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
+        end if
 
         ! height (m) of atmospheric boundary layer
         zi = hpbl(i)
@@ -172,7 +182,7 @@ module mod_ocn_coare
         if ( iflag ) then
           zo10 = zogs
         else
-          zo10 = 0.011_rkx*usr*usr*regrav+0.11_rkx*visa/usr
+          zo10 = charnock*usr*usr*regrav+0.11_rkx*visa/usr
         end if
 
         ! initial guess for drag coefficents
@@ -222,7 +232,7 @@ module mod_ocn_coare
           if ( iflag ) then
             zo = zogs
           else
-            zo = 0.011_rkx*usr*usr*regrav+0.11_rkx*visa/usr
+            zo = charnock*usr*usr*regrav+0.11_rkx*visa/usr
           end if
 
           rr = zo*usr/visa
