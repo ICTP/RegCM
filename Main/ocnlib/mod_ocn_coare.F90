@@ -93,16 +93,6 @@ module mod_ocn_coare
         zu = z995
         zt = z995
         zq = z995
-
-        ! speed-dependent Charnock parameter
-        if (uv995 < 10_rkx) then
-          charnock = 0.011_rkx
-        else if (uv995 > 18_rkx) then
-          charnock = 0.018_rkx
-        else
-          charnock = 0.011_rkx + (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
-        end if
-
         ! height (m) of atmospheric boundary layer
         zi = hpbl(i)
         !
@@ -130,6 +120,15 @@ module mod_ocn_coare
           Al = 2.1e-5_rkx*(ts+3.2_rkx)**0.79_rkx
         else
           Al = 2.4253e-05_rkx
+        end if
+
+        ! speed-dependent Charnock parameter
+        if (uv995 < 10_rkx) then
+          charnock = 0.011_rkx
+        else if (uv995 > 18_rkx) then
+          charnock = 0.018_rkx
+        else
+          charnock = 0.011_rkx + (0.018_rkx - 0.011_rkx)*(uv995 - 10_rkx)/(18_rkx - 10_rkx)
         end if
         !
         !-----------------------------------------------------
