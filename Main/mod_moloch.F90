@@ -722,12 +722,12 @@ module mod_moloch
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
             p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                     zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                          d_half   * zdiv2(j,i,k)
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
             zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
           end do
         end do
@@ -1939,12 +1939,12 @@ module mod_moloch
       end do
     end if
     do k = 1 , kz
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
         p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                      d_half   * zdiv2(j,i,k)
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
         zdiv2(j,i,k) = zdiv2(j,i,k) + nu2 * xknu(k) * p2d(j,i)
       end do
     end do

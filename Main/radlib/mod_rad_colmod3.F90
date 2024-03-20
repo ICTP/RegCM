@@ -101,6 +101,7 @@ module mod_rad_colmod3
     call getmem2d(rt%pint,1,npr,1,kzp1,'colmod3:pint')
 
     call getmem2d(rt%rh,1,npr,1,kz,'colmod3:rh')
+    call getmem2d(rt%rho,1,npr,1,kz,'colmod3:rh')
     call getmem2d(rt%clwp,1,npr,1,kz,'colmod3:clwp')
     call getmem2d(rt%fice,1,npr,1,kz,'colmod3:fice')
     call getmem2d(rt%o3vmr,1,npr,1,kz,'colmod3:o3vmr')
@@ -108,7 +109,7 @@ module mod_rad_colmod3
     call getmem2d(rt%pmln,1,npr,1,kz,'colmod3:pmln')
     call getmem2d(rt%q,1,npr,1,kz,'colmod3:q')
     call getmem2d(rt%ql,1,npr,1,kz,'colmod3:ql')
-    if ( ipptls > 1 ) call getmem2d(rt%qi,1,npr,1,kz,'colmod3:qi')
+    call getmem2d(rt%qi,1,npr,1,kz,'colmod3:qi')
     call getmem2d(rt%qrl,1,npr,1,kz,'colmod3:qrl')
     call getmem2d(rt%qrs,1,npr,1,kz,'colmod3:qrs')
     call getmem2d(rt%rei,1,npr,1,kz,'colmod3:rei')
@@ -212,15 +213,14 @@ module mod_rad_colmod3
     logical , intent(in) :: lout , labsem
 
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
-    real(rkx) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
-    real(rkx) :: kabs , kabsi , cldemis , arg
-    ! Longwave absorption coeff (m**2/g)
-    real(rkx) , parameter :: kabsl = 0.090361_rkx
-    ! real(rkx) :: tpara
+    real(rkx) :: pnrml , weight , nc , aerc , lwc , kparam
+    real(rkx) :: kabs , kabsi , kabsl , cldemis , arg
+    real(rkx) :: iwc , tempc , tcels , fsr , aiwc , biwc , desr
+    !real(rkx) :: tpara
     ! reimax - maximum ice effective radius
-    real(rkx) , parameter :: reimax = 30.0_rkx
+    real(rkx) , parameter :: reimax = 60.0_rkx
     ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rkx) , parameter :: rirnge = 20.0_rkx
+    real(rkx) , parameter :: rirnge = 50.0_rkx
     ! pirnge - nrmlzd pres range for ice particle changes
     real(rkx) , parameter :: pirnge = 0.4_rkx
     ! picemn - normalized pressure below which rei=reimax
@@ -473,6 +473,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           rt%t(n,k) = m2r%tatms(j,i,k)
           rt%rh(n,k) = m2r%rhatms(j,i,k)
+          rt%rho(n,k) = m2r%rhoatms(j,i,k)
           n = n + 1
         end do
       end do
@@ -484,8 +485,9 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rt%q(n,k) = m2r%qxatms(j,i,k,iqv)
-          rt%ql(n,k) = m2r%qxatms(j,i,k,iqc)
+          ! Specific humidity (h2o mass mix ratio)
+          rt%q(n,k) = m2r%qxatms(j,i,k,iqv)/(1.0_rkx+m2r%qxatms(j,i,k,iqv))
+          rt%ql(n,k) = m2r%qxatms(j,i,k,iqc)/(1.0_rkx+m2r%qxatms(j,i,k,iqc))
           n = n + 1
         end do
       end do
@@ -495,8 +497,47 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rt%qi(n,k) = m2r%qxatms(j,i,k,iqi)
+            rt%qi(n,k) = m2r%qxatms(j,i,k,iqi)/(1.0_rkx+m2r%qxatms(j,i,k,iqi))
             n = n + 1
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do n = rt%n1 , rt%n2
+          if ( rt%qi(n,k) > 1.0e-11_rkx ) then
+            if ( rt%ql(n,k) > 1.0e-11_rkx ) then
+              rt%fice(n,k) = rt%qi(n,k) / (rt%ql(n,k)+rt%qi(n,k))
+            else
+              rt%fice(n,k) = 1.0_rkx
+            end if
+          else
+            rt%fice(n,k) = 0.0_rkx
+          end if
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do n = rt%n1 , rt%n2
+          ! Define fractional amount of cloud that is ice
+          ! if warmer than -10 degrees C then water phase
+          if ( rt%t(n,k) >= tzero ) then
+            rt%fice(n,k) = 0.0_rkx
+          else if ( rt%t(n,k) <= minus20 ) then
+            !  if colder than -20 degrees C then ice phase
+            rt%fice(n,k) = 1.0_rkx
+          else
+            ! if colder than 0 degrees C but warmer than -20 C mixed phase
+            ! fice : fractional ice content within cloud
+            rt%fice(n,k) = (tzero-rt%t(n,k))/20.0_rkx
+          end if
+        end do
+      end do
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rt%qi(n,k) = rt%ql(n,k) * rt%fice(n,k)
+            rt%ql(n,k) = rt%ql(n,k) - rt%qi(n,k)
           end do
         end do
       end do
@@ -609,58 +650,47 @@ module mod_rad_colmod3
         ! and only the smaller ones are kept liquid.
         !
         ! tpara = min(1.0_rkx,max(0.0_rkx,(minus10-rt%t(n,k))*0.05_rkx))
+        ! if ( rt%ioro(n) == 1 ) then
+        !   rt%rel(n,k) = 6.0_rkx + 3.0_rkx * tpara
+        ! else
+        !   rt%rel(n,k) = 11.0_rkx
+        ! end if
         !
+        ! if ( rt%ioro(n) == 1 ) then
+        !   rt%rel(n,k) = 8.5_rkx
+        ! else
+        !   rt%rel(n,k) = 11.0_rkx
+        ! end if
+        !
+        ! Long-wave optical properties of water clouds and rain
+        ! Savijarvi,Raisanene (Tellus 1998)
+        !
+        ! g/m3, already account for cum and ls clouds
+        lwc = (rt%clwp(n,k) / rt%dz(n,k))
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
-          ! rt%rel(n,k) = 6.0_rkx + 5.0_rkx * tpara
-          rt%rel(n,k) = 8.5_rkx
+          rt%rel(n,k) = min(4.0_rkx + 7.0_rkx*lwc,15.0_rkx)
         else
           ! Effective liquid radius over ocean and sea ice
-          ! rt%rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
-          rt%rel(n,k) = 11.0_rkx
+          rt%rel(n,k) = min(5.5_rkx + 9.5_rkx*lwc,18.0_rkx)
         end if
-        ! Determine rei as function of normalized pressure
-        pnrml = rt%pmid(n,k)/rt%ps(n)
-        ! weight coef. for determining rei as fn of P/PS
-        weight = (pnrml-picemn)/pirnge
-        weight = max(min(weight,1.0_rkx),0.0_rkx)
+        !
+        ! Stengel, Fokke Meirink, Eliasson (2023)
+        ! On the Temperature Dependence of the Cloud Ice Particle Effective
+        ! Radius - A Satellite Perspective
+        !
+        iwc = rt%qi(n,k) * rt%rho(n,k) * 1000.0_rkx
+        tempc = rt%t(n,k) - 83.15_rkx
+        tcels = tempc - tzero
+        fsr = 1.2351_rkx + 0.0105_rkx * tcels
+        aiwc = 45.8966_rkx * iwc**0.2214_rkx
+        biwc = 0.7957_rkx * iwc**0.2535_rkx
+        desr = fsr*(aiwc+biwc*tempc)
+        desr = max(30.0_rkx,min(155.0_rkx,desr))
         ! rei : ice effective drop size (microns)
-        rt%rei(n,k) = reimax - rirnge*weight
+        rt%rei(n,k) = 0.64952_rkx*desr
       end do
     end do
-    if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do n = rt%n1 , rt%n2
-          if ( rt%qi(n,k) > 1.0e-11_rkx .and. &
-               rt%ql(n,k) > 1.0e-11_rkx ) then
-            rt%fice(n,k) = rt%qi(n,k) / (rt%ql(n,k)+rt%qi(n,k))
-          else
-            if ( rt%qi(n,k) > 1.0e-11_rkx ) then
-              rt%fice(n,k) = 1.0_rkx
-            else
-              rt%fice(n,k) = 0.0_rkx
-            end if
-          end if
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do n = rt%n1 , rt%n2
-          ! Define fractional amount of cloud that is ice
-          ! if warmer than -10 degrees C then water phase
-          if ( rt%t(n,k) >= tzero ) then
-            rt%fice(n,k) = 0.0_rkx
-          else if ( rt%t(n,k) <= minus20 ) then
-            !  if colder than -20 degrees C then ice phase
-            rt%fice(n,k) = 1.0_rkx
-          else
-            ! if colder than 0 degrees C but warmer than -20 C mixed phase
-            ! fice : fractional ice content within cloud
-            rt%fice(n,k) = (tzero-rt%t(n,k))/20.0_rkx
-          end if
-        end do
-      end do
-    end if
     do k = 1 , kz
       do n = rt%n1 , rt%n2
         ! Turn off ice radiative properties by setting fice = 0.0
@@ -669,8 +699,7 @@ module mod_rad_colmod3
              (rt%clwp(n,k)*rt%cld(n,k)*(1.0_rkx-rt%fice(n,k)))*0.001_rkx
         rt%totci(n) = rt%totci(n) + &
              (rt%clwp(n,k)*rt%cld(n,k)*rt%fice(n,k))*0.001_rkx
-        rhoa = (rt%pmid(n,k) * amdk) / (rt%t(n,k) * rgasmol)
-        rt%totwv(n) = rt%totwv(n) + rt%q(n,k)*rhoa*rt%dz(n,k)
+        rt%totwv(n) = rt%totwv(n) + rt%q(n,k)*rt%rho(n,k)*rt%dz(n,k)
       end do
     end do
 
@@ -682,8 +711,7 @@ module mod_rad_colmod3
         if ( chtrname(itr) /= 'SO4' ) cycle
         do k = 1 , kz
           do n = rt%n1 , rt%n2
-            rhoa = (rt%pmid(n,k) * amdk) / (rt%t(n,k) * rgasmol)
-            aerc = rhoa * aermmr(n,k,itr) * 1.e9_rkx !microg/m3
+            aerc = rt%rho(n,k) * aermmr(n,k,itr) * 1.e9_rkx !microg/m3
             ! thershold of 0.1 microg/m3 for activation of indirect effect
             if ( aerc > 0.1_rkx ) then
               ! ccn number concentration in cm-3
@@ -712,11 +740,12 @@ module mod_rad_colmod3
       do n = rt%n1 , rt%n2
         ! ice absorption coefficient
         kabsi = 0.005_rkx + (1.0_rkx/rt%rei(n,k))
+        kabsl = 0.075_rkx * exp(-0.08_rkx*rt%rel(n,k))
         ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(1.0_rkx-rt%fice(n,k)) + (kabsi*rt%fice(n,k))
         ! cloud emissivity (fraction)
-        arg = min(1.66_rkx*kabs*rt%clwp(n,k),25.0_rkx)
-        cldemis = max(1.0_rkx - exp(-arg),0.01_rkx)
+        arg = min(kabs*rt%clwp(n,k),25.0_rkx)
+        cldemis = max(1.0_rkx - exp(-arg),0.00_rkx)
         ! Effective cloud cover
         rt%effcld(n,k) = rt%cld(n,k)*cldemis
       end do

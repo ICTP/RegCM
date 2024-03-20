@@ -960,8 +960,8 @@ module mod_rad_radiation
         if ( luse_max_rnovl ) then
           do k = 2 , kzp1
             rt%totcf(n) = rt%totcf(n) * &
-                   (d_one - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
-                   (d_one - rt%cld(n,k-1))
+                   (1.0001_rkx - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
+                   (1.0001_rkx - rt%cld(n,k-1))
           end do
         else
           do k = 1 , kzp1
@@ -1445,24 +1445,31 @@ module mod_rad_radiation
             tmp3i = fbarii*rei(n,k)
             !
             !  Cloud fraction incorporated into cloud extinction optical depth
-            !found
-            !  April 12 2000, Filippo found the different scheme here:
-            !scheme     1
-            !ccm3.6.6
-            ! tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
-            !           (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
-            ! tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
-            !            fice(n,k) * cld(n,k) * sqrt(cld(n,k))
+            !  found April 12 2000, Filippo found the different scheme here:
             !
-            !scheme     2
+            ! Scheme     1
+            ! The one in ccm3.6.6
+            !tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
+            !          (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
+            !tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
+            !           fice(n,k) * cld(n,k) * sqrt(cld(n,k))
+            !
+            ! Scheme     2
+            ! unknown origin (?????)
+            !tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
+            !              (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
+            !              (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
+            !tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
+            !              (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
+            !              (clwp(n,k)*tmp1i*fice(n,k))))
             !
             tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
                           (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
                           (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
-            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
             tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
                           (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
                           (clwp(n,k)*tmp1i*fice(n,k))))
+            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
             outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
             !
             !scheme     3

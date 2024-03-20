@@ -175,7 +175,6 @@
                zgamma2= zsr3 * zw * (1._rb - zg ) * 0.5_rb
                zgamma3= (1._rb - zsr3 * zg * prmuz ) * 0.5_rb
             end if
-            zgamma2 = min(zgamma1,zgamma2)
             zgamma4= 1._rb - zgamma3
 
 ! Recompute original s.s.a. to test for conservative solution
@@ -231,9 +230,14 @@
             else
 ! Non-conservative scattering
 
+               if ( zgamma2 < zgamma1 ) then
+                  zrk = sqrt ( zgamma1**2 - zgamma2**2 )
+               else
+                  zrk = 0._rb
+                  zgamma2 = zgamma1
+               end if
                za1 = zgamma1 * zgamma4 + zgamma2 * zgamma3
                za2 = zgamma1 * zgamma3 + zgamma2 * zgamma4
-               zrk = sqrt ( zgamma1**2 - zgamma2**2 )
                zrp = zrk * prmuz
                zrp1 = 1._rb + zrp
                zrm1 = 1._rb - zrp

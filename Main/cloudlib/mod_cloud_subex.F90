@@ -44,10 +44,10 @@ module mod_cloud_subex
   !
   ! See Pal et al (2000) for more info.
   !
-  subroutine subex_cldfrac(t,p,qv,qc,rh,tc0,rh0,fcc)
+  subroutine subex_cldfrac(t,p,qv,qc,rh,tc0,rh0,qcrit,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , qc , rh
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0 , qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) , intent(in) :: tc0
     real(rkx) :: rh0adj , rhrng
@@ -60,7 +60,7 @@ module mod_cloud_subex
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > 1.0e-12_rkx ) then
+          if ( qc(j,i,k) > qcrit(j,i) ) then
             ! Use Pal et al. formula
             ! rhrng = rh(j,i,k)
             ! Adjusted relative humidity threshold

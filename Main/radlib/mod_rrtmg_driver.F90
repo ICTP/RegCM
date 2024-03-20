@@ -462,8 +462,9 @@ module mod_rrtmg_driver
       totcf(n) = d_one
       if ( luse_max_rnovl ) then
         do k = 2 , kzp1
-          totcf(n) = totcf(n) * (d_one - max(cld_int(n,k-1),cld_int(n,k)))/ &
-                                (d_one - cld_int(n,k-1))
+          totcf(n) = totcf(n) * &
+            (1.0001_rkx - max(cld_int(n,k-1),cld_int(n,k)))/ &
+            (1.0001_rkx - cld_int(n,k-1))
         end do
       else
         do k = 1 , kz
@@ -930,6 +931,11 @@ module mod_rrtmg_driver
           n = (j-jci1+1)+(i-ici1)*npj
           cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
+          if ( clwp(n,k) > 0.0_rkx ) then
+            cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
+          else
+            cldf(n,k) = 0.0_rkx
+          end if
         end do
       end do
     end do

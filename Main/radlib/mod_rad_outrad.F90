@@ -98,6 +98,7 @@ module mod_rad_outrad
     integer(ik4) :: kh1 , kh2 , km1 , km2 , kl1 , kl2
     integer(ik4) :: visband
     real(rkx) :: hif , mif , lof
+    real(rkx) , parameter :: sm1 = 1.0001_rkx
     !
     ! total heating rate in deg/s
     !
@@ -179,13 +180,13 @@ module mod_rad_outrad
             end if
           end do
           do k = kh1 , kh2
-            hif = hif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            hif = hif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           do k = km1 , km2
-            mif = mif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            mif = mif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           do k = kl1 , kl2
-            lof = lof*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            lof = lof*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
           rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
