@@ -65,6 +65,7 @@ module mod_rad_radiation
     real(rkx) , dimension(:,:) , pointer :: qi
     real(rkx) , dimension(:,:) , pointer :: dz
     real(rkx) , dimension(:,:) , pointer :: rh
+    real(rkx) , dimension(:,:) , pointer :: rho
     real(rkx) , dimension(:,:) , pointer :: cld
     real(rkx) , dimension(:,:) , pointer :: effcld
     real(rkx) , dimension(:,:) , pointer :: clwp
@@ -1938,7 +1939,7 @@ module mod_rad_radiation
     end do
     do k = 1 , kz
       do n = n1 , n2
-        if ( .not. done(n) .and. cld(n,kzp2-k) > d_zero ) then
+        if ( .not. done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
           done(n) = .true.
           klov(n) = k
         end if
@@ -1956,7 +1957,7 @@ module mod_rad_radiation
     do k = kz , 1 , -1
       do n = n1 , n2
         if ( skip(n) ) cycle
-        if ( .not.done(n) .and. cld(n,kzp2-k) > d_zero ) then
+        if ( .not.done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
           done(n) = .true.
           khiv(n) = k
         end if
