@@ -575,6 +575,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: cldlwc
     real(rkx) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
     real(rkx) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rkx) , pointer , dimension(:,:,:) :: rhoatms       ! atms%rhob3d
     real(rkx) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:) :: za            ! atms%za

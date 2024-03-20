@@ -146,6 +146,7 @@ module mod_rad_interface
     call assignpnt(atms%tb3d,m2r%tatms)
     call assignpnt(atms%qxb3d,m2r%qxatms)
     call assignpnt(atms%rhb3d,m2r%rhatms)
+    call assignpnt(atms%rhob3d,m2r%rhoatms)
     call assignpnt(atms%chib3d,m2r%chiatms)
     call assignpnt(atms%pb3d,m2r%phatms)
     call assignpnt(atms%pf3d,m2r%pfatms)

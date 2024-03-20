@@ -41,10 +41,10 @@ module mod_cloud_echam5
   ! of subgrid-scale variability of humidity in general circulation
   ! model cloud cover parameterizations using satellite data
   !
-  subroutine echam5_cldfrac(qc,rh,p,ps,fcc)
+  subroutine echam5_cldfrac(qc,rh,p,ps,qcrit,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , rh , p
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) :: rhrng , rhcrit , sig
     real(rkx) , parameter :: ct = 0.35_rkx
@@ -59,7 +59,7 @@ module mod_cloud_echam5
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) > 1.0e-12_rkx ) then
+          if ( qc(j,i,k) > qcrit(j,i) ) then
             ! Relative humidity
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
             sig = ps(j,i)/p(j,i,k)
