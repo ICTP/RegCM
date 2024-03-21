@@ -41,11 +41,8 @@ module mod_rad_o3blk
 
   public :: allocate_mod_rad_o3blk , o3data , read_o3data , close_o3data
 
-  real(rkx) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
-                              ppsum , ppwin
-
-  real(rkx) , pointer , dimension(:,:) :: alon , alat , aps
-  real(rkx) , pointer , dimension(:,:,:) :: xozone1 , xozone2
+  real(rkx) , dimension(31) :: o3ann , ppann
+  real(rkx) , pointer , dimension(:,:) :: alon , alat
   character(len=16) , parameter :: ozname_rcp = 'ozone'
   character(len=16) , parameter :: ozname_ssp = 'vmro3'
   character(len=16) :: ozname
@@ -54,43 +51,46 @@ module mod_rad_o3blk
   real(rkx) , pointer , dimension(:) :: olat
   real(rkx) , pointer , dimension(:) :: olon
   real(rkx) , pointer , dimension(:) :: oplev
-  real(rkx) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
-  real(rkx) , pointer , dimension(:,:,:) :: yozone
+  real(rkx) , pointer , dimension(:,:,:) :: rdoz1 , rdoz2
+  real(rkx) , pointer , dimension(:,:,:) :: hzioz1 , hzioz2
+  real(rkx) , pointer , dimension(:,:,:) :: ploz1 , ploz2
+  real(rkx) , pointer , dimension(:,:,:) :: sgoz1 , sgoz2
 
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
 
-  data o3sum &
-   /5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx , &
+  real(rkx) , dimension(31) , parameter :: o3sum = &
+   [5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx , &
     9.895e-8_rkx , 1.175e-7_rkx , 1.399e-7_rkx , 1.677e-7_rkx , 2.003e-7_rkx , &
     2.571e-7_rkx , 3.325e-7_rkx , 4.438e-7_rkx , 6.255e-7_rkx , 8.168e-7_rkx , &
     1.036e-6_rkx , 1.366e-6_rkx , 1.855e-6_rkx , 2.514e-6_rkx , 3.240e-6_rkx , &
     4.033e-6_rkx , 4.854e-6_rkx , 5.517e-6_rkx , 6.089e-6_rkx , 6.689e-6_rkx , &
     1.106e-5_rkx , 1.462e-5_rkx , 1.321e-5_rkx , 9.856e-6_rkx , 5.960e-6_rkx , &
-    5.960e-6_rkx/
-  data ppsum        /955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , &
-       589.841_rkx , 519.421_rkx , 455.480_rkx , 398.085_rkx , 347.171_rkx , &
-       301.735_rkx , 261.310_rkx , 225.360_rkx , 193.419_rkx , 165.490_rkx , &
-       141.032_rkx , 120.125_rkx , 102.689_rkx ,  87.829_rkx ,  75.123_rkx , &
-        64.306_rkx ,  55.086_rkx ,  47.209_rkx ,  40.535_rkx ,  34.795_rkx , &
-        29.865_rkx ,  19.122_rkx ,   9.277_rkx ,   4.660_rkx ,   2.421_rkx , &
-         1.294_rkx ,   0.647_rkx/
-  data o3win &
-   /4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , 6.871e-8_rkx , &
+    5.960e-6_rkx]
+  real(rkx) , dimension(31) , parameter :: ppsum = &
+   [ 955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , 589.841_rkx , &
+     519.421_rkx , 455.480_rkx , 398.085_rkx , 347.171_rkx , 301.735_rkx , &
+     261.310_rkx , 225.360_rkx , 193.419_rkx , 165.490_rkx , 141.032_rkx , &
+     120.125_rkx , 102.689_rkx ,  87.829_rkx ,  75.123_rkx ,  64.306_rkx , &
+      55.086_rkx ,  47.209_rkx ,  40.535_rkx ,  34.795_rkx ,  29.865_rkx , &
+      19.122_rkx ,   9.277_rkx ,   4.660_rkx ,   2.421_rkx ,   1.294_rkx , &
+       0.647_rkx]
+  real(rkx) , dimension(31) , parameter :: o3win = &
+   [4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , 6.871e-8_rkx , &
     8.751e-8_rkx , 1.138e-7_rkx , 1.516e-7_rkx , 2.161e-7_rkx , 3.264e-7_rkx , &
     4.968e-7_rkx , 7.338e-7_rkx , 1.017e-6_rkx , 1.308e-6_rkx , 1.625e-6_rkx , &
     2.011e-6_rkx , 2.516e-6_rkx , 3.130e-6_rkx , 3.840e-6_rkx , 4.703e-6_rkx , &
     5.486e-6_rkx , 6.289e-6_rkx , 6.993e-6_rkx , 7.494e-6_rkx , 8.197e-6_rkx , &
     9.632e-6_rkx , 1.113e-5_rkx , 1.146e-5_rkx , 9.389e-6_rkx , 6.135e-6_rkx , &
-    6.135e-6_rkx/
-  data ppwin        /955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , &
-       568.404_rkx , 495.815_rkx , 431.069_rkx , 373.464_rkx , 322.354_rkx , &
-       277.190_rkx , 237.635_rkx , 203.433_rkx , 174.070_rkx , 148.949_rkx , &
-       127.408_rkx , 108.915_rkx ,  93.114_rkx ,  79.551_rkx ,  67.940_rkx , &
-        58.072_rkx ,  49.593_rkx ,  42.318_rkx ,  36.138_rkx ,  30.907_rkx , &
-        26.362_rkx ,  16.423_rkx ,   7.583_rkx ,   3.620_rkx ,   1.807_rkx , &
-         0.938_rkx ,   0.469_rkx/
+    6.135e-6_rkx]
+  real(rkx) , dimension(31) , parameter :: ppwin = &
+   [ 955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , 568.404_rkx , &
+     495.815_rkx , 431.069_rkx , 373.464_rkx , 322.354_rkx , 277.190_rkx , &
+     237.635_rkx , 203.433_rkx , 174.070_rkx , 148.949_rkx , 127.408_rkx , &
+     108.915_rkx ,  93.114_rkx ,  79.551_rkx ,  67.940_rkx ,  58.072_rkx , &
+      49.593_rkx ,  42.318_rkx ,  36.138_rkx ,  30.907_rkx ,  26.362_rkx , &
+      16.423_rkx ,   7.583_rkx ,   3.620_rkx ,   1.807_rkx ,   0.938_rkx , &
+       0.469_rkx]
 
   contains
 
@@ -186,7 +186,14 @@ module mod_rad_o3blk
         else
           ystart = 2050
           yend = 2100
-          o3filename = trim(o3filename) // '205001-210012.nc'
+          if ( scenario(4:6) == '585' .or. &
+               scenario(4:6) == '370' .or. &
+               scenario(4:6) == '245' .or. &
+               scenario(4:6) == '126' ) then
+            o3filename = trim(o3filename) // '205001-209912.nc'
+          else
+            o3filename = trim(o3filename) // '205001-210012.nc'
+          end if
         end if
       else
         call fatal(__FILE__,__LINE__,'O3 : year < SPP max date (2101)')
@@ -202,15 +209,6 @@ module mod_rad_o3blk
       if ( myid == iocpu ) then
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
         call getmem2d(alat,jcross1,jcross2,icross1,icross2,'mod_o3blk:alat')
-        call getmem2d(aps,jcross1,jcross2,icross1,icross2,'mod_o3blk:aps')
-        call getmem3d(ozone1,jcross1,jcross2, &
-                             icross1,icross2,1,kzp1,'mod_o3blk:ozone1')
-        call getmem3d(ozone2,jcross1,jcross2, &
-                             icross1,icross2,1,kzp1,'mod_o3blk:ozone2')
-        call getmem3d(ozone,jcross1,jcross2, &
-                            icross1,icross2,1,kzp1,'mod_o3blk:ozone')
-        call getmem3d(pp3d,jcross1,jcross2, &
-                           icross1,icross2,1,kzp1,'mod_o3blk:pp3d')
       end if
     end if
   end subroutine allocate_mod_rad_o3blk
@@ -220,6 +218,23 @@ module mod_rad_o3blk
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: k
     real(rkx) , dimension(kzp1) :: ozprnt
+#ifdef RCEMIP
+    real(rkx) :: g1 = 3.6478_rkx
+    real(rkx) :: g2 = 0.83209_rkx
+    real(rkx) :: g3 = 11.3515_rkx
+    integer(ik4) :: i , j
+    real(rkx) :: p , o3
+    do k = 1 , kzp1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p = m2r%pfatms(j,i,k) * 0.01_rkx ! hPa
+          o3 = g1 * p**g2 * exp(-p/g3)     ! ppmv in VMR
+          ! RegCM wants MMR in kg kg-1
+          o3prof(j,i,k) = max(o3 * (amo3/amd) * 1.0e-6_rkx, 1.0e-12_rkx)
+        end do
+      end do
+    end do
+#else
     real(rkx) , pointer , dimension(:) :: o3wrk , ppwrk
     allocate(o3wrk(31),ppwrk(31))
     do k = 1 , 31
@@ -240,11 +255,12 @@ module mod_rad_o3blk
     ppwrk(:) = ppwrk(:) * d_100
     call intlinprof(o3prof,o3wrk,m2r%psatms,ppwrk,jci1,jci2, &
                     ici1,ici2,31,m2r%pfatms,kzp1)
+    deallocate(o3wrk,ppwrk)
+#endif
     if ( myid == italk ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
     end if
-    deallocate(o3wrk,ppwrk)
   end subroutine o3data
 
   subroutine read_o3data(idatex,m2r)
@@ -259,15 +275,15 @@ module mod_rad_o3blk
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
     integer(ik4) :: im1 , iy1 , im2 , iy2
-    integer(ik4) , save :: ism , isy
+    integer(ik4) , save :: ism , isy , np
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
     data ism /-1/
     data isy /-1/
 
-    call split_idate(idatex,iyear,imon,iday,ihour)
     imonmidd = monmiddle(idatex)
+    call split_idate(imonmidd,iyear,imon,iday,ihour)
 
     if ( iyear < 1850 ) then
       iyear = 1850
@@ -276,20 +292,30 @@ module mod_rad_o3blk
     end if
 
     if ( ifirst ) then
-      call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
-      call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
-!      ifirst = .false.
+      call grid_collect(m2r%xlon,alon,jce1,jce2,ice1,ice2)
+      call grid_collect(m2r%xlat,alat,jce1,jce2,ice1,ice2)
       if ( myid == iocpu ) then
         infile = o3filename(iyear)
         call init_o3data(infile,ncid,olat,olon,oplev)
-        call getmem3d(yozone,1,njcross,1,nicross,1,size(oplev),'ozone:yozone')
-        call getmem3d(xozone1,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone1')
-        call getmem3d(xozone2,1,size(olon),1,size(olat),1,size(oplev), &
-          'ozone:xozone2')
+        np = size(oplev)
+        call bcast(np)
+        call bcast(oplev)
+        call bcast(mulfac)
+        call getmem3d(rdoz1,1,size(olon),1,size(olat),1,np,'ozone:rdoz1')
+        call getmem3d(rdoz2,1,size(olon),1,size(olat),1,np,'ozone:rdoz2')
+        call getmem3d(hzioz1,1,njcross,1,nicross,1,np,'ozone:hzioz1')
+        call getmem3d(hzioz2,1,njcross,1,nicross,1,np,'ozone:hzioz2')
         call h_interpolator_create(hint,olat,olon,alat,alon)
+      else
+        call bcast(np)
+        call getmem1d(oplev,1,np,'ozone:lev')
+        call bcast(oplev)
+        call bcast(mulfac)
       endif
-
+      call getmem3d(ploz1,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz1')
+      call getmem3d(ploz2,jci1,jci2,ici1,ici2,1,np,'mod_o3blk:ploz2')
+      call getmem3d(sgoz1,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz1')
+      call getmem3d(sgoz2,jci1,jci2,ici1,ici2,1,kzp1,'mod_o3blk:sgoz2')
     end if
 
     im1 = imon
@@ -306,50 +332,42 @@ module mod_rad_o3blk
       iref2 = imonmidd
     end if
     dointerp = .false.
-      if ( ism /= im1 .or. isy /= iy1 ) then
-        ism = im1
-        isy = iy1
-        dointerp = .true.
-      end if
+    if ( ism /= im1 .or. isy /= iy1 ) then
+      ism = im1
+      isy = iy1
+      dointerp = .true.
+    end if
     if ( dointerp ) then
-      ! We need pressure
-      call grid_collect(m2r%psatms,aps,jci1,jci2,ici1,ici2)
-      call grid_collect(m2r%pfatms,pp3d,jci1,jci2,ici1,ici2,1,kzp1)
       if ( myid == iocpu ) then
         if ( ifirst ) then
-          write (stdout,*) 'Reading Ozone Data...'
-          call readvar3d_pack(ncid,iy1,im1,ozname,xozone1)
-          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone1,yozone)
-          call intlinreg(ozone1,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
-          call h_interpolate_cont(hint,xozone2,yozone)
-          call intlinreg(ozone2,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          write (stdout,*) 'Reading Initial Ozone Data...'
+          call readvar3d_pack(ncid,iy1,im1,ozname,rdoz1)
+          call readvar3d_pack(ncid,iy2,im2,ozname,rdoz2)
+          call h_interpolate_cont(hint,rdoz1,hzioz1)
+          call h_interpolate_cont(hint,rdoz2,hzioz2)
         else
-          ozone1 = ozone2
-          call readvar3d_pack(ncid,iy2,im2,ozname,xozone2)
-          call h_interpolate_cont(hint,xozone1,yozone)
-          call intlinreg(ozone1,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
-          call h_interpolate_cont(hint,xozone2,yozone)
-          call intlinreg(ozone2,yozone,aps,oplev, &
-                         1,njcross,1,nicross,size(oplev),pp3d,kzp1)
+          write (stdout,*) 'Update Ozone Data...'
+          hzioz1 = hzioz2
+          call readvar3d_pack(ncid,iy2,im2,ozname,rdoz2)
+          call h_interpolate_cont(hint,rdoz2,hzioz2)
         end if
       end if
+      call grid_distribute(hzioz1,ploz1,jci1,jci2,ici1,ici2,1,np)
+      call grid_distribute(hzioz2,ploz2,jci1,jci2,ici1,ici2,1,np)
     end if
-
-    if ( myid == iocpu ) then
-      tdif = idatex-iref1
-      xfac1 = real(tohours(tdif),rkx)
-      tdif = idatex-iref2
-      xfac2 = real(tohours(tdif),rkx)
-      odist = xfac1 - xfac2
-      xfac1 = xfac1/odist
-      xfac2 = d_one-xfac1
-      ozone = (ozone1*xfac2+ozone2*xfac1)*mulfac
-    end if
-    call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+    ! We need pressure
+    call intlinreg(sgoz1,ploz1,m2r%psatms,oplev, &
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
+    call intlinreg(sgoz2,ploz2,m2r%psatms,oplev, &
+                   jci1,jci2,ici1,ici2,np,m2r%pfatms,kzp1)
+    tdif = idatex-iref1
+    xfac1 = real(tohours(tdif),rkx)
+    tdif = idatex-iref2
+    xfac2 = real(tohours(tdif),rkx)
+    odist = xfac1 - xfac2
+    xfac1 = xfac1/odist
+    xfac2 = d_one-xfac1
+    o3prof = (sgoz1*xfac2+sgoz2*xfac1)*mulfac
     if ( myid == italk .and. dointerp ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Updated ozone profile at (3,3)')

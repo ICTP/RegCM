@@ -361,7 +361,7 @@ module mod_domain
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_size_in_meters')
     if ( ls ) dsx = dsx * real(nsg,rkx)
-    if (abs(real(dsx*d_r1000,rkx)-real(ds,rkx)) > 0.001_rkx ) then
+    if (abs(real(dsx*d_r1000,rkx)-real(ds,rkx)) > 0.01_rkx ) then
       write(stderr,*) 'DOMAIN FILE : ', dsx/1000.0
       write(stderr,*) 'NAMELIST    : ', ds
       call die('Mismatch: DS in DOMAIN file /= DS in namelist')

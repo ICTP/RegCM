@@ -65,6 +65,7 @@ module mod_rad_radiation
     real(rkx) , dimension(:,:) , pointer :: qi
     real(rkx) , dimension(:,:) , pointer :: dz
     real(rkx) , dimension(:,:) , pointer :: rh
+    real(rkx) , dimension(:,:) , pointer :: rho
     real(rkx) , dimension(:,:) , pointer :: cld
     real(rkx) , dimension(:,:) , pointer :: effcld
     real(rkx) , dimension(:,:) , pointer :: clwp
@@ -308,16 +309,10 @@ module mod_rad_radiation
           o3mmr , pbr
   real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
 
-  real(rkx) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
   real(rkx) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
              c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,    &
              c28 , c29 , c30 , c31 , c8 , c9 , cfa1
-  real(rkx) , dimension(3,4) :: coefa , coefc , coefe
-  real(rkx) , dimension(4,4) :: coefb , coefd
-  real(rkx) , dimension(6,2) :: coeff , coefi
-  real(rkx) , dimension(2,4) :: coefg , coefh
-  real(rkx) , dimension(3,2) :: coefj , coefk
 
   real(rkx) , parameter :: verynearone = 0.999999_rkx
 
@@ -376,6 +371,86 @@ module mod_rad_radiation
   real(rkx) , parameter :: gray = 0.0_rkx
   real(rkx) , parameter :: fray = 0.1_rkx
   !
+  ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
+  !
+  real(rkx) , dimension(3,4) , parameter :: coefa = reshape([ &
+    1.01400e+0_rkx , 6.41695e-3_rkx , 2.85787e-5_rkx , &
+    1.01320e+0_rkx , 6.86400e-3_rkx , 2.96961e-5_rkx , &
+    1.02920e+0_rkx , 1.01680e-2_rkx , 5.30226e-5_rkx , &
+    1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx ], [3,4])
+
+  real(rkx) , dimension(4,4) , parameter :: coefb = reshape([ &
+    8.85675e+0_rkx , -3.51620e-2_rkx ,  2.38653e-4_rkx , -1.71439e-6_rkx , &
+    5.73841e+0_rkx , -1.91919e-2_rkx ,  1.65993e-4_rkx , -1.54665e-6_rkx , &
+    6.64034e+0_rkx ,  1.56651e-2_rkx , -9.73357e-5_rkx ,  0.00000e+0_rkx , &
+    7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx ,  0.00000e+0_rkx], &
+   [4,4])
+
+  real(rkx) , dimension(3,4) , parameter :: coefc = reshape([ &
+    9.90127e-1_rkx , 1.22475e-3_rkx , 4.90135e-6_rkx , &
+    9.89753e-1_rkx , 1.97081e-3_rkx , 3.42046e-6_rkx , &
+    9.75230e-1_rkx , 1.03341e-3_rkx , 0.00000e+0_rkx , &
+    9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx],[3,4])
+
+  real(rkx) , dimension(4,4) , parameter :: coefd = reshape([ &
+    7.03047e-1_rkx , -2.63501e-3_rkx , -1.57023e-6_rkx ,  0.00000e+0_rkx , &
+    5.29269e-1_rkx , -3.14754e-3_rkx ,  4.39595e-6_rkx ,  0.00000e+0_rkx , &
+    7.88193e-2_rkx ,  1.31290e-3_rkx ,  4.25827e-6_rkx , -1.23982e-8_rkx , &
+    1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , -4.30133e-8_rkx], &
+   [4,4])
+
+  real(rkx) , dimension(3,4) , parameter :: coefe = reshape([ &
+    3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx , &
+    3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx , &
+    7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
+    7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx], [3,4])
+
+  real(rkx) , dimension(6,2) , parameter :: coeff = reshape([ &
+    2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx ,   &
+   -1.40262e-8_rkx , 2.13638e-10_rkx, -2.35955e-13_rkx ,  &
+    3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx ,   &
+    3.49847e-8_rkx , 2.07835e-10_rkx, -1.98937e-12_rkx], [6,2])
+
+  real(rkx) , dimension(2,4) , parameter :: coefg = reshape([ &
+    9.04489e+0_rkx , -9.56499e-3_rkx ,  1.80898e+1_rkx , &
+   -1.91300e-2_rkx ,  8.72239e+0_rkx , -9.53359e-3_rkx , &
+    1.74448e+1_rkx , -1.90672e-2_rkx],[2,4])
+
+  real(rkx) , dimension(2,4) , parameter :: coefh = reshape([ &
+    5.46557e+1_rkx , -7.30387e-2_rkx ,  1.09311e+2_rkx ,  &
+   -1.46077e-1_rkx ,  5.11479e+1_rkx , -6.82615e-2_rkx ,  &
+    1.02296e+2_rkx , -1.36523e-1_rkx],[2,4])
+
+  real(rkx) , dimension(6,2) , parameter :: coefi = reshape([ &
+    3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,   &
+    5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx , &
+    3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,   &
+    6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx],[6,2])
+
+  real(rkx) , dimension(3,2) , parameter :: coefj = reshape([ &
+    2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx , &
+    9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx],[3,2])
+
+  real(rkx) , dimension(3,2) , parameter :: coefk = reshape([ &
+    2.48852e-1_rkx , 2.09667e-3_rkx , 2.60377e-6_rkx , &
+    1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx],[3,2])
+  !
+  ! Narrow band data for H2O
+  ! 200CM data for 800-1000 CM-1 and 1000-1200 CM-1.
+  !
+  real(rkx) , dimension(2) , parameter :: realk = [ &
+       0.18967069430426e-4_rkx ,  0.70172244841851e-4_rkx ]
+  real(rkx) , dimension(2) , parameter :: st = [ &
+       0.31930234492350e-3_rkx ,  0.97907319939060e-3_rkx ]
+  real(rkx) , dimension(2) , parameter :: a1 = [ &
+       0.28775403075736e-1_rkx ,  0.23236701470511e-1_rkx ]
+  real(rkx) , dimension(2) , parameter :: a2 = [ &
+      -0.57966222388131e-4_rkx , -0.95105504388411e-4_rkx ]
+  real(rkx) , dimension(2) , parameter :: b1 = [ &
+       0.29927771523756e-1_rkx ,  0.21737073577293e-1_rkx ]
+  real(rkx) , dimension(2) , parameter :: b2 = [ &
+      -0.86322071248593e-4_rkx , -0.78543550629536e-4_rkx ]
+  !
   ! A. Slingo's data for cloud particle radiative properties
   ! (from 'A GCM Parameterization for the Shortwave Properties of Water
   ! Clouds' JAS vol. 46 may 1989 pp 1419-1427)
@@ -399,9 +474,30 @@ module mod_rad_radiation
   ! ebari    - e coefficient for asymmetry parameter
   ! fbari    - f coefficient for asymmetry parameter
   !
-  real(rkx) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
-                             cbarl , dbari , dbarl , ebari , ebarl ,  &
-                             fbari , fbarl
+  real(rkx) , dimension(4) , parameter :: abarl = [ &
+      2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
+  real(rkx) , dimension(4) , parameter :: bbarl = [ &
+      1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: cbarl = [ &
+     -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: dbarl = [ &
+      1.630e-8_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: ebarl = [ &
+      0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: fbarl = [ &
+      2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: abari = [ &
+      3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
+  real(rkx) , dimension(4) , parameter :: bbari = [ &
+      2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: cbari = [ &
+      1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: dbari = [ &
+      0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
+  real(rkx) , dimension(4) , parameter :: ebari = [ &
+      0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
+  real(rkx) , dimension(4) , parameter :: fbari = [ &
+      5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
   !
   ! Next series depends on spectral interval
   !
@@ -418,148 +514,75 @@ module mod_rad_radiation
   ! po2      - Weight of o2  in spectral interval
   ! nirwgt   - Weight for intervals to simulate satellite filter
   !
-  real(rkx) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
-                                frcsol , nirwgt , pco2 , ph2o ,  &
-                                po2 , raytau
+  real(rkx) , dimension(nspi) , parameter :: frcsol = [           &
+      0.001488_rkx , 0.001389_rkx , 0.001290_rkx , 0.001686_rkx , &
+      0.002877_rkx , 0.003869_rkx , 0.026336_rkx , 0.360739_rkx , &
+      0.065392_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
+      0.526861_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
+      0.006239_rkx , 0.001834_rkx , 0.001834_rkx ]
   !
-  ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
-  !
-  data coefa/1.01400e+0_rkx , 6.41695e-3_rkx , 2.85787e-5_rkx , &
-             1.01320e+0_rkx , 6.86400e-3_rkx , 2.96961e-5_rkx , &
-             1.02920e+0_rkx , 1.01680e-2_rkx , 5.30226e-5_rkx , &
-             1.02743e+0_rkx , 9.85113e-3_rkx , 5.00233e-5_rkx/
-
-  data coefb/8.85675e+0_rkx , -3.51620e-2_rkx ,  2.38653e-4_rkx , &
-            -1.71439e-6_rkx ,  5.73841e+0_rkx , -1.91919e-2_rkx , &
-             1.65993e-4_rkx , -1.54665e-6_rkx ,  6.64034e+0_rkx , &
-             1.56651e-2_rkx , -9.73357e-5_rkx ,  0.00000e+0_rkx , &
-             7.09281e+0_rkx ,  1.40056e-2_rkx , -1.15774e-4_rkx , &
-             0.00000e+0_rkx/
-
-  data coefc/9.90127e-1_rkx , 1.22475e-3_rkx , 4.90135e-6_rkx , &
-             9.89753e-1_rkx , 1.97081e-3_rkx , 3.42046e-6_rkx , &
-             9.75230e-1_rkx , 1.03341e-3_rkx , 0.00000e+0_rkx , &
-             9.77366e-1_rkx , 8.60014e-4_rkx , 0.00000e+0_rkx/
-
-  data coefd/7.03047e-1_rkx , -2.63501e-3_rkx , -1.57023e-6_rkx , &
-             0.00000e+0_rkx ,  5.29269e-1_rkx , -3.14754e-3_rkx , &
-             4.39595e-6_rkx ,  0.00000e+0_rkx ,  7.88193e-2_rkx , &
-             1.31290e-3_rkx ,  4.25827e-6_rkx , -1.23982e-8_rkx , &
-             1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , &
-            -4.30133e-8_rkx/
-
-  data coefe/3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx , &
-             3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx , &
-             7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
-             7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx/
-
-  data coeff/2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx ,   &
-            -1.40262e-8_rkx , 2.13638e-10_rkx , -2.35955e-13_rkx , &
-             3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx ,   &
-             3.49847e-8_rkx , 2.07835e-10_rkx , -1.98937e-12_rkx/
-
-  data coefg/9.04489e+0_rkx , -9.56499e-3_rkx ,  1.80898e+1_rkx , &
-            -1.91300e-2_rkx ,  8.72239e+0_rkx , -9.53359e-3_rkx , &
-             1.74448e+1_rkx , -1.90672e-2_rkx/
-
-  data coefh/5.46557e+1_rkx , -7.30387e-2_rkx ,  1.09311e+2_rkx ,  &
-            -1.46077e-1_rkx ,  5.11479e+1_rkx , -6.82615e-2_rkx ,  &
-             1.02296e+2_rkx , -1.36523e-1_rkx/
-
-  data coefi/3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,   &
-             5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx , &
-             3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,   &
-             6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx/
-
-  data coefj/2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx , &
-             9.27379e-2_rkx , 8.04454e-4_rkx , 6.88844e-6_rkx/
-
-  data coefk/2.48852e-1_rkx , 2.09667e-3_rkx , 2.60377e-6_rkx , &
-             1.03594e+0_rkx , 6.58620e-3_rkx , 4.04456e-6_rkx/
-  !
-  ! Narrow band data for H2O
-  ! 200CM data for 800-1000 CM-1 and 1000-1200 CM-1.
-  !
-  data realk/0.18967069430426e-4_rkx ,  0.70172244841851e-4_rkx/
-  data st   /0.31930234492350e-3_rkx ,  0.97907319939060e-3_rkx/
-  data a1   /0.28775403075736e-1_rkx ,  0.23236701470511e-1_rkx/
-  data a2  /-0.57966222388131e-4_rkx , -0.95105504388411e-4_rkx/
-  data b1   /0.29927771523756e-1_rkx ,  0.21737073577293e-1_rkx/
-  data b2  /-0.86322071248593e-4_rkx , -0.78543550629536e-4_rkx/
-
-  data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
-  data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
-  data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-  data dbarl / 1.630e-8_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
-  data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
-  data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
-
-  data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
-  data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
-  data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
-  data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
-  data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
-  data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
-
-  data frcsol/0.001488_rkx , 0.001389_rkx , 0.001290_rkx , 0.001686_rkx , &
-              0.002877_rkx , 0.003869_rkx , 0.026336_rkx , 0.360739_rkx , &
-              0.065392_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
-              0.526861_rkx , 0.526861_rkx , 0.526861_rkx , 0.526861_rkx , &
-              0.006239_rkx , 0.001834_rkx , 0.001834_rkx/
-
   ! weight for 0.64 - 0.7 microns  appropriate to clear skies over oceans
+  !
+  real(rkx) , dimension(nspi) , parameter :: nirwgt = [           &
+      0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
+      0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
+      0.320518_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
+      1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
+      1.000000_rkx , 1.000000_rkx , 1.000000_rkx ]
 
-  data nirwgt/0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
-              0.000000_rkx , 0.000000_rkx , 0.000000_rkx , 0.000000_rkx , &
-              0.320518_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
-              1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
-              1.000000_rkx , 1.000000_rkx , 1.000000_rkx/
-
-  data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
-              1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
-              0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
-              0.0001_rkx , 0.0001_rkx , 0.0001_rkx/
+  real(rkx) , dimension(nspi) , parameter :: raytau = [     &
+      4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx ,   &
+      1.2500_rkx , 1.0850_rkx , 0.7300_rkx , 0.155208_rkx , &
+      0.0392_rkx , 0.0200_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+      0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx ,   &
+      0.0001_rkx , 0.0001_rkx , 0.0001_rkx ]
   !
   ! Absorption coefficients
   !
-  data abh2o/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.002_rkx , &
-             0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
-           190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abh2o = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.002_rkx , &
+      0.035_rkx , 0.377_rkx , 1.950_rkx , 9.400_rkx , 44.600_rkx , &
+    190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
-  data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
-            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
-            2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
-            0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abo3 = [                  &
+      5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx ,     &
+      1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , 2.4058030e+1_rkx , &
+      2.210e+1_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+      0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,     &
+      0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx ]
 
-  data abco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-             0.000_rkx , 0.094_rkx , 0.196_rkx , 1.963_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abco2 = [            &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.094_rkx , 0.196_rkx , 1.963_rkx ]
 
-  data abo2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 1.11e-5_rkx , 6.69e-5_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: abo2 = [                 &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 1.11e-5_rkx , 6.69e-5_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
   !
   ! Spectral interval weights
   !
-  data ph2o/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.505_rkx , &
-            0.210_rkx , 0.120_rkx , 0.070_rkx , 0.048_rkx , 0.029_rkx , &
-            0.018_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: ph2o = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.505_rkx , &
+      0.210_rkx , 0.120_rkx , 0.070_rkx , 0.048_rkx , 0.029_rkx , &
+      0.018_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
-  data pco2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-            0.000_rkx , 1.000_rkx , 0.640_rkx , 0.360_rkx/
+  real(rkx) , dimension(nspi) , parameter :: pco2 = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 1.000_rkx , 0.640_rkx , 0.360_rkx ]
 
-  data po2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
-           0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+  real(rkx) , dimension(nspi) , parameter :: po2 = [             &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+      0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ]
 
   logical :: luse_max_rnovl = .true.
 
@@ -938,8 +961,8 @@ module mod_rad_radiation
         if ( luse_max_rnovl ) then
           do k = 2 , kzp1
             rt%totcf(n) = rt%totcf(n) * &
-                   (d_one - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
-                   (d_one - rt%cld(n,k-1))
+                   (1.0001_rkx - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
+                   (1.0001_rkx - rt%cld(n,k-1))
           end do
         else
           do k = 1 , kzp1
@@ -1423,24 +1446,31 @@ module mod_rad_radiation
             tmp3i = fbarii*rei(n,k)
             !
             !  Cloud fraction incorporated into cloud extinction optical depth
-            !found
-            !  April 12 2000, Filippo found the different scheme here:
-            !scheme     1
-            !ccm3.6.6
-            ! tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
-            !           (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
-            ! tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
-            !            fice(n,k) * cld(n,k) * sqrt(cld(n,k))
+            !  found April 12 2000, Filippo found the different scheme here:
             !
-            !scheme     2
+            ! Scheme     1
+            ! The one in ccm3.6.6
+            !tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
+            !          (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
+            !tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
+            !           fice(n,k) * cld(n,k) * sqrt(cld(n,k))
+            !
+            ! Scheme     2
+            ! unknown origin (?????)
+            !tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
+            !              (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
+            !              (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
+            !tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
+            !              (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
+            !              (clwp(n,k)*tmp1i*fice(n,k))))
             !
             tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
                           (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
                           (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
-            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
             tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
                           (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
                           (clwp(n,k)*tmp1i*fice(n,k))))
+            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
             outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
             !
             !scheme     3
@@ -1909,7 +1939,7 @@ module mod_rad_radiation
     end do
     do k = 1 , kz
       do n = n1 , n2
-        if ( .not. done(n) .and. cld(n,kzp2-k) > d_zero ) then
+        if ( .not. done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
           done(n) = .true.
           klov(n) = k
         end if
@@ -1927,7 +1957,7 @@ module mod_rad_radiation
     do k = kz , 1 , -1
       do n = n1 , n2
         if ( skip(n) ) cycle
-        if ( .not.done(n) .and. cld(n,kzp2-k) > d_zero ) then
+        if ( .not.done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
           done(n) = .true.
           khiv(n) = k
         end if
@@ -2024,16 +2054,9 @@ module mod_rad_radiation
       !
       ! Computation of clear sky fluxes always set first level of fsul
       !
-#if defined(CLM45) || defined(CLM)
-      ! TS is the Radiant Temperature
-      do n = n1 , n2
-        fsul(n,kzp1) = stebol * ts(n)**4
-      end do
-#else
       do n = n1 , n2
         fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
       end do
-#endif
       !
       ! Downward clear sky fluxes store intermediate quantities in down
       ! flux Initialize fluxes to clear sky values.

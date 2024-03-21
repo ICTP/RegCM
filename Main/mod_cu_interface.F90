@@ -80,6 +80,7 @@ module mod_cu_interface
   public :: dtauc2d
   public :: k700
   public :: total_precip_points
+  public :: cu_cldfrc
 
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
@@ -216,13 +217,14 @@ module mod_cu_interface
   subroutine cucloud
     implicit none
     integer(ik4) :: i , j , k
+    if ( all(icup == 0) ) return
     if ( any(icup == 1) ) then
       call model_cumulus_cloud(m2c)
     end if
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),0.0_rkx)
+          c2m%cldfrc(j,i,k) = cu_cldfrc(j,i,k)
           if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
             c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
           else
@@ -315,17 +317,23 @@ module mod_cu_interface
           cu_vten(:,:,:) = d_zero
           if ( any(icup == 5) ) then
             if ( idynamic == 3 ) then
-              utend(jdi1:jdi2,ici1:ici2,:) = m2c%uten
-              vtend(jci1:jci2,idi1:idi2,:) = m2c%vten
+              do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+                utend(j,i,k) = m2c%uten(j,i,k)
+              end do
+              do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+                vtend(j,i,k) = m2c%vten(j,i,k)
+              end do
               call uvtentotenx(utend,vtend,utenx,vtenx)
             else
-              utend(jdi1:jdi2,idi1:idi2,:) = m2c%uten
-              vtend(jdi1:jdi2,idi1:idi2,:) = m2c%vten
+              do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+                utend(j,i,k) = m2c%uten(j,i,k)
+                vtend(j,i,k) = m2c%vten(j,i,k)
+              end do
               call uvdot2cross(utend,vtend,utenx,vtenx)
             end if
           end if
-          utend = d_zero
-          vtend = d_zero
+          utend(:,:,:) = d_zero
+          vtend(:,:,:) = d_zero
         end if
         cu_qten(:,:,:,:) = d_zero
         cu_cldfrc(:,:,:) = d_zero

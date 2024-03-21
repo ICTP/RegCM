@@ -69,17 +69,21 @@ module mod_kdinterp
     module procedure compwgt_genlin_2d
   end interface compwgt_genlin
 
-  ! Need at least three point to triangulate
-  integer(ik4) , parameter :: minp = 3
+  interface maxedis
+    module procedure maxedis1
+    module procedure maxedis2
+  end interface maxedis
 
-  ! If resolution is decreased, try not to chocke memory...
-  integer(ik4) , parameter :: maxp = 8
+  ! Need at least three point to triangulate, 4 for a quasi-linear
+  integer(ik4) , parameter :: minp = 4
+
+  ! Try not to chocke memory...
+  integer(ik4) , parameter :: maxp = 32
 
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
   real(rk8) , parameter :: mindis = 1.0e-4_rkx
-  real(rk8) , parameter :: mindis2 = mindis*mindis
 
   type pwgt
     integer(ik4) :: i , j
@@ -103,6 +107,42 @@ module mod_kdinterp
 
   contains
 
+  real(rk8) function maxedis1(lat,lon) result(maxdis)
+    implicit none
+    real(rk8) , dimension(:) , intent(in) :: lat
+    real(rk8) , dimension(:) , intent(in) :: lon
+    integer(ik4) :: i , j
+    real(rk8) :: r1 , r2
+    maxdis = 0.1_rk8
+    do i = 2 , size(lat)
+      do j = 2 , size(lon)
+        r1 = gcdist_simple(lat(i-1),lon(j-1),lat(i),lon(j))
+        r2 = gcdist_simple(lat(i-1),lon(j),lat(i),lon(j-1))
+        if ( r1 > maxdis ) maxdis = r1
+        if ( r2 > maxdis ) maxdis = r2
+      end do
+    end do
+  end function maxedis1
+
+  real(rk8) function maxedis2(lat,lon) result(maxdis)
+    implicit none
+    real(rk8) , dimension(:,:) , intent(in) :: lat
+    real(rk8) , dimension(:,:) , intent(in) :: lon
+    integer(ik4) :: i , j
+    integer(ik4) , dimension(2) :: nij
+    real(rk8) :: r1 , r2
+    maxdis = 0.1_rk8
+    nij = shape(lat)
+    do i = 2 , nij(2)
+      do j = 2 , nij(1)
+        r1 = gcdist_simple(lat(j-1,i-1),lon(j-1,i-1),lat(j,i),lon(j,i))
+        r2 = gcdist_simple(lat(j,i-1),lon(j,i-1),lat(j-1,i),lon(j-1,i))
+        if ( r1 > maxdis ) maxdis = r1
+        if ( r2 > maxdis ) maxdis = r2
+      end do
+    end do
+  end function maxedis2
+
   subroutine interp_create_ll_g(h_i,slat,slon,tlat,tlon,ds,roi)
     implicit none
     type(h_interpolator) , intent(out) :: h_i
@@ -116,9 +156,9 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
-    integer(ik4) :: imode
-    real(rk8) :: dx , r2
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
+    real(rk8) :: dx , r2 , rin
+    logical :: lbil
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
@@ -131,37 +171,40 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rk8
-    r2 = 0.0_rk8
+    rin = maxedis(slat,slon)
+    dx = rin/erkm
+    lbil = .true.
     if ( present(ds) ) then
-      dx = ds/erkm
-      imode = 1
-    else
-      imode = 2
-    end if
-    if ( imode == 1 ) then
-      if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)
-      else
-        r2 = (dx*dx)
+      if ( rin < ds ) then
+        dx = ds/erkm
+        lbil = .false.
       end if
+    end if
+    if ( present(roi) ) then
+      r2 = (dx*dx*roi*roi)
+    else
+      r2 = (dx*dx)
     end if
     nj = size(tlat,1)
     ni = size(tlat,2)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a)',advance='no') ' Computing weights'
-    if ( imode == 1 ) then
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          call ll2xyz(tlat(j,i),tlon(j,i),p)
+    write(stdout,'(a,f16.8,a)',advance='no') &
+      ' Computing weights, R = ',sqrt(r2)*erkm, ' '
+    i10 = ni/10
+    do i = 1 , ni
+      if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
+      do j = 1 , nj
+        call ll2xyz(tlat(j,i),tlon(j,i),p)
+        if ( lbil ) then
+          np = minp
+          allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+        else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
-            np = minp
-            allocate(results(minp))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+            h_i%tg%ft(j,i)%np = 0
+            cycle
           else
             if ( np > maxp ) then
               np = maxp
@@ -172,51 +215,34 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           end if
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
+        end if
+        call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+        h_i%tg%ft(j,i)%np = np
+        deallocate(results)
       end do
-    else
-      r2 = gcdist_simple(slat(1),slon(1),slat(n1),slon(n2)) / &
-                   (erkm*sqrt(real(n1*n2,rk8)))
-      r2 = r2 * r2
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          call ll2xyz(tlat(j,i),tlon(j,i),p)
-          np = max(kdtree2_r_count(mr,p,r2),minp)
-          ! np = 2
-          allocate(results(np))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
-      end do
-    end if
+    end do
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_g
 
-  subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,ds,roi)
+  subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,roi)
     implicit none
     type(h_interpolator) , intent(out) :: h_i
     real(rkx) , dimension(:) , intent(in) :: slat
     real(rkx) , dimension(:) , intent(in) :: slon
     real(rkx) , dimension(:) , intent(in) :: tlat
     real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
-    integer(ik4) :: imode
-    real(rk8) :: dx , r2
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
+    real(rk8) :: dx , dx1 , r2 , rin , rin1
+    logical :: lbil
 
     n1 = size(slat)
     n2 = size(slon)
@@ -226,38 +252,41 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rk8
-    r2 = 0.0_rk8
-    if ( present(ds) ) then
-      dx = ds/erkm
-      imode = 1
-    else
-      imode = 2
+    rin = maxedis(slat,slon)
+    dx = rin/erkm
+    rin1 = maxedis(tlat,tlon)
+    dx1 = rin1/erkm
+    lbil = .true.
+    if ( rin < rin1 ) then
+      dx = dx1
+      lbil = .false.
     end if
-    if ( imode == 1 ) then
-      if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)
-      else
-        r2 = (dx*dx)
-      end if
+    if ( present(roi) ) then
+      r2 = (dx*dx*roi*roi)
+    else
+      r2 = (dx*dx)
     end if
     ni = size(tlat)
     nj = size(tlon)
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a)',advance='no') ' Computing weights'
-    if ( imode == 1 ) then
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          call ll2xyz(tlat(i),tlon(j),p)
+    write(stdout,'(a,f16.8,a)',advance='no') &
+      ' Computing weights, R = ',sqrt(r2)*erkm, ' '
+    i10 = ni/10
+    do i = 1 , ni
+      if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
+      do j = 1 , nj
+        call ll2xyz(tlat(i),tlon(j),p)
+        if ( lbil ) then
+          np = minp
+          allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+        else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
-            np = minp
-            allocate(results(minp))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+            h_i%tg%ft(j,i)%np = 0
+            cycle
           else
             if ( np > maxp ) then
               np = maxp
@@ -268,26 +297,14 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           end if
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
+        end if
+        call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+        h_i%tg%ft(j,i)%np = np
+        deallocate(results)
       end do
-    else
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          np = minp
-          call ll2xyz(tlat(i),tlon(j),p)
-          allocate(results(np))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
-      end do
-    end if
+    end do
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
@@ -305,7 +322,7 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: np , i
+    integer(ik4) :: i , i10 , np
 
     h_i%sshape(1) = ni
     h_i%sshape(2) = 1
@@ -316,8 +333,9 @@ module mod_kdinterp
     h_i%tg%tshape(2) = 1
     allocate(h_i%tg%ft(no,1))
     write(stdout,'(a)',advance='no') ' Computing weights'
+    i10 = no/10
     do i = 1 , no
-      if (mod(i,100) == 0) write(stdout,'(a)',advance='no') '.'
+      if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
       call ll2xyz(tlat(i),tlon(i),p)
       np = minp
       allocate(results(np))
@@ -344,9 +362,9 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
-    integer(ik4) :: imode
-    real(rk8) :: dx , r2
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
+    real(rk8) :: dx , r2 , rin
+    logical :: lbil
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -362,37 +380,40 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rk8
-    r2 = 0.0_rk8
+    rin = maxedis(slat,slon)
+    dx = rin/erkm
+    lbil = .true.
     if ( present(ds) ) then
-      dx = ds/erkm
-      imode = 1
-    else
-      imode = 2
-    end if
-    if ( imode == 1 ) then
-      if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)
-      else
-        r2 = (dx*dx)
+      if ( rin < ds ) then
+        dx = ds/erkm
+        lbil = .false.
       end if
+    end if
+    if ( present(roi) ) then
+      r2 = (dx*dx*roi*roi)
+    else
+      r2 = (dx*dx)
     end if
     ni = size(tlat,2)
     nj = size(tlat,1)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a)',advance='no') ' Computing weights'
-    if ( imode == 1 ) then
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          call ll2xyz(tlat(j,i),tlon(j,i),p)
+    write(stdout,'(a,f16.8,a)',advance='no') &
+      ' Computing weights, R = ',sqrt(r2)*erkm, ' '
+    i10 = ni/10
+    do i = 1 , ni
+      if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
+      do j = 1 , nj
+        call ll2xyz(tlat(j,i),tlon(j,i),p)
+        if ( lbil ) then
+          np = minp
+          allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+        else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
-            np = minp
-            allocate(results(minp))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+            h_i%tg%ft(j,i)%np = 0
+            cycle
           else
             if ( np > maxp ) then
               np = maxp
@@ -403,47 +424,34 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           end if
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
+        end if
+        call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+        h_i%tg%ft(j,i)%np = np
+        deallocate(results)
       end do
-    else
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          np = minp
-          call ll2xyz(tlat(j,i),tlon(j,i),p)
-          allocate(results(np))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
-      end do
-    end if
+    end do
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_g_g
 
-  subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,ds,roi)
+  subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,roi)
     implicit none
     type(h_interpolator) , intent(out) :: h_i
     real(rkx) , dimension(:,:) , intent(in) :: slat
     real(rkx) , dimension(:,:) , intent(in) :: slon
     real(rkx) , dimension(:) , intent(in) :: tlat
     real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
-    integer(ik4) :: imode
-    real(rk8) :: dx , r2
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i10
+    real(rk8) :: dx , dx1 , r2 , rin , rin1
+    logical :: lbil
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -456,38 +464,41 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rk8
-    r2 = 0.0_rk8
-    if ( present(ds) ) then
-      dx = ds/erkm
-      imode = 1
-    else
-      imode = 2
+    rin = maxedis(slat,slon)
+    dx = rin/erkm
+    rin1 = maxedis(tlat,tlon)
+    dx1 = rin1/erkm
+    lbil = .true.
+    if ( rin < rin1 ) then
+      dx = dx1
+      lbil = .false.
     end if
-    if ( imode == 1 ) then
-      if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)
-      else
-        r2 = (dx*dx)
-      end if
+    if ( present(roi) ) then
+      r2 = (dx*dx*roi*roi)
+    else
+      r2 = (dx*dx)
     end if
     ni = size(tlat)
     nj = size(tlon)
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
-    write(stdout,'(a)',advance='no') ' Computing weights'
-    if ( imode == 1 ) then
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          call ll2xyz(tlat(i),tlon(j),p)
+    write(stdout,'(a,f16.8,a)',advance='no') &
+      ' Computing weights, R = ',sqrt(r2)*erkm, ' '
+    i10 = ni/10
+    do i = 1 , ni
+      if (mod(i,i10) == 0) write(stdout,'(a)',advance='no') '.'
+      do j = 1 , nj
+        call ll2xyz(tlat(i),tlon(j),p)
+        if ( lbil ) then
+          np = minp
+          allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+        else
           np = kdtree2_r_count(mr,p,r2)
           if ( np < minp ) then
-            np = minp
-            allocate(results(minp))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+            h_i%tg%ft(j,i)%np = 0
+            cycle
           else
             if ( np > maxp ) then
               np = maxp
@@ -498,26 +509,14 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           end if
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
+        end if
+        call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+        !call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
+        h_i%tg%ft(j,i)%np = np
+        deallocate(results)
       end do
-    else
-      do i = 1 , ni
-        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-        do j = 1 , nj
-          np = minp
-          call ll2xyz(tlat(i),tlon(j),p)
-          allocate(results(np))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-          h_i%tg%ft(j,i)%np = np
-          deallocate(results)
-        end do
-      end do
-    end if
+    end do
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
@@ -532,7 +531,9 @@ module mod_kdinterp
       ni = h_i%tg%tshape(2)
       do i = 1 , ni
         do j = 1 , nj
-          deallocate(h_i%tg%ft(j,i)%wgt)
+          if ( h_i%tg%ft(j,i)%np > 0 ) then
+            deallocate(h_i%tg%ft(j,i)%wgt)
+          end if
         end do
       end do
       deallocate(h_i%tg%ft)
@@ -1011,8 +1012,8 @@ module mod_kdinterp
 
   subroutine compwgt_distwei(np,n2,r,w)
     implicit none
-    integer(ik4) , intent(in) :: n2
     integer(ik4) , intent(inout) :: np
+    integer(ik4) , intent(in) :: n2
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     integer(ik4) :: n
@@ -1024,7 +1025,7 @@ module mod_kdinterp
     end do
     allocate(w(np))
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( r(n)%dis < epsilon(rx) ) then
         np = 1
         deallocate(w)
         allocate(w(1))
@@ -1049,11 +1050,12 @@ module mod_kdinterp
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     real(rk8) , dimension(3,np) :: v
     real(rk8) , dimension(np) :: lambda
+    real(rk8) :: rx
     integer(ik4) :: i , n
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = r(n)%idx
@@ -1086,11 +1088,12 @@ module mod_kdinterp
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     real(rk8) , dimension(3,np) :: v
     real(rk8) , dimension(np) :: lambda
+    real(rk8) :: rx
     integer(ik4) :: i , n
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < mindis2 ) then
+      if ( abs(r(n)%dis) < epsilon(rx) ) then
         np = 1
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1

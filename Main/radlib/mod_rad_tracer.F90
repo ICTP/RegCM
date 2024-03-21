@@ -97,6 +97,12 @@ module mod_rad_tracer
     xch4 = d_zero
     xn2o = d_zero
     do n = n1 , n2
+#ifdef RCEMIP
+      xn2o = 0.3478_rkx
+      xch4 = 0.2353_rkx
+      xcfc11 = 0.7273_rkx
+      xcfc12 = 0.4000_rkx
+#else
       alat = abs(dlat(n)) ! This is absolute value of latitude in degrees
       if ( alat <= 45.0_rkx ) then
         xn2o = 0.3478_rkx + 0.00116_rkx*alat
@@ -109,6 +115,7 @@ module mod_rad_tracer
         xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
         xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
       end if
+#endif
       !  set stratospheric scale height factor for gases
       do k = 1 , kz
         if ( pmid(n,k) >= xptrop(n) ) then
@@ -172,15 +179,17 @@ module mod_rad_tracer
                     uptype)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
-                   ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
-                   uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-    real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , &
-                                            n2o , qnm , tnm
-    intent (in) cfc11 , cfc12 , ch4 , n2o , pnm , qnm , tnm
-    intent (inout) bch4 , bn2o0 , bn2o1 , ucfc11 , ucfc12 , uch4 ,    &
-                   uco211 , uco212 , uco213 , uco221 , uco222 ,       &
-                   uco223 , un2o0 , un2o1 , uptype
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , pnm , qnm
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: n2o , ch4
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: cfc11 , cfc12
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: bch4 , uch4
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: bn2o0 , un2o0
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: bn2o1 , un2o1
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ucfc11 , ucfc12
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: uco211 , uco212
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: uco213 , uco221
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: uco222 , uco223
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: uptype
     !
     !   co2fac - co2 factor
     !   alpha1 - stimulated emission term
@@ -190,9 +199,9 @@ module mod_rad_tracer
     !   pbar   - mean pressure
     !   dpnm   - difference in pressure
     !
-    real(rkx) :: diff , alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
+    real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
     integer(ik4) :: n , k
-    data diff/1.66_rkx/           ! diffusivity factor
+    real(rkx) , parameter :: diff = 1.66_rkx ! diffusivity factor
 
     !-----------------------------------------------------------------------
     !   Calculate path lengths for the trace gases
@@ -305,17 +314,20 @@ module mod_rad_tracer
                    abplnk1,tco2,th2o,to3,abstrc)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2 , k1 , k2
-    real(rkx) , pointer , dimension(:,:,:) :: abplnk1
-    real(rkx) , pointer , dimension(:) :: abstrc , dplh2o , dw , pnew , tco2 ,&
-                                        th2o , to3 , to3co2
-    real(rkx) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , pnm ,  &
-             s2c , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 ,  &
-             uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-    intent (in) abplnk1 , bch4 , bn2o0 , bn2o1 , dplh2o , dw ,      &
-                pnew , pnm , s2c , tco2 , th2o , to3 , to3co2 ,     &
-                ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 , &
-                uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-    intent (inout) abstrc
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: abplnk1
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uptype
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: s2c
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: un2o0 , un2o1 , uch4
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: bn2o0 , bn2o1 , bch4
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco211 , uco212
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco213 , uco221
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco222 , uco223
+    real(rkx) , pointer , dimension(:) , intent(in) :: to3co2 , dw , pnew
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pnm
+    real(rkx) , pointer , dimension(:) , intent(in) :: dplh2o , tco2
+    real(rkx) , pointer , dimension(:) , intent(in) :: th2o , to3
+    real(rkx) , pointer , dimension(:) , intent(inout) :: abstrc
     !
     !-----------------------------------------------------------------------
     !
@@ -379,7 +391,7 @@ module mod_rad_tracer
     !
     !-----------------------------------------------------------------------
     !
-    real(rkx) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(rkx) , dimension(6) :: tw
     real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
                dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
@@ -389,22 +401,30 @@ module mod_rad_tracer
                tch4 , tlw , w1 , sqti , ds2c , duptyp , tt
     integer(ik4) :: n , l
 
-    data g1 / 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-              0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx /
-    data g2 / 14.48320_rkx , 4.302420_rkx ,  5.23523_rkx , &
-               3.25342_rkx , 0.698935_rkx , 16.55990_rkx /
-    data g3 / 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
-              12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx /
-    data g4 / 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-              0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx /
-    data ab / 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-              2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx /
-    data bb /-1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-             -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx /
-    data abp / 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-               2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx/
-    data bbp /-1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-              -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx /
+    real(rkx) , dimension(6) , parameter :: g1 = &
+        [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
+          0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx ]
+    real(rkx) , dimension(6) , parameter :: g2 = &
+        [ 14.48320_rkx , 4.302420_rkx ,  5.23523_rkx , &
+           3.25342_rkx , 0.698935_rkx , 16.55990_rkx ]
+    real(rkx) , dimension(6) , parameter :: g3 = &
+        [ 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
+          12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx ]
+    real(rkx) , dimension(6) , parameter :: g4 = &
+        [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
+          0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
+    real(rkx) , dimension(6) , parameter :: ab = &
+        [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
+          2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bb = &
+        [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
+          -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
+    real(rkx) , dimension(6) , parameter :: abp = &
+        [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
+          2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bbp = &
+        [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
+          -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     do n = n1 , n2
       sqti = sqrt(to3co2(n))
@@ -543,18 +563,18 @@ module mod_rad_tracer
                     pnew,abstrc,uinpl)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2 , k2 , kn
-    real(rkx) , pointer , dimension(:) :: abstrc , dw , pnew , tco2 , th2o ,  &
-                                        to3 , up2
-    real(rkx) , pointer , dimension(:,:,:) :: bplnk
-    real(rkx) , pointer , dimension(:,:) :: pinpl , tbar , uinpl , winpl
-    real(rkx) , pointer , dimension(:,:) :: s2c , ucfc11 , ucfc12 , uch4 , &
-             uco211 , uco212 , uco213 , uco221 , uco222 , uco223 ,       &
-             un2o0 , un2o1 , uptype
-    intent (in) bplnk , dw , pinpl , pnew , s2c , tbar , tco2 , th2o ,    &
-                to3 , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 , &
-                uco221 , uco222 , uco223 , uinpl , un2o0 , un2o1 , up2 ,  &
-                uptype , winpl
-    intent (inout) abstrc
+    real(rkx) , pointer , dimension(:) , intent(inout) :: abstrc
+    real(rkx) , pointer , dimension(:) , intent(in) :: dw , pnew , tco2
+    real(rkx) , pointer , dimension(:) , intent(in) :: th2o , to3 , up2
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: bplnk
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pinpl , tbar
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uinpl , winpl
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: s2c , ucfc11
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ucfc12 , uch4
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco211 , uco212
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco213 , uco221
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco222 , uco223
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: un2o0 , un2o1 , uptype
     !
     ! sqti    - square root of mean temp
     ! rsqti   - reciprocal of sqti
@@ -615,7 +635,7 @@ module mod_rad_tracer
     ! tlw    -  h2o transmission
     ! tch4   -  ch4 transmission
     !
-    real(rkx) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(rkx) , dimension(6) :: tw
     real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
                acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
                dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
@@ -625,22 +645,30 @@ module mod_rad_tracer
                tch4 , tlw , w1 , ds2c , duptyp , rsqti , sqti , tt
     integer(ik4) :: n , l
 
-    data g1 / 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-              0.0304380_rkx , 0.0540398_rkx ,  0.0321962_rkx /
-    data g2 / 14.483200_rkx ,  4.302420_rkx ,  5.2352300_rkx , &
-               3.253420_rkx ,  0.698935_rkx , 16.5599000_rkx/
-    data g3 / 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
-              12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx /
-    data g4 / 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-              0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx /
-    data ab / 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-              2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx /
-    data bb /-1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-             -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx /
-    data abp / 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-               2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx /
-    data bbp /-1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-              -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx /
+    real(rkx) , dimension(6) , parameter :: g1 = &
+     [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
+       0.0304380_rkx , 0.0540398_rkx ,  0.0321962_rkx ]
+    real(rkx) , dimension(6) , parameter :: g2 = &
+     [ 14.483200_rkx ,  4.302420_rkx ,  5.2352300_rkx , &
+        3.253420_rkx ,  0.698935_rkx , 16.5599000_rkx ]
+    real(rkx) , dimension(6) , parameter :: g3 = &
+     [ 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
+       12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx ]
+    real(rkx) , dimension(6) , parameter :: g4 = &
+     [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
+       0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
+    real(rkx) , dimension(6) , parameter :: ab = &
+     [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
+       2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bb = &
+     [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
+       -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
+    real(rkx) , dimension(6) , parameter :: abp = &
+     [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
+       2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bbp = &
+     [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
+       -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     do n = n1 , n2
       sqti = sqrt(tbar(n,kn))
@@ -755,33 +783,33 @@ module mod_rad_tracer
   subroutine trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
-    real(rkx) , pointer , dimension(:,:) :: emplnk
-    real(rkx) , pointer , dimension(:,:) :: tint , tlayr
-    real(rkx) , pointer , dimension(:) :: tplnke
-    intent (in) tint , tlayr , tplnke
-    intent (inout) abplnk1 , abplnk2 , emplnk
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: tint , tlayr
+    real(rkx) , pointer , dimension(:) , intent(in) :: tplnke
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: abplnk1 , abplnk2
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emplnk
     !
     ! wvl   - wavelength index
     ! f1    - Planck function factor
     ! f2    -       "
     ! f3    -       "
     !
-    real(rkx) , dimension(14) :: f1 , f2 , f3
     integer(ik4) :: n , k , wvl
 
-    data f1 / 5.85713e8_rkx , 7.94950e8_rkx , 1.47009e9_rkx , 1.40031e9_rkx , &
-              1.34853e8_rkx , 1.05158e9_rkx , 3.35370e8_rkx , 3.99601e8_rkx , &
-              5.35994e8_rkx , 8.42955e8_rkx , 4.63682e8_rkx , 5.18944e8_rkx , &
-              8.83202e8_rkx , 1.03279e9_rkx/
-    data f2 / 2.02493e11_rkx , 3.04286e11_rkx , 6.90698e11_rkx , &
-              6.47333e11_rkx , 2.85744e10_rkx , 4.41862e11_rkx , &
-              9.62780e10_rkx , 1.21618e11_rkx , 1.79905e11_rkx , &
-              3.29029e11_rkx , 1.48294e11_rkx , 1.72315e11_rkx , &
-              3.50140e11_rkx , 4.31364e11_rkx/
-    data f3 / 1383.0_rkx , 1531.0_rkx , 1879.0_rkx , 1849.0_rkx ,  848.0_rkx , &
-              1681.0_rkx , 1148.0_rkx , 1217.0_rkx , 1343.0_rkx , 1561.0_rkx , &
-              1279.0_rkx , 1328.0_rkx , 1586.0_rkx , 1671.0_rkx/
+    real(rkx) , dimension(14) , parameter :: f1 = &
+     [ 5.85713e8_rkx , 7.94950e8_rkx , 1.47009e9_rkx , 1.40031e9_rkx , &
+       1.34853e8_rkx , 1.05158e9_rkx , 3.35370e8_rkx , 3.99601e8_rkx , &
+       5.35994e8_rkx , 8.42955e8_rkx , 4.63682e8_rkx , 5.18944e8_rkx , &
+       8.83202e8_rkx , 1.03279e9_rkx ]
+    real(rkx) , dimension(14) , parameter :: f2 = &
+     [ 2.02493e11_rkx , 3.04286e11_rkx , 6.90698e11_rkx , &
+       6.47333e11_rkx , 2.85744e10_rkx , 4.41862e11_rkx , &
+       9.62780e10_rkx , 1.21618e11_rkx , 1.79905e11_rkx , &
+       3.29029e11_rkx , 1.48294e11_rkx , 1.72315e11_rkx , &
+       3.50140e11_rkx , 4.31364e11_rkx ]
+    real(rkx) , dimension(14) , parameter :: f3 = &
+     [ 1383.0_rkx , 1531.0_rkx , 1879.0_rkx , 1849.0_rkx ,  848.0_rkx , &
+       1681.0_rkx , 1148.0_rkx , 1217.0_rkx , 1343.0_rkx , 1561.0_rkx , &
+       1279.0_rkx , 1328.0_rkx , 1586.0_rkx , 1671.0_rkx ]
     !
     ! Calculate emissivity Planck factor
     !
@@ -855,17 +883,19 @@ module mod_rad_tracer
                     to3,emstrc)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2 , k
-    real(rkx) , pointer , dimension(:,:) :: bch4 , bn2o0 , bn2o1 , co2t , &
-             emstrc , pnm , s2c , ucfc11 , ucfc12 , uch4 , uco211 ,     &
-             uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,       &
-             un2o1 , uptype , w
-    real(rkx) , pointer , dimension(:,:) :: emplnk
-    real(rkx) , pointer , dimension(:) :: tco2 , th2o , to3 , up2
-    intent (in) bch4 , bn2o0 , bn2o1 , co2t , emplnk , pnm , s2c ,    &
-                tco2 , th2o , to3 , ucfc11 , ucfc12 , uch4 , uco211 , &
-                uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,  &
-                un2o1 , up2 , uptype , w
-    intent (inout) emstrc
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emstrc
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: un2o0 , un2o1
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: bch4 , uch4 , co2t
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pnm , s2c
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco211 , uco212
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco213 , uco221
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uco222 , uco223
+    real(rkx) , pointer , dimension(:) , intent(in) :: tco2 , th2o
+    real(rkx) , pointer , dimension(:) , intent(in) :: to3 , up2
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: uptype , w
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: emplnk
     !
     ! sqti   - square root of mean temp
     ! ecfc1  - emissivity of cfc11 798 cm-1 band
@@ -916,7 +946,7 @@ module mod_rad_tracer
     ! tlw    - h2o overlap factor
     ! tch4   - ch4 overlap factor
     !
-    real(rkx) , dimension(6) :: ab , abp , bb , bbp , g1 , g2 , g3 , g4 , tw
+    real(rkx) , dimension(6) :: tw
     real(rkx) :: beta01 , beta02 , beta03 , beta11 , betac , sqti , tt , &
                betac1 , betac2 , ecfc1 , ecfc2 , ecfc3 , ecfc4 ,       &
                ecfc5 , ecfc6 , ecfc7 , ecfc8 , ech4 , eco21 , eco22 ,  &
@@ -925,22 +955,30 @@ module mod_rad_tracer
                u02 , u03 , u11 , u12 , w1
     integer(ik4) :: n , l
 
-    data g1 / 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-              0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx /
-    data g2 / 14.48320_rkx ,  4.302420_rkx ,  5.23523_rkx , &
-               3.25342_rkx ,  0.698935_rkx , 16.55990_rkx /
-    data g3 / 26.1898_rkx , 18.44760_rkx , 15.36330_rkx , &
-              12.1927_rkx ,  9.14992_rkx ,  8.07092_rkx /
-    data g4 / 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-              0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx /
-    data ab / 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-              2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx /
-    data bb / -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-              -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx /
-    data abp / 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-               2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx /
-    data bbp / -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-               -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx /
+    real(rkx) , dimension(6) , parameter :: g1 = &
+      [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
+        0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx ]
+    real(rkx) , dimension(6) , parameter :: g2 = &
+      [ 14.48320_rkx ,  4.302420_rkx ,  5.23523_rkx , &
+         3.25342_rkx ,  0.698935_rkx , 16.55990_rkx  ]
+    real(rkx) , dimension(6) , parameter :: g3 = &
+      [ 26.1898_rkx , 18.44760_rkx , 15.36330_rkx , &
+        12.1927_rkx ,  9.14992_rkx ,  8.07092_rkx ]
+    real(rkx) , dimension(6) , parameter :: g4 = &
+      [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
+        0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
+    real(rkx) , dimension(6) , parameter :: ab = &
+      [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
+        2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bb = &
+      [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
+        -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
+    real(rkx) , dimension(6) , parameter :: abp = &
+      [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
+        2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
+    real(rkx) , dimension(6) , parameter :: bbp = &
+      [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
+        -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     do n = n1 , n2
       sqti = sqrt(co2t(n,k))

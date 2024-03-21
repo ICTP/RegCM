@@ -159,8 +159,6 @@
 
 
       real(kind=rb) :: secdiff(nbndlw)                 ! secant of diffusivity angle
-      real(kind=rb) :: a0(nbndlw),a1(nbndlw),a2(nbndlw)! diffusivity angle adjustment coefficients
-      real(kind=rb) :: wtdiff, rec_6
       real(kind=rb) :: transcld, radld, radclrd, plfrac, blay, dplankup, dplankdn
       real(kind=rb) :: odepth, odtot, odepth_rec, odtot_rec, gassrc
       real(kind=rb) :: tblind, tfactot, bbd, bbdtot, tfacgas, transc, tausfac
@@ -248,25 +246,29 @@
 
 ! This secant and weight corresponds to the standard diffusivity
 ! angle.  This initial value is redefined below for some bands.
-      data wtdiff /0.5_rb/
-      data rec_6 /0.166667_rb/
+      real(kind=rb), parameter :: wtdiff = 0.5_rb
+      real(kind=rb), parameter :: rec_6 = 0.166667_rb
 
 ! Reset diffusivity angle for Bands 2-3 and 5-9 to vary (between 1.50
 ! and 1.80) as a function of total column water vapor.  The function
 ! has been defined to minimize flux and cooling rate errors in these bands
 ! over a wide range of precipitable water values.
-      data a0 / 1.66_rb,  1.55_rb,  1.58_rb,  1.66_rb, &
-                1.54_rb, 1.454_rb,  1.89_rb,  1.33_rb, &
-               1.668_rb,  1.66_rb,  1.66_rb,  1.66_rb, &
-                1.66_rb,  1.66_rb,  1.66_rb,  1.66_rb /
-      data a1 / 0.00_rb,  0.25_rb,  0.22_rb,  0.00_rb, &
-                0.13_rb, 0.446_rb, -0.10_rb,  0.40_rb, &
-              -0.006_rb,  0.00_rb,  0.00_rb,  0.00_rb, &
-                0.00_rb,  0.00_rb,  0.00_rb,  0.00_rb /
-      data a2 / 0.00_rb, -12.0_rb, -11.7_rb,  0.00_rb, &
-               -0.72_rb,-0.243_rb,  0.19_rb,-0.062_rb, &
-               0.414_rb,  0.00_rb,  0.00_rb,  0.00_rb, &
-                0.00_rb,  0.00_rb,  0.00_rb,  0.00_rb /
+      ! diffusivity angle adjustment coefficients
+      real(kind=rb), dimension(nbndlw), parameter :: a0 = &
+        [ 1.660_rb, 1.550_rb, 1.580_rb, 1.660_rb, &
+          1.540_rb, 1.454_rb, 1.890_rb, 1.330_rb, &
+          1.668_rb, 1.660_rb, 1.660_rb, 1.660_rb, &
+          1.660_rb, 1.660_rb, 1.660_rb, 1.660_rb ]
+      real(kind=rb), dimension(nbndlw), parameter :: a1 = &
+        [  0.000_rb,  0.250_rb,  0.220_rb,  0.000_rb, &
+           0.130_rb,  0.446_rb, -0.100_rb,  0.400_rb, &
+          -0.006_rb,  0.000_rb,  0.000_rb,  0.000_rb, &
+           0.000_rb,  0.000_rb,  0.000_rb,  0.000_rb ]
+      real(kind=rb), dimension(nbndlw), parameter :: a2 = &
+        [  0.000_rb, -12.000_rb, -11.700_rb,  0.000_rb, &
+          -0.720_rb,  -0.243_rb,   0.190_rb, -0.062_rb, &
+           0.414_rb,   0.000_rb,   0.000_rb,  0.000_rb, &
+           0.000_rb,   0.000_rb,   0.000_rb,  0.000_rb ]
 
       hvrrtc = '$Revision$'
 
@@ -280,6 +282,8 @@
          endif
       enddo
 
+      d_radlu_dt = 0.0_rb
+      d_radclru_dt = 0.0_rb
       urad(0) = 0.0_rb
       drad(0) = 0.0_rb
       totuflux(0) = 0.0_rb
@@ -317,7 +321,11 @@
             if (cldfmc(ig,lay) .eq. 1._rb) then
                ib = ngb(ig)
                odcld(lay,ig) = secdiff(ib) * taucmc(ig,lay)
-               transcld = exp(-odcld(lay,ig))
+               if ( odcld(lay,ig) > 30.0_rb ) then
+                 transcld = 0.0_rb
+               else
+                 transcld = exp(-odcld(lay,ig))
+               end if
                abscld(lay,ig) = 1._rb - transcld
                efclfrac(lay,ig) = abscld(lay,ig) * cldfmc(ig,lay)
                icldlyr(lay) = 1
@@ -383,7 +391,7 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -401,7 +409,7 @@
                   else
 
                      tblind = odepth/(bpade+odepth)
-                     itgas = int(tblint*tblind+0.5_rb)
+                     itgas = int(tblint*tblind+0.5_rb,im)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -409,19 +417,19 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = int(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb,im)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
                      atot(lev) = 1._rb - exp_tbl(ittot)
 
-                  radld = radld - radld * (atrans(lev) + &
-                    efclfrac(lev,igc) * (1._rb - atrans(lev))) + &
-                    gassrc + cldfmc(igc,lev) * &
-                    (bbdtot * atot(lev) - gassrc)
-                  drad(lev-1) = drad(lev-1) + radld
-                  bbugas(lev) = plfrac * (blay + tfacgas * dplankup)
-                  bbutot(lev) = plfrac * (blay + tfactot * dplankup)
+                    radld = radld - radld * (atrans(lev) + &
+                      efclfrac(lev,igc) * (1._rb - atrans(lev))) + &
+                      gassrc + cldfmc(igc,lev) * &
+                      (bbdtot * atot(lev) - gassrc)
+                    drad(lev-1) = drad(lev-1) + radld
+                    bbugas(lev) = plfrac * (blay + tfacgas * dplankup)
+                    bbutot(lev) = plfrac * (blay + tfactot * dplankup)
                   endif
 !  Clear layer
                else
@@ -432,7 +440,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = int(tblint*tblind+0.5_rb)
+                     itr = int(tblint*tblind+0.5_rb,im)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

@@ -28,6 +28,7 @@ program sigma2p
   use mod_realkinds
   use mod_constants
   use mod_dynparam , only : iomode , dsmax , dsmin
+  use mod_stdio , only : stderr
 #ifdef NETCDF4_HDF5
   use mod_dynparam , only : deflate_level
 #endif
@@ -35,15 +36,13 @@ program sigma2p
   use mod_vertint
   use mod_memutil
   use mod_sigma , only : init_sigma , half_sigma_coordinate
+  use mod_zita
   use mod_hgt
   use mod_humid
   use mod_nchelper
   use netcdf
 
   implicit none
-
-  integer(ik4) , parameter :: np = 12
-  real(rk4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
   character(128) :: attname , dimname , varname , psunit
@@ -53,6 +52,7 @@ program sigma2p
   real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
   real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar
   real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta , pai
+  real(rk4) , allocatable , dimension(:,:,:) :: fm , z0 , tvar , qvvar
   real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
@@ -74,22 +74,22 @@ program sigma2p
   integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ppvarid , ip0varid
   integer(ik4) :: paivarid
   integer(ik4) :: jx , iy , kz , nt
-  real(rkx) :: ptop
+  real(rkx) :: ptop , dzita , ztop , htg
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q , has_rh , is_icbc
   logical :: make_rh , make_hgt , has_sph
-  integer(ik4) :: n3d , ip3d , iodyn
+  integer(ik4) :: n3d , ip3d , iodyn , np , ipunit , iresult
+  real(rk4) , allocatable , dimension(:) :: plevs
+  real(rkx) , allocatable , dimension(:) :: zita , zitah
 
   data has_t /.false./
   data has_q /.false./
   data has_rh /.false./
   data make_rh /.false./
   data make_hgt /.false./
-
-  data plevs /1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100./
 
 !$OMP THREADPRIVATE(xvar,pvar)
 
@@ -102,19 +102,39 @@ program sigma2p
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (6,*) 'Usage : ', trim(prgname), '[namelist_file.in] Rcmfile.nc'
     write (6,*) ' '
     stop
   end if
 
   call get_command_argument(1,value=ncsfile)
+  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+  if ( istatus /= nf90_noerr ) then
+    ! Assume we have been provided a namelist with pressure levels.
+    open(newunit=ipunit, file=ncsfile, status='old', &
+         action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(ncsfile)
+      stop
+    end if
+    call get_np(ipunit)
+    allocate(plevs(np))
+    call get_plevs(ipunit)
+    call get_command_argument(2,value=ncsfile)
+    istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+  else
+    call checkncerr(istatus,__FILE__,__LINE__, &
+           'Error Opening Input file '//trim(ncsfile))
+    np = 12
+    allocate(plevs(np))
+    plevs = [1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.]
+  end if
+
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
-
-  istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error Opening Input file '//trim(ncsfile))
 
   jxdimid = -1
   iydimid = -1
@@ -243,6 +263,8 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'pai')
     allocate(press(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'press')
+    allocate(pai(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'pai')
   end if
 
   ppvarid = -1
@@ -363,6 +385,25 @@ program sigma2p
                       'Error copy att '//trim(attname)//' for '//trim(varname))
     end do
   end do
+
+  if ( is_icbc .and. iodyn == 3 ) then
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_height_top', ztop)
+    allocate(fm(jx,iy,kz+1), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'fm')
+    allocate(z0(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'z0')
+    allocate(tvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'tvar')
+    allocate(qvvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qvvar')
+    dzita = ztop/real(kz,rkx)
+    allocate(zita(kz+1), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'zita')
+    allocate(zitah(kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'zitah')
+    call model_zitaf(zita)
+    call model_zitah(zitah)
+  end if
 
   if ( has_t ) then
     make_hgt = .true.
@@ -486,6 +527,24 @@ program sigma2p
       ! height above the surface here
       zeta(:,:,k) = ak(k) + (bk(k) - d_one) * topo(:,:)
     end do
+    if ( is_icbc ) then
+      do k = 1 , kz+1
+        do i = 1 , iy
+          do j = 1 , jx
+            htg = topo(j,i)
+            fm(j,i,k) = md_fmz_h(zita(k),htg)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = 1 , iy
+          do j = 1 , jx
+            htg = topo(j,i)
+            z0(j,i,k) = md_zeta_h(zitah(k),htg)
+          end do
+        end do
+      end do
+    end if
   end if
 
   if ( iodyn == 2 ) then
@@ -588,17 +647,33 @@ program sigma2p
       do k = 1 , kz
         press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
-    else if ( iodyn == 3 .and. paivarid >= 0) then
-      istart(1) = 1
-      istart(2) = 1
-      istart(3) = 1
-      istart(4) = it
-      icount(1) = jx
-      icount(2) = iy
-      icount(3) = kz
-      icount(4) = 1
-      istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+    else if ( iodyn == 3 ) then
+      if ( paivarid >= 0 ) then
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = 1
+        istart(4) = it
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = kz
+        icount(4) = 1
+        istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+      else
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = 1
+        istart(4) = it
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = kz
+        icount(4) = 1
+        istatus = nf90_get_var(ncid, tvarid, tvar, istart(1:4), icount(1:4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+        istatus = nf90_get_var(ncid, qvarid, qvvar, istart(1:4), icount(1:4))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+        call paicompute(ps,z0,tvar,qvvar,pai,fm,dzita,jx,iy,kz)
+      end if
       press = p00 * (pai**cpovr)
     end if
     do i = 1 , nvars
@@ -851,6 +926,8 @@ program sigma2p
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
 
+  deallocate(plevs)
+
   contains
 
   subroutine top2btm(x,nlon1,nlat1,nlev1)
@@ -873,6 +950,69 @@ program sigma2p
       end do
     end do
   end subroutine top2btm
+
+  subroutine get_np(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    integer(ik4) :: nz ! Unused in sigma2p
+    namelist /pp_param/ nz , np
+    rewind(iu)
+    read(iu, nml=pp_param, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading pp_param namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_np
+
+  subroutine get_plevs(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    namelist /pressure/ plevs
+    rewind(iu)
+    read(iu, nml=pressure, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading pressure namelist in ',trim(ncsfile)
+      write (stderr,*) 'Exiting...'
+      stop
+    end if
+  end subroutine get_plevs
+
+  subroutine paicompute(ps,z,t,q,pai,fm,dzita,nx,ny,nz)
+    implicit none
+    integer(ik4) , intent(in) :: nx , ny , nz
+    real(rkx) , intent(in) :: dzita
+    real(rk4) , dimension(nx,ny) , intent(in) :: ps
+    real(rk4) , dimension(nx,ny,nz) , intent(in) :: z , t , q
+    real(rk4) , dimension(nx,ny,nz+1) , intent(in) :: fm
+    real(rk4) , dimension(nx,ny,nz) , intent(inout) :: pai
+    real(rk4) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
+    integer(ik4) :: i , j , k
+    ! Hydrostatic initialization of pai
+    do i = 1 , ny
+      do j = 1, nx
+        zdelta = z(j,i,nz)*egrav
+        tv1 = t(j,i,nz) * (d_one + ep1*q(j,i,nz))
+        tv2 = t(j,i,nz-1) * (d_one + ep1*q(j,i,nz-1))
+        lrt = (tv1-tv2)/(z(j,i,nz-1)-z(j,i,nz))
+        tv = tv1 + 0.5_rk4*z(j,i,nz)*lrt
+        zz = d_one/(rgas*tv)
+        p = ps(j,i) * exp(-zdelta*zz)
+        pai(j,i,nz) = (p/p00)**rovcp
+      end do
+    end do
+    do k = nz-1 , 1 , -1
+      do i = 1 , ny
+        do j = 1 , nx
+          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
+          zb = d_two*egrav*dzita/(fm(j,i,k+1)*cpd) + tv1 - tv2
+          zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
+          pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+        end do
+      end do
+    end do
+  end subroutine paicompute
 
 end program sigma2p
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

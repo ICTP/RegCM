@@ -228,7 +228,7 @@ module mod_ocn_lake
     end if
 
     wt1 = (threedays-dtlake)/threedays
-    wt2 = dtlake/threedays
+    wt2 = 1.0_rkx - wt1
 
     do lp = 1 , nlakep
       i = ilp(lp)
@@ -356,8 +356,8 @@ module mod_ocn_lake
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
-      rhoa(i) = rhox(i)
       um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
+      rhoa(i) = rhox(i)
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
       ustr(i) = max(ustr(i),1.0e-5_rkx)
@@ -478,7 +478,7 @@ module mod_ocn_lake
       ea  = ql*88.0_rkx/(ep2+0.378_rkx*ql)
       tac = tl - tzero
       tk  = tzero + tprof(1)
-      lu  = -emsw*sigm*tk**4
+      lu  = -ocn_sfcemiss*sigm*tk**4
       ld  = flw - lu
       ev  = evl*secph          ! convert to mm/hr
       ai  = aveice
@@ -746,14 +746,11 @@ module mod_ocn_lake
     icount = 0
     do
       if ( abs(f1-f0) < 1.0e-8_rkx ) then
-        t2 = t1
+        t2 = t0
         exit
       end if
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( t2 > 0.0_rkx ) then
-        t2 = 0.0_rkx
-        exit
-      end if
+      t2 = max(min(t2,+25.0_rkx),-75.0_rkx)
       if ( abs(t2-t1) < 0.01_rkx .or. icount == maxiter ) then
         exit
       end if
@@ -768,9 +765,9 @@ module mod_ocn_lake
 
     if ( t0 >= tf ) then
       if ( hs > d_zero ) then
-        ds = dtx *                                                  &
-             ( (-ld + emsw*sigm*t4(tf) + psi * (eomb(tf)-ea) +      &
-                theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
+        ds = dtx *                                                     &
+             ( (-ld + ocn_sfcemiss*sigm*t4(tf) + psi * (eomb(tf)-ea) + &
+                theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) /    &
               (rhosnowp*li)
         if ( ds > d_zero ) ds = d_zero
         hs = hs + ds * 10.0_rkx
@@ -779,15 +776,15 @@ module mod_ocn_lake
         end if
       end if
       if ( (abs(hs) < dlowval) .and. (aveice > d_zero) ) then
-        di = dtx *                                                &
-            ( (-ld + emsw*sigm*t4(tf) + psi * (eomb(tf)-ea) +     &
-              theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
+        di = dtx *                                                    &
+            ( (-ld + ocn_sfcemiss*sigm*t4(tf) + psi * (eomb(tf)-ea) + &
+              theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) /     &
              (rhoice*li)
         if ( di > d_zero ) di = d_zero
         hi = hi + di
       end if
     else
-      q0 = -ld + emsw*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
+      q0 = -ld + ocn_sfcemiss*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
            theta*(t0-tac) - fsw
       qpen = fsw*0.7_rkx*(d_one-exp(-(lams1*hs+lami1*hi))) + &
              fsw*0.3_rkx*(d_one-exp(-(lams2*hs+lami2*hi)))
@@ -826,7 +823,7 @@ module mod_ocn_lake
     pure real(rkx) function f(x)
       implicit none
       real(rkx) , intent(in) :: x
-      f = (-ld + emsw*sigm*t4(x) + psi*(eomb(x)-ea) + &
+      f = (-ld + ocn_sfcemiss*sigm*t4(x) + psi*(eomb(x)-ea) + &
            theta*(x-tac)-fsw) - d_one/khat*(qpen+tf-x)
     end function f
 

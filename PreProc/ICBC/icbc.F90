@@ -223,11 +223,11 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp == 'CMIP6' ) then
+  if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call init_cmip6(globidate1)
   else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call init_ncep
-  else if ( dattyp(1:4) == 'ERA5' ) then
+  else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX') then
     call init_era5
   else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
     call init_ein
@@ -252,11 +252,11 @@ program icbc
       call newfile(monfirst(idate))
     end if
 
-    if ( dattyp == 'CMIP6' ) then
+    if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
       call get_cmip6(idate)
     else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call get_ncep(idate)
-    else if ( dattyp(1:4) == 'ERA5' ) then
+    else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
       call get_era5(idate)
     else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
       call get_ein(idate)
@@ -278,9 +278,9 @@ program icbc
   call close_output
   call closesst
 
-  if ( dattyp == 'CMIP6' ) then
+  if ( dattyp == 'CMIP6' .or. dattyp == 'PMIP4' ) then
     call conclude_cmip6
-  else if ( dattyp(1:4) == 'ERA5' ) then
+  else if ( dattyp(1:4) == 'ERA5' .or. dattyp == 'ERAXX' ) then
     call conclude_era5
   else if ( dattyp(1:3) == 'EIN' .or. dattyp == 'EIXXX' ) then
     call conclude_ein

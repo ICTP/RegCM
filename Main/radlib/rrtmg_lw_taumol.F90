@@ -313,7 +313,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng1
-      use rrlw_kg01, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg01, only : fracrefa, fracrefb, absa, absb, &
                             ka_mn2, kb_mn2, selfref, forref
 
 ! ------- Declarations -------
@@ -404,7 +404,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng2, ngs1
-      use rrlw_kg02, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg02, only : fracrefa, fracrefb, absa, absb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -475,7 +475,7 @@
 
       use parrrtm, only : ng3, ngs2
       use rrlw_ref, only : chi_mls
-      use rrlw_kg03, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg03, only : fracrefa, fracrefb, absa, absb, &
                             ka_mn2o, kb_mn2o, selfref, forref
 
 ! ------- Declarations -------
@@ -789,7 +789,7 @@
 
       use parrrtm, only : ng4, ngs3
       use rrlw_ref, only : chi_mls
-      use rrlw_kg04, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg04, only : fracrefa, fracrefb, absa, absb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -1049,7 +1049,7 @@
 
       use parrrtm, only : ng5, ngs4
       use rrlw_ref, only : chi_mls
-      use rrlw_kg05, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg05, only : fracrefa, fracrefb, absa, absb, &
                             ka_mo3, selfref, forref, ccl4
 
 ! ------- Declarations -------
@@ -1324,7 +1324,7 @@
 
       use parrrtm, only : ng6, ngs5
       use rrlw_ref, only : chi_mls
-      use rrlw_kg06, only : fracrefa, absa, ka, ka_mco2, &
+      use rrlw_kg06, only : fracrefa, absa, ka_mco2, &
                             selfref, forref, cfc11adj, cfc12
 
 ! ------- Declarations -------
@@ -1410,7 +1410,7 @@
 
       use parrrtm, only : ng7, ngs6
       use rrlw_ref, only : chi_mls
-      use rrlw_kg07, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg07, only : fracrefa, fracrefb, absa, absb, &
                             ka_mco2, kb_mco2, selfref, forref
 
 ! ------- Declarations -------
@@ -1684,7 +1684,7 @@
 
       use parrrtm, only : ng8, ngs7
       use rrlw_ref, only : chi_mls
-      use rrlw_kg08, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg08, only : fracrefa, fracrefb, absa, absb, &
                             ka_mco2, ka_mn2o, ka_mo3, kb_mco2, kb_mn2o, &
                             selfref, forref, cfc12, cfc22adj
 
@@ -1807,7 +1807,7 @@
 
       use parrrtm, only : ng9, ngs8
       use rrlw_ref, only : chi_mls
-      use rrlw_kg09, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg09, only : fracrefa, fracrefb, absa, absb, &
                             ka_mn2o, kb_mn2o, selfref, forref
 
 ! ------- Declarations -------
@@ -2068,7 +2068,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng10, ngs9
-      use rrlw_kg10, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg10, only : fracrefa, fracrefb, absa, absb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -2136,7 +2136,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng11, ngs10
-      use rrlw_kg11, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg11, only : fracrefa, fracrefb, absa, absb, &
                             ka_mo2, kb_mo2, selfref, forref
 
 ! ------- Declarations -------
@@ -2216,8 +2216,7 @@
 
       use parrrtm, only : ng12, ngs11
       use rrlw_ref, only : chi_mls
-      use rrlw_kg12, only : fracrefa, absa, ka, &
-                            selfref, forref
+      use rrlw_kg12, only : fracrefa, absa, selfref, forref
 
 ! ------- Declarations -------
 
@@ -2419,7 +2418,7 @@
 
       use parrrtm, only : ng13, ngs12
       use rrlw_ref, only : chi_mls
-      use rrlw_kg13, only : fracrefa, fracrefb, absa, ka, &
+      use rrlw_kg13, only : fracrefa, fracrefb, absa, &
                             ka_mco2, ka_mco, kb_mo3, selfref, forref
 
 ! ------- Declarations -------
@@ -2678,7 +2677,7 @@
 ! ------- Modules -------
 
       use parrrtm, only : ng14, ngs13
-      use rrlw_kg14, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg14, only : fracrefa, fracrefb, absa, absb, &
                             selfref, forref
 
 ! ------- Declarations -------
@@ -2741,8 +2740,7 @@
 
       use parrrtm, only : ng15, ngs14
       use rrlw_ref, only : chi_mls
-      use rrlw_kg15, only : fracrefa, absa, ka, &
-                            ka_mn2, selfref, forref
+      use rrlw_kg15, only : fracrefa, absa, ka_mn2, selfref, forref
 
 ! ------- Declarations -------
 
@@ -2965,7 +2963,7 @@
 
       use parrrtm, only : ng16, ngs15
       use rrlw_ref, only : chi_mls
-      use rrlw_kg16, only : fracrefa, fracrefb, absa, ka, absb, kb, &
+      use rrlw_kg16, only : fracrefa, fracrefb, absa, absb, &
                             selfref, forref
 
 ! ------- Declarations -------

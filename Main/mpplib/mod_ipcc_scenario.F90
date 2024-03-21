@@ -48,7 +48,6 @@ module mod_ipcc_scenario
 
   integer(ik4) , parameter :: nsc = 18
   integer(ik4) , parameter :: n_greenhouse_gases = 5
-  character(len=8) , dimension(nsc) :: scenarios
 
   real(rkx) , dimension(n_greenhouse_gases) , parameter :: cgunit = &
     [ 1.0e-6, 1.0e-9, 1.0e-9, 1.0e-12, 1.0e-12 ]
@@ -68,10 +67,11 @@ module mod_ipcc_scenario
 
   ! SRES and RCP Scenarios
 
-  data scenarios /'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
-                  'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  ', &
-                  'SSP119  ','SSP126  ','SSP245  ','SSP370  ','SSP434  ', &
-                  'SSP460  ','SSP534  ','SSP585  '/
+  character(len=8) , dimension(nsc) , parameter :: scenarios = &
+     [ 'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
+       'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  ', &
+       'SSP119  ','SSP126  ','SSP245  ','SSP370  ','SSP434  ', &
+       'SSP460  ','SSP534  ','SSP585  ' ]
 
   data ((cgas(i,j),i=1,6),j=1850,1899) / &
     1850.0_rkx , 284.70_rkx , 791.60_rkx , 275.70_rkx , 0.00_rkx , 0.00_rkx , &
@@ -235,7 +235,9 @@ module mod_ipcc_scenario
     character(len=8) , intent(in) :: csc
     integer(ik4) :: year , month
     integer(ik4) :: jj
+#ifndef RCEMIP
     real(rkx) , dimension(1+n_greenhouse_gases) :: ctemp
+#endif
 
     select case (csc)
       case ( 'A1B' )
@@ -1780,6 +1782,16 @@ module mod_ipcc_scenario
     2100.0_rkx , 935.874_rkx , 3750.685_rkx , 435.106_rkx , 25.98_rkx , 167.28_rkx ], &
       [6,251])
       case( 'CONST' )
+#ifdef RCEMIP
+        do jj = 1850 , 2100
+          cgas(1,jj) = jj
+          cgas(2,jj) = 348.0_rkx
+          cgas(3,jj) = 1650.0_rkx
+          cgas(4,jj) = 306.0_rkx
+          cgas(5,jj) = 0.0_rkx
+          cgas(6,jj) = 0.0_rkx
+        end do
+#else
         cgas(1:6,1850:2100) = reshape([    &
     1850.0_rkx , 284.725_rkx , 790.979_rkx , 275.425_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.875_rkx , 792.250_rkx , 275.500_rkx , 0.00_rkx , 0.00_rkx , &
@@ -2042,6 +2054,7 @@ module mod_ipcc_scenario
           cgas(5,jj) = ctemp(5)
           cgas(6,jj) = ctemp(6)
         end do
+#endif
       case default
         call load_scenario(csc,year,month,local_ghgc)
     end select
@@ -2117,6 +2130,7 @@ module mod_ipcc_scenario
         case ('SSP585', 'ssp585')
           imod = 9
         case default
+          imod = 0
           write (stderr,*) 'Unsupported emission scenario: ', sname
           write (stderr,*) 'Use one in SRES/RCP/SSCP supported values:'
           write (stderr,*) scenarios

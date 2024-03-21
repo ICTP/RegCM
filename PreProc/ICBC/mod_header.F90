@@ -40,7 +40,7 @@ module mod_header
     character(len=*) , parameter :: f99001 = &
            '(/,1x," This is ",A," part of the RegCM version 5")'
     character(len=*) , parameter :: f99002 = &
-           '(2x," GIT Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
+           '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
 
     write (nrite,f99001)  myname
     write (nrite,f99002)  GIT_VER, __DATE__ , __TIME__

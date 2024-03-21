@@ -57,13 +57,13 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 7 + nbase
-  integer(ik4) , parameter :: natm3dvars = 62
+  integer(ik4) , parameter :: natm2dvars = 6 + nbase
+  integer(ik4) , parameter :: natm3dvars = 64
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 38 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -172,11 +172,10 @@ module mod_ncout
   integer(ik4) , parameter :: atm_ps    = 6
   integer(ik4) , parameter :: atm_p0    = 7
   integer(ik4) , parameter :: atm_tpr   = 8
-  integer(ik4) , parameter :: atm_tsn   = 9
-  integer(ik4) , parameter :: atm_tgb   = 10
-  integer(ik4) , parameter :: atm_tsw   = 11
-  integer(ik4) , parameter :: atm_cape  = 12
-  integer(ik4) , parameter :: atm_cin   = 13
+  integer(ik4) , parameter :: atm_tgb   = 9
+  integer(ik4) , parameter :: atm_tsw   = 10
+  integer(ik4) , parameter :: atm_cape  = 11
+  integer(ik4) , parameter :: atm_cin   = 12
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -191,55 +190,57 @@ module mod_ncout
   integer(ik4) , parameter :: atm_qi           = 11
   integer(ik4) , parameter :: atm_qr           = 12
   integer(ik4) , parameter :: atm_qs           = 13
-  integer(ik4) , parameter :: atm_zf           = 14
-  integer(ik4) , parameter :: atm_zh           = 15
-  integer(ik4) , parameter :: atm_pf           = 16
-  integer(ik4) , parameter :: atm_ph           = 17
-  integer(ik4) , parameter :: atm_q_detr       = 18
-  integer(ik4) , parameter :: atm_rainls       = 19
-  integer(ik4) , parameter :: atm_raincc       = 20
-  integer(ik4) , parameter :: atm_tke          = 21
-  integer(ik4) , parameter :: atm_kth          = 22
-  integer(ik4) , parameter :: atm_kzm          = 23
-  integer(ik4) , parameter :: atm_tten_adh     = 24
-  integer(ik4) , parameter :: atm_tten_adv     = 25
-  integer(ik4) , parameter :: atm_tten_tbl     = 26
-  integer(ik4) , parameter :: atm_tten_dif     = 27
-  integer(ik4) , parameter :: atm_tten_bdy     = 28
-  integer(ik4) , parameter :: atm_tten_con     = 29
-  integer(ik4) , parameter :: atm_tten_adi     = 30
-  integer(ik4) , parameter :: atm_tten_rad     = 31
-  integer(ik4) , parameter :: atm_tten_lsc     = 32
-  integer(ik4) , parameter :: atm_qten_adh     = 33
-  integer(ik4) , parameter :: atm_qten_adv     = 34
-  integer(ik4) , parameter :: atm_qten_tbl     = 35
-  integer(ik4) , parameter :: atm_qten_dif     = 36
-  integer(ik4) , parameter :: atm_qten_bdy     = 37
-  integer(ik4) , parameter :: atm_qten_con     = 38
-  integer(ik4) , parameter :: atm_qten_adi     = 39
-  integer(ik4) , parameter :: atm_qten_rad     = 40
-  integer(ik4) , parameter :: atm_qten_lsc     = 41
-  integer(ik4) , parameter :: atm_stats_supw   = 42
-  integer(ik4) , parameter :: atm_stats_supc   = 43
-  integer(ik4) , parameter :: atm_stats_detw   = 44
-  integer(ik4) , parameter :: atm_stats_detc   = 45
-  integer(ik4) , parameter :: atm_stats_erow   = 46
-  integer(ik4) , parameter :: atm_stats_eroc   = 47
-  integer(ik4) , parameter :: atm_stats_evw    = 48
-  integer(ik4) , parameter :: atm_stats_evc    = 49
-  integer(ik4) , parameter :: atm_stats_con1w  = 50
-  integer(ik4) , parameter :: atm_stats_con1c  = 51
-  integer(ik4) , parameter :: atm_stats_dep    = 52
-  integer(ik4) , parameter :: atm_stats_melt   = 53
-  integer(ik4) , parameter :: atm_stats_frz    = 54
-  integer(ik4) , parameter :: atm_stats_rainev = 55
-  integer(ik4) , parameter :: atm_stats_snowev = 56
-  integer(ik4) , parameter :: atm_stats_autocw = 57
-  integer(ik4) , parameter :: atm_stats_autocc = 58
-  integer(ik4) , parameter :: atm_qcrit        = 59
-  integer(ik4) , parameter :: atm_ccnnum       = 60
-  integer(ik4) , parameter :: atm_qincl        = 61
-  integer(ik4) , parameter :: atm_autoconvr    = 62
+  integer(ik4) , parameter :: atm_qg           = 14
+  integer(ik4) , parameter :: atm_qh           = 15
+  integer(ik4) , parameter :: atm_zf           = 16
+  integer(ik4) , parameter :: atm_zh           = 17
+  integer(ik4) , parameter :: atm_pf           = 18
+  integer(ik4) , parameter :: atm_ph           = 19
+  integer(ik4) , parameter :: atm_q_detr       = 20
+  integer(ik4) , parameter :: atm_rainls       = 21
+  integer(ik4) , parameter :: atm_raincc       = 22
+  integer(ik4) , parameter :: atm_tke          = 23
+  integer(ik4) , parameter :: atm_kth          = 24
+  integer(ik4) , parameter :: atm_kzm          = 25
+  integer(ik4) , parameter :: atm_tten_adh     = 26
+  integer(ik4) , parameter :: atm_tten_adv     = 27
+  integer(ik4) , parameter :: atm_tten_tbl     = 28
+  integer(ik4) , parameter :: atm_tten_dif     = 29
+  integer(ik4) , parameter :: atm_tten_bdy     = 30
+  integer(ik4) , parameter :: atm_tten_con     = 31
+  integer(ik4) , parameter :: atm_tten_adi     = 32
+  integer(ik4) , parameter :: atm_tten_rad     = 33
+  integer(ik4) , parameter :: atm_tten_lsc     = 34
+  integer(ik4) , parameter :: atm_qten_adh     = 35
+  integer(ik4) , parameter :: atm_qten_adv     = 36
+  integer(ik4) , parameter :: atm_qten_tbl     = 37
+  integer(ik4) , parameter :: atm_qten_dif     = 38
+  integer(ik4) , parameter :: atm_qten_bdy     = 39
+  integer(ik4) , parameter :: atm_qten_con     = 40
+  integer(ik4) , parameter :: atm_qten_adi     = 41
+  integer(ik4) , parameter :: atm_qten_rad     = 42
+  integer(ik4) , parameter :: atm_qten_lsc     = 43
+  integer(ik4) , parameter :: atm_stats_supw   = 44
+  integer(ik4) , parameter :: atm_stats_supc   = 45
+  integer(ik4) , parameter :: atm_stats_detw   = 46
+  integer(ik4) , parameter :: atm_stats_detc   = 47
+  integer(ik4) , parameter :: atm_stats_erow   = 48
+  integer(ik4) , parameter :: atm_stats_eroc   = 49
+  integer(ik4) , parameter :: atm_stats_evw    = 50
+  integer(ik4) , parameter :: atm_stats_evc    = 51
+  integer(ik4) , parameter :: atm_stats_con1w  = 52
+  integer(ik4) , parameter :: atm_stats_con1c  = 53
+  integer(ik4) , parameter :: atm_stats_dep    = 54
+  integer(ik4) , parameter :: atm_stats_melt   = 56
+  integer(ik4) , parameter :: atm_stats_frz    = 56
+  integer(ik4) , parameter :: atm_stats_rainev = 57
+  integer(ik4) , parameter :: atm_stats_snowev = 58
+  integer(ik4) , parameter :: atm_stats_autocw = 59
+  integer(ik4) , parameter :: atm_stats_autocc = 60
+  integer(ik4) , parameter :: atm_qcrit        = 61
+  integer(ik4) , parameter :: atm_ccnnum       = 62
+  integer(ik4) , parameter :: atm_qincl        = 63
+  integer(ik4) , parameter :: atm_autoconvr    = 64
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -291,6 +292,11 @@ module mod_ncout
   integer(ik4) , parameter :: srf_tauy     = 37
   integer(ik4) , parameter :: srf_psl      = 38
   integer(ik4) , parameter :: srf_evpot    = 39
+  integer(ik4) , parameter :: srf_pcpmax   = 40
+  integer(ik4) , parameter :: srf_twetb    = 41
+  integer(ik4) , parameter :: srf_snow     = 42
+  integer(ik4) , parameter :: srf_hail     = 43
+  integer(ik4) , parameter :: srf_grau     = 44
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -561,7 +567,9 @@ module mod_ncout
       nstream = nstream+1
       che_stream = nstream
     end if
-    if ( ifopt .and. ((ichem == 1 .and. iaerosol == 1) .or. iclimaaer > 0) ) then
+    if ( ifopt .and. &
+      ((ichem == 1 .and. iaerosol == 1) .or. &
+       iclimaaer > 0) ) then
       nstream = nstream+1
       opt_stream = nstream
     end if
@@ -615,16 +623,6 @@ module mod_ncout
           end if
         else
           enable_atm2d_vars(atm_tpr) = .false.
-        end if
-        if ( ipptls == 2 .and. icosp == 1 ) then
-          if ( enable_atm2d_vars(atm_tsn) ) then
-            call setup_var(v2dvar_atm,atm_tsn,vsize,'snw','kg m-2 s-1', &
-              'Total snow precipitation flux','snow_flux',.true., &
-              'time: mean')
-            atm_tsn_out => v2dvar_atm(atm_tsn)%rval
-          end if
-        else
-          enable_atm2d_vars(atm_tsn) = .false.
         end if
         if ( enable_atm2d_vars(atm_tgb) ) then
           call setup_var(v2dvar_atm,atm_tgb,vsize,'ts','K', &
@@ -779,7 +777,7 @@ module mod_ncout
               'mass_fraction_of_cloud_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 .or. idiag > 0 ) then
+          if ( icosp == 1 .or. idiag > 0 .or. irceideal == 1 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass Fraction of Rain', &
@@ -792,14 +790,35 @@ module mod_ncout
                 'mass_fraction_of_snow_in_air',.true.)
               atm_qs_out => v3dvar_atm(atm_qs)%rval
             end if
+            if ( ipptls > 3 ) then
+              if ( enable_atm3d_vars(atm_qg) ) then
+                call setup_var(v3dvar_atm,atm_qg,vsize,'gra','kg kg-1', &
+                  'Mass Fraction of Graupel', &
+                  'mass_fraction_of_graupel',.true.)
+                atm_qg_out => v3dvar_atm(atm_qg)%rval
+              end if
+              if ( enable_atm3d_vars(atm_qh) ) then
+                call setup_var(v3dvar_atm,atm_qh,vsize,'hail','kg kg-1', &
+                  'Mass Fraction of Hail', &
+                  'mass_fraction_of_hail_in_air',.true.)
+                atm_qh_out => v3dvar_atm(atm_qh)%rval
+              end if
+            else
+              enable_atm3d_vars(atm_qg) = .false.
+              enable_atm3d_vars(atm_qh) = .false.
+            end if
           else
             enable_atm3d_vars(atm_qr) = .false.
             enable_atm3d_vars(atm_qs) = .false.
+            enable_atm3d_vars(atm_qg) = .false.
+            enable_atm3d_vars(atm_qh) = .false.
           end if
         else
           enable_atm3d_vars(atm_qi) = .false.
           enable_atm3d_vars(atm_qr) = .false.
           enable_atm3d_vars(atm_qs) = .false.
+          enable_atm3d_vars(atm_qg) = .false.
+          enable_atm3d_vars(atm_qh) = .false.
         end if
         if ( ipptls == 2 ) then
           if ( any(icup == 5) .and. icosp == 1 ) then
@@ -1285,11 +1304,15 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           srf_tg_out => v2dvar_srf(srf_tg)%rval
         end if
-        if ( enable_srf2d_vars(srf_tlef) ) then
-          call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
-            'Foliage Canopy Temperature','canopy_temperature',  &
-            .true.,l_fill=.true.)
-          srf_tlef_out => v2dvar_srf(srf_tlef)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_tlef) = .false.
+        else
+          if ( enable_srf2d_vars(srf_tlef) ) then
+            call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
+              'Foliage Canopy Temperature','canopy_temperature',  &
+              .true.,l_fill=.true.)
+            srf_tlef_out => v2dvar_srf(srf_tlef)%rval
+          end if
         end if
         if ( enable_srf2d_vars(srf_tpr) ) then
           call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
@@ -1300,12 +1323,6 @@ module mod_ncout
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
             'Evaporation','water_evaporation_flux',.true.,'time: mean')
           srf_evp_out => v2dvar_srf(srf_evp)%rval
-        end if
-        if ( enable_srf2d_vars(srf_scv) ) then
-          call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
-            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_scv_out => v2dvar_srf(srf_scv)%rval
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
           call setup_var(v2dvar_srf,srf_sena,vsize,'hfss','W m-2', &
@@ -1367,6 +1384,38 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_prcv) = .false.
         end if
+        if ( ipptls > 1 ) then
+          if ( enable_srf2d_vars(srf_snow) ) then
+            call setup_var(v2dvar_srf,srf_snow,vsize,'snow','kg m-2 s-1', &
+              'Frozen large scale precipitation rate', &
+              'lwe_large_scale_snowfall_rate', &
+              .true.,'time: mean')
+            srf_snow_out => v2dvar_srf(srf_snow)%rval
+          end if
+          if ( ipptls > 3 ) then
+            if ( enable_srf2d_vars(srf_hail) ) then
+              call setup_var(v2dvar_srf,srf_hail,vsize,'hail','kg m-2 s-1', &
+                'Hail precipitation rate', &
+                'hail_fall_flux', &
+                .true.,'time: mean')
+              srf_hail_out => v2dvar_srf(srf_hail)%rval
+            end if
+            if ( enable_srf2d_vars(srf_grau) ) then
+              call setup_var(v2dvar_srf,srf_grau,vsize,'graupel','kg m-2 s-1', &
+                'Graupel precipitation rate', &
+                'graupel_fall_flux', &
+                .true.,'time: mean')
+              srf_grau_out => v2dvar_srf(srf_grau)%rval
+            end if
+          else
+            enable_srf2d_vars(srf_hail) = .false.
+            enable_srf2d_vars(srf_grau) = .false.
+          end if
+        else
+          enable_srf2d_vars(srf_snow) = .false.
+          enable_srf2d_vars(srf_hail) = .false.
+          enable_srf2d_vars(srf_grau) = .false.
+        end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
             'Boundary Layer Thickness', &
@@ -1409,10 +1458,21 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_seaice) = .false.
         end if
-        if ( enable_srf2d_vars(srf_snowmelt) ) then
-          call setup_var(v2dvar_srf,srf_snowmelt,vsize,'snm','kg m-2 s-1', &
-            'Surface Snow Melt','surface_snow_melt_flux',.true.,'time: mean')
-          srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_scv) = .false.
+          enable_srf2d_vars(srf_snowmelt) = .false.
+        else
+          if ( enable_srf2d_vars(srf_scv) ) then
+            call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
+              'Surface Snow Amount', 'surface_snow_amount',.true., &
+              'time: mean', l_fill=.true.)
+            srf_scv_out => v2dvar_srf(srf_scv)%rval
+          end if
+          if ( enable_srf2d_vars(srf_snowmelt) ) then
+            call setup_var(v2dvar_srf,srf_snowmelt,vsize,'snm','kg m-2 s-1', &
+              'Surface Snow Melt','surface_snow_melt_flux',.true.,'time: mean')
+            srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
+          end if
         end if
         if ( idiag > 0 ) then
           if ( enable_srf2d_vars(srf_evp) ) then
@@ -1428,17 +1488,39 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_dew) = .false.
         end if
-        if ( enable_srf2d_vars(srf_srunoff) ) then
-          call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
+        if ( irceideal == 1 ) then
+          enable_srf2d_vars(srf_srunoff) = .false.
+          enable_srf2d_vars(srf_trunoff) = .false.
+        else
+          if ( enable_srf2d_vars(srf_srunoff) ) then
+            call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
+              'Surface Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
+          end if
+          if ( enable_srf2d_vars(srf_trunoff) ) then
+            call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
+              'Total Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+          end if
         end if
-        if ( enable_srf2d_vars(srf_trunoff) ) then
-          call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Total Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+        if ( ifshf ) then
+          enable_srf2d_vars(srf_pcpmax) = .false.
+          enable_srf2d_vars(srf_twetb) = .false.
+        else
+          if ( enable_srf2d_vars(srf_pcpmax) ) then
+            call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
+              'Maximum Hourly Precipitation Rate','precipitation_flux', &
+              .true.,'time: maximum')
+            srf_pcpmax_out => v2dvar_srf(srf_pcpmax)%rval
+          end if
+          if ( enable_srf2d_vars(srf_twetb) ) then
+            call setup_var(v2dvar_srf,srf_twetb,vsize,'twetbmax','K', &
+              'Wet bulb temperature','wet_bulb_temperature', &
+              .true.,'time: maximum')
+            srf_twetb_out => v2dvar_srf(srf_twetb)%rval
+          end if
         end if
 
         vsize%k2 = 1
@@ -1504,25 +1586,30 @@ module mod_ncout
           end if
           srf_va100_out => v3dvar_srf(srf_va100)%rval
         end if
-        vsize%k2 = num_soil_layers
-        v3dvar_srf(srf_smw)%axis = 'xys'
-        if ( enable_srf3d_vars(srf_smw) ) then
-          call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
-            'Moisture Content of the Soil Layers', &
-            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
-          srf_smw_out => v3dvar_srf(srf_smw)%rval
-        end if
+        if ( irceideal == 1 ) then
+          enable_srf3d_vars(srf_smw) = .false.
+          enable_srf3d_vars(srf_tsoi) = .false.
+        else
+          vsize%k2 = num_soil_layers
+          v3dvar_srf(srf_smw)%axis = 'xys'
+          if ( enable_srf3d_vars(srf_smw) ) then
+            call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
+              'Moisture Content of the Soil Layers', &
+              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            srf_smw_out => v3dvar_srf(srf_smw)%rval
+          end if
 #ifdef CLM45
-        v3dvar_srf(srf_tsoi)%axis = 'xys'
-        if ( enable_srf3d_vars(srf_tsoi) ) then
-          call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
-            'Bulk temperature of the Soil Layers', &
-            'soil_temperature',.true.,l_fill=.true.)
-          srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
-        end if
+          v3dvar_srf(srf_tsoi)%axis = 'xys'
+          if ( enable_srf3d_vars(srf_tsoi) ) then
+            call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
+              'Bulk temperature of the Soil Layers', &
+              'soil_temperature',.true.,l_fill=.true.)
+            srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
+          end if
 #else
-        enable_srf3d_vars(srf_tsoi) = .false.
+          enable_srf3d_vars(srf_tsoi) = .false.
 #endif
+        end if
 
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
@@ -1608,17 +1695,22 @@ module mod_ncout
             'Surface Air Pressure','air_pressure',.true.,'time: mean')
           sts_psavg_out => v2dvar_sts(sts_psavg)%rval
         end if
-        if ( enable_sts2d_vars(sts_srunoff) ) then
-          call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
-        end if
-        if ( enable_sts2d_vars(sts_trunoff) ) then
-          call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Total Runoff','runoff_flux',.true.,'time: mean', &
-            l_fill=.true.)
-          sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
+        if ( irceideal == 1 ) then
+          enable_sts2d_vars(sts_srunoff) = .false.
+          enable_sts2d_vars(sts_trunoff) = .false.
+        else
+          if ( enable_sts2d_vars(sts_srunoff) ) then
+            call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
+              'Surface Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
+          end if
+          if ( enable_sts2d_vars(sts_trunoff) ) then
+            call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
+              'Total Runoff','runoff_flux',.true.,'time: mean', &
+              l_fill=.true.)
+            sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
+          end if
         end if
 
         vsize%k2 = 1
@@ -1732,22 +1824,30 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           sub_tg_out => v2dvar_sub(sub_tg)%rval
         end if
-        if ( enable_sub2d_vars(sub_tlef) ) then
-          call setup_var(v2dvar_sub,sub_tlef,vsize,'tf','K', &
-            'Foliage canopy temperature','canopy_temperature',.true., &
-            l_fill=.true.)
-          sub_tlef_out => v2dvar_sub(sub_tlef)%rval
+        if ( irceideal == 1 ) then
+          enable_sub2d_vars(sub_tlef) = .false.
+        else
+          if ( enable_sub2d_vars(sub_tlef) ) then
+            call setup_var(v2dvar_sub,sub_tlef,vsize,'tf','K', &
+              'Foliage canopy temperature','canopy_temperature',.true., &
+              l_fill=.true.)
+            sub_tlef_out => v2dvar_sub(sub_tlef)%rval
+          end if
         end if
         if ( enable_sub2d_vars(sub_evp) ) then
           call setup_var(v2dvar_sub,sub_evp,vsize,'evspsbl','kg m-2 s-1', &
             'Evaporation','water_evaporation_flux',.true.,'time: mean')
           sub_evp_out => v2dvar_sub(sub_evp)%rval
         end if
-        if ( enable_sub2d_vars(sub_scv) ) then
-          call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
-            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
-            l_fill=.true.)
-          sub_scv_out => v2dvar_sub(sub_scv)%rval
+        if ( irceideal == 1 ) then
+          enable_sub2d_vars(sub_scv) = .false.
+        else
+          if ( enable_sub2d_vars(sub_scv) ) then
+            call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
+              'Surface Snow Amount', 'surface_snow_amount',.true., &
+              'time: mean', l_fill=.true.)
+            sub_scv_out => v2dvar_sub(sub_scv)%rval
+          end if
         end if
         if ( enable_sub2d_vars(sub_sena) ) then
           call setup_var(v2dvar_sub,sub_sena,vsize,'hfss','W m-2', &
@@ -1803,13 +1903,17 @@ module mod_ncout
             'Near-Surface Specific Humidity','specific_humidity',.true.)
           sub_q2m_out => v3dvar_sub(sub_q2m)%rval
         end if
-        vsize%k2 = num_soil_layers
-        v3dvar_sub(sub_smw)%axis = 'xys'
-        if ( enable_sub3d_vars(sub_smw) ) then
-          call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
-            'Moisture Content of the Soil Layers', &
-            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
-          sub_smw_out => v3dvar_sub(sub_smw)%rval
+        if ( irceideal == 1 ) then
+          enable_sub3d_vars(sub_smw) = .false.
+        else
+          vsize%k2 = num_soil_layers
+          v3dvar_sub(sub_smw)%axis = 'xys'
+          if ( enable_sub3d_vars(sub_smw) ) then
+            call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
+              'Moisture Content of the Soil Layers', &
+              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            sub_smw_out => v3dvar_sub(sub_smw)%rval
+          end if
         end if
 
         enable_sub_vars(1:nsub2dvars) = enable_sub2d_vars
@@ -1982,27 +2086,25 @@ module mod_ncout
             'thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
-        if ( idiag > 0 ) then
-          if ( enable_rad3d_vars(rad_qrs) ) then
-            call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
-              'Shortwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
-            rad_qrs_out => v3dvar_rad(rad_qrs)%rval
-          end if
-          if ( enable_rad3d_vars(rad_qrl) ) then
-            call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
-              'Longwave radiation heating rate', &
-              'tendency_of_air_temperature_due_to_longwave_heating',.true.)
-            rad_qrl_out => v3dvar_rad(rad_qrl)%rval
-          end if
+        if ( enable_rad3d_vars(rad_qrs) ) then
+          call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
+            'Shortwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
+          rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+        end if
+        if ( enable_rad3d_vars(rad_qrl) ) then
+          call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
+            'Longwave radiation heating rate', &
+            'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+          rad_qrl_out => v3dvar_rad(rad_qrl)%rval
+        end if
+        if ( iclimao3 > 0 ) then
           if ( enable_rad3d_vars(rad_o3) ) then
             call setup_var(v3dvar_rad,rad_o3,vsize,'o3','m3 m-3', &
               'Atmospheric Ozone', 'volume_fraction_of_o3_in_air',.true.)
             rad_o3_out => v3dvar_rad(rad_o3)%rval
           end if
         else
-          enable_rad3d_vars(rad_qrs) = .false.
-          enable_rad3d_vars(rad_qrl) = .false.
           enable_rad3d_vars(rad_o3) = .false.
         end if
         if ( icosp == 1 ) then
@@ -2339,7 +2441,7 @@ module mod_ncout
             opt_pai_out => v3dvar_opt(opt_pai)%rval
           end if
           enable_opt3d_vars(opt_pp) = .false.
-          enable_opt3d_vars(opt_deltaz) = .false. 
+          enable_opt3d_vars(opt_deltaz) = .false.
         else
           enable_opt3d_vars(opt_pp) = .false.
           enable_opt3d_vars(opt_pai) = .false.
@@ -2822,6 +2924,19 @@ module mod_ncout
           ncattribute_string('model_icbc_data_source',dattyp))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_string('model_sst_data_source',ssttyp))
+        if ( dattyp == 'CMIP6' ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_string('CMIP6_model', &
+            trim(cmip6_model)//'_'//trim(cmip6_experiment)//'_'// &
+            trim(cmip6_variant)//'_'//trim(cmip6_grid)))
+        else if ( dattyp == 'PMIP4' ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_string('PMIP4_model', &
+            trim(pmip4_model)//'_'//trim(pmip4_experiment)//'_'// &
+            trim(pmip4_variant)//'_'//trim(pmip4_grid)))
+        else
+          ! Do not add any description here
+        end if
 
         ! Buffer Zone Control relaxation + diffusion term params
 
@@ -2911,8 +3026,6 @@ module mod_ncout
 
         ! Model Physics
 
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('dynamical_core',idynamic))
         if ( idynamic /= 3 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('asselin_filter_nu_1',gnu1))
@@ -2966,17 +3079,21 @@ module mod_ncout
           end if
         else
           call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('divergence_filtering_factor',mo_anu2))
-          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('advection_timestep_factor',mo_nadv))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('sound_timestep_factor',mo_nsound))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
+          if ( mo_divfilter ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_logical('divergence_filtering',mo_divfilter))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('divergence_filtering_factor',mo_anu2))
+          end if
+          if ( mo_nzfilt > 0 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
+          end if
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('rayleigh_damping',ifrayd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('maximum_wind_speed',mo_wmax))
           if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_integer('rayleigh_ndamp',rayndamp))
@@ -3366,17 +3483,25 @@ module mod_ncout
         end if
         if ( irrtm == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('rrtm_opt_properties_calculation_sw_vap',inflgsw))
+            ncattribute_logical('rrtm_extended_above',rrtm_extend))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_ice',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_vap', &
+            inflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_sw_liq',iceflgsw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_ice', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_vap',inflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_sw_liq', &
+            iceflgsw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_ice',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_vap', &
+            inflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_ice', &
+            iceflglw))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_opt_properties_calculation_lw_liq', &
+            iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &

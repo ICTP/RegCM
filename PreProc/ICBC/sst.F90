@@ -87,7 +87,7 @@ program sst
   call read_domain_info(terfile)
   call setup_outvars
 
-  if ( ssttyp == 'CMIP6' ) then
+  if ( ssttyp == 'CMIP6' .or. ssttyp == 'PMIP4' ) then
     call cmip6_sst
   else if ( ssttyp == 'GISST' .or. ssttyp == 'OISST' .or.  &
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
@@ -177,9 +177,21 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp == 'HRMED' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gndnc
   else if ( ssttyp == 'ERA5D' .or. ssttyp(1:3) == 'EID' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gndnc
+  else if ( ssttyp == 'ERAXX' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gndnc

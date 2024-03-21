@@ -154,16 +154,26 @@ module mod_dynparam
   real(rkx) , public :: low_nudge    = 1.0_rkx
 
   ! Type of global analysis datasets used in Pre processing
-  ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
-  !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 
   character(len=5) , public :: dattyp
+
+  ! CMIP6 model namelist info
+
   character(len=256) , public :: cmip6_inp = &
               'https://esgf3.dkrz.de/thredds/dodsC'
   character(len=16) , public :: cmip6_model = 'MPI-ESM1-2-HR'
   character(len=12) , public :: cmip6_variant = 'r1i1p1f1'
-  character(len=6) , public :: cmip6_ssp = 'ssp585'
+  character(len=12) , public :: cmip6_experiment = 'ssp585'
   character(len=12) , public :: cmip6_grid = 'gn'
+
+  ! PMIP4 model namelist info
+
+  character(len=256) , public :: pmip4_inp = &
+              'https://esgf3.dkrz.de/thredds/dodsC'
+  character(len=16) , public :: pmip4_model = 'MPI-ESM1-2-LR'
+  character(len=12) , public :: pmip4_variant = 'r1i1p1f2'
+  character(len=12) , public :: pmip4_experiment  ='lgm'
+  character(len=12) , public :: pmip4_grid = 'gn'
 
   !Type of Global chemistry boundary conditions
   !      MZ6HR is for MOZART 6 hourly boundary conditions
@@ -493,8 +503,10 @@ module mod_dynparam
       medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
-    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_ssp , &
+    namelist /cmip6param/ cmip6_inp , cmip6_model , cmip6_experiment , &
       cmip6_variant , cmip6_grid
+    namelist /pmip4param/ pmip4_inp , pmip4_model , pmip4_experiment , &
+      pmip4_variant , pmip4_grid
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
@@ -566,6 +578,12 @@ module mod_dynparam
       return
     end if
     if ( ds < 0.0_rkx ) then
+      if ( iproj /= 'ROTLLR' ) then
+        write(stderr,*) 'Grid size in degrees is supported only for ROTLLR'
+        write(stderr,*) 'Use positive grid size in km for projection '//iproj
+        ierr = 11
+        return
+      end if
       ds = -erkm*ds*degrad
     end if
     if ( iproj == 'LAMCON' ) then
@@ -585,7 +603,7 @@ module mod_dynparam
       cntrj = real(jx,rkx)/d_two
     end if
 
-!   Ensure that band mode is active if CRM mode is active
+    ! Ensure that band mode is active if CRM mode is active
     if ( i_crm == 1 ) then
       i_band = 1
     end if
@@ -727,12 +745,15 @@ module mod_dynparam
     nspgd = max(nspgd,3)
 
     ibdyfrq = 6 ! Convenient default
+    dattyp = 'UNKNW'
+    gdate1 = 10100
+    gdate2 = 10100
     calendar = 'gregorian'
     ensemble_run = .false.
     chemtyp = 'MZCLM'
     rewind(ipunit)
     read(ipunit, nml=globdatparam, iostat=iresult)
-    if ( iresult /= 0 ) then
+    if ( iresult /= 0 .and. i_crm /= 1 ) then
       write (stderr,*) 'Error reading globdatparam namelist in ',trim(filename)
       ierr = 6
       return
@@ -742,6 +763,15 @@ module mod_dynparam
       read(ipunit, nml=cmip6param, iostat=iresult)
       if ( iresult /= 0 ) then
         write (stderr,*) 'Error reading cmip6param namelist in ',trim(filename)
+        ierr = 7
+        return
+      end if
+    end if
+    if ( dattyp == 'PMIP4' ) then
+      rewind(ipunit)
+      read(ipunit, nml=pmip4param, iostat=iresult)
+      if ( iresult /= 0 ) then
+        write (stderr,*) 'Error reading pmip4param namelist in ',trim(filename)
         ierr = 7
         return
       end if

@@ -122,7 +122,7 @@
 
 ! ------- Local -------
 
-      integer(kind=im) :: jk, jl, kmodts
+      integer(kind=im) :: jk, kmodts
       integer(kind=im) :: itind
 
       real(kind=rb) :: tblind
@@ -204,7 +204,7 @@
                   ze2 = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   ze2 = exp_tbl(itind)
                endif
 !
@@ -230,9 +230,14 @@
             else
 ! Non-conservative scattering
 
+               if ( zgamma2**2 < zgamma1**2 ) then
+                  zrk = sqrt ( zgamma1**2 - zgamma2**2 )
+               else
+                  zgamma2 = zgamma1
+                  zrk = 0._rb
+               end if
                za1 = zgamma1 * zgamma4 + zgamma2 * zgamma3
                za2 = zgamma1 * zgamma3 + zgamma2 * zgamma4
-               zrk = sqrt ( zgamma1**2 - zgamma2**2)
                zrp = zrk * prmuz
                zrp1 = 1._rb + zrp
                zrm1 = 1._rb - zrp
@@ -279,7 +284,7 @@
                   zep1 = 1._rb / zem1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zem1 = exp_tbl(itind)
                   zep1 = 1._rb / zem1
                endif
@@ -289,7 +294,7 @@
                   zep2 = 1._rb / zem2
                else
                   tblind = ze2 / (bpade + ze2)
-                  itind = int(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb,im)
                   zem2 = exp_tbl(itind)
                   zep2 = 1._rb / zem2
                endif
@@ -308,15 +313,21 @@
                   pref(jk) = eps
                   ptra(jk) = zem2
                else
-                  pref(jk) = zw * (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
-                  ptra(jk) = zem2 - zem2 * zw * (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
+                  pref(jk) = zw * &
+                         (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
+                  ptra(jk) = zem2 - zem2 * zw * &
+                         (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
                endif
 !!
 
 ! diffuse beam
 
                zemm = zem1*zem1
-               zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               if ( (1._rb - zbeta*zemm) > 0.0_rb ) then
+                  zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               else
+                  zdend = 1.0e-20_rb
+               end if
                prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
                ptrad(jk) =  zrk2*zem1*zdend
 

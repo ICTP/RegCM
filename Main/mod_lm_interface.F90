@@ -160,7 +160,7 @@ module mod_lm_interface
     call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
                                     ici1,ici2,1,num_soil_layers,'lm:sw_vol')
     call getmem4d(lms%tsoi,1,nnsg,jci1,jci2, &
-                                    ici1,ici2,1,num_soil_layers,'lm:tsoi')
+                                  ici1,ici2,1,num_soil_layers,'lm:tsoi')
 #endif
 
 #ifdef CLM
@@ -335,6 +335,9 @@ module mod_lm_interface
     call assignpnt(sfs%q2m,lm%q2m)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
+    call assignpnt(sfs%snownc,lm%snwrat)
+    call assignpnt(sfs%grplnc,lm%grprat)
+    call assignpnt(sfs%hailnc,lm%hairat)
     call assignpnt(pptnc,lm%ncprate)
     call assignpnt(coszrs,lm%zencos)
     call assignpnt(fsw,lm%rswf)
@@ -427,7 +430,7 @@ module mod_lm_interface
 
   subroutine surface_model
 #ifdef CLM45
-    use mod_atm_interface , only : voc_em_clm , dustflx_clm, ddepv_clm 
+    use mod_atm_interface , only : voc_em_clm , dustflx_clm , ddepv_clm
 #endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr
@@ -852,9 +855,6 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
-      if ( ifrad ) then
-        rnrad_for_srffrq = rnrad_for_srffrq + 1.0_rkx
-      end if
       if ( ifatm ) then
         rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
         if ( associated(atm_tsw_out) ) &
@@ -870,6 +870,12 @@ module mod_lm_interface
           srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
+        if ( associated(srf_snow_out) ) &
+          srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+        if ( associated(srf_grau_out) ) &
+          srf_grau_out = srf_grau_out + lm%grprat*syncro_srf%rw
+        if ( associated(srf_hail_out) ) &
+          srf_hail_out = srf_hail_out + lm%hairat*syncro_srf%rw
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out + lm%hpbl
         if ( associated(srf_scv_out) ) &
@@ -964,6 +970,27 @@ module mod_lm_interface
                       atan(0.023101_rkx * rh) - 4.686035_rkx)
             end do
           end do
+        end if
+      else
+        if ( ifsrf ) then
+          if ( associated(srf_pcpmax_out) ) &
+            srf_pcpmax_out = max(srf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
+          if ( associated(srf_twetb_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                tas = sum(lms%t2m(:,j,i))*rdnnsg
+                ps = sum(lms%sfcp(:,j,i))*rdnnsg
+                qs = pfwsat(tas,ps)
+                qas = lm%q2m(j,i)
+                rh = min(max((qas/qs),d_zero),d_one)*100.0_rkx
+                srf_twetb_out(j,i) = max(srf_twetb_out(j,i), &
+                  tas * atan(0.151977_rkx * sqrt(rh + 8.313659_rkx)) + &
+                        atan(tas + rh) - atan(rh - 1.676331_rkx) + &
+                        0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
+                        atan(0.023101_rkx * rh) - 4.686035_rkx)
+              end do
+            end do
+          end if
         end if
       end if
       if ( ifsts ) then
@@ -1168,6 +1195,9 @@ module mod_lm_interface
     ! Reset accumulation from precip and cumulus
     lm%ncprate(:,:) = d_zero
     lm%cprate(:,:)  = d_zero
+    if ( associated(lm%snwrat) ) lm%snwrat(:,:) = d_zero
+    if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
+    if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
 
     contains
 

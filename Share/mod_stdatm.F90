@@ -37,9 +37,9 @@ module mod_stdatm
   integer(ik4) , public , parameter :: istdatm_hgtkm = 1  ! HGT in km
   integer(ik4) , public , parameter :: istdatm_prsmb = 2  ! PRESS in hPa
   integer(ik4) , public , parameter :: istdatm_tempk = 3  ! TEMP in K
-  integer(ik4) , public , parameter :: istdatm_airdn = 4  ! RHO in kg/m^3
-  integer(ik4) , public , parameter :: istdatm_qdens = 5  ! Q in kg/m^3
-  integer(ik4) , public , parameter :: istdatm_ozone = 6  ! Ozone in kg/m^3
+  integer(ik4) , public , parameter :: istdatm_airdn = 4  ! RHO in g/m^3
+  integer(ik4) , public , parameter :: istdatm_qdens = 5  ! Q in g/m^3
+  integer(ik4) , public , parameter :: istdatm_ozone = 6  ! Ozone in g/m^3
 
   integer(ik4) , public , parameter :: n_atmzones = 5
   integer(ik4) , public , parameter :: n_atmparms = 6

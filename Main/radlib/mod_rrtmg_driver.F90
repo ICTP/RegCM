@@ -31,13 +31,14 @@ module mod_rrtmg_driver
   use mod_rad_common
   use mod_rad_tracer
   use mod_rad_aerosol
+  use mod_date
   use mod_stdatm
   use mod_isaatm
-  use rrtmg_sw_rad
   use mcica_subcol_gen_sw
   use parrrsw
   use rrsw_wvn
   use parrrtm
+  use rrtmg_sw_rad
   use rrtmg_lw_rad
   use rrtmg_lw_rad_nomcica
   use rrtmg_sw_rad_nomcica
@@ -63,7 +64,7 @@ module mod_rrtmg_driver
     rh , cld_int , tlay , h2ovmr , o3vmr , co2vmrk , play , ch4vmr ,   &
     n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , o3 ,   &
     reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel , cldf ,&
-    lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
+    lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1 , alpha
 
   real(rkx) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
     swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,             &
@@ -81,7 +82,6 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
          cfc11mmr , cfc12mmr , deltaz , dzr
-  real(rkx) , pointer , dimension(:) :: topz
   real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
@@ -97,9 +97,9 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
-  integer(ik4) :: npr
+  integer(ik4) :: npr , npj
 
-  integer(ik4) :: permuteseed = 1 , mypid
+  integer(ik4) :: permuteseed = 37_ik4
 
   logical , parameter :: luse_max_rnovl = .true.
 
@@ -107,15 +107,8 @@ module mod_rrtmg_driver
 
   subroutine allocate_mod_rad_rrtmg
     implicit none
-
-#if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
-    integer , external :: getpid
-#endif
-#if defined ( IBM )
-    integer , external :: getpid_
-#endif
-    npr = (jci2-jci1+1)*(ici2-ici1+1)
-
+    npj = (jci2-jci1+1)
+    npr = npj*(ici2-ici1+1)
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
@@ -133,11 +126,9 @@ module mod_rrtmg_driver
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
     call getmem1d(solld,1,npr,'rrtmg:solld')
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
-    call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
-    call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
-    if ( idiag == 1 ) then
-      call getmem2d(o3,1,npr,1,kth,'rrtmg:o3')
-    end if
+    call getmem2d(qrs,1,npr,1,kz,'rrtmg:qrs')
+    call getmem2d(qrl,1,npr,1,kz,'rrtmg:qrl')
+    call getmem2d(o3,1,npr,1,kz,'rrtmg:o3')
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
@@ -171,6 +162,7 @@ module mod_rrtmg_driver
     end if
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
+    call getmem2d(alpha,1,npr,1,kth,'rrtmg:alpha')
     if ( ipptls > 1 ) then
       call getmem2d(ql1,1,npr,1,kth,'rrtmg:ql1')
       call getmem2d(qi1,1,npr,1,kth,'rrtmg:qi1')
@@ -252,35 +244,33 @@ module mod_rrtmg_driver
     call getmem2d(cfc11mmr,1,npr,1,kth,'rrtmg:cfc11mmr')
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
-    call getmem1d(topz,1,npr,'rrtmg:topz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
     call allocate_tracers(1,npr)
-
-#if defined ( IBM )
-    mypid = getpid_()
-#else
-    mypid = getpid()
-#endif
   end subroutine allocate_mod_rad_rrtmg
 
-  subroutine rrtmg_driver(iyear,imonth,lout,m2r,r2m)
+  subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
-    integer(ik4) , intent(in) :: iyear , imonth
+    integer(ik4) , intent(in) :: iyear , imonth , iday
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld , ldirect
+    integer(ik4) :: k , kj , n , i , j , ldirect
+    integer(ik4) :: idcor           ! Decorrelation length type
+    integer(ik4) :: juldat          ! Julian day of year
+    real(rk8) :: decorr_con         ! decorrelation length, constant (m)
     logical :: lradfor
     real(rkx) :: adjes
+    integer(ik4) , parameter :: idrv = 0
+    integer(ik4) , parameter :: iaer = 10
+    integer(ik4) , parameter :: isolvar = -1
 
     ! from water path and cloud radius / tauc_LW is not requested
-    tauc_lw(:,:,:) = dlowval
+    tauc_lw(:,:,:) = 1.0e-10_rkx
     call prep_dat_rrtm(m2r,iyear,imonth)
     adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
-
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
@@ -301,7 +291,7 @@ module mod_rrtmg_driver
     asaeradfos(:) = d_zero
 
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
-
+    !
     ldirect = 0
     if ( ichem == 1 .and. iaerosol ==1 ) then
       ldirect = idirect
@@ -309,77 +299,89 @@ module mod_rrtmg_driver
       ldirect = 2
     end if
 
-    if ( maxval(m2r%coszrs) > 1.0e-3_rkx ) then
-      n = 1
+    juldat = int(julianday(iyear, imonth, iday),ik4)
+    alpha(:,:) = 0.0_rkx
+    if ( icld == 4 .or. icld == 5 ) then
+      idcor = 1
+      decorr_con = 5000.0_rkx
+      call get_alpha(npr,kth,icld,idcor,decorr_con,deltaz, &
+                     dlat,juldat,cldf,alpha)
+    end if
+
+    if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           asdir(n) = m2r%aldirs(j,i)
           asdif(n) = m2r%aldifs(j,i)
           aldir(n) = m2r%aldirl(j,i)
           aldif(n) = m2r%aldifl(j,i)
           czen(n)  = m2r%coszrs(j,i)
           if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
-          n = n + 1
         end do
       end do
       if ( imcica == 1 ) then
+        permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+        do while ( permuteseed < 0 )
+          permuteseed = 2147483641+permuteseed
+        end do
         ! generates cloud properties:
-        permuteseed = permuteseed+mypid+ngptlw
-        if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,         &
-                             cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
-                             cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
-                             taucmcl,ssacmcl,asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,lradfor,ldirect,play,plev,tlay,tlev, &
-                      tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,  &
-                      o2vmr,asdir,asdif,aldir,aldif,czen,adjes, &
-                      0,solcon,inflgsw,iceflgsw,liqflgsw,       &
-                      cldfmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl,  &
-                      ciwpmcl,clwpmcl,reicmcl,relqmcl,tauaer,   &
-                      ssaaer,asmaer,ecaer,swuflx,swdflx,swhr,   &
-                      swuflxc,swdflxc,swhrc,swddiruviflx,       &
-                      swddifuviflx,swddirpirflx,swddifpirflx,   &
+        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play, &
+                             cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
+                             fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
+                             reicmcl,relqmcl,taucmcl,ssacmcl,       &
+                             asmcmcl,fsfcmcl)
+        call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
+                      tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
+                      n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
+                      adjes,juldat,solcon,isolvar,inflgsw,iceflgsw, &
+                      liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
+                      fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,      &
+                      tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,     &
+                      swhr,swuflxc,swdflxc,swhrc,swddiruviflx,      &
+                      swddifuviflx,swddirpirflx,swddifpirflx,       &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,ldirect,play,plev,tlay,tlev, &
-                              tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
-                              n2ovmr,o2vmr,asdir,asdif,aldir,    &
-                              aldif,czen,adjes,0,solcon,inflgsw, &
-                              iceflgsw,liqflgsw,cldf,tauc,       &
-                              ssac,asmc,fsfc,ciwp,clwp,rei,rel,  &
-                              tauaer,ssaaer,asmaer,ecaer,        &
-                              swuflx,swdflx,swhr,swuflxc,        &
-                              swdflxc,swhrc,swddiruviflx,        &
-                              swddifuviflx,swddirpirflx,         &
-                              swddifpirflx,swdvisflx,            &
-                              aeradfo,aeradfos,                  &
-                              asaeradfo,asaeradfos)
+        call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
+                              plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
+                              co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
+                              asdif,aldir,aldif,czen,adjes,juldat,      &
+                              solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
+                              cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
+                              rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
+                              swuflx,swdflx,swhr,swuflxc,swdflxc,       &
+                              swhrc,swddiruviflx,swddifuviflx,          &
+                              swddirpirflx,swddifpirflx,swdvisflx,      &
+                              aeradfo,aeradfos,asaeradfo,asaeradfos)
       end if
     end if ! end shortwave call
 
     ! LW call :
     if ( imcica == 1 ) then
-      permuteseed = permuteseed+mypid+ngptsw
-      if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-      call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,        &
-                           cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
-                           ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
-                           taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor,ldirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
-                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
-                    inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
-                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,           &
-                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,       &
-                    lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,           &
-                    aerlwfos,asaerlwfo,asaerlwfos)
+      permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
+      do while ( permuteseed < 0 )
+        permuteseed = 2147483641+permuteseed
+      end do
+      call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,   &
+                           cldf,ciwp,clwp,rei,rel,tauc_lw,alpha, &
+                           cldfmcl_lw,ciwpmcl_lw,clwpmcl_lw,     &
+                           reicmcl,relqmcl,taucmcl_lw)
+      call rrtmg_lw(npr,kth,icld,idrv,lradfor,ldirect,play,plev,tlay,tlev, &
+                    tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,         &
+                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,          &
+                    inflglw,iceflglw,liqflglw,cldfmcl_lw,                  &
+                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,              &
+                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,          &
+                    lwdflxc,lwhrc,aerlwfo,aerlwfos,asaerlwfo,asaerlwfos,   &
+                    duflx_dt,duflxc_dt)
     else
-      call rrtmg_lw_nomcica(npr,kth,icld,0,play,plev,tlay,tlev,tsfc,       &
-                            h2ovmr,o3vmr,co2vmrk,ch4vmr,n2ovmr,o2vmr,      &
-                            cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
-                            inflglw,iceflglw,liqflglw,cldf,tauc,ciwp,clwp, &
-                            rei,rel,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,  &
-                            lwdflxc,lwhrc,duflx_dt,duflxc_dt)
+      call rrtmg_lw_nomcica(npr,kth,icld,idrv,lradfor,ldirect,play,plev, &
+                            tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,  &
+                            n2ovmr,o2vmr,cfc11vmr,cfc12vmr,cfc22vmr,     &
+                            ccl4vmr,emis_surf,inflglw,iceflglw,liqflglw, &
+                            cldf,tauc,ciwp,clwp,rei,rel,tauaer_lw,lwuflx,&
+                            lwdflx,lwhr,lwuflxc,lwdflxc,lwhrc,aerlwfo,   &
+                            aerlwfos,asaerlwfo,asaerlwfos,duflx_dt,duflxc_dt)
     end if
     ! Output and interface
     !
@@ -389,62 +391,68 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
-    sabtp(:)  = swdflx(:,kth) - swuflx(:,kth)
-    solin(:)  = swdflx(:,kth)
-    solout(:) = swuflx(:,kth)
-    frsa(:)   = swdflx(:,1) - swuflx(:,1)
-    clrst(:)  = swdflxc(:,kth) - swuflxc(:,kth)
-    clrss(:)  = swdflxc(:,1) - swuflxc(:,1)
+    do n = 1 , npr
+      sabtp(n)  = swdflx(n,kth) - swuflx(n,kth)
+      solin(n)  = swdflx(n,kth)
+      solout(n) = swuflx(n,kth)
+      frsa(n)   = swdflx(n,1) - swuflx(n,1)
+      clrst(n)  = swdflxc(n,kth) - swuflxc(n,kth)
+      clrss(n)  = swdflxc(n,1) - swuflxc(n,1)
 
-    firtp(:)  = -d_one * (lwdflx(:,kth) - lwuflx(:,kth))
-    lwout(:)  = -lwuflx(:,kth)
-    lwin(:)   = -lwdflx(:,kth)
-    frla(:)   = -d_one * (lwdflx(:,1) - lwuflx(:,1))
-    clrlt(:)  = -d_one * (lwdflxc(:,kth) - lwuflxc(:,kth))
-    clrls(:)  = -d_one * (lwdflxc(:,1) - lwuflxc(:,1))
-
-    ! coupling with BATS
-    !  r2m%sabveg set to frsa (as in standard version : potential inconsistency
-    !  if soil fraction is large)
-    ! solar is normally the visible band only total incident surface flux
-    abv(:) = frsa(:) + frla(:)
-    sol(:) = swdvisflx(:,1)
-    ! surface SW incident
-    sols(:)  = swddiruviflx(:,1)
-    solsd(:) = swddifuviflx(:,1)
-    soll(:)  = swddirpirflx(:,1)
-    solld(:) = swddifpirflx(:,1)
-    ! LW incident
-    slwd(:)  = lwdflx(:,1)
-
-    ! 3d heating rate back on regcm grid and converted to K.S-1
-    if ( idiag == 1 ) then
-      do k = 1 , kz
-        kj = kzp1-k
-        o3(:,kj) = o3vmr(:,k)
-        qrs(:,kj) = swhr(:,k) / secpd
-        qrl(:,kj) = lwhr(:,k) / secpd
-      end do
-    end if
-    do k = 1 , kz
-      kj = kzp1-k
-      dzr(:,kj) = deltaz(:,k)
-      clwp_int(:,kj) = clwp(:,k)
+      firtp(n)  = -d_one * (lwdflx(n,kth) - lwuflx(n,kth))
+      lwout(n)  = lwuflx(n,kth)
+      lwin(n)   = -lwdflx(n,kth)
+      frla(n)   = -d_one * (lwdflx(n,1) - lwuflx(n,1))
+      clrlt(n)  = -d_one * (lwdflxc(n,kth) - lwuflxc(n,kth))
+      clrls(n)  = -d_one * (lwdflxc(n,1) - lwuflxc(n,1))
     end do
 
-    kmaxcld = 2
-    kmincld = kz-ncld
+    ! coupling with BATS
+    !  r2m%sabveg set to frsa (as in standard version: potential inconsistency
+    !  if soil fraction is large)
+    ! solar is normally the visible band only total incident surface flux
+    do n = 1 , npr
+      abv(n) = frsa(n) + frla(n)
+      sol(n) = swdvisflx(n,1)
+      ! surface SW incident
+      sols(n)  = swddiruviflx(n,1)
+      solsd(n) = swddifuviflx(n,1)
+      soll(n)  = swddirpirflx(n,1)
+      solld(n) = swddifpirflx(n,1)
+      ! LW incident
+      slwd(n)  = lwdflx(n,1)
+    end do
+
+    ! 3d heating rate back on regcm grid and converted to K.S-1
+    ! used to calculate heatinge rate tendency
+    !
+    do k = 1 , kz
+      kj = kzp1 -k
+      do n = 1 , npr
+        qrs(n,kj) = swhr(n,k) / secpd
+        qrl(n,kj) = lwhr(n,k) / secpd
+      end do
+    end do
+
+    do k = 1 , kz
+      kj = kzp1-k
+      do n = 1 , npr
+        o3(n,kj) = o3vmr(n,k)
+        dzr(n,kj) = deltaz(n,k)
+        clwp_int(n,kj) = clwp(n,k)
+      end do
+    end do
+
     cld_int(:,:) = d_zero
-    do k = kmaxcld , kmincld
-      n = 1
+    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           if ( clwp_int(n,k) > d_zero ) then
             cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
                           (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
             cld_int(n,k) = min(cld_int(n,k),cftotmax)
           end if
-          n = n + 1
         end do
       end do
     end do
@@ -454,8 +462,9 @@ module mod_rrtmg_driver
       totcf(n) = d_one
       if ( luse_max_rnovl ) then
         do k = 2 , kzp1
-          totcf(n) = totcf(n) * (d_one - max(cld_int(n,k-1),cld_int(n,k)))/ &
-                                (d_one - cld_int(n,k-1))
+          totcf(n) = totcf(n) * &
+            (1.0001_rkx - max(cld_int(n,k-1),cld_int(n,k)))/ &
+            (1.0001_rkx - cld_int(n,k-1))
         end do
       else
         do k = 1 , kz
@@ -496,7 +505,7 @@ module mod_rrtmg_driver
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) , intent(in) :: iyear , imonth
-    integer(ik4) :: i , j , k , kj , ns , n , itr , kmaxcld , kmincld
+    integer(ik4) :: i , j , k , kj , ns , n , itr
     real(rkx) , parameter :: verynearone = 0.999999_rkx
     real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
     real(rkx) :: w1 , w2 , p1 , p2
@@ -536,93 +545,102 @@ module mod_rrtmg_driver
 !   abari    - a coefficient for extinction optical depth
 !   bbari    - b coefficient for extinction o
 !
-    integer, dimension (nbndsw) :: indsl
-    real(rkx) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
-                                cbarl , dbari , dbarl , ebari , ebarl , &
-                                fbari , fbarl
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
-    data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
-    data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
-    data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-    data dbarl / 1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
-    data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
-    data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
+    real(rkx) , dimension(4) , parameter :: abarl = &
+         [  2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbarl = &
+         [  1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbarl = &
+         [ -5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbarl = &
+         [  1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebarl = &
+         [  0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbarl = &
+         [  2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx ]
 !
-    data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
-    data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
-    data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
-    data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
-    data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
-    data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
+    real(rkx) , dimension(4) , parameter :: abari = &
+         [  3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx ]
+    real(rkx) , dimension(4) , parameter :: bbari = &
+         [  2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: cbari = &
+         [  1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: dbari = &
+         [  0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx ]
+    real(rkx) , dimension(4) , parameter :: ebari = &
+         [  0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx ]
+    real(rkx) , dimension(4) , parameter :: fbari = &
+         [  5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx ]
     !
     ! define index pointing on appropriate parameter in slingo's table
     ! for eachRRTM SW band
     !
-    data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
+    integer, dimension (nbndsw) , parameter :: indsl = &
+          [ 4, 4, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 4 ]
     ! CONVENTION : RRTMG driver takes layering from bottom to TOA.
     ! Regcm consider TOA to bottom
 
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         dlat(n) = m2r%xlat(j,i)
-        topz(n) = m2r%zq(j,i,1)-m2r%za(j,i,1)
-        n = n + 1
+        ioro(n) = m2r%ldmsk(j,i)
       end do
     end do
-
-    n = 1
+    !
+    ! The pressures in the RRTMG are expressed in hPa: must divide by 100.0
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         psfc(n) = m2r%psatms(j,i) * d_r100
-        n = n + 1
       end do
     end do
 
     do k = 1 , kz
-      n = 1
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           play(n,k) = m2r%phatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
-    end do
-    do k = kzp1 , kth
-      play(:,k) = stdplevh(kclimh+k-kzp1)
     end do
     !
     ! convert pressures from Pa to mb and define interface pressures:
     !
     do k = 1 , kzp1
-      n = 1
       kj = kzp2-k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           plev(n,k) = m2r%pfatms(j,i,kj)*d_r100
-          n = n + 1
         end do
       end do
     end do
-    do k = kzp1+1 , ktf
-      plev(:,k) = stdplevf(kclimf+k-kzp1-1)
+    do k = kzp2 , ktf
+      do n = 1 , npr
+        plev(n,k) = stdplevf(kclimf+k-kzp2)
+      end do
     end do
-    ! smooth transition from top to climato at kzp1
-    play(:,kzp1) = d_half * (plev(:,kzp1) + plev(:,kzp2) )
+    ! smooth transition from top to climate at kzp1
+    do k = kzp1 , kth
+      do n = 1 , npr
+        play(n,k) = stdplevh(kclimh+k-kzp1)
+      end do
+    end do
     !
     ! ground temperature
     !
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
         tsfc(n) = m2r%tg(j,i)
-        n = n + 1
       end do
     end do
     !
@@ -630,21 +648,24 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1-k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           tlay(n,k) = m2r%tatms(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
     do k = kzp1 , kth
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tlay(n,k) = max(tlay(n,kz), &
-            stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk))
-          n = n + 1
+          n = (j-jci1+1)+(i-ici1)*npj
+#ifdef RCEMIP
+          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#else
+          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
+            tlay(n,kz))
+#endif
         end do
       end do
     end do
@@ -652,76 +673,75 @@ module mod_rrtmg_driver
     ! deltaz
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           deltaz(n,k) = m2r%deltaz(j,i,kj)
-          n = n + 1
         end do
       end do
     end do
     do k = kzp1 , kth
-      deltaz(:,k) = (stdhlevf(kclimf+k-kzp1) - &
-                     stdhlevf(kclimf+k-kzp1-1)) * d_1000
+      do n = 1 , npr
+        deltaz(n,k) = (stdhlevf(kclimf+k-kzp1) - &
+                       stdhlevf(kclimf+k-kzp1-1)) * d_1000
+      end do
     end do
     !
     ! air temperature at the interface
     !
-    tlev(:,1) = tsfc(:)
+    do n = 1 , npr
+      tlev(n,1) = tsfc(n)
+    end do
     if ( idynamic /= 3 ) then
       do k = 2 , kz
         kj = kzp2-k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = (j-jci1+1)+(i-ici1)*npj
             p1 = (plev(n,k)/play(n,k-1))**c287
             p2 = (plev(n,k)/play(n,k))**c287
             w1 = (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
             w2 = (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
             tlev(n,k) = w1 * tlay(n,k-1) * p1 + w2 * tlay(n,k) * p2
-            n = n + 1
           end do
         end do
       end do
     else
       do k = 2 , kz
-        kj = kzp2-k
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tlev(n,k) = 0.5_rkx * (tlay(n,k-1) + tlay(n,k))
-            n = n + 1
-          end do
+        do n = 1 , npr
+          tlev(n,k) = 0.5_rkx * (tlay(n,k-1) + tlay(n,k))
         end do
       end do
     end if
     do k = kzp1 , ktf
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tlev(n,k) = max(tlev(n,kz), &
-            stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk))
-          n = n + 1
-        end do
+      do n = 1 , npr
+#ifdef RCEMIP
+        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#else
+        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
+          tlev(n,kz))
+#endif
       end do
     end do
 
     if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
-        n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            n = (j-jci1+1)+(i-ici1)*npj
             ql1(n,k) = m2r%qxatms(j,i,kj,iqc)
             qi1(n,k) = m2r%qxatms(j,i,kj,iqi)
-            n = n + 1
           end do
         end do
       end do
       do k = kzp1 , kth
-        ql1(:,k) = d_zero
-        qi1(:,k) = d_zero
+        do n = 1 , npr
+          ql1(n,k) = d_zero
+          qi1(n,k) = d_zero
+        end do
       end do
     end if
     !
@@ -729,47 +749,49 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
+          n = (j-jci1+1)+(i-ici1)*npj
+          h2ommr(n,k) = m2r%qxatms(j,i,kj,iqv)
           h2ovmr(n,k) = h2ommr(n,k) * rep2
-          n = n + 1
         end do
       end do
     end do
     do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          h2ommr(n,k) = 1.0e-10_rkx
-          h2ovmr(n,k) = h2ommr(n,k) * rep2
-          n = n + 1
-        end do
+      do n = 1 , npr
+#ifdef RCEMIP
+        h2ommr(n,k) = 1.0e-14_rkx
+#else
+        h2ommr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+#endif
+        h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
     end do
     !
     ! o3 volume mixing ratio
     !
     do k = 1 , kz
-      n = 1
       kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           o3vmr(n,k) = d_half*(o3prof(j,i,kj)+o3prof(j,i,kj+1)) * amd/amo3
-          n = n + 1
         end do
       end do
     end do
     do k = kzp1 , kth
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          o3vmr(n,k) = &
-            stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
-            stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
-          n = n + 1
-        end do
+      do n = 1 , npr
+#ifdef RCEMIP
+        o3vmr(n,k) = &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+#else
+        o3vmr(n,k) = &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+#endif
       end do
     end do
     !
@@ -777,6 +799,16 @@ module mod_rrtmg_driver
     !
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
+#ifdef RCEMIP
+    do n = 1 , npr
+      co2vmr(n) = ghgval(igh_co2,iyear,imonth,0.0_rkx)
+      co2mmr(n) = co2vmr(n)*(amco2/amd)
+      ch40(n) = ghgval(igh_ch4,iyear,imonth,0.0_rkx)*(amch4/amd)
+      n2o0(n) = ghgval(igh_n2o,iyear,imonth,0.0_rkx)*(amn2o/amd)
+      cfc110(n) = ghgval(igh_cfc11,iyear,imonth,0.0_rkx)*(amcfc11/amd)
+      cfc120(n) = ghgval(igh_cfc12,iyear,imonth,0.0_rkx)*(amcfc12/amd)
+    end do
+#else
     do n = 1 , npr
       co2vmr(n) = ghgval(igh_co2,iyear,imonth,dlat(n))
       co2mmr(n) = co2vmr(n)*(amco2/amd)
@@ -785,9 +817,12 @@ module mod_rrtmg_driver
       cfc110(n) = ghgval(igh_cfc11,iyear,imonth,dlat(n))*(amcfc11/amd)
       cfc120(n) = ghgval(igh_cfc12,iyear,imonth,dlat(n))*(amcfc12/amd)
     end do
+#endif
 
     do k = 1 , kz
-      co2vmrk(:,k) = co2vmr(:)
+      do n = 1 , npr
+        co2vmrk(n,k) = co2vmr(n)
+      end do
     end do
 
     call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
@@ -812,17 +847,17 @@ module mod_rrtmg_driver
     !
     ! aerosols
     ! no stratospheric background for now
-    !care : Tracers mixing ratios are on regcm grid
-    !
+    !care : aermmr,rh and pint must be passed to aeroppt consitent with
+    !       the regcm vertical grid i.e.top down
+    !       the tauxar,tauasc,gtota calculated in aeroppt are then
+    !       switched on RRTM grid.
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
-          kj = kzp1-k
-          n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = m2r%chiatms(j,i,kj,itr)
-              n = n + 1
+              n = (j-jci1+1)+(i-ici1)*npj
+              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),d_zero)
             end do
           end do
         end do
@@ -830,22 +865,18 @@ module mod_rrtmg_driver
     end if
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       do k = 1 , kz
-        n = 1
-        kj = kzp1-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh(n,k) = m2r%rhatms(j,i,kj)
-            n = n + 1
+            n = (j-jci1+1)+(i-ici1)*npj
+            rh(n,k) = m2r%rhatms(j,i,k)
           end do
         end do
       end do
       do k = 1 , kzp1
-        n = 1
-        kj = kzp2-k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pint(n,k) = m2r%pfatms(j,i,kj)
-            n = n + 1
+            n = (j-jci1+1)+(i-ici1)*npj
+            pint(n,k) = m2r%pfatms(j,i,k)
           end do
         end do
       end do
@@ -885,13 +916,10 @@ module mod_rrtmg_driver
     !
     ! qc   = gary's mods for clouds/radiation tie-in to exmois
     !
-    kmaxcld = 2
-    kmincld = kz-ncld
     cldf = d_zero
     clwp = d_zero
-    do k = kmaxcld , kmincld
+    do k = 1 , kz
       kj = kzp1 - k
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           !
@@ -900,30 +928,30 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on bottom/toa grid
           !
+          n = (j-jci1+1)+(i-ici1)*npj
           cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
-          n = n + 1
+          if ( clwp(n,k) > 0.0_rkx ) then
+            cldf(n,k) = min(m2r%cldfrc(j,i,kj),cftotmax)
+          else
+            cldf(n,k) = 0.0_rkx
+          end if
         end do
       end do
     end do
     !
     ! fabtest:  set cloud fractional cover at top model level = 0
     ! as in std scheme
-    cldf(:,kzp1:kth) = d_zero
-    clwp(:,kzp1:kth) = d_zero
+    do k = kzp1 , kth
+      do n = 1 , npr
+        cldf(n,k) = d_zero
+        clwp(n,k) = d_zero
+      end do
+    end do
     !
     ! CLOUD Properties:
     !
     ! cloud effective radius
-    !   NB: orography types are specified in the following
-    !
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ioro(n) = m2r%ldmsk(j,i)
-        n = n + 1
-      end do
-    end do
     !
     call cldefr_rrtm(tlay,play,rel,rei,fice)
     !
@@ -945,25 +973,19 @@ module mod_rrtmg_driver
     !
     ! initialise and  begin spectral loop
     !
-    tauc  =  d_zero
+    tauc  =  1.0e-10_rkx
     ssac  =  verynearone
     asmc  =  0.850_rkx
     fsfc  =  0.725_rkx
 
-#if defined(CLM45) || defined(CLM)
-    ! TS is the radiant temeprature
-    emis_surf(:,:) = 1.0_rkx
-#else
     do k = 1 , nbndlw
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1+1)+(i-ici1)*npj
           emis_surf(n,k) = m2r%emiss(j,i)
-          n = n + 1
         end do
       end do
     end do
-#endif
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
@@ -971,8 +993,8 @@ module mod_rrtmg_driver
     if ( inflgsw == 0 ) then
       do ns = 1 , nbndsw
         !
-        !     Set cloud extinction optical depth, single scatter albedo,
-        !     asymmetry parameter, and forward scattered fraction:
+        ! Set cloud extinction optical depth, single scatter albedo,
+        ! asymmetry parameter, and forward scattered fraction:
         !
         abarli = abarl(indsl(ns))
         bbarli = bbarl(indsl(ns))
@@ -1120,13 +1142,21 @@ module mod_rrtmg_driver
         !
         ! Define fractional amount of cloud that is ice
         !
-        if ( ipptls > 1 ) then
+      end do
+    end do
+    if ( ipptls > 1 ) then
+      do k = 1 , kth
+        do n = 1 , npr
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
           else
             fice(n,k) = d_zero
           end if
-        else
+        end do
+      end do
+    else
+      do k = 1 , kth
+        do n = 1 , npr
           if ( t(n,k) > minus10 ) then
             ! if warmer than -10 degrees C then water phase
             fice(n,k) = d_zero
@@ -1137,11 +1167,11 @@ module mod_rrtmg_driver
             ! if colder than -30 degrees C then ice phase
             fice(n,k) = d_one
           end if
-        end if
-        ! Turn off ice radiative properties by setting fice = 0.0
-        ! fice(n,k) = d_zero
+          ! Turn off ice radiative properties by setting fice = 0.0
+          ! fice(n,k) = d_zero
+        end do
       end do
-    end do
+    end if
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver

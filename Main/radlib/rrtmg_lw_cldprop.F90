@@ -96,7 +96,6 @@
       integer(kind=im) :: index
       integer(kind=im) :: iceind
       integer(kind=im) :: liqind
-      integer(kind=im) :: icb(nbndlw,0:2)
 
       real(kind=rb) :: abscoice(nbndlw)               ! ice absorption coefficients
       real(kind=rb) :: abscoliq(nbndlw)               ! liquid absorption coefficients
@@ -164,13 +163,17 @@
 !                     Linear interpolation is used to get the absorption
 !                     coefficients for the input effective radius.
 
-      data icb /1,1,1,1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1, &
-                1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5, &
-                1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
+      integer(kind=im), dimension(nbndlw,0:2), parameter :: icb = &
+         reshape([ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , &
+                   1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 , &
+                   1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16], &
+         [nbndlw,3])
 
       hvrcld = '$Revision$'
 
       ncbands = 1
+      liqind = 0
+      iceind = 0
       tauctot(:) = 0._rb
 
       do lay = 1, nlayers
@@ -230,7 +233,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 43) index = 42
-                     fint = factor - real(index,kind=rb)
+                     fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                             absice2(index,ib) + fint * &
@@ -246,7 +249,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 46) index = 45
-                     fint = factor - real(index,kind=rb)
+                     fint = factor - real(index)
                      do ib = 1, ncbands
                         abscoice(ib) = &
                           absice3(index,ib) + fint * &
@@ -274,7 +277,7 @@
                   index = int(radliq - 1.5_rb)
                   if (index .eq. 0) index = 1
                   if (index .eq. 58) index = 57
-                  fint = radliq - 1.5_rb - real(index,kind=rb)
+                  fint = radliq - 1.5_rb - real(index)
                   ncbands = 16
                   do ib = 1, ncbands
                      abscoliq(ib) = &
@@ -295,5 +298,4 @@
       end subroutine cldprop
 
       end module rrtmg_lw_cldprop
-
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

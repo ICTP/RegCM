@@ -365,6 +365,13 @@ module mod_ein
 
     if ( dattyp == 'EIXXX' ) then
       if ( idate == idate0 .or. month /= lastmonth ) then
+        if ( idate /= idate0 ) then
+          do inet = 1 , 5
+            istatus = nf90_close(ncfile(inet,1))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                'Error close file')
+          end do
+        end if
         lastmonth = month
         do inet = 1 , 5
           monthp1 = month+1
@@ -423,6 +430,15 @@ module mod_ein
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
+        if ( idate /= idate0 ) then
+          do irun = 1 , 4
+            do inet = 1 , 5
+              istatus = nf90_close(ncfile(inet,irun))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error close file')
+            end do
+          end do
+        end if
         do irun = 1 , 4
           do inet = 1 , 5
             if ( inet == 3 ) then

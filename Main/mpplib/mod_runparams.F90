@@ -43,6 +43,11 @@ module mod_runparams
   integer(ik4) , public , parameter :: iqr = 3
   integer(ik4) , public , parameter :: iqi = 4
   integer(ik4) , public , parameter :: iqs = 5
+  integer(ik4) , public , parameter :: iqg = 6
+  integer(ik4) , public , parameter :: iqh = 7
+  integer(ik4) , public , parameter :: cqn = 8
+  integer(ik4) , public , parameter :: cqc = 9
+  integer(ik4) , public , parameter :: cqr = 10
 
   integer(ik4) , public , parameter :: number_of_prognostic_components = 3
   integer(ik4) , public , parameter :: pc_total      = 1
@@ -106,14 +111,20 @@ module mod_runparams
   logical , public :: uvrotate
 
   ! Step counters to activate surface and radiation schemes
-  real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
-     rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_optfrq , &
-     rnrad_for_srffrq , rnrad_for_radfrq , rnsrf_for_atmfrq
+  real(rkx) , public :: rnsrf_for_day = d_zero
+  real(rkx) , public :: rnsrf_for_srffrq = d_zero
+  real(rkx) , public :: rnsrf_for_lakfrq = d_zero
+  real(rkx) , public :: rnsrf_for_subfrq = d_zero
+  real(rkx) , public :: rnrad_for_optfrq = d_zero
+  real(rkx) , public :: rnrad_for_radfrq = d_zero
+  real(rkx) , public :: rnsrf_for_atmfrq = d_zero
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !
   ! Run with idealized conditions
   integer(ik4) , public :: irceideal
+  logical , public :: lrcemip_perturb
+  real(rkx) , public :: lrcemip_noise_level
   ! Cumulus scheme index
   integer(ik4) , public :: icup_lnd
   integer(ik4) , public :: icup_ocn
@@ -140,6 +151,8 @@ module mod_runparams
   integer(ik4) , public :: iwavcpl
   ! COP switch indexes
   integer(ik4) , public :: icopcpl
+  ! OASIS coupler switch index
+  integer(ik4) , public :: ioasiscpl
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
   integer(ik4) , public :: isnowdark
@@ -169,7 +182,7 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_1 = .false.
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dzita , mo_anu2
-  real(rkx) , public :: mo_wmax , mo_cflhmax , mo_cflsmax
+  logical , public :: mo_divfilter = .false.
   integer(ik4) , public :: mo_nzfilt
   integer(ik4) , public :: mo_nadv
   integer(ik4) , public :: mo_nsound
@@ -374,6 +387,7 @@ module mod_runparams
 
   ! RRTM scheme parameters
 
+  logical , public :: rrtm_extend
   integer(ik4) , public :: irrtm
   integer(ik4) , public :: irrtm_cldov
   integer(ik4) , public :: irrtm_sw_opcliq
@@ -557,19 +571,19 @@ module mod_runparams
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
   end subroutine allocate_mod_runparams
 
-  logical function iswater(a)
+  pure logical function iswater(a)
     real(rkx) , intent(in) :: a
     iswater = .false.
     if (a > 13.5_rkx .and. a < 15.5_rkx) iswater = .true.
   end function
 
-  logical function isocean(a)
+  pure logical function isocean(a)
     real(rkx) , intent(in) :: a
     isocean = .false.
     if (a > 14.5_rkx .and. a < 15.5_rkx) isocean = .true.
   end function
 
-  logical function islake(a)
+  pure logical function islake(a)
     real(rkx) , intent(in) :: a
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.
@@ -585,19 +599,22 @@ module mod_runparams
     ncin(1) = high_nudge
     ncin(2) = medium_nudge
     ncin(3) = low_nudge
-    if ( idynamic == 3 ) then
-      zcin(1) = 0.0_rkx
-      zcin(2) = 0.5_rkx
-      zcin(3) = 1.0_rkx
-    else
-      zcin(1) = sigma(1)
-      zcin(2) = (sigma(kzp1)-sigma(1))*0.5_rkx
-      zcin(3) = sigma(kzp1)
-    end if
+    zcin(1) = sigma(1)
+    zcin(2) = sigma(findwhere(0.40_rkx))
+    zcin(3) = sigma(kzp1)
     call spline1d(3,zcin,ncin,ycin,kz,hsigma,nudge)
     if ( myid == 0 ) then
       call vprntv(nudge,kz,'Nudging coefficient profile')
     end if
+    contains
+    integer(ik4) function findwhere(val) result(k)
+      implicit none
+      real(rkx) , intent(in) :: val
+      do k = 2 , kz
+        if ( sigma(k) > val ) exit
+      end do
+    end function findwhere
+
   end subroutine exponential_nudging
 
 end module mod_runparams

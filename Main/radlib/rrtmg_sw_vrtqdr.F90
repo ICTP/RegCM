@@ -102,7 +102,7 @@
 
       integer(kind=im) :: ikp, ikx, jk
 
-      real(kind=rb) :: zreflect
+      real(kind=rb) :: zreflect, t1, t2
       real(kind=rb) :: ztdn(klev+1)
 
 ! Definitions
@@ -151,9 +151,24 @@
       do jk = 2,klev
          ikp = jk+1
          zreflect = 1._rb / (1._rb - prefd(jk) * prdnd(jk))
-         ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
-                    (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
-                     ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
+         if ( all([ptdbt(jk),ptra(jk)] > 1.0e-20_rb) ) then
+           t1 = ptdbt(jk) * ptra(jk)
+         else
+           t1 = 0.0_rb
+         end if
+         t2 = ((ztdn(jk) - ptdbt(jk)) + &
+               ptdbt(jk) * pref(jk) * prdnd(jk))
+         if ( all([ptrad(jk),t2] > 1.0e-20_rb) ) then
+           t2 = ptrad(jk) * t2
+         else
+           t2 = 0.0_rb
+         end if
+         if ( all([t2,zreflect] > 1.0e-20_rb) ) then
+           t2 = t2 * zreflect
+         else
+           t2 = 0.0_rb
+         end if
+         ztdn(ikp) = t1 + t2
          prdnd(ikp) = prefd(jk) + ptrad(jk) * ptrad(jk) * &
                       prdnd(jk) * zreflect
       enddo
@@ -171,5 +186,4 @@
       end subroutine vrtqdr_sw
 
       end module rrtmg_sw_vrtqdr
-
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

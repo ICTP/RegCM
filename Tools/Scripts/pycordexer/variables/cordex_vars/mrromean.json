@@ -1,0 +1,32 @@
+{
+  "mrromean": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "mrro"
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "STS": -12.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "mrro",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "kg m-2 s-1",
+            "long_name": "Total Runoff",
+            "standard_name": "runoff_flux"
+          }
+        }
+      ]
+    ]
+  ]
+}

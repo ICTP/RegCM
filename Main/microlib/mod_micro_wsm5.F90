@@ -215,7 +215,7 @@ module mod_micro_wsm5
     type(micro_2_mod) , intent(out) :: mc2mo
 
     integer(ik4) :: i , j , k , kk , n
-    real(rkx) :: pf1 , pf2 , qcw
+    real(rkx) :: pf1 , pf2 , qcw , totp
 
     ! to calculate effective radius for radiation
     !real(rkx) , dimension(kz) :: qv1d , t1d , p1d , qr1d , qs1d
@@ -241,13 +241,13 @@ module mod_micro_wsm5
       kk = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          t(n,kk) = mo2mc%t(j,i,k) + mc2mo%tten(j,i,k)/ptfac(n)
+          t(n,kk) = mo2mc%t(j,i,k)
           p(n,kk) = mo2mc%phs(j,i,k)
-          qv(n,kk) = mo2mc%qxx(j,i,k,iqv) + mc2mo%qxten(j,i,k,iqv)/ptfac(n)
-          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc) + mc2mo%qxten(j,i,k,iqc)/ptfac(n)
-          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi) + mc2mo%qxten(j,i,k,iqi)/ptfac(n)
-          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr) + mc2mo%qxten(j,i,k,iqr)/ptfac(n)
-          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs) + mc2mo%qxten(j,i,k,iqs)/ptfac(n)
+          qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
+          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
+          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
+          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
+          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
           delz(n,kk) = mo2mc%delz(j,i,k)
           !qs(n,kk) = mo2mc%qs(j,i,k)
           !rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
@@ -339,10 +339,11 @@ module mod_micro_wsm5
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)
-        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)
-        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + rain(n)*rdt
-        mc2mo%trrate(j,i) = rain(n)*rdt
+        totp = rain(n) + snow(n)
+        mc2mo%trrate(j,i) = totp * rdt
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + totp
+        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + mc2mo%trrate(j,i)
+        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*rdt
         n = n + 1
       end do
     end do
@@ -655,9 +656,13 @@ module mod_micro_wsm5
           !        (t0>t>-40c: c->i)
           !
           if ( supcol > d_zero .and. qci(i,k,1) > d_zero ) then
-            supcolt = min(supcol,50.0_rkx)
-            pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
-               den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+            if ( qci(i,k,1) > 1.0e-9_rkx ) then
+              supcolt = min(supcol,50.0_rkx)
+              pfrzdtc = min(pfrz1*(exp(pfrz2*supcolt)-d_one) * &
+                 den(i,k)/rhoh2o/xncr*qci(i,k,1)*qci(i,k,1)*dtcld,qci(i,k,1))
+            else
+              pfrzdtc = 0.9_rkx*qci(i,k,1)
+            end if
             qci(i,k,2) = qci(i,k,2) + pfrzdtc
             t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
             qci(i,k,1) = qci(i,k,1)-pfrzdtc
@@ -824,7 +829,7 @@ module mod_micro_wsm5
             ! pidep: deposition/sublimation rate of ice [hdc 9]
             !       (t<t0: v->i or i->v)
             !
-            if ( qci(i,k,2) > d_zero .and. ifsat /= 1 ) then
+            if ( qci(i,k,2) > 1.0e-15_rkx .and. ifsat /= 1 ) then
               xmi = den(i,k)*qci(i,k,2)/xni(i,k)
               diameter = dicon * sqrt(xmi)
               !pidep(i,k) = d_four*diameter*xni(i,k) * &
@@ -1071,9 +1076,8 @@ module mod_micro_wsm5
     pure real(rkx) function xlcal(t)
       implicit none
       real(rkx) , intent(in) :: t
-      real(rkx) , parameter :: xlv0 = 3.15e6_rkx
       real(rkx) , parameter :: xlv1 = 2370.0_rkx
-      xlcal = xlv0-xlv1*(t-tzero)
+      xlcal = wlhv-xlv1*(t-tzero)
     end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor

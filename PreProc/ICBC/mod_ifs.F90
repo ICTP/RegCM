@@ -65,7 +65,6 @@ module mod_ifs
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:) :: glat
-  real(rkx) , pointer , dimension(:) :: ghelp
   real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: slev
   real(rkx) , pointer , dimension(:) :: hyam , hybm
@@ -77,7 +76,6 @@ module mod_ifs
             'lnsp' , 'skt ' , 'st  ' , 'z   ' , 'z_2 ']
   integer(ik4) , dimension(nrvar) :: ivar
 
-  type(global_domain) :: gdomain
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   public :: init_ifs , get_ifs , conclude_ifs
@@ -131,7 +129,6 @@ module mod_ifs
     call getmem1d(hybm,1,hynlev,'mod_ifs:hybm')
     call getmem1d(glat,1,jlat,'mod_ifs:glat')
     call getmem1d(glon,1,ilon,'mod_ifs:glon')
-    call getmem1d(ghelp,1,max(jlat,ilon),'mod_ifs:ghelp')
     call getmem3d(b3,1,jx,1,iy,1,klev*5,'mod_ifs:b3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
@@ -183,22 +180,6 @@ module mod_ifs
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    !
-    ! Find window to read
-    !
-    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
-
-    ghelp(1:jlat) = glat
-    jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_ifs:glat')
-    glat = ghelp(gdomain%jgstart:gdomain%jgstop)
-    ghelp(1:ilon) = glon
-    ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_ifs:glon')
-    glon(1:gdomain%ni(1)) = ghelp(gdomain%igstart(1):gdomain%igstop(1))
-    if ( gdomain%ntiles == 2 ) then
-      glon(gdomain%ni(1)+1:ilon) = ghelp(gdomain%igstart(2):gdomain%igstop(2))
-    end if
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then
@@ -286,7 +267,6 @@ module mod_ifs
     call h_interpolate_cont(cross_hint,xzs,zs)
     call h_interpolate_cont(cross_hint,yzs,z1)
     call h_interpolate_cont(cross_hint,yts,t1)
-    ps = ps * d_r1000
     !
     ! Rotate u-v fields after horizontal interpolation
     !
@@ -300,18 +280,28 @@ module mod_ifs
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
     !
-    call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
+    ps = ps * d_r1000 ! move ps in cb
     if ( idynamic == 3 ) then
-      z3(:,:,klev) = zs(:,:) + log(ps(:,:)/p3(:,:,klev))*rovg* &
-                       0.5_rkx * (t3(:,:,klev)+ts(:,:))
-      do k = klev-1, 1 , -1
-        z3(:,:,k) = z3(:,:,k+1) + log(p3(:,:,k+1)/p3(:,:,k))*rovg* &
-                d_half * (t3(:,:,k+1)*(d_one+ep1*q3(:,:,k+1)) + &
-                          t3(:,:,k)*(d_one+ep1*q3(:,:,k)))
+      do i = 1 , iy
+        do j = 1 , jx
+          z3(j,i,klev) = zs(j,i) + log(ps(j,i)/p3(j,i,klev))*rovg* &
+                       0.5_rkx * (t3(j,i,klev)+ts(j,i))
+        end do
       end do
+      do k = klev-1, 1, -1
+        do i = 1 , iy
+          do j = 1 , jx
+            z3(j,i,k) = z3(j,i,k+1) + log(p3(j,i,k+1)/p3(j,i,k))*rovg* &
+                d_half * (t3(j,i,k+1)*(d_one+ep1*q3(j,i,k+1)) + &
+                          t3(j,i,k)*(d_one+ep1*q3(j,i,k)))
+          end do
+        end do
+      end do
+      call intpsn(ps4,topogm,ps,zs,ts,d_zero,jx,iy)
       call ucrs2dot(z3u,z3,jx,iy,klev,i_band)
       call vcrs2dot(z3v,z3,jx,iy,klev,i_crm)
     else
+      call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
       if ( idynamic == 1 ) then
         do k = 1 , kz
           do i = 1 , iy
@@ -338,11 +328,11 @@ module mod_ifs
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
+      call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
+!$OMP SECTION
       call intz1(u4,u3,zud4,z3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(v4,v3,zvd4,z3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
-!$OMP SECTION
-      call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
       call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP SECTION
@@ -436,73 +426,52 @@ module mod_ifs
         implicit none
         real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: var
         integer(ik4) , intent(in) :: vid
-        integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(4) :: icount , istart
+        istart(1) = 1
+        istart(2) = 1
         istart(3) = 1
-        icount(3) = klev
         istart(4) = it
+        icount(1) = ilon
+        icount(2) = jlat
+        icount(3) = klev
         icount(4) = 1
-        iti = 1
-        do itile = 1 , gdomain%ntiles
-          istart(1) = gdomain%igstart(itile)
-          icount(1) = gdomain%ni(itile)
-          ! Latitudes are reversed in original file
-          istart(2) = gdomain%jgstart
-          icount(2) = gdomain%nj
-          itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(ncin,vid,var(iti:itf,:,:),istart,icount)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(iv))
-          iti = iti + gdomain%ni(itile)
-        end do
+        istatus = nf90_get_var(ncin,vid,var,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(iv))
       end subroutine getwork3
 
       subroutine getwork2(vid,var)
         implicit none
         real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
         integer(ik4) , intent(in) :: vid
-        integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(3) :: icount , istart
+        istart(1) = 1
+        istart(2) = 1
         istart(3) = it
+        icount(1) = ilon
+        icount(2) = jlat
         icount(3) = 1
-        iti = 1
-        do itile = 1 , gdomain%ntiles
-          istart(1) = gdomain%igstart(itile)
-          icount(1) = gdomain%ni(itile)
-          ! Latitudes are reversed in original file
-          istart(2) = gdomain%jgstart
-          icount(2) = gdomain%nj
-          itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(ncin,vid,var(iti:itf,:),istart,icount)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(iv))
-          iti = iti + gdomain%ni(itile)
-        end do
+        istatus = nf90_get_var(ncin,vid,var,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(iv))
       end subroutine getwork2
 
       subroutine getwork23(vid,var)
         implicit none
         real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
         integer(ik4) , intent(in) :: vid
-        integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(4) :: icount , istart
-        istart(4) = it
-        icount(4) = 1
+        istart(1) = 1
+        istart(2) = 1
         istart(3) = 1
+        istart(4) = it
+        icount(1) = ilon
+        icount(2) = jlat
         icount(3) = 1
-        iti = 1
-        do itile = 1 , gdomain%ntiles
-          istart(1) = gdomain%igstart(itile)
-          icount(1) = gdomain%ni(itile)
-          ! Latitudes are reversed in original file
-          istart(2) = gdomain%jgstart
-          icount(2) = gdomain%nj
-          itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(ncin,vid,var(iti:itf,:),istart,icount)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var '//varname(iv))
-          iti = iti + gdomain%ni(itile)
-        end do
+        icount(4) = 1
+        istatus = nf90_get_var(ncin,vid,var,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(iv))
       end subroutine getwork23
 
     end subroutine ifs6hour

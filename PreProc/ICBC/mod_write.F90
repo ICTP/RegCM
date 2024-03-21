@@ -513,6 +513,17 @@ module mod_write
 
     call outstream_addatt(ncout, &
                  ncattribute_string('global_atm_source',dattyp))
+    if ( dattyp == 'CMIP6' ) then
+      call outstream_addatt(ncout, &
+        ncattribute_string('cmip6_model', &
+            trim(cmip6_model)//'_'//trim(cmip6_experiment)//'_'// &
+            trim(cmip6_variant)//'_'//trim(cmip6_grid)))
+    else if ( dattyp == 'PMIP4' ) then
+      call outstream_addatt(ncout, &
+        ncattribute_string('pmip4_model', &
+            trim(pmip4_model)//'_'//trim(pmip4_experiment)//'_'// &
+            trim(pmip4_variant)//'_'//trim(pmip4_grid)))
+    end if
     v2dvar_icbc(1)%rval => xlon
     v2dvar_icbc(2)%rval => xlat
     v2dvar_icbc(3)%rval => mask

@@ -98,19 +98,31 @@
 !
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'EIN75',           ! Type of Sea Surface Temperature used
+ ssttyp = 'ERAXX',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
-                             !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
- dattyp = 'EIN75',           ! Type of global analysis datasets used
-                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
-                             !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
-                             !          IP_XX, GF_XX, CN_XX, MP_XX, CMIP6
-                             ! with XX for CMIP5 datasets in 26, 45, 85
+                             !   TMIST, ERSST, ERSKT, CAM4N, FV_A2, CCSM3,
+                             !   FV_B2, EH5A2, EH5B1, EHA1B, EIXXX, EIN75,
+                             !   EIN15, CCSST, CA_??, HA_??, EC_??, IP_??,
+                             !   GF_??, CN_??, MP_??, E5_A2, CMIP6, ERA5D,
+                             !   ERA5 , HRMED, ERAXX, PMIP4, LGMNN, CFSNN,
+                             !   JRA55, EIXXX
+                             ! for all codes, look into sst.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
                              ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
+ dattyp = 'ERAXX',           ! Type of global analysis datasets used
+                             !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
+                             !   ERAHI, NNRP1, NNRP2, NRP2W, GFS11, FVGCM,
+                             !   FNEST, EH5A2, EH5B1, EHA1B, CCSMN, ECEXY,
+                             !   CA_??, HA_??, EC_??, IP_??, GF_??, CN_??,
+                             !   MP_??, CFSNN, CAM4N, CCSM3, ERA5 , ERAXX,
+                             !   IFSXX, CMIP6, PMIP4
+                             ! for all codes, look into icbc.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
+                             ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -129,73 +141,85 @@
  &cmip6param
  cmip6_model = 'MPI-ESM1-2-HR',
  cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
- cmip6_ssp = 'ssp585',
+ cmip6_experiment = 'ssp585',
  cmip6_variant = 'r1i1p1f1',
  cmip6_grid = 'gn',
  /
  ! &cmip6param
  ! cmip6_model = 'HadGEM3-GC31-MM',
  ! cmip6_inp = 'https://esgf-data3.ceda.ac.uk/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f3',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'NorESM2-MM',
  ! cmip6_inp = 'http://noresg.nird.sigma2.no/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CNRM-ESM2-1',
  ! cmip6_inp = 'https://esg1.umr-cnrm.fr/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_inp = 'https://esgf-data04.diasjp.net/thredds/dodsC/esg_dataroot',
+ ! cmip6_inp = 'https://esgf.nci.org.au/thredds/dodsC/replica/',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CESM2',
  ! cmip6_inp = 'https://esgf-data.ucar.edu/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r11i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'EC-Earth3-Veg',
  ! cmip6_inp = 'https://esg-dn1.nsc.liu.se/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gr',
  ! /
  ! &cmip6param
  ! cmip6_model = 'MIROC6',
  ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'MIROC-ES2L',
  ! cmip6_inp = 'http://esgf-data2.diasjp.net/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f2',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CanESM5',
  ! cmip6_inp = 'https://crd-esgf-drc.ec.gc.ca/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p2f1',
  ! cmip6_grid = 'gn',
  ! /
  ! &cmip6param
  ! cmip6_model = 'CMCC-ESM2',
  ! cmip6_inp = 'https://esgf-node2.cmcc.it/thredds/dodsC',
- ! cmip6_ssp = 'ssp585',
+ ! cmip6_experiment = 'ssp585',
  ! cmip6_variant = 'r1i1p1f1',
  ! cmip6_grid = 'gn',
  ! /
+!
+! PMIP4 model selection
+!
+ &pmip4param
+ pmip4_model = 'MPI-ESM1-2-LR',
+ pmip4_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ pmip4_experiment = 'lgm',
+ pmip4_variant = 'r1i1p1f2',
+ pmip4_grid = 'gn',
+ /
 !
 ! Nesting control
 !
@@ -260,6 +284,7 @@
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
                               ! Enabled by default if debug_level > 2
+                              ! This is supported only by netCDF3 and CDF5
  uvrotate = .false.,          ! Rotate projected wind to S-N, W-E direction
  icosp = 0,                   ! Enable COSP needed fields in output in the ATM
  idiag = 0,                   ! Enable tendency diagnostic output in the ATM
@@ -316,11 +341,14 @@
                         !   1 => Explicit moisture (SUBEX; Pal et al 2000)
                         !   2 => Explicit moisture Nogherotto/Tompkins
                         !   3 => Explicit moisture WSM5
+                        !   4 => Explicit moisture WSM7
  iocncpl =          0,  ! Ocean SST from coupled Ocean Model through RegESM
                         !   1 => Coupling activated
  iwavcpl =          0,  ! Ocean roughness from coupled Wave Model through RegESM
                         !   1 => Coupling activated
  icopcpl =          0,  ! Export data for COP component (RegESM)
+                        !   1 => Coupling activated
+ ioasiscpl =        0,  ! Use of OASIS3_MCT5.0 (last update: 2023-02-01)
                         !   1 => Coupling activated
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
@@ -348,10 +376,19 @@
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
+                        ! This is reset to zero if using ipptls = 2
  icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
+                        !   2 : digital cloud (0/1) on condensate presence
+                        ! ===================================================
+                        ! NOTE: Using the NoTo microphysics (ipptls=2) the
+                        !       Xu-Randall scheme (icldfrac=1) is recommended
+                        !       to avoid unrealistic values for LWP if the
+                        !       values is computed from actual mixing ratios
+                        !       (iconvlwp = 0).
+                        ! ===================================================
  icldmstrat =        0, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
                         ! clouds (cf and lwc) cloud fractions
@@ -420,11 +457,11 @@
  rayndamp = 5,      ! Number of top levels to apply
  rayalpha0 = .0000115740, ! Rate alpha0 (1/86400)
  rayhd = 10000.0,   ! Damping scale depth
- mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
- mo_anu2 = 0.05,    ! Moloch factor for divergence filtering
- mo_nzfilt = 0,     ! Number of top levels where W filter is active
+ mo_nzfilt = 3,     ! # of top levels where W filter is active (default kz/5)
+ mo_divfilter = .false. ! Do divergence filtering
+ mo_anu2 = 0.6,         ! Moloch factor for divergence filtering
  /
 !
 ! Hydrostatic core option
@@ -594,6 +631,17 @@
  damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
  epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
  epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)
+ istochastic = 0,     ! Stochastic parmaterization, use namelist if 1
+ /
+ &emanstochastic
+ sigs_min = 0.05,
+ sigs_max = 0.25,
+ sigd_min = 0.01,
+ sigd_max = 0.5,
+ epmax_lnd_min = 0.5,
+ epmax_lnd_max = 1.0,
+ elcrit_lnd_min = 0.0001,
+ elcrit_lnd_max = 0.002,
  /
 !
 ! Tiedtke Cumulus scheme control
@@ -729,10 +777,12 @@
                ! icld = 0, clear only
                ! icld = 1, with clouds using random cloud overlap
                ! icld = 2, with clouds using maximum/random cloud overlap
-               ! icld = 3, with clouds using maximum cloud overlap (McICA only) 
+               ! icld = 3, with clouds using maximum cloud overlap (McICA only)
  irng = 1,     ! mersenne twister random generator for McICA COH
  imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
  nradfo = 4,   ! Radiative forcing syncronization
+ rrtm_extend = .false. ! Extend vertical levels above to climatological using
+                       ! std atmosphere vertical profile up to 0.5mb
  /
 !
 ! Chemical control parameter
@@ -883,4 +933,70 @@
  debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
  dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
  /
+!
+! OASIS parameters
+!
+ &oasisparam
+ write_restart_option = 2, ! 0 => no restart file writing
+                           ! 1 => write restart files at the first time
+ l_write_grids = .true.,   ! For writing grids.nc, areas.nc, masks.nc.
+ oasis_sync_lag = 0,       ! Synchronisation lag with other components (sec)
+                           ! > 0 => Regcm starts late
+                           ! < 0 => Regcm starts in advance
+                           ! Should be a multipe of the coupling period
+                           !   in the namcouple.
+                           ! In the namcouple, RUNTIME must have
+                           !   the run duration + oasis_sync_lag.
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+                           ! field    | grid
+                           !-------------------------------------
+ l_cpl_im_sst  = .false.,  ! RCM_SST  | rcim
+ l_cpl_im_wz0  = .false.,  ! RCM_WZ0  | rcim
+ l_cpl_im_wust = .false.,  ! RCM_WUST | rcim
+ l_cpl_ex_u10m = .false.,  ! RCM_U10M | rcin/rcim
+ l_cpl_ex_v10m = .false.,  ! RCM_V10M | rcin/rcim
+ l_cpl_ex_wspd = .false.,  ! RCM_WSPD | rcin/rcim
+ l_cpl_ex_wdir = .false.,  ! RCM_WDIR | rcin/rcim
+ l_cpl_ex_t2m  = .false.,  ! RCM_T2M  | rcin/rcim
+ l_cpl_ex_q2m  = .false.,  ! RCM_Q2M  | rcin/rcim
+ l_cpl_ex_slp  = .false.,  ! RCM_SLP  | rcen/rcem
+ l_cpl_ex_taux = .false.,  ! RCM_TAUX | rcin/rcim
+ l_cpl_ex_tauy = .false.,  ! RCM_TAUY | rcin/rcim
+ l_cpl_ex_z0   = .false.,  ! RCM_Z0   | rcin/rcim
+ l_cpl_ex_ustr = .false.,  ! RCM_USTR | rcin/rcim
+ l_cpl_ex_evap = .false.,  ! RCM_EVAP | rcin/rcim
+ l_cpl_ex_prec = .false.,  ! RCM_PREC | rcin/rcim
+ l_cpl_ex_nuwa = .false.,  ! RCM_NUWA | rcin/rcim
+ l_cpl_ex_ulhf = .false.,  ! RCM_ULHF | rcin/rcim
+ l_cpl_ex_ushf = .false.,  ! RCM_USHF | rcin/rcim
+ l_cpl_ex_uwlw = .false.,  ! RCM_UWLW | rcin/rcim
+ l_cpl_ex_dwlw = .false.,  ! RCM_DWLW | rcin/rcim
+ l_cpl_ex_nulw = .false.,  ! RCM_NULW | rcin/rcim
+ l_cpl_ex_uwsw = .false.,  ! RCM_UWSW | rcin/rcim
+ l_cpl_ex_dwsw = .false.,  ! RCM_DWSW | rcin/rcim
+ l_cpl_ex_ndsw = .false.,  ! RCM_NDSW | rcin/rcim
+ l_cpl_ex_rhoa = .false.,  ! RCM_RHOA | rcin/rcim
+                           !------ NAMCOUPLE FIELD ENTRIES ------
+ /
 ! ####################################################################
+! PostProc
+! ####################################################################
+!
+! For sigma2p, sigma2z the number of vertical levels to interpolate to.
+!
+ &pp_param
+ np = 12,
+ nz = 14
+ /
+!
+! Pressure levels for sigma2p. Unit is hPa (mb).
+!
+ &pressure
+ plevs = 1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100.,
+ /
+!
+! Height levels for sigma2z. Unit is meter.
+!
+ &height
+ zlevs = 20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0,1500.0,2000.0,5000.0,7000.0,10000.0,
+ /

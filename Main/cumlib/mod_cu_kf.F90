@@ -21,7 +21,7 @@ module mod_cu_kf
   use mod_realkinds
   use mod_intkinds
   use mod_constants , only : egrav , regrav , rdry , gdry , tzero
-  use mod_constants , only : aliq , bliq , cliq , dliq
+  use mod_constants , only : aliq , bliq , cliq , dliq , ep1
   use mod_constants , only : cpd , rcpd , wlhf , p00
   use mod_constants , only : d_zero , d_one , d_half , d_two
   use mod_constants , only : d_10 , d_100 , d_1000 , dlowval
@@ -437,7 +437,7 @@ module mod_cu_kf
       do k = 1 , kx
         rh(k) = max(min(d_one,q0(k,np)/qes(k,np)),d_zero)
         dilfrc(k) = d_one
-        tv0(k) = t0(k,np) * (d_one + 0.608_rkx*q0(k,np))
+        tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(k,np)*egrav*dzq(k,np)
         wspd(k) = sqrt(u0(k,np)*u0(k,np) + v0(k,np)*v0(k,np))
@@ -571,7 +571,7 @@ module mod_cu_kf
         tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-tzero) - &
                        4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
         tlcl = min(tlcl,tmix)
-        tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
+        tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl1: &
         do nk = lc , kl
@@ -588,7 +588,7 @@ module mod_cu_kf
         !
         tenv = t0(k,np) + (t0(klcl,np)-t0(k,np))*dlp
         qenv = q0(k,np) + (q0(klcl,np)-q0(k,np))*dlp
-        tven = tenv*(d_one + 0.608_rkx*qenv)
+        tven = tenv*(d_one + ep1*qenv)
         !
         ! Check to see if cloud is buoyant using fritsch-chappell trigger
         ! function described in kain and fritsch (1992). w0 is an
@@ -668,7 +668,7 @@ module mod_cu_kf
           end if
           plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
           wtw = wlcl*wlcl
-          tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
+          tvlcl = tlcl*(d_one + ep1*qmix)
           rholcl = plcl/(rdry*tvlcl)
           lcl = klcl
           let = lcl
@@ -775,7 +775,7 @@ module mod_cu_kf
               call dtfrznew(tu(nk1),p0(nk1,np),theteu(nk1), &
                             qu(nk1),qfrz,qice(nk1))
             end if
-            tvu(nk1) = tu(nk1)*(d_one + 0.608_rkx*qu(nk1))
+            tvu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1))
             !
             ! Calculate updraft vertical velocity and precipitation fallout.
             !
@@ -810,7 +810,7 @@ module mod_cu_kf
             !
             ! KF (1990) Eq. 1; Kain (2004) Eq. 5
             rei = vmflcl*dp(nk1)*kf_entrate/rad
-            tvqu(nk1) = tu(nk1)*(d_one + 0.608_rkx*qu(nk1)-qliq(nk1)-qice(nk1))
+            tvqu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1)-qliq(nk1)-qice(nk1))
             if ( nk == k ) then
               dilbe = ((tvlcl+tvqu(nk1))/(tven+tv0(nk1)) - d_one)*dzz
             else
@@ -840,7 +840,7 @@ module mod_cu_kf
               tmpice = f2*qice(nk1)
               call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
                           tmpliq,tmpice,qnewlq,qnewic)
-              tu95 = ttmp*(d_one + 0.608_rkx*qtmp-tmpliq-tmpice)
+              tu95 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
               if ( tu95 > tv0(nk1) ) then
                 ee2 = d_one
                 ud2 = d_zero
@@ -854,7 +854,7 @@ module mod_cu_kf
                 tmpice = f2*qice(nk1)
                 call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
                             tmpliq,tmpice,qnewlq,qnewic)
-                tu10 = ttmp*(d_one + 0.608_rkx*qtmp-tmpliq-tmpice)
+                tu10 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
                 if ( tvdiff < 1.0e-3_rkx ) then
                   ee2 = d_one
@@ -956,7 +956,7 @@ module mod_cu_kf
             chmin = 4.0e3_rkx
           else if ( tlcl <= 293.0_rkx .and. tlcl >= 273.0_rkx ) then
             chmin = 2.0e3_rkx + d_100 * (tlcl - 273.0_rkx)
-          else if ( tlcl < 273.0_rkx ) then
+          else
             chmin = 2.0e3_rkx
           end if
           do nk = k , ltop
@@ -1280,7 +1280,7 @@ module mod_cu_kf
           !
           ! Take a first guess at the initial downdraft mass flux
           !
-          tvd(lfs) = tz(lfs)*(d_one + 0.608_rkx*qss)
+          tvd(lfs) = tz(lfs)*(d_one + ep1*qss)
           rdd = p0(lfs,np)/(rdry*tvd(lfs))
           a1 = (d_one-peff)*au0
           dmf(lfs) = -a1*rdd
@@ -1362,7 +1362,7 @@ module mod_cu_kf
               qss = qsrh
               qsd(nd) = qss
             end if
-            tvd(nd) = tz(nd)*(d_one + 0.608_rkx*qsd(nd))
+            tvd(nd) = tz(nd)*(d_one + ep1*qsd(nd))
             if ( tvd(nd) > tv0(nd) .or. nd == 1 ) then
               ldb = nd
               exit findldb
@@ -1618,7 +1618,7 @@ module mod_cu_kf
         do nk = 1 , ltop
           exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
-          tvg(nk) = tg(nk)*(d_one + 0.608_rkx*qg(nk))
+          tvg(nk) = tg(nk)*(d_one + ep1*qg(nk))
         end do
         if ( ishall == 1 ) then
           exit iter
@@ -1669,7 +1669,7 @@ module mod_cu_kf
                          4.36e-4_rkx*(tmix-tzero))*(tmix-tdpt)
           tlcl = min(tlcl,tmix)
         end if
-        tvlcl = tlcl*(d_one + 0.608_rkx*qmix)
+        tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl2: &
         do nk = lc , kl
@@ -1686,7 +1686,7 @@ module mod_cu_kf
         !
         tenv = tg(k) + (tg(klcl)-tg(k))*dlp
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
-        tven = tenv*(d_one + 0.608_rkx*qenv)
+        tven = tenv*(d_one + ep1*qenv)
         plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
         theteu(k) = tmix*(p00/pmix)**(0.2854_rkx*(d_one-0.28_rkx*qmix))* &
                exp((c1/tlcl-c2)*qmix*(d_one+c3*qmix))
@@ -1698,7 +1698,7 @@ module mod_cu_kf
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
           call tpmix2dd(p0(nk1,np),theteu(nk1),tgu(nk1),qgu(nk1))
-          tvqu(nk1) = tgu(nk1)*(d_one + 0.608_rkx*qgu(nk1)-qliq(nk1)-qice(nk1))
+          tvqu(nk1) = tgu(nk1)*(d_one + ep1*qgu(nk1)-qliq(nk1)-qice(nk1))
           if ( nk == k ) then
             dzz = z0(klcl,np) - zlcl
             dilbe = ((tvlcl+tvqu(nk1))/(tven+tvg(nk1))-d_one)*dzz
@@ -1723,6 +1723,8 @@ module mod_cu_kf
         end if
         dabe = max(abe-abeg, 0.1_rkx*abe)
         fabe = abeg/abe
+        aincold = ainc
+        fabeold = fabe
         if ( fabe > d_one .and. ishall == 0 ) then
           ishall = 2
           cycle modelpoints

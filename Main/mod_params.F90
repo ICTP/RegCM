@@ -51,6 +51,9 @@ module mod_params
   use mod_zita
   use mod_moloch
   use mod_timefilter
+#ifdef OASIS
+  use mod_oasis_interface
+#endif
 
   implicit none
 
@@ -105,7 +108,7 @@ module mod_params
       icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
       islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
       ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
-      year_offset , radclimpath
+      year_offset , radclimpath , ioasiscpl
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -115,10 +118,10 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_anu2 , mo_nadv , mo_nsound , mo_wmax , mo_nzfilt
+      mo_divfilter , mo_anu2 , mo_nadv , mo_nsound , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
-      iceflglw , liqflglw , icld , irng , imcica , nradfo
+      iceflglw , liqflglw , icld , irng , imcica , nradfo , rrtm_extend
 
     namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
       cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , k2_const , &
@@ -175,6 +178,41 @@ module mod_params
 #endif
 
     namelist /cplparam/ cpldt , zomax , ustarmax
+
+#ifdef OASIS
+    namelist /oasisparam/ l_write_grids , write_restart_option , &
+                          oasis_sync_lag , &
+                          l_cpl_im_sst , &
+!                          l_cpl_im_sit , &
+                          l_cpl_im_wz0 , &
+                          l_cpl_im_wust , &
+                          l_cpl_ex_u10m , &
+                          l_cpl_ex_v10m , &
+                          l_cpl_ex_wspd , &
+                          l_cpl_ex_wdir , &
+                          l_cpl_ex_t2m , &
+!                          l_cpl_ex_t10m , &
+                          l_cpl_ex_q2m , &
+!                          l_cpl_ex_q10m , &
+                          l_cpl_ex_slp , &
+                          l_cpl_ex_taux , &
+                          l_cpl_ex_tauy , &
+                          l_cpl_ex_z0 , &
+                          l_cpl_ex_ustr , &
+                          l_cpl_ex_evap , &
+                          l_cpl_ex_prec , &
+                          l_cpl_ex_nuwa , &
+                          l_cpl_ex_ulhf , &
+                          l_cpl_ex_ushf , &
+                          l_cpl_ex_uwlw , &
+                          l_cpl_ex_dwlw , &
+                          l_cpl_ex_nulw , &
+                          l_cpl_ex_uwsw , &
+                          l_cpl_ex_dwsw , &
+                          l_cpl_ex_ndsw , &
+                          l_cpl_ex_rhoa
+    ! OASIS field +++
+#endif
 
     namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
       sst_restore_timescale , mixed_layer_depth
@@ -264,6 +302,7 @@ module mod_params
     iocncpl = 0
     iwavcpl = 0
     icopcpl = 0
+    ioasiscpl = 0
     lakemod = 0
     ichem = 0
     scenario = 'RCP4.5'
@@ -271,7 +310,11 @@ module mod_params
     idcsst = 0
     iseaice = 0
     iconvlwp = 1
-    icldfrac = 0
+#ifdef RCEMIP
+    icldfrac = 2
+#else
+    icldfrac = 1
+#endif
     icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
@@ -302,11 +345,11 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 1.0_rkx/86400.0_rkx
     rayhd = 10000.0_rkx
-    mo_wmax = 150.0_rkx
     mo_nadv = 3
     mo_nsound = 5
-    mo_anu2 = 0.05_rkx
-    mo_nzfilt = 0
+    mo_divfilter = .false.
+    mo_anu2 = 0.6_rkx
+    mo_nzfilt = kz/5
     !
     ! Rrtm radiation param ;
     !
@@ -318,8 +361,9 @@ module mod_params
     liqflglw = 1
     icld  = 1
     imcica = 1
-    irng = 1
+    irng = 0
     nradfo = 4
+    rrtm_extend = .true.
     !
     ! Subexparam ;
     ! From Pal et al, 2000
@@ -343,8 +387,13 @@ module mod_params
     rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
+#ifdef RCEMIP
+    clfrcvmax = 1.00_rkx   ! Max cloud fractional cover for convective precip.
+    cftotmax  = 1.00_rkx   ! Max total cover cloud fraction for radiation
+#else
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
+#endif
     k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
@@ -370,7 +419,7 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqr = 4.0_rkx
-    vfqi = 0.15_rkx
+    vfqi = 0.015_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
@@ -415,7 +464,7 @@ module mod_params
     elcrit_ocn = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 0.0011_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 1.50_rkx       ! Coefficient of mixing in the entrainment formulation
+    entp = 0.50_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
     sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
@@ -568,6 +617,45 @@ module mod_params
     cpldt = 21600.0_rkx  ! coupling time step in seconds (seconds)
     zomax = 0.02_rkx     ! maximum allowed surface roughness from wave comp.
     ustarmax = 0.02_rkx  ! maximum allowed friction velocity from wave comp.
+
+#ifdef OASIS
+    !
+    ! oasisparam ;
+    !
+    write_restart_option = 0
+    l_write_grids = .false.
+    oasis_sync_lag = 0
+    l_cpl_im_sst  = .false.
+!    l_cpl_im_sit  = .false.
+    l_cpl_im_wz0  = .false.
+    l_cpl_im_wust = .false.
+    l_cpl_ex_u10m = .false.
+    l_cpl_ex_v10m = .false.
+    l_cpl_ex_wspd = .false.
+    l_cpl_ex_wdir = .false.
+    l_cpl_ex_t2m  = .false.
+!    l_cpl_ex_t10m = .false.
+    l_cpl_ex_q2m  = .false.
+!    l_cpl_ex_q10m = .false.
+    l_cpl_ex_slp  = .false.
+    l_cpl_ex_taux = .false.
+    l_cpl_ex_tauy = .false.
+    l_cpl_ex_z0   = .false.
+    l_cpl_ex_ustr = .false.
+    l_cpl_ex_evap = .false.
+    l_cpl_ex_prec = .false.
+    l_cpl_ex_nuwa = .false.
+    l_cpl_ex_ulhf = .false.
+    l_cpl_ex_ushf = .false.
+    l_cpl_ex_uwlw = .false.
+    l_cpl_ex_dwlw = .false.
+    l_cpl_ex_nulw = .false.
+    l_cpl_ex_uwsw = .false.
+    l_cpl_ex_dwsw = .false.
+    l_cpl_ex_ndsw = .false.
+    l_cpl_ex_rhoa = .false.
+    ! OASIS field +++
+#endif
 
 #ifdef CLM
     if ( myid == italk ) then
@@ -852,7 +940,7 @@ module mod_params
           kf_tkemax = 3.0_rkx
         end if
       end if
-      if ( iocnflx < 1 .or. iocnflx > 3 ) then
+      if ( iocnflx < 0 .or. iocnflx > 3 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED OCEAN FLUX SCHEME.')
       end if
@@ -1001,6 +1089,29 @@ module mod_params
           itweak = 0
         end if
       end if
+
+#ifdef OASIS
+      if ( ioasiscpl == 1 ) then
+        rewind(ipunit)
+        read(ipunit, oasisparam, iostat=iretval, err=122)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'OASIS parameters absent.'
+          write(stdout,*) 'Disable OASIS coupling.'
+          ioasiscpl = 0
+#ifdef DEBUG
+        else
+          write(stdout,*) 'Read oasisparam OK'
+#endif
+        end if
+      end if
+#else
+      if ( ioasiscpl == 1 ) then
+        write(stdout,*) 'ioasiscpl set to 1 while OASIS has'
+        write(stdout,*) 'not been enabled during compilation.'
+        write(stdout,*) 'Disable OASIS coupling.'
+        ioasiscpl = 0
+      end if
+#endif
 
       close(ipunit)
 
@@ -1187,6 +1298,7 @@ module mod_params
     call bcast(iocncpl)
     call bcast(iwavcpl)
     call bcast(icopcpl)
+    call bcast(ioasiscpl)
     call bcast(iocnrough)
     call bcast(iocnzoq)
     call bcast(ipgf)
@@ -1207,8 +1319,8 @@ module mod_params
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
       ! Moloch paramters here
+      call bcast(mo_divfilter)
       call bcast(mo_anu2)
-      call bcast(mo_wmax)
       call bcast(mo_nzfilt)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
@@ -1303,6 +1415,44 @@ module mod_params
       call bcast(zomax)
       call bcast(ustarmax)
     end if
+
+#ifdef OASIS
+    if ( ioasiscpl == 1 ) then
+      call bcast(write_restart_option)
+      call bcast(l_write_grids)
+      call bcast(oasis_sync_lag)
+      call bcast(l_cpl_im_sst)
+!      call bcast(l_cpl_im_sit)
+      call bcast(l_cpl_im_wz0)
+      call bcast(l_cpl_im_wust)
+      call bcast(l_cpl_ex_u10m)
+      call bcast(l_cpl_ex_v10m)
+      call bcast(l_cpl_ex_wspd)
+      call bcast(l_cpl_ex_wdir)
+      call bcast(l_cpl_ex_t2m)
+!      call bcast(l_cpl_ex_t10m)
+      call bcast(l_cpl_ex_q2m)
+!      call bcast(l_cpl_ex_q10m)
+      call bcast(l_cpl_ex_slp)
+      call bcast(l_cpl_ex_taux)
+      call bcast(l_cpl_ex_tauy)
+      call bcast(l_cpl_ex_z0)
+      call bcast(l_cpl_ex_ustr)
+      call bcast(l_cpl_ex_evap)
+      call bcast(l_cpl_ex_prec)
+      call bcast(l_cpl_ex_nuwa)
+      call bcast(l_cpl_ex_ulhf)
+      call bcast(l_cpl_ex_ushf)
+      call bcast(l_cpl_ex_uwlw)
+      call bcast(l_cpl_ex_dwlw)
+      call bcast(l_cpl_ex_nulw)
+      call bcast(l_cpl_ex_uwsw)
+      call bcast(l_cpl_ex_dwsw)
+      call bcast(l_cpl_ex_ndsw)
+      call bcast(l_cpl_ex_rhoa)
+      ! OASIS field +++
+    end if
+#endif
 
     call bcast(scenario,8)
     call bcast(ghg_year_const)
@@ -1404,13 +1554,18 @@ module mod_params
       call bcast(rcldiff)
     end if
 
-    if ( ipptls > 1 ) then
+    iqfrst = iqc
+    if ( ipptls == 2 .or. ipptls == 3 ) then
       nqx = 5
-      iqfrst = iqc
       iqlst  = iqs
+    else if ( ipptls == 4 ) then
+      nqx = 7
+      iqlst  = iqh
+    else if ( ipptls == 5 ) then
+      nqx = 10
+      iqlst = iqh
     else
       nqx = 2
-      iqfrst = iqc
       iqlst  = iqc
     end if
 
@@ -1425,6 +1580,7 @@ module mod_params
       call bcast(irng)
       call bcast(imcica)
       call bcast(nradfo)
+      call bcast(rrtm_extend)
       if ( imcica == 0 .and. inflgsw == 2 ) then
         if ( myid == italk ) then
           write(stderr,*) &
@@ -1609,7 +1765,8 @@ module mod_params
     rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
 
     if ( iclimaaer == 1 ) then
-      call init_aerclima
+      ntr = aerclima_ntr
+      nbin = aerclima_nbin
     end if
     !
     ! ALLOCATE NEEDED SPACE
@@ -1782,18 +1939,24 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
+    call bcast(ds)
     if ( irceideal == 1 ) then
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
       mddom%mask = 0.0_rkx
       mddom%msfx = 1.0_rkx
+      mddom%area = (ds*d_1000)**2
       dl = raddeg * (ds*d_1000)/earthrad
       do i = ide1 , ide2
         do j = jde1 , jde2
           mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
           mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
+#ifdef RCEMIP
+          mddom%coriol(j,i) = 0.0_rkx
+#else
           mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
+#endif
         end do
       end do
       if ( idynamic == 3 ) then
@@ -1845,13 +2008,12 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriol = d_one
+      mddom%coriol = d_zero
     end if
 
     if ( idynamic == 3 ) then
       ptop = 0.1_rkx ! assume 1 mbar (.1 cbar)
     end if
-    call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
 
@@ -2007,32 +2169,34 @@ module mod_params
       write(stdout,'(a,i2)') '  Marine stratocumulus        : ' , icldmstrat
       write(stdout,'(a,i2)') '  Climate O3 dataset          : ' , iclimao3
       write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ' , iclimaaer
+#ifndef RCEMIP
       write(stdout,*) 'Boundary Pameterizations'
-      write(stdout,'(a,i2)') '  Num. of bndy points cross  : ', nspgx
-      write(stdout,'(a,i2)') '  Num. of bndy points dot    : ', nspgd
+      write(stdout,'(a,i3)') '  Num. of bndy points cross  : ', nspgx
+      write(stdout,'(a,i3)') '  Num. of bndy points dot    : ', nspgd
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
       write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
       write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
       write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
+#endif
 #ifdef CLM
       write(stdout,*) 'CLM Pameterizations'
       write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask
       write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
 #endif
       write(stdout,*) 'Model Timestep Pameterizations'
-      write(stdout,'(a,f12.6)') '  time step for dynamical '// &
+      write(stdout,'(a,f18.6)') '  time step for dynamical '// &
             'model in seconds : ' , dt
-      write(stdout,'(a,f12.6)') '  time step for surface   '// &
+      write(stdout,'(a,f18.6)') '  time step for surface   '// &
             'model in seconds : ' , dtsrf
-      write(stdout,'(a,f12.6)') '  time step for cumulus   '// &
+      write(stdout,'(a,f18.6)') '  time step for cumulus   '// &
             'model in seconds : ' , dtcum
-      write(stdout,'(a,f12.6)') '  time step for radiation '// &
+      write(stdout,'(a,f18.6)') '  time step for radiation '// &
             'model in seconds : ' , dtrad
-      write(stdout,'(a,f12.6)') '  time step for emission  '// &
+      write(stdout,'(a,f18.6)') '  time step for emission  '// &
             'model in seconds : ' , dtabem
       if ( ichem == 1 ) then
-        write(stdout,'(a,f12.6)') '  time step for chemistry '// &
+        write(stdout,'(a,f18.6)') '  time step for chemistry '// &
               'model in seconds : ' , dtche
       end if
     end if
@@ -2464,8 +2628,8 @@ module mod_params
     if ( any(icup == 3) ) then
       if ( myid == italk ) then
         write(stderr,*) &
-          'The Betts-Miller Convection scheme has been removed in V5.'
-        call fatal(__FILE__,__LINE__,'MODEL STOPS')
+          'WARNING : The Betts-Miller Convection scheme is not ', &
+          'properly implemented'
       end if
     end if
     if ( any(icup == 4) ) then
@@ -2678,6 +2842,92 @@ module mod_params
       end if
     end if
 
+#ifdef OASIS
+   l_cpl_im_sst  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_sst )
+!   l_cpl_im_sit  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_sit )
+   l_cpl_im_wz0  = ( ioasiscpl == 1 ) .and. ( l_cpl_im_wz0 )
+   l_cpl_im_wust = ( ioasiscpl == 1 ) .and. ( l_cpl_im_wust )
+   l_cpl_ex_u10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_u10m )
+   l_cpl_ex_v10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_v10m )
+   l_cpl_ex_wspd = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_wspd )
+   l_cpl_ex_wdir = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_wdir )
+   l_cpl_ex_t2m  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_t2m )
+!   l_cpl_ex_t10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_t10m )
+   l_cpl_ex_q2m  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_q2m )
+!   l_cpl_ex_q10m = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_q10m )
+   l_cpl_ex_slp  = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_slp )
+   l_cpl_ex_taux = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_taux )
+   l_cpl_ex_tauy = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_tauy )
+   l_cpl_ex_z0   = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_z0 )
+   l_cpl_ex_ustr = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_ustr )
+   l_cpl_ex_evap = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_evap )
+   l_cpl_ex_prec = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_prec )
+   l_cpl_ex_nuwa = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_nuwa )
+   l_cpl_ex_ulhf = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_ulhf )
+   l_cpl_ex_ushf = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_ushf )
+   l_cpl_ex_uwlw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_uwlw )
+   l_cpl_ex_dwlw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_dwlw )
+   l_cpl_ex_nulw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_nulw )
+   l_cpl_ex_uwsw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_uwsw )
+   l_cpl_ex_dwsw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_dwsw )
+   l_cpl_ex_ndsw = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_ndsw )
+   l_cpl_ex_rhoa = ( ioasiscpl == 1 ) .and. ( l_cpl_ex_rhoa )
+   ! OASIS field +++
+   if ( ioasiscpl == 1 ) then
+     if ( myid == italk ) then
+       write(stdout,*) 'OASIS COUPLING ENABLED!'
+       write(stdout,*) 'Component name is: ' , comp_name
+       write(stdout,"(A,I2)") '   Component id is: ' , comp_id
+       write(stdout,*) '      Sync lag is: ' , oasis_sync_lag
+     end if
+     if ( .not. l_cpl_im_sst  .and. &
+!          .not. l_cpl_im_sit  .and. &
+          .not. l_cpl_im_wz0  .and. &
+          .not. l_cpl_im_wust .and. &
+          .not. l_cpl_ex_u10m .and. &
+          .not. l_cpl_ex_v10m .and. &
+          .not. l_cpl_ex_wspd .and. &
+          .not. l_cpl_ex_wdir .and. &
+          .not. l_cpl_ex_t2m  .and. &
+!          .not. l_cpl_ex_t10m .and. &
+          .not. l_cpl_ex_q2m  .and. &
+!          .not. l_cpl_ex_q10m .and. &
+          .not. l_cpl_ex_slp  .and. &
+          .not. l_cpl_ex_taux .and. &
+          .not. l_cpl_ex_tauy .and. &
+          .not. l_cpl_ex_z0   .and. &
+          .not. l_cpl_ex_ustr .and. &
+          .not. l_cpl_ex_evap .and. &
+          .not. l_cpl_ex_prec .and. &
+          .not. l_cpl_ex_nuwa .and. &
+          .not. l_cpl_ex_ulhf .and. &
+          .not. l_cpl_ex_ushf .and. &
+          .not. l_cpl_ex_uwlw .and. &
+          .not. l_cpl_ex_dwlw .and. &
+          .not. l_cpl_ex_nulw .and. &
+          .not. l_cpl_ex_uwsw .and. &
+          .not. l_cpl_ex_dwsw .and. &
+          .not. l_cpl_ex_ndsw .and. &
+          .not. l_cpl_ex_rhoa ) then
+          ! OASIS field +++
+       if ( myid == italk ) then
+         write(stdout,*) 'Warning: no enabled coupling field found.'
+         write(stdout,*) 'Disable OASIS coupling.'
+       end if
+       ioasiscpl = 0
+     end if
+     if ( ioasiscpl == 1 ) then
+       if ( write_restart_option < 0 .or. write_restart_option > 3 ) then
+         if ( myid == italk ) then
+           write(stdout,*) 'Warning: write_restart_option is out of bounds.'
+           write(stdout,*) 'It is now set to 0.'
+         end if
+         write_restart_option = 0
+       end if
+     end if
+   end if
+#endif
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -2708,6 +2958,9 @@ module mod_params
 #endif
 120 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
 121 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+#ifdef OASIS
+122 call fatal(__FILE__,__LINE__, 'Error reading OASISPARAM')
+#endif
 
     contains
 

@@ -286,6 +286,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rainc
     real(rkx) , pointer , dimension(:,:) :: rainnc
     real(rkx) , pointer , dimension(:,:) :: snownc
+    real(rkx) , pointer , dimension(:,:) :: grplnc
+    real(rkx) , pointer , dimension(:,:) :: hailnc
     real(rkx) , pointer , dimension(:,:) :: hfx
     real(rkx) , pointer , dimension(:,:) :: qfx
     real(rkx) , pointer , dimension(:,:) :: tgbb
@@ -448,6 +450,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: tauy
     real(rkx) , pointer , dimension(:,:,:) :: swalb
     real(rkx) , pointer , dimension(:,:,:) :: lwalb
+    real(rkx) , pointer , dimension(:,:,:) :: urlwf
     real(rkx) , pointer , dimension(:,:,:) :: swdiralb
     real(rkx) , pointer , dimension(:,:,:) :: lwdiralb
     real(rkx) , pointer , dimension(:,:,:) :: swdifalb
@@ -533,9 +536,13 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
     real(rkx) , pointer , dimension(:,:) :: dwrlwf      ! flwd
+    real(rkx) , pointer , dimension(:,:) :: uwrlwf      ! flwu
     real(rkx) , pointer , dimension(:,:) :: zencos      ! coszrs
     real(rkx) , pointer , dimension(:,:) :: ncprate     ! pptnc
     real(rkx) , pointer , dimension(:,:) :: cprate      ! cprate
+    real(rkx) , pointer , dimension(:,:) :: snwrat      ! snwrat
+    real(rkx) , pointer , dimension(:,:) :: grprat      ! grprat
+    real(rkx) , pointer , dimension(:,:) :: hairat      ! hairat
     real(rkx) , pointer , dimension(:,:) :: vegswab     ! sabveg
     real(rkx) , pointer , dimension(:,:) :: lwalb       ! albvl
     real(rkx) , pointer , dimension(:,:) :: swalb       ! albvs
@@ -568,6 +575,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: cldlwc
     real(rkx) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
     real(rkx) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rkx) , pointer , dimension(:,:,:) :: rhoatms       ! atms%rhob3d
     real(rkx) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:) :: za            ! atms%za
@@ -762,6 +770,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rainnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: lsmrnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: snownc    ! sfc
+    real(rkx) , pointer , dimension(:,:) :: grplnc    ! sfc
+    real(rkx) , pointer , dimension(:,:) :: hailnc    ! sfc
     real(rkx) , pointer , dimension(:,:,:) :: rainls  ! Rain from here
     real(rkx) , pointer , dimension(:,:,:) :: remrat  ! Rain from here
     real(rkx) , pointer , dimension(:,:,:) :: rembc   ! Rain from here
