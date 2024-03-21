@@ -53,7 +53,6 @@ space :=
 space +=
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
-scppfla := $(filter-out $(DEFINE)VICHYDRO,$(scppfla))
 scppfla := $(filter-out $(DEFINE)USE_MPI3,$(scppfla))
 scppfla := $(filter-out $(DEFINE)QUAD_PRECISION,$(scppfla))
 scppfla := $(filter-out $(DEFINE)MPI_SERIAL,$(scppfla))
