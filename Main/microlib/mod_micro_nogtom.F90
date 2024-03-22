@@ -179,10 +179,6 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:) :: pfplsl
   ! ice+snow sedim flux
   real(rkx) , pointer , dimension(:,:,:) :: pfplsn
-  ! Flux of liquid
-  real(rkx) , pointer , dimension(:,:,:) :: pfsqlf
-  ! Flux of ice
-  real(rkx) , pointer , dimension(:,:,:) :: pfsqif
   ! decoupled temperature tendency
   real(rkx) , pointer , dimension(:,:,:) :: ttendc
   ! critical factors
@@ -238,9 +234,12 @@ module mod_micro_nogtom
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-12_rkx
   real(rkx) , parameter :: zerocf = 0.0001_rkx
   real(rkx) , parameter :: onecf  = 0.9999_rkx
+
+  real(rkx) , parameter :: activqx = 1.0e-12_rkx
+  real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
+  real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   abstract interface
@@ -259,7 +258,7 @@ module mod_micro_nogtom
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:qliq')
+    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliq')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
     call getmem3d(qsmix,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsmix')
     call getmem1d(iorder,1,nqx,'cmicro:iorder')
@@ -278,8 +277,6 @@ module mod_micro_nogtom
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
     call getmem3d(pfplsl,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsl')
     call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsn')
-    call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqlf')
-    call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqif')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
     call getmem2d(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
@@ -839,7 +836,7 @@ module mod_micro_nogtom
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
           ltkgthomo = ( tk > thomo )
-          lcloud    = ( ccover > zerocf )
+          lcloud    = ( ccover > activcf )
           locast    = ( ccover >= onecf )
 
           ! Derived variables needed
@@ -914,13 +911,13 @@ module mod_micro_nogtom
             ! Evaporate very small amounts of liquid and ice
             !------------------------------------------------
 
-            if ( qx0(iqql) < activqx ) then
+            if ( qx0(iqql) < verylowqx ) then
               qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + qx0(iqql)
               qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - qx0(iqql)
               qxfg(iqql) = qxfg(iqql) - qx0(iqql)
               qxfg(iqqv) = qxfg(iqqv) + qx0(iqql)
             end if
-            if ( qx0(iqqi) < activqx ) then
+            if ( qx0(iqqi) < verylowqx ) then
               qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + qx0(iqqi)
               qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - qx0(iqqi)
               qxfg(iqqi) = qxfg(iqqi) - qx0(iqqi)
@@ -1012,7 +1009,7 @@ module mod_micro_nogtom
                 qxfg(iqqv) = qxfg(iqqv) - supsat
 #ifdef DEBUG
                 if ( stats ) then
-                  ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - evapi
+                  ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - supsat
                 end if
 #endif
               end if
@@ -1742,8 +1739,8 @@ module mod_micro_nogtom
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = max(qx0(n),activqx) / &
-              max(sinksum(n),max(qx0(n),activqx))
+            ratio(n) = max(qx0(n),verylowqx) / &
+              max(sinksum(n),max(qx0(n),verylowqx))
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -1770,8 +1767,8 @@ module mod_micro_nogtom
           !---------------------------
           do n = 1 , nqx
             jo = iorder(n)
-            ratio(jo) = max(qx0(jo),activqx) / &
-               max(sinksum(jo),max(qx0(jo),activqx))
+            ratio(jo) = max(qx0(jo),verylowqx) / &
+               max(sinksum(jo),max(qx0(jo),verylowqx))
           end do
           !------
           ! scale
@@ -1802,6 +1799,7 @@ module mod_micro_nogtom
                 ! Here is the delta T - missing from doc.
                 qlhs(jn,n) = -qsimp(jn,n)
               end if
+              if ( is_nan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
             end do
           end do
 
@@ -1815,6 +1813,7 @@ module mod_micro_nogtom
               rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
+            if ( is_nan(qxn(n)) ) qxn(n) = verylowqx
           end do
 
           call mysolve
@@ -1825,13 +1824,13 @@ module mod_micro_nogtom
           !  It is this scaled flux that must be used for source to next layer
           !-------------------------------------------------------------------
           do n = 1 , nqx
+            chng = qxn(n) - qx0(n)
+            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
             ! Calculate fluxes in and out of box for conservation of TL
             fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
             ! Calculate the water variables tendencies
-            chng = qxn(n) - qx0(n)
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
             ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
@@ -1840,7 +1839,6 @@ module mod_micro_nogtom
               ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
             end if
           end do
-
         end do ! jx : end of longitude loop
       end do   ! iy : end of latitude loop
     end do     ! kz : end of vertical loop
@@ -1991,7 +1989,6 @@ module mod_micro_nogtom
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
               pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-              mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
@@ -2000,10 +1997,17 @@ module mod_micro_nogtom
       end do
     end do
     !
-    if (ichem ==1) then          
-      ! save the 3D precip for chemical washout 
-      mc2mo%rembc =  mc2mo%rainls  
-    end if 
+    if ( ichem == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%rainls(j,i,k) = pfplsl(j,i,k+1)
+            ! save the 3D precip for chemical washout
+            mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)
+          end do
+        end do
+      end do
+    end if
     !--------------------------------------------------------------
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
@@ -2013,14 +2017,15 @@ module mod_micro_nogtom
         prainx = pfplsl(j,i,kzp1)*dt
         psnowx = pfplsn(j,i,kzp1)*dt
         if ( prainx > d_zero ) then
-          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx   !mm
+          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
           mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsl(j,i,kzp1)
           mc2mo%trrate(j,i) = pfplsl(j,i,kzp1)
         end if
         if ( psnowx > d_zero ) then
-          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + psnowx
+          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + psnowx
           mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsn(j,i,kzp1)
-          mc2mo%trrate(j,i) = pfplsn(j,i,kzp1)
+          mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(j,i,kzp1)
+          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(j,i,kzp1)
         end if
       end do
     end do
@@ -2209,7 +2214,7 @@ module mod_micro_nogtom
         end if
         indx(n) = imax
         if ( n /= nqx ) then
-          dum = d_one/max(qlhs(n,n),activqx)
+          dum = d_one/max(qlhs(n,n),verylowqx)
           do m = n + 1 , nqx
             qlhs(m,n) = qlhs(m,n)*dum
           end do
@@ -2230,7 +2235,7 @@ module mod_micro_nogtom
         xsum = qxn(ll)
         qxn(ll) = qxn(m)
         if ( ii == 0 ) then
-          if ( abs(xsum) > activqx ) ii = m
+          if ( abs(xsum) > verylowqx ) ii = m
         else
           do jj = ii , m - 1
             xsum = xsum - qlhs(m,jj)*qxn(jj)

@@ -278,7 +278,7 @@
       real(kind=rb) :: zcd(nlayers+1,ngptsw), zcu(nlayers+1,ngptsw)
       real(kind=rb) :: zfd(nlayers+1,ngptsw), zfu(nlayers+1,ngptsw)
 
-      real(kind=rb) , parameter :: repclc = 0.001_rb
+      real(kind=rb) , parameter :: repclc = 1.0e-12_rb
 
 ! Inactive arrays
 !     real(kind=rb) :: zbbcd(nlayers+1), zbbcu(nlayers+1)

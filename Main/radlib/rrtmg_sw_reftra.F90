@@ -182,8 +182,12 @@
 
             zwo = 0._rb
             denom = 1._rb
-            if (zg .ne. 1._rb) denom = (1._rb - (1._rb - zw) * (zg / (1._rb - zg))**2)
-            if (zw .gt. 0._rb .and. denom .ne. 0._rb) zwo = zw / denom
+            if (zg .ne. 1._rb) then
+               denom = (1._rb - (1._rb - zw) * (zg / (1._rb - zg))**2)
+            end if
+            if (zw .gt. 0._rb .and. denom .ne. 0._rb) then
+               zwo = zw / denom
+            end if
 
             if (zwo >= zwcrit) then
 ! Conservative scattering
@@ -220,7 +224,7 @@
 ! This is applied for consistency between total (delta-scaled) and direct (unscaled)
 ! calculations at very low optical depths (tau < 1.e-4) when the exponential lookup
 ! table returns a transmittance of 1.0.
-               if (ze2 .eq. 1.0_rb) then
+               if (ze2 == 1.0_rb) then
                   pref(jk) = 0.0_rb
                   ptra(jk) = 1.0_rb
                   prefd(jk) = 0.0_rb
@@ -229,12 +233,11 @@
 
             else
 ! Non-conservative scattering
-
-               if ( zgamma2**2 < zgamma1**2 ) then
+               if ( zgamma1**2 - zgamma2**2 > 0.0_rb ) then
                   zrk = sqrt ( zgamma1**2 - zgamma2**2 )
                else
+                  zrk = 0.0_rb
                   zgamma2 = zgamma1
-                  zrk = 0._rb
                end if
                za1 = zgamma1 * zgamma4 + zgamma2 * zgamma3
                za2 = zgamma1 * zgamma3 + zgamma2 * zgamma4
@@ -323,14 +326,15 @@
 ! diffuse beam
 
                zemm = zem1*zem1
-               if ( (1._rb - zbeta*zemm) > 0.0_rb ) then
-                  zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               zdenr = (1._rb - zbeta*zemm ) * zrkg
+               if (zdenr .ge. -eps .and. zdenr .le. eps) then
+                  prefd(jk) = eps
+                  ptrad(jk) = zem1
                else
-                  zdend = 1.0e-20_rb
-               end if
-               prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
-               ptrad(jk) =  zrk2*zem1*zdend
-
+                  zdend = 1._rb / zdenr
+                  prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
+                  ptrad(jk) =  zrk2*zem1*zdend
+               endif
             endif
 
          endif
