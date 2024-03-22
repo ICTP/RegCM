@@ -155,6 +155,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_evpot_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_twetb_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_tprw_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()
@@ -163,8 +164,14 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: srf_rh2m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_smw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_tsoil_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_ua50_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_va50_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_ta50_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_hus50_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_ua100_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_va100_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_ua150_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_va150_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: sts_tgmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_tgmin_out => null()

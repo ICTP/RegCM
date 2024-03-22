@@ -63,8 +63,8 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 38 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 9
+  integer(ik4) , parameter :: nsrf2dvars = 39 + nbase
+  integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
@@ -297,6 +297,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_snow     = 42
   integer(ik4) , parameter :: srf_hail     = 43
   integer(ik4) , parameter :: srf_grau     = 44
+  integer(ik4) , parameter :: srf_tprw     = 45
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -305,8 +306,14 @@ module mod_ncout
   integer(ik4) , parameter :: srf_rh2m   = 5
   integer(ik4) , parameter :: srf_smw    = 6
   integer(ik4) , parameter :: srf_tsoi   = 7
-  integer(ik4) , parameter :: srf_ua100  = 8
-  integer(ik4) , parameter :: srf_va100  = 9
+  integer(ik4) , parameter :: srf_ua50   = 8
+  integer(ik4) , parameter :: srf_va50   = 9
+  integer(ik4) , parameter :: srf_ta50   = 10
+  integer(ik4) , parameter :: srf_hus50  = 11
+  integer(ik4) , parameter :: srf_ua100  = 12
+  integer(ik4) , parameter :: srf_va100  = 13
+  integer(ik4) , parameter :: srf_ua150  = 14
+  integer(ik4) , parameter :: srf_va150  = 15
 
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
@@ -1388,10 +1395,14 @@ module mod_ncout
         end if
         if ( ipptls > 1 ) then
           if ( enable_srf2d_vars(srf_snow) ) then
-            call setup_var(v2dvar_srf,srf_snow,vsize,'snow','kg m-2 s-1', &
-              'Frozen large scale precipitation rate', &
-              'lwe_large_scale_snowfall_rate', &
-              .true.,'time: mean')
+            if ( all(icup == 5) .or. all(icup == 0) ) then
+              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+                'Snowfall flux', 'snowfall_flux', .true.,'time: mean')
+            else
+              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+                'Large Scale Snowfall flux', &
+                'lwe_large_scale_snowfall_flux', .true.,'time: mean')
+            end if
             srf_snow_out => v2dvar_srf(srf_snow)%rval
           end if
           if ( ipptls > 3 ) then
@@ -1510,6 +1521,7 @@ module mod_ncout
         if ( ifshf ) then
           enable_srf2d_vars(srf_pcpmax) = .false.
           enable_srf2d_vars(srf_twetb) = .false.
+          enable_srf2d_vars(srf_tprw) = .false.
         else
           if ( enable_srf2d_vars(srf_pcpmax) ) then
             call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
@@ -1523,6 +1535,12 @@ module mod_ncout
               .true.,'time: maximum')
             srf_twetb_out => v2dvar_srf(srf_twetb)%rval
           end if
+          if ( enable_srf2d_vars(srf_tprw) ) then
+            call setup_var(v2dvar_srf,srf_tprw,vsize,'prw','kg m-2', &
+              'Water Vapor Path','atmosphere_mass_content_of_water_vapor', &
+              .true.)
+            srf_tprw_out => v2dvar_srf(srf_tprw)%rval
+          end if
         end if
 
         vsize%k2 = 1
@@ -1531,8 +1549,14 @@ module mod_ncout
         v3dvar_srf(srf_t2m)%axis = 'xy2'
         v3dvar_srf(srf_q2m)%axis = 'xy2'
         v3dvar_srf(srf_rh2m)%axis = 'xy2'
+        v3dvar_srf(srf_ua50)%axis = 'xyq'
+        v3dvar_srf(srf_va50)%axis = 'xyq'
+        v3dvar_srf(srf_ta50)%axis = 'xyq'
+        v3dvar_srf(srf_hus50)%axis = 'xyq'
         v3dvar_srf(srf_ua100)%axis = 'xyW'
         v3dvar_srf(srf_va100)%axis = 'xyW'
+        v3dvar_srf(srf_ua150)%axis = 'xyQ'
+        v3dvar_srf(srf_va150)%axis = 'xyQ'
         if ( enable_srf3d_vars(srf_u10m) ) then
           if ( uvrotate ) then
             call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
@@ -1568,25 +1592,78 @@ module mod_ncout
             'Near-Surface Relative Humidity','relative_humidity',.true.)
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
-        if ( enable_srf3d_vars(srf_ua100) ) then
-          if ( uvrotate ) then
+        if ( uvrotate ) then
+          if ( enable_srf3d_vars(srf_ua50) ) then
+            call setup_var(v3dvar_srf,srf_ua50,vsize,'ua50m','m/s', &
+              'Eastward Wind at 50m','eastward_wind',.true.)
+            srf_ua50_out => v3dvar_srf(srf_ua50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va50) ) then
+            call setup_var(v3dvar_srf,srf_va50,vsize,'va50m','m/s', &
+              'Northward Wind at 50m','northward_wind',.true.)
+            srf_va50_out => v3dvar_srf(srf_va50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua100) ) then
             call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
               'Eastward Wind at 100m','eastward_wind',.true.)
-          else
-            call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
-              'Grid Eastward Wind at 100m','grid_eastward_wind',.true.)
+            srf_ua100_out => v3dvar_srf(srf_ua100)%rval
           end if
-          srf_ua100_out => v3dvar_srf(srf_ua100)%rval
-        end if
-        if ( enable_srf3d_vars(srf_va100) ) then
-          if ( uvrotate ) then
+          if ( enable_srf3d_vars(srf_va100) ) then
             call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
               'Northward Wind at 100m','northward_wind',.true.)
-          else
+            srf_va100_out => v3dvar_srf(srf_va100)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua150) ) then
+            call setup_var(v3dvar_srf,srf_ua150,vsize,'ua150m','m/s', &
+              'Eastward Wind at 150m','eastward_wind',.true.)
+            srf_ua150_out => v3dvar_srf(srf_ua150)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va150) ) then
+            call setup_var(v3dvar_srf,srf_va150,vsize,'va150m','m/s', &
+              'Northward Wind at 150m','northward_wind',.true.)
+            srf_va150_out => v3dvar_srf(srf_va150)%rval
+          end if
+        else
+          if ( enable_srf3d_vars(srf_ua50) ) then
+            call setup_var(v3dvar_srf,srf_ua50,vsize,'ua50m','m/s', &
+              'Grid Eastward Wind at 50m','grid_eastward_wind',.true.)
+            srf_ua50_out => v3dvar_srf(srf_ua50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va50) ) then
+            call setup_var(v3dvar_srf,srf_va50,vsize,'va50m','m/s', &
+              'Grid Northward Wind at 50m','grid_northward_wind',.true.)
+            srf_va50_out => v3dvar_srf(srf_va50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua100) ) then
+            call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
+              'Grid Eastward Wind at 100m','grid_eastward_wind',.true.)
+            srf_ua100_out => v3dvar_srf(srf_ua100)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va100) ) then
             call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
               'Grid Northward Wind at 100m','grid_northward_wind',.true.)
+            srf_va100_out => v3dvar_srf(srf_va100)%rval
           end if
-          srf_va100_out => v3dvar_srf(srf_va100)%rval
+          if ( enable_srf3d_vars(srf_ua150) ) then
+            call setup_var(v3dvar_srf,srf_ua150,vsize,'ua150m','m/s', &
+              'Grid Eastward Wind at 150m','grid_eastward_wind',.true.)
+            srf_ua150_out => v3dvar_srf(srf_ua150)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va150) ) then
+            call setup_var(v3dvar_srf,srf_va150,vsize,'va150m','m/s', &
+              'Grid Northward Wind at 150m','grid_northward_wind',.true.)
+            srf_va150_out => v3dvar_srf(srf_va150)%rval
+          end if
+        end if
+        if ( enable_srf3d_vars(srf_ta50) ) then
+          call setup_var(v3dvar_srf,srf_ta50,vsize,'ta50m','K', &
+            'Air Temperature at 50m','air_temperature',.true.)
+          srf_ta50_out => v3dvar_srf(srf_ta50)%rval
+        end if
+        if ( enable_srf3d_vars(srf_hus50) ) then
+          call setup_var(v3dvar_srf,srf_hus50,vsize,'hus50m','1', &
+            'Specific Humidity at 50m','specific_humidity',.true.)
+          srf_hus50_out => v3dvar_srf(srf_hus50)%rval
         end if
         if ( irceideal == 1 ) then
           enable_srf3d_vars(srf_smw) = .false.

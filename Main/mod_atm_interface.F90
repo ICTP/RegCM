@@ -79,6 +79,7 @@ module mod_atm_interface
   integer(ik4) , pointer , public , dimension(:,:) :: ktrop
   real(rkx) , pointer , public , dimension(:,:,:) :: convpr
   real(rkx) , pointer , public , dimension(:,:) :: pptc
+  real(rkx) , pointer , public , dimension(:,:) :: sptc
   real(rkx) , pointer , public , dimension(:,:) :: prca
 
   ! Radiation
@@ -1094,8 +1095,11 @@ module mod_atm_interface
       call getmem3d(qdot,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'storage:qdot')
       call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
       call getmem2d(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
-      call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
       call getmem2d(prca,jci1,jci2,ici1,ici2,'storage:prca')
+      call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
+      if ( ipptls > 1 .and. any(icup == 5) ) then
+        call getmem2d(sptc,jci1,jci2,ici1,ici2,'storage:sptc')
+      end if
       call getmem2d(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
       call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
 
