@@ -93,6 +93,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: atm_tsw_out => null()
   real(rkx) , dimension(:,:) , pointer :: atm_cape_out => null()
   real(rkx) , dimension(:,:) , pointer :: atm_cin_out => null()
+  real(rkx) , dimension(:,:) , pointer :: atm_li_out => null()
   ! stats
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_supw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_supc_out => null()

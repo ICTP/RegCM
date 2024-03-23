@@ -438,6 +438,7 @@ module mod_dynparam
   logical , public :: iflak
   logical , public :: ifopt
   logical , public :: ifchem
+  logical , public :: ifcordex
 
   real(rkx) , public :: outnwf
   real(rkx) , public :: savfrq

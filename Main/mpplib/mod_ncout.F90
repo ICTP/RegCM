@@ -57,7 +57,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 6 + nbase
+  integer(ik4) , parameter :: natm2dvars = 7 + nbase
   integer(ik4) , parameter :: natm3dvars = 64
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
@@ -176,6 +176,7 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tsw   = 10
   integer(ik4) , parameter :: atm_cape  = 11
   integer(ik4) , parameter :: atm_cin   = 12
+  integer(ik4) , parameter :: atm_li    = 13
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -542,6 +543,107 @@ module mod_ncout
 
     nstream = 0
 
+    if ( ifcordex ) then
+      if ( myid == 0 ) then
+        write(stdout, *) 'Restrict outout to CORDEX variables'
+      end if
+      ! Set all to false to start with
+      enable_atm_vars(:) = .false.
+      enable_srf_vars(:) = .false.
+      enable_sts_vars(:) = .false.
+      enable_rad_vars(:) = .false.
+      ! enable basic geolocation + vertical coord variables
+      enable_atm_vars(1:nbase) = .true.
+      enable_atm_vars(atm_cape) = .true.
+      enable_atm_vars(atm_cin) = .true.
+      enable_atm_vars(atm_li) = .true.
+      enable_atm_vars(natm2dvars+atm_u) = .true.
+      enable_atm_vars(natm2dvars+atm_v) = .true.
+      enable_atm_vars(natm2dvars+atm_w) = .true.
+      enable_atm_vars(natm2dvars+atm_t) = .true.
+      enable_atm_vars(natm2dvars+atm_qv) = .true.
+      if ( idynamic == 2 ) then
+        enable_atm_vars(atm_p0) = .true.
+        enable_atm_vars(natm2dvars+atm_p0) = .true.
+      else if ( idynamic == 3 ) then
+        enable_atm_vars(natm2dvars+atm_pai) = .true.
+      end if
+
+      enable_srf_vars(1:nbase) = .true.
+      enable_srf_vars(srf_tg) = .true.
+      enable_srf_vars(srf_tpr) = .true.
+      enable_srf_vars(srf_evp) = .true.
+      enable_srf_vars(srf_scv) = .true.
+      enable_srf_vars(srf_sena) = .true.
+      enable_srf_vars(srf_lena) = .true.
+      enable_srf_vars(srf_flw) = .true.
+      enable_srf_vars(srf_fsw) = .true.
+      enable_srf_vars(srf_uflw) = .true.
+      enable_srf_vars(srf_ufsw) = .true.
+      enable_srf_vars(srf_fld) = .true.
+      enable_srf_vars(srf_sina) = .true.
+      enable_srf_vars(srf_prcv) = .true.
+      enable_srf_vars(srf_zpbl) = .true.
+      enable_srf_vars(srf_sund) = .true.
+      enable_srf_vars(srf_snowmelt) = .true.
+      enable_srf_vars(srf_srunoff) = .true.
+      enable_srf_vars(srf_trunoff) = .true.
+      enable_srf_vars(srf_zo) = .true.
+      enable_srf_vars(srf_totcf) = .true.
+      enable_srf_vars(srf_wspd) = .true.
+      enable_srf_vars(srf_taux) = .true.
+      enable_srf_vars(srf_tauy) = .true.
+      enable_srf_vars(srf_psl) = .true.
+      enable_srf_vars(srf_evpot) = .true.
+      enable_srf_vars(srf_pcpmax) = .true.
+      enable_srf_vars(srf_snow) = .true.
+      enable_srf_vars(srf_grau) = .true.
+      enable_srf_vars(srf_tprw) = .true.
+      enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_q2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_rh2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_smw) = .true.
+      enable_srf_vars(nsrf2dvars+srf_tsoi) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ta50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_hus50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua100) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va100) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua150) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va150) = .true.
+
+      enable_sts_vars(1:nbase) = .true.
+      enable_sts_vars(sts_pcpmax) = .true.
+      enable_sts_vars(sts_pcpavg) = .true.
+      enable_sts_vars(sts_psmin) = .true.
+      enable_sts_vars(sts_psavg) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2max) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2min) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2avg) = .true.
+      enable_sts_vars(nsts2dvars+sts_w10max) = .true.
+
+      enable_rad_vars(1:nbase) = .true.
+      if ( idynamic == 2 ) then
+        enable_rad_vars(rad_p0) = .true.
+        enable_rad_vars(nrad2dvars+rad_p0) = .true.
+      else if ( idynamic == 3 ) then
+        enable_rad_vars(nrad2dvars+rad_pai) = .true.
+      end if
+      enable_rad_vars(rad_frsa) = .true.
+      enable_rad_vars(rad_frla) = .true.
+      enable_rad_vars(rad_solin) = .true.
+      enable_rad_vars(rad_solout) = .true.
+      enable_rad_vars(rad_totcl) = .true.
+      enable_rad_vars(rad_totci) = .true.
+      enable_rad_vars(rad_lwout) = .true.
+      enable_rad_vars(rad_higcl) = .true.
+      enable_rad_vars(rad_midcl) = .true.
+      enable_rad_vars(rad_lowcl) = .true.
+    end if
+
     if ( ifatm ) then
       nstream = nstream+1
       atm_stream = nstream
@@ -644,22 +746,31 @@ module mod_ncout
             atm_tsw_out => v2dvar_atm(atm_tsw)%rval
           end if
           if ( enable_atm2d_vars(atm_cape) ) then
-            call setup_var(v2dvar_atm,atm_cape,vsize,'cape','J kg-1', &
+            call setup_var(v2dvar_atm,atm_cape,vsize,'CAPE','J kg-1', &
               'Convective Available Potential Energy', &
-              'atmosphere_convective_available_potential_energy', &
+              'atmosphere_convective_available_potential_energy_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             atm_cape_out => v2dvar_atm(atm_cape)%rval
           end if
           if ( enable_atm2d_vars(atm_cin) ) then
-            call setup_var(v2dvar_atm,atm_cin,vsize,'cin','J kg-1', &
-              'Convective Inhibition','atmosphere_convective_inhibition', &
+            call setup_var(v2dvar_atm,atm_cin,vsize,'CIN','J kg-1', &
+              'Convective Inhibition', &
+              'atmosphere_convective_inhibitioni_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             atm_cin_out => v2dvar_atm(atm_cin)%rval
+          end if
+          if ( enable_atm2d_vars(atm_li) ) then
+            call setup_var(v2dvar_atm,atm_li,vsize,'LI','K','Lifted Index',&
+              'temperature_difference_between_ambient_'&
+              &'air_and_air_lifted_adiabatically_from_the_surface', &
+              .true.,'time: point',l_fill=.true.)
+            atm_li_out => v2dvar_atm(atm_li)%rval
           end if
         else
           enable_atm2d_vars(atm_tsw) = .false.
           enable_atm2d_vars(atm_cape) = .false.
           enable_atm2d_vars(atm_cin) = .false.
+          enable_atm2d_vars(atm_li) = .false.
         end if
 
         vsize%k2 = kz

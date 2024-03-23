@@ -72,6 +72,7 @@ module mod_output
     integer(ik4) :: i , j , k , n , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , srffac , radfac , lakfac , subfac , optfac , stsfac
+    real(rkx) :: tsurf , t500
     real(rkx) , dimension(:,:,:) , pointer :: qv
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
@@ -627,6 +628,34 @@ module mod_output
           end if
         end if
 
+        if ( associated(atm_li_out) ) then
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                kk = 1
+                do k = 1 , kz
+                  if ( mo_atm%p(j,i,k) > 50000.0_rkx ) exit
+                  kk = k
+                end do
+                atm_li_out(j,i) = (mo_atm%t(j,i,kz) - &
+                  mo_atm%zeta(j,i,kk) * lrate) - mo_atm%t(j,i,kk)
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                kk = 1
+                do k = 1 , kz
+                  if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
+                  kk = k
+                end do
+                tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
+                t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
+                atm_li_out(j,i) = (tsurf-atms%za(j,i,k)*lrate) - t500
+              end do
+            end do
+          end if
+        end if
         if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
           if ( idynamic == 3 ) then
             do i = ici1 , ici2
