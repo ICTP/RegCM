@@ -385,15 +385,28 @@ module mod_cu_tiedtke
     !   KTYPE = 2 => SHALLOW CONVECTION
     !   KTYPE = 3 => MIDLEVEL CONVECTION
     !
-    do ii = 1 , nipoi
-      if (ktype(ii) > 0) then
-        i = imap(ii)
-        j = jmap(ii)
-        total_precip_points = total_precip_points + 1
-        ! rainfall for surface
-        cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
-      end if
-    end do
+    if ( ipptls > 1 ) then
+      do ii = 1 , nipoi
+        if (ktype(ii) > 0) then
+          i = imap(ii)
+          j = jmap(ii)
+          total_precip_points = total_precip_points + 1
+          ! rainfall for surface
+          cu_prate(j,i) = cu_prate(j,i) + prsfc(ii) + pssfc(ii)
+          cu_srate(j,i) = cu_srate(j,i) + pssfc(ii)
+        end if
+      end do
+    else
+      do ii = 1 , nipoi
+        if (ktype(ii) > 0) then
+          i = imap(ii)
+          j = jmap(ii)
+          total_precip_points = total_precip_points + 1
+          ! rainfall for surface
+          cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
+        end if
+      end do
+    end if
     !
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates.

@@ -23,7 +23,8 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : clfrcv , icumcloud , icup , ichem , dt , nqx
+  use mod_runparams , only : clfrcv , dt , nqx
+  use mod_runparams , only : icup , ipptls , icumcloud , ichem
   use mod_mppparam , only : ma
   use mod_memutil
   use mod_regcm_types
@@ -39,6 +40,7 @@ module mod_cu_common
   real(rkx) , pointer , public , dimension(:,:,:,:) :: cu_chiten
   real(rkx) , pointer , public , dimension(:,:,:) :: avg_ww
   real(rkx) , pointer , public , dimension(:,:) :: cu_prate
+  real(rkx) , pointer , public , dimension(:,:) :: cu_srate
   real(rkx) , pointer , public , dimension(:,:,:) :: cu_qdetr
   real(rkx) , pointer , public , dimension(:,:,:) :: cu_raincc
   real(rkx) , pointer , public , dimension(:,:,:) :: cu_convpr
@@ -81,6 +83,9 @@ module mod_cu_common
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
     call getmem2d(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
+    if ( ipptls > 1 .and. any(icup == 5) ) then
+      call getmem2d(cu_srate,jci1,jci2,ici1,ici2,'cumulus:srate')
+    end if
     call getmem2d(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
     call getmem2d(cu_kbot,jci1,jci2,ici1,ici2,'cumulus:kbot')
     if ( ichem == 1 ) then

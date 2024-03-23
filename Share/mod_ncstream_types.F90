@@ -46,12 +46,14 @@ module mod_ncstream_types
   integer(ik4) , parameter :: texture_dim     = 6
   integer(ik4) , parameter :: h2m_level_dim   = 7
   integer(ik4) , parameter :: h10m_level_dim  = 8
-  integer(ik4) , parameter :: h100m_level_dim = 9
-  integer(ik4) , parameter :: soil_layer_dim  = 10
-  integer(ik4) , parameter :: water_depth_dim = 11
-  integer(ik4) , parameter :: months_dim      = 12
-  integer(ik4) , parameter :: spectral_dim    = 13
-  integer(ik4) , parameter :: spectral_b_dim  = 14
+  integer(ik4) , parameter :: h50m_level_dim  = 9
+  integer(ik4) , parameter :: h100m_level_dim = 10
+  integer(ik4) , parameter :: h150m_level_dim = 11
+  integer(ik4) , parameter :: soil_layer_dim  = 12
+  integer(ik4) , parameter :: water_depth_dim = 13
+  integer(ik4) , parameter :: months_dim      = 14
+  integer(ik4) , parameter :: spectral_dim    = 15
+  integer(ik4) , parameter :: spectral_b_dim  = 16
 
   type ncinstream_params
     ! The name of the input file
@@ -208,7 +210,9 @@ module mod_ncstream_types
     logical :: l_enabled = .false.
     logical :: l_has2mlev = .false.
     logical :: l_has10mlev = .false.
+    logical :: l_has50mlev = .false.
     logical :: l_has100mlev = .false.
+    logical :: l_has150mlev = .false.
     logical :: l_hassoillev = .false.
     logical :: l_hasspectral = .false.
     !
@@ -444,7 +448,9 @@ module mod_ncstream_types
     type(ncvariable0d_char) :: map_var
     type(ncvariable1d_double) :: lev2m_var
     type(ncvariable1d_double) :: lev10m_var
+    type(ncvariable1d_double) :: lev50m_var
     type(ncvariable1d_double) :: lev100m_var
+    type(ncvariable1d_double) :: lev150m_var
     type(ncvariable1d_double) :: levsoil_var
     type(ncvariable2d_double) :: levsoilbound_var
     type(ncvariable2d_double) :: spectral_var

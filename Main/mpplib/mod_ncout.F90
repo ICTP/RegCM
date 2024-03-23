@@ -57,14 +57,14 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 6 + nbase
+  integer(ik4) , parameter :: natm2dvars = 7 + nbase
   integer(ik4) , parameter :: natm3dvars = 64
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 38 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 9
+  integer(ik4) , parameter :: nsrf2dvars = 39 + nbase
+  integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
@@ -176,6 +176,7 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tsw   = 10
   integer(ik4) , parameter :: atm_cape  = 11
   integer(ik4) , parameter :: atm_cin   = 12
+  integer(ik4) , parameter :: atm_li    = 13
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -297,6 +298,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_snow     = 42
   integer(ik4) , parameter :: srf_hail     = 43
   integer(ik4) , parameter :: srf_grau     = 44
+  integer(ik4) , parameter :: srf_tprw     = 45
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -305,8 +307,14 @@ module mod_ncout
   integer(ik4) , parameter :: srf_rh2m   = 5
   integer(ik4) , parameter :: srf_smw    = 6
   integer(ik4) , parameter :: srf_tsoi   = 7
-  integer(ik4) , parameter :: srf_ua100  = 8
-  integer(ik4) , parameter :: srf_va100  = 9
+  integer(ik4) , parameter :: srf_ua50   = 8
+  integer(ik4) , parameter :: srf_va50   = 9
+  integer(ik4) , parameter :: srf_ta50   = 10
+  integer(ik4) , parameter :: srf_hus50  = 11
+  integer(ik4) , parameter :: srf_ua100  = 12
+  integer(ik4) , parameter :: srf_va100  = 13
+  integer(ik4) , parameter :: srf_ua150  = 14
+  integer(ik4) , parameter :: srf_va150  = 15
 
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
@@ -535,6 +543,107 @@ module mod_ncout
 
     nstream = 0
 
+    if ( ifcordex ) then
+      if ( myid == 0 ) then
+        write(stdout, *) 'Restrict outout to CORDEX variables'
+      end if
+      ! Set all to false to start with
+      enable_atm_vars(:) = .false.
+      enable_srf_vars(:) = .false.
+      enable_sts_vars(:) = .false.
+      enable_rad_vars(:) = .false.
+      ! enable basic geolocation + vertical coord variables
+      enable_atm_vars(1:nbase) = .true.
+      enable_atm_vars(atm_cape) = .true.
+      enable_atm_vars(atm_cin) = .true.
+      enable_atm_vars(atm_li) = .true.
+      enable_atm_vars(natm2dvars+atm_u) = .true.
+      enable_atm_vars(natm2dvars+atm_v) = .true.
+      enable_atm_vars(natm2dvars+atm_w) = .true.
+      enable_atm_vars(natm2dvars+atm_t) = .true.
+      enable_atm_vars(natm2dvars+atm_qv) = .true.
+      if ( idynamic == 2 ) then
+        enable_atm_vars(atm_p0) = .true.
+        enable_atm_vars(natm2dvars+atm_p0) = .true.
+      else if ( idynamic == 3 ) then
+        enable_atm_vars(natm2dvars+atm_pai) = .true.
+      end if
+
+      enable_srf_vars(1:nbase) = .true.
+      enable_srf_vars(srf_tg) = .true.
+      enable_srf_vars(srf_tpr) = .true.
+      enable_srf_vars(srf_evp) = .true.
+      enable_srf_vars(srf_scv) = .true.
+      enable_srf_vars(srf_sena) = .true.
+      enable_srf_vars(srf_lena) = .true.
+      enable_srf_vars(srf_flw) = .true.
+      enable_srf_vars(srf_fsw) = .true.
+      enable_srf_vars(srf_uflw) = .true.
+      enable_srf_vars(srf_ufsw) = .true.
+      enable_srf_vars(srf_fld) = .true.
+      enable_srf_vars(srf_sina) = .true.
+      enable_srf_vars(srf_prcv) = .true.
+      enable_srf_vars(srf_zpbl) = .true.
+      enable_srf_vars(srf_sund) = .true.
+      enable_srf_vars(srf_snowmelt) = .true.
+      enable_srf_vars(srf_srunoff) = .true.
+      enable_srf_vars(srf_trunoff) = .true.
+      enable_srf_vars(srf_zo) = .true.
+      enable_srf_vars(srf_totcf) = .true.
+      enable_srf_vars(srf_wspd) = .true.
+      enable_srf_vars(srf_taux) = .true.
+      enable_srf_vars(srf_tauy) = .true.
+      enable_srf_vars(srf_psl) = .true.
+      enable_srf_vars(srf_evpot) = .true.
+      enable_srf_vars(srf_pcpmax) = .true.
+      enable_srf_vars(srf_snow) = .true.
+      enable_srf_vars(srf_grau) = .true.
+      enable_srf_vars(srf_tprw) = .true.
+      enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_q2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_rh2m) = .true.
+      enable_srf_vars(nsrf2dvars+srf_smw) = .true.
+      enable_srf_vars(nsrf2dvars+srf_tsoi) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ta50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_hus50) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua100) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va100) = .true.
+      enable_srf_vars(nsrf2dvars+srf_ua150) = .true.
+      enable_srf_vars(nsrf2dvars+srf_va150) = .true.
+
+      enable_sts_vars(1:nbase) = .true.
+      enable_sts_vars(sts_pcpmax) = .true.
+      enable_sts_vars(sts_pcpavg) = .true.
+      enable_sts_vars(sts_psmin) = .true.
+      enable_sts_vars(sts_psavg) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2max) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2min) = .true.
+      enable_sts_vars(nsts2dvars+sts_t2avg) = .true.
+      enable_sts_vars(nsts2dvars+sts_w10max) = .true.
+
+      enable_rad_vars(1:nbase) = .true.
+      if ( idynamic == 2 ) then
+        enable_rad_vars(rad_p0) = .true.
+        enable_rad_vars(nrad2dvars+rad_p0) = .true.
+      else if ( idynamic == 3 ) then
+        enable_rad_vars(nrad2dvars+rad_pai) = .true.
+      end if
+      enable_rad_vars(rad_frsa) = .true.
+      enable_rad_vars(rad_frla) = .true.
+      enable_rad_vars(rad_solin) = .true.
+      enable_rad_vars(rad_solout) = .true.
+      enable_rad_vars(rad_totcl) = .true.
+      enable_rad_vars(rad_totci) = .true.
+      enable_rad_vars(rad_lwout) = .true.
+      enable_rad_vars(rad_higcl) = .true.
+      enable_rad_vars(rad_midcl) = .true.
+      enable_rad_vars(rad_lowcl) = .true.
+    end if
+
     if ( ifatm ) then
       nstream = nstream+1
       atm_stream = nstream
@@ -637,22 +746,31 @@ module mod_ncout
             atm_tsw_out => v2dvar_atm(atm_tsw)%rval
           end if
           if ( enable_atm2d_vars(atm_cape) ) then
-            call setup_var(v2dvar_atm,atm_cape,vsize,'cape','J kg-1', &
+            call setup_var(v2dvar_atm,atm_cape,vsize,'CAPE','J kg-1', &
               'Convective Available Potential Energy', &
-              'atmosphere_convective_available_potential_energy', &
+              'atmosphere_convective_available_potential_energy_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             atm_cape_out => v2dvar_atm(atm_cape)%rval
           end if
           if ( enable_atm2d_vars(atm_cin) ) then
-            call setup_var(v2dvar_atm,atm_cin,vsize,'cin','J kg-1', &
-              'Convective Inhibition','atmosphere_convective_inhibition', &
+            call setup_var(v2dvar_atm,atm_cin,vsize,'CIN','J kg-1', &
+              'Convective Inhibition', &
+              'atmosphere_convective_inhibitioni_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             atm_cin_out => v2dvar_atm(atm_cin)%rval
+          end if
+          if ( enable_atm2d_vars(atm_li) ) then
+            call setup_var(v2dvar_atm,atm_li,vsize,'LI','K','Lifted Index',&
+              'temperature_difference_between_ambient_'&
+              &'air_and_air_lifted_adiabatically_from_the_surface', &
+              .true.,'time: point',l_fill=.true.)
+            atm_li_out => v2dvar_atm(atm_li)%rval
           end if
         else
           enable_atm2d_vars(atm_tsw) = .false.
           enable_atm2d_vars(atm_cape) = .false.
           enable_atm2d_vars(atm_cin) = .false.
+          enable_atm2d_vars(atm_li) = .false.
         end if
 
         vsize%k2 = kz
@@ -1386,10 +1504,14 @@ module mod_ncout
         end if
         if ( ipptls > 1 ) then
           if ( enable_srf2d_vars(srf_snow) ) then
-            call setup_var(v2dvar_srf,srf_snow,vsize,'snow','kg m-2 s-1', &
-              'Frozen large scale precipitation rate', &
-              'lwe_large_scale_snowfall_rate', &
-              .true.,'time: mean')
+            if ( all(icup == 5) .or. all(icup == 0) ) then
+              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+                'Snowfall flux', 'snowfall_flux', .true.,'time: mean')
+            else
+              call setup_var(v2dvar_srf,srf_snow,vsize,'prsn','kg m-2 s-1', &
+                'Large Scale Snowfall flux', &
+                'lwe_large_scale_snowfall_flux', .true.,'time: mean')
+            end if
             srf_snow_out => v2dvar_srf(srf_snow)%rval
           end if
           if ( ipptls > 3 ) then
@@ -1508,6 +1630,7 @@ module mod_ncout
         if ( ifshf ) then
           enable_srf2d_vars(srf_pcpmax) = .false.
           enable_srf2d_vars(srf_twetb) = .false.
+          enable_srf2d_vars(srf_tprw) = .false.
         else
           if ( enable_srf2d_vars(srf_pcpmax) ) then
             call setup_var(v2dvar_srf,srf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
@@ -1521,6 +1644,12 @@ module mod_ncout
               .true.,'time: maximum')
             srf_twetb_out => v2dvar_srf(srf_twetb)%rval
           end if
+          if ( enable_srf2d_vars(srf_tprw) ) then
+            call setup_var(v2dvar_srf,srf_tprw,vsize,'prw','kg m-2', &
+              'Water Vapor Path','atmosphere_mass_content_of_water_vapor', &
+              .true.)
+            srf_tprw_out => v2dvar_srf(srf_tprw)%rval
+          end if
         end if
 
         vsize%k2 = 1
@@ -1529,8 +1658,14 @@ module mod_ncout
         v3dvar_srf(srf_t2m)%axis = 'xy2'
         v3dvar_srf(srf_q2m)%axis = 'xy2'
         v3dvar_srf(srf_rh2m)%axis = 'xy2'
+        v3dvar_srf(srf_ua50)%axis = 'xyq'
+        v3dvar_srf(srf_va50)%axis = 'xyq'
+        v3dvar_srf(srf_ta50)%axis = 'xyq'
+        v3dvar_srf(srf_hus50)%axis = 'xyq'
         v3dvar_srf(srf_ua100)%axis = 'xyW'
         v3dvar_srf(srf_va100)%axis = 'xyW'
+        v3dvar_srf(srf_ua150)%axis = 'xyQ'
+        v3dvar_srf(srf_va150)%axis = 'xyQ'
         if ( enable_srf3d_vars(srf_u10m) ) then
           if ( uvrotate ) then
             call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
@@ -1566,25 +1701,78 @@ module mod_ncout
             'Near-Surface Relative Humidity','relative_humidity',.true.)
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
-        if ( enable_srf3d_vars(srf_ua100) ) then
-          if ( uvrotate ) then
+        if ( uvrotate ) then
+          if ( enable_srf3d_vars(srf_ua50) ) then
+            call setup_var(v3dvar_srf,srf_ua50,vsize,'ua50m','m/s', &
+              'Eastward Wind at 50m','eastward_wind',.true.)
+            srf_ua50_out => v3dvar_srf(srf_ua50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va50) ) then
+            call setup_var(v3dvar_srf,srf_va50,vsize,'va50m','m/s', &
+              'Northward Wind at 50m','northward_wind',.true.)
+            srf_va50_out => v3dvar_srf(srf_va50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua100) ) then
             call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
               'Eastward Wind at 100m','eastward_wind',.true.)
-          else
-            call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
-              'Grid Eastward Wind at 100m','grid_eastward_wind',.true.)
+            srf_ua100_out => v3dvar_srf(srf_ua100)%rval
           end if
-          srf_ua100_out => v3dvar_srf(srf_ua100)%rval
-        end if
-        if ( enable_srf3d_vars(srf_va100) ) then
-          if ( uvrotate ) then
+          if ( enable_srf3d_vars(srf_va100) ) then
             call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
               'Northward Wind at 100m','northward_wind',.true.)
-          else
+            srf_va100_out => v3dvar_srf(srf_va100)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua150) ) then
+            call setup_var(v3dvar_srf,srf_ua150,vsize,'ua150m','m/s', &
+              'Eastward Wind at 150m','eastward_wind',.true.)
+            srf_ua150_out => v3dvar_srf(srf_ua150)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va150) ) then
+            call setup_var(v3dvar_srf,srf_va150,vsize,'va150m','m/s', &
+              'Northward Wind at 150m','northward_wind',.true.)
+            srf_va150_out => v3dvar_srf(srf_va150)%rval
+          end if
+        else
+          if ( enable_srf3d_vars(srf_ua50) ) then
+            call setup_var(v3dvar_srf,srf_ua50,vsize,'ua50m','m/s', &
+              'Grid Eastward Wind at 50m','grid_eastward_wind',.true.)
+            srf_ua50_out => v3dvar_srf(srf_ua50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va50) ) then
+            call setup_var(v3dvar_srf,srf_va50,vsize,'va50m','m/s', &
+              'Grid Northward Wind at 50m','grid_northward_wind',.true.)
+            srf_va50_out => v3dvar_srf(srf_va50)%rval
+          end if
+          if ( enable_srf3d_vars(srf_ua100) ) then
+            call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
+              'Grid Eastward Wind at 100m','grid_eastward_wind',.true.)
+            srf_ua100_out => v3dvar_srf(srf_ua100)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va100) ) then
             call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
               'Grid Northward Wind at 100m','grid_northward_wind',.true.)
+            srf_va100_out => v3dvar_srf(srf_va100)%rval
           end if
-          srf_va100_out => v3dvar_srf(srf_va100)%rval
+          if ( enable_srf3d_vars(srf_ua150) ) then
+            call setup_var(v3dvar_srf,srf_ua150,vsize,'ua150m','m/s', &
+              'Grid Eastward Wind at 150m','grid_eastward_wind',.true.)
+            srf_ua150_out => v3dvar_srf(srf_ua150)%rval
+          end if
+          if ( enable_srf3d_vars(srf_va150) ) then
+            call setup_var(v3dvar_srf,srf_va150,vsize,'va150m','m/s', &
+              'Grid Northward Wind at 150m','grid_northward_wind',.true.)
+            srf_va150_out => v3dvar_srf(srf_va150)%rval
+          end if
+        end if
+        if ( enable_srf3d_vars(srf_ta50) ) then
+          call setup_var(v3dvar_srf,srf_ta50,vsize,'ta50m','K', &
+            'Air Temperature at 50m','air_temperature',.true.)
+          srf_ta50_out => v3dvar_srf(srf_ta50)%rval
+        end if
+        if ( enable_srf3d_vars(srf_hus50) ) then
+          call setup_var(v3dvar_srf,srf_hus50,vsize,'hus50m','1', &
+            'Specific Humidity at 50m','specific_humidity',.true.)
+          srf_hus50_out => v3dvar_srf(srf_hus50)%rval
         end if
         if ( irceideal == 1 ) then
           enable_srf3d_vars(srf_smw) = .false.

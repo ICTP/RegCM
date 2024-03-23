@@ -99,7 +99,7 @@ module mod_params
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
       lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
-      do_parallel_netcdf_out , deflate_level , chechgact
+      do_parallel_netcdf_out , deflate_level , chechgact , ifcordex
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -247,6 +247,7 @@ module mod_params
     ! outparam ;
     !
     prestr = ''
+    ifcordex = .false.
     ifsave = .true.
     ifatm  = .true.
     ifrad  = .true.
@@ -1221,6 +1222,28 @@ module mod_params
     call bcast(dtabem)
 
     call bcast(prestr,64)
+    call bcast(ifcordex)
+    !
+    ! Force to grant same output
+    !
+    if ( ifcordex ) then
+      ! Save file setup and file granularity left to user.
+      ifatm = .true.
+      ifrad = .true.
+      ifsrf = .true.
+      ifsts = .true.
+      ifshf = .false.
+      ifsub = .false.
+      ifopt = .false.
+      ifchem = .false.
+      atmfrq = 1.0
+      radfrq = 1.0
+      srffrq = 1.0
+      lsync = .false. ! Faster this way
+      idiag = 0
+      icosp = 0
+      ! Variable selection in mod_ncout where list is
+    end if
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
@@ -2095,6 +2118,8 @@ module mod_params
     end if
 
     if ( myid == italk ) then
+      if ( ifcordex ) write(stdout,*) &
+        'Model will output required CORDEX variables.'
       write(stdout,*) 'Create SAV files : ' , ifsave
       write(stdout,*) 'Create ATM files : ' , ifatm
       write(stdout,*) 'Create RAD files : ' , ifrad

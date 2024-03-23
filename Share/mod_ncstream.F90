@@ -880,6 +880,15 @@ module mod_ncstream
         stvar%lev10m_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%lev10m_var)
       end if
+      if ( stream%l_has50mlev ) then
+        stvar%lev50m_var%vname = 'm50'
+        stvar%lev50m_var%vunit = 'm'
+        stvar%lev50m_var%axis = 'w'
+        stvar%lev50m_var%long_name = 'Height level'
+        stvar%lev50m_var%standard_name = 'height'
+        stvar%lev50m_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%lev50m_var)
+      end if
       if ( stream%l_has100mlev ) then
         stvar%lev100m_var%vname = 'm100'
         stvar%lev100m_var%vunit = 'm'
@@ -888,6 +897,15 @@ module mod_ncstream
         stvar%lev100m_var%standard_name = 'height'
         stvar%lev100m_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%lev100m_var)
+      end if
+      if ( stream%l_has150mlev ) then
+        stvar%lev150m_var%vname = 'm150'
+        stvar%lev150m_var%vunit = 'm'
+        stvar%lev150m_var%axis = 'W'
+        stvar%lev150m_var%long_name = 'Height level'
+        stvar%lev150m_var%standard_name = 'height'
+        stvar%lev150m_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%lev150m_var)
       end if
       if ( stream%l_hassoillev ) then
         stvar%levsoil_var%vname = 'soil_layer'
@@ -1317,11 +1335,21 @@ module mod_ncstream
           the_name = 'm10'
           pdim = h10m_level_dim
           stream%l_has10mlev = .true.
+        case ('50M','50m','lev50m','50mlev','lev_50m')
+          num = 1
+          the_name = 'm50'
+          pdim = h50m_level_dim
+          stream%l_has50mlev = .true.
         case ('100M','100m','lev100m','100mlev','lev_100m')
           num = 1
           the_name = 'm100'
           pdim = h100m_level_dim
           stream%l_has100mlev = .true.
+        case ('150M','150m','lev150m','150mlev','lev_150m')
+          num = 1
+          the_name = 'm150'
+          pdim = h150m_level_dim
+          stream%l_has150mlev = .true.
         case ('NSOIL','nsoil','n_soil_layer','nlay','layers')
           num = num_soil_layers
           the_name = 'soil_layer'
@@ -2058,12 +2086,24 @@ module mod_ncstream
             end if
             id_dim(ic) = stream%id_dims(h10m_level_dim)
             len_dim(ic) = stream%len_dims(h10m_level_dim)
+          case ('q')
+            if ( stream%id_dims(h50m_level_dim) < 0 ) then
+              call add_dimension(stream,'50m')
+            end if
+            id_dim(ic) = stream%id_dims(h50m_level_dim)
+            len_dim(ic) = stream%len_dims(h50m_level_dim)
           case ('W')
             if ( stream%id_dims(h100m_level_dim) < 0 ) then
               call add_dimension(stream,'100m')
             end if
             id_dim(ic) = stream%id_dims(h100m_level_dim)
             len_dim(ic) = stream%len_dims(h100m_level_dim)
+          case ('Q')
+            if ( stream%id_dims(h150m_level_dim) < 0 ) then
+              call add_dimension(stream,'150m')
+            end if
+            id_dim(ic) = stream%id_dims(h150m_level_dim)
+            len_dim(ic) = stream%len_dims(h150m_level_dim)
           case ('s')
             if ( stream%id_dims(soil_layer_dim) < 0 ) then
               call add_dimension(stream,'nsoil')
