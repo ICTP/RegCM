@@ -29,18 +29,6 @@
         }
       ],
       [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "m s-1",
-            "long_name": "Near-Surface Wind Speed",
-            "standard_name": "wind_speed"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24
@@ -85,18 +73,6 @@
         "SaveVariableToDisk",
         {
           "var_name": "sfcWind",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "m s-1",
-            "long_name": "Near-Surface Wind Speed",
-            "standard_name": "wind_speed"
-          }
-        }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "m s-1",

@@ -27,19 +27,6 @@
         }
       ],
       [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 6,
-          "var_name": "ts",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Temperature",
-            "standard_name": "surface_temperature",
-            "units": "K"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24

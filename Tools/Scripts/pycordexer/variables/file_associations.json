@@ -20,6 +20,8 @@
     "vars":[
       "tas",
       "pr",
+      "prhmax",
+      "prw",
       "huss",
       "hurs",
       "evspsbl",
@@ -47,8 +49,14 @@
       "tauv",
       "ts",
       "zmla",
+      "ua50m",
+      "va50m",
       "ua100m",
       "va100m",
+      "ua150m",
+      "va150m",
+      "ta50m",
+      "hus50m",
       "zo"
     ],
     "mask":"_SRF\\.\\d+\\.[nN][cC]$"
@@ -81,7 +89,6 @@
     {
     "name":"RAD",
     "vars":[
-      "prw",
       "clwvi",
       "clivi",
       "clh",

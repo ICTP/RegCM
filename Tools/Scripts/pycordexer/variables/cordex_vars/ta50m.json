@@ -1,0 +1,41 @@
+{
+  "ta50m": [
+    [
+      [
+        "ComputeGeoCoordinateFromGridCoordinate",
+        {
+          "var_name": "ta50m",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "K",
+            "long_name": "Air Temperature at 50m",
+            "standard_name": "air_temperature"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "K",
+            "long_name": "Air Temperature at 50m",
+            "standard_name": "air_temperature"
+          }
+        }
+      ]
+    ]
+  ]
+}

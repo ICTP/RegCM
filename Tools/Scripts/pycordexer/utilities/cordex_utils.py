@@ -361,10 +361,10 @@ class RegcmOutputFile(object):
             else:
                 LOGGER.debug('Variable "%s" not found', var_name)
 
-        if check_variable('tsmax'):
+        if check_variable('tasmax'):
             LOGGER.debug('Variable "tsmax" found: the type is "STS"')
             return 'STS'
-        if check_variable('tsmin'):
+        if check_variable('tasmin'):
             LOGGER.debug('Variable "tsmin" found: the type is "STS"')
             return 'STS'
 

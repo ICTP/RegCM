@@ -1,33 +1,20 @@
 {
-  "huss": [
+  "hus50m": [
     [
       [
-        "ReadVariableFromFile",
+        "ComputeGeoCoordinateFromGridCoordinate",
         {
-          "var_name": "huss",
+          "var_name": "hus50m",
           "need_time_bounds": false
         }
       ],
       [
-        "CorrectTime",
-        {
-          "offset": {
-            "SRF": 0.0
-          }
-        }
-      ],
-      [
-        "ExtractGroundHeight",
-        {}
-      ],
-      [
         "SaveVariableToDisk",
         {
-          "var_name": "huss",
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "1",
-            "long_name": "Near-Surface Specific Humidity",
+            "long_name": "Specific Humidity at 50m",
             "standard_name": "specific_humidity"
           }
         }
@@ -41,11 +28,10 @@
       [
         "SaveVariableToDisk",
         {
-          "var_name": "huss",
           "fill_value": "1e+20",
           "new_attributes": {
             "units": "1",
-            "long_name": "Near-Surface Specific Humidity",
+            "long_name": "Specific Humidity at 50m",
             "standard_name": "specific_humidity"
           }
         }

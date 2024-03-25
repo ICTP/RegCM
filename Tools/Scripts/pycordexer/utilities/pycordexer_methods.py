@@ -1232,10 +1232,11 @@ class ComputeMaximum(Filter):
                 new_data_slice[time_index] = slice(i,i)
 
                 prev_data = prev_result.data(old_data_slice)
-                new_data_array[tuple(new_data_slice)] = np.ma.maximum(
+                new_data_array[i] = np.nanmax(
                     prev_data,
-                    axis=time_index
-                )
+		    axis=time_index,
+		    keepdims=True,
+		    )
 
                 if is_masked(prev_data):
                     new_data_mask[tuple(new_data_slice)] = np.prod(
@@ -1270,7 +1271,6 @@ class ComputeMaximum(Filter):
             auxiliary_vars=prev_result.auxiliary_variables,
             needs_time_bounds=True,
         )
-
 
 
 class IfNeededMaximumAndSave(Filter):
