@@ -745,6 +745,10 @@ module mod_ncout
               'time: mean',l_fill=.true.)
             atm_tsw_out => v2dvar_atm(atm_tsw)%rval
           end if
+        else
+          enable_atm2d_vars(atm_tsw) = .false.
+        end if
+        if ( ifcordex ) then
           if ( enable_atm2d_vars(atm_cape) ) then
             call setup_var(v2dvar_atm,atm_cape,vsize,'CAPE','J kg-1', &
               'Convective Available Potential Energy', &
@@ -767,7 +771,6 @@ module mod_ncout
             atm_li_out => v2dvar_atm(atm_li)%rval
           end if
         else
-          enable_atm2d_vars(atm_tsw) = .false.
           enable_atm2d_vars(atm_cape) = .false.
           enable_atm2d_vars(atm_cin) = .false.
           enable_atm2d_vars(atm_li) = .false.
