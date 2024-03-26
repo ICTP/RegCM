@@ -2,10 +2,9 @@
   "ta50m": [
     [
       [
-        "ComputeGeoCoordinateFromGridCoordinate",
+        "ReadVariableFromFile",
         {
-          "var_name": "ta50m",
-          "need_time_bounds": false
+          "var_name": "ta50m"
         }
       ],
       [

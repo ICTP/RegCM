@@ -2,10 +2,9 @@
   "hus50m": [
     [
       [
-        "ComputeGeoCoordinateFromGridCoordinate",
+        "ReadVariableFromFile",
         {
-          "var_name": "hus50m",
-          "need_time_bounds": false
+          "var_name": "hus50m"
         }
       ],
       [

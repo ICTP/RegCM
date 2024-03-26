@@ -46,6 +46,19 @@ module mod_capecin
 
   public :: getcape
 
+  integer(ik4) , parameter :: itb = 076
+  integer(ik4) , parameter :: jtb = 134
+  integer(ik4) , parameter :: itbq = 152
+  integer(ik4) , parameter :: jtbq = 440
+
+  real(rkx) :: pl , thl , rdq , rdth , rdp , rdthe , plq , rdpq , rdtheq
+  real(rkx) , dimension(jtb) :: qs0 , sqs
+  real(rkx) , dimension(itb) :: the0 , sthe
+  real(rkx) , dimension(itbq) :: the0q , stheq
+  real(rkx) , dimension(itb,jtb) :: ptbl
+  real(rkx) , dimension(jtb,itb) :: ttbl
+  real(rkx) , dimension(jtbq,itbq) :: ttblq
+
   contains
   !
   !
@@ -385,6 +398,170 @@ module mod_capecin
     end function getthe
 
     end subroutine getcape
+
+    ! This routine computes a surface to 500mb lifted index.
+    ! The lifted parcel is from the first atmpspheric ETA
+    ! layer (ie, the ETA layer closest to the model ground).
+    ! The lifted index is the difference between this parcel's
+    ! temperature at 500mb and the ambient 500mb temperature.
+    ! Russ Treadon W/NP2 @date 1993-03-10
+
+    subroutine otlift(slindx,t,q,p,t500,ista,iend,jsta,jend,kk)
+      implicit none
+      integer(ik4) , intent(in) :: ista , iend , jsta , jend , kk
+      real(rkx) , dimension(:,:) , pointer , intent(inout) :: slindx
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: t500
+      real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t , q , p
+
+      real(rkx) , parameter :: d8202 = 0.820231e+00_rkx
+      real(rkx) , parameter :: h5e4 = 5.e4_rkx
+      real(rkx) , parameter :: p500 = 50000.0_rkx
+      real(rkx) , parameter :: capa = 0.28589641e+00_rkx
+      real(rkx) , parameter :: elivw = 2.72e+6_rkx
+      real(rkx) , parameter :: elocp = elivw/cpd
+      real(rkx) , parameter :: oneps = 1.0_rkx-ep2
+
+      real(rkx) :: tvp , esatp , qsatp
+      real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
+      real(rkx) :: bqs00 , sqs00 , bqs10 , sqs10 , bq , sq , tq
+      real(rkx) :: p00 , p10 , p01 , p11 , t00 , t10 , t01 , t11
+      real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
+      real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
+      integer(ik4) :: i , j , lbtm , ittbk , iq , it , iptbk
+      integer(ik4) :: ith , ip , iqtb
+      integer(ik4) :: ittb , iptb , ithtb
+      !
+      !**********************************************************
+      ! Start otlift here
+      !
+      ! Initialize lifted index array to zero.
+      do concurrent ( i = ista:iend, j = jsta:jend )
+        slindx(i,j) = d_zero
+      end do
+      ! Find Exner at lowest level-------------------------------
+      do j = jsta , jend
+        do i = ista , iend
+          tbt = t(i,j,kk)
+          qbt = q(i,j,kk)
+          apebt = (p00/p(i,j,kk))**capa
+          ! Scaling potential temperature & table index----------
+          tthbt = tbt*apebt
+          tth = (tthbt-thl)*rdth
+          tqq = tth-aint(tth)
+          ittb = int(tth) + 1
+          ! Keeping indices within the table---------------------
+          if ( ittb < 1 ) then
+            ittb = 1
+            tqq = d_zero
+          end if
+          if ( ittb >= jtb ) then
+            ittb = jtb - 1
+            tqq = d_zero
+          end if
+          ! Base and scaling factor for spec. humidity-----------
+          ittbk = ittb
+          bqs00 = qs0(ittbk)
+          sqs00 = sqs(ittbk)
+          bqs10 = qs0(ittbk+1)
+          sqs10 = sqs(ittbk+1)
+          ! Scaling spec. humidity & table index-----------------
+          bq = (bqs10-bqs00)*tqq + bqs00
+          sq = (sqs10-sqs00)*tqq + sqs00
+          tq = (qbt-bq)/sq*rdq
+          ppq = tq - aint(tq)
+          iqtb = int(tq) + 1
+          ! Keeping indices within the table---------------------
+          if(iqtb < 1)then
+            iqtb = 1
+            ppq = d_zero
+          end if
+          if ( iqtb >= itb ) then
+            iqtb = itb-1
+            ppq = d_zero
+          end if
+          ! Saturation pressure at four surrounding table pts.---
+          iq = iqtb
+          it = ittb
+          p00 = ptbl(iq,it)
+          p10 = ptbl(iq+1,it)
+          p01 = ptbl(iq,it+1)
+          p11 = ptbl(iq+1,it+1)
+          ! Saturation point variables at the bottom------------
+          tpsp = p00+(p10-p00)*ppq+(p01-p00)*tqq + &
+                (p00-p10-p01+p11)*ppq*tqq
+          if ( tpsp <= d_zero ) tpsp = p00
+          apesp = (p00/tpsp)**capa
+          thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
+          ! Scaling pressure & tt table index------------------
+          tp = (h5e4-pl)*rdp
+          qq = tp - aint(tp)
+          iptb = int(tp)+1
+          ! Keeping indices within the table-------------------
+          if ( iptb < 1 ) then
+            iptb = 1
+            qq = d_zero
+          end if
+          if ( iptb >= itb ) then
+            iptb = itb-1
+            qq = d_zero
+          end if
+          ! Base and scaling factor for the-------------------
+          iptbk = iptb
+          bthe00 = the0(iptbk)
+          sthe00 = sthe(iptbk)
+          bthe10 = the0(iptbk+1)
+          sthe10 = sthe(iptbk+1)
+          ! Scaling the & tt table index----------------------
+          bth = (bthe10-bthe00)*qq + bthe00
+          sth = (sthe10-sthe00)*qq + sthe00
+          tth = (thesp-bth)/sth*rdthe
+          pp = tth-aint(tth)
+          ithtb = int(tth) + 1
+          ! Keeping indices within the table------------------
+          if ( ithtb < 1 ) then
+            ithtb = 1
+            pp = d_zero
+          end if
+          if ( ithtb >= jtb ) then
+            ithtb = jtb-1
+            pp = d_zero
+          end if
+          ! Temperature at four surrounding tt table pts.----
+          ith = ithtb
+          ip = iptb
+          t00 = ttbl(ith,ip)
+          t10 = ttbl(ith+1,ip)
+          t01 = ttbl(ith,ip+1)
+          t11 = ttbl(ith+1,ip+1)
+          ! Parcel temperature at 500mb----------------------
+          if ( tpsp >= h5e4 ) then
+            partmp=(t00+(t10-t00)*pp + (t01-t00)*qq + &
+                   (t00-t10-t01+t11)*pp*qq)
+          else
+            partmp = tbt*apebt*d8202
+          end if
+          ! Lifted Index-------------------------------------
+          !
+          ! The parcel temperature at 500 mb has been
+          ! computed, and we find the mixing ratio at that
+          ! level which will be the saturation value since
+          ! we're following a moist adiabat. Note that the
+          ! ambient 500 mb should probably be virtualized,
+          ! but the impact of moisture at that level is
+          ! quite small
+          !
+          esatp = pfesat(partmp)
+          qsatp = ep2*esatp/(p500-esatp*oneps)
+          tvp = partmp*(1.0_rkx+0.608_rkx*qsatp)
+          slindx(i,j) = t500(i,j)-tvp
+        end do
+      end do
+
+      contains
+
+#include <pfesat.inc>
+
+    end subroutine otlift
 
 end module mod_capecin
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
