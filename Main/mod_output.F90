@@ -628,65 +628,6 @@ module mod_output
           end if
         end if
 
-        if ( associated(atm_li_out) ) then
-          if ( idynamic == 3 ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                kk = 1
-                do k = 1 , kz
-                  if ( mo_atm%p(j,i,k) > 50000.0_rkx ) exit
-                  kk = k
-                end do
-                atm_li_out(j,i) = (mo_atm%t(j,i,kz) - &
-                  mo_atm%zeta(j,i,kk) * lrate) - mo_atm%t(j,i,kk)
-              end do
-            end do
-          else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                kk = 1
-                do k = 1 , kz
-                  if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
-                  kk = k
-                end do
-                tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
-                t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
-                atm_li_out(j,i) = (tsurf-atms%za(j,i,k)*lrate) - t500
-              end do
-            end do
-          end if
-        end if
-        if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
-          if ( idynamic == 3 ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
-                  kk = kzp1 - k
-                  p1d(kk) = mo_atm%p(j,i,k)
-                  t1d(kk) = mo_atm%t(j,i,k)
-                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
-                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
-                end do
-                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
-              end do
-            end do
-          else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
-                  kk = kzp1 - k
-                  p1d(kk) = atm1%pr(j,i,k)
-                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
-                  rh1d(kk) = min(d_one,max(d_zero, &
-                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
-                end do
-                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
-              end do
-            end do
-          end if
-        end if
-
         ! FAB add tendency diagnostic here
         if ( idiag > 0 ) then
           if ( associated(atm_tten_adh_out) ) then
@@ -1064,6 +1005,67 @@ module mod_output
         end if
         if ( associated(srf_hus50_out) ) then
           srf_hus50_out = srf_hus50_out/(1.0_rkx+srf_hus50_out)
+        end if
+
+        if ( associated(srf_li_out) ) then
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                kk = 1
+                do k = 1 , kz
+                  if ( mo_atm%p(j,i,k) > 50000.0_rkx ) exit
+                  kk = k
+                end do
+                srf_li_out(j,i) = (mo_atm%t(j,i,kz) - &
+                  mo_atm%zeta(j,i,kk) * lrate) - mo_atm%t(j,i,kk)
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                kk = 1
+                do k = 1 , kz
+                  if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
+                  kk = k
+                end do
+                tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
+                t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
+                srf_li_out(j,i) = (tsurf-atms%za(j,i,k)*lrate) - t500
+              end do
+            end do
+          end if
+        end if
+        if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = mo_atm%p(j,i,k)
+                  t1d(kk) = mo_atm%t(j,i,k)
+                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
+                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i))
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = atm1%pr(j,i,k)
+                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
+                  rh1d(kk) = min(d_one,max(d_zero, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i))
+              end do
+            end do
+          end if
         end if
 
         if ( associated(srf_tprw_out) ) then

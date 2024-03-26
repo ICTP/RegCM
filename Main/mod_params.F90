@@ -1236,7 +1236,7 @@ module mod_params
       ifsub = .false.
       ifopt = .false.
       ifchem = .false.
-      atmfrq = 1.0
+      atmfrq = 6.0
       radfrq = 1.0
       srffrq = 1.0
       lsync = .false. ! Faster this way

@@ -91,9 +91,6 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: atm_tgb_out => null()
   real(rkx) , dimension(:,:) , pointer :: atm_tpr_out => null()
   real(rkx) , dimension(:,:) , pointer :: atm_tsw_out => null()
-  real(rkx) , dimension(:,:) , pointer :: atm_cape_out => null()
-  real(rkx) , dimension(:,:) , pointer :: atm_cin_out => null()
-  real(rkx) , dimension(:,:) , pointer :: atm_li_out => null()
   ! stats
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_supw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_supc_out => null()
@@ -157,6 +154,9 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_twetb_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_tprw_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_cape_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_cin_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_li_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()

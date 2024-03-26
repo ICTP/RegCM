@@ -57,13 +57,13 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 6
 
-  integer(ik4) , parameter :: natm2dvars = 7 + nbase
+  integer(ik4) , parameter :: natm2dvars = 4 + nbase
   integer(ik4) , parameter :: natm3dvars = 64
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 39 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 42 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -174,9 +174,6 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tpr   = 8
   integer(ik4) , parameter :: atm_tgb   = 9
   integer(ik4) , parameter :: atm_tsw   = 10
-  integer(ik4) , parameter :: atm_cape  = 11
-  integer(ik4) , parameter :: atm_cin   = 12
-  integer(ik4) , parameter :: atm_li    = 13
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -299,6 +296,9 @@ module mod_ncout
   integer(ik4) , parameter :: srf_hail     = 43
   integer(ik4) , parameter :: srf_grau     = 44
   integer(ik4) , parameter :: srf_tprw     = 45
+  integer(ik4) , parameter :: srf_cape     = 46
+  integer(ik4) , parameter :: srf_cin      = 47
+  integer(ik4) , parameter :: srf_li       = 48
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -554,9 +554,6 @@ module mod_ncout
       enable_rad_vars(:) = .false.
       ! enable basic geolocation + vertical coord variables
       enable_atm_vars(1:nbase) = .true.
-      enable_atm_vars(atm_cape) = .true.
-      enable_atm_vars(atm_cin) = .true.
-      enable_atm_vars(atm_li) = .true.
       enable_atm_vars(natm2dvars+atm_u) = .true.
       enable_atm_vars(natm2dvars+atm_v) = .true.
       enable_atm_vars(natm2dvars+atm_w) = .true.
@@ -599,6 +596,9 @@ module mod_ncout
       enable_srf_vars(srf_snow) = .true.
       enable_srf_vars(srf_grau) = .true.
       enable_srf_vars(srf_tprw) = .true.
+      enable_atm_vars(srf_cape) = .true.
+      enable_atm_vars(srf_cin) = .true.
+      enable_atm_vars(srf_li) = .true.
       enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
@@ -749,34 +749,6 @@ module mod_ncout
         else
           enable_atm2d_vars(atm_tsw) = .false.
         end if
-        if ( ifcordex ) then
-          if ( enable_atm2d_vars(atm_cape) ) then
-            call setup_var(v2dvar_atm,atm_cape,vsize,'CAPE','J kg-1', &
-              'Convective Available Potential Energy', &
-              'atmosphere_convective_available_potential_energy_wrt_surface', &
-              .true.,'time: point',l_fill=.true.)
-            atm_cape_out => v2dvar_atm(atm_cape)%rval
-          end if
-          if ( enable_atm2d_vars(atm_cin) ) then
-            call setup_var(v2dvar_atm,atm_cin,vsize,'CIN','J kg-1', &
-              'Convective Inhibition', &
-              'atmosphere_convective_inhibitioni_wrt_surface', &
-              .true.,'time: point',l_fill=.true.)
-            atm_cin_out => v2dvar_atm(atm_cin)%rval
-          end if
-          if ( enable_atm2d_vars(atm_li) ) then
-            call setup_var(v2dvar_atm,atm_li,vsize,'LI','K','Lifted Index',&
-              'temperature_difference_between_ambient_'&
-              &'air_and_air_lifted_adiabatically_from_the_surface', &
-              .true.,'time: point',l_fill=.true.)
-            atm_li_out => v2dvar_atm(atm_li)%rval
-          end if
-        else
-          enable_atm2d_vars(atm_cape) = .false.
-          enable_atm2d_vars(atm_cin) = .false.
-          enable_atm2d_vars(atm_li) = .false.
-        end if
-
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
           if ( uvrotate ) then
@@ -1656,6 +1628,33 @@ module mod_ncout
               .true.)
             srf_tprw_out => v2dvar_srf(srf_tprw)%rval
           end if
+        end if
+        if ( ifcordex ) then
+          if ( enable_srf2d_vars(srf_cape) ) then
+            call setup_var(v2dvar_srf,srf_cape,vsize,'CAPE','J kg-1', &
+              'Convective Available Potential Energy', &
+              'atmosphere_convective_available_potential_energy_wrt_surface', &
+              .true.,'time: point',l_fill=.true.)
+            srf_cape_out => v2dvar_srf(srf_cape)%rval
+          end if
+          if ( enable_srf2d_vars(srf_cin) ) then
+            call setup_var(v2dvar_srf,srf_cin,vsize,'CIN','J kg-1', &
+              'Convective Inhibition', &
+              'atmosphere_convective_inhibitioni_wrt_surface', &
+              .true.,'time: point',l_fill=.true.)
+            srf_cin_out => v2dvar_srf(srf_cin)%rval
+          end if
+          if ( enable_srf2d_vars(srf_li) ) then
+            call setup_var(v2dvar_srf,srf_li,vsize,'LI','K','Lifted Index',&
+              'temperature_difference_between_ambient_'&
+              &'air_and_air_lifted_adiabatically_from_the_surface', &
+              .true.,'time: point',l_fill=.true.)
+            srf_li_out => v2dvar_srf(srf_li)%rval
+          end if
+        else
+          enable_srf2d_vars(srf_cape) = .false.
+          enable_srf2d_vars(srf_cin) = .false.
+          enable_srf2d_vars(srf_li) = .false.
         end if
 
         vsize%k2 = 1
