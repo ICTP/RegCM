@@ -497,7 +497,7 @@ module mod_capecin
           ! Saturation point variables at the bottom------------
           tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
                 (pp00-pp10-pp01+pp11)*ppq*tqq
-          if ( tpsp <= d_zero ) tpsp = pp00
+          if ( tpsp <= d_zero ) tpsp = p00
           apesp = (p00/tpsp)**capa
           thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
           ! Scaling pressure & tt table index------------------
