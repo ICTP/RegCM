@@ -361,10 +361,10 @@ class RegcmOutputFile(object):
             else:
                 LOGGER.debug('Variable "%s" not found', var_name)
 
-        if check_variable('tsmax'):
+        if check_variable('tasmax'):
             LOGGER.debug('Variable "tsmax" found: the type is "STS"')
             return 'STS'
-        if check_variable('tsmin'):
+        if check_variable('tasmin'):
             LOGGER.debug('Variable "tsmin" found: the type is "STS"')
             return 'STS'
 
@@ -392,8 +392,8 @@ class RegcmOutputFile(object):
             LOGGER.debug('Variable "rts" found: the type is "RAD"')
             return 'RAD'
 
-        if check_variable('prhmax') and not check_variable('mrsos'):
-            LOGGER.debug('Variable "prhmax" found: the type is "SHF"')
+        if check_variable('twetbmax'):
+            LOGGER.debug('Variable "twetbmax" found: the type is "SHF"')
             return 'SHF'
 
         LOGGER.debug('No known variable found: assuming SRF')

@@ -26,19 +26,6 @@
             "units": "Pa"
           }
         }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "ps",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Air Pressure",
-            "standard_name": "surface_air_pressure",
-            "units": "Pa"
-          }
-        }
       ]
     ]
   ]

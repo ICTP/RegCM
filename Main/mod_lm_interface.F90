@@ -858,11 +858,6 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
-      if ( ifatm ) then
-        rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
-        if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
-      end if
       if ( ifsrf ) then
         rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
         if ( associated(srf_totcf_out) ) &
@@ -1061,6 +1056,33 @@ module mod_lm_interface
         if ( associated(atm_tgb_out) ) then
           atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
         end if
+        if ( associated(atm_smw_out) ) then
+          do n = 1 , num_soil_layers
+            where ( lm%ldmsk == 1 )
+              atm_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
+            elsewhere
+              atm_smw_out(:,:,n) = dmissval
+            end where
+          end do
+        end if
+#ifdef CLM45
+        if ( associated(atm_tsoil_out) ) then
+          do n = 1 , num_soil_layers
+            where ( lm%ldmsk == 1 )
+              atm_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
+            elsewhere
+              atm_tsoil_out(:,:,n) = dmissval
+            end where
+          end do
+        end if
+#endif
+        if ( associated(atm_mrso_out) ) then
+          where ( lm%ldmsk == 1 )
+            atm_mrso_out(:,:) = sum(sum(lms%sw,1),3)*rdnnsg
+          elsewhere
+            atm_mrso_out(:,:) = dmissval
+          end where
+        end if
       end if
     end if
 
@@ -1124,6 +1146,16 @@ module mod_lm_interface
           end do
         end if
 #ifdef CLM45
+        if ( associated(srf_mrsos_out) ) then
+          where ( lm%ldmsk == 1 )
+            srf_mrsos_out(:,:) = (sum(lms%sw(:,:,:,1),1) + &
+                                  sum(lms%sw(:,:,:,2),1) + &
+                                  sum(lms%sw(:,:,:,3),1) + &
+                                  sum(lms%sw(:,:,:,4),1)) * rdnnsg
+          elsewhere
+            srf_mrsos_out(:,:) = dmissval
+          end where
+        end if
         if ( associated(srf_tsoil_out) ) then
           do n = 1 , num_soil_layers
             where ( lm%ldmsk == 1 )

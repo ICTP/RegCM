@@ -1,19 +1,20 @@
 {
-  "prsn": [
+  "hus50m": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "prsn"
+          "var_name": "hus50m"
         }
       ],
       [
         "SaveVariableToDisk",
         {
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Snowfall Flux",
-            "standard_name": "snowfall_flux",
-            "units": "kg m-2 s-1"
+            "units": "1",
+            "long_name": "Specific Humidity at 50m",
+            "standard_name": "specific_humidity"
           }
         }
       ],
@@ -26,11 +27,11 @@
       [
         "SaveVariableToDisk",
         {
-          "var_name": "prsn",
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Snowfall Flux",
-            "standard_name": "snowfall_flux",
-            "units": "kg m-2 s-1"
+            "units": "1",
+            "long_name": "Specific Humidity at 50m",
+            "standard_name": "specific_humidity"
           }
         }
       ]

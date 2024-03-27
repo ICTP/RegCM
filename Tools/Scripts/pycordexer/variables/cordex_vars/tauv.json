@@ -30,19 +30,6 @@
         }
       ],
       [
-        "IfNeededAverageAndSave",
-        {
-          "new_time_step": 6,
-          "var_name": "tauv",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Downward Northward Wind Stress",
-            "standard_name": "surface_downward_northward_stress",
-            "units": "Pa"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24

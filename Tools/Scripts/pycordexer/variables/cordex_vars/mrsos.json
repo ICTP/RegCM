@@ -1,10 +1,10 @@
 {
-  "ts": [
+  "mrsos": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "ts",
+          "var_name": "mrsos",
           "need_time_bounds": false
         }
       ],
@@ -12,17 +12,19 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0
+            "SRF": 0.0
           }
         }
       ],
       [
         "SaveVariableToDisk",
         {
+          "var_name": "mrsos",
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Surface Temperature",
-            "standard_name": "surface_temperature",
-            "units": "K"
+            "long_name": "Moisture in Upper Portion of Soil Column",
+            "standard_name": "mass_content_of_water_in_soil_layer",
+            "units": "kg m-2"
           }
         }
       ],
@@ -35,14 +37,15 @@
       [
         "SaveVariableToDisk",
         {
+          "var_name": "mrsos",
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Surface Temperature",
-            "standard_name": "surface_temperature",
-            "units": "K"
+            "long_name": "Moisture in Upper Portion of Soil Column",
+            "standard_name": "mass_content_of_water_in_soil_layer",
+            "units": "kg m-2"
           }
         }
       ]
     ]
   ]
 }
-

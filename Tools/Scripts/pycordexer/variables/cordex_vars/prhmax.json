@@ -12,26 +12,15 @@
         "CorrectTime",
         {
           "offset": {
+            "SRF": "-HALFFREQUENCY",
             "SHF": "-HALFFREQUENCY"
-          }
-        }
-      ],
-      [
-        "SaveVariableToDisk",
-        {
-          "var_name": "prhmax",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "kg m-2 s-1",
-            "long_name": "Maximum Hourly Precipitation Rate",
-            "standard_name": "precipitation_flux"
           }
         }
       ],
       [
         "IfNeededMaximumAndSave",
         {
-          "new_time_step": 1,
+          "new_time_step": 24,
           "var_name": "prhmax",
           "fill_value": "1e+20",
           "new_attributes": {
