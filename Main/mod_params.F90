@@ -1233,6 +1233,7 @@ module mod_params
       ifsrf = .true.
       ifsts = .true.
       ifshf = .false.
+      iflak = .false.
       ifsub = .false.
       ifopt = .false.
       ifchem = .false.
