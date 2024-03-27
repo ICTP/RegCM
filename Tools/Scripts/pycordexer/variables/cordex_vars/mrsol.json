@@ -12,7 +12,8 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0.0
+            "SRF": 0.0,
+            "ATM": 0.0
           }
         }
       ],
@@ -27,7 +28,7 @@
           "fill_value": "1.0e20",
           "new_attributes": {
             "long_name": "Total water content of soil layer",
-            "standard_name": "moisture_content_of_soil_layer",
+            "standard_name": "mass_content_of_water_in_soil_layer",
             "units": "kg m-2"
           }
         }
@@ -45,7 +46,7 @@
           "fill_value": "1.0e20",
           "new_attributes": {
             "long_name": "Total water content of soil layer",
-            "standard_name": "moisture_content_of_soil_layer",
+            "standard_name": "mass_content_of_water_in_soil_layer",
             "units": "kg m-2"
           }
         }

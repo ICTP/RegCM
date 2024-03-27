@@ -27,19 +27,6 @@
         }
       ],
       [
-        "IfNeededAverageAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "rlds",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Downwelling Longwave Radiation",
-            "standard_name": "surface_downwelling_longwave_flux_in_air",
-            "units": "W m-2"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24

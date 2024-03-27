@@ -40,12 +40,17 @@ module mod_spline
   public :: splie2 , splin2
   public :: spline1d
 
+  interface spline
+    module procedure spline1
+    module procedure spline2
+  end interface spline
+
   contains
     !
     ! Calculate 2nd derivatives of cubic spline interp function
     ! Adapted from numerical recipes by press et al
     !
-    subroutine spline(x,y,yp1,ypn,y2)
+    subroutine spline1(x,y,yp1,ypn,y2)
       implicit none
       ! Arrays of tabulated function in ascending order by x with y = f(x)
       real(rkx) , dimension(:) , intent(in)  :: x , y
@@ -117,7 +122,91 @@ module mod_spline
       end do
 
       deallocate(u)
-    end subroutine spline
+    end subroutine spline1
+
+    subroutine spline2(jtb,nold,xold,yold,y2,nnew,xnew,ynew,p,q)
+      ! ******************************************************************
+      ! *                                                                *
+      ! *  THIS IS A ONE-DIMENSIONAL CUBIC SPLINE FITTING ROUTINE        *
+      ! *  PROGRAMED FOR A SMALL SCALAR MACHINE.                         *
+      ! *                                                                *
+      ! *  PROGRAMER Z. JANJIC, YUGOSLAV FED. HYDROMET. INST., BEOGRAD  *
+      ! *                                                                *
+      ! *                                                                *
+      ! *                                                                *
+      ! *  NOLD - NUMBER OF GIVEN VALUES OF THE FUNCTION.  MUST BE GE 3. *
+      ! *  XOLD - LOCATIONS OF THE POINTS AT WHICH THE VALUES OF THE     *
+      ! *         FUNCTION ARE GIVEN.  MUST BE IN ASCENDING ORDER.       *
+      ! *  YOLD - THE GIVEN VALUES OF THE FUNCTION AT THE POINTS XOLD.   *
+      ! *  Y2   - THE SECOND DERIVATIVES AT THE POINTS XOLD.  IF NATURAL *
+      ! *         SPLINE IS FITTED Y2(1)=0. AND Y2(NOLD)=0. MUST BE      *
+      ! *         SPECIFIED.                                             *
+      ! *  NNEW - NUMBER OF VALUES OF THE FUNCTION TO BE CALCULATED.     *
+      ! *  XNEW - LOCATIONS OF THE POINTS AT WHICH THE VALUES OF THE     *
+      ! *         FUNCTION ARE CALCULATED.  XNEW(K) MUST BE GE XOLD(1)   *
+      ! *         AND LE XOLD(NOLD).                                     *
+      ! *  YNEW - THE VALUES OF THE FUNCTION TO BE CALCULATED.           *
+      ! *  P, Q - AUXILIARY VECTORS OF THE LENGTH NOLD-2.                *
+      ! *                                                                *
+      ! ******************************************************************
+      implicit none
+      integer(ik4) , intent(in) :: jtb , nold , nnew
+      real(rkx) , dimension(jtb) , intent(in) :: xold , yold , xnew
+      real(rkx) , dimension(jtb) , intent(inout) :: p , q , y2
+      real(rkx) , dimension(jtb) , intent(out) :: ynew
+      integer(ik4) :: noldm1 , k , k1 , k2 , kold
+      real(rkx) :: dxl , dxr , dydxl , dydxr , rtdxc , dxc , den
+      real(rkx) :: xk , y2k , y2kp1 , dx , rdx , ak , bk , ck , x , xsq
+      !------------------------------------------------------------------
+      noldm1 = nold-1
+      dxl = xold(2)-xold(1)
+      dxr = xold(3)-xold(2)
+      dydxl = (yold(2)-yold(1))/dxl
+      dydxr = (yold(3)-yold(2))/dxr
+      rtdxc = 0.5_rkx/(dxl+dxr)
+      p(1) =  rtdxc*(6.0_rkx*(dydxr-dydxl)-dxl*y2(1))
+      q(1) = -rtdxc*dxr
+      if ( nold == 3 ) go to 700
+      k = 3
+ 100  dxl = dxr
+      dydxl = dydxr
+      dxr = xold(k+1)-xold(k)
+      dydxr = (yold(k+1)-yold(k))/dxr
+      dxc = dxl+dxr
+      den = 1.0_rkx/(dxl*q(k-2)+dxc+dxc)
+      p(k-1) =  den*(6.0_rkx*(dydxr-dydxl)-dxl*p(k-2))
+      q(k-1) = -den*dxr
+      k = k+1
+      if ( k < nold ) go to 100
+ 700  k = noldm1
+ 200  y2(k) = p(k-1)+q(k-1)*y2(k+1)
+      k = k-1
+      if ( k > 1 ) go to 200
+      k1 = 1
+ 300  xk = xnew(k1)
+      do 400 k2 = 2 , nold
+      if ( xold(k2) <= xk ) go to 400
+      kold = k2-1
+      go to 450
+ 400  continue
+      ynew(k1) = yold(nold)
+      go to 600
+ 450  if ( k1 == 1 )   go to 500
+      if ( k == kold ) go to 550
+ 500  k = kold
+      y2k = y2(k)
+      y2kp1 = y2(k+1)
+      dx = xold(k+1)-xold(k)
+      rdx = 1.0_rkx/dx
+      ak = 0.1666667_rkx*rdx*(y2kp1-y2k)
+      bk = 0.5_rkx*y2k
+      ck = rdx*(yold(k+1)-yold(k))-0.1666667_rkx*dx*(y2kp1+y2k+y2k)
+ 550  x = xk-xold(k)
+      xsq = x*x
+      ynew(k1) = ak*xsq*x+bk*xsq+ck*x+yold(k)
+ 600  k1 = k1+1
+      if ( k1 <= nnew ) go to 300
+    end subroutine spline2
     !
     ! Integrate cubic spline function from xa(1) to x
     !

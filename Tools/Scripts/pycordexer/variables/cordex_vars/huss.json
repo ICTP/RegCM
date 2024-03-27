@@ -33,25 +33,12 @@
         }
       ],
       [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "huss",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "1",
-            "long_name": "Near-Surface Specific Humidity",
-            "standard_name": "specific_humidity"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24
         }
       ],
-            [
+      [
         "SaveVariableToDisk",
         {
           "var_name": "huss",

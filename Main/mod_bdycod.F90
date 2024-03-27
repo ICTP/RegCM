@@ -5350,7 +5350,7 @@ module mod_bdycod
   !          gammax   maximal Courant number
   !  Output: alpha()  weight of externally specified values in the boundary
   !                   zone (corresponding to optimal relax. coefficients)
-  subroutine relax (is, gammin, gammax, alpha)
+  subroutine relax(is, gammin, gammax, alpha)
     implicit none
     integer(ik4) , intent(in) :: is
     real(rkx) , intent(in) :: gammin , gammax
