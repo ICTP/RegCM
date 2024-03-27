@@ -515,6 +515,8 @@ written in the files.
 ! Model Output control
 !
  &outparam
+ prestr  =     '',   ! string to prepend to output file names
+ ifcordex = .true.,  ! Restrict to possible CORDEX variables
  outnwf  =     0.,   ! Day interval to open new files (0 = monthly)
  ifsave  = .true. ,  ! Create SAV files for restart
  savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)
