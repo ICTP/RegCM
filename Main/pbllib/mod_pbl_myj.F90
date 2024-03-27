@@ -182,7 +182,7 @@ module mod_pbl_myj
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
           thsk , ct , qha , ustar
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
-    real(rkx) :: akhs , akms , pfac , zo
+    real(rkx) :: akhs , akms , zo
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
             tk , uk , vk , qcwk , qcik
@@ -193,6 +193,7 @@ module mod_pbl_myj
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ape , the , th , cwm
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kzm1) :: akh , akm
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
+    real(rkx) , dimension(jci1:jci2,ici1:ici2) :: pfac
 
     dtturbl = dt
     rdtturbl = d_one/dtturbl
@@ -428,7 +429,7 @@ module mod_pbl_myj
         if ( idynamic == 3 ) then
           pfac = d_one
         else
-          pfac = m2p%psb(j,i)
+          pfac = m2p%psb(jci1:jci2,ici1:ici2)
         end if
         do k = 1 , kz
           thold = th(j,i,k)
@@ -437,21 +438,21 @@ module mod_pbl_myj
           qold = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
           dqdt = (qk(k)-qold)*rdtturbl
           exner = (m2p%patm(j,i,k)/p00)**rovcp
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + dtdt * exner * pfac
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + dtdt * exner * pfac(j,i)
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                   (dqdt/(d_one-qk(k))**2) * pfac
+                   (dqdt/(d_one-qk(k))**2) * pfac(j,i)
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                   (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl * pfac
+                   (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl * pfac(j,i)
           if ( ipptls > 1 ) then
             p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * pfac
+                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * pfac(j,i)
           end if
         end do
         if ( ichem == 1 ) then
           do n = 1 , ntr
             do k = 1 , kz
               p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
-                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac
+                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac(j,i)
             end do
           end do
         end if

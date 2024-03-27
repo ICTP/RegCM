@@ -427,7 +427,7 @@ module mod_capecin
       real(rkx) :: tvp , esatp , qsatp
       real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
       real(rkx) :: bqs00 , sqs00 , bqs10 , sqs10 , bq , sq , tq
-      real(rkx) :: p00 , p10 , p01 , p11 , t00 , t10 , t01 , t11
+      real(rkx) :: pp00 , pp10 , pp01 , pp11 , t00 , t10 , t01 , t11
       real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
       real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
       integer(ik4) :: i , j , lbtm , ittbk , iq , it , iptbk
@@ -490,14 +490,14 @@ module mod_capecin
           ! Saturation pressure at four surrounding table pts.---
           iq = iqtb
           it = ittb
-          p00 = ptbl(iq,it)
-          p10 = ptbl(iq+1,it)
-          p01 = ptbl(iq,it+1)
-          p11 = ptbl(iq+1,it+1)
+          pp00 = ptbl(iq,it)
+          pp10 = ptbl(iq+1,it)
+          pp01 = ptbl(iq,it+1)
+          pp11 = ptbl(iq+1,it+1)
           ! Saturation point variables at the bottom------------
-          tpsp = p00+(p10-p00)*ppq+(p01-p00)*tqq + &
-                (p00-p10-p01+p11)*ppq*tqq
-          if ( tpsp <= d_zero ) tpsp = p00
+          tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
+                (pp00-pp10-pp01+pp11)*ppq*tqq
+          if ( tpsp <= d_zero ) tpsp = pp00
           apesp = (p00/tpsp)**capa
           thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
           ! Scaling pressure & tt table index------------------

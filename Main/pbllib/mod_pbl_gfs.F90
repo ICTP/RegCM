@@ -38,7 +38,7 @@ module mod_pbl_gfs
 
   ! Input to moninq
 
-  real(rkx) , dimension(:,:) , pointer :: uo , vo , t1
+  real(rkx) , dimension(:,:) , pointer :: uo , vo , t1 , xpfac
   real(rkx) , dimension(:,:,:) , pointer :: q1
   real(rkx) , dimension(:) , pointer :: psk , rbsoil
   real(rkx) , dimension(:) , pointer :: fm , fh , spd1
@@ -92,6 +92,7 @@ module mod_pbl_gfs
       call getmem1d(heat,1,iblp,'mod_pbl_gfs:heat')
       call getmem1d(evap,1,iblp,'mod_pbl_gfs:evap')
       call getmem1d(stress,1,iblp,'mod_pbl_gfs:stress')
+      call getmem2d(xpfac,jci1,jci2,ici1,ici2,'mod_pbl_gfs:xpfac')
 
     end subroutine init_pbl_gfs
 
@@ -102,7 +103,7 @@ module mod_pbl_gfs
 
       integer(ik4) :: i , j , k , kk , km , n
       integer(ik4) :: iq , it , iit
-      real(rkx) :: tvcon , xpfac
+      real(rkx) :: tvcon
       real(rkx) :: ps , ta , qa , pa , ua , va
       real(rkx) :: rrhox , hf , qf
 
@@ -218,7 +219,7 @@ module mod_pbl_gfs
       if ( idynamic == 3 ) then
         xpfac = d_one
       else
-        xpfac = m2p%psb(j,i)
+        xpfac = m2p%psb(jci1:jci2,ici1:ici2)
       end if
       do k = 1 , kz
         n = 1
@@ -227,7 +228,7 @@ module mod_pbl_gfs
           do j = jci1 , jci2
             p2m%uxten(j,i,k) = du(n,kk)
             p2m%vxten(j,i,k) = dv(n,kk)
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac(j,i)
             n = n + 1
           end do
         end do
@@ -240,7 +241,7 @@ module mod_pbl_gfs
           do i = ici1 , ici2
             do j = jci1 , jci2
               p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + &
-                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * xpfac
+                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * xpfac(j,i)
               n = n + 1
             end do
           end do
@@ -256,7 +257,7 @@ module mod_pbl_gfs
             do i = ici1 , ici2
               do j = jci1 , jci2
                 p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
-                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * xpfac
+                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * xpfac(j,i)
                 n = n + 1
               end do
             end do

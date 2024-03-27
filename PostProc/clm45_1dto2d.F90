@@ -120,6 +120,7 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
+      ip = 1
       do i = 1 , n2
         do j = 1 , n1
           do ni = 1 , nsg
@@ -226,6 +227,7 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
+      ip = 1
       do i = 1 , n2
         do j = 1 , n1
           do ni = 1 , nsg
@@ -332,6 +334,7 @@ module mod_remap
       n1 = size(mask,1)/nsg
       n2 = size(mask,2)/nsg
       ib = 1
+      ip = 1
       do i = 1 , n2
         do j = 1 , n1
           do ni = 1 , nsg
