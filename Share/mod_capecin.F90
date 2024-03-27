@@ -22,6 +22,7 @@ module mod_capecin
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_spline
 
   implicit none
 
@@ -45,6 +46,8 @@ module mod_capecin
                                           ! 4 = reversible, with ice
 
   public :: getcape
+
+  logical :: table_empty = .true.
 
   integer(ik4) , parameter :: itb = 076
   integer(ik4) , parameter :: jtb = 134
@@ -431,6 +434,11 @@ module mod_capecin
       integer(ik4) :: ith , ip , iqtb
       integer(ik4) :: ittb , iptb , ithtb
       !
+      if ( table_empty ) then
+        call table_fill( )
+        table_empty = .false.
+      end if
+      !
       !**********************************************************
       ! Start otlift here
       !
@@ -560,6 +568,146 @@ module mod_capecin
       contains
 
 #include <pfesat.inc>
+
+      subroutine table_fill( )
+        implicit none
+        ! ****************************************************************
+        ! *                                                              *
+        ! *             GENERATE VALUES FOR LOOK-UP TABLES               *
+        ! *                                                              *
+        ! ****************************************************************
+        real(rkx) , parameter :: thh = 365.0_rkx
+        real(rkx) , parameter :: ph = 105000.0_rkx
+        real(rkx) , parameter :: pq0 = 379.90516_rkx
+        real(rkx) , parameter :: a1 = 610.78_rkx
+        real(rkx) , parameter :: a2 = 17.2693882_rkx
+        real(rkx) , parameter :: a3 = 273.16_rkx
+        real(rkx) , parameter :: a4 = 35.86_rkx
+        real(rkx) , parameter :: r = 287.04_rkx
+        real(rkx) , parameter :: cp = 1004.6_rkx
+        real(rkx) , parameter :: eliwv = 2.683e+6_rkx
+        real(rkx) , parameter :: eps = 1.E-9_rkx
+        real(rkx) , parameter :: pt = 1.0_rkx
+        real(rkx) , parameter :: thl = 210.0_rkx
+        real(rkx) , dimension(jtb) :: qsold , pold, qsnew , pnew , tnew
+        real(rkx) , dimension(jtb) :: told , theold , thenew
+        real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
+        real(rkx) :: dth , dp , th , p , ape , denom , qs0k , sqsk , dqs
+        real(rkx) :: qs , theok , sthek , the0k , dthe
+        integer(ik4) :: lthm , kpm , kthm1 , kpm1 , kp , kmm , kthm , kth
+
+        ! Coarse look-up table for saturation point----------------
+        kthm  = jtb
+        kpm   = itb
+        kthm1 = kthm-1
+        kpm1  = kpm-1
+        pl = pt
+        dth = (thh-thl) / real(kthm-1, rkx)
+        dp  = (ph -pl ) / real(kpm -1, rkx)
+        rdth = 1.0_rkx/dth
+        rdp  = 1.0_rkx/dp
+        rdq  = kpm-1
+        th = thl - dth
+        !-----------------------------------------------------------
+        do kth = 1 , kthm
+          th = th + dth
+          p  = pl - dp
+          do kp = 1 , kpm
+            p = p + dp
+            if ( p <= 0.0_rkx ) then
+              pold(1)  = 0.0_rkx
+              qsold(1) = 0.0_rkx
+            else
+              ape = (100000.0_rkx/p)**(r/cp)
+              denom = th - a4*ape
+              if ( denom > eps ) then
+                qsold(kp) = pq0 / p*exp(a2*(th-a3*ape)/denom)
+              else
+                qsold(kp) = 0.0_rkx
+              end if
+              ! qsold(kp) = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+              pold(kp) = p
+            end if
+          end do
+          qs0k       = qsold(1)
+          sqsk       = qsold(kpm) - qsold(1)
+          qsold(1  ) = 0.0_rkx
+          qsold(kpm) = 1.0_rkx
+          do kp = 2 , kpm1
+            qsold(kp) = (qsold(kp)-qs0k)/sqsk
+            if ( (qsold(kp)-qsold(kp-1)) < eps ) then
+              qsold(kp) = qsold(kp-1)+eps
+            end if
+          end do
+          qs0(kth) = qs0k
+          sqs(kth) = sqsk
+          !-----------------------------------------------------------
+          qsnew(1  ) = 0.0_rkx
+          qsnew(kpm) = 1.0_rkx
+          dqs = 1.0_rkx/real(kpm-1,rkx)
+          do kp = 2 , kpm1
+            qsnew(kp) = qsnew(kp-1) + dqs
+          end do
+          y2p(1   ) = 0.0_rkx
+          y2p(kpm ) = 0.0_rkx
+          call spline(jtb,kpm,qsold,pold,y2p,kpm,qsnew,pnew,app,aqp)
+          do kp = 1 , kpm
+            ptbl(kp,kth) = pnew(kp)
+          end do
+          !-----------------------------------------------------------
+        end do
+        ! Coarse look-up table for t(p) from constant the----------
+        p = pl - dp
+        do kp = 1 , kpm
+          p  = p + dp
+          th = thl - dth
+          do kth = 1 , kthm
+            th    = th + dth
+            if ( p <= 0.0_rkx ) then
+              told(kth)   = th
+              theold(kth) = th
+            else
+              ape   = (100000.0_rkx/p)**(r/cp)
+              denom = th - a4*ape
+              if ( denom > eps ) then
+                qs = pq0/p*exp(a2*(th-a3*ape)/denom)
+              else
+                qs = 0.0_rkx
+              end if
+              ! qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+              told(kth) = th / ape
+              theold(kth) = th*exp(eliwv*qs/(cp*told(kth)))
+            end if
+          end do
+          the0k = theold(1)
+          sthek = theold(kthm) - theold(1)
+          theold(1   ) = 0.0_rkx
+          theold(kthm) = 1.0_rkx
+          do kth = 2 , kthm1
+            theold(kth) = (theold(kth)-the0k)/sthek
+            if ( (theold(kth)-theold(kth-1)) < eps ) then
+              theold(kth) = theold(kth-1) +  eps
+            end if
+          end do
+          the0(kp) = the0k
+          sthe(kp) = sthek
+          !-----------------------------------------------------
+          thenew(1  )  = 0.0_rkx
+          thenew(kthm) = 1.0_rkx
+          dthe         = 1.0_rkx/real(kthm-1,rkx)
+          rdthe        = 1.0_rkx/dthe
+          do kth = 2 , kthm1
+            thenew(kth) = thenew(kth-1) + dthe
+          end do
+          y2t(1   ) = 0.0_rkx
+          y2t(kthm) = 0.0_rkx
+          call spline(jtb,kthm,theold,told,y2t,kthm,thenew,tnew,apt,aqt)
+          do kth = 1 , kthm
+            ttbl(kth,kp) = tnew(kth)
+          end do
+          !------------------------------------------------------
+        end do
+      end subroutine table_fill
 
     end subroutine otlift
 

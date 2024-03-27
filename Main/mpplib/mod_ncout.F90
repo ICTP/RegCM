@@ -58,12 +58,12 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 6
 
   integer(ik4) , parameter :: natm2dvars = 4 + nbase
-  integer(ik4) , parameter :: natm3dvars = 64
+  integer(ik4) , parameter :: natm3dvars = 66
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 42 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 43 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -173,7 +173,7 @@ module mod_ncout
   integer(ik4) , parameter :: atm_p0    = 7
   integer(ik4) , parameter :: atm_tpr   = 8
   integer(ik4) , parameter :: atm_tgb   = 9
-  integer(ik4) , parameter :: atm_tsw   = 10
+  integer(ik4) , parameter :: atm_mrso  = 10
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -239,6 +239,8 @@ module mod_ncout
   integer(ik4) , parameter :: atm_ccnnum       = 62
   integer(ik4) , parameter :: atm_qincl        = 63
   integer(ik4) , parameter :: atm_autoconvr    = 64
+  integer(ik4) , parameter :: atm_smw          = 65
+  integer(ik4) , parameter :: atm_tsoil        = 66
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -299,6 +301,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_cape     = 46
   integer(ik4) , parameter :: srf_cin      = 47
   integer(ik4) , parameter :: srf_li       = 48
+  integer(ik4) , parameter :: srf_mrsos    = 49
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -554,6 +557,7 @@ module mod_ncout
       enable_rad_vars(:) = .false.
       ! enable basic geolocation + vertical coord variables
       enable_atm_vars(1:nbase) = .true.
+      enable_atm_vars(atm_mrso) = .true.
       enable_atm_vars(natm2dvars+atm_u) = .true.
       enable_atm_vars(natm2dvars+atm_v) = .true.
       enable_atm_vars(natm2dvars+atm_w) = .true.
@@ -565,6 +569,8 @@ module mod_ncout
       else if ( idynamic == 3 ) then
         enable_atm_vars(natm2dvars+atm_pai) = .true.
       end if
+      enable_atm_vars(natm2dvars+atm_tsoil) = .true.
+      enable_atm_vars(natm2dvars+atm_smw) = .true.
 
       enable_srf_vars(1:nbase) = .true.
       enable_srf_vars(srf_tg) = .true.
@@ -596,16 +602,15 @@ module mod_ncout
       enable_srf_vars(srf_snow) = .true.
       enable_srf_vars(srf_grau) = .true.
       enable_srf_vars(srf_tprw) = .true.
-      enable_atm_vars(srf_cape) = .true.
-      enable_atm_vars(srf_cin) = .true.
-      enable_atm_vars(srf_li) = .true.
+      enable_srf_vars(srf_cape) = .true.
+      enable_srf_vars(srf_cin) = .true.
+      enable_srf_vars(srf_li) = .true.
+      enable_srf_vars(srf_mrsos) = .true.
       enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
       enable_srf_vars(nsrf2dvars+srf_q2m) = .true.
       enable_srf_vars(nsrf2dvars+srf_rh2m) = .true.
-      enable_srf_vars(nsrf2dvars+srf_smw) = .true.
-      enable_srf_vars(nsrf2dvars+srf_tsoi) = .true.
       enable_srf_vars(nsrf2dvars+srf_ua50) = .true.
       enable_srf_vars(nsrf2dvars+srf_va50) = .true.
       enable_srf_vars(nsrf2dvars+srf_ta50) = .true.
@@ -739,15 +744,12 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
-        if ( idiag > 0 ) then
-          if ( enable_atm2d_vars(atm_tsw) ) then
-            call setup_var(v2dvar_atm,atm_tsw,vsize,'mrso','kg m-2', &
-              'Total soil water','soil_moisture_content',.true., &
-              'time: mean',l_fill=.true.)
-            atm_tsw_out => v2dvar_atm(atm_tsw)%rval
-          end if
-        else
-          enable_atm2d_vars(atm_tsw) = .false.
+        if ( enable_atm2d_vars(atm_mrso) ) then
+          call setup_var(v2dvar_atm,atm_mrso,vsize,'mrso','kg m-2', &
+            'Total Soil Moisture Content', &
+            'mass_content_of_water_in_soil', &
+            .true.,'time: point',l_fill=.true.)
+          atm_mrso_out => v2dvar_atm(atm_mrso)%rval
         end if
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
@@ -1230,6 +1232,30 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_tten_adh:atm_qten_lsc) = .false.
         end if
+        if ( ifcordex ) then
+          vsize%k2 = num_soil_layers
+          v3dvar_atm(atm_smw)%axis = 'xys'
+          if ( enable_atm3d_vars(atm_smw) ) then
+            call setup_var(v3dvar_atm,atm_smw,vsize,'mrsol','kg m-2', &
+              'Total Water Content of Soil Layer', &
+              'mass_content_of_water_in_soil_layer',.true.,l_fill=.true.)
+            atm_smw_out => v3dvar_atm(atm_smw)%rval
+          end if
+#ifdef CLM45
+          v3dvar_atm(atm_tsoil)%axis = 'xys'
+          if ( enable_atm3d_vars(atm_tsoil) ) then
+            call setup_var(v3dvar_atm,atm_tsoil,vsize,'tsl','K', &
+              'Temperature of the Soil', &
+              'soil_temperature',.true.,l_fill=.true.)
+            atm_tsoil_out => v3dvar_atm(atm_tsoil)%rval
+          end if
+#else
+          enable_atm3d_vars(atm_tsoil) = .false.
+#endif
+        else
+          enable_atm3d_vars(atm_smw) = .false.
+          enable_atm3d_vars(atm_tsoil) = .false.
+        end if
 
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
         enable_atm_vars(natm2dvars+1:natmvars) = enable_atm3d_vars
@@ -1656,6 +1682,13 @@ module mod_ncout
           enable_srf2d_vars(srf_cin) = .false.
           enable_srf2d_vars(srf_li) = .false.
         end if
+        if ( enable_srf2d_vars(srf_mrsos) ) then
+          call setup_var(v2dvar_srf,srf_mrsos,vsize,'mrsos','kg m-2', &
+            'Moisture in Upper Portion of Soil Column', &
+            'mass_content_of_water_in_soil_layer', &
+            .true.,'time: point',l_fill=.true.)
+          srf_mrsos_out => v2dvar_srf(srf_mrsos)%rval
+        end if
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'
@@ -1786,16 +1819,16 @@ module mod_ncout
           vsize%k2 = num_soil_layers
           v3dvar_srf(srf_smw)%axis = 'xys'
           if ( enable_srf3d_vars(srf_smw) ) then
-            call setup_var(v3dvar_srf,srf_smw,vsize,'mrsos','kg m-2', &
-              'Moisture Content of the Soil Layers', &
-              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            call setup_var(v3dvar_srf,srf_smw,vsize,'mrsol','kg m-2', &
+              'Total Water Content of Soil Layer', &
+              'mass_content_of_water_in_soil_layer',.true.,l_fill=.true.)
             srf_smw_out => v3dvar_srf(srf_smw)%rval
           end if
 #ifdef CLM45
           v3dvar_srf(srf_tsoi)%axis = 'xys'
           if ( enable_srf3d_vars(srf_tsoi) ) then
-            call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
-              'Bulk temperature of the Soil Layers', &
+            call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsl','K', &
+              'Temperature of the Soil', &
               'soil_temperature',.true.,l_fill=.true.)
             srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
           end if
@@ -2102,9 +2135,9 @@ module mod_ncout
           vsize%k2 = num_soil_layers
           v3dvar_sub(sub_smw)%axis = 'xys'
           if ( enable_sub3d_vars(sub_smw) ) then
-            call setup_var(v3dvar_sub,sub_smw,vsize,'mrsos','kg m-2', &
-              'Moisture Content of the Soil Layers', &
-              'moisture_content_of_soil_layer',.true.,l_fill=.true.)
+            call setup_var(v3dvar_sub,sub_smw,vsize,'mrsol','kg m-2', &
+              'Total Water Content of Soil Layer', &
+              'mass_content_of_water_in_soil_layer',.true.,l_fill=.true.)
             sub_smw_out => v3dvar_sub(sub_smw)%rval
           end if
         end if

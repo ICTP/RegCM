@@ -1,10 +1,10 @@
 {
-  "mrsol": [
+  "mrsos": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "mrsol",
+          "var_name": "mrsos",
           "need_time_bounds": false
         }
       ],
@@ -12,22 +12,17 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0.0,
-            "ATM": 0.0
+            "SRF": 0.0
           }
         }
       ],
       [
-        "AddDephtVariable",
-        {}
-      ],
-      [
         "SaveVariableToDisk",
         {
-          "var_name": "mrsol",
-          "fill_value": "1.0e20",
+          "var_name": "mrsos",
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Total water content of soil layer",
+            "long_name": "Moisture in Upper Portion of Soil Column",
             "standard_name": "mass_content_of_water_in_soil_layer",
             "units": "kg m-2"
           }
@@ -42,10 +37,10 @@
       [
         "SaveVariableToDisk",
         {
-          "var_name": "mrsol",
-          "fill_value": "1.0e20",
+          "var_name": "mrsos",
+          "fill_value": "1e+20",
           "new_attributes": {
-            "long_name": "Total water content of soil layer",
+            "long_name": "Moisture in Upper Portion of Soil Column",
             "standard_name": "mass_content_of_water_in_soil_layer",
             "units": "kg m-2"
           }
@@ -54,4 +49,3 @@
     ]
   ]
 }
-

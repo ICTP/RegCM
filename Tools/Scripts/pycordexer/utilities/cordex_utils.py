@@ -392,8 +392,8 @@ class RegcmOutputFile(object):
             LOGGER.debug('Variable "rts" found: the type is "RAD"')
             return 'RAD'
 
-        if check_variable('prhmax') and not check_variable('mrsos'):
-            LOGGER.debug('Variable "prhmax" found: the type is "SHF"')
+        if check_variable('twetbmax'):
+            LOGGER.debug('Variable "twetbmax" found: the type is "SHF"')
             return 'SHF'
 
         LOGGER.debug('No known variable found: assuming SRF')

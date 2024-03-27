@@ -29,7 +29,7 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-mod_capecin.o : mod_capecin.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
+mod_capecin.o : mod_capecin.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_spline.o
 mod_constants.o: mod_constants.F90 mod_realkinds.o
 mod_date.o: mod_date.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o
 mod_domain.o: mod_domain.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o mod_stdio.o mod_message.o

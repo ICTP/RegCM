@@ -1,10 +1,10 @@
 {
-  "mrsol": [
+  "tsl": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "mrsol",
+          "var_name": "tsl",
           "need_time_bounds": false
         }
       ],
@@ -24,12 +24,12 @@
       [
         "SaveVariableToDisk",
         {
-          "var_name": "mrsol",
+          "var_name": "tsl",
           "fill_value": "1.0e20",
           "new_attributes": {
-            "long_name": "Total water content of soil layer",
-            "standard_name": "mass_content_of_water_in_soil_layer",
-            "units": "kg m-2"
+            "long_name": "Temperature of Soil",
+            "standard_name": "soil_temperature",
+            "units": "K"
           }
         }
       ],
@@ -42,16 +42,15 @@
       [
         "SaveVariableToDisk",
         {
-          "var_name": "mrsol",
+          "var_name": "tsl",
           "fill_value": "1.0e20",
           "new_attributes": {
-            "long_name": "Total water content of soil layer",
-            "standard_name": "mass_content_of_water_in_soil_layer",
-            "units": "kg m-2"
+            "long_name": "Temperature of Soil",
+            "standard_name": "soil_temperature",
+            "units": "K"
           }
         }
       ]
     ]
   ]
 }
-

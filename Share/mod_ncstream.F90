@@ -1609,7 +1609,7 @@ module mod_ncstream
               end if
             end if
           else
-            if ( var%vname == 'mrsos' ) then
+            if ( var%vname == 'mrsol' .or. var%vname == 'tsl' ) then
               call add_attribute(stream, &
                 ncattribute_string('coordinates',coords_depth),var%id,var%vname)
             else
