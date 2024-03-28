@@ -2075,6 +2075,9 @@ module mod_output
           end do
         end do
       end if
+      if ( uvrotate ) then
+        call uvrot(u,v)
+      end if
     end if
   end subroutine windcompute
 
