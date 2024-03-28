@@ -419,8 +419,7 @@ module mod_capecin
       real(rkx) , parameter :: d8202 = 0.820231e+00_rkx
       real(rkx) , parameter :: h5e4 = 5.e4_rkx
       real(rkx) , parameter :: p500 = 50000.0_rkx
-      real(rkx) , parameter :: capa = 0.28589641e+00_rkx
-      real(rkx) , parameter :: elivw = 2.72e+6_rkx
+      real(rkx) , parameter :: elivw = 2.72e6_rkx
       real(rkx) , parameter :: elocp = elivw/cpd
       real(rkx) , parameter :: oneps = 1.0_rkx-ep2
 
@@ -451,7 +450,7 @@ module mod_capecin
         do i = ista , iend
           tbt = t(i,j,kk)
           qbt = q(i,j,kk)
-          apebt = (p00/p(i,j,kk))**capa
+          apebt = (p00/p(i,j,kk))**rovcp
           ! Scaling potential temperature & table index----------
           tthbt = tbt*apebt
           tth = (tthbt-thl)*rdth
@@ -498,7 +497,7 @@ module mod_capecin
           tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
                 (pp00-pp10-pp01+pp11)*ppq*tqq
           if ( tpsp <= d_zero ) tpsp = p00
-          apesp = (p00/tpsp)**capa
+          apesp = (p00/tpsp)**rovcp
           thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
           ! Scaling pressure & tt table index------------------
           tp = (h5e4-pl)*rdp
@@ -560,7 +559,7 @@ module mod_capecin
           !
           esatp = pfesat(partmp)
           qsatp = ep2*esatp/(p500-esatp*oneps)
-          tvp = partmp*(1.0_rkx+0.608_rkx*qsatp)
+          tvp = partmp*(1.0_rkx+ep1*qsatp)
           slindx(i,j) = t500(i,j)-tvp
         end do
       end do
@@ -579,12 +578,9 @@ module mod_capecin
         real(rkx) , parameter :: thh = 365.0_rkx
         real(rkx) , parameter :: ph = 105000.0_rkx
         real(rkx) , parameter :: pq0 = 379.90516_rkx
-        real(rkx) , parameter :: a1 = 610.78_rkx
         real(rkx) , parameter :: a2 = 17.2693882_rkx
         real(rkx) , parameter :: a3 = 273.16_rkx
         real(rkx) , parameter :: a4 = 35.86_rkx
-        real(rkx) , parameter :: r = 287.04_rkx
-        real(rkx) , parameter :: cp = 1004.6_rkx
         real(rkx) , parameter :: eliwv = 2.683e+6_rkx
         real(rkx) , parameter :: eps = 1.E-9_rkx
         real(rkx) , parameter :: pt = 1.0_rkx
@@ -618,7 +614,7 @@ module mod_capecin
               pold(1)  = 0.0_rkx
               qsold(1) = 0.0_rkx
             else
-              ape = (100000.0_rkx/p)**(r/cp)
+              ape = (100000.0_rkx/p)**rovcp
               denom = th - a4*ape
               if ( denom > eps ) then
                 qsold(kp) = pq0 / p*exp(a2*(th-a3*ape)/denom)
@@ -667,7 +663,7 @@ module mod_capecin
               told(kth)   = th
               theold(kth) = th
             else
-              ape   = (100000.0_rkx/p)**(r/cp)
+              ape   = (100000.0_rkx/p)**rovcp
               denom = th - a4*ape
               if ( denom > eps ) then
                 qs = pq0/p*exp(a2*(th-a3*ape)/denom)
@@ -676,7 +672,7 @@ module mod_capecin
               end if
               ! qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
               told(kth) = th / ape
-              theold(kth) = th*exp(eliwv*qs/(cp*told(kth)))
+              theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
             end if
           end do
           the0k = theold(1)
