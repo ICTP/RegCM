@@ -186,6 +186,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: sts_psmin_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_srunoff_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_trunoff_out => null()
+  real(rkx) , dimension(:,:) , pointer :: sts_wsgsmax_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: sts_t2max_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: sts_t2min_out => null()

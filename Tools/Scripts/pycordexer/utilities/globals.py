@@ -53,14 +53,22 @@ for json_file in os.listdir(CORDEX_VARS_DIR):
         continue
 
     with open(os.path.join(CORDEX_VARS_DIR, json_file), 'r') as f:
-        for var_name, var_description in json.load(f).items():
-            CORDEX_VARS[var_name.lower()] = var_description
+        try:
+            for var_name, var_description in json.load(f).items():
+                CORDEX_VARS[var_name.lower()] = var_description
+        except:
+            print('Error reading '+json_file)
+            raise(SyntaxError)
 
 
 # Read the JSON file with the association among files and vars
 ASSOCIATION_FILE = os.path.join(MAIN_DIR, 'variables/file_associations.json')
 with open(ASSOCIATION_FILE, 'r') as f:
-    ASSOCIATIONS = json.load(f)
+    try:
+        ASSOCIATIONS = json.load(f)
+    except:
+        print('Error reading '+ASSOCIATION_FILE)
+        raise(SyntaxError)
 
 
 # The values in the mask field are regular expressions. They will be replaced
@@ -73,7 +81,11 @@ for data_file in ASSOCIATIONS:
 # inside the RegCM NetCDF files
 REGCM_VAR_FILE = os.path.join(MAIN_DIR, 'variables/regcm_vars.json')
 with open(REGCM_VAR_FILE, 'r') as f:
-    REGCM_VARS = json.load(f)
+    try:
+        REGCM_VARS = json.load(f)
+    except:
+        print('Error reading '+REGCM_VAR_FILE)
+        raise(SyntaxError)
 
 # Default fill values for NETCDF. These are the same values that you can find
 # from the netCDF4._default_fillvals dictionary
