@@ -31,5 +31,8 @@
   "rsus": ["rsus"],
   "rlds": ["rlds", "rsdl"],
   "rlus": ["rlus"],
-  "zo" : ["zo"]
+  "zo" : ["zo"],
+  "CAPE" : ["CAPE"],
+  "CIN" : ["CIN"],
+  "LI" : ["LI"]
 }

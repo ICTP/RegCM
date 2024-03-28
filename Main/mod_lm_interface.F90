@@ -1008,6 +1008,11 @@ module mod_lm_interface
             sts_sund_out = sts_sund_out + dtbat
           end where
         end if
+        if ( associated(sts_wsgsmax_out) ) then
+          call compute_maxgust(lm%u10m,lm%v10m, &
+                               lm%uatm,lm%vatm, &
+                               lm%hpbl,sts_wsgsmax_out)
+        end if
       end if
       if ( iflak ) then
         rnsrf_for_lakfrq = rnsrf_for_lakfrq + 1.0_rkx
@@ -1299,6 +1304,25 @@ module mod_lm_interface
         slp(:,:) = slp1
       end do
     end subroutine mslp
+
+    subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
+      implicit none
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
+      real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
+      integer(ik4) :: i , j
+      real(rkx) :: delwind , spd1 , spd2
+
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+          spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
+          spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
+          delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
+          gust(j,i) = max(gust(j,i),spd1+delwind)
+        end do
+      end do
+    end subroutine compute_maxgust
 
   end subroutine collect_output
 

@@ -57,7 +57,10 @@
       "va150m",
       "ta50m",
       "hus50m",
-      "zo"
+      "zo",
+      "CAPE",
+      "CIN",
+      "LI"
     ],
     "mask":"_SRF\\.\\d+\\.[nN][cC]$"
   },
@@ -71,7 +74,8 @@
       "psmean",
       "mrromean",
       "sundmean",
-      "sfcWindmax"
+      "sfcWindmax",
+      "wsgsmax"
     ],
     "mask":"_STS\\.\\d+\\.[nN][cC]$"
   },

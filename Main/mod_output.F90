@@ -114,13 +114,14 @@ module mod_output
       !
       ! Reset the accumulation arrays
       !
-      if ( associated(sts_tgmax_out) )  sts_tgmax_out  = -1.e30_rkx
-      if ( associated(sts_tgmin_out) )  sts_tgmin_out  =  1.e30_rkx
-      if ( associated(sts_t2max_out) )  sts_t2max_out  = -1.e30_rkx
-      if ( associated(sts_t2min_out) )  sts_t2min_out  =  1.e30_rkx
-      if ( associated(sts_w10max_out) ) sts_w10max_out = -1.e30_rkx
-      if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.e30_rkx
-      if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.e30_rkx
+      if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
+      if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
+      if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out = -1.e30_rkx
+      if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
+      if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
+      if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx
+      if ( associated(sts_psmin_out) )   sts_psmin_out   =  1.e30_rkx
+      if ( associated(sts_pcpmax_out) )  sts_pcpmax_out  = -1.e30_rkx
       call newoutfiles(rcmtimer%idate)
       lastout = rcmtimer%idate
       lstartup = .true.
@@ -1373,6 +1374,7 @@ module mod_output
         if ( associated(sts_psavg_out) )   sts_psavg_out   = d_zero
         if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
         if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
+        if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out = -1.e30_rkx
         if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
         if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
         if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx

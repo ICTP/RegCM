@@ -67,7 +67,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nsts2dvars = 9 + nbase
+  integer(ik4) , parameter :: nsts2dvars = 10 + nbase
   integer(ik4) , parameter :: nsts3dvars = 4
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
@@ -334,6 +334,7 @@ module mod_ncout
   integer(ik4) , parameter :: sts_psavg   = 13
   integer(ik4) , parameter :: sts_srunoff = 14
   integer(ik4) , parameter :: sts_trunoff = 15
+  integer(ik4) , parameter :: sts_wsgsmax = 16
 
   integer(ik4) , parameter :: sts_t2max  = 1
   integer(ik4) , parameter :: sts_t2min  = 2
@@ -1937,6 +1938,12 @@ module mod_ncout
               l_fill=.true.)
             sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
           end if
+        end if
+        if ( enable_sts2d_vars(sts_wsgsmax) ) then
+          call setup_var(v2dvar_sts,sts_wsgsmax,vsize,'wsgsmax','m s-1', &
+            'Daily Maximum Near-Surface Wind Speed of Gust', &
+            'wind_speed_of_gust',.true.,'time: maximum',l_fill=.true.)
+          sts_wsgsmax_out => v2dvar_sts(sts_wsgsmax)%rval
         end if
 
         vsize%k2 = 1

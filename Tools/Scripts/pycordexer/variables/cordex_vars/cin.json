@@ -1,0 +1,48 @@
+{
+  "CIN": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "CIN",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Convective Inhibition",
+            "standard_name": "atmosphere_convective_inhibition_wrt_surface",
+            "units": "J kg-1"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Convective Inhibition",
+            "standard_name": "atmosphere_convective_inhibition_wrt_surface",
+            "units": "J kg-1"
+          }
+        }
+      ]
+    ]
+  ]
+}
