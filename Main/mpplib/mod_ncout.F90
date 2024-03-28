@@ -627,6 +627,7 @@ module mod_ncout
       enable_sts_vars(sts_psmin) = .true.
       enable_sts_vars(sts_psavg) = .true.
       enable_sts_vars(sts_sund) = .true.
+      enable_sts_vars(sts_wsgsmax) = .true.
       enable_sts_vars(nsts2dvars+sts_t2max) = .true.
       enable_sts_vars(nsts2dvars+sts_t2min) = .true.
       enable_sts_vars(nsts2dvars+sts_t2avg) = .true.
