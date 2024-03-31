@@ -8,7 +8,7 @@
     if ( present(e) ) then
       es = e
     else
-      es = pfesat(t)
+      es = pfesat(t,p)
     end if
     ws = ep2 * (es / (p - es))
     qs = ws / ( d_one + ws )

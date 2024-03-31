@@ -935,7 +935,7 @@ module mod_lm_interface
               end if
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
-              es = pfesat(tas)
+              es = pfesat(tas,ps)
               qs = pfwsat(tas,ps,es)
               qas = lm%q2m(j,i)
               uas = lm%w10m(j,i)
