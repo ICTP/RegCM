@@ -3,10 +3,10 @@
   !             Piotr J. Flatau, et al.,1992:  Polynomial fits to saturation
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
   !
-  pure elemental real(rkx) function pfesat(t) result(es)
+  pure elemental real(rkx) function pfesat(t,p) result(es)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: t     ! Temperature (K)
+    real(rkx) , intent(in) :: t , p ! Temperature (K) , Pressure (Pa)
 
     real(rk8) :: td , t_limit , esat
     !
@@ -45,7 +45,7 @@
       esat = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
          + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
     end if
-    es = real(esat,rkx) ! pa
+    es = real(min(esat,0.15_rk8*p),rkx) ! pa
   end function pfesat
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
