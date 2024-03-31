@@ -4,9 +4,9 @@
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
   !
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesat
-  pure elemental real(rkx) function pfesat(t) result(es)
+  pure elemental real(rkx) function pfesat(t,p) result(es)
     implicit none
-    real(rkx) , intent(in) :: t     ! Temperature (K)
+    real(rkx) , intent(in) :: t , p ! Temperature (K) , Pressure (Pa)
 
     real(rk8) :: td , t_limit , esat
     !
@@ -45,13 +45,13 @@
       esat = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
          + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
     end if
-    es = real(esat,rkx) ! pa
+    es = real(min(esat,0.15_rk8*p),rkx) ! pa
   end function pfesat
 
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesat_water
-  pure elemental real(rkx) function pfesat_water(t) result(es)
+  pure elemental real(rkx) function pfesat_water(t,p) result(es)
     implicit none
-    real(rkx) , intent(in) :: t     ! Temperature (K)
+    real(rkx) , intent(in) :: t , p ! Temperature (K) , Pressure (Pa)
 
     real(rk8) :: td , esat
     !
@@ -70,13 +70,13 @@
     td = min(t - tzero,100.0_rk8)
     esat = a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
          + td*(a5 + td*(a6 + td*(a7 + td*a8)))))))
-    es = real(esat,rkx) ! pa
+    es = real(min(esat,0.15_rk8*p),rkx) ! pa
   end function pfesat_water
 
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesat_ice
-  pure elemental real(rkx) function pfesat_ice(t) result(es)
+  pure elemental real(rkx) function pfesat_ice(t,p) result(es)
     implicit none
-    real(rkx) , intent(in) :: t     ! Temperature (K)
+    real(rkx) , intent(in) :: t , p ! Temperature (K) , Pressure (Pa)
 
     real(rk8) :: td , esat
     !
@@ -95,7 +95,7 @@
     td = max(t - tzero,-75.0_rk8)
     esat = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
          + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
-    es = real(esat,rkx) ! pa
+    es = real(min(esat,0.15_rk8*p),rkx) ! pa
   end function pfesat_ice
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

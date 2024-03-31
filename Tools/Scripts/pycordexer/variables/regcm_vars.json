@@ -34,5 +34,6 @@
   "zo" : ["zo"],
   "CAPE" : ["CAPE"],
   "CIN" : ["CIN"],
-  "LI" : ["LI"]
+  "LI" : ["LI"],
+  "wsgsmax" : ["wsgsmax"]
 }

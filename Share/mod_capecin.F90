@@ -557,7 +557,7 @@ module mod_capecin
           ! but the impact of moisture at that level is
           ! quite small
           !
-          esatp = pfesat(partmp)
+          esatp = pfesat(partmp,p500)
           qsatp = ep2*esatp/(p500-esatp*oneps)
           tvp = partmp*(1.0_rkx+ep1*qsatp)
           slindx(i,j) = t500(i,j)-tvp

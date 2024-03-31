@@ -490,7 +490,8 @@ module mod_clm_regcm
 
     do i = begg , endg
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
-      satp = pfesat(real(clm_a2l%forc_t(i),rkx))
+      satp = pfesat(real(clm_a2l%forc_t(i),rkx), &
+                    real(clm_a2l%forc_pbot(i),rkx))
       satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx),satp)
       clm_a2l%forc_rh(i) = clm_a2l%forc_q(i)/satq

@@ -9,7 +9,7 @@
     if ( present(e) ) then
       es = e
     else
-      es = pfesat(t)
+      es = pfesat(t,p)
     end if
     if ( present(dedt) ) then
       esdt = dedt

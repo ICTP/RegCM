@@ -167,7 +167,7 @@ module mod_bats_leaftemp
           ! 2.3  recalculate saturation vapor pressure
           !
           eg1 = eg(i)
-          eg(i) = pfesat(tlef(i))
+          eg(i) = pfesat(tlef(i),sfcp(i))
           ! call bats_psat(tlef(i),eg(i))
           qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
@@ -534,7 +534,7 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      eg(i) = pfesat(t(i))
+      eg(i) = pfesat(t(i),p(i))
       qsat(i) = pfqsat(t(i),p(i),eg(i))
       ! call bats_satur(t(i),p(i),eg(i),qsat(i))
     end do
