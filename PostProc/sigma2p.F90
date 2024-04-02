@@ -30,7 +30,7 @@ program sigma2p
   use mod_dynparam , only : iomode , dsmax , dsmin
   use mod_stdio , only : stderr
 #ifdef NETCDF4_HDF5
-  use mod_dynparam , only : deflate_level
+  use mod_dynparam , only : ncfilter , ncfilter_nparams , ncfilter_params
 #endif
   use mod_message
   use mod_vertint
@@ -117,6 +117,9 @@ program sigma2p
       write (stderr,*) 'Error opening input namelist file ',trim(ncsfile)
       stop
     end if
+#ifdef NETCDF4_HDF5
+    call get_ncfilter(ipunit)
+#endif
     call get_np(ipunit)
     allocate(plevs(np))
     call get_plevs(ipunit)
@@ -354,9 +357,10 @@ program sigma2p
     outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
-      istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, deflate_level)
+      istatus = nf90_def_var_filter(ncout, ivarid, &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
       call checkncerr(istatus,__FILE__,__LINE__, &
-              'Error set deflate for '//trim(varname))
+              'Error set filter for '//trim(varname))
     end if
 #endif
     if (varname == 'plev') then
@@ -420,8 +424,9 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable hgt')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, ihgvar, 1, 1, deflate_level)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
+    istatus = nf90_def_var_filter(ncout, ihgvar, &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for hgt')
 #endif
     istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
@@ -439,8 +444,9 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, imslpvar, 1, 1, deflate_level)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for mslp')
+    istatus = nf90_def_var_filter(ncout, imslpvar, &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for mslp')
 #endif
     istatus = nf90_put_att(ncout, imslpvar, 'standard_name', &
                      'air_pressure_at_sea_level')
@@ -462,8 +468,9 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, deflate_level)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for rh')
+    istatus = nf90_def_var_filter(ncout, irhvar, &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for rh')
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
@@ -977,6 +984,16 @@ program sigma2p
       stop
     end if
   end subroutine get_plevs
+
+#ifdef NETCDF4_HDF5
+  subroutine get_ncfilter(iu)
+    implicit none
+    integer(ik4) , intent(in) :: iu
+    namelist /ncfilters/ ncfilter , ncfilter_nparams , ncfilter_params
+    rewind(iu)
+    read(iu, nml=ncfilters, iostat=iresult)
+  end subroutine get_ncfilter
+#endif
 
   subroutine paicompute(ps,z,t,q,pai,fm,dzita,nx,ny,nz)
     implicit none

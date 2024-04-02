@@ -286,9 +286,9 @@ if eval "test x$PNETCDF = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-AC_ARG_ENABLE(nc4-gzip,
-  AC_HELP_STRING([--enable-nc4-gzip],
-                 [Supply this option if you plan on using NetCDF4/HDF5 output compression option.]),
+AC_ARG_ENABLE(nc4-filters,
+  AC_HELP_STRING([--enable-nc4-filters],
+		 [Supply this option if you plan on using NetCDF4/HDF5 output filtering option.]),
   [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
   )
 if eval "test x$NETCDF4_COMPRESS = x1"; then

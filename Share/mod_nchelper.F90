@@ -350,9 +350,10 @@ module mod_nchelper
                     'Error adding variable xlat')
 #ifdef NETCDF4_HDF5
 #if defined (NETCDF4_COMPRESS)
-    incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
+    incstat = nf90_def_var_filter(ncid,ivar(ipnt), &
+                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error setting deflate on xlat')
+                    'Error setting filter on xlat')
 #endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
@@ -371,9 +372,10 @@ module mod_nchelper
                     'Error adding variable xlon')
 #ifdef NETCDF4_HDF5
 #if defined (NETCDF4_COMPRESS)
-    incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
+    incstat = nf90_def_var_filter(ncid,ivar(ipnt), &
+                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error setting deflate on xlon')
+                    'Error setting filter on xlon')
 #endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
@@ -1340,9 +1342,10 @@ module mod_nchelper
                     'Error adding variable '//varname)
 #ifdef NETCDF4_HDF5
 #if defined (NETCDF4_COMPRESS)
-    incstat = nf90_def_var_deflate(ncid, ivars(ipnt), 1, 1, deflate_level)
+    incstat = nf90_def_var_filter(ncid,ivars(ipnt), &
+                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error setting deflate on xlat')
+                    'Error setting filter on xlat')
 #endif
 #endif
     incstat = nf90_put_att(ncid, ivars(ipnt), 'long_name',long_name)
