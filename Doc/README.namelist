@@ -298,8 +298,11 @@
                                    ! hdf5/netcdf libraries support it and
                                    ! the model is compiled with :
                                    !    --enable-nc4-parallel
- deflate_level = 1, ! Deflate level for NetCDF4 compress format if model is
-                    ! compiled with both --enable-nc4 and --enable-nc4-gzip 
+ /
+ &ncfilters
+ ncfilter = 1,         ! Use DEFLATE (GZIP) filter. See netcdf docs for others
+ ncfilter_nparams = 1, ! For GZIP, only one parameter [max 8 allowed]
+ ncfilter_params = 1,  ! For GZIP, the default deflate level is 1
  /
 !
 ! Model Physics
