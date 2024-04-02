@@ -1708,7 +1708,8 @@ module mod_ncstream
             ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
           else
             if ( .not. stream%l_parallel ) then
-              ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,deflate_level)
+              ncstat = nf90_def_var_filter(stream%id,var%id, &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
               if ( ncstat /= nf90_noerr ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
                 call printerror
