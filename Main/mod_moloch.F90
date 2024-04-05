@@ -1642,7 +1642,9 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-                qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+                if ( qx(j,i,k,n) < 1.0e-20_rkx ) then
+                  qx(j,i,k,n) = d_zero
+                end if
               end do
             end do
           end do
@@ -1655,7 +1657,9 @@ module mod_moloch
         if ( ichem == 1 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
             trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
-            trac(j,i,k,n) = max(trac(j,i,k,n),d_zero)
+            if ( trac(j,i,k,n) < 1.0e-50_rkx ) then
+              trac(j,i,k,n) = d_zero
+            end if
           end do
         end if
 #ifdef DEBUG
