@@ -424,7 +424,12 @@ module mod_dynparam
 #endif
 #endif
 
-  integer(ik4) , public :: deflate_level = 1
+  integer(ik4) , parameter :: h5gzipcode = 1
+  integer(ik4) , public :: ncfilter = h5gzipcode
+  integer(ik4) , public :: ncfilter_nparams = 1
+  integer(ik4) , public , parameter :: max_filter_params = 8
+  integer(ik4) , public , dimension(max_filter_params) :: &
+      ncfilter_params = [1, 0, 0 , 0, 0, 0, 0, 0]
 
   ! Model output control parameters
 
@@ -438,6 +443,7 @@ module mod_dynparam
   logical , public :: iflak
   logical , public :: ifopt
   logical , public :: ifchem
+  logical , public :: ifcordex
 
   real(rkx) , public :: outnwf
   real(rkx) , public :: savfrq
@@ -517,6 +523,11 @@ module mod_dynparam
       enable_more_crop_pft , enable_dv_baresoil , enable_cru_precip
 #endif
     namelist /referenceatm/ base_state_pressure , logp_lrate
+#ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
+    namelist /ncfilters/ ncfilter , ncfilter_nparams , ncfilter_params
+#endif
+#endif
 
     open(newunit=ipunit, file=filename, status='old', &
          action='read', iostat=iresult)
@@ -565,6 +576,13 @@ module mod_dynparam
       rewind(ipunit)
       read(ipunit, nml=molochparam, iostat=iresult)
     end if
+
+#ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
+    rewind(ipunit)
+    read(ipunit, nml=ncfilters, iostat=iresult)
+#endif
+#endif
 
     i_band = 0
     i_crm = 0

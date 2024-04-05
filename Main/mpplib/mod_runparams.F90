@@ -117,7 +117,6 @@ module mod_runparams
   real(rkx) , public :: rnsrf_for_subfrq = d_zero
   real(rkx) , public :: rnrad_for_optfrq = d_zero
   real(rkx) , public :: rnrad_for_radfrq = d_zero
-  real(rkx) , public :: rnsrf_for_atmfrq = d_zero
   ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !

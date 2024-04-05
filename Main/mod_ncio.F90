@@ -1158,11 +1158,11 @@ module mod_ncio
               told = t(j,i,k)
               ! The below is not correct for non-hydro !
               pold = sigma(k)*ps(j,i)*d_100
-              satvp = pfesat(told)
+              satvp = pfesat(told,ps(j,i))
               rhold = max((qv(j,i,k)/(ep2*satvp/(pold-satvp))),d_zero)
               tnew = t(j,i,k) + temperature_tweak
               pnew = pold*(tnew/told)
-              satvp = pfesat(tnew)
+              satvp = pfesat(tnew,ps(j,i))
               qv(j,i,k) = max(rhold*ep2*satvp/(pnew-satvp),d_zero)
               t(j,i,k) = tnew
             end do

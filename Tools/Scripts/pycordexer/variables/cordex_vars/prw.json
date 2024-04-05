@@ -11,26 +11,13 @@
         "CorrectTime",
         {
           "offset": {
-            "RAD": 0
+            "SRF": 0
           }
         }
       ],
       [
         "SaveVariableToDisk",
         {
-          "new_attributes": {
-            "long_name": "Water Vapor Path",
-            "standard_name": "atmosphere_water_vapor_content",
-            "units": "kg m-2"
-          }
-        }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 6,
-          "var_name": "prw",
-          "fill_value": "1e+20",
           "new_attributes": {
             "long_name": "Water Vapor Path",
             "standard_name": "atmosphere_water_vapor_content",

@@ -217,20 +217,19 @@ module mod_hgt
         kb = kt + 1
         if ( p <= psig(1) ) then
           temp = t(1,j,i)
-          hp(j,i) = topo(j,i) + htsig(1) + rovg*temp*log(psig(1)/p)
+          hp(j,i) = htsig(1) + rovg*temp*log(psig(1)/p)
         else if ( (p > psig(1)) .and. (p < psig(km)) ) then
           wt = log(psig(kb)/p)/log(psig(kb)/psig(kt))
           wb = log(p/psig(kt))/log(psig(kb)/psig(kt))
           temp = wt*t(kt,j,i) + wb*t(kb,j,i)
           temp = (temp+t(kb,j,i))/2.0
-          hp(j,i) = topo(j,i) + htsig(kb) + rovg*temp*log(psig(kb)/p)
+          hp(j,i) = htsig(kb) + rovg*temp*log(psig(kb)/p)
         else if ( (p >= psig(km)) .and. (p <= psfc) ) then
           temp = t(km,j,i)
-          hp(j,i) = topo(j,i) + rovg*temp*log(psfc/p)
+          hp(j,i) = rovg*temp*log(psfc/p)
         else if ( p > psfc ) then
           temp = 0.5 * (t(km,j,i) + t(km-1,j,i))
-          hp(j,i) = topo(j,i) + &
-                  (temp/lrate)*(1.0-exp(+rovg*lrate*log(p/psfc)))
+          hp(j,i) = (temp/lrate)*(1.0-exp(+rovg*lrate*log(p/psfc)))
         end if
       end do
     end do

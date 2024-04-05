@@ -279,9 +279,6 @@ module mod_constants
   ! Gas-phase diffusion coeff. Lelieveld and Crutzen, 1991 cm2/s
   real(rkx) , parameter :: difgas = 0.1_rkx
 
-  ! Fixed emissivity of water
-  real(rkx) , parameter :: emsw = 0.97_rkx
-
   real(rk8) , parameter :: m_euler = 0.577215664901532860606512090082402431_rk8
 
   ! Trigonometric constants.
@@ -359,7 +356,7 @@ module mod_constants
 
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
-  real(rkx) , parameter :: ocn_sfcemiss = 0.990_rkx
+  real(rkx) , parameter :: ocn_sfcemiss = 0.996_rkx
   real(rkx) , parameter :: ice_sfcemiss = 0.982_rkx
 
   ! Constants used in Kain-Fritsch and WSM5

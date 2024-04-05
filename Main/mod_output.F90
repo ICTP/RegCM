@@ -71,8 +71,10 @@ module mod_output
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
-    real(rkx) :: cell , zz , zz1 , ww , tv
-    real(rkx) :: srffac , radfac , lakfac , subfac , optfac , stsfac
+    real(rkx) :: cell , srffac , radfac , lakfac , subfac , optfac , stsfac
+    real(rkx) :: tsurf , t500
+    real(rkx) , dimension(:,:,:) , pointer :: qv
+    real(rkx) , dimension(:,:) , pointer :: temp500 => null( )
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -108,13 +110,14 @@ module mod_output
       !
       ! Reset the accumulation arrays
       !
-      if ( associated(sts_tgmax_out) )  sts_tgmax_out  = -1.e30_rkx
-      if ( associated(sts_tgmin_out) )  sts_tgmin_out  =  1.e30_rkx
-      if ( associated(sts_t2max_out) )  sts_t2max_out  = -1.e30_rkx
-      if ( associated(sts_t2min_out) )  sts_t2min_out  =  1.e30_rkx
-      if ( associated(sts_w10max_out) ) sts_w10max_out = -1.e30_rkx
-      if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.e30_rkx
-      if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.e30_rkx
+      if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
+      if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
+      if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out = -1.e30_rkx
+      if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
+      if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
+      if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx
+      if ( associated(sts_psmin_out) )   sts_psmin_out   =  1.e30_rkx
+      if ( associated(sts_pcpmax_out) )  sts_pcpmax_out  = -1.e30_rkx
       call newoutfiles(rcmtimer%idate)
       lastout = rcmtimer%idate
       lstartup = .true.
@@ -627,49 +630,6 @@ module mod_output
           atm_tgb_out = sfs%tgbb(jci1:jci2,ici1:ici2)
         end if
 
-        if ( associated(atm_tsw_out) ) then
-          if ( rcmtimer%integrating( ) ) then
-            where ( mddom%ldmsk == 1 )
-              atm_tsw_out = atm_tsw_out / rnsrf_for_atmfrq
-            elsewhere
-              atm_tsw_out = dmissval
-            end where
-          else
-            atm_tsw_out = dmissval
-          end if
-        end if
-
-        if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
-          if ( idynamic == 3 ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
-                  kk = kzp1 - k
-                  p1d(kk) = mo_atm%p(j,i,k)
-                  t1d(kk) = mo_atm%t(j,i,k)
-                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
-                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
-                end do
-                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
-              end do
-            end do
-          else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do k = 1 , kz
-                  kk = kzp1 - k
-                  p1d(kk) = atm1%pr(j,i,k)
-                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
-                  rh1d(kk) = min(d_one,max(d_zero, &
-                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
-                end do
-                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
-              end do
-            end do
-          end if
-        end if
-
         ! FAB add tendency diagnostic here
         if ( idiag > 0 ) then
           if ( associated(atm_tten_adh_out) ) then
@@ -923,10 +883,8 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
 
-        if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
-        rnsrf_for_atmfrq = d_zero
       end if
     end if
 
@@ -1049,130 +1007,88 @@ module mod_output
           srf_evpot_out = srf_evpot_out * srffac
         end if
 
-        if ( associated(srf_ua100_out) .and. &
-             associated(srf_va100_out) ) then
+        call windcompute(srf_ua50_out,srf_va50_out,50.0_rkx)
+        call windcompute(srf_ua100_out,srf_va100_out,100.0_rkx)
+        call windcompute(srf_ua150_out,srf_va150_out,150.0_rkx)
+        if ( idynamic == 3 ) then
+          call assignpnt(mo_atm%qx,qv,iqv)
+          call vinterz(mo_atm%t,srf_ta50_out,50.0_rkx)
+          call vinterz(qv,srf_hus50_out,50.0_rkx)
+        else
+          call assignpnt(atm1%qx,qv,iqv)
+          call vinterz(atm1%t,srf_ta50_out,50.0_rkx)
+          call vinterz(qv,srf_hus50_out,50.0_rkx)
+        end if
+        if ( associated(srf_hus50_out) ) then
+          srf_hus50_out = srf_hus50_out/(1.0_rkx+srf_hus50_out)
+        end if
+
+        if ( associated(srf_li_out) ) then
           if ( idynamic == 3 ) then
-            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            call assignpnt(mo_atm%qx,qv,iqv)
+            if ( .not. associated(temp500) ) then
+              call getmem2d(temp500,jci1,jci2,ici1,ici2,'output:temp500')
+            end if
+            call vertint(mo_atm%t,mo_atm%p,temp500,50000.0_rkx)
+            call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
+                        jci1,jci2,ici1,ici2,kz)
+          else
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zz = mo_atm%zeta(j,i,kz)
-                if ( zz > 100.0_rkx ) then
-                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,kz)
-                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,kz)
-                else
-                  vloop1: &
-                  do k = kz-1 , 1 , -1
-                    zz1 = mo_atm%zeta(j,i,k)
-                    if ( zz1 > 100.0_rkx ) then
-                      ww = (100.0_rkx-zz)/(zz1-zz)
-                      srf_ua100_out(j,i,1) = &
-                        ww*mo_atm%ux(j,i,k)+(d_one-ww)*mo_atm%ux(j,i,k+1)
-                      srf_va100_out(j,i,1) = &
-                        ww*mo_atm%vx(j,i,k)+(d_one-ww)*mo_atm%vx(j,i,k+1)
-                      exit vloop1
-                    end if
-                    zz = zz1
-                  end do vloop1
-                end if
+                kk = 1
+                do k = 1 , kz
+                  if ( atm1%pr(j,i,k) > 50000.0_rkx ) exit
+                  kk = k
+                end do
+                tsurf = atm1%t(j,i,kz)/sfs%psa(j,i)
+                t500 = atm1%t(j,i,kk)/sfs%psa(j,i)
+                srf_li_out(j,i) = (tsurf-atms%za(j,i,k)*lrate) - t500
               end do
             end do
-          else if ( idynamic == 2 ) then
+          end if
+        end if
+        if ( associated(srf_cape_out) .and. associated(srf_cin_out) ) then
+          if ( idynamic == 3 ) then
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zz = atm0%z(j,i,kz)
-                if ( zz > 100.0_rkx ) then
-                  srf_ua100_out(j,i,1) = &
-                    (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
-                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
-                              sfs%psa(j,i))
-                  srf_va100_out(j,i,1) = &
-                    (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
-                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
-                              sfs%psa(j,i))
-                else
-                  vloop2: &
-                  do k = kz-1 , 1 , -1
-                    zz1 = atm0%z(j,i,k)
-                    if ( zz1 > 100.0_rkx ) then
-                      ww = (100.0_rkx-zz)/(zz1-zz)
-                      srf_ua100_out(j,i,1) = &
-                        ww * &
-                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
-                                     sfs%psa(j,i)) + &
-                        (d_one - ww) * &
-                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
-                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
-                                     sfs%psa(j,i))
-                      srf_va100_out(j,i,1) = &
-                        ww * &
-                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
-                                     sfs%psa(j,i)) + &
-                        (d_one - ww) * &
-                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
-                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
-                                     sfs%psa(j,i))
-                      exit vloop2
-                    end if
-                    zz = zz1
-                  end do vloop2
-                end if
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = mo_atm%p(j,i,k)
+                  t1d(kk) = mo_atm%t(j,i,k)
+                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
+                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i))
               end do
             end do
           else
             do i = ici1 , ici2
               do j = jci1 , jci2
-                cell = ptop / sfs%psa(j,i)
-                tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
-                            (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
-                zz = rovg * tv * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
-                if ( zz > 100.0_rkx ) then
-                  srf_ua100_out(j,i,1) = &
-                    (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
-                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
-                              sfs%psa(j,i))
-                  srf_va100_out(j,i,1) = &
-                    (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
-                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
-                              sfs%psa(j,i))
-                else
-                  vloop3: &
-                  do k = kz-1 , 1 , -1
-                    tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
-                            (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
-                    zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))
-                    if ( zz1 > 100.0_rkx ) then
-                      ww = (100.0_rkx-zz)/(zz1-zz)
-                      srf_ua100_out(j,i,1) = &
-                        ww * &
-                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
-                                     sfs%psa(j,i)) + &
-                        (d_one - ww) * &
-                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
-                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
-                                     sfs%psa(j,i))
-                      srf_va100_out(j,i,1) = &
-                        ww * &
-                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
-                                     sfs%psa(j,i)) + &
-                        (d_one - ww) * &
-                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
-                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
-                                     sfs%psa(j,i))
-                      exit vloop3
-                    end if
-                    zz = zz1
-                  end do vloop3
-                end if
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = atm1%pr(j,i,k)
+                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
+                  rh1d(kk) = min(d_one,max(d_zero, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d, &
+                  srf_cape_out(j,i),srf_cin_out(j,i))
               end do
             end do
           end if
-          if ( uvrotate ) then
-            call uvrot(srf_ua100_out,srf_va100_out)
-          end if
+        end if
+
+        if ( associated(srf_tprw_out) ) then
+          srf_tprw_out(:,:) = d_zero
+          do k = 1 , kz
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              srf_tprw_out(j,i) = srf_tprw_out(j,i) + &
+                atms%qxb3d(j,i,k,iqv)*atms%rhob3d(j,i,k)* &
+                (atms%zq(j,i,k)-atms%zq(j,i,k+1))
+            end do
+          end do
         end if
 
         call write_record_output_stream(srf_stream,alarm_out_srf%idate)
@@ -1478,6 +1394,7 @@ module mod_output
         if ( associated(sts_psavg_out) )   sts_psavg_out   = d_zero
         if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
         if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
+        if ( associated(sts_wsgsmax_out) ) sts_wsgsmax_out = -1.e30_rkx
         if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
         if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
         if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx
@@ -2043,6 +1960,205 @@ module mod_output
     end if
     rotinit = .true.
   end subroutine alpharot_compute
+
+  subroutine windcompute(u,v,h)
+    implicit none
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
+    real(rkx) , intent(in) :: h
+    real(rkx) :: cell , zz , zz1 , ww , tv
+    integer(ik4) :: i , j , k
+    if ( associated(u) .and. associated(v) ) then
+      if ( idynamic == 3 ) then
+        call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zz = mo_atm%zeta(j,i,kz)
+            if ( zz > h ) then
+              u(j,i,1) = mo_atm%ux(j,i,kz)
+              v(j,i,1) = mo_atm%vx(j,i,kz)
+            else
+              vloop1: &
+              do k = kz-1 , 1 , -1
+                zz1 = mo_atm%zeta(j,i,k)
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  u(j,i,1) = ww*mo_atm%ux(j,i,k)+(d_one-ww)*mo_atm%ux(j,i,k+1)
+                  v(j,i,1) = ww*mo_atm%vx(j,i,k)+(d_one-ww)*mo_atm%vx(j,i,k+1)
+                  exit vloop1
+                end if
+                zz = zz1
+              end do vloop1
+            end if
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zz = atm0%z(j,i,kz)
+            if ( zz > h ) then
+              u(j,i,1) = (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
+                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+              v(j,i,1) = (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
+                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+            else
+              vloop2: &
+              do k = kz-1 , 1 , -1
+                zz1 = atm0%z(j,i,k)
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  u(j,i,1) = ww * &
+                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                  v(j,i,1) = ww * &
+                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                  exit vloop2
+                end if
+                zz = zz1
+              end do vloop2
+            end if
+          end do
+        end do
+      else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cell = ptop / sfs%psa(j,i)
+            tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
+            zz = rovg * tv * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+            if ( zz > h ) then
+              u(j,i,1) = (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
+                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+              v(j,i,1) = (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
+                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+            else
+              vloop3: &
+              do k = kz-1 , 1 , -1
+                tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
+                zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  u(j,i,1) = ww * &
+                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                  v(j,i,1) = ww * &
+                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                  exit vloop3
+                end if
+                zz = zz1
+              end do vloop3
+            end if
+          end do
+        end do
+      end if
+      if ( uvrotate ) then
+        call uvrot(u,v)
+      end if
+    end if
+  end subroutine windcompute
+
+  subroutine vinterz(v,vv,h)
+    implicit none
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: v
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: vv
+    real(rkx) , intent(in) :: h
+    real(rkx) :: cell , zz , zz1 , ww , tv
+    integer(ik4) :: i , j , k
+    if ( associated(vv) ) then
+      if ( idynamic == 3 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zz = mo_atm%zeta(j,i,kz)
+            if ( zz > h ) then
+              vv(j,i,1) = v(j,i,kz)
+            else
+              vloop1: &
+              do k = kz-1 , 1 , -1
+                zz1 = mo_atm%zeta(j,i,k)
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  vv(j,i,1) = ww*v(j,i,k)+(d_one-ww)*v(j,i,k+1)
+                  exit vloop1
+                end if
+                zz = zz1
+              end do vloop1
+            end if
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zz = atm0%z(j,i,kz)
+            if ( zz > h ) then
+              vv(j,i,1) = v(j,i,kz)/sfs%psa(j,i)
+            else
+              vloop2: &
+              do k = kz-1 , 1 , -1
+                zz1 = atm0%z(j,i,k)
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  vv(j,i,1) = (ww*v(j,i,k)+(d_one-ww)*v(j,i,k+1))/sfs%psa(j,i)
+                  exit vloop2
+                end if
+                zz = zz1
+              end do vloop2
+            end if
+          end do
+        end do
+      else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cell = ptop / sfs%psa(j,i)
+            tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
+            zz = rovg * tv * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+            if ( zz > h ) then
+              vv(j,i,1) = v(j,i,kz)/sfs%psa(j,i)
+            else
+              vloop3: &
+              do k = kz-1 , 1 , -1
+                tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
+                zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))
+                if ( zz1 > h ) then
+                  ww = (h-zz)/(zz1-zz)
+                  vv(j,i,1) = (ww*v(j,i,k)+(d_one-ww)*v(j,i,k+1))/sfs%psa(j,i)
+                  exit vloop3
+                end if
+                zz = zz1
+              end do vloop3
+            end if
+          end do
+        end do
+      end if
+    end if
+  end subroutine vinterz
 
 end module mod_output
 

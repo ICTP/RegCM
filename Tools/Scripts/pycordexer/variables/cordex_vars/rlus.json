@@ -33,22 +33,6 @@
         }
       ],
       [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "rlus",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Surface Upwelling Longwave Radiation",
-            "standard_name": "surface_upwelling_longwave_flux_in_air",
-            "cell_methods" : "time: mean",
-            "grid_mapping" : "crs",
-            "coordinates" : "lat lon",
-            "units": "W m-2"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24

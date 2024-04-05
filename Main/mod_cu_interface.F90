@@ -37,7 +37,7 @@ module mod_cu_interface
       model_cumulus_cloud , init_mod_cumulus
   use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
       cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
-      cu_convpr , cu_chiten , avg_ww
+      cu_convpr , cu_chiten , avg_ww , cu_srate
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv , &
       pmean , nmctop
   use mod_cu_tables , only : init_convect_tables
@@ -203,6 +203,7 @@ module mod_cu_interface
     end if
     call assignpnt(sfs%rainc,c2m%rainc)
     call assignpnt(pptc,c2m%pcratec)
+    call assignpnt(sptc,c2m%sratec)
     call assignpnt(cldfra,c2m%cldfrc)
     call assignpnt(icumtop,c2m%kcumtop)
     call assignpnt(icumbot,c2m%kcumbot)
@@ -298,6 +299,9 @@ module mod_cu_interface
         end if
 
         cu_prate(:,:) = d_zero
+        if ( ipptls > 1 .and. any(icup == 5) ) then
+          cu_srate(:,:) = d_zero
+        end if
         cu_ktop(:,:) = 0
         cu_kbot(:,:) = 0
         cu_tten(:,:,:) = d_zero
@@ -408,6 +412,12 @@ module mod_cu_interface
           c2m%kcumbot(j,i) = cu_kbot(j,i)
         end do
       end do
+
+      if ( ipptls > 1 .and. any(icup == 5) ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          c2m%sratec(j,i) = c2m%sratec(j,i) + cu_srate(j,i)
+        end do
+      end if
 
       if ( idynamic == 3 ) then
 

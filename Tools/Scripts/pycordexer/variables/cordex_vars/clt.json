@@ -29,19 +29,6 @@
         }
       ],
       [
-        "IfNeededAverageAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "clt",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "%",
-            "long_name": "Total Cloud Fraction",
-            "standard_name": "cloud_area_fraction"
-          }
-        }
-      ],
-      [
         "ComputeAverage",
         {
           "new_time_step": 24

@@ -1295,7 +1295,8 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
 #if defined (NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
-    ncstatus = nf90_def_var_deflate(ncid,ivar(iivar),1,1,deflate_level)
+    ncstatus = nf90_def_var_filter(ncid,ivar(iivar), &
+                  ncfilter,ncfilter_nparams,ncfilter_params)
     call check_ok(__FILE__,__LINE__, &
       'Cannot set compression level to variable '//trim(str))
 #endif

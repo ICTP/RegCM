@@ -22,6 +22,7 @@ module mod_capecin
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_spline
 
   implicit none
 
@@ -45,6 +46,21 @@ module mod_capecin
                                           ! 4 = reversible, with ice
 
   public :: getcape
+
+  logical :: table_empty = .true.
+
+  integer(ik4) , parameter :: itb = 076
+  integer(ik4) , parameter :: jtb = 134
+  integer(ik4) , parameter :: itbq = 152
+  integer(ik4) , parameter :: jtbq = 440
+
+  real(rkx) :: pl , thl , rdq , rdth , rdp , rdthe , plq , rdpq , rdtheq
+  real(rkx) , dimension(jtb) :: qs0 , sqs
+  real(rkx) , dimension(itb) :: the0 , sthe
+  real(rkx) , dimension(itbq) :: the0q , stheq
+  real(rkx) , dimension(itb,jtb) :: ptbl
+  real(rkx) , dimension(jtb,itb) :: ttbl
+  real(rkx) , dimension(jtbq,itbq) :: ttblq
 
   contains
   !
@@ -385,6 +401,311 @@ module mod_capecin
     end function getthe
 
     end subroutine getcape
+
+    ! This routine computes a surface to 500mb lifted index.
+    ! The lifted parcel is from the first atmpspheric ETA
+    ! layer (ie, the ETA layer closest to the model ground).
+    ! The lifted index is the difference between this parcel's
+    ! temperature at 500mb and the ambient 500mb temperature.
+    ! Russ Treadon W/NP2 @date 1993-03-10
+
+    subroutine otlift(slindx,t,q,p,t500,ista,iend,jsta,jend,kk)
+      implicit none
+      integer(ik4) , intent(in) :: ista , iend , jsta , jend , kk
+      real(rkx) , dimension(:,:) , pointer , intent(inout) :: slindx
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: t500
+      real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t , q , p
+
+      real(rkx) , parameter :: d8202 = 0.820231e+00_rkx
+      real(rkx) , parameter :: h5e4 = 5.e4_rkx
+      real(rkx) , parameter :: p500 = 50000.0_rkx
+      real(rkx) , parameter :: elivw = 2.72e6_rkx
+      real(rkx) , parameter :: elocp = elivw/cpd
+      real(rkx) , parameter :: oneps = 1.0_rkx-ep2
+
+      real(rkx) :: tvp , esatp , qsatp
+      real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
+      real(rkx) :: bqs00 , sqs00 , bqs10 , sqs10 , bq , sq , tq
+      real(rkx) :: pp00 , pp10 , pp01 , pp11 , t00 , t10 , t01 , t11
+      real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
+      real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
+      integer(ik4) :: i , j , lbtm , ittbk , iq , it , iptbk
+      integer(ik4) :: ith , ip , iqtb
+      integer(ik4) :: ittb , iptb , ithtb
+      !
+      if ( table_empty ) then
+        call table_fill( )
+        table_empty = .false.
+      end if
+      !
+      !**********************************************************
+      ! Start otlift here
+      !
+      ! Initialize lifted index array to zero.
+      do concurrent ( i = ista:iend, j = jsta:jend )
+        slindx(i,j) = d_zero
+      end do
+      ! Find Exner at lowest level-------------------------------
+      do j = jsta , jend
+        do i = ista , iend
+          tbt = t(i,j,kk)
+          qbt = q(i,j,kk)
+          apebt = (p00/p(i,j,kk))**rovcp
+          ! Scaling potential temperature & table index----------
+          tthbt = tbt*apebt
+          tth = (tthbt-thl)*rdth
+          tqq = tth-aint(tth)
+          ittb = int(tth) + 1
+          ! Keeping indices within the table---------------------
+          if ( ittb < 1 ) then
+            ittb = 1
+            tqq = d_zero
+          end if
+          if ( ittb >= jtb ) then
+            ittb = jtb - 1
+            tqq = d_zero
+          end if
+          ! Base and scaling factor for spec. humidity-----------
+          ittbk = ittb
+          bqs00 = qs0(ittbk)
+          sqs00 = sqs(ittbk)
+          bqs10 = qs0(ittbk+1)
+          sqs10 = sqs(ittbk+1)
+          ! Scaling spec. humidity & table index-----------------
+          bq = (bqs10-bqs00)*tqq + bqs00
+          sq = (sqs10-sqs00)*tqq + sqs00
+          tq = (qbt-bq)/sq*rdq
+          ppq = tq - aint(tq)
+          iqtb = int(tq) + 1
+          ! Keeping indices within the table---------------------
+          if(iqtb < 1)then
+            iqtb = 1
+            ppq = d_zero
+          end if
+          if ( iqtb >= itb ) then
+            iqtb = itb-1
+            ppq = d_zero
+          end if
+          ! Saturation pressure at four surrounding table pts.---
+          iq = iqtb
+          it = ittb
+          pp00 = ptbl(iq,it)
+          pp10 = ptbl(iq+1,it)
+          pp01 = ptbl(iq,it+1)
+          pp11 = ptbl(iq+1,it+1)
+          ! Saturation point variables at the bottom------------
+          tpsp = pp00+(pp10-pp00)*ppq+(pp01-pp00)*tqq + &
+                (pp00-pp10-pp01+pp11)*ppq*tqq
+          if ( tpsp <= d_zero ) tpsp = p00
+          apesp = (p00/tpsp)**rovcp
+          thesp = tthbt*exp(elocp*qbt*apesp/tthbt)
+          ! Scaling pressure & tt table index------------------
+          tp = (h5e4-pl)*rdp
+          qq = tp - aint(tp)
+          iptb = int(tp)+1
+          ! Keeping indices within the table-------------------
+          if ( iptb < 1 ) then
+            iptb = 1
+            qq = d_zero
+          end if
+          if ( iptb >= itb ) then
+            iptb = itb-1
+            qq = d_zero
+          end if
+          ! Base and scaling factor for the-------------------
+          iptbk = iptb
+          bthe00 = the0(iptbk)
+          sthe00 = sthe(iptbk)
+          bthe10 = the0(iptbk+1)
+          sthe10 = sthe(iptbk+1)
+          ! Scaling the & tt table index----------------------
+          bth = (bthe10-bthe00)*qq + bthe00
+          sth = (sthe10-sthe00)*qq + sthe00
+          tth = (thesp-bth)/sth*rdthe
+          pp = tth-aint(tth)
+          ithtb = int(tth) + 1
+          ! Keeping indices within the table------------------
+          if ( ithtb < 1 ) then
+            ithtb = 1
+            pp = d_zero
+          end if
+          if ( ithtb >= jtb ) then
+            ithtb = jtb-1
+            pp = d_zero
+          end if
+          ! Temperature at four surrounding tt table pts.----
+          ith = ithtb
+          ip = iptb
+          t00 = ttbl(ith,ip)
+          t10 = ttbl(ith+1,ip)
+          t01 = ttbl(ith,ip+1)
+          t11 = ttbl(ith+1,ip+1)
+          ! Parcel temperature at 500mb----------------------
+          if ( tpsp >= h5e4 ) then
+            partmp=(t00+(t10-t00)*pp + (t01-t00)*qq + &
+                   (t00-t10-t01+t11)*pp*qq)
+          else
+            partmp = tbt*apebt*d8202
+          end if
+          ! Lifted Index-------------------------------------
+          !
+          ! The parcel temperature at 500 mb has been
+          ! computed, and we find the mixing ratio at that
+          ! level which will be the saturation value since
+          ! we're following a moist adiabat. Note that the
+          ! ambient 500 mb should probably be virtualized,
+          ! but the impact of moisture at that level is
+          ! quite small
+          !
+          esatp = pfesat(partmp,p500)
+          qsatp = ep2*esatp/(p500-esatp*oneps)
+          tvp = partmp*(1.0_rkx+ep1*qsatp)
+          slindx(i,j) = t500(i,j)-tvp
+        end do
+      end do
+
+      contains
+
+#include <pfesat.inc>
+
+      subroutine table_fill( )
+        implicit none
+        ! ****************************************************************
+        ! *                                                              *
+        ! *             GENERATE VALUES FOR LOOK-UP TABLES               *
+        ! *                                                              *
+        ! ****************************************************************
+        real(rkx) , parameter :: thh = 365.0_rkx
+        real(rkx) , parameter :: ph = 105000.0_rkx
+        real(rkx) , parameter :: pq0 = 379.90516_rkx
+        real(rkx) , parameter :: a2 = 17.2693882_rkx
+        real(rkx) , parameter :: a3 = 273.16_rkx
+        real(rkx) , parameter :: a4 = 35.86_rkx
+        real(rkx) , parameter :: eliwv = 2.683e+6_rkx
+        real(rkx) , parameter :: eps = 1.E-9_rkx
+        real(rkx) , parameter :: pt = 1.0_rkx
+        real(rkx) , parameter :: thl = 210.0_rkx
+        real(rkx) , dimension(jtb) :: qsold , pold, qsnew , pnew , tnew
+        real(rkx) , dimension(jtb) :: told , theold , thenew
+        real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
+        real(rkx) :: dth , dp , th , p , ape , denom , qs0k , sqsk , dqs
+        real(rkx) :: qs , theok , sthek , the0k , dthe
+        integer(ik4) :: lthm , kpm , kthm1 , kpm1 , kp , kmm , kthm , kth
+
+        ! Coarse look-up table for saturation point----------------
+        kthm  = jtb
+        kpm   = itb
+        kthm1 = kthm-1
+        kpm1  = kpm-1
+        pl = pt
+        dth = (thh-thl) / real(kthm-1, rkx)
+        dp  = (ph -pl ) / real(kpm -1, rkx)
+        rdth = 1.0_rkx/dth
+        rdp  = 1.0_rkx/dp
+        rdq  = kpm-1
+        th = thl - dth
+        !-----------------------------------------------------------
+        do kth = 1 , kthm
+          th = th + dth
+          p  = pl - dp
+          do kp = 1 , kpm
+            p = p + dp
+            if ( p <= 0.0_rkx ) then
+              pold(1)  = 0.0_rkx
+              qsold(1) = 0.0_rkx
+            else
+              ape = (100000.0_rkx/p)**rovcp
+              denom = th - a4*ape
+              if ( denom > eps ) then
+                qsold(kp) = pq0 / p*exp(a2*(th-a3*ape)/denom)
+              else
+                qsold(kp) = 0.0_rkx
+              end if
+              ! qsold(kp) = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+              pold(kp) = p
+            end if
+          end do
+          qs0k       = qsold(1)
+          sqsk       = qsold(kpm) - qsold(1)
+          qsold(1  ) = 0.0_rkx
+          qsold(kpm) = 1.0_rkx
+          do kp = 2 , kpm1
+            qsold(kp) = (qsold(kp)-qs0k)/sqsk
+            if ( (qsold(kp)-qsold(kp-1)) < eps ) then
+              qsold(kp) = qsold(kp-1)+eps
+            end if
+          end do
+          qs0(kth) = qs0k
+          sqs(kth) = sqsk
+          !-----------------------------------------------------------
+          qsnew(1  ) = 0.0_rkx
+          qsnew(kpm) = 1.0_rkx
+          dqs = 1.0_rkx/real(kpm-1,rkx)
+          do kp = 2 , kpm1
+            qsnew(kp) = qsnew(kp-1) + dqs
+          end do
+          y2p(1   ) = 0.0_rkx
+          y2p(kpm ) = 0.0_rkx
+          call spline(jtb,kpm,qsold,pold,y2p,kpm,qsnew,pnew,app,aqp)
+          do kp = 1 , kpm
+            ptbl(kp,kth) = pnew(kp)
+          end do
+          !-----------------------------------------------------------
+        end do
+        ! Coarse look-up table for t(p) from constant the----------
+        p = pl - dp
+        do kp = 1 , kpm
+          p  = p + dp
+          th = thl - dth
+          do kth = 1 , kthm
+            th    = th + dth
+            if ( p <= 0.0_rkx ) then
+              told(kth)   = th
+              theold(kth) = th
+            else
+              ape   = (100000.0_rkx/p)**rovcp
+              denom = th - a4*ape
+              if ( denom > eps ) then
+                qs = pq0/p*exp(a2*(th-a3*ape)/denom)
+              else
+                qs = 0.0_rkx
+              end if
+              ! qs = pq0/p*exp(a2*(th-a3*ape)/(th-a4*ape))
+              told(kth) = th / ape
+              theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
+            end if
+          end do
+          the0k = theold(1)
+          sthek = theold(kthm) - theold(1)
+          theold(1   ) = 0.0_rkx
+          theold(kthm) = 1.0_rkx
+          do kth = 2 , kthm1
+            theold(kth) = (theold(kth)-the0k)/sthek
+            if ( (theold(kth)-theold(kth-1)) < eps ) then
+              theold(kth) = theold(kth-1) +  eps
+            end if
+          end do
+          the0(kp) = the0k
+          sthe(kp) = sthek
+          !-----------------------------------------------------
+          thenew(1  )  = 0.0_rkx
+          thenew(kthm) = 1.0_rkx
+          dthe         = 1.0_rkx/real(kthm-1,rkx)
+          rdthe        = 1.0_rkx/dthe
+          do kth = 2 , kthm1
+            thenew(kth) = thenew(kth-1) + dthe
+          end do
+          y2t(1   ) = 0.0_rkx
+          y2t(kthm) = 0.0_rkx
+          call spline(jtb,kthm,theold,told,y2t,kthm,thenew,tnew,apt,aqt)
+          do kth = 1 , kthm
+            ttbl(kth,kp) = tnew(kth)
+          end do
+          !------------------------------------------------------
+        end do
+      end subroutine table_fill
+
+    end subroutine otlift
 
 end module mod_capecin
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

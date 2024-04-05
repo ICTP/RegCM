@@ -45,7 +45,7 @@ module mod_pbl_thetal
     logical , intent(in) :: bderiv
     real(rkx) :: qc , qv , es
 
-    es = pfesat(t)
+    es = pfesat(t,myp)
     qv = max(ep2/(myp/es-d_one),d_zero)
     if ( myqt > qv ) then
       qc = myqt - qv
@@ -420,7 +420,7 @@ module mod_pbl_thetal
     implicit none
     real(rkx) , intent(in) :: t
     real(rkx) , intent(out) :: es , qv , qc
-    es = pfesat(t)
+    es = pfesat(t,myp)
     qv = max(ep2/(myp/es-d_one),d_zero)
     if ( myqt > qv ) then
       qc = myqt - qv

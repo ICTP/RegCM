@@ -98,6 +98,7 @@ module mod_rad_outrad
     integer(ik4) :: kh1 , kh2 , km1 , km2 , kl1 , kl2
     integer(ik4) :: visband
     real(rkx) :: hif , mif , lof
+    real(rkx) , parameter :: sm1 = 1.0001_rkx
     !
     ! total heating rate in deg/s
     !
@@ -179,13 +180,13 @@ module mod_rad_outrad
             end if
           end do
           do k = kh1 , kh2
-            hif = hif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            hif = hif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           do k = km1 , km2
-            mif = mif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            mif = mif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           do k = kl1 , kl2
-            lof = lof*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+            lof = lof*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
           end do
           rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
           rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
@@ -234,7 +235,9 @@ module mod_rad_outrad
       if ( lout ) then
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
-        rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
+        if ( associated(rad_clwp_out) ) then
+          rad_clwp_out = 1.0e-3_rkx * rad_clwp_out * rad_cld_out
+        end if
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
         if ( iclimao3 > 0 ) then

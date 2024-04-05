@@ -1,0 +1,40 @@
+{
+  "hus50m": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "hus50m"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "1",
+            "long_name": "Specific Humidity at 50m",
+            "standard_name": "specific_humidity"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "1",
+            "long_name": "Specific Humidity at 50m",
+            "standard_name": "specific_humidity"
+          }
+        }
+      ]
+    ]
+  ]
+}

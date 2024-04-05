@@ -336,6 +336,9 @@ module mod_lm_interface
     call assignpnt(sfs%q2m,lm%q2m)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
+    if ( ipptls > 1 .and. any(icup == 5) ) then
+      call assignpnt(sptc,lm%csrate)
+    end if
     call assignpnt(sfs%snownc,lm%snwrat)
     call assignpnt(sfs%grplnc,lm%grprat)
     call assignpnt(sfs%hailnc,lm%hairat)
@@ -867,11 +870,6 @@ module mod_lm_interface
     ! Fill accumulators
 
     if ( rcmtimer%integrating( ) ) then
-      if ( ifatm ) then
-        rnsrf_for_atmfrq = rnsrf_for_atmfrq + 1.0_rkx
-        if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
-      end if
       if ( ifsrf ) then
         rnsrf_for_srffrq = rnsrf_for_srffrq + 1.0_rkx
         if ( associated(srf_totcf_out) ) &
@@ -882,8 +880,13 @@ module mod_lm_interface
           srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
-        if ( associated(srf_snow_out) ) &
-          srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+        if ( associated(srf_snow_out) ) then
+          if ( ipptls > 1 .and. any(icup == 5) ) then
+            srf_snow_out = srf_snow_out + (lm%snwrat+lm%csrate)*syncro_srf%rw
+          else
+            srf_snow_out = srf_snow_out + lm%snwrat*syncro_srf%rw
+          end if
+        end if
         if ( associated(srf_grau_out) ) &
           srf_grau_out = srf_grau_out + lm%grprat*syncro_srf%rw
         if ( associated(srf_hail_out) ) &
@@ -932,7 +935,7 @@ module mod_lm_interface
               end if
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
-              es = pfesat(tas)
+              es = pfesat(tas,ps)
               qs = pfwsat(tas,ps,es)
               qas = lm%q2m(j,i)
               uas = lm%w10m(j,i)
@@ -1037,6 +1040,11 @@ module mod_lm_interface
             sts_sund_out = sts_sund_out + dtbat
           end where
         end if
+        if ( associated(sts_wsgsmax_out) ) then
+          call compute_maxgust(lm%u10m,lm%v10m, &
+                               lm%uatm,lm%vatm, &
+                               lm%hpbl,sts_wsgsmax_out)
+        end if
       end if
       if ( iflak ) then
         rnsrf_for_lakfrq = rnsrf_for_lakfrq + 1.0_rkx
@@ -1064,6 +1072,33 @@ module mod_lm_interface
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) then
           atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
+        end if
+        if ( associated(atm_smw_out) ) then
+          do n = 1 , num_soil_layers
+            where ( lm%ldmsk == 1 )
+              atm_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
+            elsewhere
+              atm_smw_out(:,:,n) = dmissval
+            end where
+          end do
+        end if
+#ifdef CLM45
+        if ( associated(atm_tsoil_out) ) then
+          do n = 1 , num_soil_layers
+            where ( lm%ldmsk == 1 )
+              atm_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
+            elsewhere
+              atm_tsoil_out(:,:,n) = dmissval
+            end where
+          end do
+        end if
+#endif
+        if ( associated(atm_mrso_out) ) then
+          where ( lm%ldmsk == 1 )
+            atm_mrso_out(:,:) = sum(sum(lms%sw,1),3)*rdnnsg
+          elsewhere
+            atm_mrso_out(:,:) = dmissval
+          end where
         end if
       end if
     end if
@@ -1128,6 +1163,16 @@ module mod_lm_interface
           end do
         end if
 #ifdef CLM45
+        if ( associated(srf_mrsos_out) ) then
+          where ( lm%ldmsk == 1 )
+            srf_mrsos_out(:,:) = (sum(lms%sw(:,:,:,1),1) + &
+                                  sum(lms%sw(:,:,:,2),1) + &
+                                  sum(lms%sw(:,:,:,3),1) + &
+                                  sum(lms%sw(:,:,:,4),1)) * rdnnsg
+          elsewhere
+            srf_mrsos_out(:,:) = dmissval
+          end where
+        end if
         if ( associated(srf_tsoil_out) ) then
           do n = 1 , num_soil_layers
             where ( lm%ldmsk == 1 )
@@ -1206,8 +1251,9 @@ module mod_lm_interface
 
     ! Reset accumulation from precip and cumulus
     lm%ncprate(:,:) = d_zero
-    lm%cprate(:,:)  = d_zero
+    if ( associated(lm%cprate) ) lm%cprate(:,:) = d_zero
     if ( associated(lm%snwrat) ) lm%snwrat(:,:) = d_zero
+    if ( associated(lm%csrate) ) lm%csrate(:,:) = d_zero
     if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
     if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
 
@@ -1290,6 +1336,25 @@ module mod_lm_interface
         slp(:,:) = slp1
       end do
     end subroutine mslp
+
+    subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
+      implicit none
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
+      real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
+      real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
+      integer(ik4) :: i , j
+      real(rkx) :: delwind , spd1 , spd2
+
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+          spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
+          spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
+          delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
+          gust(j,i) = max(gust(j,i),spd1+delwind)
+        end do
+      end do
+    end subroutine compute_maxgust
 
   end subroutine collect_output
 

@@ -20,6 +20,8 @@
     "vars":[
       "tas",
       "pr",
+      "prhmax",
+      "prw",
       "huss",
       "hurs",
       "evspsbl",
@@ -47,9 +49,18 @@
       "tauv",
       "ts",
       "zmla",
+      "ua50m",
+      "va50m",
       "ua100m",
       "va100m",
-      "zo"
+      "ua150m",
+      "va150m",
+      "ta50m",
+      "hus50m",
+      "zo",
+      "CAPE",
+      "CIN",
+      "LI"
     ],
     "mask":"_SRF\\.\\d+\\.[nN][cC]$"
   },
@@ -63,13 +74,16 @@
       "psmean",
       "mrromean",
       "sundmean",
-      "sfcWindmax"
+      "sfcWindmax",
+      "wsgsmax"
     ],
     "mask":"_STS\\.\\d+\\.[nN][cC]$"
   },
   {
     "name":"ATM",
     "vars":[
+      "mrsol",
+      "mrso",
       "ua",
       "va",
       "ta",
@@ -81,7 +95,6 @@
     {
     "name":"RAD",
     "vars":[
-      "prw",
       "clwvi",
       "clivi",
       "clh",

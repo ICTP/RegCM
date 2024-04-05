@@ -12,14 +12,8 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": 0.0
+            "ATM": 0.0
           }
-        }
-      ],
-      [
-        "SumOnDimension",
-        {
-          "dimension": "soil_layer"
         }
       ],
       [
@@ -29,20 +23,7 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "long_name": "Total Soil Moisture Content",
-            "standard_name": "soil_moisture_content",
-            "units": "kg m-2"
-          }
-        }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 6,
-          "var_name": "mrso",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "long_name": "Total Soil Moisture Content",
-            "standard_name": "soil_moisture_content",
+            "standard_name": "mass_content_of_water_in_soil",
             "units": "kg m-2"
           }
         }
@@ -60,7 +41,7 @@
           "fill_value": "1e+20",
           "new_attributes": {
             "long_name": "Total Soil Moisture Content",
-            "standard_name": "soil_moisture_content",
+            "standard_name": "mass_content_of_water_in_soil",
             "units": "kg m-2"
           }
         }
@@ -68,4 +49,3 @@
     ]
   ]
 }
-

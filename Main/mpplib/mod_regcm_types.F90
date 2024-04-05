@@ -541,6 +541,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: ncprate     ! pptnc
     real(rkx) , pointer , dimension(:,:) :: cprate      ! cprate
     real(rkx) , pointer , dimension(:,:) :: snwrat      ! snwrat
+    real(rkx) , pointer , dimension(:,:) :: csrate      ! csrate
     real(rkx) , pointer , dimension(:,:) :: grprat      ! grprat
     real(rkx) , pointer , dimension(:,:) :: hairat      ! hairat
     real(rkx) , pointer , dimension(:,:) :: vegswab     ! sabveg
@@ -575,6 +576,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: cldlwc
     real(rkx) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
     real(rkx) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rkx) , pointer , dimension(:,:,:) :: rhoatms       ! atms%rhob3d
     real(rkx) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:) :: za            ! atms%za
@@ -666,6 +668,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! aten%chi
     real(rkx) , pointer , dimension(:,:) :: rainc
     real(rkx) , pointer , dimension(:,:) :: pcratec
+    real(rkx) , pointer , dimension(:,:) :: sratec
     real(rkx) , pointer , dimension(:,:) :: trrate     ! trrate
     real(rkx) , pointer , dimension(:,:,:) :: convpr
     real(rkx) , pointer , dimension(:,:,:) :: cldfrc

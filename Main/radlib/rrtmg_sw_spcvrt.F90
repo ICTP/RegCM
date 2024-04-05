@@ -260,7 +260,7 @@
       real(kind=rb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
       real(kind=rb) :: zdbtmc, zdbtmo, zf
-      real(kind=rb) :: zwf, tauorig, repclc
+      real(kind=rb) :: zwf, tauorig
 !     real(kind=rb) :: zincflux                                   ! inactive
 
 ! Arrays from rrtmg_sw_taumoln routines
@@ -276,6 +276,8 @@
       real(kind=rb) :: zcd(nlayers+1,ngptsw), zcu(nlayers+1,ngptsw)
       real(kind=rb) :: zfd(nlayers+1,ngptsw), zfu(nlayers+1,ngptsw)
 
+      real(kind=rb) , parameter :: repclc = 1.0e-12_rb
+
 ! Inactive arrays
 !     real(kind=rb) :: zbbcd(nlayers+1), zbbcu(nlayers+1)
 !     real(kind=rb) :: zbbfd(nlayers+1), zbbfu(nlayers+1)
@@ -289,7 +291,6 @@
       ib2 = iend
       klev = nlayers
       iw = 0
-      repclc = 1.e-12_rb
 !      zincflux = 0.0_rb
 
       do jk=1,klev+1

@@ -12,7 +12,8 @@
         "CorrectTime",
         {
           "offset": {
-            "SRF": "-HALFFREQUENCY"
+            "SRF": "-HALFFREQUENCY",
+            "STS": 0
           }
         }
       ],

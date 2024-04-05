@@ -47,7 +47,7 @@ module mod_micro_interface
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
-  real(rkx) , pointer , dimension(:,:) :: rh0
+  real(rkx) , pointer , dimension(:,:) :: rh0 , qtcrit
   ! rh0adj - Adjusted relative humidity threshold
   real(rkx) , pointer , dimension(:,:,:) :: totc , rh0adj
 
@@ -57,6 +57,8 @@ module mod_micro_interface
   real(rkx) , dimension(0:nchi-1) :: chis
 
   logical , parameter :: do_cfscaling = .true.
+  real(rkx) , parameter :: qccrit_lnd = 1.0e-6_rkx
+  real(rkx) , parameter :: qccrit_oce = 5.0e-6_rkx
 
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 
@@ -117,6 +119,7 @@ module mod_micro_interface
       call allocate_mod_wdm7
     end if
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
+    call getmem2d(qtcrit,jci1,jci2,ici1,ici2,'subex:qtcrit')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
     do i = 1 , nchi
       cf = real(i-1,rkx)/real(nchi-1,rkx)
@@ -252,13 +255,22 @@ module mod_micro_interface
         end do
       end do
     end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      totc(j,i,k) = totc(j,i,k)/(d_one+totc(j,i,k))
+    end do
+
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      qtcrit(j,i) = mo2mc%ldmsk(j,i)*qccrit_lnd - &
+                   (mo2mc%ldmsk(j,i)-1)*qccrit_oce
+    end do
 
     select case ( icldfrac )
       case (0)
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
+                           totc,mo2mc%rh,tc0,rh0,qtcrit,mc2mo%fcc)
       case (1)
-        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh, &
+                           qtcrit,mc2mo%fcc)
       case (2)
         mc2mo%fcc = d_zero
         where ( totc * mo2mc%delz > 1.0e-2_rkx )
@@ -316,8 +328,8 @@ module mod_micro_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! get maximum cloud fraction between cumulus and large scale
-            cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
-            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+            cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k)+cldfra(j,i,k)
+            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
             if ( cldfra(j,i,k) > lowcld ) then
               ! Cloud Water Volume
               ! Apply the parameterisation based on temperature to the
@@ -339,9 +351,10 @@ module mod_micro_interface
               conv_exlwc = clwfromt(mo2mc%t(j,i,k))
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-              exlwc = min(conv_exlwc*cldfra(j,i,k) + ls_exlwc, 6.0_rkx)
+              exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
               ! get maximum cloud fraction between cumulus and large scale
-              cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
+              cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k) + &
+                              cldfra(j,i,k)
               cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
               if ( cldfra(j,i,k) > lowcld ) then
                 ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
@@ -367,7 +380,7 @@ module mod_micro_interface
             do j = jci1 , jci2
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),hicld)
+              cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
               if ( cldfra(j,i,k) > lowcld ) then
                 exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
                 ! Scaling for CF

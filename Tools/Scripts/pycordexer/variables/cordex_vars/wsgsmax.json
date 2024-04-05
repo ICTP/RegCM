@@ -4,7 +4,16 @@
       [
         "ReadVariableFromFile",
         {
-          "var_name": "wsgsmax"
+          "var_name": "wsgsmax",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "STS": -12.0
+          }
         }
       ],
       [

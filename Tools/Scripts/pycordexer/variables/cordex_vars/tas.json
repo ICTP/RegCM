@@ -31,19 +31,6 @@
             "standard_name": "air_temperature"
           }
         }
-      ],
-      [
-        "IfNeededThinAndSave",
-        {
-          "new_time_step": 3,
-          "var_name": "tas",
-          "fill_value": "1e+20",
-          "new_attributes": {
-            "units": "K",
-            "long_name": "Near-Surface Air Temperature",
-            "standard_name": "air_temperature"
-          }
-        }
       ]
     ]
   ]
