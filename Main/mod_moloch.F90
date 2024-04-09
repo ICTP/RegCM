@@ -1061,7 +1061,7 @@ module mod_moloch
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta,pfac=1.0e4_rkx,pmin=d_zero)
+            call wafone(ptr,dta)
           end do
           if ( ipptls == 5 ) then
             call assignpnt(qx,ptr,cqn)
@@ -1078,7 +1078,7 @@ module mod_moloch
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-            call wafone(ptr,dta,pfac=1.0e8_rkx,pmin=d_zero)
+            call wafone(ptr,dta)
           end do
         end if
 
