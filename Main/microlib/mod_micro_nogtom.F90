@@ -1776,7 +1776,6 @@ module mod_micro_nogtom
                 ! Here is the delta T - missing from doc.
                 qlhs(jn,n) = -qsimp(jn,n)
               end if
-              if ( locisnan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
             end do
           end do
 
@@ -1790,7 +1789,6 @@ module mod_micro_nogtom
               rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
-            if ( locisnan(qxn(n)) ) qxn(n) = verylowqx
           end do
 
           call mysolve
@@ -2242,12 +2240,6 @@ module mod_micro_nogtom
         end if
       end do
     end function argsort
-
-    pure logical function locisnan(x)
-      implicit none
-      real(rkx) , intent(in) :: x
-      locisnan = ( (x /= x) .or. ((x > 0.0_rkx) .eqv. (x <= 0.0_rkx)) )
-    end function locisnan
 
   end subroutine nogtom
 
