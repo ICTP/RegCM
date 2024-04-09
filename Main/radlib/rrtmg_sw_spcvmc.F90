@@ -466,7 +466,8 @@
                   endif
 
                   zdbtc_nodel(jk) = zdbtmc
-                  ztdbtc_nodel(jk+1) = zdbtc_nodel(jk) * ztdbtc_nodel(jk)
+                  ztdbtc_nodel(jk+1) = max(zdbtc_nodel(jk) * &
+                                ztdbtc_nodel(jk),1.0e-20_rb)
 
 ! Clear + Cloud
                   tauorig = ztauc(jk) + ptaormc(ikl,iw)
@@ -483,7 +484,8 @@
                   endif
 
                   zdbt_nodel(jk) = zclear*zdbtmc + zcloud*zdbtmo
-                  ztdbt_nodel(jk+1) = zdbt_nodel(jk) * ztdbt_nodel(jk)
+                  ztdbt_nodel(jk+1) = max(zdbt_nodel(jk) * &
+                         ztdbt_nodel(jk),1.0e-20_rb)
 
                endif
 !   /\/\/\ Above code only needed for unscaled direct beam calculation
@@ -566,11 +568,7 @@
                endif
 
                zdbtc(jk) = zdbtmc
-               if ( all([zdbtc(jk),ztdbtc(jk)] <= 1.0e-20_rb) ) then
-                  ztdbtc(jk+1) = 1.0e-40_rb
-               else
-                  ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
-               end if
+               ztdbtc(jk+1) = max(zdbtc(jk)*ztdbtc(jk),1.e-20_rb)
 
 ! Clear + Cloud
 !                zdbtmo = exp(-ztauo(jk) / prmu0)
@@ -587,11 +585,7 @@
                endif
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               if ( all([zdbt(jk),ztdbt(jk)] <= 1.0e-20_rb) ) then
-                  ztdbt(jk+1) = 1.0e-40_rb
-               else
-                  ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
-               end if
+               ztdbt(jk+1) = max(zdbt(jk)*ztdbt(jk),1.e-20_rb)
 
             enddo
 
