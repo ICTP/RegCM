@@ -253,6 +253,9 @@ def icbcrun(c,n,d1,d2,io,jid):
                 account = account, ntasks_per_node = ntasks_per_node,
                 time = time, mail_type = mail_type, mail_user = mail_user,
                 output = output, error = error, nodes = nodes)
+    if "Extra" in c["SLURM"]:
+        for item in c["SLURM"]["Extra"].split(','):
+            slurm.add_cmd("#SBATCH "+item)
     slurm.add_cmd("module purge")
     slurm.add_cmd("source " + c["RegCM_Env"])
     slurm.add_cmd("export OMP_NUM_THREADS=" + str(c["SLURM"]["ICBCOMP"]))
