@@ -120,7 +120,7 @@ def runner(args):
     period = timedelta(days = (date2-date1).days).total_seconds( )
     if period < oneday:
         print("Final date is less than one day after initial date")
-        usage(myname)
+        sys.exit(-1)
     date2 = date1 + timedelta(days = period//oneday)
 
     try:
@@ -338,6 +338,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     import string
     import glob
     from simple_slurm import Slurm
+    from dateutil.rrule import rrule, MONTHLY, DAILY
     global extension, only_preproc, only_model
     if only_preproc or only_model:
         print("No postprocessing requested. Assuming products ready.")
@@ -401,46 +402,50 @@ def postrun(c,n,d1,d2,io,mjid,jid):
            " -p " + repr(ntasks_per_node) +
            " -r " + repr(c["CORDEX"]["regcm_release"]) +
            " --regcm-version-id " + repr(c["CORDEX"]["regcm_version_id"]))
-    atmfiles = sorted(glob.glob(os.path.join(opath,"*ATM*")))
+    fbase = os.path.join(opath,n["terrainparam"]["domname"])
     dd1 = datetime.strptime(d1,"%Y%m%d%H")
     dd2 = datetime.strptime(d2,"%Y%m%d%H")
-    dates = (datetime.strptime(
-        os.path.basename(x).split('.')[1],"%Y%m%d%H") for x in atmfiles)
-    pdates = list(datetime.strftime(x,"%Y%m%d%H") for x in dates
-            if (x >= dd1 and x < dd2))
-    fbase = os.path.join(opath,n["terrainparam"]["domname"])
-    atmfiles = (sorted(glob.glob(fbase+"_ATM."+x+'*')) for x in pdates)
-    radfiles = (sorted(glob.glob(fbase+"_RAD."+x+'*')) for x in pdates)
-    srffiles = (sorted(glob.glob(fbase+"_SRF."+x+'*')) for x in pdates)
-    stsfiles = (sorted(glob.glob(fbase+"_STS."+x+'*')) for x in pdates)
+    if "outnwf" in n["outparam"]:
+        dayfrq = int(n["outparam"]["outnwf"])
+        if dayfrq > 0:
+            dates = [dt for dt in rrule(DAILY, dtstart=dd1, until=dd2)]
+            if dayfrq > 1:
+                dates = dates[::dayfrq]
+        else:
+            dates = [dt for dt in rrule(MONTHLY, dtstart=dd1, until=dd2)]
+    else:
+        dates = [dt for dt in rrule(MONTHLY, dtstart=dd1, until=dd2)]
+    dd1 = list(x.strftime("%Y%m%d%H") for x in dates[:-1])
+    atmfiles = list(fbase+"_ATM."+x+'.nc' for x in dd1)
+    radfiles = list(fbase+"_RAD."+x+'.nc' for x in dd1)
+    srffiles = list(fbase+"_SRF."+x+'.nc' for x in dd1)
+    stsfiles = list(fbase+"_STS."+x+'.nc' for x in dd1)
+    slurm.add_cmd("set -e")
+    slurm.add_cmd("{")
     # Produce cordex variables
-    for srf in srffiles:
-        ff = srf[0]
+    for ff in srffiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["core_srfvars"])
-    for sts in stsfiles:
-        ff = sts[0]
+    for ff in stsfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["core_stsvars"])
-    for srf in srffiles:
-        ff = srf[0]
+    for ff in srffiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier1_srfvars"])
-    for rad in radfiles:
-        ff = rad[0]
+    for ff in radfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier1_radvars"])
-    for sts in stsfiles:
-        ff = sts[0]
+    for ff in stsfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier1_stsvars"])
-    for atm in atmfiles:
-        ff = atm[0]
+    for ff in atmfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier1_atmvars"])
-    for srf in srffiles:
-        ff = srf[0]
+    for ff in srffiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier2_srfvars"])
-    for rad in radfiles:
-        ff = rad[0]
+    for ff in radfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier2_radvars"])
-    for sts in stsfiles:
-        ff = sts[0]
+    for ff in stsfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier2_stsvars"])
+    slurm.add_cmd("}")
+    slurm.add_cmd("rm "+(" ".join(str(x) for x in srffiles)))
+    slurm.add_cmd("rm "+(" ".join(str(x) for x in atmfiles)))
+    slurm.add_cmd("rm "+(" ".join(str(x) for x in radfiles)))
+    slurm.add_cmd("rm "+(" ".join(str(x) for x in stsfiles)))
     job_id = slurm.sbatch("echo Done.", verbose = True, shell = "/bin/bash")
     with open(os.path.join(io,"jobs","POST." + str(job_id) + ".job"),"w") as f:
         f.write(str(slurm))
