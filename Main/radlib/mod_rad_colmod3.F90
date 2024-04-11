@@ -213,22 +213,11 @@ module mod_rad_colmod3
     logical , intent(in) :: lout , labsem
 
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
-    real(rkx) :: pnrml , weight , nc , aerc , lwc , kparam
+    real(rkx) :: nc , aerc , lwc , kparam
     real(rkx) :: kabs , kabsi , kabsl , cldemis , arg
     real(rkx) :: iwc , tempc , tcels , fsr , aiwc , biwc , desr
     !real(rkx) :: tpara
-    ! reimax - maximum ice effective radius
-    real(rkx) , parameter :: reimax = 60.0_rkx
-    ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rkx) , parameter :: rirnge = 50.0_rkx
-    ! pirnge - nrmlzd pres range for ice particle changes
-    real(rkx) , parameter :: pirnge = 0.4_rkx
-    ! picemn - normalized pressure below which rei=reimax
-    real(rkx) , parameter :: picemn = 0.4_rkx
-    ! Temperatures in K (263.16 , 243.16)
-    real(rkx) , parameter :: minus10 = 263.15_rkx
     real(rkx) , parameter :: minus20 = 253.15_rkx
-    real(rkx) , parameter :: minus30 = 243.15_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0

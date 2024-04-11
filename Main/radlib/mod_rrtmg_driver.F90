@@ -158,7 +158,7 @@ module mod_rrtmg_driver
 
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       call getmem2d(pint,1,npr,1,kzp1,'rrtmg:pint')
-      call getmem2d(rh,1,npr,1,kzp1,'rrtmg:rh')
+      call getmem2d(rh,1,npr,1,kz,'rrtmg:rh')
     end if
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
@@ -293,7 +293,7 @@ module mod_rrtmg_driver
     ! hanlde aerosol direct effect in function of ichem or iclimaaer
     !
     ldirect = 0
-    if ( ichem == 1 .and. iaerosol ==1 ) then
+    if ( ichem == 1 .and. iaerosol == 1 ) then
       ldirect = idirect
     else if ( iclimaaer > 0 ) then
       ldirect = 2
@@ -308,25 +308,26 @@ module mod_rrtmg_driver
                      dlat,juldat,cldf,alpha)
     end if
 
-    if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          n = (j-jci1+1)+(i-ici1)*npj
-          asdir(n) = m2r%aldirs(j,i)
-          asdif(n) = m2r%aldifs(j,i)
-          aldir(n) = m2r%aldirl(j,i)
-          aldif(n) = m2r%aldifl(j,i)
-          czen(n)  = m2r%coszrs(j,i)
-          if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
-        end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        n = (j-jci1+1)+(i-ici1)*npj
+        asdir(n) = m2r%aldirs(j,i)
+        asdif(n) = m2r%aldifs(j,i)
+        aldir(n) = m2r%aldirl(j,i)
+        aldif(n) = m2r%aldifl(j,i)
+        czen(n)  = m2r%coszrs(j,i)
+        if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
       end do
+    end do
+
+    if ( any(m2r%coszrs > 1.0e-3_rkx) ) then
       if ( imcica == 1 ) then
         permuteseed = permuteseed + ngptlw*ngptsw*kz*nicross*njcross
         do while ( permuteseed < 0 )
           permuteseed = 2147483641+permuteseed
         end do
         ! generates cloud properties:
-        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play, &
+        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,    &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc, &
                              fsfc,alpha,cldfmcl,ciwpmcl,clwpmcl,    &
                              reicmcl,relqmcl,taucmcl,ssacmcl,       &
@@ -894,8 +895,8 @@ module mod_rrtmg_driver
         end do
       end do
       do i = 1 , nbndlw
-        do k = 1 , kz
-          kj = kzp1 - k
+        do k = 1 , kth
+          kj = kth + 1 - k
           do n = 1 , npr
             tauaer_lw(n,k,i) = tauxar3d_lw(n,kj,i)
           end do
@@ -1081,8 +1082,8 @@ module mod_rrtmg_driver
             end if
           end do
         end do
-     end if
-   end if  ! inflagsw
+      end if
+    end if  ! inflagsw
   end subroutine prep_dat_rrtm
   !
   ! For now we use for RRTM the same param as in standard rad

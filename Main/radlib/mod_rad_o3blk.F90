@@ -254,8 +254,8 @@ module mod_rad_o3blk
     deallocate(o3wrk,ppwrk)
 #endif
     if ( myid == italk ) then
-      ozprnt = o3prof(3,3,:)
-      call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
+      ozprnt = o3prof(jci1,ici1,:)
+      call vprntv(ozprnt,kzp1,'Ozone profile')
     end if
   end subroutine o3data
 
@@ -365,8 +365,8 @@ module mod_rad_o3blk
     xfac2 = d_one-xfac1
     o3prof = (sgoz1*xfac2+sgoz2*xfac1)*mulfac
     if ( myid == italk .and. dointerp ) then
-      ozprnt = o3prof(3,3,:)
-      call vprntv(ozprnt,kzp1,'Updated ozone profile at (3,3)')
+      ozprnt = o3prof(jci1,ici1,:)
+      call vprntv(ozprnt,kzp1,'Updated ozone profile')
     end if
     ifirst = .false.
   end subroutine read_o3data

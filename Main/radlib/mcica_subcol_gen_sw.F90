@@ -143,7 +143,8 @@
 #ifdef RCEMIP
                decorr_lat = am1 + am2 * exp(-(am3**2)/am4**2)
 #else
-               decorr_lat = am1 + am2 * exp( -(lat(i) - am3)**2 / am4**2)
+               am3 = max(min((lat(i) - am3)**2 / am4**2,25.0_rb),0.0_rb)
+               decorr_lat = am1 + am2 * exp(-am3)
 #endif
                decorr_len(i) = decorr_lat * 1.e3_rb
             enddo

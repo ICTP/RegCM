@@ -151,9 +151,9 @@
       do jk = 2,klev
          ikp = jk+1
          zreflect = 1._rb / (1._rb - prefd(jk) * prdnd(jk))
-         ztdn(ikp) = (ptdbt(jk) * ptra(jk) + &
-                      ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
-                      ptdbt(jk) * pref(jk) * prdnd(jk)) * zreflect)
+         ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
+                    (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
+                     ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
          prdnd(ikp) = prefd(jk) + ptrad(jk) * ptrad(jk) * &
                       prdnd(jk) * zreflect
       enddo

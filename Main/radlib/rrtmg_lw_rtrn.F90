@@ -174,7 +174,7 @@
       integer(kind=im) :: igc                          ! g-point interval counter
       integer(kind=im) :: iclddn                       ! flag for cloud in down path
       integer(kind=im) :: ittot, itgas, itr            ! lookup table indices
-
+      integer(kind=im) :: ipat(16,0:2)
 
 ! ------- Definitions -------
 ! input
@@ -243,15 +243,6 @@
 !    dtotuclfl_dt                 ! change in clear sky upward longwave flux (w/m2/k)
 !                                 ! with respect to surface temperature
 
-! These arrays indicate the spectral 'region' (used in the
-! calculation of ice cloud optical depths) corresponding
-! to each spectral band.  See cldprop.f for more details.
-      integer(kind=im), parameter, dimension(16,0:2) :: ipat = &
-         reshape([ &
-          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , &
-          1, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5 , &
-          1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16 ], [16,3])
-
 ! This secant and weight corresponds to the standard diffusivity
 ! angle.  This initial value is redefined below for some bands.
       real(kind=rb) , parameter :: wtdiff = 0.5_rb
@@ -277,6 +268,13 @@
            -0.720_rb,  -0.243_rb,   0.190_rb,  -0.062_rb, &
             0.414_rb,   0.000_rb,   0.000_rb,   0.000_rb, &
             0.000_rb,   0.000_rb,   0.000_rb,   0.000_rb ]
+
+! These arrays indicate the spectral 'region' (used in the
+! calculation of ice cloud optical depths) corresponding
+! to each spectral band.  See cldprop.f for more details.
+     data ipat /1,1,1,1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1, &
+                 1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5, &
+                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16/
 
       hvrrtr = '$Revision$'
 

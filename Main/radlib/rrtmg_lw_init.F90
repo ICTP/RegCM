@@ -125,24 +125,23 @@
       tau_tbl(0) = 0.0_rb
       tau_tbl(ntbl) = 1.e10_rb
       exp_tbl(0) = 1.0_rb
-      exp_tbl(ntbl) = expeps
+      exp_tbl(:) = expeps
       tfn_tbl(0) = 0.0_rb
       tfn_tbl(ntbl) = 1.0_rb
       bpade = 1.0_rb / pade
       do itr = 1, ntbl-1
          tfn = real(itr) / real(ntbl)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl(itr) > 30.0_rb ) then
-           exp_tbl(itr) = 0.0_rb
-         else
+         if ( tau_tbl(itr) < 42.0_rb ) then
            exp_tbl(itr) = exp(-tau_tbl(itr))
+         else
+           tau_tbl(itr) = 42.0_rb
          end if
-
-         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
          if (tau_tbl(itr) .lt. 0.06_rb) then
             tfn_tbl(itr) = tau_tbl(itr)/6._rb
          else
-            tfn_tbl(itr) = 1._rb-2._rb*((1._rb/tau_tbl(itr))-(exp_tbl(itr)/(1.-exp_tbl(itr))))
+            tfn_tbl(itr) = 1._rb-2._rb*((1._rb/tau_tbl(itr))- &
+                            (exp_tbl(itr)/(1.-exp_tbl(itr))))
          endif
       enddo
 

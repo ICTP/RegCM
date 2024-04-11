@@ -122,7 +122,7 @@
 
 ! ------- Local -------
 
-      integer(kind=im) :: jk, kmodts
+      integer(kind=im) :: jk
       integer(kind=im) :: itind
 
       real(kind=rb) :: tblind
@@ -132,21 +132,21 @@
       real(kind=rb) :: zg, zg3, zgamma1, zgamma2, zgamma3, zgamma4, zgt
       real(kind=rb) :: zr1, zr2, zr3, zr4, zr5
       real(kind=rb) :: zrk, zrk2, zrkg, zrm1, zrp, zrp1, zrpp
-      real(kind=rb) :: zsr3, zt1, zt2, zt3, zt4, zt5, zto1
-      real(kind=rb) :: zw, zwcrit, zwo
+      real(kind=rb) :: zt1, zt2, zt3, zt4, zt5, zto1
+      real(kind=rb) :: zw, zwo
       real(kind=rb) :: denom
 
       real(kind=rb), parameter :: eps = 1.e-08_rb
+      real(kind=rb), parameter :: zsr3 = sqrt(3._rb)
+      real(kind=rb), parameter :: zwcrit = 0.9999995_rb
+
+      integer , parameter :: kmodts = 2
 
 !     ------------------------------------------------------------------
 
 ! Initialize
 
       hvrrft = '$Revision$'
-
-      zsr3=sqrt(3._rb)
-      zwcrit=0.9999995_rb
-      kmodts=2
 
       do jk=1, nlayers
          if (.not.lrtchk(jk)) then
@@ -233,14 +233,9 @@
 
             else
 ! Non-conservative scattering
-               if ( zgamma1**2 - zgamma2**2 > 0.0_rb ) then
-                  zrk = sqrt ( zgamma1**2 - zgamma2**2 )
-               else
-                  zrk = 0.0_rb
-                  zgamma2 = zgamma1
-               end if
                za1 = zgamma1 * zgamma4 + zgamma2 * zgamma3
                za2 = zgamma1 * zgamma3 + zgamma2 * zgamma4
+               zrk = sqrt ( zgamma1**2 - zgamma2**2 )
                zrp = zrk * prmuz
                zrp1 = 1._rb + zrp
                zrm1 = 1._rb - zrp
@@ -326,15 +321,10 @@
 ! diffuse beam
 
                zemm = zem1*zem1
-               zdenr = (1._rb - zbeta*zemm ) * zrkg
-               if (zdenr .ge. -eps .and. zdenr .le. eps) then
-                  prefd(jk) = eps
-                  ptrad(jk) = zem1
-               else
-                  zdend = 1._rb / zdenr
-                  prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
-                  ptrad(jk) =  zrk2*zem1*zdend
-               endif
+               zdend = 1._rb / ( (1._rb - zbeta*zemm ) * zrkg)
+               prefd(jk) =  zgamma2 * (1._rb - zemm) * zdend
+               ptrad(jk) =  zrk2*zem1*zdend
+
             endif
 
          endif
