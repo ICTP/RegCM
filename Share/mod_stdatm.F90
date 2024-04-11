@@ -49,11 +49,34 @@ module mod_stdatm
   integer(ik4) , public , parameter :: n_hreflev  = 31
   integer(ik4) , public , parameter :: n_hrehlev  = 30
   integer(ik4) :: ip , il , iz
+  real(rkx) , dimension(n_hrehlev) , parameter :: stdhlevh = &
+  [    0.5_rkx ,  1.5_rkx ,  2.5_rkx ,  3.5_rkx ,  4.5_rkx ,  5.5_rkx , &
+       6.5_rkx ,  7.5_rkx ,  8.5_rkx ,  9.5_rkx , 10.5_rkx , 11.5_rkx , &
+      12.5_rkx , 13.5_rkx , 14.5_rkx , 15.5_rkx , 16.5_rkx , 17.5_rkx , &
+      18.5_rkx , 19.5_rkx , 20.5_rkx , 21.5_rkx , 22.5_rkx , 23.5_rkx , &
+      24.5_rkx , 27.5_rkx , 32.5_rkx , 37.5_rkx , 42.5_rkx , 47.5_rkx ]
+  real(rkx) , dimension(n_hreflev) , parameter :: stdhlevf = &
+  [    0.0_rkx ,  1.0_rkx ,  2.0_rkx ,  3.0_rkx ,  4.0_rkx ,  5.0_rkx , &
+       6.0_rkx ,  7.0_rkx ,  8.0_rkx ,  9.0_rkx , 10.0_rkx , 11.0_rkx , &
+      12.0_rkx , 13.0_rkx , 14.0_rkx , 15.0_rkx , 16.0_rkx , 17.0_rkx , &
+      18.0_rkx , 19.0_rkx , 20.0_rkx , 21.0_rkx , 22.0_rkx , 23.0_rkx , &
+      24.0_rkx , 25.0_rkx , 30.0_rkx , 35.0_rkx , 40.0_rkx , 45.0_rkx , &
+      50.0_rkx ]
+  real(rkx) , dimension(n_prehlev) , parameter :: stdplevh = &
+  [  950.0_rkx , 850.0_rkx , 750.0_rkx , 675.0_rkx , 600.0_rkx , 525.0_rkx , &
+     475.0_rkx , 415.0_rkx , 350.0_rkx , 300.0_rkx , 265.0_rkx , 215.0_rkx , &
+     200.0_rkx , 165.0_rkx , 135.0_rkx , 115.0_rkx ,  95.0_rkx ,  85.0_rkx , &
+      70.0_rkx ,  60.0_rkx ,  50.0_rkx ,  42.5_rkx ,  37.5_rkx ,  32.5_rkx , &
+      27.5_rkx ,  17.5_rkx ,  10.0_rkx ,   5.0_rkx ,   2.0_rkx ,   1.0_rkx ]
+  real(rkx) , dimension(n_preflev) , parameter :: stdplevf = &
+  [ 1013.0_rkx , 900.0_rkx , 800.0_rkx , 700.0_rkx , 650.0_rkx , 550.0_rkx , &
+     500.0_rkx , 450.0_rkx , 375.0_rkx , 325.0_rkx , 275.0_rkx , 250.0_rkx , &
+     225.0_rkx , 175.0_rkx , 150.0_rkx , 125.0_rkx , 100.0_rkx ,  90.0_rkx , &
+      75.0_rkx ,  65.0_rkx ,  55.0_rkx ,  45.0_rkx ,  40.0_rkx ,  35.0_rkx , &
+      30.0_rkx ,  25.0_rkx ,  12.5_rkx ,   7.5_rkx ,   2.5_rkx ,   1.5_rkx , &
+       0.5_rkx ]
+
   real(rkx) , dimension(n_atmparms,n_atmlevls,n_atmzones) :: stdatm
-  real(rkx) , dimension(n_hrehlev) :: stdhlevh
-  real(rkx) , dimension(n_hreflev) :: stdhlevf
-  real(rkx) , dimension(n_prehlev) :: stdplevh
-  real(rkx) , dimension(n_preflev) :: stdplevf
 
   interface stdatm_val
     module procedure stdatm_val_seasonal
@@ -63,35 +86,6 @@ module mod_stdatm
   public :: stdplevf , stdplevh , stdhlevh , stdhlevf , stdatm_val , stdlrate
 
 !-------------------------------------------------------------------------------
-!
-!  Standard reference pressure levels
-!
-  data stdplevf / &
-    1013.0_rkx , 900.0_rkx , 800.0_rkx , 700.0_rkx , 650.0_rkx , 550.0_rkx , &
-     500.0_rkx , 450.0_rkx , 375.0_rkx , 325.0_rkx , 275.0_rkx , 250.0_rkx , &
-     225.0_rkx , 175.0_rkx , 150.0_rkx , 125.0_rkx , 100.0_rkx ,  90.0_rkx , &
-      75.0_rkx ,  65.0_rkx ,  55.0_rkx ,  45.0_rkx ,  40.0_rkx ,  35.0_rkx , &
-      30.0_rkx ,  25.0_rkx ,  12.5_rkx ,   7.5_rkx ,   2.5_rkx ,   1.5_rkx , &
-       0.5_rkx /
-  data stdplevh / &
-     950.0_rkx , 850.0_rkx , 750.0_rkx , 675.0_rkx , 600.0_rkx , 525.0_rkx , &
-     475.0_rkx , 415.0_rkx , 350.0_rkx , 300.0_rkx , 265.0_rkx , 215.0_rkx , &
-     200.0_rkx , 165.0_rkx , 135.0_rkx , 115.0_rkx ,  95.0_rkx ,  85.0_rkx , &
-      70.0_rkx ,  60.0_rkx ,  50.0_rkx ,  42.5_rkx ,  37.5_rkx ,  32.5_rkx , &
-      27.5_rkx ,  17.5_rkx ,  10.0_rkx ,   5.0_rkx ,   2.0_rkx ,   1.0_rkx /
-  data stdhlevf / &
-       0.0_rkx ,  1.0_rkx ,  2.0_rkx ,  3.0_rkx ,  4.0_rkx ,  5.0_rkx , &
-       6.0_rkx ,  7.0_rkx ,  8.0_rkx ,  9.0_rkx , 10.0_rkx , 11.0_rkx , &
-      12.0_rkx , 13.0_rkx , 14.0_rkx , 15.0_rkx , 16.0_rkx , 17.0_rkx , &
-      18.0_rkx , 19.0_rkx , 20.0_rkx , 21.0_rkx , 22.0_rkx , 23.0_rkx , &
-      24.0_rkx , 25.0_rkx , 30.0_rkx , 35.0_rkx , 40.0_rkx , 45.0_rkx , &
-      50.0_rkx /
-  data stdhlevh / &
-       0.5_rkx ,  1.5_rkx ,  2.5_rkx ,  3.5_rkx ,  4.5_rkx ,  5.5_rkx , &
-       6.5_rkx ,  7.5_rkx ,  8.5_rkx ,  9.5_rkx , 10.5_rkx , 11.5_rkx , &
-      12.5_rkx , 13.5_rkx , 14.5_rkx , 15.5_rkx , 16.5_rkx , 17.5_rkx , &
-      18.5_rkx , 19.5_rkx , 20.5_rkx , 21.5_rkx , 22.5_rkx , 23.5_rkx , &
-      24.5_rkx , 27.5_rkx , 32.5_rkx , 37.5_rkx , 42.5_rkx , 47.5_rkx /
 !
 !  Standard TROpical ATMosphere
 !

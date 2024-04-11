@@ -1337,6 +1337,7 @@ module rrtmg_sw_rad
       svar_f_bnd(:) = 1.0_rb
       svar_s_bnd(:) = 1.0_rb
       svar_i_bnd(:) = 1.0_rb
+      solcycfr = 0.0_rb
 
 ! Adjust amplitude scaling of mean solar cycle to be 1.0 at solar minimum (solcycfrac_min=0.0189),
 ! to be the requested indsolvar at solar maximum (solcycfrac_max=0.3750), and to vary between
@@ -1344,7 +1345,6 @@ module rrtmg_sw_rad
       if (isolvar .eq. 1) then
 ! Check for presence of indsolvar and solcycfrac when isolvar = 1.
 ! Use a solar cycle fraction of 0.0 and no scaling by default unless both indsolvar and solcycfrac are present.
-         solcycfr = 0.0_rb
          indsolvar_scl(1:2) = 1.0_rb
          if (present(indsolvar) .and. present(solcycfrac)) then
             solcycfr = solcycfrac

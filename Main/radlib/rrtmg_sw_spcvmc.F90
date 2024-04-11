@@ -440,9 +440,12 @@
 !               zomco(jk) = zomco(jk) / ztauo(jk)
 
 ! Clear-sky optical parameters including aerosols
-               ztauc(jk) = ztaur(ikl,iw) + ztaug(ikl,iw) + ptaua(ikl,ibm)
-               zomcc(jk) = ztaur(ikl,iw) * 1.0_rb + ptaua(ikl,ibm) * pomga(ikl,ibm)
-               zgcc(jk) = pasya(ikl,ibm) * pomga(ikl,ibm) * ptaua(ikl,ibm) / zomcc(jk)
+               ztauc(jk) = ztaur(ikl,iw) + &
+                       ztaug(ikl,iw) + ptaua(ikl,ibm)
+               zomcc(jk) = ztaur(ikl,iw) * &
+                       1.0_rb + (ptaua(ikl,ibm)*pomga(ikl,ibm))
+               zgcc(jk) = pasya(ikl,ibm) * pomga(ikl,ibm) * &
+                       ptaua(ikl,ibm) / zomcc(jk)
                zomcc(jk) = zomcc(jk) / ztauc(jk)
 
 ! Pre-delta-scaling clear and cloudy direct beam transmittance (must use 'orig', unscaled cloud OD)
@@ -465,7 +468,7 @@
                      zdbtmc = exp_tbl(itind)
                   endif
 
-                  zdbtc_nodel(jk) = zdbtmc
+                  zdbtc_nodel(jk) = max(zdbtmc,1.0e-20_rb)
                   ztdbtc_nodel(jk+1) = max(zdbtc_nodel(jk) * &
                                 ztdbtc_nodel(jk),1.0e-20_rb)
 
@@ -483,7 +486,8 @@
                      zdbtmo = exp_tbl(itind)
                   endif
 
-                  zdbt_nodel(jk) = zclear*zdbtmc + zcloud*zdbtmo
+                  zdbt_nodel(jk) = max(zclear*zdbtmc + &
+                                   zcloud*zdbtmo,1.e-20_rb)
                   ztdbt_nodel(jk+1) = max(zdbt_nodel(jk) * &
                          ztdbt_nodel(jk),1.0e-20_rb)
 
@@ -567,7 +571,7 @@
                   zdbtmc = exp_tbl(itind)
                endif
 
-               zdbtc(jk) = zdbtmc
+               zdbtc(jk) = max(zdbtmc,1.e-20_rb)
                ztdbtc(jk+1) = max(zdbtc(jk)*ztdbtc(jk),1.e-20_rb)
 
 ! Clear + Cloud
@@ -584,7 +588,8 @@
                   zdbtmo = exp_tbl(itind)
                endif
 
-               zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
+               zdbt(jk) = max(zclear*zdbtmc + &
+                              zcloud*zdbtmo,1.e-20_rb)
                ztdbt(jk+1) = max(zdbt(jk)*ztdbt(jk),1.e-20_rb)
 
             enddo

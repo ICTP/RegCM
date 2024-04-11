@@ -113,17 +113,14 @@
 ! the tau transition function is set to bpade.
 
       exp_tbl(0) = 1.0_rb
-      exp_tbl(ntbl) = expeps
+      exp_tbl(:) = expeps
       bpade = 1.0_rb / pade
       do itr = 1, ntbl-1
          tfn = real(itr,kind=rb) / real(ntbl,kind=rb)
          tau_tbl = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl > 30.0_rb ) then
-           exp_tbl(itr) = 0.0_rb
-         else
+         if ( tau_tbl < 42.0_rb ) then
            exp_tbl(itr) = exp(-tau_tbl)
          end if
-         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
       enddo
 
 ! Perform g-point reduction from 16 per band (224 total points) to
