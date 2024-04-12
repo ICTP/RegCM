@@ -533,8 +533,10 @@ end subroutine init_atm2lnd_type
                cptr%cwf%qflx_qrgwl,clm_l2a%qflx_qrgwl, &
                c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
-      clm_l2a%qflx_tot = clm_l2a%qflx_surf + clm_l2a%qflx_drain + &
-               clm_l2a%qflx_qrgwl
+      call c2g(begc,endc,begl,endl,begg,endg,         &
+               cptr%cwf%qflx_runoff,clm_l2a%qflx_tot, &
+               c2l_scale_type='unity',                &
+               l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg,                  &
                cptr%cwf%qflx_snow_melt,clm_l2a%qflx_snow_melt, &
                c2l_scale_type='unity',                         &
