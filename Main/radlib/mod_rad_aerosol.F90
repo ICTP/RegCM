@@ -1179,13 +1179,6 @@ module mod_rad_aerosol
         end if
       end if
 
-      if ( iclimaaer == 2 ) then
-        if ( myid == iocpu ) then
-          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
-          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
-        end if
-      end if
-
       call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
       call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
       call getmem1d(gsoc_hb,1,nband,'aerosol:gsoc_hb')
@@ -1251,6 +1244,10 @@ module mod_rad_aerosol
       end if
 
       if ( iclimaaer == 2 ) then
+        if ( myid == iocpu ) then
+          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
+          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
+        end if
         ! FAB note that prof are always determined on kth level,
         ! even with standard scheme
         call getmem4d(extprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:extprof')
@@ -2145,7 +2142,6 @@ module mod_rad_aerosol
 
       if ( iclimaaer == 2 ) then
         aertrlw(:,:,:) = d_one
-        tauasc3d(:,:,:) = d_one
         if ( irrtm == 1 ) then
           do ns = 1 , 13
             wavn(ns) = 0.5_rkx*(wavnm2(ns) + wavnm1(ns))
