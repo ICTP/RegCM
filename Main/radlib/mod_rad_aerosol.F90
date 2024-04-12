@@ -1179,13 +1179,6 @@ module mod_rad_aerosol
         end if
       end if
 
-      if ( iclimaaer == 2 ) then
-        if ( myid == iocpu ) then
-          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
-          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
-        end if
-      end if
-
       call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
       call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
       call getmem1d(gsoc_hb,1,nband,'aerosol:gsoc_hb')
@@ -1251,6 +1244,10 @@ module mod_rad_aerosol
       end if
 
       if ( iclimaaer == 2 ) then
+        if ( myid == iocpu ) then
+          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
+          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
+        end if
         ! FAB note that prof are always determined on kth level,
         ! even with standard scheme
         call getmem4d(extprof,jci1,jci2,ici1,ici2,1,kth,1,nacwb,'rad:extprof')
@@ -1940,13 +1937,13 @@ module mod_rad_aerosol
       ! from extinction
       !
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kth , wn = 1:nacwb )
-        extprof(j,i,k,wn) = max((sgext1(j,i,k,wn)*xfac2 + &
-                                 sgext2(j,i,k,wn)*xfac1) * &
-                                 zdzr3d(j,i,k),0.0_rkx)
-        ssaprof(j,i,k,wn) = max((sgssa1(j,i,k,wn)*xfac2 + &
-                                 sgssa2(j,i,k,wn)*xfac1),0.0_rkx)
-        asyprof(j,i,k,wn) = max((sgasy1(j,i,k,wn)*xfac2 + &
-                                 sgasy2(j,i,k,wn)*xfac1),0.0_rkx)
+        extprof(j,i,k,wn) = (sgext1(j,i,k,wn)*xfac2 + &
+                             sgext2(j,i,k,wn)*xfac1) * &
+                             zdzr3d(j,i,k)
+        ssaprof(j,i,k,wn) = (sgssa1(j,i,k,wn)*xfac2 + &
+                             sgssa2(j,i,k,wn)*xfac1)
+        asyprof(j,i,k,wn) = (sgasy1(j,i,k,wn)*xfac2 + &
+                             sgasy2(j,i,k,wn)*xfac1)
       end do
       if ( myid == italk .and. dointerp ) then
         do k = 1 , kth
@@ -2145,7 +2142,6 @@ module mod_rad_aerosol
 
       if ( iclimaaer == 2 ) then
         aertrlw(:,:,:) = d_one
-        tauasc3d(:,:,:) = d_one
         if ( irrtm == 1 ) then
           do ns = 1 , 13
             wavn(ns) = 0.5_rkx*(wavnm2(ns) + wavnm1(ns))
@@ -2178,7 +2174,7 @@ module mod_rad_aerosol
                 end do
                 call interp1d(wavncl,src,wavn,dest,1._rkx,1._rkx,0._rkx)
                 do ns = 1 , 13
-                  tauasc3d(n,k,ns) = min(max(dest(ns),0._rkx),1.0_rkx)
+                  tauasc3d(n,k,ns) = min(max(dest(ns),0._rkx),0.999_rkx)
                 end do
                 do ns = 1 , 4
                   src(ns) = asyprof(j,i,k,ns)
@@ -2214,13 +2210,13 @@ module mod_rad_aerosol
                 ! index 3 correponds to clim vis band
                 ! MIGHT CHANGE IN FUTURE
                 !
-                tauxar3d(n,0,ns) = sum(extprof(j,i,1:kth-kz,3) )
-                tauasc3d(n,0,ns) = sum(ssaprof(j,i,1:kth-kz,3)) / &
-                                  real(kth-kz,rkx) * tauxar3d(n,0,ns)
-                gtota3d(n,0,ns) = sum(asyprof(j,i,1:kth-kz,3)) / &
-                                  real(kth-kz,rkx) * tauasc3d(n,0,ns)
-                ftota3d(n,0,ns) = (sum(asyprof(j,i,1:kth-kz,3)) / &
-                                  real(kth-kz,rkx))**2 * tauasc3d(n,0,ns)
+                tauxar3d(n,0,ns) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
+                tauasc3d(n,0,ns) = tauxar3d(n,0,ns) * &
+                  max(sum(ssaprof(j,i,1:kth-kz,3))/real(kth-kz,rkx),0.0_rkx)
+                gtota3d(n,0,ns) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
+                         real(kth-kz,rkx),0.0_rkx)
+                ftota3d(n,0,ns) = tauasc3d(n,0,ns) * gtota3d(n,0,ns)**2
+                gtota3d(n,0,ns) = tauasc3d(n,0,ns) * gtota3d(n,0,ns)
                 n = n +1
               end do
             end do
@@ -2233,11 +2229,13 @@ module mod_rad_aerosol
                 ! grid is top down
                 ! FAB : index 2 is the vis band in MERRA aerclim
                 ! MIGHT CHANGE
-                tauxar3d(n,k,ns) = extprof(j,i,kth-kz+k,3)
+                tauxar3d(n,k,ns) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
+                tauasc3d(n,k,ns) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
+                gtota3d(n,k,ns) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(n,k,ns) = ssaprof(j,i,kth-kz+k,3) * tauxar3d(n,k,ns)
-                gtota3d(n,k,ns)  = asyprof(j,i,kth-kz+k,3) * tauasc3d(n,k,ns)
-                ftota3d(n,k,ns)  = asyprof(j,i,kth-kz+k,3)**2 * tauasc3d(n,k,ns)
+                tauasc3d(n,k,ns) = tauasc3d(n,k,ns) * tauxar3d(n,k,ns)
+                ftota3d(n,k,ns) = gtota3d(n,k,ns)**2 * tauasc3d(n,k,ns)
+                gtota3d(n,k,ns) = gtota3d(n,k,ns) * tauasc3d(n,k,ns)
                 tauxar(n,ns) = tauxar(n,ns) + tauxar3d(n,k,ns)
                 tauasc(n,ns) = tauasc(n,ns) + tauasc3d(n,k,ns)
                 gtota(n,ns)  = gtota(n,ns)  + gtota3d(n,k,ns)

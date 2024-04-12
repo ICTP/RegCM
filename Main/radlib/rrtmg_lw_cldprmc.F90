@@ -201,12 +201,16 @@
                   abscoice(ig) = 0.0_rb
 
                elseif (iceflag .eq. 0) then
+#ifdef DEBUG
                   if (radice .lt. 10.0_rb) stop 'ICE RADIUS TOO SMALL'
+#endif
                   abscoice(ig) = absice0(1) + absice0(2)/radice
 
                elseif (iceflag .eq. 1) then
-                  if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) stop &
-                      'ICE RADIUS OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) &
+                      stop 'ICE RADIUS OUT OF BOUNDS'
+#endif
                   ncbands = 5
                   ib = icb(ngb(ig))
                   abscoice(ig) = absice1(1,ib) + absice1(2,ib)/radice
@@ -214,7 +218,10 @@
 ! For iceflag=2 option, ice particle effective radius is limited to 5.0 to 131.0 microns
 
                elseif (iceflag .eq. 2) then
-                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) stop 'ICE RADIUS OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) &
+                    stop 'ICE RADIUS OUT OF BOUNDS'
+#endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      indx = int(factor)
@@ -228,7 +235,10 @@
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
                elseif (iceflag .eq. 3) then
-                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) &
+                    stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
+#endif
                      ncbands = 16
                      factor = (radice - 2._rb)/3._rb
                      indx = int(factor)
@@ -250,8 +260,10 @@
 
                elseif (liqflag .eq. 1) then
                   radliq = relqmc(lay)
-                  if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) stop &
-                       'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) &
+                    stop 'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
+#endif
                   indx = int(radliq - 1.5_rb)
                   if (indx .eq. 0) indx = 1
                   if (indx .eq. 58) indx = 57
