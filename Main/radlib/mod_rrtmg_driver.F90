@@ -335,7 +335,7 @@ module mod_rrtmg_driver
         call rrtmg_sw(npr,kth,icld,iaer,lradfor,ldirect,play,plev,  &
                       tlay,tlev,tsfc,h2ovmr,o3vmr,co2vmrk,ch4vmr,   &
                       n2ovmr,o2vmr,asdir,asdif,aldir,aldif,czen,    &
-                      adjes,juldat,solcon,isolvar,inflgsw,iceflgsw, &
+                      adjes,-1,solcon,isolvar,inflgsw,iceflgsw,     &
                       liqflgsw,cldfmcl,taucmcl,ssacmcl,asmcmcl,     &
                       fsfcmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,      &
                       tauaer,ssaaer,asmaer,ecaer,swuflx,swdflx,     &
@@ -346,7 +346,7 @@ module mod_rrtmg_driver
         call rrtmg_sw_nomcica(npr,kth,icld,iaer,lradfor,ldirect,play,   &
                               plev,tlay,tlev,tsfc,h2ovmr,o3vmr,         &
                               co2vmrk,ch4vmr,n2ovmr,o2vmr,asdir,        &
-                              asdif,aldir,aldif,czen,adjes,juldat,      &
+                              asdif,aldir,aldif,czen,adjes,-1,          &
                               solcon,isolvar,inflgsw,iceflgsw,liqflgsw, &
                               cldf,tauc,ssac,asmc,fsfc,ciwp,clwp,       &
                               rei,rel,tauaer,ssaaer,asmaer,ecaer,       &
