@@ -106,7 +106,12 @@ subroutine sw_kgb16
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 16 variables from file"
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file rrtmg_sw.nc'
+       write(0,*) 'The files rrtmg_sw.nc, rrtmg_lw.nc must be located in:'
+       write(0,*) 'the current model run directory'
+       stop  "Error reading band 16 variables from file rrtmg_sw.nc"
+    end if
 
     rayl = ncrayl(1)
 
@@ -182,7 +187,8 @@ subroutine sw_kgb17
 
     status(22) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 17 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 17 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -254,7 +260,8 @@ subroutine sw_kgb18
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 18 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 18 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -326,7 +333,8 @@ subroutine sw_kgb19
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 19 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 19 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -410,7 +418,8 @@ subroutine sw_kgb20
 
     status(24) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 20 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 20 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -486,7 +495,8 @@ subroutine sw_kgb21
 
     status(22) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 21 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 21 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -558,7 +568,8 @@ subroutine sw_kgb22
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 22 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 22 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -623,7 +634,8 @@ subroutine sw_kgb23
 
     status(18) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 23 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 23 variables from file rrtmg_sw.nc"
 
 end subroutine sw_kgb23
 !*******************************************************************************
@@ -709,7 +721,8 @@ subroutine sw_kgb24
 
     status(26) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 24 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 24 variables from file rrtmg_sw.nc"
 
 end subroutine sw_kgb24
 !*******************************************************************************
@@ -776,7 +789,8 @@ subroutine sw_kgb25
 
     status(18) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 25 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 25 variables from file rrtmg_sw.nc"
 
 end subroutine sw_kgb25
 !*******************************************************************************
@@ -826,7 +840,8 @@ subroutine sw_kgb26
 
     status(12)  = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 26 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 26 variables from file rrtmg_sw.nc"
 
 end subroutine sw_kgb26
 !*******************************************************************************
@@ -886,7 +901,8 @@ subroutine sw_kgb27
 
     status(16) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 27 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 27 variables from file rrtmg_sw.nc"
 
 end subroutine sw_kgb27
 !*******************************************************************************
@@ -948,7 +964,8 @@ subroutine sw_kgb28
 
     status(16) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 28 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 28 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 
@@ -1040,7 +1057,8 @@ subroutine sw_kgb29
 
     status(26) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 29 variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+       stop  "Error reading band 29 variables from file rrtmg_sw.nc"
 
     rayl = ncrayl(1)
 

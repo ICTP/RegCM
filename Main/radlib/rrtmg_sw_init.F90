@@ -180,8 +180,8 @@
 ! --------- Modules ----------
 
       use rrsw_con, only: heatfac, grav, planck, boltz, &
-                          clight, avogad, alosmt, gascon, radcn1, radcn2, &
-                          sbcnst, secdy
+                    clight, avogad, alosmt, gascon, radcn1, radcn2, &
+                    sbcnst, secdy
       use rrsw_vsn
 
       save
@@ -191,12 +191,18 @@
                                               ! (J kg-1 K-1)
 
 ! Shortwave spectral band limits (wavenumbers)
-      wavenum1(:) = (/2600._rb, 3250._rb, 4000._rb, 4650._rb, 5150._rb, 6150._rb, 7700._rb, &
-                      8050._rb,12850._rb,16000._rb,22650._rb,29000._rb,38000._rb,  820._rb/)
-      wavenum2(:) = (/3250._rb, 4000._rb, 4650._rb, 5150._rb, 6150._rb, 7700._rb, 8050._rb, &
-                     12850._rb,16000._rb,22650._rb,29000._rb,38000._rb,50000._rb, 2600._rb/)
-      delwave(:) =  (/ 650._rb,  750._rb,  650._rb,  500._rb, 1000._rb, 1550._rb,  350._rb, &
-                      4800._rb, 3150._rb, 6650._rb, 6350._rb, 9000._rb,12000._rb, 1780._rb/)
+      wavenum1(:) = (/2600._rb, 3250._rb, 4000._rb, 4650._rb, &
+                      5150._rb, 6150._rb, 7700._rb, 8050._rb, &
+                     12850._rb,16000._rb,22650._rb,29000._rb, &
+                     38000._rb,  820._rb/)
+      wavenum2(:) = (/3250._rb, 4000._rb, 4650._rb, 5150._rb, &
+                      6150._rb, 7700._rb, 8050._rb,12850._rb, &
+                     16000._rb,22650._rb,29000._rb,38000._rb, &
+                     50000._rb, 2600._rb/)
+      delwave(:) =  (/ 650._rb,  750._rb,  650._rb,  500._rb, &
+                      1000._rb, 1550._rb,  350._rb, 4800._rb, &
+                      3150._rb, 6650._rb, 6350._rb, 9000._rb, &
+                     12000._rb, 1780._rb/)
 
 ! Spectral band information
       ng(:) = (/16,16,16,16,16,16,16,16,16,16,16,16,16,16/)

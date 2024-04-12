@@ -192,8 +192,10 @@
 ! Note: This option uses Ebert and Curry approach for all particle sizes similar to
 ! CAM3 implementation, though this is somewhat ineffective for large ice particles
                elseif (iceflag .eq. 1) then
+#ifdef DEBUG
                   if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) stop &
                      'ICE RADIUS OUT OF BOUNDS'
+#endif
                   do ib = ib1, ib2
                      if (wavenum2(ib) .gt. 1.43e04_rb) then
                         icx = 1
@@ -207,72 +209,105 @@
                         icx = 5
                      endif
                      extcoice(ib) = abari(icx) + bbari(icx)/radice
-                     ssacoice(ib) = 1._rb - cbari(icx) - dbari(icx) * radice
+                     ssacoice(ib) = 1._rb - &
+                             cbari(icx) - dbari(icx) * radice
                      gice(ib) = ebari(icx) + fbari(icx) * radice
 
 ! Check to ensure upper limit of gice is within physical limits for large particles
                      if (gice(ib) .ge. 1.0_rb) gice(ib) = 1.0_rb - eps
                      forwice(ib) = gice(ib)*gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
-                     if (extcoice(ib) .lt. 0.0_rb) stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) stop 'ICE ASYM LESS THAN 0.0'
+#ifdef DEBUG
+                     if (extcoice(ib) .lt. 0.0_rb) &
+                        stop 'ICE EXTINCTION LESS THAN 0.0'
+                     if (ssacoice(ib) .gt. 1.0_rb) &
+                        stop 'ICE SSA GRTR THAN 1.0'
+                     if (ssacoice(ib) .lt. 0.0_rb) &
+                        stop 'ICE SSA LESS THAN 0.0'
+                     if (gice(ib) .gt. 1.0_rb) &
+                        stop 'ICE ASYM GRTR THAN 1.0'
+                     if (gice(ib) .lt. 0.0_rb) &
+                        stop 'ICE ASYM LESS THAN 0.0'
+#endif
                   enddo
 
 ! For iceflag=2 option, ice particle effective radius is limited to 5.0 to 131.0 microns
 
                elseif (iceflag .eq. 2) then
-                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) stop 'ICE RADIUS OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radice .lt. 5.0_rb .or. radice .gt. 131.0_rb) &
+                    stop 'ICE RADIUS OUT OF BOUNDS'
+#endif
                   factor = (radice - 2._rb)/3._rb
                   index = int(factor)
                   if (index .eq. 43) index = 42
                   fint = factor - real(index,kind=rb)
                   do ib = ib1, ib2
                      extcoice(ib) = extice2(index,ib) + fint * &
-                                   (extice2(index+1,ib) -  extice2(index,ib))
+                             (extice2(index+1,ib) -  extice2(index,ib))
                      ssacoice(ib) = ssaice2(index,ib) + fint * &
-                                   (ssaice2(index+1,ib) -  ssaice2(index,ib))
+                             (ssaice2(index+1,ib) -  ssaice2(index,ib))
                      gice(ib) = asyice2(index,ib) + fint * &
-                                   (asyice2(index+1,ib) -  asyice2(index,ib))
+                             (asyice2(index+1,ib) -  asyice2(index,ib))
                      forwice(ib) = gice(ib)*gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
-                     if (extcoice(ib) .lt. 0.0_rb) stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) stop 'ICE ASYM LESS THAN 0.0'
+#ifdef DEBUG
+                     if (extcoice(ib) .lt. 0.0_rb) &
+                          stop 'ICE EXTINCTION LESS THAN 0.0'
+                     if (ssacoice(ib) .gt. 1.0_rb) &
+                          stop 'ICE SSA GRTR THAN 1.0'
+                     if (ssacoice(ib) .lt. 0.0_rb) &
+                          stop 'ICE SSA LESS THAN 0.0'
+                     if (gice(ib) .gt. 1.0_rb) &
+                          stop 'ICE ASYM GRTR THAN 1.0'
+                     if (gice(ib) .lt. 0.0_rb) &
+                          stop 'ICE ASYM LESS THAN 0.0'
+#endif
                   enddo
 
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
                elseif (iceflag .eq. 3) then
-                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
+#ifdef DEBUG
+                  if (radice .lt. 5.0_rb .or. radice .gt. 140.0_rb) &
+                    stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
+#endif
                   factor = (radice - 2._rb)/3._rb
                   index = int(factor)
                   if (index .eq. 46) index = 45
                   fint = factor - real(index,kind=rb)
                   do ib = ib1 , ib2
                      extcoice(ib) = extice3(index,ib) + fint * &
-                                   (extice3(index+1,ib) - extice3(index,ib))
+                              (extice3(index+1,ib) - extice3(index,ib))
                      ssacoice(ib) = ssaice3(index,ib) + fint * &
-                                   (ssaice3(index+1,ib) - ssaice3(index,ib))
+                              (ssaice3(index+1,ib) - ssaice3(index,ib))
                      gice(ib) = asyice3(index,ib) + fint * &
-                               (asyice3(index+1,ib) - asyice3(index,ib))
+                              (asyice3(index+1,ib) - asyice3(index,ib))
                      fdelta(ib) = fdlice3(index,ib) + fint * &
-                                 (fdlice3(index+1,ib) - fdlice3(index,ib))
-                     if (fdelta(ib) .lt. 0.0_rb) stop 'FDELTA LESS THAN 0.0'
-                     if (fdelta(ib) .gt. 1.0_rb) stop 'FDELTA GT THAN 1.0'
+                              (fdlice3(index+1,ib) - fdlice3(index,ib))
+#ifdef DEBUG
+                     if (fdelta(ib) .lt. 0.0_rb) &
+                        stop 'FDELTA LESS THAN 0.0'
+                     if (fdelta(ib) .gt. 1.0_rb) &
+                        stop 'FDELTA GT THAN 1.0'
+#endif
                      forwice(ib) = fdelta(ib) + 0.5_rb / ssacoice(ib)
 ! See Fu 1996 p. 2067
-                     if (forwice(ib) .gt. gice(ib)) forwice(ib) = gice(ib)
+                     if (forwice(ib) .gt. gice(ib)) &
+                           forwice(ib) = gice(ib)
 ! Check to ensure all calculated quantities are within physical limits.
-                     if (extcoice(ib) .lt. 0.0_rb) stop 'ICE EXTINCTION LESS THAN 0.0'
-                     if (ssacoice(ib) .gt. 1.0_rb) stop 'ICE SSA GRTR THAN 1.0'
-                     if (ssacoice(ib) .lt. 0.0_rb) stop 'ICE SSA LESS THAN 0.0'
-                     if (gice(ib) .gt. 1.0_rb) stop 'ICE ASYM GRTR THAN 1.0'
-                     if (gice(ib) .lt. 0.0_rb) stop 'ICE ASYM LESS THAN 0.0'
+#ifdef DEBUG
+                     if (extcoice(ib) .lt. 0.0_rb) &
+                           stop 'ICE EXTINCTION LESS THAN 0.0'
+                     if (ssacoice(ib) .gt. 1.0_rb) &
+                           stop 'ICE SSA GRTR THAN 1.0'
+                     if (ssacoice(ib) .lt. 0.0_rb) &
+                           stop 'ICE SSA LESS THAN 0.0'
+                     if (gice(ib) .gt. 1.0_rb) &
+                           stop 'ICE ASYM GRTR THAN 1.0'
+                     if (gice(ib) .lt. 0.0_rb) &
+                           stop 'ICE ASYM LESS THAN 0.0'
+#endif
                   enddo
 
                endif
@@ -296,20 +331,28 @@
                    fint = radliq - 1.5_rb - real(index,kind=rb)
                    do ib = ib1 , ib2
                       extcoliq(ib) = extliq1(index,ib) + fint * &
-                                    (extliq1(index+1,ib) - extliq1(index,ib))
+                              (extliq1(index+1,ib) - extliq1(index,ib))
                       ssacoliq(ib) = ssaliq1(index,ib) + fint * &
-                                    (ssaliq1(index+1,ib) - ssaliq1(index,ib))
-                      if (fint .lt. 0._rb .and. ssacoliq(ib) .gt. 1._rb) &
-                                     ssacoliq(ib) = ssaliq1(index,ib)
+                              (ssaliq1(index+1,ib) - ssaliq1(index,ib))
+                      if (fint .lt. 0._rb .and. &
+                          ssacoliq(ib) .gt. 1._rb) &
+                        ssacoliq(ib) = ssaliq1(index,ib)
                       gliq(ib) = asyliq1(index,ib) + fint * &
-                                (asyliq1(index+1,ib) - asyliq1(index,ib))
+                              (asyliq1(index+1,ib) - asyliq1(index,ib))
                       forwliq(ib) = gliq(ib)*gliq(ib)
 ! Check to ensure all calculated quantities are within physical limits.
-                      if (extcoliq(ib) .lt. 0.0_rb) stop 'LIQUID EXTINCTION LESS THAN 0.0'
-                      if (ssacoliq(ib) .gt. 1.0_rb) stop 'LIQUID SSA GRTR THAN 1.0'
-                      if (ssacoliq(ib) .lt. 0.0_rb) stop 'LIQUID SSA LESS THAN 0.0'
-                      if (gliq(ib) .gt. 1.0_rb) stop 'LIQUID ASYM GRTR THAN 1.0'
-                      if (gliq(ib) .lt. 0.0_rb) stop 'LIQUID ASYM LESS THAN 0.0'
+#ifdef DEBUG
+                      if (extcoliq(ib) .lt. 0.0_rb) &
+                          stop 'LIQUID EXTINCTION LESS THAN 0.0'
+                      if (ssacoliq(ib) .gt. 1.0_rb) &
+                          stop 'LIQUID SSA GRTR THAN 1.0'
+                      if (ssacoliq(ib) .lt. 0.0_rb) &
+                          stop 'LIQUID SSA LESS THAN 0.0'
+                      if (gliq(ib) .gt. 1.0_rb) &
+                          stop 'LIQUID ASYM GRTR THAN 1.0'
+                      if (gliq(ib) .lt. 0.0_rb) &
+                          stop 'LIQUID ASYM LESS THAN 0.0'
+#endif
                    enddo
                 endif
 
@@ -320,10 +363,12 @@
 
                    ssaliq = ssacoliq(ib) * (1.0_rb - forwliq(ib)) / &
                            (1.0_rb - forwliq(ib) * ssacoliq(ib))
-                   tauliq = (1.0_rb - forwliq(ib) * ssacoliq(ib)) * tauliqorig
+                   tauliq = (1.0_rb - forwliq(ib) * &
+                             ssacoliq(ib)) * tauliqorig
                    ssaice = ssacoice(ib) * (1.0_rb - forwice(ib)) / &
                            (1.0_rb - forwice(ib) * ssacoice(ib))
-                   tauice = (1.0_rb - forwice(ib) * ssacoice(ib)) * tauiceorig
+                   tauice = (1.0_rb - forwice(ib) * &
+                              ssacoice(ib)) * tauiceorig
 
                    scatliq = ssaliq * tauliq
                    scatice = ssaice * tauice
@@ -331,10 +376,12 @@
                    taucloud(lay,ib) = tauliq + tauice
 
 ! Ensure non-zero taucmc and scatice
-                   if (taucloud(lay,ib).eq.0.0_rb) taucloud(lay,ib) = cldmin
+                   if (taucloud(lay,ib).eq.0.0_rb) &
+                       taucloud(lay,ib) = cldmin
                    if (scatice.eq.0.0_rb) scatice = cldmin
 
-                   ssacloud(lay,ib) = (scatliq + scatice) / taucloud(lay,ib)
+                   ssacloud(lay,ib) = &
+                          (scatliq + scatice) / taucloud(lay,ib)
 
                    if (iceflag .eq. 3) then
 ! In accordance with the 1996 Fu paper, equation A.3,
@@ -343,14 +390,16 @@
                       istr = 1
                       asmcloud(lay,ib) = (1.0_rb/(scatliq+scatice)) * &
                          (scatliq*(gliq(ib)**istr - forwliq(ib)) / &
-                         (1.0_rb - forwliq(ib)) + scatice * ((gice(ib)-forwice(ib)) / &
+                         (1.0_rb - forwliq(ib)) + &
+                          scatice * ((gice(ib)-forwice(ib)) / &
                          (1.0_rb - forwice(ib)))**istr)
                    else
 ! This code is the standard method for delta-m scaling.
                       istr = 1
                       asmcloud(lay,ib) = (scatliq *  &
                          (gliq(ib)**istr - forwliq(ib)) / &
-                         (1.0_rb - forwliq(ib)) + scatice * (gice(ib)**istr - forwice(ib)) / &
+                         (1.0_rb - forwliq(ib)) + &
+                          scatice * (gice(ib)**istr - forwice(ib)) / &
                          (1.0_rb - forwice(ib)))/(scatliq + scatice)
                    endif
 

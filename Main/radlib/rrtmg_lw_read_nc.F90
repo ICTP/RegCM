@@ -102,8 +102,8 @@ subroutine lw_kgb01
     status(17)  = nf90_get_var(ncid, varID, kbo_mn2, &
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
-
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -157,7 +157,8 @@ subroutine lw_kgb02
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -225,7 +226,8 @@ subroutine lw_kgb03
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/keyupper,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -279,7 +281,8 @@ subroutine lw_kgb04
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -349,7 +352,8 @@ subroutine lw_kgb05
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -416,7 +420,8 @@ subroutine lw_kgb06
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -484,7 +489,8 @@ subroutine lw_kgb07
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -586,7 +592,8 @@ subroutine lw_kgb08
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -654,7 +661,8 @@ subroutine lw_kgb09
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -708,7 +716,8 @@ subroutine lw_kgb10
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -776,7 +785,8 @@ subroutine lw_kgb11
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -820,7 +830,8 @@ subroutine lw_kgb12
                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                     count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -892,7 +903,8 @@ subroutine lw_kgb13
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -946,7 +958,8 @@ subroutine lw_kgb14
                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -998,7 +1011,8 @@ subroutine lw_kgb15
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
@@ -1052,7 +1066,8 @@ subroutine lw_kgb16
                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) stop  "Error reading variables from file"
+    if(any(status(:) /= nf90_NoErr)) &
+           stop  "Error reading variables from file rrtmg_lw.nc"
 
     status(1) = nf90_close(ncid)
 
