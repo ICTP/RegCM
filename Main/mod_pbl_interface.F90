@@ -177,27 +177,17 @@ module mod_pbl_interface
         call uwtcm(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jci1 , jci2
-                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
-              end do
-            end do
-            do i = ici1 , ici2
-              do j = jdi1 , jdi2
-                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
+          end do
+          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
           end do
         else
           call uvcross2dot(utenx,vtenx,utend,vtend)
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
-                p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
-              end do
-            end do
+          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
           end do
         end if
       case default
