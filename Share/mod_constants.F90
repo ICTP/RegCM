@@ -354,9 +354,14 @@ module mod_constants
   real(rkx) , parameter :: alpha_hyd = 0.0_rkx
   real(rkx) , parameter :: beta_hyd = d_one - d_two*alpha_hyd
 
+  ! Fixed emissivity of water
+  real(rkx) , parameter :: emsw = 0.996_rkx
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
-  real(rkx) , parameter :: ocn_sfcemiss = 0.996_rkx
+  ! Nasa numbers
+  ! Monitoring surface climate with its emissivity derived from satellite
+  ! measurements, Daniel K. Zhou, Allen M. Larar, and Xu Liu
+  real(rkx) , parameter :: ocn_sfcemiss = emsw
   real(rkx) , parameter :: ice_sfcemiss = 0.982_rkx
 
   ! Constants used in Kain-Fritsch and WSM5
