@@ -813,28 +813,22 @@ module mod_rad_tracer
     !
     ! Calculate emissivity Planck factor
     !
-    do wvl = 1 , 14
-      do n = n1 , n2
-        emplnk(wvl,n) = f1(wvl)/(tplnke(n)**4 * &
+    do concurrent ( n = n1:n2 , wvl = 1:14 )
+      emplnk(wvl,n) = f1(wvl)/(tplnke(n)**4 * &
                       (exp(f3(wvl)/tplnke(n))-d_one))
-      end do
     end do
     !
     ! Calculate absorptivity Planck factor for tint and tlayr temperatures
     !
-    do wvl = 1 , 14
-      do k = 1 , kzp1
-        do n = n1 , n2
-          ! non-nearlest layer function
-          abplnk1(wvl,n,k) = (f2(wvl)*exp(f3(wvl)/tint(n,k)))        &
-                           & /(tint(n,k)**5*                      &
-                           & (exp(f3(wvl)/tint(n,k))-d_one)**2)
-          ! nearest layer function
-          abplnk2(wvl,n,k) = (f2(wvl)*exp(f3(wvl)/tlayr(n,k)))       &
-                           & /(tlayr(n,k)**5*                     &
-                           & (exp(f3(wvl)/tlayr(n,k))-d_one)**2)
-        end do
-      end do
+    do concurrent ( n = n1:n2 , k = 1:kzp1, wvl = 1:14 )
+      ! non-nearlest layer function
+      abplnk1(wvl,n,k) = (f2(wvl)*exp(f3(wvl)/tint(n,k))) / &
+                           (tint(n,k)**5*                   &
+                           (exp(f3(wvl)/tint(n,k))-d_one)**2)
+      ! nearest layer function
+      abplnk2(wvl,n,k) = (f2(wvl)*exp(f3(wvl)/tlayr(n,k))) / &
+                           (tlayr(n,k)**5*                   &
+                           (exp(f3(wvl)/tlayr(n,k))-d_one)**2)
     end do
   end subroutine trcplk
   !
