@@ -309,7 +309,6 @@ module mod_sun
     real(rkx) , pointer , intent(in), dimension(:,:) :: xlat , xlon
     real(rkx) , pointer , intent(inout), dimension(:,:) :: coszrs
     integer(ik4) :: i , j
-    real(rkx) :: xxlat , xxlon
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zenitm'
     integer(ik4) , save :: idindx = 0
@@ -333,7 +332,9 @@ module mod_sun
     scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
 #ifdef RCEMIP
-      coszrs(:,:) = cos(degrad*42.05_rkx)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        coszrs(j,i) = cos(degrad*42.05_rkx)
+      end do
       eccf = 1.0_rkx
       declin = 0.0_rkx
       if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
@@ -346,17 +347,15 @@ module mod_sun
         end if
       end if
 #else
-      coszrs(:,:) = 1.0_rkx
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        coszrs(j,i) = 1.0_rkx
+      end do
 #endif
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          xxlat = xlat(j,i)*degrad
-          xxlon = xlon(j,i)*degrad
-          coszrs(j,i) = orb_cosz(calday,xxlat,xxlon,declin)
-          coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
-          coszrs(j,i) = min(1.0_rkx,coszrs(j,i))
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        coszrs(j,i) = orb_cosz(calday,xlat(j,i)*degrad,xlon(j,i)*degrad,declin)
+        coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
+        coszrs(j,i) = min(1.0_rkx,coszrs(j,i))
       end do
     end if
 #ifdef DEBUG
