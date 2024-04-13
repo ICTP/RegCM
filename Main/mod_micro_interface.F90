@@ -75,40 +75,40 @@ module mod_micro_interface
       call allocate_mod_nogtom
 #ifdef DEBUG
       if ( stats ) then
-        call getmem3d(ngs%statssupw,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statssupw')
-        call getmem3d(ngs%statssupc,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statssupc')
-        call getmem3d(ngs%statsdetrw,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsdetrw')
-        call getmem3d(ngs%statsdetrc,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsdetrc')
-        call getmem3d(ngs%statserosw,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statserosw')
-        call getmem3d(ngs%statserosc,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statserosc')
-        call getmem3d(ngs%statsevapw,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsevapw')
-        call getmem3d(ngs%statsevapc,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsevapc')
-        call getmem3d(ngs%statscond1w,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statscond1w')
-        call getmem3d(ngs%statscond1c,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statscond1c')
-        call getmem3d(ngs%statsdepos,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsdepos')
-        call getmem3d(ngs%statsmelt,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsmelt')
-        call getmem3d(ngs%statsfrz,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsfrz')
-        call getmem3d(ngs%statsrainev,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsrainev')
-        call getmem3d(ngs%statssnowev,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statssnowev')
-        call getmem3d(ngs%statsautocvw,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsautocvw')
-        call getmem3d(ngs%statsautocvc,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statsautocvc')
+        call getmem3d(ngs%statssupw,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statssupw')
+        call getmem3d(ngs%statssupc,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statssupc')
+        call getmem3d(ngs%statsdetrw,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsdetrw')
+        call getmem3d(ngs%statsdetrc,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsdetrc')
+        call getmem3d(ngs%statserosw,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statserosw')
+        call getmem3d(ngs%statserosc,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statserosc')
+        call getmem3d(ngs%statsevapw,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsevapw')
+        call getmem3d(ngs%statsevapc,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsevapc')
+        call getmem3d(ngs%statscond1w,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statscond1w')
+        call getmem3d(ngs%statscond1c,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statscond1c')
+        call getmem3d(ngs%statsdepos,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsdepos')
+        call getmem3d(ngs%statsmelt,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsmelt')
+        call getmem3d(ngs%statsfrz,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsfrz')
+        call getmem3d(ngs%statsrainev,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsrainev')
+        call getmem3d(ngs%statssnowev,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statssnowev')
+        call getmem3d(ngs%statsautocvw,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsautocvw')
+        call getmem3d(ngs%statsautocvc,1,kz,jci1,jci2, &
+                                    ici1,ici2,'micro:statsautocvc')
       end if
 #endif
     else if ( ipptls == 3 ) then
@@ -150,7 +150,7 @@ module mod_micro_interface
     call assignpnt(atms%ps2d,mo2mc%ps2)
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
-    call assignpnt(cldfra,mo2mc%cldf)
+    call assignpnt(fcc,mo2mc%cldf)
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)
@@ -239,20 +239,12 @@ module mod_micro_interface
     integer(ik4) :: i , j , k , ichi
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
       end do
     else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            totc(j,i,k) = mo2mc%qcn(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        totc(j,i,k) = mo2mc%qcn(j,i,k)
       end do
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -292,30 +284,22 @@ module mod_micro_interface
     !------------------------------------------
 
     if ( icldmstrat == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( mo2mc%iveg(j,i) == 15 ) then
-              if ( mo2mc%phs(j,i,k) >= 70000.0_rkx ) then
-                ! Klein, S. A., and D. L. Hartmann,
-                ! The seasonal cycle of low stratiform clouds,
-                ! J. Climate, 6, 1587-1606, 1993
-                mc2mo%fcc(j,i,k) = max(mc2mo%fcc(j,i,k), &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        if ( mo2mc%iveg(j,i) == 15 ) then
+          if ( mo2mc%phs(j,i,k) >= 70000.0_rkx ) then
+            ! Klein, S. A., and D. L. Hartmann,
+            ! The seasonal cycle of low stratiform clouds,
+            ! J. Climate, 6, 1587-1606, 1993
+            mc2mo%fcc(j,i,k) = max(mc2mo%fcc(j,i,k), &
                       min(((atms%th700(j,i)-atms%th3d(j,i,k)) * &
                            0.057_rkx) - 0.5573_rkx,1.0_rkx))
-              end if
-            end if
-          end do
-        end do
+          end if
+        end if
       end do
     end if
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mc2mo%fcc(j,i,k) = max(min(mc2mo%fcc(j,i,k),hicld),d_zero)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      mc2mo%fcc(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
     end do
 
     !-----------------------------------------------------------------
@@ -324,23 +308,19 @@ module mod_micro_interface
     !-----------------------------------------------------------------
 
     if ( iconvlwp == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! get maximum cloud fraction between cumulus and large scale
-            cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k)+cldfra(j,i,k)
-            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
-            if ( cldfra(j,i,k) > lowcld ) then
-              ! Cloud Water Volume
-              ! Apply the parameterisation based on temperature to the
-              ! the large scale clouds. This is an in-cloud here.
-              cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
-            else
-              cldfra(j,i,k) = d_zero
-              cldlwc(j,i,k) = d_zero
-            end if
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        ! get maximum cloud fraction between cumulus and large scale
+        cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k)+cldfra(j,i,k)
+        cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
+        if ( cldfra(j,i,k) > lowcld ) then
+          ! Cloud Water Volume
+          ! Apply the parameterisation based on temperature to the
+          ! the large scale clouds. This is an in-cloud here.
+          cldlwc(j,i,k) = clwfromt(mo2mc%t(j,i,k))
+        else
+          cldfra(j,i,k) = d_zero
+          cldlwc(j,i,k) = d_zero
+        end if
       end do
     else
       if ( any(icup > 1) ) then
@@ -348,9 +328,9 @@ module mod_micro_interface
           do i = ici1 , ici2
             do j = jci1 , jci2
               ! Cloud Water Volume
-              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
               exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
               ! get maximum cloud fraction between cumulus and large scale
               cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k) + &
