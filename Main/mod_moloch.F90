@@ -718,16 +718,34 @@ module mod_moloch
       subroutine divergence_filter( )
         implicit none
         integer(ik4) :: j , i , k
-
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+          end do
+        end if
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
         do k = 1 , kz
-          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                     zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                          d_half   * zdiv2(j,i,k)
           end do
-          do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
             zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
           end do
         end do
@@ -1057,7 +1075,7 @@ module mod_moloch
         call wafone(ux,dta)
         call wafone(vx,dta)
         call wafone(wx,dta)
-        call wafone(qv,dta,pmin=minqq)
+        call wafone(qv,dta)
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
@@ -1065,11 +1083,11 @@ module mod_moloch
           end do
           if ( ipptls == 5 ) then
             call assignpnt(qx,ptr,cqn)
-            call wafone(ptr,dta,pmin=d_zero)
+            call wafone(ptr,dta)
             call assignpnt(qx,ptr,cqc)
-            call wafone(ptr,dta,pmin=d_zero)
+            call wafone(ptr,dta)
             call assignpnt(qx,ptr,cqr)
-            call wafone(ptr,dta,pmin=d_zero)
+            call wafone(ptr,dta)
           end if
         end if
         if ( ibltyp == 2 ) then
@@ -1702,7 +1720,7 @@ module mod_moloch
         do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                         k = 1:kz, n = iqfrst:nqx)
           qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-          if ( qx(j,i,k,n) < 1.0e-20_rkx ) then
+          if ( qx(j,i,k,n) < 1.0e-16_rkx ) then
             qx(j,i,k,n) = d_zero
           end if
         end do
@@ -1921,34 +1939,54 @@ module mod_moloch
     real(rkx) :: ddamp1
 
     ddamp1 = ddamp * ((dx**2)/dts)
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jci1:jci2, k = 1:kz )
+        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ici1:ici2, k = 1:kz )
+        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+      end do
+    end if
     call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
     if ( lrotllr ) then
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     else
-      do concurrent ( j = jdii1:jdii2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
         u(j,i,k) = u(j,i,k) + &
                 ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
       end do
-      do concurrent ( j = jci1:jci2, i = idii1:idii2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
         v(j,i,k) = v(j,i,k) + &
                 ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
       end do
     end if
     do k = 1 , kz
-      do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                 zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
                      d_half   * zdiv2(j,i,k)
       end do
-      do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         zdiv2(j,i,k) = zdiv2(j,i,k) + nu2 * xknu(k) * p2d(j,i)
       end do
     end do
