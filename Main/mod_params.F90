@@ -104,11 +104,11 @@ module mod_params
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
       iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
-      ichem ,  scenario ,  idcsst , iseaice , iconvlwp , icldmstrat ,    &
-      icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud ,  &
-      islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,       &
-      ghg_year_const , ifixsolar , fixedsolarval , irceideal ,           &
-      year_offset , radclimpath , ioasiscpl
+      ichem ,  scenario ,  idcsst , iwhitecap , iseaice , iconvlwp ,     &
+      icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , &
+      icumcloud , islab_ocean , itweak , temp_tend_maxval ,              &
+      wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,    &
+      irceideal , year_offset , radclimpath , ioasiscpl
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -309,6 +309,7 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
+    iwhitecap = 0
     iseaice = 0
     iconvlwp = 1
 #ifdef RCEMIP
@@ -820,13 +821,6 @@ module mod_params
                      'INPUT NAMELIST ICUP INCONSISTENT')
         end if
       end if
-      if ( any(icup == 3) ) then
-        if ( icup_lnd /= icup_ocn ) then
-          write(stderr,*) 'ERROR: BM scheme MUST be used on both Land and Ocean'
-          call fatal(__FILE__,__LINE__, &
-                     'INPUT NAMELIST ICUP INCONSISTENT')
-        end if
-      end if
 
       rewind(ipunit)
       read (ipunit, nml=cldparam, iostat=iretval, err=107)
@@ -1186,7 +1180,6 @@ module mod_params
         dtrad = dtrad - dt
       end do
       dtrad = max(int(dtrad / (3.0_rkx*dtsrf)),1) * (3.0_rkx*dtsrf)
-
       dtabem = max(int(dtabem / (36_rkx*dtrad)),1) * (36.0_rkx*dtrad)
 
       dtche = int(dtche / dt) * dt
@@ -1482,6 +1475,7 @@ module mod_params
     call bcast(scenario,8)
     call bcast(ghg_year_const)
     call bcast(idcsst)
+    call bcast(iwhitecap)
     call bcast(iseaice)
     call bcast(icetriggert)
     call bcast(iconvlwp)
@@ -1793,6 +1787,7 @@ module mod_params
       ntr = aerclima_ntr
       nbin = aerclima_nbin
     end if
+
     !
     ! ALLOCATE NEEDED SPACE
     !
@@ -1973,34 +1968,28 @@ module mod_params
       mddom%msfx = 1.0_rkx
       mddom%area = (ds*d_1000)**2
       dl = raddeg * (ds*d_1000)/earthrad
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
-          mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
+      do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+        mddom%xlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 0.5_rkx)
+        mddom%xlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 0.5_rkx)
 #ifdef RCEMIP
-          mddom%coriol(j,i) = 0.0_rkx
+        mddom%coriol(j,i) = 0.0_rkx
 #else
-          mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
+        mddom%coriol(j,i) = eomeg2*sin(mddom%xlat(j,i)*degrad)
 #endif
-        end do
       end do
       if ( idynamic == 3 ) then
-        do i = ide1 , ide2
-          do j = jde1 , jde2
-            mddom%ulat(j,i) = mddom%xlat(j,i)
-            mddom%ulon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
-            mddom%vlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
-            mddom%vlon(j,i) = mddom%xlon(j,i)
-          end do
+        do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+          mddom%ulat(j,i) = mddom%xlat(j,i)
+          mddom%ulon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
+          mddom%vlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
+          mddom%vlon(j,i) = mddom%xlon(j,i)
         end do
         mddom%msfu = 1.0_rkx
         mddom%msfv = 1.0_rkx
       else
-        do i = ide1 , ide2
-          do j = jde1 , jde2
-            mddom%dlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
-            mddom%dlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
-          end do
+        do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+          mddom%dlat(j,i) = clat - dl * (real(iy,rkx)*d_half - i + 1.0_rkx)
+          mddom%dlon(j,i) = clon - dl * (real(jx,rkx)*d_half - j + 1.0_rkx)
         end do
         mddom%msfd = 1.0_rkx
       end if
@@ -2237,22 +2226,18 @@ module mod_params
                mdsub%area,mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
-          mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
-          mdsub%lndtex(1,j,i) = mddom%lndtex(j,i)
-          mdsub%xlat(1,j,i) = mddom%xlat(j,i)
-          mdsub%xlon(1,j,i) = mddom%xlon(j,i)
-          mdsub%mask(1,j,i) = mddom%mask(j,i)
-          mdsub%area(1,j,i) = mddom%area(j,i)
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
+        mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
+        mdsub%lndtex(1,j,i) = mddom%lndtex(j,i)
+        mdsub%xlat(1,j,i) = mddom%xlat(j,i)
+        mdsub%xlon(1,j,i) = mddom%xlon(j,i)
+        mdsub%mask(1,j,i) = mddom%mask(j,i)
+        mdsub%area(1,j,i) = mddom%area(j,i)
       end do
       if ( lakemod == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mdsub%dhlake(1,j,i) = mddom%dhlake(j,i)
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          mdsub%dhlake(1,j,i) = mddom%dhlake(j,i)
         end do
       end if
     end if
@@ -2274,23 +2259,17 @@ module mod_params
     !
     !------invert mapscale factors and convert hgt to geopotential
     !
-    do i = ide1 , ide2
-      do j = jde1 , jde2
-        mddom%ht(j,i)   = mddom%ht(j,i)*egrav
-      end do
+    do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+      mddom%ht(j,i)   = mddom%ht(j,i)*egrav
     end do
     if ( idynamic /= 3 ) then
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
-          mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
-        end do
+      do concurrent ( j = jde1:jde2, i = ide1:ide2 )
+        mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
+        mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
       end do
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i)*dx16)
-          mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i)*dx4)
-        end do
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2 )
+        mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i)*dx16)
+        mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i)*dx4)
       end do
       call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
       call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
@@ -2324,28 +2303,22 @@ module mod_params
     !
     !-----compute land/water mask
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%mask(j,i) > 0.1_rkx ) then
-          mddom%ldmsk(j,i) = 1
-        else
-          mddom%ldmsk(j,i) = 0
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      if ( mddom%mask(j,i) > 0.1_rkx ) then
+        mddom%ldmsk(j,i) = 1
+      else
+        mddom%ldmsk(j,i) = 0
+      end if
     end do
     !
     !-----compute land/water mask on subgrid space
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
-            mdsub%ldmsk(n,j,i) = 1
-          else
-            mdsub%ldmsk(n,j,i) = 0
-          end if
-        end do
-      end do
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
+        mdsub%ldmsk(n,j,i) = 1
+      else
+        mdsub%ldmsk(n,j,i) = 0
+      end if
     end do
     !
     ! Initializations
@@ -2622,42 +2595,33 @@ module mod_params
         end if
       end if
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( isocean(mddom%lndcat(j,i)) ) then
-            shrmax2d(j,i) = shrmax_ocn
-            shrmin2d(j,i) = shrmin_ocn
-            edtmax2d(j,i) = edtmax_ocn
-            edtmin2d(j,i) = edtmin_ocn
-            edtmaxo2d(j,i) = edtmaxo_ocn
-            edtmino2d(j,i) = edtmino_ocn
-            edtmaxx2d(j,i) = edtmaxx_ocn
-            edtminx2d(j,i) = edtminx_ocn
-          else
-            shrmax2d(j,i) = shrmax
-            shrmin2d(j,i) = shrmin
-            edtmax2d(j,i) = edtmax
-            edtmin2d(j,i) = edtmin
-            edtmaxo2d(j,i) = edtmaxo
-            edtmino2d(j,i) = edtmino
-            edtmaxx2d(j,i) = edtmaxx
-            edtminx2d(j,i) = edtminx
-          end if
-          pbcmax2d(j,i) = pbcmax
-          mincld2d(j,i) = mincld
-          kbmax2d(j,i) = kbmax
-          htmax2d(j,i) = htmax
-          htmin2d(j,i) = htmin
-          dtauc2d(j,i) = dtauc*secpm
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( isocean(mddom%lndcat(j,i)) ) then
+          shrmax2d(j,i) = shrmax_ocn
+          shrmin2d(j,i) = shrmin_ocn
+          edtmax2d(j,i) = edtmax_ocn
+          edtmin2d(j,i) = edtmin_ocn
+          edtmaxo2d(j,i) = edtmaxo_ocn
+          edtmino2d(j,i) = edtmino_ocn
+          edtmaxx2d(j,i) = edtmaxx_ocn
+          edtminx2d(j,i) = edtminx_ocn
+        else
+          shrmax2d(j,i) = shrmax
+          shrmin2d(j,i) = shrmin
+          edtmax2d(j,i) = edtmax
+          edtmin2d(j,i) = edtmin
+          edtmaxo2d(j,i) = edtmaxo
+          edtmino2d(j,i) = edtmino
+          edtmaxx2d(j,i) = edtmaxx
+          edtminx2d(j,i) = edtminx
+        end if
+        pbcmax2d(j,i) = pbcmax
+        mincld2d(j,i) = mincld
+        kbmax2d(j,i) = kbmax
+        htmax2d(j,i) = htmax
+        htmin2d(j,i) = htmin
+        dtauc2d(j,i) = dtauc*secpm
       end do
-    end if
-    if ( any(icup == 3) ) then
-      if ( myid == italk ) then
-        write(stderr,*) &
-          'WARNING : The Betts-Miller Convection scheme is not ', &
-          'properly implemented'
-      end if
     end if
     if ( any(icup == 4) ) then
       if ( myid == italk ) then
@@ -2759,45 +2723,39 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
     end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( isocean(mddom%lndcat(j,i)) ) then
-          rh0(j,i)   = rh0oce
-        else
-          rh0(j,i)   = rh0land
-        end if
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      if ( isocean(mddom%lndcat(j,i)) ) then
+        rh0(j,i)   = rh0oce
+      else
+        rh0(j,i)   = rh0land
+      end if
     end do
 
     if ( ipptls == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( isocean(mddom%lndcat(j,i)) ) then
-            qck1(j,i)  = qck1oce  ! OCEAN
-            cgul(j,i)  = guloce
-            cevap(j,i) = cevapoce
-            caccr(j,i) = caccroce
-          else
-            qck1(j,i)  = qck1land ! LAND
-            cgul(j,i)  = gulland
-            cevap(j,i) = cevaplnd
-            caccr(j,i) = caccrlnd
-          end if
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( isocean(mddom%lndcat(j,i)) ) then
+          qck1(j,i)  = qck1oce  ! OCEAN
+          cgul(j,i)  = guloce
+          cevap(j,i) = cevapoce
+          caccr(j,i) = caccroce
+        else
+          qck1(j,i)  = qck1land ! LAND
+          cgul(j,i)  = gulland
+          cevap(j,i) = cevaplnd
+          caccr(j,i) = caccrlnd
+        end if
       end do
     end if
     !
     ! Setup Holtslag PBL Critical Richardson Number
     !
     if ( ibltyp == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( isocean(mddom%lndcat(j,i)) ) then
-            ricr(j,i) = ricr_lnd
-          else
-            ricr(j,i) = ricr_ocn
-          end if
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( isocean(mddom%lndcat(j,i)) ) then
+          ricr(j,i) = ricr_lnd
+        else
+          ricr(j,i) = ricr_ocn
+        end if
       end do
     end if
     if ( any(icup == 1) ) then
@@ -3011,27 +2969,17 @@ module mod_params
         call exchange(atm0%rho,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atm0%dzf(j,i,k) = atm0%zf(j,i,k) - atm0%zf(j,i,k+1)
-            end do
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          atm0%dzf(j,i,k) = atm0%zf(j,i,k) - atm0%zf(j,i,k+1)
         end do
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              atm0%zd(j,i,k) = d_rfour * &
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+          atm0%zd(j,i,k) = d_rfour * &
                    (atm0%z(j,i,k) + atm0%z(j-1,i,k) + &
                     atm0%z(j,i-1,k) + atm0%z(j-1,i-1,k))
-            end do
-          end do
         end do
-        do i = ice1 , ice2
-          do j = jci1 , jci2
-            dpsdxm(j,i) = (atm0%ps(j+1,i) - atm0%ps(j-1,i)) / &
-                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
-          end do
+        do concurrent ( j = jci1:jci2, i = ice1:ice2 )
+          dpsdxm(j,i) = (atm0%ps(j+1,i) - atm0%ps(j-1,i)) / &
+                        (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
         end do
         if ( ma%has_bdyleft ) then
           do i = ice1 , ice2
@@ -3045,11 +2993,9 @@ module mod_params
                         (atm0%ps(jce2,i)*dx8*mddom%msfx(jce2,i))
           end do
         end if
-        do i = ici1 , ici2
-          do j = jce1 , jce2
-            dpsdym(j,i) = (atm0%ps(j,i+1) - atm0%ps(j,i-1)) / &
-                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
-          end do
+        do concurrent ( j = jce1:jce2, i = ici1:ici2 )
+          dpsdym(j,i) = (atm0%ps(j,i+1) - atm0%ps(j,i-1)) / &
+                        (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
         end do
         if ( ma%has_bdybottom ) then
           do j = jce1 , jce2
@@ -3063,15 +3009,11 @@ module mod_params
                         (atm0%ps(j,ice2)*dx8*mddom%msfx(j,ice2))
           end do
         end if
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              atm0%dprddx(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j-1,i,k) + &
-                                   atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)
-              atm0%dprddy(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j,i-1,k) + &
-                                   atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)
-            end do
-          end do
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+          atm0%dprddx(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j-1,i,k) + &
+                               atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)
+          atm0%dprddy(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j,i-1,k) + &
+                               atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)
         end do
         if ( myid == italk ) then
           write(stdout,*) 'Reference atmosphere calculated.'
@@ -3102,28 +3044,28 @@ module mod_params
             mddom%ef(j,i) = eomeg2*cos(degrad*dlat)
             mddom%ddx(j,i) = cos(rotang)
             mddom%ddy(j,i) = sin(rotang)
-            mddom%dmdx(j,i) = -d_half * &
+          end do
+        end do
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+          mddom%dmdx(j,i) = -d_half * &
               (mddom%msfx(j,i) + mddom%msfx(j,i-1) - &
                mddom%msfx(j-1,i) - mddom%msfx(j-1,i-1)) / &
                (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
-            mddom%dmdy(j,i) = -d_half * &
+          mddom%dmdy(j,i) = -d_half * &
               (mddom%msfx(j,i) + mddom%msfx(j-1,i) - &
                mddom%msfx(j,i-1) - mddom%msfx(j-1,i-1)) / &
                (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
-          end do
         end do
         call exchange(mddom%ef,1,jdi1,jdi2,idi1,idi2)
         call exchange(mddom%ddx,1,jdi1,jdi2,idi1,idi2)
         call exchange(mddom%ddy,1,jdi1,jdi2,idi1,idi2)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mddom%ex(j,i) = d_rfour*(mddom%ef(j,i)   + mddom%ef(j,i+1) + &
-                                     mddom%ef(j+1,i) + mddom%ef(j+1,i+1))
-            mddom%crx(j,i) = d_rfour*(mddom%ddx(j,i)   + mddom%ddx(j,i+1) + &
-                                      mddom%ddx(j+1,i) + mddom%ddx(j+1,i+1))
-            mddom%cry(j,i) = d_rfour*(mddom%ddy(j,i)   + mddom%ddy(j,i+1) + &
-                                      mddom%ddy(j+1,i) + mddom%ddy(j+1,i+1))
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          mddom%ex(j,i) = d_rfour*(mddom%ef(j,i)   + mddom%ef(j,i+1) + &
+                                   mddom%ef(j+1,i) + mddom%ef(j+1,i+1))
+          mddom%crx(j,i) = d_rfour*(mddom%ddx(j,i)   + mddom%ddx(j,i+1) + &
+                                    mddom%ddx(j+1,i) + mddom%ddx(j+1,i+1))
+          mddom%cry(j,i) = d_rfour*(mddom%ddy(j,i)   + mddom%ddy(j,i+1) + &
+                                    mddom%ddy(j+1,i) + mddom%ddy(j+1,i+1))
         end do
         if ( myid == italk ) then
           write(stdout,*) 'Full Coriolis coefficients computed.'
@@ -3135,46 +3077,32 @@ module mod_params
         integer(ik4) :: i , j
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
-        do i = ice1 , ice2
-          do j = jdi1 , jdi2
-            mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
-                             mddom%msfu(j,i) * rdx * regrav
-          end do
+        do concurrent ( j = jdi1:jdi2, i = ice1:ice2 )
+          mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
+                           mddom%msfu(j,i) * rdx * regrav
         end do
         if ( iproj == 'ROTLLR' ) then
-          do i = idi1 , idi2
-            do j = jce1 , jce2
-              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                               rdx * regrav
-            end do
+          do concurrent ( j = jce1:jce2, i = idi1:idi2 )
+            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                             rdx * regrav
           end do
         else
-          do i = idi1 , idi2
-            do j = jce1 , jce2
-              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                               mddom%msfv(j,i) * rdx * regrav
-            end do
+          do concurrent ( j = jce1:jce2, i = idi1:idi2 )
+            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                             mddom%msfv(j,i) * rdx * regrav
           end do
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
         call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%zeta(j,i,k) = md_zeta(zitah(k),mddom%ht(j,i))
-              mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
-            end do
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          mo_atm%zeta(j,i,k) = md_zeta(zitah(k),mddom%ht(j,i))
+          mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
-        do k = 1 , kzp1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
-              mo_atm%zetaf(j,i,k) = md_zeta(zita(k),mddom%ht(j,i))
-            end do
-          end do
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
+          mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
+          mo_atm%zetaf(j,i,k) = md_zeta(zita(k),mddom%ht(j,i))
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
