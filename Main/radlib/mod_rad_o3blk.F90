@@ -223,16 +223,12 @@ module mod_rad_o3blk
     real(rkx) :: g2 = 0.83209_rkx
     real(rkx) :: g3 = 11.3515_rkx
     integer(ik4) :: i , j
-    real(rkx) :: p , o3
-    do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p = m2r%pfatms(j,i,k) * 0.01_rkx ! hPa
-          o3 = g1 * p**g2 * exp(-p/g3)     ! ppmv in VMR
-          ! RegCM wants MMR in kg kg-1
-          o3prof(j,i,k) = max(o3 * (amo3/amd) * 1.0e-6_rkx, 1.0e-12_rkx)
-        end do
-      end do
+    real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: p , o3
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+      p(j,i,k) = m2r%pfatms(j,i,k) * 0.01_rkx ! hPa
+      o3(j,i,k) = g1 * p(j,i,k)**g2 * exp(-p(j,i,k)/g3)     ! ppmv in VMR
+      ! RegCM wants MMR in kg kg-1
+      o3prof(j,i,k) = max(o3(j,i,k) * (amo3/amd) * 1.0e-6_rkx, 1.0e-12_rkx)
     end do
 #else
     real(rkx) , pointer , dimension(:) :: o3wrk , ppwrk
