@@ -38,8 +38,8 @@ module mod_update
   type(exp_data) , public :: exportFields
   type(exp_data3d) , public :: exportFields3d
 
-  integer(ik4) , pointer :: ldmskb(:,:)
-  integer(ik4) , pointer :: wetdry(:,:)
+  integer(ik4) , pointer , dimension(:,:) :: ldmskb
+  integer(ik4) , pointer , dimension(:,:) :: wetdry
 
   real(rk8) , parameter :: zeroval = 0.0_rk8
   real(rk8) , parameter :: missing_r8 = 1.0e20_rk8
@@ -135,56 +135,50 @@ module mod_update
     !
     ! Initialize arrays
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        exportFields%psfc(j,i) = initval
-        exportFields%tsfc(j,i) = initval
-        exportFields%qsfc(j,i) = initval
-        exportFields%swrd(j,i) = initval
-        exportFields%lwrd(j,i) = initval
-        exportFields%dlwr(j,i) = initval
-        exportFields%lhfx(j,i) = initval
-        exportFields%shfx(j,i) = initval
-        exportFields%prec(j,i) = initval
-        exportFields%wndu(j,i) = initval
-        exportFields%wndv(j,i) = initval
-        exportFields%rnof(j,i) = initval
-        exportFields%snof(j,i) = initval
-        exportFields%taux(j,i) = initval
-        exportFields%tauy(j,i) = initval
-        exportFields%wspd(j,i) = initval
-        exportFields%wdir(j,i) = initval
-        exportFields%ustr(j,i) = initval
-        exportFields%nflx(j,i) = initval
-        exportFields%sflx(j,i) = initval
-        exportFields%snow(j,i) = initval
-        exportFields%dswr(j,i) = initval
-        exportFields%rhoa(j,i) = initval
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      exportFields%psfc(j,i) = initval
+      exportFields%tsfc(j,i) = initval
+      exportFields%qsfc(j,i) = initval
+      exportFields%swrd(j,i) = initval
+      exportFields%lwrd(j,i) = initval
+      exportFields%dlwr(j,i) = initval
+      exportFields%lhfx(j,i) = initval
+      exportFields%shfx(j,i) = initval
+      exportFields%prec(j,i) = initval
+      exportFields%wndu(j,i) = initval
+      exportFields%wndv(j,i) = initval
+      exportFields%rnof(j,i) = initval
+      exportFields%snof(j,i) = initval
+      exportFields%taux(j,i) = initval
+      exportFields%tauy(j,i) = initval
+      exportFields%wspd(j,i) = initval
+      exportFields%wdir(j,i) = initval
+      exportFields%ustr(j,i) = initval
+      exportFields%nflx(j,i) = initval
+      exportFields%sflx(j,i) = initval
+      exportFields%snow(j,i) = initval
+      exportFields%dswr(j,i) = initval
+      exportFields%rhoa(j,i) = initval
 
-        importFields%sst(j,i) = initval
-        importFields%sit(j,i) = initval
-        importFields%msk(j,i) = initval
-        importFields%zo(j,i) = initval
-        importFields%ustar(j,i) = initval
+      importFields%sst(j,i) = initval
+      importFields%sit(j,i) = initval
+      importFields%msk(j,i) = initval
+      importFields%zo(j,i) = initval
+      importFields%ustar(j,i) = initval
 
-        ldmskb(j,i) = mddom%ldmsk(j,i)
-        wetdry(j,i) = 0
-      end do
+      ldmskb(j,i) = mddom%ldmsk(j,i)
+      wetdry(j,i) = 0
     end do
 
     if ( icopcpl == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            exportFields3d%u(j,i,k) = initval
-            exportFields3d%v(j,i,k) = initval
-            exportFields3d%w(j,i,k) = initval
-            exportFields3d%t(j,i,k) = initval
-            exportFields3d%q(j,i,k) = initval
-            exportFields3d%cldfrc(j,i,k) = initval
-            exportFields3d%cldlwc(j,i,k) = initval
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        exportFields3d%u(j,i,k) = initval
+        exportFields3d%v(j,i,k) = initval
+        exportFields3d%w(j,i,k) = initval
+        exportFields3d%t(j,i,k) = initval
+        exportFields3d%q(j,i,k) = initval
+        exportFields3d%cldfrc(j,i,k) = initval
+        exportFields3d%cldlwc(j,i,k) = initval
       end do
     end if
 
