@@ -108,32 +108,31 @@ module mod_slice
     integer(ik4) :: i , j , k , n
 
     if ( idynamic == 3 ) then
-
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
         atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
         atms%pf3d(j,i,k) = p00 * &
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-        atms%pf3d(j,i,1) = atms%pf3d(j,i,2) * (1.0_rkx + egrav * &
-            (atms%zq(j,i,2)-atms%zq(j,i,1)) / (rgas*atms%tv3d(j,i,1)))
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
+                      (atms%zq(j,i,1)-atms%za(j,i,1))
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         atms%tp2d(j,i) = atms%tb3d(j,i,kz) * &
                             (atms%ps2d(j,i)/atms%pb3d(j,i,kz))**rovcp
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (p00/atms%pb3d(j,i,k))**rovcp
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%qxb3d(j,i,k,iqv) = max(atms%qxb3d(j,i,k,iqv),minqq)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
-                      k = 1:kz , n = iqfrst:iqlst )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                      k = 1:kz, n = iqfrst:iqlst )
         if ( atms%qxb3d(j,i,k,n) < 1.0e-16_rkx ) then
           atms%qxb3d(j,i,k,n) = d_zero
         end if
@@ -145,11 +144,11 @@ module mod_slice
           end if
         end do
       end if
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%rhb3d(j,i,k) = min(max(atms%qxb3d(j,i,k,iqv) / &
                            atms%qsb3d(j,i,k),rhmin),rhmax)
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%wpx3d(j,i,k) = -egrav*atms%rhob3d(j,i,k) * &
                   d_half*(mo_atm%w(j,i,k+1)+mo_atm%w(j,i,k))
       end do
@@ -176,19 +175,19 @@ module mod_slice
 
     else
 
-      do concurrent ( j = jx1:jx2 , i = ix1:ix2 )
+      do concurrent ( j = jx1:jx2, i = ix1:ix2 )
         rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
-      do concurrent ( j = jd1:jd2 , i = id1:id2 )
+      do concurrent ( j = jd1:jd2, i = id1:id2 )
         rpsdotb(j,i) = d_one/sfs%psdotb(j,i)
       end do
 
-      do concurrent ( j = jd1:jd2 , i = id1:id2 , k = 1:kz )
+      do concurrent ( j = jd1:jd2, i = id1:id2, k = 1:kz )
         atms%ubd3d(j,i,k) = atm2%u(j,i,k)*rpsdotb(j,i)
         atms%vbd3d(j,i,k) = atm2%v(j,i,k)*rpsdotb(j,i)
       end do
 
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         atms%ubx3d(j,i,k) = d_rfour *                        &
                 (atms%ubd3d(j,i,k)   + atms%ubd3d(j,i+1,k) + &
                  atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k))
@@ -196,11 +195,11 @@ module mod_slice
                 (atms%vbd3d(j,i,k)   + atms%vbd3d(j,i+1,k) + &
                  atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k))
       end do
-      do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
+      do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz )
         atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)
         atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqq)
       end do
-      do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = iqfrst:iqlst )
+      do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz, n = iqfrst:iqlst )
         atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),d_zero)
       end do
       if ( ipptls == 5 ) then
@@ -209,92 +208,92 @@ module mod_slice
         end do
       end if
       if ( ichem == 1 ) then
-        do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = 1:ntr )
+        do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz, n = 1:ntr )
           atms%chib3d(j,i,k,n) = max(atm2%chi(j,i,k,n)*rpsb(j,i),d_zero)
         end do
       end if
 
       if ( ipptls == 1 ) then
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
                   (d_one + ep1*atms%qxb3d(j,i,k,iqv) - atms%qxb3d(j,i,k,iqc))
         end do
       else if ( ipptls > 1 ) then
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
                   (d_one + ep1*atms%qxb3d(j,i,k,iqv) - &
                   atms%qxb3d(j,i,k,iqc) - atms%qxb3d(j,i,k,iqi) - &
                   atms%qxb3d(j,i,k,iqr) - atms%qxb3d(j,i,k,iqs))
         end do
       else
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
                   (d_one + ep1*atms%qxb3d(j,i,k,iqv))
         end do
       end if
 
       if ( idynamic == 2 ) then
-        do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
+        do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kz )
           atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atms%pb3d(j,i,k) = atm0%pr(j,i,k) + atms%ppb3d(j,i,k)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           atms%ps2d(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           atms%pf3d(j,i,1) = ptop*d_1000
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           atms%pf3d(j,i,kzp1) = atms%ps2d(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
-          atms%pf3d(j,i,1) = atms%pb3d(j,i,1) - egrav * atms%rhob3d(j,i,1) * &
-                        (atms%zq(j,i,1)-atms%za(j,i,1))
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kz )
+          atms%pf3d(j,i,k) = atm0%pf(j,i,k) + &
+                     d_half*(atms%ppb3d(j,i,k-1)+atms%ppb3d(j,i,k))
         end do
       else
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
           atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
           atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000
         end do
       end if
 
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         atms%tp2d(j,i) = atms%tb3d(j,i,kz) * &
                             (atms%ps2d(j,i)/atms%pb3d(j,i,kz))**rovcp
       end do
 
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz)
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (p00/atms%pb3d(j,i,k))**rovcp
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
       end do
 
       if ( idynamic == 2 ) then
-        do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kzp1 )
+        do concurrent ( j = jx1:jx2, i = ix1:ix2, k = 1:kzp1 )
           atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz)
           atms%wpx3d(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
                          (atms%wb3d(j,i,k) + atms%wb3d(j,i,k+1))
         end do
       else
         ! Omega in the hydrostatic model is in cb/s
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
         end do
         atms%wb3d(:,:,1) = d_zero
         atms%wb3d(:,:,kzp1) = d_zero
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
           atms%wb3d(j,i,k) = -d_half*regrav * &
                      (atms%wpx3d(j,i,k-1)/atms%rhob3d(j,i,k-1) + &
                       atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k))
@@ -305,7 +304,7 @@ module mod_slice
         ! compute the height at full (za) and half (zq) sigma levels:
         ! CONSTANT FOR NON-HYDROSTATIC
         !
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
           atms%zq(j,i,kzp1) = d_zero
         end do
         do k = kz , 1, -1
@@ -317,18 +316,18 @@ module mod_slice
             end do
           end do
         end do
-        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           atms%za(j,i,k) = d_half*(atms%zq(j,i,k) + atms%zq(j,i,k+1))
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
           atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
         end do
       end if
 
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
         atms%qsb3d(j,i,k) = pfwsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         atms%rhb3d(j,i,k) = min(max(atms%qxb3d(j,i,k,iqv) / &
                      atms%qsb3d(j,i,k),rhmin),rhmax)
       end do
