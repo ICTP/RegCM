@@ -819,7 +819,9 @@ module mod_advection
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      fg(:,:,:) = d_zero
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        fg(j,i,k) = d_zero
+      end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
         if ( f(j,i,k,n)   > minqq * ps(j,i) .and. &
              f(j,i,k-1,n) > minqq * ps(j,i) ) then
@@ -857,7 +859,9 @@ module mod_advection
       call time_begin(subroutine_name,idindx)
 #endif
       do n = n1 , n2
-        fg(:,:,:) = d_zero
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          fg(j,i,k) = d_zero
+        end do
         if ( ind == 0 ) then
           do k = 2 , kz
             do i = ici1 , ici2
@@ -953,7 +957,9 @@ module mod_advection
               end if
             end do
           end do
-          fg(:,:,2:kz) = fg(:,:,2:kz) * svv(jci1:jci2,ici1:ici2,2:kz)
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            fg(j,i,k) = fg(j,i,k) * svv(j,i,k)
+          end do
         end if
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
           ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
