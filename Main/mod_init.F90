@@ -231,8 +231,8 @@ module mod_init
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-          mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-                      (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * mo_atm%rho(j,i,1) * &
+                      (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2))
         end do
 
         call exchange_lr(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)
