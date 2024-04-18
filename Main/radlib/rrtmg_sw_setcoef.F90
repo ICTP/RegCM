@@ -3,7 +3,7 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
-      module rrtmg_sw_setcoef
+module rrtmg_sw_setcoef
 
 !----------------------------------------------------------------------------
 ! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
@@ -36,21 +36,21 @@
 
 ! ------- Modules -------
 
-      use parkind, only : im => kind_im, rb => kind_rb
-      use parrrsw, only : mxmol
-      use rrsw_ref, only : pref, preflog, tref
-      use rrsw_vsn, only : hvrset, hnamset
+  use parkind, only : im => kind_im, rb => kind_rb
+  use parrrsw, only : mxmol
+  use rrsw_ref, only : pref, preflog, tref
+  use rrsw_vsn, only : hvrset, hnamset
 
-      implicit none
+  implicit none
 
-      contains
+  contains
 
 !----------------------------------------------------------------------------
-      subroutine setcoef_sw(nlayers, pavel, tavel, pz, tz, tbound, coldry, wkl, &
-                            laytrop, layswtch, laylow, jp, jt, jt1, &
-                            co2mult, colch4, colco2, colh2o, colmol, coln2o, &
-                            colo2, colo3, fac00, fac01, fac10, fac11, &
-                            selffac, selffrac, indself, forfac, forfrac, indfor)
+    subroutine setcoef_sw(nlayers, pavel, tavel, pz, tz, tbound, coldry, wkl, &
+                          laytrop, layswtch, laylow, jp, jt, jt1, &
+                          co2mult, colch4, colco2, colh2o, colmol, coln2o, &
+                          colo2, colo3, fac00, fac01, fac10, fac11, &
+                          selffac, selffrac, indself, forfac, forfrac, indfor)
 !----------------------------------------------------------------------------
 !
 ! Purpose:  For a given atmosphere, calculate the indices and
@@ -133,7 +133,6 @@
       integer(kind=im) :: lay
       integer(kind=im) :: jp1
 
-      real(kind=rb) :: stpfac
       real(kind=rb) :: tbndfrac
       real(kind=rb) :: t0frac
       real(kind=rb) :: plog
@@ -146,9 +145,9 @@
       real(kind=rb) :: co2reg
       real(kind=rb) :: compfp
 
+      real(kind=rb) , parameter :: stpfac = 296._rb/1013._rb
 
 ! Initializations
-      stpfac = 296._rb/1013._rb
 
       indbound = int(tbound - 159._rb,im)
       tbndfrac = tbound - int(tbound,im)
@@ -212,7 +211,7 @@
 ! Set up factors needed to separately include the water vapor
 ! foreign-continuum in the calculation of absorption coefficient.
 
-         forfac(lay) = scalefac / (1.+water)
+         forfac(lay) = scalefac / (1.0_rb+water)
          factor = (332.0_rb-tavel(lay))/36.0_rb
          indfor(lay) = min(2, max(1, int(factor)))
          forfrac(lay) = factor - real(indfor(lay),kind=rb)
@@ -258,7 +257,7 @@
 ! Set up factors needed to separately include the water vapor
 ! foreign-continuum in the calculation of absorption coefficient.
 
-         forfac(lay) = scalefac / (1.+water)
+         forfac(lay) = scalefac / (1.0_rb+water)
          factor = (tavel(lay)-188.0_rb)/36.0_rb
          indfor(lay) = 3
          forfrac(lay) = factor - 1.0_rb
@@ -359,9 +358,9 @@
            2.0887e+02_rb, 2.0340e+02_rb, 1.9792e+02_rb, 1.9290e+02_rb, 1.8809e+02_rb, &
            1.8329e+02_rb, 1.7849e+02_rb, 1.7394e+02_rb, 1.7212e+02_rb /)
 
-      end subroutine swatmref
+    end subroutine swatmref
 
-      end module rrtmg_sw_setcoef
+end module rrtmg_sw_setcoef
 
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
