@@ -308,8 +308,8 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-              (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+            mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * mo_atm%rho(j,i,1) * &
+              (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2))
           end do
         end do
 
