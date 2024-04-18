@@ -12,6 +12,10 @@
         }
       ],
       [
+        "ExtractGroundHeight",
+        {}
+      ],
+      [
         "SaveVariableToDisk",
         {
           "fill_value": "1e+20",
