@@ -88,9 +88,13 @@ module mod_clm_h2osfc
           d = 0.0_rk8
           sigma = 1.0e3_rk8 * micro_sigma(c) ! convert to mm
           do l = 1 , 10
-            fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
+            if ( d**2/(2.0_rk8*sigma**2) < 25.0_rkx ) then
+              fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
                     sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &
                     h2osfc(c)
+            else
+              fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))-h2osfc(c)
+            end if
             dfdd = 0.5_rk8*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))
             d = d - fd/dfdd
           end do
