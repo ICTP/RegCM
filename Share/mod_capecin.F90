@@ -449,7 +449,8 @@ module mod_capecin
       do j = jsta , jend
         do i = ista , iend
           tbt = t(i,j,kk)
-          qbt = q(i,j,kk)
+          ! Specific Humidity expected.
+          qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
           apebt = (p00/p(i,j,kk))**rovcp
           ! Scaling potential temperature & table index----------
           tthbt = tbt*apebt
@@ -478,7 +479,7 @@ module mod_capecin
           ppq = tq - aint(tq)
           iqtb = int(tq) + 1
           ! Keeping indices within the table---------------------
-          if(iqtb < 1)then
+          if ( iqtb < 1 ) then
             iqtb = 1
             ppq = d_zero
           end if
