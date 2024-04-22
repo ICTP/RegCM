@@ -1,5 +1,0 @@
-&ccsm_inparm
- archive_dir            = "./drv/"
-/
-&timemgr_inparm
-/
