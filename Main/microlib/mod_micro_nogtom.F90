@@ -140,7 +140,7 @@ module mod_micro_nogtom
   ! ice->liquid, snow->rain
   integer(ik4) , pointer , dimension(:) :: imelt
   ! array for sorting explicit terms
-  integer(ik4) , pointer , dimension(:) :: iorder
+  ! integer(ik4) , pointer , dimension(:) :: iorder
   logical , pointer , dimension(:) :: lfall
   logical , pointer , dimension(:,:) :: lind2
 
@@ -265,7 +265,7 @@ module mod_micro_nogtom
     call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:qliq')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
     call getmem3d(qsmix,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsmix')
-    call getmem1d(iorder,1,nqx,'cmicro:iorder')
+    ! call getmem1d(iorder,1,nqx,'cmicro:iorder')
     call getmem3d(ttendc,jci1,jci2,ici1,ici2,1,kz,'cmicro:ttendc')
     call getmem1d(convsrce,1,nqx,'cmicro:convsrce')
     call getmem3d(eew,jci1,jci2,ici1,ici2,1,kz,'cmicro:eew')
@@ -471,71 +471,35 @@ module mod_micro_nogtom
         call fatal(__FILE__,__LINE__, 'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end select
 #endif
-
+    ! Use do concurrent and array assignment properties to speed up loop block
+    ! It will work on CPUs with SIMD instructions and compiler with vectorization
+    ! program will help to compile the code into vectorization assembly 
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n = 1 , nqx
-              qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)
-            end do
-          end do
-        end do
+      do concurrent( n = 1 : nqx,j = jci1 : jci2,i = ici1 : ici2, k = 1 : kz)
+        qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ttendc(j,i,k) = mc2mo%tten(j,i,k)
-          end do
-        end do
-      end do
+      ttendc(jci1:jci2,ici1:ici2,1:kz) = mc2mo%tten(jci1:jci2,ici1:ici2,1:kz)
     else
-      ! Decouple tendencies
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n = 1 , nqx
-              qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
-            end do
-          end do
-        end do
+    ! Decouple tendencies
+      do concurrent( n = 1 : nqx,j = jci1 : jci2,i = ici1 : ici2, k = 1 : kz)
+        qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)/ mo2mc%psb(j,i)
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ttendc(j,i,k) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
-          end do
-        end do
+        ttendc(jci1:jci2,ici1:ici2,k) = mc2mo%tten(jci1:jci2,ici1:ici2,k) / mo2mc%psb(jci1:jci2,ici1:ici2)
       end do
     end if
 
     ! Define the initial array qx
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nqx
-            qx(n,j,i,k) = mo2mc%qxx(j,i,k,n)
-          end do
-        end do
-      end do
+    do concurrent( k = 1 : kz,i = ici1 : ici2,j = jci1 : jci2, n = 1 : nqx)
+      qx(n,j,i,k) = mo2mc%qxx(j,i,k,n)
     end do
 
     ! Define the initial array qx
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tx(j,i,k) = mo2mc%t(j,i,k)
-        end do
-      end do
-    end do
+    tx(jci1:jci2,ici1:ici2,1:kz) = mo2mc%t(jci1:jci2,ici1:ici2,1:kz)
 
     ! Delta pressure
     do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          dpfs(j,i,k) = mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k)
-        end do
-      end do
+      dpfs(jci1:jci2,ici1:ici2,k) = mo2mc%pfs(jci1:jci2,ici1:ici2,k+1)-mo2mc%pfs(jci1:jci2,ici1:ici2,k)
     end do
 
     !-----------------------------------
@@ -550,28 +514,18 @@ module mod_micro_nogtom
     ! pf = Pressure on fuLL levels (Pa)
     ! Define a new array for detrainment
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          qliq(j,i,k) = max(min(d_one,((max(rtice,min(tzero, &
-                        tx(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
-        end do
-      end do
-    end do
-
+    qliq(jci1:jci2,ici1:ici2,1:kz) = max(min(d_one,((max(rtice,min(tzero, &
+        tx(jci1:jci2,ici1:ici2,1:kz)))-rtice)*rtwat_rtice_r)**2),d_zero)
+ 
     ! Reset total precipitation variables
     pfplsx(:,:,:,:) = d_zero
 
     ! Compute supersaturations
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          eeliq(j,i,k) = c2es*exp(c3les*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4les)))
-          eeice(j,i,k) = c2es*exp(c3ies*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4ies)))
-          koop(j,i,k) = min(rkoop1-rkoop2*tx(j,i,k),eeliq(j,i,k)/eeice(j,i,k))
-        end do
-      end do
-    end do
+    eeliq(jci1:jci2,ici1:ici2,1:kz) = c2es*exp(c3les*((tx(jci1:jci2,ici1:ici2,1:kz)-tzero)/(tx(jci1:jci2,ici1:ici2,1:kz)-c4les)))
+    eeice(jci1:jci2,ici1:ici2,1:kz) = c2es*exp(c3ies*((tx(jci1:jci2,ici1:ici2,1:kz)-tzero)/(tx(jci1:jci2,ici1:ici2,1:kz)-c4ies)))
+    koop(jci1:jci2,ici1:ici2,1:kz) = min(rkoop1-rkoop2*tx(jci1:jci2,ici1:ici2,1:kz), &
+      eeliq(jci1:jci2,ici1:ici2,1:kz)/eeice(jci1:jci2,ici1:ici2,1:kz))
+ 
 
     !-------------------------------------
     ! Initial enthalpy and total water diagnostics
@@ -586,22 +540,8 @@ module mod_micro_nogtom
       tenqkp(:,:,:,:) = d_zero
 
       ! Record the tendencies
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            do n = 1 , nqx
-              tenqkp(n,j,i,k) = qxtendc(n,j,i,k)
-            end do
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tentkp(j,i,k) = ttendc(j,i,k)
-          end do
-        end do
-      end do
+      tenqkp(1:nqx,jci1:jci2,ici1:ici2,1:kz) = qxtendc(1:nqx,jci1:jci2,ici1:ici2,1:kz)
+      tentkp(jci1:jci2,ici1:ici2,1:kz) = ttendc(jci1:jci2,ici1:ici2,1:kz)
 
       ! initialize the flux arrays
       sumq0(:,:,:)     = d_zero
@@ -635,12 +575,8 @@ module mod_micro_nogtom
         end do
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            sumh0(j,i,k) = sumh0(j,i,k)/mo2mc%pfs(j,i,k+1)
-          end do
-        end do
-      end do
+        sumh0(jci1:jci2,ici1:ici2,k) = sumh0(jci1:jci2,ici1:ici2,k)/mo2mc%pfs(jci1:jci2,ici1:ici2,k+1)
+     end do
     end if ! budget_compute
 
     ! -------------------------------
@@ -1749,79 +1685,83 @@ module mod_micro_nogtom
               max(sinksum(n),max(qx0(n),verylowqx))
           end do
           !--------------------------------------------------------
-          ! now sort ratio to find out which species run out first
+          ! no need to sort ratio to find out which species run out first because the process have nothing to do with outcomes
           !--------------------------------------------------------
-          iorder = argsort(ratio)
+          ! iorder = argsort(ratio)
 
           !--------------------------------------------
           ! scale the sink terms, in the correct order,
-          ! recalculating the scale factor each time
+          ! no need to recalculating the scale factor each time for sinksum end up the same as before
           !--------------------------------------------
-          sinksum(:) = d_zero
+          ! sinksum(:) = d_zero
           !----------------
-          ! recalculate sum
+          ! no need for recalculating sum cause outcome of recalculate correspond to sinksum before
           !----------------
-          do n = 1 , nqx
-            do jn = 1 , nqx
-              jo = iorder(n)
-              lind2(jo,jn) = qsexp(jo,jn) < d_zero
-              sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
-            end do
-          end do
+          ! do n = 1 , nqx
+          !    do jn = 1 , nqx
+          !      jo = iorder(n)
+          !      lind2(jo,jn) = qsexp(jo,jn) < d_zero
+          !      sinksum(jo) = sinksum(jo) - qsexp(jo,jn) 
+          !    end do
+          !  end do
+          lind2=qsexp < d_zero
           !---------------------------
-          ! recalculate scaling factor
+          ! no need for recalculate scaling factor cause outcome of recalculate correspond to ratio before
           !---------------------------
-          do n = 1 , nqx
-            jo = iorder(n)
-            ratio(jo) = max(qx0(jo),verylowqx) / &
-               max(sinksum(jo),max(qx0(jo),verylowqx))
-          end do
+          !  do n = 1 , nqx
+          !    jo = iorder(n)
+          !    ratio(jo) = max(qx0(jo),verylowqx) / &
+          !       max(sinksum(jo),max(qx0(jo),verylowqx))
+          !  end do
           !------
-          ! scale
+          ! scale in a patttern we dropout the use of iorder, and keep the correctness of outcome
           !------
           do n = 1 , nqx
-            do jn = 1 , nqx
-              jo = iorder(n)
-              if ( lind2(jo,jn) ) then
-                qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
-                qsexp(jn,jo) = qsexp(jn,jo)*ratio(jo)
-              end if
-            end do
+             do jn = 1 , nqx
+                if ( lind2(n,jn) ) then
+                   qsexp(n,jn) = qsexp(n,jn)*ratio(n)
+                   qsexp(jn,n) = qsexp(jn,n)*ratio(n)
+                end if
+             end do
           end do
 
           ! SOLVE THE LINEAR SYSTEM
 
+
+
+
           ! Set the LHS of equation
+          ! To faster the process of following block and emit if else statement
+          ! The code after modified is divided into three part with correctness keeping on
+          ! Non-diagonals: microphysical source terms
           do n = 1 , nqx
-            do jn = 1 , nqx
-              ! Diagonals: microphysical sink terms+transport
-              if ( jn == n ) then
-                qlhs(jn,n) = d_one + fallsink(n)
-                do jo = 1 , nqx
-                  qlhs(jn,n) = qlhs(jn,n) + qsimp(jo,jn)
-                end do
-                ! Non-diagonals: microphysical source terms
-              else
+             do jn = 1 , nqx
                 ! Here is the delta T - missing from doc.
                 qlhs(jn,n) = -qsimp(jn,n)
-              end if
-              if ( is_nan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
-            end do
+             end do
           end do
-
+          ! Diagonals: microphysical sink terms+transport
+          do n = 1 , nqx
+             qlhs(n,n) = d_one + fallsink(n)+sum(qsimp(:,n))
+          end do
+          do n = 1 , nqx
+             do jn = 1 , nqx
+                if ( is_nan(qlhs(jn,n)) ) qlhs(jn,n) = verylowqx
+             end do
+          end do
           ! Set the RHS of equation
 
           do n = 1 , nqx
-            ! Sum the explicit source and sink
-            rexplicit = d_zero
-            do jn = 1 , nqx
-              ! Positive, since summed over 2nd index
-              rexplicit = rexplicit + qsexp(n,jn)
-            end do
-            qxn(n) = qx0(n) + rexplicit
-            if ( is_nan(qxn(n)) ) qxn(n) = verylowqx
+             ! Sum the explicit source and sink
+             do jn = 1 , nqx
+                ! Positive, since summed over 2nd index
+                ! Dropout the use of rexplicit so that save some instruction spending
+                qxn(jn) = qx0(jn) + qsexp(jn,n)
+             end do
           end do
-
+          do n = 1 , nqx
+             if ( is_nan(qxn(n)) ) qxn(n) = verylowqx
+          end do
           call mysolve
 
           !-------------------------------------------------------------------
@@ -1854,41 +1794,19 @@ module mod_micro_nogtom
     end do     ! kz : end of vertical loop
 
     if ( idynamic == 3 ) then
-      do n = 1 , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)
-            end do
-          end do
-        end do
+      do concurrent(j = jci1 : jci2,i = ici1 : ici2, k = 1 : kz,n = 1 : nqx)
+         mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mc2mo%tten(j,i,k) = ttendc(j,i,k)
-          end do
-        end do
-      end do
+      mc2mo%tten(jci1:jci2,ici1:ici2,1:kz) = ttendc(jci1:jci2,ici1:ici2,1:kz)
     else
       !
       ! Couple tendencies with pressure
       !
-      do n = 1 , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)*mo2mc%psb(j,i)
-            end do
-          end do
-        end do
+      do concurrent(j = jci1 : jci2,i = ici1 : ici2, k = 1 : kz,n = 1 : nqx)
+         mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)*mo2mc%psb(j,i)
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mc2mo%tten(j,i,k) = ttendc(j,i,k)*mo2mc%psb(j,i)
-          end do
-        end do
+         mc2mo%tten(jci1:jci2,ici1:ici2,k) = ttendc(jci1:jci2,ici1:ici2,k)*mo2mc%psb(jci1:jci2,ici1:ici2)
       end do
     end if
     !
@@ -1923,34 +1841,26 @@ module mod_micro_nogtom
           end do
         end do
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            dp = dpfs(j,i,k)
-            dtgdp = dt*egrav/dp
-            rain = d_zero
-            rainh = d_zero
-            do n = 1 , nqx
-              rain = rain + dt*pfplsx(n,j,i,k+1)
-              if ( iphase(n) == 1 ) then
-                rainh = rainh+wlhvocp*dtgdp*pfplsx(n,j,i,k+1)*dp
-              else if ( iphase(n) == 2 ) then
-                rainh = rainh+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dp
-              end if
-            end do
-            sumq1(j,i,k) = sumq1(j,i,k) + rain
-            sumh1(j,i,k) = sumh1(j,i,k) - rainh
+        ! The code modified before include necessary information like
+            ! dp = dpfs(j,i,k)  dtgdp = dt*egrav/dp and rainh = rainh + wlhvocp*dtgdp*pfplsx(n,j,i,k+1)*dp
+            ! Notice that dp * dtgdp = dt * egrav, thus we rewrite the expression of rainh
+            ! And we remove the temp variables like rain and rainh to speed up the block
+        do concurrent(j=jci1:jci2,i=ici1:ici2,k=1:kz)
+          do n = 1 , nqx
+            sumq1(j,i,k) = sumq1(j,i,k) + dt*pfplsx(n,j,i,k+1)
+            if ( iphase(n) == 1 ) then
+                sumh1(j,i,k) = sumh1(j,i,k) -wlhvocp*dt*egrav*pfplsx(n,j,i,k+1)
+            else if ( iphase(n) == 2 ) then
+                sumh1(j,i,k) = sumh1(j,i,k) -wlhsocp*dt*egrav*pfplsx(n,j,i,k+1)
+            end if
           end do
-        end do
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            sumh1(j,i,k) = sumh1(j,i,k) / mo2mc%pfs(j,i,k+1)
-            errorq(j,i) = errorq(j,i) + (sumq1(j,i,k)-sumq0(j,i,k))
-            errorh(j,i) = errorh(j,i) + (sumh1(j,i,k)-sumh0(j,i,k))
-          end do
-        end do
+          sumh1(jci1:jci2, ici1:ici2,k) = sumh1(jci1:jci2, ici1:ici2,k) / mo2mc%pfs(jci1:jci2, ici1:ici2,k+1)
+          errorq(jci1:jci2, ici1:ici2) = errorq(jci1:jci2, ici1:ici2) + &
+            (sumq1(jci1:jci2, ici1:ici2,k)-sumq0(jci1:jci2, ici1:ici2,k))
+          errorh(jci1:jci2, ici1:ici2) = errorh(jci1:jci2, ici1:ici2) + &
+            (sumh1(jci1:jci2, ici1:ici2,k)-sumh0(jci1:jci2, ici1:ici2,k))
       end do
 
       lerror = .false.
@@ -1993,31 +1903,21 @@ module mod_micro_nogtom
 
     ! Rain+liquid, snow+ice
     ! for each level k = 1 , kz, sum of the same phase elements
-    do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nqx
-            if ( iphase(n) == 1 ) then
-              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-            else if ( iphase(n) == 2 ) then
-              pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
-            end if
-          end do
-        end do
-      end do
-    end do
-    !
-    if ( ichem == 1 ) then
+    do concurrent(n = 1 : nqx,j = jci1 : jci2,i = ici1 : ici2, k = 1 : kz)
+      if ( iphase(n) == 1 ) then
+         pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
+      else if ( iphase(n) == 2 ) then
+         pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
+      end if
+   end do
+   !
+   if ( ichem == 1 ) then
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mc2mo%rainls(j,i,k) = pfplsl(j,i,k+1)
-            ! save the 3D precip for chemical washout
-            mc2mo%rembc(j,i,k) =  mc2mo%rainls(j,i,k)
-          end do
-        end do
+         mc2mo%rainls(jci1:jci2, ici1:ici2,k) = pfplsl(jci1:jci2, ici1:ici2,k+1)
       end do
-    end if
+      ! save the 3D precip for chemical washout
+      mc2mo%rembc(jci1:jci2, ici1:ici2,1:kz) =  mc2mo%rainls(jci1:jci2, ici1:ici2,1:kz)
+   end if
     !--------------------------------------------------------------
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
@@ -2163,10 +2063,8 @@ module mod_micro_nogtom
       real(rkx) :: aamax , dum , xsum , swap
       ! find implicit scaling information
       do n = 1 , nqx
-        aamax = d_zero
-        do jn = 1 , nqx
-          if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
-        end do
+        ! We use array assignment properties to better vectorization
+        aamax = maxval(abs(qlhs(n,:)))
         if ( aamax == d_zero ) then
           do nn = 1 , nqx
             write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
@@ -2183,8 +2081,7 @@ module mod_micro_nogtom
       ! solve A x = b-------------> LU x = b---------> Ly=b
       !
       do n = 1 , nqx
-        ! This is the loop over columns
-        if ( n > 1 ) then
+        ! This is the loop over columns, no need for if (n > 1) cause the loop it self work while 1 <= n - 1 namely n > 1
           do m = 1 , n - 1
             xsum = qlhs(m,n)
             do kk = 1 , m - 1
@@ -2192,18 +2089,15 @@ module mod_micro_nogtom
             end do
             qlhs(m,n) = xsum
           end do
-        end if
         ! Initialize the search for largest pivot element.
         aamax = d_zero
         imax = n
         do m = n , nqx
           xsum = qlhs(m,n)
-          if ( n > 1 ) then
             do kk = 1 , n - 1
               xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
             end do
             qlhs(m,n) = xsum
-          end if
           dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
           if ( dum >= aamax ) then
             ! better than the best so far
@@ -2278,31 +2172,31 @@ module mod_micro_nogtom
    !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
    ! end subroutine addpath
 
-    pure function argsort(a) result(b)
-      implicit none
-      real(rk8) , intent(in) :: a(:)
-      integer(ik4) , dimension(size(a)) :: b
-      integer :: n , i , imin , temp1
-      real(rk8) :: temp2
-      real(rk8) , dimension(size(a)) :: a2
-      a2 = a
-      n = size(a)
-      do i = 1 , n
-        b(i) = i
-      end do
-      if ( n == 1 ) return
-      do i = 1 , n-1
-        imin = minloc(a2(i:),1) + i - 1
-        if ( imin /= i ) then
-          temp2 = a2(i)
-          a2(i) = a2(imin)
-          a2(imin) = temp2
-          temp1 = b(i)
-          b(i) = b(imin)
-          b(imin) = temp1
-        end if
-      end do
-    end function argsort
+    ! pure function argsort(a) result(b)
+    !   implicit none
+    !   real(rk8) , intent(in) :: a(:)
+    !   integer(ik4) , dimension(size(a)) :: b
+    !   integer :: n , i , imin , temp1
+    !   real(rk8) :: temp2
+    !   real(rk8) , dimension(size(a)) :: a2
+    !   a2 = a
+    !   n = size(a)
+    !   do i = 1 , n
+    !     b(i) = i
+    !   end do
+    !   if ( n == 1 ) return
+    !   do i = 1 , n-1
+    !     imin = minloc(a2(i:),1) + i - 1
+    !     if ( imin /= i ) then
+    !       temp2 = a2(i)
+    !       a2(i) = a2(imin)
+    !       a2(imin) = temp2
+    !       temp1 = b(i)
+    !       b(i) = b(imin)
+    !       b(imin) = temp1
+    !     end if
+    !   end do
+    ! end function argsort
 
   end subroutine nogtom
 
