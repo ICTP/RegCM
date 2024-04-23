@@ -682,7 +682,7 @@ module mod_micro_nogtom
             ! Detrained water treated here
             if ( lmicro .and. abs(qe_expanded(j,i,k)) > activqx ) then
               sumq0(j,i,k) = sumq0(j,i,k) + qe_expanded(j,i,k)*dp_expanded(j,i,k)*regrav
-              tnew_expanded(j,i,k) = tnew_expanded(j,i,k)-(wlhvocp*qliq(j,i,k)+wlhsocp*(d_one-alfaw))*qe_expanded(j,i,k)
+              tnew_expanded(j,i,k) = tnew_expanded(j,i,k)-(wlhvocp*qliq(j,i,k)+wlhsocp*(d_one-qliq(j,i,k)))*qe_expanded(j,i,k)
 
             end if
             sumh0(j,i,k) = sumh0(j,i,k) + dp*tnew
