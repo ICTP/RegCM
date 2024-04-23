@@ -246,6 +246,16 @@ module mod_micro_nogtom
   real(rkx) , parameter :: activcf = zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
+  !SCALAR EXPANSION MATRICES
+  real(rkx) , pointer, dimension(:,:,:) :: tnew_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: dp_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: qe_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: tmpl_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: tmpi_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: zdelta_expanded
+  real(rkx) , pointer, dimension(:,:,:) :: phases_expanded
+  real(rkx) , pointer, dimension(:,:) :: cloud_sum_calc
+
   abstract interface
     subroutine voidsub
       implicit none
@@ -301,6 +311,17 @@ module mod_micro_nogtom
     call getmem2d(lind2,1,nqx,1,nqx,'cmicro:lind2')
     call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsx')
     call getmem3d(dpfs,jci1,jci2,ici1,ici2,1,kz,'cmicro:dpfs')
+
+    !SCALAR EXPANSION MEMORY ALLOCATION 
+    call getmem3d(tnew_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:tnew_expanded')
+    call getmem3d(dp_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:dp_expanded')
+    call getmem3d(qe_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:qe_expanded')
+    call getmem3d(tmpl_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:tmpl_expanded')
+    call getmem3d(tmpi_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:tmpi_expanded')
+    call getmem3d(zdelta_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:zdelta_expanded')
+    call getmem3d(phases_expanded,jci1,jci2,ici1,ici2,1,kz,'cmicro:phases_expanded')
+    call getmem2d(cloud_sum_calc,jci1,jci2,ici1,ici2,'cmicro:cloud_sum_calc')
+
     if ( budget_compute ) then
       call getmem3d(sumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumq0')
       call getmem3d(sumh0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumh0')
@@ -342,6 +363,7 @@ module mod_micro_nogtom
     vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
 
     ! Set lfall
+    !$omp parallel do
     do n = 1 , nqx
       if ( vqx(n) > d_zero ) then
         lfall(n) = .true. !falling species
@@ -353,7 +375,11 @@ module mod_micro_nogtom
     ! modify autoconversion threshold dependent on:
     ! land (polluted, high ccn, smaller droplets, higher threshold)
     ! sea  (clean, low ccn, larger droplets, lower threshold)
+    
+    !dir$ ivdep
+    !$omp parallel do       !!REASON FOR OMMISION
     do i = ici1 , ici2
+      !$omp simd        
       do j = jci1 , jci2
         if ( ldmsk(j,i) == 1 ) then ! landmask =1 land
           xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
@@ -473,8 +499,10 @@ module mod_micro_nogtom
 #endif
 
     if ( idynamic == 3 ) then
+      !$omp parallel do 
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(4) collapse(2)
           do j = jci1 , jci2
             do n = 1 , nqx
               qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)
@@ -482,8 +510,10 @@ module mod_micro_nogtom
           end do
         end do
       end do
+     !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+            !$omp simd simdlen(4)
           do j = jci1 , jci2
             ttendc(j,i,k) = mc2mo%tten(j,i,k)
           end do
@@ -491,8 +521,10 @@ module mod_micro_nogtom
       end do
     else
       ! Decouple tendencies
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(4) collapse(2)
           do j = jci1 , jci2
             do n = 1 , nqx
               qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
@@ -500,8 +532,10 @@ module mod_micro_nogtom
           end do
         end do
       end do
+     !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+            !$omp simd simdlen(4)
           do j = jci1 , jci2
             ttendc(j,i,k) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
           end do
@@ -510,8 +544,10 @@ module mod_micro_nogtom
     end if
 
     ! Define the initial array qx
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+        !$omp simd simdlen(4) collapse(2)
         do j = jci1 , jci2
           do n = 1 , nqx
             qx(n,j,i,k) = mo2mc%qxx(j,i,k,n)
@@ -521,8 +557,10 @@ module mod_micro_nogtom
     end do
 
     ! Define the initial array qx
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+          !$omp simd simdlen(4)
         do j = jci1 , jci2
           tx(j,i,k) = mo2mc%t(j,i,k)
         end do
@@ -530,8 +568,10 @@ module mod_micro_nogtom
     end do
 
     ! Delta pressure
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+        !$omp simd          
         do j = jci1 , jci2
           dpfs(j,i,k) = mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k)
         end do
@@ -549,9 +589,11 @@ module mod_micro_nogtom
     ! Define pressure at full levels
     ! pf = Pressure on fuLL levels (Pa)
     ! Define a new array for detrainment
-
+    
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+        !$omp simd simdlen(8)
         do j = jci1 , jci2
           qliq(j,i,k) = max(min(d_one,((max(rtice,min(tzero, &
                         tx(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
@@ -560,11 +602,14 @@ module mod_micro_nogtom
     end do
 
     ! Reset total precipitation variables
+    !dir$ vector always
     pfplsx(:,:,:,:) = d_zero
 
     ! Compute supersaturations
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+        !$omp simd simdlen(8)
         do j = jci1 , jci2
           eeliq(j,i,k) = c2es*exp(c3les*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4les)))
           eeice(j,i,k) = c2es*exp(c3ies*((tx(j,i,k)-tzero)/(tx(j,i,k)-c4ies)))
@@ -582,12 +627,16 @@ module mod_micro_nogtom
     if ( budget_compute ) then
 
       ! Reset arrays
+      !dir$ vector always
       tentkp(:,:,:)  = d_zero
+      !dir$ vector always
       tenqkp(:,:,:,:) = d_zero
 
       ! Record the tendencies
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(4) collapse(2)
           do j = jci1 , jci2
             do n = 1 , nqx
               tenqkp(n,j,i,k) = qxtendc(n,j,i,k)
@@ -595,8 +644,10 @@ module mod_micro_nogtom
           end do
         end do
       end do
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(4)
           do j = jci1 , jci2
             tentkp(j,i,k) = ttendc(j,i,k)
           end do
@@ -604,38 +655,43 @@ module mod_micro_nogtom
       end do
 
       ! initialize the flux arrays
+      !dir$ vector always
       sumq0(:,:,:)     = d_zero
+      !dir$ vector always
       sumh0(:,:,:)     = d_zero
 
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(8)
           do j = jci1 , jci2
-            tnew = tx(j,i,k)
-            dp = dpfs(j,i,k)
-            qe = mo2mc%qdetr(j,i,k)
+            tnew_expanded(j,i,k) = tx(j,i,k)
+            dp_expanded(j,i,k) = dpfs(j,i,k)
+            qe_expanded(j,i,k) = mo2mc%qdetr(j,i,k)
 
             if ( k > 1 ) then
               sumq0(j,i,k) = sumq0(j,i,k-1) ! total water
               sumh0(j,i,k) = sumh0(j,i,k-1) ! liquid water temperature
             end if
 
-            tmpl = qx(iqql,j,i,k)+qx(iqqr,j,i,k)
-            tmpi = qx(iqqi,j,i,k)+qx(iqqs,j,i,k)
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq0(j,i,k) = sumq0(j,i,k)+(tmpl+tmpi+qx(iqqv,j,i,k))*dp*regrav
+            tmpl_expanded(j,i,k) = qx(iqql,j,i,k)+qx(iqqr,j,i,k)
+            tmpi_expanded(j,i,k) = qx(iqqi,j,i,k)+qx(iqqs,j,i,k)
+            tnew_expanded(j,i,k) = tnew_expanded(j,i,k) - wlhvocp*tmpl_expanded(j,i,k) - wlhsocp*tmpi_expanded(j,i,k)
+            sumq0(j,i,k) = sumq0(j,i,k)+(tmpl_expanded(j,i,k)+tmpi_expanded(j,i,k)+qx(iqqv,j,i,k))*dp_expanded(j,i,k)*regrav
 
             ! Detrained water treated here
-            if ( lmicro .and. abs(qe) > activqx ) then
-              sumq0(j,i,k) = sumq0(j,i,k) + qe*dp*regrav
-              alfaw = qliq(j,i,k)
-              tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
+            if ( lmicro .and. abs(qe_expanded(j,i,k)) > activqx ) then
+              sumq0(j,i,k) = sumq0(j,i,k) + qe_expanded(j,i,k)*dp_expanded(j,i,k)*regrav
+              tnew_expanded(j,i,k) = tnew_expanded(j,i,k)-(wlhvocp*qliq(j,i,k)+wlhsocp*(d_one-qliq(j,i,k)))*qe_expanded(j,i,k)
+
             end if
-            sumh0(j,i,k) = sumh0(j,i,k) + dp*tnew
+            sumh0(j,i,k) = sumh0(j,i,k) + dp_expanded(j,i,k)*tnew_expanded(j,i,k)
           end do
         end do
       end do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(8)
           do j = jci1 , jci2
             sumh0(j,i,k) = sumh0(j,i,k)/mo2mc%pfs(j,i,k+1)
           end do
@@ -646,17 +702,23 @@ module mod_micro_nogtom
     ! -------------------------------
     ! Define saturation values
     !---------------------------
+    !$omp parallel do
     do k = 1 , kz
       do i = ici1 , ici2
+        !$omp simd simdlen(8)
         do j = jci1 , jci2
           ! zdelta = 1 if t > tzero
           ! zdelta = 0 if t < tzero
-          zdelta = max(d_zero,sign(d_one,tx(j,i,k)-tzero))
+          zdelta_expanded(j,i,k) = max(d_zero,sign(d_one,tx(j,i,k)-tzero))
           !---------------------------------------------
           ! mixed phase saturation
           !--------------------------------------------
-          phases = qliq(j,i,k)
-          eewmt(j,i,k) = eeliq(j,i,k)*phases + eeice(j,i,k)*(d_one-phases)
+          ! phases = qliq(j,i,k)
+          ! eewmt(j,i,k) = eeliq(j,i,k)*phases + eeice(j,i,k)*(d_one-phases)
+
+          phases_expanded(j,i,k) = qliq(j,i,k)
+          eewmt(j,i,k) = eeliq(j,i,k)*phases_expanded(j,i,k) + eeice(j,i,k)*(d_one-phases_expanded(j,i,k))
+
           eewmt(j,i,k) = min(eewmt(j,i,k)/mo2mc%phs(j,i,k),maxsat)
           qsmix(j,i,k) = eewmt(j,i,k)
           ! ep1 = rwat/rgas - d_one
@@ -665,8 +727,9 @@ module mod_micro_nogtom
           ! ice saturation T < 273K
           ! liquid water saturation for T > 273K
           !--------------------------------------------
-          eew(j,i,k) = (zdelta*eeliq(j,i,k) + &
-               (d_one-zdelta)*eeice(j,i,k))/mo2mc%phs(j,i,k)
+          eew(j,i,k) = (zdelta_expanded(j,i,k)*eeliq(j,i,k) + &
+               (d_one-zdelta_expanded(j,i,k))*eeice(j,i,k))/mo2mc%phs(j,i,k)
+        
           eew(j,i,k) = min(eew(j,i,k),maxsat)
           !ice water saturation
           qsice(j,i,k) = min(eeice(j,i,k)/mo2mc%phs(j,i,k),maxsat)
@@ -689,16 +752,28 @@ module mod_micro_nogtom
     ! defined by cloudy layer below a layer with cloud frac <0.01
     !--------------------------------------------------------------
 
+    !dir$ vector always
     cldtopdist(:,:,:) = d_zero
+    !dir$ vector always
+    cloud_sum_calc(:,:) = d_zero
+    !$omp parallel do
     do k = 2 , kz
       do i = ici1 , ici2
+        !$omp simd simdlen(8)
         do j = jci1 , jci2
-          do kk = 2 , k
-            if ( mc2mo%fcc(j,i,kk-1) > cldtopcf .and. &
-                 mc2mo%fcc(j,i,kk)  <= cldtopcf ) then
-              cldtopdist(j,i,k) = cldtopdist(j,i,k) + mo2mc%delz(j,i,kk)
-            end if
-          end do
+          if ( mc2mo%fcc(j,i,k-1) > cldtopcf .and. &
+                mc2mo%fcc(j,i,k)  <= cldtopcf ) then
+            cloud_sum_calc(j,i) = cloud_sum_calc(j,i) + mo2mc%delz(j,i,k)
+          end if
+        end do
+      end do
+    end do
+    !$omp parallel do
+    do k = 2 , kz
+      do i = ici1 , ici2
+        !$omp simd simdlen(8)
+        do j = jci1 , jci2
+            cldtopdist(j,i,k) = cloud_sum_calc(j, i)
         end do
       end do
     end do
@@ -779,12 +854,15 @@ module mod_micro_nogtom
           ! each of these is a parametrization for a microphysical process.
           !--------------------------------------------------------
           !
+          !dir$ vector always
           qsexp(:,:)  = d_zero
+          !dir$ vector always
           qsimp(:,:)  = d_zero
           !
           !---------------------------------
           ! First guess microphysics
           !---------------------------------
+          !dir$ novector
           do n = 1 , nqx
             qx0(n)  = qx(n,j,i,k)
             qxfg(n) = qx0(n)
@@ -810,6 +888,7 @@ module mod_micro_nogtom
           end if
 
           qicetot = d_zero
+          !dir$ novector
           do n = 1 , nqx
             if ( iphase(n) == 2 ) then
               qicetot = qicetot + qxfg(n)
@@ -896,6 +975,7 @@ module mod_micro_nogtom
             !-------------------------------------------------------
             qpretot = d_zero
             if ( k > 1 ) then
+              !dir$ novector
               do n = 1 , nqx
                 if ( lfall(n) ) then
                   ! Source from layer above
@@ -906,6 +986,7 @@ module mod_micro_nogtom
                 endif
               end do
             else
+              !dir$ novector
               do n = 1 , nqx
                 if ( lfall(n) ) then
                   qpretot = qpretot + qxfg(n)
@@ -944,6 +1025,7 @@ module mod_micro_nogtom
             !     supercooled water enhancement at cloud top
             !
             !------------------------------------------------------------------
+            !dir$ novector
             do n = 1 , nqx
               if ( lfall(n) ) then
                 ! Sink to next layer, constant fall speed
@@ -1522,6 +1604,7 @@ module mod_micro_nogtom
                 chngmax = max(tdiff*cons1*rldcp,d_zero)
                 if ( chngmax > d_zero ) then
                   ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
+                  !dir$ novector
                   do n = 1, nqx
                     if ( iphase(n) == 2 ) then
                       m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
@@ -1597,6 +1680,7 @@ module mod_micro_nogtom
             ! of precipitation occuring in a portion of the grid
             !------------------------------------------------------------
             qpretot = d_zero
+            !dir$ novector
             do n = 1 , nqx
               if ( lfall(n) ) then
                 qpretot = qpretot + qxfg(n)
@@ -1731,7 +1815,9 @@ module mod_micro_nogtom
           ! this approach is inaccurate, but conserves -
           ! prob best can do with explicit (i.e. not implicit!) terms
           !----------------------------------------------------------
+          !dir$ vector always
           sinksum(:) = d_zero
+          !dir$ vector always
           lind2(:,:) = .false.
           !----------------------------
           ! collect sink terms and mark
@@ -1744,6 +1830,7 @@ module mod_micro_nogtom
           !---------------------------------------
           ! calculate overshoot and scaling factor
           !---------------------------------------
+          !dir$ novector
           do n = 1 , nqx
             ratio(n) = max(qx0(n),verylowqx) / &
               max(sinksum(n),max(qx0(n),verylowqx))
@@ -1757,6 +1844,7 @@ module mod_micro_nogtom
           ! scale the sink terms, in the correct order,
           ! recalculating the scale factor each time
           !--------------------------------------------
+          !dir$ vector always
           sinksum(:) = d_zero
           !----------------
           ! recalculate sum
@@ -1830,14 +1918,16 @@ module mod_micro_nogtom
           !  It is this scaled flux that must be used for source to next layer
           !-------------------------------------------------------------------
           do n = 1 , nqx
+            ! Generalized precipitation flux
+            ! this will be the source for the k
+            pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
+            ! Calculate fluxes in and out of box for conservation of TL
+            fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
+            ! Calculate the water variables tendencies
             chng = qxn(n) - qx0(n)
+#ifdef DEBUG
             if ( abs(chng) > 1.0e-16_rkx ) then
-              pfplsx(n,j,i,k+1) = fallsink(n)*qxn(n)*rdtgdp
-              ! Generalized precipitation flux
-              ! this will be the source for the k
-              ! Calculate fluxes in and out of box for conservation of TL
-              fluxq = convsrce(n) + fallsrce(n) - fallsink(n)*qxn(n)
-              ! Calculate the water variables tendencies
+#endif
               qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + chng*rdt
               ! Calculate the temperature tendencies
               if ( iphase(n) == 1 ) then
@@ -1845,15 +1935,17 @@ module mod_micro_nogtom
               else if ( iphase(n) == 2 ) then
                 ttendc(j,i,k) = ttendc(j,i,k)+wlhsocp*(chng-fluxq)*rdt
               end if
-            else
-              qxn(n) = qx0(n)
+#ifdef DEBUG
             end if
+#endif
           end do
+
         end do ! jx : end of longitude loop
       end do   ! iy : end of latitude loop
     end do     ! kz : end of vertical loop
 
     if ( idynamic == 3 ) then
+      !$omp parallel do
       do n = 1 , nqx
         do k = 1 , kz
           do i = ici1 , ici2
@@ -1863,6 +1955,8 @@ module mod_micro_nogtom
           end do
         end do
       end do
+      !dir$ ivdep
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -1874,6 +1968,7 @@ module mod_micro_nogtom
       !
       ! Couple tendencies with pressure
       !
+      !$omp parallel do
       do n = 1 , nqx
         do k = 1 , kz
           do i = ici1 , ici2
@@ -1883,6 +1978,7 @@ module mod_micro_nogtom
           end do
         end do
       end do
+      !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -1898,9 +1994,13 @@ module mod_micro_nogtom
     if ( budget_compute ) then
 
       ! Initialize the flux arrays
+      !dir$ vector always
       sumh1(:,:,:)     = d_zero
+      !dir$ vector always
       sumq1(:,:,:)     = d_zero
+      !dir$ vector always
       errorq(:,:)    = d_zero
+      !dir$ vector always
       errorh(:,:)    = d_zero
 
       do k = 1 , kz
@@ -1945,6 +2045,7 @@ module mod_micro_nogtom
       end do
       do k = 1 , kz
         do i = ici1 , ici2
+          !$omp simd simdlen(8) 
           do j = jci1 , jci2
             sumh1(j,i,k) = sumh1(j,i,k) / mo2mc%pfs(j,i,k+1)
             errorq(j,i) = errorq(j,i) + (sumq1(j,i,k)-sumq0(j,i,k))
@@ -1982,7 +2083,9 @@ module mod_micro_nogtom
 
     ! Sum fluxes over the levels
     ! Initialize fluxes
+    !dir$ vector always
     pfplsl(:,:,:) = d_zero
+    !dir$ vector always
     pfplsn(:,:,:) = d_zero
     mc2mo%rainls(:,:,:) = d_zero
 
@@ -1993,6 +2096,7 @@ module mod_micro_nogtom
 
     ! Rain+liquid, snow+ice
     ! for each level k = 1 , kz, sum of the same phase elements
+    !$omp parallel do
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -2006,10 +2110,12 @@ module mod_micro_nogtom
         end do
       end do
     end do
-    !
+    
     if ( ichem == 1 ) then
+    !$omp parallel do
       do k = 1 , kz
         do i = ici1 , ici2
+        !$omp simd simdlen(4) 
           do j = jci1 , jci2
             mc2mo%rainls(j,i,k) = pfplsl(j,i,k+1)
             ! save the 3D precip for chemical washout
@@ -2022,7 +2128,9 @@ module mod_micro_nogtom
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
     !--------------------------------------------------------------
+    !$omp parallel do
     do i = ici1 , ici2
+      !$omp simd simdlen(8) 
       do j = jci1 , jci2
         prainx = pfplsl(j,i,kzp1)*dt
         psnowx = pfplsn(j,i,kzp1)*dt
@@ -2044,7 +2152,6 @@ module mod_micro_nogtom
 #endif
 
     contains
-
     pure real(rkx) function edem(t,phase)
       implicit none
       real(rkx) , intent(in):: t , phase
@@ -2303,6 +2410,7 @@ module mod_micro_nogtom
         end if
       end do
     end function argsort
+
 
   end subroutine nogtom
 
