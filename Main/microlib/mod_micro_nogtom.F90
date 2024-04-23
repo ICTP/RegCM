@@ -685,7 +685,7 @@ module mod_micro_nogtom
               tnew_expanded(j,i,k) = tnew_expanded(j,i,k)-(wlhvocp*qliq(j,i,k)+wlhsocp*(d_one-qliq(j,i,k)))*qe_expanded(j,i,k)
 
             end if
-            sumh0(j,i,k) = sumh0(j,i,k) + dp*tnew
+            sumh0(j,i,k) = sumh0(j,i,k) + dp_expanded(j,i,k)*tnew_expanded(j,i,k)
           end do
         end do
       end do
