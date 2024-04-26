@@ -247,30 +247,6 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
-      if ( iconv == 1 ) then
-        ! Calculate average elevation of cmcptop level
-        nmctop = 0
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            iplmlc = 1
-            do k = 1 , kzp1
-              iplmlc = k
-              if ( m2c%pasf(j,i,k) >= cmcptop ) exit
-            end do
-            nmctop = nmctop + iplmlc
-          end do
-        end do
-        iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
-        call minall(iplmlc,mintop)
-        call maxall(iplmlc,maxtop)
-        nmctop = (mintop+maxtop)/2
-      else if ( iconv == 4 ) then
-        do k = 1 , kz
-          mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
-          call meanall(mymean,pmean(k))
-        end do
-      end if
-
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( cuscheme(j,i) == 5 ) then
@@ -326,6 +302,29 @@ module mod_cu_interface
           cu_convpr(:,:,:) = d_zero
         end if
         if ( any(icup == 5) ) then
+          if ( iconv == 1 ) then
+            ! Calculate average elevation of cmcptop level
+            nmctop = 0
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                iplmlc = 1
+                do k = 1 , kzp1
+                  iplmlc = k
+                  if ( m2c%pasf(j,i,k) >= cmcptop ) exit
+                end do
+                nmctop = nmctop + iplmlc
+              end do
+            end do
+            iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
+            call minall(iplmlc,mintop)
+            call maxall(iplmlc,maxtop)
+            nmctop = (mintop+maxtop)/2
+          else if ( iconv == 4 ) then
+            do k = 1 , kz
+              mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
+              call meanall(mymean,pmean(k))
+            end do
+          end if
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
         end if

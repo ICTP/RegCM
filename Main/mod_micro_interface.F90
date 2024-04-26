@@ -239,9 +239,8 @@ module mod_micro_interface
   subroutine cldfrac(cldlwc,cldfra)
     use mod_atm_interface , only : atms
     implicit none
-    real(rkx) :: exlwc , conv_exlwc , ls_exlwc
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
-    integer(ik4) :: i , j , k , ichi
+    integer(ik4) :: i , j , k
 
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
@@ -291,10 +290,13 @@ module mod_micro_interface
         call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2, &
                             qtcrit,mc2mo%fcc)
       case (7)
-        mc2mo%fcc = d_zero
-        where ( totc * mo2mc%delz > 1.0e-2_rkx )
-          mc2mo%fcc = 1.0_rkx
-        end where
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( totc(j,i,k) * mo2mc%delz(j,i,k) > 1.0e-2_rkx ) then
+            mc2mo%fcc(j,i,k) = 1.0_rkx
+          else
+            mc2mo%fcc(j,i,k) = 0.0_rkx
+          end if
+        end do
       case default
         mc2mo%fcc = d_zero
         if ( myid == italk ) then
@@ -351,60 +353,60 @@ module mod_micro_interface
       end do
     else
       if ( any(icup > 1) ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-              conv_exlwc = clwfromt(mo2mc%t(j,i,k))
-              exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
-              ! get maximum cloud fraction between cumulus and large scale
-              cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k) + &
-                              cldfra(j,i,k)
-              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
-              if ( cldfra(j,i,k) > lowcld ) then
-                ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
-                exlwc = exlwc/cldfra(j,i,k)
-                ! Scaling for CF
-                ! Implements CF scaling as in Liang GRL 32, 2005
-                ! doi: 10.1029/2004GL022301
-                if ( do_cfscaling ) then
-                  ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
-                  exlwc = exlwc * chis(ichi)
-                end if
-                cldlwc(j,i,k) = exlwc
-              else
-                cldfra(j,i,k) = d_zero
-                cldlwc(j,i,k) = d_zero
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          block
+            real(rkx) :: ls_exlwc , conv_exlwc , exlwc
+            integer(ik4) :: ichi
+            ! Cloud Water Volume
+            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+            ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+            conv_exlwc = clwfromt(mo2mc%t(j,i,k))
+            exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
+            ! get maximum cloud fraction between cumulus and large scale
+            cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k) + &
+                            cldfra(j,i,k)
+            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
+            if ( cldfra(j,i,k) > lowcld ) then
+              ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
+              exlwc = exlwc/cldfra(j,i,k)
+              ! Scaling for CF
+              ! Implements CF scaling as in Liang GRL 32, 2005
+              ! doi: 10.1029/2004GL022301
+              if ( do_cfscaling ) then
+                ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
+                exlwc = exlwc * chis(ichi)
               end if
-            end do
-          end do
+              cldlwc(j,i,k) = exlwc
+            else
+              cldfra(j,i,k) = d_zero
+              cldlwc(j,i,k) = d_zero
+            end if
+          end block
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
-              if ( cldfra(j,i,k) > lowcld ) then
-                exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
-                ! Scaling for CF
-                ! Implements CF scaling as in Liang GRL 32, 2005
-                ! doi: 10.1029/2004GL022301
-                if ( do_cfscaling ) then
-                  ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
-                  exlwc = exlwc * chis(ichi)
-                end if
-                ! NOTE : IN CLOUD HERE IS NEEDED !!!
-                cldlwc(j,i,k) = exlwc/cldfra(j,i,k)
-              else
-                cldfra(j,i,k) = d_zero
-                cldlwc(j,i,k) = d_zero
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          block
+            real(rkx) :: exlwc
+            integer(ik4) :: ichi
+            ! Cloud Water Volume
+            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+            cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
+            if ( cldfra(j,i,k) > lowcld ) then
+              exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+              ! Scaling for CF
+              ! Implements CF scaling as in Liang GRL 32, 2005
+              ! doi: 10.1029/2004GL022301
+              if ( do_cfscaling ) then
+                ichi = int(cldfra(j,i,k)*real(nchi-1,rkx))
+                exlwc = exlwc * chis(ichi)
               end if
-            end do
-          end do
+              ! NOTE : IN CLOUD HERE IS NEEDED !!!
+              cldlwc(j,i,k) = exlwc/cldfra(j,i,k)
+            else
+              cldfra(j,i,k) = d_zero
+              cldlwc(j,i,k) = d_zero
+            end if
+          end block
         end do
       end if
     end if
@@ -436,107 +438,102 @@ module mod_micro_interface
   subroutine condtq
     use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
     implicit none
-    !
-    ! rhc    - Relative humidity at ktau+1
-    !
-    real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
-    real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rhc , rlv , cpm
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
     !     1.  Compute t, qv, and qc at tau+1 without condensational term
     !---------------------------------------------------------------------
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( idynamic == 3 ) then
-            tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
-            qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
-            qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
-            pres = mo_atm%p(j,i,k)
-            qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)),minqq)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      block
+        real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
+        real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
+               r1 , rhc , rlv , cpm
+        if ( idynamic == 3 ) then
+          tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
+          qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
+          qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
+          pres = mo_atm%p(j,i,k)
+          qvc_cld = max((mo2mc%qs(j,i,k) + &
+                     dt * mc2mo%qxten(j,i,k,iqv)),minqq)
+        else
+          tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
+          qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
+          qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
+          qvc_cld = max((mo2mc%qs(j,i,k) + &
+                     dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),minqq)
+          if ( idynamic == 1 ) then
+            pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
           else
-            tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
-            qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
-            qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
-            qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),minqq)
-            if ( idynamic == 1 ) then
-              pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
-            else
-              pres = atm0%pr(j,i,k) + &
-                 (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
-            end if
-            if ( qvcs < minqq * sfs%psc(j,i) ) then
-              qvcs = minqq * sfs%psc(j,i)
-            end if
-            if ( qccs < dlowval * sfs%psc(j,i) ) then
-              qccs = d_zero
-            end if
-            qvcs = qvcs /sfs%psc(j,i)
-            qccs = qccs /sfs%psc(j,i)
+            pres = atm0%pr(j,i,k) + &
+               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
           end if
+          if ( qvcs < minqq * sfs%psc(j,i) ) then
+            qvcs = minqq * sfs%psc(j,i)
+          end if
+          if ( qccs < dlowval * sfs%psc(j,i) ) then
+            qccs = d_zero
+          end if
+          qvcs = qvcs /sfs%psc(j,i)
+          qccs = qccs /sfs%psc(j,i)
+        end if
 #ifdef DEBUG
-          if ( tmp3 < d_zero ) then
-            write(stderr,*) 'Time step = ', rcmtimer%lcount
-            write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
-            write(stderr,*) 'At global J : ',j
-            write(stderr,*) 'At global I : ',i
-            write(stderr,*) 'At global K : ',k
-          end if
+        if ( tmp3 < d_zero ) then
+          write(stderr,*) 'Time step = ', rcmtimer%lcount
+          write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
+          write(stderr,*) 'At global J : ',j
+          write(stderr,*) 'At global I : ',i
+          write(stderr,*) 'At global K : ',k
+        end if
 #endif
-          !
-          ! 2.  Compute the cloud condensation/evaporation term.
-          !
-          ! 2a. Calculate the saturation mixing ratio and relative humidity
-          qvs = pfwsat(tmp3,pres)
-          rlv = wlh(tmp3)
-          cpm = cpd*(d_one-qvcs) + cpv*qvcs
-          r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
-          rhc = min(max(qvcs/qvs,rhmin),rhmax)
-          ! 2b. Compute the relative humidity threshold at ktau+1
-          if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
-            dqv = conf * (qvcs - qvs)
-          else if ( rhc > 0.99999_rkx ) then
-            dqv = conf * (qvcs - qvs)      ! High cloud cover
+        !
+        ! 2.  Compute the cloud condensation/evaporation term.
+        !
+        ! 2a. Calculate the saturation mixing ratio and relative humidity
+        qvs = pfwsat(tmp3,pres)
+        rlv = wlh(tmp3)
+        cpm = cpd*(d_one-qvcs) + cpv*qvcs
+        r1 = d_one/(d_one+rlv*rlv*qvs/(rwat*cpm*tmp3*tmp3))
+        rhc = min(max(qvcs/qvs,rhmin),rhmax)
+        ! 2b. Compute the relative humidity threshold at ktau+1
+        if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
+          dqv = conf * (qvcs - qvs)
+        else if ( rhc > 0.99999_rkx ) then
+          dqv = conf * (qvcs - qvs)      ! High cloud cover
+        else
+          fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
+          fccc = min(max(fccc,d_zero),d_one)
+          ! qv diff between predicted qv_c
+          dqv = conf * fccc * (qvc_cld - qvs)
+        end if
+
+        ! 2c. Compute the water vapor in excess of saturation
+        tmp1 = r1*dqv               ! grid cell average
+
+        ! 2d. Compute the new cloud water + old cloud water
+        exces = qccs + tmp1
+        if ( exces >= d_zero ) then ! Some cloud is left
+          tmp2 = tmp1/dt
+        else                        ! The cloud evaporates
+          tmp2 = -qccs/dt
+        end if
+        !
+        ! 3. Compute the tendencies.
+        !
+        if ( abs(tmp2) > dlowval ) then
+          if ( idynamic == 3 ) then
+            mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
+            mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
+            mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*rlv/cpm
           else
-            fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
-            fccc = min(max(fccc,d_zero),d_one)
-            ! qv diff between predicted qv_c
-            dqv = conf * fccc * (qvc_cld - qvs)
+            aten%qx(j,i,k,iqv,pc_physic) = &
+                aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
+            aten%qx(j,i,k,iqc,pc_physic) = &
+                aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
+            aten%t(j,i,k,pc_physic) = &
+                aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
           end if
-
-          ! 2c. Compute the water vapor in excess of saturation
-          tmp1 = r1*dqv               ! grid cell average
-
-          ! 2d. Compute the new cloud water + old cloud water
-          exces = qccs + tmp1
-          if ( exces >= d_zero ) then ! Some cloud is left
-            tmp2 = tmp1/dt
-          else                        ! The cloud evaporates
-            tmp2 = -qccs/dt
-          end if
-          !
-          ! 3. Compute the tendencies.
-          !
-          if ( abs(tmp2) > dlowval ) then
-            if ( idynamic == 3 ) then
-              mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
-              mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
-              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*rlv/cpm
-            else
-              aten%qx(j,i,k,iqv,pc_physic) = &
-                  aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
-              aten%qx(j,i,k,iqc,pc_physic) = &
-                  aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
-              aten%t(j,i,k,pc_physic) = &
-                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
-            end if
-          end if
-        end do
-      end do
+        end if
+      end block
     end do
 
     contains

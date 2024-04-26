@@ -43,7 +43,6 @@ module mod_cloud_xuran
     real(rkx) , pointer , dimension(:,:) , intent(in) :: qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
-    real(rkx) :: botm , rm , qcld , rhrng
     real(rkx) , parameter :: parm_p = 0.25_rkx
     real(rkx) , parameter :: parm_gamma = 0.49_rkx
     real(rkx) , parameter :: parm_alpha0 = 100.0_rkx
@@ -52,25 +51,24 @@ module mod_cloud_xuran
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( qc(j,i,k) > qcrit(j,i) ) then
-            qcld = qc(j,i,k)
-            rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
-            if ( rhrng > 0.99999 ) then
-              fcc(j,i,k) = d_one
-            else
-              botm = rhrng ** parm_p
-              rm = -min((parm_alpha0 * qcld) / &
-                ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
-              fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
-            end if
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      block
+        real(rkx) :: botm , rm , qcld , rhrng
+        if ( qc(j,i,k) > qcrit(j,i) ) then
+          qcld = qc(j,i,k)
+          rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
+          if ( rhrng > 0.99999 ) then
+            fcc(j,i,k) = d_one
           else
-            fcc(j,i,k) = d_zero
+            botm = rhrng ** parm_p
+            rm = -min((parm_alpha0 * qcld) / &
+              ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
+            fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
           end if
-        end do
-      end do
+        else
+          fcc(j,i,k) = d_zero
+        end if
+      end block
     end do
 
   end subroutine xuran_cldfrac

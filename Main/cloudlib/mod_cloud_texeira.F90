@@ -44,33 +44,30 @@ module mod_cloud_texeira
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs , qc , rh
     real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0 , qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) :: rhrng
     integer(ik4) :: i , j , k
 
     real(rkx) , parameter :: kappa = 1.0e-6 ! sec-1
     real(rkx) , parameter :: d = 4.0e-6 ! sec-1
-    real(rkx) :: liq , spq
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! Adjusted relative humidity threshold
-          rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-          liq = qc(j,i,k)
-          spq = qs(j,i,k) / (d_one + qs(j,i,k))
-          if ( liq > qcrit(j,i) .and. rhrng > rh0(j,i) ) then
-            fcc(j,i,k) = d*liq / (d_two*spq*(d_one-rhrng)*kappa) * &
-              ( -d_one + sqrt(d_one + &
-                 (d_four*spq*((d_one-rhrng)*kappa))/(d*liq)) )
-          else
-            fcc(j,i,k) = d_zero
-          end if
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      block
+        real(rkx) :: rhrng , liq , spq
+        ! Adjusted relative humidity threshold
+        rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
+        liq = qc(j,i,k)
+        spq = qs(j,i,k) / (d_one + qs(j,i,k))
+        if ( liq > qcrit(j,i) .and. rhrng > rh0(j,i) ) then
+          fcc(j,i,k) = d*liq / (d_two*spq*(d_one-rhrng)*kappa) * &
+            ( -d_one + sqrt(d_one + &
+               (d_four*spq*((d_one-rhrng)*kappa))/(d*liq)) )
+        else
+          fcc(j,i,k) = d_zero
+        end if
+      end block
     end do
 
   end subroutine texeira_cldfrac

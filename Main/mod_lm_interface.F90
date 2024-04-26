@@ -833,7 +833,6 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rkx) :: qas , tas , uas , ps , qs , es , desdt , rh , sws , lws
 
     ! Fill accumulators
 
@@ -895,25 +894,27 @@ module mod_lm_interface
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
         if ( associated(srf_evpot_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            block
+              real(rkx) :: tas , ps , es , qs , qas , uas , rh , desdt
+              real(rkx) :: sws , lws
               if ( lm%ldmsk(j,i) == 0 ) then
                 srf_evpot_out(j,i) = srf_evpot_out(j,i) + lm%qfx(j,i)
-                cycle
-              end if
-              tas = sum(lms%t2m(:,j,i))*rdnnsg
-              ps = sum(lms%sfcp(:,j,i))*rdnnsg
-              es = pfesat(tas,ps)
-              qs = pfwsat(tas,ps,es)
-              qas = lm%q2m(j,i)
-              uas = lm%w10m(j,i)
-              rh = min(max((qas/qs),d_zero),d_one)
-              desdt = pfesdt(tas)
-              sws = lm%rswf(j,i)
-              lws = lm%rlwf(j,i)
-              srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
+              else
+                tas = sum(lms%t2m(:,j,i))*rdnnsg
+                ps = sum(lms%sfcp(:,j,i))*rdnnsg
+                es = pfesat(tas,ps)
+                qs = pfwsat(tas,ps,es)
+                qas = lm%q2m(j,i)
+                uas = lm%w10m(j,i)
+                rh = min(max((qas/qs),d_zero),d_one)
+                desdt = pfesdt(tas)
+                sws = lm%rswf(j,i)
+                lws = lm%rlwf(j,i)
+                srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
                    evpt_fao(ps,tas,uas,rh*es,es,desdt,sws,lws)
-            end do
+              end if
+            end block
           end do
         end if
       end if
@@ -939,8 +940,9 @@ module mod_lm_interface
         if ( associated(shf_pcprcv_out) ) &
           shf_pcprcv_out = shf_pcprcv_out + lm%cprate*syncro_srf%rw
         if ( associated(shf_twetb_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            block
+              real(rkx) :: tas , ps , qs , qas , rh
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               qs = pfwsat(tas,ps)
@@ -951,7 +953,7 @@ module mod_lm_interface
                       atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                       0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                       atan(0.023101_rkx * rh) - 4.686035_rkx)
-            end do
+            end block
           end do
         end if
       else
@@ -959,8 +961,9 @@ module mod_lm_interface
           if ( associated(srf_pcpmax_out) ) &
             srf_pcpmax_out = max(srf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
           if ( associated(srf_twetb_out) ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+              block
+                real(rkx) :: tas , ps , qs , qas , rh
                 tas = sum(lms%t2m(:,j,i))*rdnnsg
                 ps = sum(lms%sfcp(:,j,i))*rdnnsg
                 qs = pfwsat(tas,ps)
@@ -971,7 +974,7 @@ module mod_lm_interface
                         atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                         0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                         atan(0.023101_rkx * rh) - 4.686035_rkx)
-              end do
+              end block
             end do
           end if
         end if
@@ -1103,8 +1106,10 @@ module mod_lm_interface
           srf_q2m_out(:,:,1) = lm%q2m
         if ( associated(srf_rh2m_out) ) then
           srf_rh2m_out = d_zero
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            block
+              integer(ik4) :: n
+              real(rkx) :: qas , tas , ps , qs
               do n = 1 , nnsg
                 qas = lms%q2m(n,j,i)
                 tas = lms%t2m(n,j,i)
@@ -1113,7 +1118,7 @@ module mod_lm_interface
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                               min(max((qas/qs),rhmin),rhmax)*d_100
               end do
-            end do
+            end block
           end do
           srf_rh2m_out = srf_rh2m_out * rdnnsg
         end if
@@ -1188,14 +1193,10 @@ module mod_lm_interface
         if ( associated(lak_ice_out) ) &
           lak_ice_out = sum(lms%sfice,1,lms%lakmsk)*rdnnsg
         if ( associated(lak_tlake_out) ) then
-          do k = 1 , ndpmax
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( lm%iveg(j,i) == 14 ) then
-                  lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:ndpmax )
+            if ( lm%iveg(j,i) == 14 ) then
+              lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
+            end if
           end do
         end if
       end if
@@ -1237,14 +1238,15 @@ module mod_lm_interface
     subroutine mslp
       implicit none
       integer(ik4) :: i , j , n
-      real(rkx) :: tstar , hstar , alpha , raval , mval , mall
       integer(ik4) , parameter :: niter = 20
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
+      real(rkx) , parameter :: alpha = lrate*rgas/egrav
+      real(rkx) :: mval , mall
 
       ! Follow Kallen 1996
-      alpha = lrate*rgas/egrav
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        block
+          real(rkx) :: tstar , hstar , raval
           tstar = lm%tatm(j,i)
           if ( tstar < 255.0_rkx ) then
             tstar = (tstar+255.0_rkx)*0.5_rkx
@@ -1255,7 +1257,7 @@ module mod_lm_interface
           raval = d_half*alpha*hstar
           slp(j,i) = lm%sfps(j,i) * &
                exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
-        end do
+         end block
       end do
       ! Gauss Siedel Filtering
       mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
@@ -1266,19 +1268,15 @@ module mod_lm_interface
       call exchange(sfp,1,jce1,jce2,ice1,ice2)
       slp1 = slp
       mask = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
-                       sfp(j-1,i)+sfp(j+1,i) - &
-                       4.0_rkx*sfp(j,i))/mval
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
+                     sfp(j-1,i)+sfp(j+1,i) - &
+                     4.0_rkx*sfp(j,i))/mval
       end do
       do n = 1 , niter
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
-                                 slp1(j-1,i)+slp(j+1,i)-mask(j,i))
-          end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
+                               slp1(j-1,i)+slp(j+1,i)-mask(j,i))
         end do
         if ( ma%has_bdyleft ) then
           do i = ici1 , ici2
@@ -1312,15 +1310,15 @@ module mod_lm_interface
       real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
       real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
       integer(ik4) :: i , j
-      real(rkx) :: delwind , spd1 , spd2
 
-      do j = jci1 , jci2
-        do i = ici1 , ici2
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          real(rkx) :: delwind , spd1 , spd2
           spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
           spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
           delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
           gust(j,i) = max(gust(j,i),spd1+delwind)
-        end do
+        end block
       end do
     end subroutine compute_maxgust
 

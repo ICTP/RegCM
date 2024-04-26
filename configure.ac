@@ -611,13 +611,14 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+    FCFLAGS="-O0 -g -pg -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
+            # -ffpe-trap=zero,invalid,overflow,underflow
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -672,7 +673,7 @@ else
     # The GNU compiler works with -O2
     NOOPTFC="-O2 -finline-functions $FCFLAGS" # -fno-var-tracking-assignments
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -finline-functions -mtune=native \
+      FCFLAGS="-O3 -finline-functions -mtune=native -ftree-vectorize \
                -march=native $FCFLAGS" # -ftree-parallelize-loops=2"
       if eval "test x"$USE_PROF" = x1"; then
         FCFLAGS="-g -pg $FCFLAGS"

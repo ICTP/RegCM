@@ -168,9 +168,7 @@ module mod_sound
 
   subroutine sound
     implicit none
-    real(rkx) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
-      dppdp0 , dpterm , dts , ppold , rho , rofac , maxcfl , rll ,   &
-      rkk , ri , rj
+    real(rkx) :: cfl , check , dts , maxcfl , rll , rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=*) , parameter :: f99003 =    &
@@ -182,7 +180,7 @@ module mod_sound
     real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff
     real(rkx) :: loc_abar , loc_rhon
-    integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
+    integer(ik4) :: ll , kk
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -273,31 +271,30 @@ module mod_sound
       !
       ! Advance u and v
       !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            ! Predict u and v
-            rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
-                                atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
-            dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j-1,i,k) + &
-                                atmc%t(j,i-1,k) + atmc%t(j-1,i-1,k))
-            ! Divide by map scale factor
-            chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
-            !
-            ! Nonhydrostatic model: pressure gradient term in sigma vertical
-            ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
-            ! 2.3.3, 2.3.4 in the MM5 manual.
-            !
-            atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2, k = 1:kz )
+        block
+          real(rkx) :: rho , dppdp0 , chh
+          ! Predict u and v
+          rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
+                              atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
+          dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j-1,i,k) + &
+                              atmc%t(j,i-1,k) + atmc%t(j-1,i-1,k))
+          ! Divide by map scale factor
+          chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
+          !
+          ! Nonhydrostatic model: pressure gradient term in sigma vertical
+          ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
+          ! 2.3.3, 2.3.4 in the MM5 manual.
+          !
+          atmc%u(j,i,k) = atmc%u(j,i,k) -                        &
                   chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
                          atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
                          atm0%dprddx(j,i,k) * dppdp0)
-            atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
+          atmc%v(j,i,k) = atmc%v(j,i,k) -                        &
                   chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
                          atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
                          atm0%dprddy(j,i,k) * dppdp0)
-          end do
-        end do
+        end block
       end do
       do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
         atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,pc_total)
@@ -379,8 +376,9 @@ module mod_sound
       do k = 2 , kz
         kp1 = min(k+1,kz)
         km1 = k-1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          block
+            real(rkx) :: rofac
             tk(j,i,k) = (d_half * atm0%ps(j,i) * atm0%t(j,i,k)) / &
                         (xgamma * atm0%pr(j,i,k) * atm2%t(j,i,k) * rpsb(j,i))
             rofac = (dsigma(km1)*atm0%rho(j,i,k) +    &
@@ -417,7 +415,7 @@ module mod_sound
                           atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
                           atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
                         ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-          end do
+          end block
         end do
       end do
       !
@@ -472,12 +470,13 @@ module mod_sound
       ! Upward calculation of coefficients
       !
       do k = kz , 2 , -1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          block
+            real(rkx) :: denom
             denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
             e(j,i,k-1) = -c(j,i,k) / denom
             f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
-          end do
+          end block
         end do
       end do
       !
@@ -490,12 +489,13 @@ module mod_sound
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
       if ( ifupr == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          block
+            real(rkx) :: denom
             denom = (cdd(j,i,1) + cj(j,i,1)) * bp
             estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
             astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
-          end do
+          end block
         end do
         call grid_collect(estore,estore_g,jci1,jci2,ici1,ici2)
         call bcast(estore_g)
@@ -554,8 +554,9 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          block
+            integer(ik4) :: nsi , inn , nsj , jnn
             do nsi = -6 , 6
               inn = inrange_i(i+nsi)
               do nsj = -6 , 6
@@ -563,7 +564,7 @@ module mod_sound
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
-          end do
+          end block
         end do
       end if
       !
@@ -672,26 +673,25 @@ module mod_sound
       !
       ! Now compute the new pressure
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ppold = pi(j,i,k)
-            cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
-                     egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
-            atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
-                          ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
-                            cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
-            pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k,pc_total)
-            !
-            ! Compute pressure dp`/dt correction to the temperature
-            !
-            cpm = cpmf(atmc%qx(j,i,k,iqv))
-            dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
-            atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
-            atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        block
+          real(rkx) :: ppold , cddtmp , cjtmp , cpm , dpterm
+          ppold = pi(j,i,k)
+          cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
+                   egrav * dts / (atm0%ps(j,i)*dsigma(k))
+          cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
+          atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
+                        ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
+                          cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
+          pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k,pc_total)
+          !
+          ! Compute pressure dp`/dt correction to the temperature
+          !
+          cpm = cpmf(atmc%qx(j,i,k,iqv))
+          dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
+          atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
+          atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
+        end block
       end do
 
       ! End of time loop

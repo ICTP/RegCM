@@ -46,7 +46,6 @@ module mod_cloud_echam5
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , rh , p
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) :: rhrng , rhcrit , sig
     real(rkx) , parameter :: ct = 0.35_rkx
     real(rkx) , parameter :: cs = 0.85_rkx
     real(rkx) , parameter :: nx = 4.0_rkx
@@ -56,28 +55,28 @@ module mod_cloud_echam5
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( qc(j,i,k) > qcrit(j,i) ) then
-            ! Relative humidity
-            rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-            sig = ps(j,i)/p(j,i,k)
-            rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
-            if ( rhrng < rhcrit ) then
-              fcc(j,i,k) = d_zero
-            else if ( rhrng > 0.99999_rkx ) then
-              fcc(j,i,k) = d_one
-            else
-              ! Sundqvist formula
-              fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                                          (1.0_rkx-rhcrit))
-            end if
-          else
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      block
+        real(rkx) :: rhrng , rhcrit , sig
+
+        if ( qc(j,i,k) > qcrit(j,i) ) then
+          ! Relative humidity
+          rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
+          sig = ps(j,i)/p(j,i,k)
+          rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
+          if ( rhrng < rhcrit ) then
             fcc(j,i,k) = d_zero
+          else if ( rhrng > 0.99999_rkx ) then
+            fcc(j,i,k) = d_one
+          else
+            ! Sundqvist formula
+            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                                        (1.0_rkx-rhcrit))
           end if
-        end do
-      end do
+        else
+          fcc(j,i,k) = d_zero
+        end if
+      end block
     end do
 
   end subroutine echam5_cldfrac

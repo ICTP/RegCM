@@ -78,7 +78,7 @@ module mod_split
   !
   subroutine spinit
     implicit none
-    real(rkx) :: eps , eps1 , fac , pdlog
+    real(rkx) :: eps1 , fac , pdlog
     integer(ik4) :: i , j , k , l , n , ns
     real(rkx) :: rnpts , lxps , ltbark , lxms , xmsf , rdx2
 #ifdef DEBUG
@@ -212,22 +212,24 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        block
+          real(rkx) :: eps
           eps = eps1*(sfs%psb(j,i)-pd)
           hstor(j,i,l) = pdlog + eps
-        end do
+        end block
       end do
 
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          block
+            real(rkx) :: eps
             eps = eps1*(sfs%psb(j,i)-pd)
             hstor(j,i,l) = hstor(j,i,l) + pdlog + &
                            tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
-          end do
+          end block
         end do
       end do
     end do
@@ -240,8 +242,7 @@ module mod_split
   !
   subroutine splitf
     implicit none
-    real(rkx) :: rdx2 , eps , eps1 , fac , gnuam , gnuan , gnuzm
-    real(rkx) :: pdlog , x , y
+    real(rkx) :: rdx2 , eps1 , gnuam , gnuan , gnuzm , pdlog
     integer(ik4) :: i , j , k , l , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'splitf'
@@ -322,21 +323,23 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        block
+          real(rkx) :: eps
           eps = eps1*(sfs%psa(j,i)-pd)
           delh(j,i,l,3) = pdlog + eps
-        end do
+        end block
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          block
+            real(rkx) :: eps
             eps = eps1*(sfs%psa(j,i)-pd)
             delh(j,i,l,3) = delh(j,i,l,3) + pdlog +  &
                     tau(l,k)*atm1%t(j,i,k)/sfs%psa(j,i) + eps
-          end do
+          end block
         end do
       end do
     end do
@@ -350,21 +353,23 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        block
+          real(rkx) :: eps
           eps = eps1*(sfs%psb(j,i)-pd)
           delh(j,i,l,2) = pdlog + eps
-        end do
+        end block
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+          block
+            real(rkx) :: eps
             eps = eps1*(sfs%psb(j,i)-pd)
             delh(j,i,l,2) = delh(j,i,l,2) + pdlog +  &
                      tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
-          end do
+          end block
         end do
       end do
     end do
@@ -408,8 +413,9 @@ module mod_split
     do l = 1 , nsplit
       do k = 1 , kz
         gnuzm = gnu1*zmatx(k,l)
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2 )
+          block
+            real(rkx) :: fac , x , y
             fac = sfs%psdota(j,i)/(dx2*mddom%msfd(j,i))
             x = fac*(dhsum(j,i,l)+dhsum(j,i-1,l) - &
                      dhsum(j-1,i,l)-dhsum(j-1,i-1,l))
@@ -419,7 +425,7 @@ module mod_split
             atm1%v(j,i,k) = atm1%v(j,i,k) - zmatx(k,l)*y
             atm2%u(j,i,k) = atm2%u(j,i,k) - gnuzm*x
             atm2%v(j,i,k) = atm2%v(j,i,k) - gnuzm*y
-          end do
+          end block
         end do
       end do
     end do
@@ -465,14 +471,15 @@ module mod_split
       !
       xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n0)
       call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2 )
+        block
+          real(rkx) :: fac
           fac = dx2*mddom%msfx(j,i)
           work(j,i,1) = (xdelh(j,i)  +xdelh(j,i-1) - &
                          xdelh(j-1,i)-xdelh(j-1,i-1))/fac
           work(j,i,2) = (xdelh(j,i)  +xdelh(j-1,i) - &
                          xdelh(j,i-1)-xdelh(j-1,i-1))/fac
-        end do
+        end block
       end do
 
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2, nw = 1:2 )
@@ -541,14 +548,15 @@ module mod_split
         !
         xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n1)
         call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2 )
+          block
+            real(rkx) :: fac
             fac = dx2*mddom%msfx(j,i)
             work(j,i,1) = (xdelh(j,i)+xdelh(j,i-1)- &
                            xdelh(j-1,i)-xdelh(j-1,i-1))/fac
             work(j,i,2) = (xdelh(j,i)+xdelh(j-1,i)- &
                            xdelh(j,i-1)-xdelh(j-1,i-1))/fac
-          end do
+          end block
         end do
 
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, nw = 1:2 )

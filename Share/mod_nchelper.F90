@@ -111,8 +111,6 @@ module mod_nchelper
   public :: write_var2d_static
   public :: write_var3d_static
 
-  integer(ik4) :: incstat
-
   contains
 !
   subroutine cdumlogical(cdum,yesno)
@@ -131,11 +129,12 @@ module mod_nchelper
 
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: prgname
-    logical :: lsub
+    logical , intent(in) :: lsub
 
     character(len=256) :: history
     real(rk4) , dimension(2) :: trlat
     integer(ik4) , dimension(8) :: tvals
+    integer(ik4)  :: incstat
 
     incstat = nf90_put_att(ncid, nf90_global, 'title',  &
                'ICTP Regional Climatic model V5')
@@ -221,6 +220,7 @@ module mod_nchelper
     real(rk4) , pointer , dimension(:) , intent(inout) :: xjx
     real(rk4) , pointer , dimension(:) , intent(inout) :: yiy
     integer(ik4) :: i , j
+    integer(ik4)  :: incstat
 
     call getmem1d(yiy,1,ny,'mod_write:yiy')
     call getmem1d(xjx,1,nx,'mod_write:xjx')
@@ -267,6 +267,7 @@ module mod_nchelper
     integer(ik4) , intent(in) :: ncid
     integer(ik4) , intent(in) , dimension(:) :: idims
     integer(ik4) , intent(out) , dimension(3) :: izvar
+    integer(ik4)  :: incstat
 
     incstat = nf90_def_var(ncid, 'kz', nf90_double, idims(3), izvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -344,6 +345,7 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(in) :: idims
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(out) :: ivar
+    integer(ik4)  :: incstat
 
     incstat = nf90_def_var(ncid, 'xlat', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -397,6 +399,7 @@ module mod_nchelper
     real(rk4) , dimension(:) , intent(in) :: sigma
     real(rk4) , intent(in) :: ptop
     integer(ik4) , intent(in) , dimension(3) :: izvar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, izvar(1), sigma)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable sigma write')
@@ -412,6 +415,7 @@ module mod_nchelper
     real(rk4) , dimension(:) , intent(in) :: a
     real(rk4) , dimension(:) , intent(in) :: b
     integer(ik4) , intent(in) , dimension(3) :: izvar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, izvar(1), sigma)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable sigma write')
@@ -428,6 +432,7 @@ module mod_nchelper
     integer(ik4) , intent(in) :: ncid
     real(rk4) , dimension(:) , intent(in) :: xjx , yiy
     integer(ik4) , intent(in) , dimension(2) :: ihvar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ihvar(1), xjx)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable jx write')
@@ -443,6 +448,7 @@ module mod_nchelper
     real(rk4) , dimension(:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
@@ -461,6 +467,7 @@ module mod_nchelper
     real(rk8) , dimension(:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
@@ -479,6 +486,7 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
@@ -497,6 +505,7 @@ module mod_nchelper
     character(len=*) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
@@ -515,6 +524,7 @@ module mod_nchelper
     real(rk4) , dimension(:,:) , intent(in) :: values
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
+    integer(ik4)  :: incstat
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable '//vnam//' write')
@@ -535,6 +545,7 @@ module mod_nchelper
     integer(ik4) , intent(in) , dimension(:) :: ivar
     integer(ik4) , dimension(3) :: istart
     integer(ik4) , dimension(3) :: icount
+    integer(ik4)  :: incstat
     istart(1) = 1
     istart(2) = 1
     icount(1) = ubound(values,1)
@@ -556,6 +567,7 @@ module mod_nchelper
     character(len=*) , intent(in) :: vnam
     character(len=*) , dimension(:) :: values
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error search '//vnam)
@@ -571,6 +583,7 @@ module mod_nchelper
     real(rk4) , pointer , dimension(:) :: values
     logical , intent(inout) , optional :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -594,6 +607,7 @@ module mod_nchelper
     real(rk8) , pointer , dimension(:) :: values
     logical , intent(inout) , optional :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -617,6 +631,7 @@ module mod_nchelper
     integer(ik4) , pointer , dimension(:) :: values
     logical , intent(inout) , optional :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -641,6 +656,7 @@ module mod_nchelper
     real(rk8) , dimension(n) :: values
     logical , optional , intent(inout) :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -665,6 +681,7 @@ module mod_nchelper
     real(rk4) , dimension(n) :: values
     logical , optional , intent(inout) :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -689,6 +706,7 @@ module mod_nchelper
     integer(ik4) , dimension(n) :: values
     logical , optional , intent(inout) :: lerror
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
     if ( incstat /= nf90_noerr ) then
       if ( present(lerror) ) then
@@ -713,6 +731,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -745,6 +764,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -777,6 +797,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -811,6 +832,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -845,6 +867,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -879,6 +902,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -911,6 +935,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -943,6 +968,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -975,6 +1001,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -1009,6 +1036,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -1043,6 +1071,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -1077,6 +1106,7 @@ module mod_nchelper
     logical , intent(inout) , optional :: lerror
     integer(ik4) , dimension(:) , optional :: istart , icount
     integer(ik4) :: ivarid
+    integer(ik4)  :: incstat
     if ( present(lerror) ) then
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
       if ( incstat /= nf90_noerr .and. lerror ) then
@@ -1107,6 +1137,7 @@ module mod_nchelper
     integer(ik4) , intent(in) :: nx , ny , nz
     integer(ik4) , intent(inout) , dimension(:) :: idims
     integer(ik4) , intent(inout) :: ipnt
+    integer(ik4)  :: incstat
     incstat = nf90_def_dim(ncid, 'jx', nx, idims(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding dimension jx')
@@ -1139,6 +1170,7 @@ module mod_nchelper
     implicit none
     character(len=*) , intent(in) :: fname
     integer(ik4) , intent(out) :: ncid
+    integer(ik4)  :: incstat
     incstat = nf90_create(fname, iomode, ncid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
@@ -1148,6 +1180,7 @@ module mod_nchelper
     implicit none
     character(len=*) , intent(in) :: fname
     integer(ik4) , intent(out) :: ncid
+    integer(ik4) :: incstat
     incstat = nf90_open(fname, nf90_nowrite, ncid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error open NetCDF input '//trim(fname))
