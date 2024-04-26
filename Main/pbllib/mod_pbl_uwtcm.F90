@@ -146,7 +146,7 @@ module mod_pbl_uwtcm
     ! Main do loop
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       block
-        integer(ik4) ::  k , itr , ibnd
+        integer(ik4) ::  k , itr ! , ibnd
         integer(ik4) :: ilay , kpbconv , iteration
         real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
         real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
