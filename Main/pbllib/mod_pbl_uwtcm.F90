@@ -101,13 +101,13 @@ module mod_pbl_uwtcm
   real(rkx) :: rczero , tkefac , b1
 
   ! To enable original Travis code.
-  logical , parameter :: travis_code = .false.
+  !logical , parameter :: travis_code = .false.
   ! imethod = 1     ! Use the Brent 1973 method to solve for T
   ! imethod = 2     ! Use Bretherton's iterative method to solve for T
   ! imethod = 3     ! Use a finite difference method to solve for T
-  integer(ik4) , parameter :: imethod = 2
+  !integer(ik4) , parameter :: imethod = 2
   ! Do a maximum of 100 iterations (usually are no more than about 30)
-  integer(ik4) , parameter :: itbound = 100
+  !integer(ik4) , parameter :: itbound = 100
 
   ! Flag for implicit diffusion of ice
   logical , parameter :: implicit_ice = .true.
@@ -434,23 +434,23 @@ module mod_pbl_uwtcm
         !*************************************************************
         !************ Re-calculate thx, qx, and qcx ******************
         !*************************************************************
-        if ( travis_code ) then
-          do k = 1 , kz
-            thlx(k) = uimp1(k)
-            qwx(k) = uimp2(k)
-            ! Determine the temperature and qc and qv
-            ibnd = itbound
-            temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-                                qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
-                                qx(k),qcx(k))
-            if ( ibnd == -999 ) then
-              call fatal(__FILE__,__LINE__, &
-                           'UW PBL SCHEME ALGO ERROR')
-            end if
-            thx(k) = temps*rexnerhl(k)
-            uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-          end do
-        else
+        !if ( travis_code ) then
+        !  do k = 1 , kz
+        !    thlx(k) = uimp1(k)
+        !    qwx(k) = uimp2(k)
+        !    ! Determine the temperature and qc and qv
+        !    ibnd = itbound
+        !    temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
+        !                        qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
+        !                        qx(k),qcx(k))
+        !    if ( ibnd == -999 ) then
+        !      call fatal(__FILE__,__LINE__, &
+        !                   'UW PBL SCHEME ALGO ERROR')
+        !    end if
+        !    thx(k) = temps*rexnerhl(k)
+        !    uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
+        !  end do
+        !else
           do k = 1 , kz
             ! Set thlx and qwx to their updated values
             thlx(k) = uimp1(k)
@@ -475,7 +475,7 @@ module mod_pbl_uwtcm
             thx(k) = (templ + ocp(k)*rlv(k)*qcx(k))*rexnerhl(k)
             uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           end do
-        end if
+        !end if
 
         !*************************************************************
         !****** Implicit Diffusion of U and V ************************
