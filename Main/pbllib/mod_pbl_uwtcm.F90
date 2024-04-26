@@ -90,8 +90,6 @@ module mod_pbl_uwtcm
   real(rkx) , parameter :: xfr = 0.1_rkx
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
   real(rkx) , parameter :: aone = 1.9_rkx*xfr
-  ! real(rkx) , parameter :: rcrit = 0.3_rkx
-  ! real(rkx) , parameter :: etal =  0.085_rkx
   real(rkx) , parameter :: minn2 =  1.0e-7_rkx
 
   !real(rkx) , parameter :: svp1 =  0.6112_rkx
@@ -138,30 +136,7 @@ module mod_pbl_uwtcm
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    integer(ik4) ::  i , j , k , itr , ibnd
-    integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
-    real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
-                 dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
-                 thvflx , q0s , tvfac , svs , cpoxlv , pfcor , ustx
-    ! real(rkx) :: kh0
-    real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
-    integer(ik4) :: kpbl2dx  ! Top of PBL
-    real(rkx) , dimension(kzp2) :: zqx
-    real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
-               tkes , bbls , nsquar , presfl , exnerfl , rexnerfl
-               ! epo , richnum
-    real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
-    real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , kethl , &
-               thlx , thlxs , thxs , tx , tvx , rttenx , preshl , qcx ,     &
-               qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
-               rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
-               rimp1 , uimp2 , rimp2 , rlv , orlv , cp , ocp
-    real(rkx) , dimension(kz) :: qix , qixs
-    real(rkx) , dimension(kz,ntr) :: chix , chixs
-    real(rkx) , dimension(ntr) :: chifxx
-    integer(ik4) , dimension(kz) :: ktop , kbot
-
+    integer(ik4) ::  i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -169,8 +144,31 @@ module mod_pbl_uwtcm
 #endif
 
     ! Main do loop
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        integer(ik4) ::  k , itr , ibnd
+        integer(ik4) :: ilay , kpbconv , iteration
+        real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
+        real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
+                     dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
+                     thvflx , q0s , tvfac , svs , cpoxlv , pfcor , ustx
+        ! real(rkx) :: kh0
+        real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
+        integer(ik4) :: kpbl2dx  ! Top of PBL
+        real(rkx) , dimension(kzp2) :: zqx
+        real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
+                    tkes , bbls , nsquar , presfl , exnerfl , rexnerfl
+                    ! epo , richnum
+        real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
+        real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , &
+             kethl , thlx , thlxs , thxs , tx , tvx , rttenx , preshl , &
+             qcx , qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
+             rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
+             rimp1 , uimp2 , rimp2 , rlv , orlv , cp , ocp
+        real(rkx) , dimension(kz) :: qix , qixs
+        real(rkx) , dimension(kz,ntr) :: chix , chixs
+        real(rkx) , dimension(ntr) :: chifxx
+        integer(ik4) , dimension(kz) :: ktop , kbot
 
 !*******************************************************************************
 !*******************************************************************************
@@ -359,8 +357,8 @@ module mod_pbl_uwtcm
 
         ! Calculate nsquared Set N^2 based on the current potential
         ! temperature profile
-        ! call n2(thlx,qwx)
-        call n2(thlx,qwx)
+        call n2(thlx,qwx,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
+                rcldb,nsquar)
         ! Estimate the surface N^2 from the surface virtual heat flux
         ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
         nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
@@ -369,8 +367,11 @@ module mod_pbl_uwtcm
         !richnum = nsquar/max(svs,1.0e-8_rkx)
 
         ! Calculate the boundary layer height
-        call pblhgt(thlx,qwx,kpbconv)
-        ! call pblhgt_tao(kpbconv)
+        call pblhgt(thlx,qwx,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
+                    rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
+                    kpbconv,ktop,kbot,kpbl2dx,bbls,pblx)
+        ! call pblhgt_tao(zqx,richnum,rcldb,presfl,tke, &
+        !                 kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
 
 !*******************************************************************************
 !*******************************************************************************
@@ -387,7 +388,9 @@ module mod_pbl_uwtcm
           !*************************************************************
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
-          call melloryamada(thlx,qwx,kpbconv)
+          call melloryamada(thlx,qwx,ocp,rlv,tke,rcldb,nsquar,bbls, &
+                            thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
+                            kethl,kzm,kth)
           !*************************************************************
           !****** Implicit Diffusion of Thetal and Qtot ****************
           !*************************************************************
@@ -420,7 +423,8 @@ module mod_pbl_uwtcm
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
           uimp2 = max(uimp2,minqq)
-          call n2(uimp1,uimp2)
+          call n2(uimp1,uimp2,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv,rdza, &
+                  rcldb,nsquar)
           thx_t = uimp1(kz) + ocp(kz)*rlv(kz)*qcx(kz)*rexnerhl(kz)
           tvcon = d_one + ep1*qx(kz)-qcx(kz)
           thvx_t = thx_t*tvcon
@@ -719,7 +723,7 @@ module mod_pbl_uwtcm
 
         p2m%kpbl(j,i) = kpbl2dx
         p2m%zpbl(j,i) = pblx
-      end do
+      end block
     end do
 
 #ifdef DEBUG
@@ -766,9 +770,15 @@ module mod_pbl_uwtcm
       end do backsub
     end subroutine solve_tridiag
 
-    subroutine n2(thlxin,qwxin)
+    subroutine n2(thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv, &
+                  rdza,rcldb,nsquar)
       implicit none
-      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin
+      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , rdza
+      real(rkx) , intent(in) , dimension(kzp1) :: exnerfl, rexnerfl , presfl
+      real(rkx) , intent(in) , dimension(kz) :: cp , rlv
+      real(rkx) , intent(in) , dimension(kz) :: ocp , orlv
+      real(rkx) , intent(out) , dimension(kzp1) :: rcldb
+      real(rkx) , intent(out) , dimension(kzp1) :: nsquar
       ! local variables
       real(rkx) :: tvbl , rcld , tvab , thvxfl , dtvdz
       real(rkx) :: temps , templ , tempv , rvls , cpoxlv
@@ -813,11 +823,19 @@ module mod_pbl_uwtcm
       nsquar(1) = nsquar(2)
     end subroutine n2
 
-    subroutine melloryamada(thlxin,qwxin,kpbconv)
+    subroutine melloryamada(thlxin,qwxin,ocp,rlv,tke,rcldb,nsquar,bbls, &
+                            thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
+                            kethl,kzm,kth)
       implicit none
       integer(ik4) , intent(in) :: kpbconv
+      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , ocp , rlv
+      real(rkx) , intent(in) , dimension(kzp1) :: tke , rcldb , nsquar , bbls
+      real(rkx) , intent(in) , dimension(kz) :: thx , rexnerhl
+      real(rkx) , intent(in) , dimension(kzp1) :: rexnerfl
+      integer(ik4) , intent(in) , dimension(kz) :: kbot , ktop
+      real(rkx) , intent(out), dimension(kz) :: kethl
+      real(rkx) , intent(out) , dimension(kzp1) :: kzm , kth
       real(rkx) :: gh , a1ob1 , delthvl , elambda , bige , biga
-      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin
       real(rkx) , parameter :: a1 = 0.92_rkx , c1 = 0.08_rkx , &
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
@@ -917,10 +935,22 @@ module mod_pbl_uwtcm
       kethl(kz) = nuk*d_half*kzm(kz)
     end subroutine melloryamada
 
-    subroutine pblhgt(thlxin,qwxin,kpbconv)
+    subroutine pblhgt(thlxin,qwxin,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
+                      rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
+                      kpbconv,ktop,kbot,kpbl2dx,bbls,pblx)
       implicit none
-      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin
+      real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , qcx
+      real(rkx) , intent(in) :: pfcor , ustx
+      real(rkx) , intent(in) , dimension(kz) :: ocp , rlv , uthvx
+      real(rkx) , intent(in) , dimension(kzp1) :: nsquar , tke , rcldb
+      real(rkx) , intent(in) , dimension(kzp1) :: presfl , rhoxfl , exnerfl
+      real(rkx) , intent(in) , dimension(kz) :: rexnerhl , thx , rttenx
+      real(rkx) , intent(in) , dimension(kzp2) :: zqx
+      integer(ik4) , intent(out) , dimension(kz) :: ktop , kbot
       integer(ik4) , intent(out) :: kpbconv
+      integer(ik4) , intent(out) :: kpbl2dx
+      real(rkx) , intent(out) , dimension(kzp1) :: bbls
+      real(rkx) , intent(out) :: pblx
       integer(ik4) , dimension(kz) :: ktop_save
       integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp , kstart
       real(rkx) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
@@ -1118,83 +1148,93 @@ module mod_pbl_uwtcm
     !  esati = dum*0.61115_rkx*exp(arg)
     !end function esati
 
-!    subroutine pblhgt_tao(kpbconv)
-!      implicit none
-!      integer(ik4) , intent(out) :: kpbconv
-!      real(rkx) , dimension(kz) :: ktimesz
-!      real(rkx) :: lambda
-!      logical , dimension(kz) :: issaturated1d , isstable1d , isbelow7001d
-!      logical :: foundlayer
-!      integer(ik4) :: k
-!      issaturated1d = .false.
-!      isstable1d = .false.
-!      isbelow7001d = .false.
-!      foundlayer = .false.
-!      where ( rcldb > d_zero )
-!       issaturated1d = .true.
-!      end where
-!      where ( richnum > rcrit )
-!        isstable1d = .true.
-!      end where
-!      where ( presfl >= 70000.0_rkx )
-!        isbelow7001d = .true.
-!      end where
-!      ! First see if there is a cloud-topped boundary layer: its top will be
-!      ! stable, saturated, and below 700 mb
-!      do k = kzm1 , 1 , -1
-!        if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
-!          kmix2dx = k
-!          foundlayer = .true.
-!          exit
-!        end if
-!      end do
-!      ! If we didn't find a cloud-topped boundary layer, then find the first
-!      ! layer where the richardson number exceeds its threshold
-!      if ( .not. foundlayer ) then
-!        do k = kzm1 , 1 , -1
-!          if ( isstable1d(k) ) then
-!            kmix2dx = k
-!            foundlayer = .true.
-!            exit
-!          end if
-!        end do
-!      end if
-!      ! If we still didn't find a cloud-topped boundary layer, then
-!      ! set the top to be the first interface layer
-!      if ( .not. foundlayer ) then
-!        kmix2dx = kz - 1
-!      end if
-!      ! Set the boundary layer top and the top of the convective layer
-!      kmix2dx = max(kmix2dx,3)
-!      kmix2dx = min(kmix2dx,kzm1)
-!      kpbl2dx = kmix2dx
-!      ! Set that there is only one convective layer
-!      kpbconv = 1
-!      ktop(kpbconv) = kmix2dx
-!      ! Set the boundary layer height
-!      pblx = zqx(ktop(kpbconv))
-!      ! Smoothly interpolate the boundary layer height
-!      if ( (richnum(kmix2dx) >= rcrit) .and. &
-!           (richnum(kmix2dx+1) < rcrit) ) then
-!        pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
-!                 ( (rcrit - richnum(kmix2dx+1)) /                 &
-!                   (richnum(kmix2dx) - richnum(kmix2dx+1)) )
-!      end if
-!      ! Set the master length scale
-!      lambda = etal*pblx
-!      ktimesz = vonkar*zqx(1:kz)
-!      ! Within the boundary layer, the length scale is propor. to the height
-!      bbls = ktimesz/(d_one+ktimesz/lambda)
-!      ! Otherwise use a Stability-related length scale
-!      do k = kmix2dx-1 , 1 , -1
-!        if ( nsquar(k) > d_zero ) then
-!          bbls(k) = max(min(rstbl*sqrt(tke(k) / &
-!                        nsquar(k)),ktimesz(k)),1.0e-8_rkx)
-!        else
-!          bbls(k) = ktimesz(k) - ktimesz(k+1)
-!        end if
-!      end do
-!    end subroutine pblhgt_tao
+    !subroutine pblhgt_tao(zqx,richnum,rcldb,presfl,tke, &
+    !                      kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
+    !  implicit none
+    !  real(rkx) , intent(in) , dimension(kz) :: zqx
+    !  real(rkx) , intent(in) , dimension(kzp1) :: richnum , rcldb , presfl
+    !  real(rkx) , intent(in) , dimension(kzp1) :: tke
+    !  integer(ik4) , intent(out) :: kpbconv , kpbl2dx , kmix2dx
+    !  real(rkx) , intent(out) :: pblx
+    !  integer(ik4) , intent(out) , dimension(kz) :: ktop , kbot
+    !  real(rkx) , intent(out) , dimension(kzp1) :: nsquar , bbls
+    !  real(rkx) , dimension(kz) :: ktimesz
+    !  real(rkx) :: lambda
+    !  logical , dimension(kzp1) :: issaturated1d , isstable1d , isbelow7001d
+    !  logical :: foundlayer
+    !  integer(ik4) :: k
+    !  real(rkx) , parameter :: rcrit = 0.3_rkx
+    !  real(rkx) , parameter :: etal =  0.085_rkx
+
+    !  issaturated1d = .false.
+    !  isstable1d = .false.
+    !  isbelow7001d = .false.
+    !  foundlayer = .false.
+    !  where ( rcldb > d_zero )
+    !   issaturated1d = .true.
+    !  end where
+    !  where ( richnum > rcrit )
+    !    isstable1d = .true.
+    !  end where
+    !  where ( presfl >= 70000.0_rkx )
+    !    isbelow7001d = .true.
+    !  end where
+    !  ! First see if there is a cloud-topped boundary layer: its top will be
+    !  ! stable, saturated, and below 700 mb
+    !  do k = kzm1 , 1 , -1
+    !    if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
+    !      kmix2dx = k
+    !      foundlayer = .true.
+    !      exit
+    !    end if
+    !  end do
+    !  ! If we didn't find a cloud-topped boundary layer, then find the first
+    !  ! layer where the richardson number exceeds its threshold
+    !  if ( .not. foundlayer ) then
+    !    do k = kzm1 , 1 , -1
+    !      if ( isstable1d(k) ) then
+    !        kmix2dx = k
+    !        foundlayer = .true.
+    !        exit
+    !      end if
+    !    end do
+    !  end if
+    !  ! If we still didn't find a cloud-topped boundary layer, then
+    !  ! set the top to be the first interface layer
+    !  if ( .not. foundlayer ) then
+    !    kmix2dx = kz - 1
+    !  end if
+    !  ! Set the boundary layer top and the top of the convective layer
+    !  kmix2dx = max(kmix2dx,3)
+    !  kmix2dx = min(kmix2dx,kzm1)
+    !  kpbl2dx = kmix2dx
+    !  ! Set that there is only one convective layer
+    !  kpbconv = 1
+    !  ktop(kpbconv) = kmix2dx
+    !  ! Set the boundary layer height
+    !  pblx = zqx(ktop(kpbconv))
+    !  ! Smoothly interpolate the boundary layer height
+    !  if ( (richnum(kmix2dx) >= rcrit) .and. &
+    !       (richnum(kmix2dx+1) < rcrit) ) then
+    !    pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
+    !             ( (rcrit - richnum(kmix2dx+1)) /                 &
+    !               (richnum(kmix2dx) - richnum(kmix2dx+1)) )
+    !  end if
+    !  ! Set the master length scale
+    !  lambda = etal*pblx
+    !  ktimesz = vonkar*zqx(1:kz)
+    !  ! Within the boundary layer, the length scale is propor. to the height
+    !  bbls = ktimesz/(d_one+ktimesz/lambda)
+    !  ! Otherwise use a Stability-related length scale
+    !  do k = kmix2dx-1 , 1 , -1
+    !    if ( nsquar(k) > d_zero ) then
+    !      bbls(k) = max(min(rstbl*sqrt(tke(k) / &
+    !                    nsquar(k)),ktimesz(k)),1.0e-8_rkx)
+    !    else
+    !      bbls(k) = ktimesz(k) - ktimesz(k+1)
+    !    end if
+    !  end do
+    !end subroutine pblhgt_tao
 
   end subroutine uwtcm
 
