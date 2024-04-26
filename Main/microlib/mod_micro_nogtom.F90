@@ -1140,6 +1140,7 @@ module mod_micro_nogtom
                 end if
               else
                 ! (2) generation of new clouds (dc/dt>0)
+                qexc = 0.0_rkx ! Make compiler happy
                 select case (nssopt)
                   case (0,1)
                     qexc = max((qxfg(iqqv)-ccover*qsmixv) / &
@@ -1148,10 +1149,6 @@ module mod_micro_nogtom
                     qexc = qxfg(iqqv)
                   case (3) ! Kessler(1969)
                     qexc = qxfg(iqqv)/totcond
-                  case default
-                    qexc = 0.0_rkx
-                    call fatal(__FILE__,__LINE__, &
-                        'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
                 end select
                 rhc = rhcrit(j,i)
                 zsig = ph(k,j,i)/pbot
@@ -1346,6 +1343,7 @@ module mod_micro_nogtom
             !---------------------------------------------------------------
             !   WARM PHASE AUTOCONVERSION
             !---------------------------------------------------------------
+            rainaut = 0.0_rkx ! Make compiler happy
             if ( ql_incld > d_zero ) then
               select case (iautoconv)
                 case (1) ! Klein & Pincus (2000)
@@ -1411,10 +1409,6 @@ module mod_micro_nogtom
                       qsimp(iqqs,iqql) = qsimp(iqqs,iqql) + rainaut
                     end if
                   end block
-                case default
-                  rainaut = 0.0_rkx
-                  call fatal(__FILE__,__LINE__, &
-                       'UNKNOWN AUTOCONVERSION SCHEME')
               end select
 #ifdef DEBUG
               if ( stats ) then
@@ -1802,8 +1796,6 @@ module mod_micro_nogtom
                         ll , nn , qlhs(ll,nn)
                   end do
                 end do
-                call fatal(__FILE__,__LINE__, &
-                        'System does not have a solution. Cannot solve.')
               end if
               vv(n) = d_one/aamax ! Save the scaling.
             end do

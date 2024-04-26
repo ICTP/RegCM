@@ -389,8 +389,7 @@ module mod_pbl_uwtcm
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
           call melloryamada(thlx,qwx,ocp,rlv,tke,rcldb,nsquar,bbls, &
-                            thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
-                            kethl,kzm,kth)
+                            thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth)
           !*************************************************************
           !****** Implicit Diffusion of Thetal and Qtot ****************
           !*************************************************************
@@ -824,15 +823,13 @@ module mod_pbl_uwtcm
     end subroutine n2
 
     pure subroutine melloryamada(thlxin,qwxin,ocp,rlv,tke,rcldb,nsquar,bbls, &
-                                 thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
-                                 kethl,kzm,kth)
+                                 thx,rexnerhl,ktop,kpbconv,kethl,kzm,kth)
       implicit none
       integer(ik4) , intent(in) :: kpbconv
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , ocp , rlv
       real(rkx) , intent(in) , dimension(kzp1) :: tke , rcldb , nsquar , bbls
       real(rkx) , intent(in) , dimension(kz) :: thx , rexnerhl
-      real(rkx) , intent(in) , dimension(kzp1) :: rexnerfl
-      integer(ik4) , intent(in) , dimension(kz) :: kbot , ktop
+      integer(ik4) , intent(in) , dimension(kz) :: ktop
       real(rkx) , intent(out), dimension(kz) :: kethl
       real(rkx) , intent(out) , dimension(kzp1) :: kzm , kth
       real(rkx) :: gh , a1ob1 , delthvl , elambda , bige , biga
