@@ -721,24 +721,7 @@ module mod_sound
 
 #include <cpmf.inc>
 
-    subroutine smallfilter
-      implicit none
-      integer :: i , j , k
-      real(rkx) , dimension(jcii1:jcii2,icii1:icii2) :: e2
-      call exchange(e,1,jci1,jci2,ici1,ici2,1,kz)
-      do k = 1 , kz
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          e2(j,i) = 0.125_rkx * (e(j-1,i,k) + e(j+1,i,k) + &
-                                 e(j,i-1,k) + e(j,i+1,k)) - &
-                    0.5_rkx   * e(j,i,k)
-        end do
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i)
-        end do
-      end do
-    end subroutine smallfilter
-
-    integer(ik4) function inrange_i(i) result(inrange)
+    pure integer(ik4) function inrange_i(i) result(inrange)
       implicit none
       integer(ik4) , intent(in) :: i
       inrange = i
@@ -751,7 +734,7 @@ module mod_sound
       end if
     end function inrange_i
 
-    integer(ik4) function inrange_j(j) result(inrange)
+    pure integer(ik4) function inrange_j(j) result(inrange)
       implicit none
       integer(ik4) , intent(in) :: j
       inrange = j
