@@ -144,6 +144,7 @@ module mod_ocn_zeng
         ! initial values of u* and convective velocity
         !
         wc = minw
+        zo = zomax
         if ( dthv < d_zero ) then
           um = sqrt(uv995*uv995+minw*minw)
         else
@@ -507,7 +508,7 @@ module mod_ocn_zeng
     !
     ! our formulation for zo,zot,zoq
     !
-    subroutine roughness(zo,ustar,visa,zot,zoq)
+    pure subroutine roughness(zo,ustar,visa,zot,zoq)
       implicit none
       real(rkx) , intent (in) :: zo , ustar , visa
       real(rkx) , intent (out) :: zoq , zot
@@ -615,7 +616,7 @@ module mod_ocn_zeng
     ! Hersbach, Hans. "Sea surface roughness and drag coefficient
     ! as functions of neutral wind speed."
     ! Journal of Physical Oceanography 41.1 (2011): 247-251.
-    subroutine zocd(visa,u,z,zo,cd)
+    pure subroutine zocd(visa,u,z,zo,cd)
       implicit none
       real(rkx) , intent(in) :: visa , u , z
       real(rkx) , intent(out) :: zo , cd
