@@ -770,8 +770,8 @@ module mod_pbl_uwtcm
       end do backsub
     end subroutine solve_tridiag
 
-    subroutine n2(thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv, &
-                  rdza,rcldb,nsquar)
+    pure subroutine n2(thlxin,qwxin,exnerfl,rexnerfl,presfl,cp,rlv,ocp,orlv, &
+                       rdza,rcldb,nsquar)
       implicit none
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , rdza
       real(rkx) , intent(in) , dimension(kzp1) :: exnerfl, rexnerfl , presfl
@@ -823,9 +823,9 @@ module mod_pbl_uwtcm
       nsquar(1) = nsquar(2)
     end subroutine n2
 
-    subroutine melloryamada(thlxin,qwxin,ocp,rlv,tke,rcldb,nsquar,bbls, &
-                            thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
-                            kethl,kzm,kth)
+    pure subroutine melloryamada(thlxin,qwxin,ocp,rlv,tke,rcldb,nsquar,bbls, &
+                                 thx,rexnerhl,rexnerfl,kbot,ktop,kpbconv, &
+                                 kethl,kzm,kth)
       implicit none
       integer(ik4) , intent(in) :: kpbconv
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , ocp , rlv
@@ -935,9 +935,9 @@ module mod_pbl_uwtcm
       kethl(kz) = nuk*d_half*kzm(kz)
     end subroutine melloryamada
 
-    subroutine pblhgt(thlxin,qwxin,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl,thx, &
-                      rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx,pfcor, &
-                      kpbconv,ktop,kbot,kpbl2dx,bbls,pblx)
+    pure subroutine pblhgt(thlxin,qwxin,qcx,nsquar,tke,zqx,ocp,rlv,rexnerhl, &
+                           thx,rttenx,uthvx,presfl,rhoxfl,exnerfl,rcldb,ustx, &
+                           pfcor,kpbconv,ktop,kbot,kpbl2dx,bbls,pblx)
       implicit none
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin , qcx
       real(rkx) , intent(in) :: pfcor , ustx
@@ -1148,8 +1148,9 @@ module mod_pbl_uwtcm
     !  esati = dum*0.61115_rkx*exp(arg)
     !end function esati
 
-    !subroutine pblhgt_tao(zqx,richnum,rcldb,presfl,tke, &
-    !                      kpbconv,kpbl2dx,kmix2dx,pblx,ktop,kbot,bbls,nsquar)
+    !pure subroutine pblhgt_tao(zqx,richnum,rcldb,presfl,tke, &
+    !                           kpbconv,kpbl2dx,kmix2dx,pblx, &
+    !                           ktop,kbot,bbls,nsquar)
     !  implicit none
     !  real(rkx) , intent(in) , dimension(kz) :: zqx
     !  real(rkx) , intent(in) , dimension(kzp1) :: richnum , rcldb , presfl
