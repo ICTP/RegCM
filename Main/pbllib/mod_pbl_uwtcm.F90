@@ -735,7 +735,7 @@ module mod_pbl_uwtcm
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
-    subroutine solve_tridiag(a,b,c,v,x,n)
+    pure subroutine solve_tridiag(a,b,c,v,x,n)
       ! n - number of equations
       ! a - sub-diagonal (means it is the diagonal below the main diagonal)
       ! b - the main diagonal
