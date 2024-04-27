@@ -756,7 +756,6 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
-    call glb_l2c_ss(lndcomm,clm_l2a%eflx_lwrad_out,lms%urlwf)
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
@@ -767,8 +766,11 @@ module mod_clm_regcm
     ! The CLM outputs directly to RegCM the radiant Temperature.
     ! We fill it here the output not to leave it empy, but it is not
     ! used in computing the surface Long Wave Radiation
-    clm_l2a%notused = 1.0_rkx
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
+    !clm_l2a%notused = 1.0_rkx
+    !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) lms%emisv(n,j,i) = 1.0_rkx
+    end do
 
     !--------------------------------------------------
     ! From land to chemistry
@@ -831,6 +833,9 @@ module mod_clm_regcm
     end if
     !--------------------------------------------------
     ! Will fix
+    !clm_l2a%eflx_lwrad_out
+    !clm_l2a%emv
+    !clm_l2a%emg
     !clm_l2a%fsa
     !clm_l2a%nee
     !clm_l2a%rofliq

@@ -154,7 +154,6 @@ module mod_lm_interface
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
-    call getmem3d(lms%urlwf,1,nnsg,jci1,jci2,ici1,ici2,'lm:urlwf')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%ddepv,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:ddepv')
@@ -347,9 +346,6 @@ module mod_lm_interface
     call assignpnt(fsw,lm%rswf)
     call assignpnt(flw,lm%rlwf)
     call assignpnt(flwd,lm%dwrlwf)
-#ifdef CLM45
-    call assignpnt(flwu,lm%uwrlwf)
-#endif
     call assignpnt(sabveg,lm%vegswab)
     call assignpnt(albvl,lm%lwalb)
     call assignpnt(albvs,lm%swalb)
@@ -463,12 +459,6 @@ module mod_lm_interface
         ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
       end do
     end if
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      if ( lm%ldmsk(j,i) == 1 ) then
-        lm%uwrlwf(j,i) = sum(lms%urlwf(:,j,i)) * rdnnsg
-        lm%rlwf(j,i) = lm%uwrlwf(j,i) - lm%dwrlwf(j,i)
-      end if
-    end do
 #else
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif

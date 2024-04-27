@@ -1169,7 +1169,7 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.3_rk8*watsat(c,j)
+                h2osoi_vol(c,j) = 0.5_rk8*watsat(c,j)
                 !h2osoi_vol(c,j) = 0.3_rk8
               else
                 h2osoi_vol(c,j) = 0.0_rk8
