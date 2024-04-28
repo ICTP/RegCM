@@ -1788,6 +1788,7 @@ module mod_micro_nogtom
               do jn = 1 , nqx
                 if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
               end do
+#ifdef DEBUG
               if ( aamax == d_zero ) then
                 do nn = 1 , nqx
                   write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
@@ -1797,6 +1798,7 @@ module mod_micro_nogtom
                   end do
                 end do
               end if
+#endif
               vv(n) = d_one/aamax ! Save the scaling.
             end do
             !                                                Ux=y

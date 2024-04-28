@@ -802,7 +802,6 @@ module mod_moloch
         integer(ik4) :: i , j , k , nsound
         real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
         real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
-        real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kz) :: zrom1w , zwexpl
 
         dtrdx = dts/dx
         dtrdy = dts/dx
@@ -827,9 +826,12 @@ module mod_moloch
           ! partial definition of the generalized vertical velocity
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            w(j,i,kzp1) = d_half * &
-                ((u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)) + &
-                 (v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)))
+            block
+              real(rkx) :: zuh , zvh
+              zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
+              zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
+              w(j,i,kzp1) = d_half * (zuh+zvh)
+            end block
           end do
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -839,11 +841,14 @@ module mod_moloch
           ! Equation 10, generalized vertical velocity
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            s(j,i,k) = -0.25_rkx * &
-                  (((u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
-                    (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)) + &
-                   ((v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
-                    (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1))) * gzitak(k)
+            block
+              real(rkx) :: zuh , zvh
+              zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
+                    (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
+              zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
+                    (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
+              s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+            end block
           end do
 
           ! Part of divergence (except w contribution) put in zdiv2
@@ -851,23 +856,35 @@ module mod_moloch
 
           if ( lrotllr ) then
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) *                           &
-                 ((d_two*dtrdx*(                                              &
-                      ((u(j+1,i,k)           )/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
-                      ((u(j  ,i,k)           )/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
-                  (d_two*dtrdy*(                                              &
-                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
-                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
+              block
+                real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
+                real(rkx) :: zum , zup , zvm , zvp
+                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                zum = dtrdx * u(j,i,k) * zrfmzum
+                zup = dtrdx * u(j+1,i,k) * zrfmzup
+                zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+              end block
             end do
           else
             do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) *                          &
-                 ((d_two*dtrdx*(                                              &
-                      ((u(j+1,i,k)*rmu(j+1,i))/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
-                      ((u(j  ,i,k)*rmu(j  ,i))/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
-                  (d_two*dtrdy*(                                              &
-                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
-                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
+              block
+                real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
+                real(rkx) :: zum , zup , zvm , zvp
+                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
+              end block
             end do
           end if
 
@@ -886,44 +903,38 @@ module mod_moloch
             deltaw(j,i,k) = -w(j,i,k)
           end do
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            zrom1w(j,i,k) = (d_half * cpd * fmzf(j,i,k) * &
-              (tetav(j,i,k-1)+tetav(j,i,k))) - &
-              (cpd * w(j,i,k) * fmzf(j,i,k)*fmzf(j,i,k) * &
-               real(nsound,rkx) * dtrdz * (tetav(j,i,k-1)-tetav(j,i,k))) !! GW
-            if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-                 w(j,i,k) > 0.1_rkx ) then
-              zrom1w(j,i,k) = zrom1w(j,i,k) + fmzf(j,i,k) * &
-                ((egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv * &
-                    (d_half*(qsat(j,i,k)+qsat(j,i,k-1)))) / &
-                    (cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1)))
-            end if
-          end do
-
-          ! explicit w:
-          !    it must be consistent with the initialization of pai
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            zwexpl(j,i,k) = w(j,i,k) - (zrom1w(j,i,k) * dtrdz * &
-                         (pai(j,i,k-1) - pai(j,i,k))) - egrav*dts + &
-                         (rdrcv * zrom1w(j,i,k) * dtrdz * &
-                          (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
-                           pai(j,i,k)   * zdiv2(j,i,k)))
-          end do
-
-          ! computation of the tridiagonal matrix coefficients
-          ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
           do k = kz , 2 , -1
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               block
-                real(rkx) :: zu , zd , zrapp
-                zu = zcs2 * fmz(j,i,k-1) * &
-                    zrom1w(j,i,k) * pai(j,i,k-1) + ffilt(k)
-                zd = zcs2 * fmz(j,i,k)   * &
-                    zrom1w(j,i,k) * pai(j,i,k)   + ffilt(k)
+                real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
+                zrom1w = (d_half * cpd * fmzf(j,i,k) * &
+                    (tetav(j,i,k-1)+tetav(j,i,k)))
+                zrom1w = zrom1w - cpd * w(j,i,k) * &
+                         fmzf(j,i,k)*fmzf(j,i,k) * &
+                         real(nsound,rkx) * dtrdz * &
+                         (tetav(j,i,k-1)-tetav(j,i,k)) !! GW
+                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                      w(j,i,k) > 0.1_rkx ) then
+                  zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
+                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv * &
+                      zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                  zrom1w = zrom1w + fmzf(j,i,k) * zdth
+                end if
+                ! explicit w:
+                !    it must be consistent with the initialization of pai
+                zwexpl = w(j,i,k) - zrom1w * dtrdz * &
+                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
+                zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
+                         (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
+                          pai(j,i,k)   * zdiv2(j,i,k))
+                ! computation of the tridiagonal matrix coefficients
+                ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
+                zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+                zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
                 ! 1st loop for the tridiagonal inversion
                 ! a = -zd ; b = (1+zu+zd) ; c = -zu
                 zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl(j,i,k) + zd * w(j,i,k+1))
+                w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
                 wwkw(j,i,k) = zrapp * zu
               end block
             end do
@@ -986,54 +997,70 @@ module mod_moloch
           if ( lrotllr ) then
             ! Equation 17
             do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              u(j,i,k) = u(j,i,k) + &
-                   (coru(j,i) * dts * 0.25_rkx * &
-                        (vd(j,i,k) + vd(j-1,i,k) + &
-                         vd(j-1,i+1,k) + vd(j,i+1,k))) - ((0.25_rkx * &
-                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hx(j,i) * gzitakh(k)) - &
-                   (dtrdx * mu(j,i) * &
-                    d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j-1,i,k)))
+              block
+                real(rkx) :: zcx , zfz , zrom1u , zcor1u
+                zcx = dtrdx * mu(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                ! Equation 17
+                u(j,i,k) = u(j,i,k) + zcor1u - &
+                           zfz * hx(j,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+              end block
             end do
             ! Equation 18
             do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              v(j,i,k) = v(j,i,k) - &
-                   (corv(j,i) * dts * 0.25_rkx * &
-                        (ud(j,i,k) + ud(j,i-1,k) + &
-                         ud(j+1,i,k) + ud(j+1,i-1,k))) - ((0.25_rkx * &
-                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hy(j,i) * gzitakh(k)) - &
-                   (dtrdy * &
-                    d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j,i-1,k)))
+              block
+                real(rkx) :: zcy , zfz , zrom1v , zcor1v
+                zcy = dtrdy
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                ! Equation 18
+                v(j,i,k) = v(j,i,k) - zcor1v - &
+                           zfz * hy(j,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+              end block
             end do
           else
             do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              u(j,i,k) = u(j,i,k) + &
-                   (coru(j,i) * dts * 0.25_rkx * &
-                        (vd(j,i,k) + vd(j-1,i,k) + &
-                         vd(j-1,i+1,k) + vd(j,i+1,k))) - ((0.25_rkx * &
-                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hx(j,i) * gzitakh(k)) - &
-                   (dtrdx * mu(j,i) * &
-                    d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j-1,i,k)))
+              block
+                real(rkx) :: zcx , zfz , zrom1u , zcor1u
+                zcx = dtrdx * mu(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                ! Equation 17
+                u(j,i,k) = u(j,i,k) + zcor1u - &
+                           zfz * hx(j,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+              end block
             end do
             do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              v(j,i,k) = v(j,i,k) - &
-                   (corv(j,i) * dts * 0.25_rkx * &
-                        (ud(j,i,k) + ud(j,i-1,k) + &
-                         ud(j+1,i,k) + ud(j+1,i-1,k))) - ((0.25_rkx * &
-                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hy(j,i) * gzitakh(k)) - &
-                   (dtrdy * mv(j,i) * &
-                    d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j,i-1,k)))
+              block
+                real(rkx) :: zcy , zfz , zrom1v , zcor1v
+                zcy = dtrdy * mv(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                ! Equation 18
+                v(j,i,k) = v(j,i,k) - zcor1v - &
+                           zfz * hy(j,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+              end block
             end do
           end if
 
@@ -1107,14 +1134,6 @@ module mod_moloch
         end if
       end subroutine advection
 
-      pure real(rkx) function rdeno(t1,t2,t3,t4)
-        implicit none
-        real(rkx) , intent(in) :: t1 , t2 , t3 , t4
-        real(rkx) :: zzden
-        zzden = (t3-t4)
-        rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
-      end function rdeno
-
       subroutine wafone(pp,dta,pfac,pmin)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
@@ -1152,7 +1171,7 @@ module mod_moloch
 
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
           block
-            real(rkx) :: zamu , is , r , b , zphi
+            real(rkx) :: zamu , is , r , b , zphi , zzden
             integer(ik4) :: k1 , k1p1
             zamu = s(j,i,k+1) * dtrdz
             if ( zamu >= d_zero ) then
@@ -1166,7 +1185,9 @@ module mod_moloch
               k1p1 = k
               if ( k1 < 1 ) k1 = 1
             end if
-            r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
+            zzden = pp(j,i,k)-pp(j,i,k+1)
+            zzden = sign(max(abs(zzden),minden),zzden)
+            r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
             b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
             zphi = is + zamu * b - is * b
             wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
@@ -1186,7 +1207,7 @@ module mod_moloch
         if ( do_vadvtwice ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
             block
-              real(rkx) :: zamu , is , r , b , zphi
+              real(rkx) :: zamu , is , r , b , zphi , zzden
               integer(ik4) :: k1 , k1p1
               zamu = s(j,i,k+1) * dtrdz
               if ( zamu >= d_zero ) then
@@ -1200,7 +1221,9 @@ module mod_moloch
                 k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
+              zzden = pp(j,i,k)-pp(j,i,k+1)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
               wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
@@ -1237,7 +1260,7 @@ module mod_moloch
           ! Meridional advection
           do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
             block
-              real(rkx) :: zamu , is , r , b , zphi
+              real(rkx) :: zamu , is , r , b , zphi , zzden
               integer(ik4) :: ih , ihm1
               zamu = v(j,i,k) * dtrdy
               if ( zamu > d_zero ) then
@@ -1248,7 +1271,9 @@ module mod_moloch
                 ih = min(i+1,imax)
               end if
               ihm1 = max(ih-1,imin)
-              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+              zzden = wz(j,i,k)-wz(j,i-1,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpby(j,i,k) = d_half * v(j,i,k) * &
@@ -1286,7 +1311,7 @@ module mod_moloch
 
           do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
             block
-              real(rkx) :: zamu , is , r , b , zphi
+              real(rkx) :: zamu , is , r , b , zphi , zzden
               integer(ik4) :: jh , jhm1
               zamu = u(j,i,k) * mu(j,i) * dtrdx
               if ( zamu > d_zero ) then
@@ -1297,7 +1322,9 @@ module mod_moloch
                 jh = min(j+1,jmax)
               end if
               jhm1 = max(jh-1,jmin)
-              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+              zzden = p0(j,i,k)-p0(j-1,i,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpbw(j,i,k) = d_half * u(j,i,k) * &
@@ -1322,7 +1349,7 @@ module mod_moloch
 
           do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
             block
-              real(rkx) :: zamu , is , r , b , zphi
+              real(rkx) :: zamu , is , r , b , zphi , zzden
               integer(ik4) :: ih , ihm1
               zamu = v(j,i,k) * rmv(j,i) * dtrdy
               if ( zamu > d_zero ) then
@@ -1333,7 +1360,9 @@ module mod_moloch
                 ih = min(i+1,imax)
               end if
               ihm1 = max(ih-1,imin)
-              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+              zzden = wz(j,i,k)-wz(j,i-1,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
@@ -1370,7 +1399,7 @@ module mod_moloch
 
           do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
             block
-              real(rkx) :: zamu , is , r , b , zphi
+              real(rkx) :: zamu , is , r , b , zphi , zzden
               integer(ik4) :: jh , jhm1
               zamu = u(j,i,k) * rmu(j,i) * dtrdx
               if ( zamu > d_zero ) then
@@ -1381,7 +1410,9 @@ module mod_moloch
                 jh = min(j+1,jmax)
               end if
               jhm1 = max(jh-1,jmin)
-              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+              zzden = p0(j,i,k)-p0(j-1,i,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
