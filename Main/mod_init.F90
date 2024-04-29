@@ -287,6 +287,13 @@ module mod_init
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         sfs%tgbb(j,i) = sfs%tg(j,i)
       end do
+      do concurrent ( n = 1:nnsg, j = jci1:jci2 , i = ici1:ici2 )
+        if ( mdsub%ldmsk(n,j,i) > 0 ) then
+          lms%emisv(n,j,i) = lnd_sfcemiss
+        else
+          lms%emisv(n,j,i) = ocn_sfcemiss
+        end if
+      end do
       !
       ! Initialize surface parameters for aerosol scheme
       !

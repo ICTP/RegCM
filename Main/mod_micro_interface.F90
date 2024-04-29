@@ -62,8 +62,8 @@ module mod_micro_interface
   real(rkx) , dimension(0:nchi-1) :: chis
 
   logical , parameter :: do_cfscaling = .true.
-  real(rkx) , parameter :: qccrit_lnd = 1.0e-6_rkx
-  real(rkx) , parameter :: qccrit_oce = 5.0e-6_rkx
+  real(rkx) , parameter :: qccrit_lnd = 1.0e-9_rkx
+  real(rkx) , parameter :: qccrit_oce = 5.0e-9_rkx
 
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 
