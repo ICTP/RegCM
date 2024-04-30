@@ -3114,7 +3114,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -3131,18 +3130,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3179,18 +3171,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3247,7 +3232,6 @@ module mod_mppparam
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
     integer(ik4) :: ib1 , ib2 , iex , k
-    integer(ik4) :: mrequestx , mrequesty
 
     ib2 = 0
     do k = k1 , k2
@@ -3267,18 +3251,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx,mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3323,18 +3300,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator, &
-        mrequesty,mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3397,7 +3367,6 @@ module mod_mppparam
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
     integer(ik4) :: ib1 , ib2 , iex , k , n
-    integer(ik4) :: mrequestx , mrequesty
 
     ib2 = 0
     do n = n1 , n2
@@ -3421,18 +3390,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx,mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3485,18 +3447,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3560,7 +3515,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -3577,18 +3531,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3626,18 +3573,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3694,7 +3634,6 @@ module mod_mppparam
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
     integer(ik4) :: ib1 , ib2 , iex , k
-    integer(ik4) :: mrequestx , mrequesty
 
     ib2 = 0
     do k = k1 , k2
@@ -3714,18 +3653,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx,mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
     end if
 #endif
 
@@ -3770,18 +3702,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator, &
-        mrequesty,mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3844,7 +3769,6 @@ module mod_mppparam
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
     integer(ik4) :: ib1 , ib2 , iex , k , n
-    integer(ik4) :: mrequestx , mrequesty
 
     ib2 = 0
     do n = n1 , n2
@@ -3868,18 +3792,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx,mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3932,18 +3849,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -3999,7 +3909,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -4026,18 +3935,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4104,7 +4006,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -4139,18 +4040,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4227,7 +4121,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx+ndy) :: sdata
     real(rk8), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -4270,18 +4163,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4363,7 +4249,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -4390,18 +4275,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4468,7 +4346,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -4503,18 +4380,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4591,7 +4461,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx+ndy) :: sdata
     real(rk4), dimension(ndx+ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -4634,18 +4503,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, sizey, sizey ]
     displs = [ 0, sizex, 2*sizex, 2*sizex+sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4723,7 +4585,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -4740,18 +4601,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4796,7 +4650,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -4817,18 +4670,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4878,7 +4724,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -4903,18 +4748,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -4966,7 +4804,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -4983,18 +4820,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5039,7 +4869,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -5060,18 +4889,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5121,7 +4943,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer(ik4) :: mrequest
     integer :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -5146,18 +4967,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5209,7 +5023,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -5226,18 +5039,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5282,7 +5088,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -5303,18 +5108,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5364,7 +5162,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndy) :: sdata
     real(rk8), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -5389,18 +5186,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real8, &
-        rdata, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real8, &
+        rdata, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5452,7 +5242,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -5469,18 +5258,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5525,7 +5307,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -5546,18 +5327,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5607,7 +5381,6 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndy) :: sdata
     real(rk4), dimension(ndy), volatile :: rdata
-    integer(ik4) :: mrequest
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -5632,18 +5405,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdata, counts, displs, mpi_real4, &
-        rdata, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequest, mpierr)
+    call mpi_neighbor_alltoallv(sdata, counts, displs, mpi_real4, &
+        rdata, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequest,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5705,7 +5471,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -5722,18 +5487,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5762,18 +5520,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5819,7 +5570,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -5840,18 +5590,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5885,18 +5628,11 @@ module mod_mppparam
     end do
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -5945,7 +5681,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -5970,18 +5705,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6022,18 +5750,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6082,7 +5803,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -6099,18 +5819,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6139,18 +5852,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6196,7 +5902,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -6217,18 +5922,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6263,18 +5961,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6323,7 +6014,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -6348,18 +6038,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6400,18 +6083,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6460,7 +6136,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -6477,18 +6152,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6517,18 +6185,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6574,7 +6235,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -6595,18 +6255,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6641,18 +6294,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6701,7 +6347,6 @@ module mod_mppparam
     real(rk8), dimension(ndy) :: sdatay
     real(rk8), dimension(ndx), volatile :: rdatax
     real(rk8), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -6726,18 +6371,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
-        rdatax, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real8, &
+        rdatax, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6778,18 +6416,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
-        rdatay, counts, displs, mpi_real8, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real8, &
+        rdatay, counts, displs, mpi_real8, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6838,7 +6469,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex
 
     ib2 = 0
@@ -6855,18 +6485,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6895,18 +6518,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -6952,7 +6568,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
@@ -6973,18 +6588,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -7019,18 +6627,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -7079,7 +6680,6 @@ module mod_mppparam
     real(rk4), dimension(ndy) :: sdatay
     real(rk4), dimension(ndx), volatile :: rdatax
     real(rk4), dimension(ndy), volatile :: rdatay
-    integer(ik4) :: mrequestx , mrequesty
     integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
@@ -7104,18 +6704,11 @@ module mod_mppparam
 
     counts = [ sizex, sizex, 0, 0 ]
     displs = [ 0, sizex, 2*sizex, 2*sizex ]
-    call mpi_ineighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
-        rdatax, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequestx, mpierr)
+    call mpi_neighbor_alltoallv(sdatax, counts, displs, mpi_real4, &
+        rdatax, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequestx,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
@@ -7156,18 +6749,11 @@ module mod_mppparam
 
     counts = [ 0, 0, sizey, sizey ]
     displs = [ 0, 0, 0, sizey ]
-    call mpi_ineighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
-        rdatay, counts, displs, mpi_real4, cartesian_communicator,  &
-        mrequesty, mpierr)
+    call mpi_neighbor_alltoallv(sdatay, counts, displs, mpi_real4, &
+        rdatay, counts, displs, mpi_real4, cartesian_communicator, mpierr)
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_ineighbor_alltoallv error.')
-    end if
-#endif
-    call mpi_wait(mrequesty,mpi_status_ignore,mpierr)
-#ifdef DEBUG
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+      call fatal(__FILE__,__LINE__,'mpi_neighbor_alltoallv error.')
     end if
 #endif
 
