@@ -189,7 +189,6 @@ module mod_mpi_regcm
   subroutine rcm_mpi_init(startcomm)
     implicit none
     type(mpi_comm), intent(in) :: startcomm
-
     if ( startcomm == MPI_COMM_WORLD ) then
       call mpi_comm_dup(startcomm,rcmpi%globalcom)
     else
@@ -440,11 +439,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -550,11 +549,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     integer :: ib1 , ib2 , iex , k
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
@@ -677,11 +676,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     integer :: ib1 , ib2 , iex , k , n
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
@@ -818,11 +817,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -928,11 +927,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     integer :: ib1 , ib2 , iex , k
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
@@ -1055,11 +1054,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     integer :: ib1 , ib2 , iex , k , n
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
@@ -1186,9 +1185,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk8), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx+ndy) :: sdata
+    real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -1274,9 +1273,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk8), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx+ndy) :: sdata
+    real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -1379,9 +1378,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk8), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx+ndy) :: sdata
+    real(rk8), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -1498,9 +1497,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk4), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx+ndy) :: sdata
+    real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -1586,9 +1585,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk4), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx+ndy) :: sdata
+    real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -1691,9 +1690,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx+ndy), asynchronous :: sdata
-    real(rk4), dimension(ndx+ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx+ndy) :: sdata
+    real(rk4), dimension(ndx+ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -1806,9 +1805,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdata
-    real(rk8), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdata
+    real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -1866,9 +1865,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdata
-    real(rk8), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdata
+    real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -1935,9 +1934,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdata
-    real(rk8), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdata
+    real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -2010,9 +2009,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdata
-    real(rk4), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdata
+    real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -2070,9 +2069,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdata
-    real(rk4), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdata
+    real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -2139,9 +2138,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdata
-    real(rk4), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdata
+    real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -2214,9 +2213,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndy), asynchronous :: sdata
-    real(rk8), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndy) :: sdata
+    real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -2274,9 +2273,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndy), asynchronous :: sdata
-    real(rk8), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndy) :: sdata
+    real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -2343,9 +2342,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndy), asynchronous :: sdata
-    real(rk8), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndy) :: sdata
+    real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -2418,9 +2417,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndy), asynchronous :: sdata
-    real(rk4), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -2478,9 +2477,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndy), asynchronous :: sdata
-    real(rk4), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy) , volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -2547,9 +2546,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndy), asynchronous :: sdata
-    real(rk4), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -2632,11 +2631,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -2714,11 +2713,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -2805,11 +2804,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -2902,11 +2901,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -2984,11 +2983,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -3075,11 +3074,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -3172,11 +3171,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -3254,11 +3253,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -3345,11 +3344,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdatax
-    real(rk8), dimension(ndx), asynchronous :: rdatax
-    real(rk8), dimension(ndy), asynchronous :: sdatay
-    real(rk8), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdatax
+    real(rk8), dimension(ndy) :: sdatay
+    real(rk8), dimension(ndx), volatile :: rdatax
+    real(rk8), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -3442,11 +3441,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex
@@ -3524,11 +3523,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k
@@ -3615,11 +3614,11 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdatax
-    real(rk4), dimension(ndx), asynchronous :: rdatax
-    real(rk4), dimension(ndy), asynchronous :: sdatay
-    real(rk4), dimension(ndy), asynchronous :: rdatay
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdatax
+    real(rk4), dimension(ndy) :: sdatay
+    real(rk4), dimension(ndx), volatile :: rdatax
+    real(rk4), dimension(ndy), volatile :: rdatay
     type(mpi_request) :: mrequestx, mrequesty
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2 , iex , k , n
@@ -3702,9 +3701,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndx), asynchronous :: sdata
-    real(rk8), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndx) :: sdata
+    real(rk8), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2
@@ -3747,9 +3746,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndx), asynchronous :: sdata
-    real(rk4), dimension(ndx), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndx) :: sdata
+    real(rk4), dimension(ndx), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2
@@ -3792,9 +3791,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk8), dimension(ndy), asynchronous :: sdata
-    real(rk8), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk8), dimension(ndy) :: sdata
+    real(rk8), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2
@@ -3839,9 +3838,9 @@ module mod_mpi_regcm
 
     transmit : block
 
-    integer, dimension(4), asynchronous :: counts, displs
-    real(rk4), dimension(ndy), asynchronous :: sdata
-    real(rk4), dimension(ndy), asynchronous :: rdata
+    integer, dimension(4) :: counts, displs
+    real(rk4), dimension(ndy) :: sdata
+    real(rk4), dimension(ndy), volatile :: rdata
     type(mpi_request) :: mrequest
     type(mpi_status) :: mstatus
     integer :: ib1 , ib2
