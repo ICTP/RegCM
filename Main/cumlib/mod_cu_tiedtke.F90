@@ -5603,7 +5603,7 @@ module mod_cu_tiedtke
       real(rkx) , dimension(np) :: wmax
       real(rkx) , dimension(np) :: xph
       logical , dimension(np) :: llflag
-      integer(ik4) :: icall , ik , k , n
+      integer(ik4) :: icall , ik , k , n , km1
       real(rkx) :: zs
       !--------------------------------------------------
       ! 1. Specify large scale parameters at half levels
@@ -5653,9 +5653,8 @@ module mod_cu_tiedtke
       !-------------------------------------------------
       ! 2. Initialize values for updrafts and downdrafts
       ! ------------------------------------------------
-      do concurrent ( n = n1:n2, k = 1:nk )
-        block
-          integer(ik4) :: km1
+      do k = 1 , nk
+        do n = n1 , n2
           km1 = max(k-1,1)
           tu(n,k) = tf(n,k)
           td(n,k) = tf(n,k)
@@ -5668,7 +5667,7 @@ module mod_cu_tiedtke
           vd(n,k) = v(n,km1)
           ilab(n,k) = 0
           cvrainout(n,k) = d_zero
-        end block
+        end do
       end do
     end subroutine initcum
     !
