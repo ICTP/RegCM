@@ -102,7 +102,7 @@ module mod_micro_wdm7
   real(rkx) , parameter :: qcimin = 1.0e-8_rkx
   ! minimum value for Nn
   real(rkx) , parameter :: cnmin = 1.0e8_rkx
-  real(rkx) , parameter :: cnmax = 1.0e20_rkx
+  real(rkx) , parameter :: cnmax = 2.0e10_rkx
   ! minimum value for Nc
   real(rkx) , parameter :: ncmin = 1.e1_rkx
   ! minimum value for Nr
@@ -738,6 +738,7 @@ module mod_micro_wdm7
           psevp(i,k) = d_zero
           pgevp(i,k) = d_zero
           phevp(i,k) = d_zero
+          pcact(i,k) = d_zero
           pgaci_w(i,k) = d_zero
           phaci_w(i,k) = d_zero
           falk(i,k,1) = d_zero
@@ -1855,7 +1856,7 @@ module mod_micro_wdm7
             !
             ! cloud water
             !
-            qval = max(qci(i,k,1),d_zero)
+            qval = max(qci(i,k,1),minqq)
             source = (praut(i,k)+pracw(i,k)+paacw(i,k)+ &
                       paacw(i,k)+phacw(i,k))*dtcld
             if ( source > qval ) then
@@ -1868,7 +1869,7 @@ module mod_micro_wdm7
             !
             ! cloud ice
             !
-            qval = max(qci(i,k,2),d_zero)
+            qval = max(qci(i,k,2),minqq)
             source = (psaut(i,k)-pigen(i,k)-pidep(i,k)+praci(i,k)+psaci(i,k)   &
                     +pgaci(i,k)+phaci(i,k))*dtcld
             if ( source > qval ) then
@@ -2050,9 +2051,9 @@ module mod_micro_wdm7
             !
             ! cloud water
             !
-            qval = max(qci(i,k,1),d_zero)
+            qval = max(qci(i,k,1),minqq)
             source = (praut(i,k)+pracw(i,k)+paacw(i,k)+ &
-                      paacw(i,k)+phacw(i,k))*dtcld
+                      paacw(i,k)-phacw(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
               praut(i,k) = praut(i,k)*factor
