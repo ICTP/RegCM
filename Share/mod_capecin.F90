@@ -429,7 +429,7 @@ module mod_capecin
       real(rkx) :: pp00 , pp10 , pp01 , pp11 , t00 , t10 , t01 , t11
       real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
       real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
-      integer(ik4) :: i , j , lbtm , ittbk , iq , it , iptbk
+      integer(ik4) :: i , j , ittbk , iq , it , iptbk
       integer(ik4) :: ith , ip , iqtb
       integer(ik4) :: ittb , iptb , ithtb
       !
@@ -590,8 +590,8 @@ module mod_capecin
         real(rkx) , dimension(jtb) :: told , theold , thenew
         real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
         real(rkx) :: dth , dp , th , p , ape , denom , qs0k , sqsk , dqs
-        real(rkx) :: qs , theok , sthek , the0k , dthe
-        integer(ik4) :: lthm , kpm , kthm1 , kpm1 , kp , kmm , kthm , kth
+        real(rkx) :: qs , sthek , the0k , dthe
+        integer(ik4) :: kpm , kthm1 , kpm1 , kp , kthm , kth
 
         ! Coarse look-up table for saturation point----------------
         kthm  = jtb

@@ -420,10 +420,6 @@
                         ! 1 => Use interpolated mixing ratios from chem ICBC
                         ! 2 => Use climate MERRA2 dataset (1980-2021)
                         ! 3 => Use inline CMIP6 plume model
- iaervisonly =       0, ! Use only band 10 for aerosol optical properties for
-                        ! MERRA2 dataset.
-                        ! 0 => Use all available bands (3, 6, 10, 13, 19)
-                        ! 1 => Use only band 10
  radclimpath = 'OPPMONTH',! Path to the MERRA2 dataset for iclimaaer == 2
                         ! https://b2share.fz-juelich.de/communities/EURO-CORDEX
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed

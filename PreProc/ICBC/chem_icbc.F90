@@ -70,10 +70,10 @@ program chem_icbc
   integer(ik4) :: ichem , iclimaaer
   integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn ,  &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,       &
-    iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,         &
-    ioasiscpl , icldmstrat , icldfrac , irrtm , iclimao3 , isolconst ,     &
-    icumcloud , islab_ocean , itweak , ghg_year_const , idiffu , icopcpl , &
-    iwhitecap , ifixsolar , year_offset , ichdustparam , irceideal
+    iocnrough , iocnzoq , idcsst , iseaice , iconvlwp , ioasiscpl ,        &
+    icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,     &
+    islab_ocean , itweak , ghg_year_const , idiffu , icopcpl , iwhitecap , &
+    ifixsolar , year_offset , ichdustparam , irceideal
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
   character(len=256) :: radclimpath
