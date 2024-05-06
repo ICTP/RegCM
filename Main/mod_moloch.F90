@@ -99,7 +99,6 @@ module mod_moloch
   logical , parameter :: do_bdy          = .true.
   logical , parameter :: do_divdamp      = .true.
   logical , parameter :: do_filterpai    = .false.
-  logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
   logical , parameter :: do_diffutend    = .false.
@@ -173,9 +172,6 @@ module mod_moloch
     if ( do_filtertheta ) then
       call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
     end if
-    if ( do_filterqv ) then
-      call getmem3d(qf,jce1,jce2,ice1,ice2,1,kz,'moloch:qf')
-    end if
   end subroutine allocate_moloch
 
   subroutine init_moloch
@@ -243,7 +239,6 @@ module mod_moloch
       w(j,i,1) = d_zero
     end do
     lrotllr = (iproj == 'ROTLLR')
-
     jmin = jcross1
     jmax = jcross2
     imin = icross1
@@ -258,7 +253,6 @@ module mod_moloch
       imin = icross1 - 2
       imax = icross2 + 2
     end if
-
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -362,11 +356,6 @@ module mod_moloch
           tf(j,i,k) = tetav(j,i,k)
         end do
       end if
-    end if
-    if ( do_filterqv ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        qf(j,i,k) = qv(j,i,k)
-      end do
     end if
 
     do nadv = 1 , mo_nadv
@@ -496,17 +485,6 @@ module mod_moloch
         end if
       end if
     end if
-
-    if ( do_filterqv ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        qv(j,i,k) = qv(j,i,k) - qf(j,i,k)
-      end do
-      call filtqv
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        qv(j,i,k) = max(qv(j,i,k) + qf(j,i,k),minqq)
-      end do
-    end if
-
     !
     ! Mass check
     !
@@ -778,24 +756,6 @@ module mod_moloch
         end do
       end subroutine filttheta
 
-      subroutine filtqv
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
-
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
-                                    qv(j,i-1,k) + qv(j,i+1,k)) - &
-                         d_half   * qv(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            qv(j,i,k) = qv(j,i,k) + nupaitq * p2d(j,i)
-          end do
-        end do
-      end subroutine filtqv
-
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
@@ -820,8 +780,8 @@ module mod_moloch
 
         do nsound = 1 , mo_nsound
 
-          call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
           ! partial definition of the generalized vertical velocity
 
@@ -899,16 +859,15 @@ module mod_moloch
 
           ! new w (implicit scheme) from Equation 19
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            deltaw(j,i,k) = -w(j,i,k)
-          end do
-
           do k = kz , 2 , -1
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               block
                 real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
-                zrom1w = (d_half * cpd * fmzf(j,i,k) * &
-                    (tetav(j,i,k-1)+tetav(j,i,k)))
+                deltaw(j,i,k) = -w(j,i,k)
+                ! explicit w:
+                !    it must be consistent with the initialization of pai
+                zrom1w = d_half * cpd * fmzf(j,i,k) * &
+                         (tetav(j,i,k-1)+tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * &
                          fmzf(j,i,k)*fmzf(j,i,k) * &
                          real(nsound,rkx) * dtrdz * &
@@ -916,9 +875,9 @@ module mod_moloch
                 if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                       w(j,i,k) > 0.1_rkx ) then
                   zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv * &
-                      zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
-                  zrom1w = zrom1w + fmzf(j,i,k) * zdth
+                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
+                    zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
@@ -944,10 +903,8 @@ module mod_moloch
           do k = 2 , kz
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
+              deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
             end do
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
           end do
 
           ! new Exner function (Equation 19)
@@ -965,8 +922,6 @@ module mod_moloch
                                 3.2_rkx * qc(j,i,k)) / &
                        (d_one + 0.96_rkx * qv(j,i,k) + &
                                 4.8_rkx * qc(j,i,k))
-              end do
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tetav(j,i,k) = tetav(j,i,k) * &
                        (d_one + rdrcv*zdiv2(j,i,k) * &
                         (0.25_rkx * qv(j,i,k) +      &
@@ -1083,6 +1038,8 @@ module mod_moloch
         real(rkx) , intent(in) :: dta
         integer(ik4) :: n
         real(rkx) , pointer , dimension(:,:,:) :: ptr
+
+        ! Compute U,V on cross points
 
         call uvstagtox(u,v,ux,vx)
 
@@ -1221,13 +1178,13 @@ module mod_moloch
                 k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              zzden = pp(j,i,k)-pp(j,i,k+1)
+              zzden = wz(j,i,k)-wz(j,i,k+1)
               zzden = sign(max(abs(zzden),minden),zzden)
-              r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
+              r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                                    (d_one-zphi)*pp(j,i,k))
+              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
+                                                    (d_one-zphi)*wz(j,i,k))
             end block
           end do
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -1235,8 +1192,8 @@ module mod_moloch
               real(rkx) :: zrfmu , zrfmd , zdv
               zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) - wfw(j,i,k)*zrfmu + &
+              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
+              wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
                                       wfw(j,i,k+1)*zrfmd + zdv
             end block
           end do
