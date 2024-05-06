@@ -1098,7 +1098,6 @@ module mod_moloch
         real(rkx) , optional , intent(in) :: pfac , pmin
         integer(ik4) :: j , i , k
         real(rkx) :: dtrdx , dtrdy , dtrdz
-        real(rkx) :: xw1 , xw2
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
         real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
@@ -1108,8 +1107,6 @@ module mod_moloch
         dtrdx = dta/dx
         dtrdy = dta/dx
         dtrdz = dta/dzita
-        xw2 = dta/dtsec
-        xw1 = 1.0_rkx - xw2
         if ( do_vadvtwice ) then
           dtrdz = 0.5_rkx * dtrdz
         end if
@@ -1201,12 +1198,12 @@ module mod_moloch
 
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice1,k) = xw1 * pp(j,ice1,k) + xw2 * wz(j,ici1,k)
+            wz(j,ice1,k) = wz(j,ici1,k)
           end do
         end if
         if ( ma%has_bdytop ) then
           do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice2,k) = xw1 * pp(j,ice2,k) + xw2 * wz(j,ici2,k)
+            wz(j,ice2,k) = wz(j,ici2,k)
           end do
         end if
 
@@ -1252,13 +1249,13 @@ module mod_moloch
 
           if ( ma%has_bdyleft ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+              p0(jce1,i,k) = p0(jci1,i,k)
             end do
           end if
 
           if ( ma%has_bdyright ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+              p0(jce2,i,k) = p0(jci2,i,k)
             end do
           end if
 
@@ -1340,13 +1337,13 @@ module mod_moloch
 
           if ( ma%has_bdyleft ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+              p0(jce1,i,k) = p0(jci1,i,k)
             end do
           end if
 
           if ( ma%has_bdyright ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+              p0(jce2,i,k) = p0(jci2,i,k)
             end do
           end if
 
