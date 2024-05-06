@@ -478,7 +478,6 @@ module mod_micro_nogtom
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
         block
           real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
-          integer(ik4) :: k
           tnew = tx(k,j,i)
           dp = dpfs(k,j,i)
           qe = qdetr(k,j,i)
