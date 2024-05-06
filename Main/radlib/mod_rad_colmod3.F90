@@ -462,7 +462,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           rt%t(n,k) = m2r%tatms(j,i,k)
           rt%rh(n,k) = m2r%rhatms(j,i,k)
-          rt%rho(n,k) = m2r%rhoatms(j,i,k)
+          rt%rho(n,k) = (rt%pmid(n,k)*amdk)/(rt%t(n,k)*rgasmol)
           n = n + 1
         end do
       end do
@@ -476,7 +476,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           ! Specific humidity (h2o mass mix ratio)
           rt%q(n,k) = m2r%qxatms(j,i,k,iqv)/(1.0_rkx+m2r%qxatms(j,i,k,iqv))
-          rt%ql(n,k) = m2r%qxatms(j,i,k,iqc)/(1.0_rkx+m2r%qxatms(j,i,k,iqc))
+          rt%ql(n,k) = m2r%qxatms(j,i,k,iqc)
           n = n + 1
         end do
       end do
@@ -486,7 +486,7 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rt%qi(n,k) = m2r%qxatms(j,i,k,iqi)/(1.0_rkx+m2r%qxatms(j,i,k,iqi))
+            rt%qi(n,k) = m2r%qxatms(j,i,k,iqi)
             n = n + 1
           end do
         end do
@@ -729,7 +729,9 @@ module mod_rad_colmod3
       do n = rt%n1 , rt%n2
         ! ice absorption coefficient
         kabsi = 0.005_rkx + (1.0_rkx/rt%rei(n,k))
-        kabsl = 0.075_rkx * exp(-0.08_rkx*rt%rel(n,k))
+        ! liquid water absorption coefficient for broadband long wave
+        ! (Hannu Savijärvi & Petri Räisänen)
+        kabsl = 0.31_rkx * exp(-0.08_rkx*rt%rel(n,k))
         ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(1.0_rkx-rt%fice(n,k)) + (kabsi*rt%fice(n,k))
         ! cloud emissivity (fraction)

@@ -154,7 +154,7 @@ module mod_timer
     class(rcm_timer) , intent(inout) :: t
     integer(ik4) :: i
     t%model_internal_time = t%model_internal_time + t%model_timestep
-    t%nowinday = t%nowinday + int(t%model_timestep,ik4)
+    t%nowinday = t%nowinday + int(t%model_timestep,ik8)
     t%idate = t%idate + t%intmdl
     t%lcount = t%lcount + 1
     if ( t%nowinday >= 86400 ) then

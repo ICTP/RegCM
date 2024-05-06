@@ -223,12 +223,12 @@ module mod_micro_nogtom
   ! Delta pressure
   real(rkx) , pointer, dimension(:,:,:) :: dpfs
 
-  real(rkx) , parameter :: zerocf = 0.0001_rkx
-  real(rkx) , parameter :: onecf  = 0.9999_rkx
+  real(rkx) , parameter :: zerocf = 0.01_rkx
+  real(rkx) , parameter :: onecf  = 0.99_rkx
 
   real(rkx) , parameter :: activqx = 1.0e-12_rkx
-  real(rkx) , parameter :: verylowqx = 1.0e-12_rkx
-  real(rkx) , parameter :: activcf = zerocf
+  real(rkx) , parameter :: verylowqx = 1.0e-20_rkx
+  real(rkx) , parameter :: activcf = 2.0_rkx*zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   contains
@@ -443,11 +443,9 @@ module mod_micro_nogtom
     ! Starting budget if requested
     !
     if ( budget_compute ) then
-
       ! Reset arrays
       tentkp(:,:,:)  = d_zero
       tenqkp(:,:,:,:) = d_zero
-
       ! Record the tendencies
       do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tenqkp(n,k,j,i) = qxtendc(n,k,j,i)
@@ -455,38 +453,49 @@ module mod_micro_nogtom
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tentkp(k,j,i) = ttendc(k,j,i)
       end do
-
       ! initialize the flux arrays
       sumq0(:,:,:)     = d_zero
       sumh0(:,:,:)     = d_zero
-
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
           real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
+          tnew = tx(1,j,i)
+          dp = dpfs(1,j,i)
+          qe = qdetr(1,j,i)
+          tmpl = qx(iqql,1,j,i)+qx(iqqr,1,j,i)
+          tmpi = qx(iqqi,1,j,i)+qx(iqqs,1,j,i)
+          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+          sumq0(1,j,i) = sumq0(1,j,i)+(tmpl+tmpi+qx(iqqv,1,j,i))*dp*regrav
+          ! Detrained water treated here
+          if ( lmicro .and. abs(qe) > activqx ) then
+            sumq0(1,j,i) = sumq0(1,j,i) + qe*dp*regrav
+            alfaw = qliq(1,j,i)
+            tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
+          end if
+          sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
+        end block
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+        block
+          real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
           integer(ik4) :: k
-          do k = 1 , kz
-            tnew = tx(k,j,i)
-            dp = dpfs(k,j,i)
-            qe = qdetr(k,j,i)
+          tnew = tx(k,j,i)
+          dp = dpfs(k,j,i)
+          qe = qdetr(k,j,i)
+          sumq0(k,j,i) = sumq0(k-1,j,i) ! total water
+          sumh0(k,j,i) = sumh0(k-1,j,i) ! liquid water temperature
+          tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
+          tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
+          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+          sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
 
-            if ( k > 1 ) then
-              sumq0(k,j,i) = sumq0(k-1,j,i) ! total water
-              sumh0(k,j,i) = sumh0(k-1,j,i) ! liquid water temperature
-            end if
-
-            tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
-            tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
-
-            ! Detrained water treated here
-            if ( lmicro .and. abs(qe) > activqx ) then
-              sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
-              alfaw = qliq(k,j,i)
-              tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
-            end if
-            sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
-          end do
+          ! Detrained water treated here
+          if ( lmicro .and. abs(qe) > activqx ) then
+            sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
+            alfaw = qliq(k,j,i)
+            tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
+          end if
+          sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
         end block
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
@@ -610,7 +619,7 @@ module mod_micro_nogtom
         real(rkx) , dimension(nqx) :: ratio
         real(rkx) , dimension(nqx) :: sinksum
         ! array for sorting explicit terms
-        integer(ik4) , dimension(nqx) :: iorder
+        ! integer(ik4) , dimension(nqx) :: iorder
         real(rkx) :: tk , tc , dens , pbot
         real(rkx) :: snowp , rainp
         real(rkx) :: supsat , subsat
@@ -1710,7 +1719,7 @@ module mod_micro_nogtom
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
           !--------------------------------------------------------
-          iorder = argsort(ratio)
+          ! iorder = argsort(ratio)
           !--------------------------------------------
           ! scale the sink terms, in the correct order,
           ! recalculating the scale factor each time
@@ -1721,28 +1730,36 @@ module mod_micro_nogtom
           !----------------
           do n = 1 , nqx
             do jn = 1 , nqx
-              jo = iorder(n)
-              lind2(jo,jn) = qsexp(jo,jn) < d_zero
-              sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
+              !jo = iorder(n)
+              !lind2(jo,jn) = qsexp(jo,jn) < d_zero
+              !sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
+              lind2(n,jn) = qsexp(n,jn) < d_zero
+              sinksum(n) = sinksum(n) - qsexp(n,jn)
             end do
           end do
           !---------------------------
           ! recalculate scaling factor
           !---------------------------
           do n = 1 , nqx
-            jo = iorder(n)
-            ratio(jo) = max(qx0(jo),verylowqx) / &
-               max(sinksum(jo),max(qx0(jo),verylowqx))
+            !jo = iorder(n)
+            !ratio(jo) = max(qx0(jo),verylowqx) / &
+            !   max(sinksum(jo),max(qx0(jo),verylowqx))
+            ratio(n) = max(qx0(n),verylowqx) / &
+               max(sinksum(n),max(qx0(n),verylowqx))
           end do
           !------
           ! scale
           !------
           do n = 1 , nqx
             do jn = 1 , nqx
-              jo = iorder(n)
-              if ( lind2(jo,jn) ) then
-                qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
-                qsexp(jn,jo) = qsexp(jn,jo)*ratio(jo)
+              !jo = iorder(n)
+              !if ( lind2(jo,jn) ) then
+              !  qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
+              !  qsexp(jn,jo) = qsexp(jn,jo)*ratio(jo)
+              !end if
+              if ( lind2(n,jn) ) then
+                qsexp(n,jn) = qsexp(n,jn)*ratio(n)
+                qsexp(jn,n) = qsexp(jn,n)*ratio(n)
               end if
             end do
           end do
@@ -1944,23 +1961,33 @@ module mod_micro_nogtom
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
           real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
-          integer(ik4) :: k
-          do k = 1 , kz
-            dp = dpfs(k,j,i)
-            tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
-            qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
-            if ( k > 1 ) then
-              sumq1(k,j,i) = sumq1(k-1,j,i)
-              sumh1(k,j,i) = sumh1(k-1,j,i)
-            end if
-            tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
-                   qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
-            tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
-                   qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
-            sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
-          end do
+          dp = dpfs(1,j,i)
+          tnew = tx(1,j,i)+dt*(ttendc(1,j,i)-tentkp(1,j,i))
+          qvnew = qx(iqqv,1,j,i)+dt*(qxtendc(iqqv,1,j,i)-tenqkp(iqqv,1,j,i))
+          tmpl = qx(iqql,1,j,i)+dt*(qxtendc(iqql,1,j,i)-tenqkp(iqql,1,j,i))+&
+                 qx(iqqr,1,j,i)+dt*(qxtendc(iqqr,1,j,i)-tenqkp(iqqr,1,j,i))
+          tmpi = qx(iqqi,1,j,i)+dt*(qxtendc(iqqi,1,j,i)-tenqkp(iqqi,1,j,i))+&
+                 qx(iqqs,1,j,i)+dt*(qxtendc(iqqs,1,j,i)-tenqkp(iqqs,1,j,i))
+          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+          sumq1(1,j,i) = sumq1(1,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
+          sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
+        end block
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 , k = 2:kz )
+        block
+          real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
+          dp = dpfs(k,j,i)
+          tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
+          qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
+          sumq1(k,j,i) = sumq1(k-1,j,i)
+          sumh1(k,j,i) = sumh1(k-1,j,i)
+          tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
+                 qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
+          tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
+                 qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
+          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+          sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
+          sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
         end block
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -1988,9 +2015,11 @@ module mod_micro_nogtom
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
-        errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
+      do k = 1 , kz
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
+          errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
+        end do
       end do
 
       lerror = .false.
@@ -2033,12 +2062,14 @@ module mod_micro_nogtom
 
     ! Rain+liquid, snow+ice
     ! for each level k = 1 , kzp1, sum of the same phase elements
-    do concurrent ( n = 1:nqx, k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
-      if ( iphase(n) == 1 ) then
-        pfplsl(k,j,i) = pfplsl(k,j,i) + pfplsx(n,k,j,i)
-      else if ( iphase(n) == 2 ) then
-        pfplsn(k,j,i) = pfplsn(k,j,i) + pfplsx(n,k,j,i)
-      end if
+    do n = 1 , nqx
+      do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
+        if ( iphase(n) == 1 ) then
+          pfplsl(k,j,i) = pfplsl(k,j,i) + pfplsx(n,k,j,i)
+        else if ( iphase(n) == 2 ) then
+          pfplsn(k,j,i) = pfplsn(k,j,i) + pfplsx(n,k,j,i)
+        end if
+      end do
     end do
     !
     if ( ichem == 1 ) then
@@ -2117,31 +2148,31 @@ module mod_micro_nogtom
    !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
    ! end subroutine addpath
 
-    pure function argsort(a) result(b)
-      implicit none
-      real(rk8) , intent(in) :: a(:)
-      integer(ik4) , dimension(size(a)) :: b
-      integer :: n , i , imin , temp1
-      real(rk8) :: temp2
-      real(rk8) , dimension(size(a)) :: a2
-      a2 = a
-      n = size(a)
-      do i = 1 , n
-        b(i) = i
-      end do
-      if ( n == 1 ) return
-      do i = 1 , n-1
-        imin = minloc(a2(i:),1) + i - 1
-        if ( imin /= i ) then
-          temp2 = a2(i)
-          a2(i) = a2(imin)
-          a2(imin) = temp2
-          temp1 = b(i)
-          b(i) = b(imin)
-          b(imin) = temp1
-        end if
-      end do
-    end function argsort
+   ! pure function argsort(a) result(b)
+   !   implicit none
+   !   real(rk8) , intent(in) :: a(:)
+   !   integer(ik4) , dimension(size(a)) :: b
+   !   integer :: n , i , imin , temp1
+   !   real(rk8) :: temp2
+   !   real(rk8) , dimension(size(a)) :: a2
+   !   a2 = a
+   !   n = size(a)
+   !   do i = 1 , n
+   !     b(i) = i
+   !   end do
+   !   if ( n == 1 ) return
+   !   do i = 1 , n-1
+   !     imin = minloc(a2(i:),1) + i - 1
+   !     if ( imin /= i ) then
+   !       temp2 = a2(i)
+   !       a2(i) = a2(imin)
+   !       a2(imin) = temp2
+   !       temp1 = b(i)
+   !       b(i) = b(imin)
+   !       b(imin) = temp1
+   !     end if
+   !   end do
+   ! end function argsort
 
   end subroutine nogtom
 

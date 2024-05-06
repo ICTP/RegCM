@@ -87,18 +87,16 @@ module mod_ocn_zeng
 
       do concurrent ( i = iocnbeg:iocnend)
         block
-          real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo , &
-                       tau , tsurf , ustar , uv10 , zi , cd
           real(rkx) :: t995 , q995 , uv995 , z995
-          real(rkx) :: dthv , zq , zh , zu , obu , qstar , xdens ,    &
-                       th , thv , thvstar , tstar , um , visa , zot , &
-                       wc , zeta , zoq , tha
-          real(rkx) :: cpm , rlv
+          real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo ,    &
+              tau , tsurf , ustar , uv10 , zi , cd , dthv , zq ,   &
+              zh , zu , obu , qstar , xdens , th , thv , thvstar , &
+              tstar , um , visa , zot , wc , zeta , zoq , tha ,    &
+              cpm , rlv , rs , rd , td , tdelta , delta , q ,      &
+              ustarw , fd , l , phidl , aa , bb , lamb , dtstend , &
+              dts , fs , tskin_new
+!         real(rkx) :: lwds , lwus
           integer(ik4) :: nconv
-!       real(rkx) :: lwds , lwus
-          real(rkx) :: rs , rd , td , tdelta , delta
-          real(rkx) :: q , ustarw , fd , l , phidl , aa , bb , lamb
-          real(rkx) :: dtstend , dts , fs , tskin_new
 
           if ( mask(i) /= 1 ) cycle
 
@@ -108,210 +106,133 @@ module mod_ocn_zeng
           else
             tgrd(i) = tgb(i)
           end if
-        tgbrd(i) = tgb(i)
+          tgbrd(i) = tgb(i)
 
-        uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
-        t995 = tatm(i) - tzero
-        q995 = qv(i)
-        z995 = ht(i)
-        tsurf = tgrd(i)
-        rlv = wlh(tsurf)
-        cpm = cpd*(d_one-q995) + cpv*q995
-        zi = hpbl(i)
-        zu = z995
-        zh = z995
-        zq = z995
-        dth = tatm(i)+0.0098*zh-tsurf
-        ! potential T
-        th = tsurf*(p00/sfps(i))**rovcp
-        tha = tatm(i)*(p00/patm(i))**rovcp
-        qs = pfwsat(tsurf,sfps(i))*0.998_rkx
-        ! in kg/kg
-        dqh = q995 - qs
-        ! virtual potential T
-        thv = th*(d_one+ep1*qs)
-        dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
-        ! density
-        xdens = sfps(i)/(rgas*tsurf*(d_one+ep1*qs))
-        ! J/kg
-        ! Kinematic viscosity of dry air (m2/s)
-        !   Andreas (1989) CRREL Rep. 89-11
-        !
-        visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * t995 + &
-                                     8.301e-6_rkx * t995*t995 - &
-                                     4.840e-9_rkx * t995*t995*t995)
-        !
-        ! initial values of u* and convective velocity
-        !
-        wc = minw
-        zo = zomax
-        if ( dthv < d_zero ) then
-          um = sqrt(uv995*uv995+minw*minw)
-        else
-          um = uv995
-        end if
-        !
-        ! zo comes from wave model
-        ! flag1 is used as mask for zo
-        !
-        flag1 = .true.
-        if ( iwavcpl == 1 ) then
-          if ( syncro_cpl%lcount > 1 ) then
-            if ( zoo(i) < tol .and. syncro_cpl%act( ) ) then
-              zo = zoo(i)
-              if ( zo > zomax ) zo = zomax
-              flag1 = .false.
-            end if
-          end if
-        end if
-        !
-        ! ustr comes from wave model
-        ! flag2 is used as mask for ustr
-        !
-        flag2 = .true.
-        if ( iwavcpl == 1 ) then
-          if ( syncro_cpl%lcount > 1 ) then
-            if ( ustr(i) < tol .and. syncro_cpl%act( ) ) then
-              ustar = ustr(i)
-              if ( ustar > ustarmax ) ustar = ustarmax
-              flag2 = .false.
-            end if
-          end if
-        end if
-        !
-        ! loop to obtain initial and good ustar and zo
-        !
-        if ( ecmwf_ocnrough ) then
-          if ( flag1 ) then  ! We don't have zo from the wave model
-            ! Compute z0 and cd
-            call zocd(visa,um,zu,zo,cd)
-          end if
-          if ( flag2 ) then  ! We don't have ustar from the wave model
-            ustar = um * vonkar / log(1.0_rkx+zu/zo)
-          end if
-          if ( .not. flag1 ) then
-            cd = (ustar/um)**2
-          end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
-          if ( br(i) >= d_zero ) then       ! neutral or stable
-            zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-            zeta = min(2.0_rkx,max(zeta,minz))
-          else                              ! unstable
-            zeta = br(i)*log(zu/zo)
-            zeta = max(-100.0_rkx,min(zeta,-minz))
-          end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
-          if ( br(i) >= d_zero ) then       ! neutral or stable
-            zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-            zeta = min(2.0_rkx,max(zeta,minz))
-          else                              ! unstable
-            zeta = br(i)*log(zu/zo)
-            zeta = max(-100.0_rkx,min(zeta,-minz))
-          end if
-          obu = zu/zeta
-          if ( zeta < -zetam ) then      ! zeta < -1
-            ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
-                    psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
-          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            ram1(i) = (log(zu/zo) - psi(1,zeta)+psi(1,zo/obu))
-          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-            ram1(i) = (log(zu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
-          else                           !  1 < zeta, phi=5+zeta
-            ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
-                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
-          end if
-          call roughness(zo,ustar,visa,zot,zoq)
+          uv995 = max(sqrt(usw(i)**2+vsw(i)**2),minw)
+          t995 = tatm(i) - tzero
+          q995 = qv(i)
+          z995 = ht(i)
+          tsurf = (tgrd(i) + 1.0_rkx/z995 * (tatm(i)-tgrd(i)))
+          rlv = wlh(tsurf)
+          cpm = cpd*(d_one-q995) + cpv*q995
+          zi = hpbl(i)
+          zu = z995
+          zh = z995
+          zq = z995
+          dth = tatm(i)+0.0098*zh-tsurf
+          ! potential T
+          th = tsurf*(p00/sfps(i))**rovcp
+          tha = tatm(i)*(p00/patm(i))**rovcp
+          qs = pfwsat(tsurf,sfps(i))*0.998_rkx
+          ! in kg/kg
+          dqh = q995 - qs
+          ! virtual potential T
+          thv = th*(d_one+ep1*qs)
+          dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
+          ! density
+          xdens = sfps(i)/(rgas*tsurf*(d_one+ep1*qs))
+          ! J/kg
+          ! Kinematic viscosity of dry air (m2/s)
+          !   Andreas (1989) CRREL Rep. 89-11
           !
-          ! temperature
+          visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * t995 + &
+                                       8.301e-6_rkx * t995*t995 - &
+                                       4.840e-9_rkx * t995*t995*t995)
           !
-          zeta = zh/obu
-          if ( zeta < -zetat ) then      ! zeta < -1
-            rah1(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
-                      0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
-          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
-          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-            rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
-          else                           !  1 < zeta, phi=5+zeta
-            rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
-                     (5.0_rkx*log(zeta)+zeta-1.0_rkx))
-          end if
-          tstar = vonkar*dth/rah1(i)
+          ! initial values of u* and convective velocity
           !
-          ! humidity
-          !
-          zeta = zq/obu
-          if ( zeta < -zetat ) then      ! zeta < -1
-            qstar = vonkar*dqh/ &
-                   (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
-                         0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
-          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
-          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-            qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
-          else                           !  1 < zeta, phi=5+zeta
-            qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
-                    (5.0_rkx*log(zeta)+zeta-1.0_rkx))
-          end if
-        else
-          if ( flag1 ) then  ! We don't have zo from the wave model
-            ! First estimate of ustar
-            if ( flag2 ) then  ! We don't have ustar from the wave model
-              ustar = um/25.0_rkx
-              do nconv = 1 , 2
-                zo = ocnrough(ustar,um10(i),wc,visa)
-                ustar = vonkar*um/log(1.0_rkx+zu/zo)
-              end do
-            else
-              zo = ocnrough(ustar,um10(i),wc,visa)
-            end if
+          wc = minw
+          zo = zomax
+          if ( dthv < d_zero ) then
+            um = sqrt(uv995*uv995+minw*minw)
           else
-            if ( flag2 ) then  ! We don't have ustar from the wave model
-              ustar = vonkar*um/log(1.0_rkx+zu/zo)
+            um = uv995
+          end if
+          !
+          ! zo comes from wave model
+          ! flag1 is used as mask for zo
+          !
+          flag1 = .true.
+          if ( iwavcpl == 1 ) then
+            if ( syncro_cpl%lcount > 1 ) then
+              if ( zoo(i) < tol .and. syncro_cpl%act( ) ) then
+                zo = zoo(i)
+                if ( zo > zomax ) zo = zomax
+                flag1 = .false.
+              end if
             end if
           end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
-          if ( br(i) >= d_zero ) then       ! neutral or stable
-            zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-            zeta = min(2.0_rkx,max(zeta,minz))
-          else                              ! unstable
-            zeta = br(i)*log(zu/zo)
-            zeta = max(-100.0_rkx,min(zeta,-minz))
+          !
+          ! ustr comes from wave model
+          ! flag2 is used as mask for ustr
+          !
+          flag2 = .true.
+          if ( iwavcpl == 1 ) then
+            if ( syncro_cpl%lcount > 1 ) then
+              if ( ustr(i) < tol .and. syncro_cpl%act( ) ) then
+                ustar = ustr(i)
+                if ( ustar > ustarmax ) ustar = ustarmax
+                flag2 = .false.
+              end if
+            end if
           end if
-          obu = zu/zeta
           !
-          ! main iterations (2-10 iterations would be fine)
+          ! loop to obtain initial and good ustar and zo
           !
-          do nconv = 1 , 5
-            call roughness(zo,ustar,visa,zot,zoq)
-            !
-            ! wind
-            !
+          if ( ecmwf_ocnrough ) then
+            if ( flag1 ) then  ! We don't have zo from the wave model
+              ! Compute z0 and cd
+              call zocd(visa,um,zu,zo,cd)
+            end if
+            if ( flag2 ) then  ! We don't have ustar from the wave model
+              ustar = um * vonkar / log(1.0_rkx+zu/zo)
+            end if
+            if ( .not. flag1 ) then
+              cd = (ustar/um)**2
+            end if
+            br(i) = egrav*zu*dthv/(thv*um*um)
+            if ( br(i) >= d_zero ) then       ! neutral or stable
+              zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+              zeta = min(2.0_rkx,max(zeta,minz))
+            else                              ! unstable
+              zeta = br(i)*log(zu/zo)
+              zeta = max(-100.0_rkx,min(zeta,-minz))
+            end if
+            br(i) = egrav*zu*dthv/(thv*um*um)
+            if ( br(i) >= d_zero ) then       ! neutral or stable
+              zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+              zeta = min(2.0_rkx,max(zeta,minz))
+            else                              ! unstable
+              zeta = br(i)*log(zu/zo)
+              zeta = max(-100.0_rkx,min(zeta,-minz))
+            end if
+            obu = zu/zeta
             if ( zeta < -zetam ) then      ! zeta < -1
               ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
-                      psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
+                    psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
             else if ( zeta < d_zero ) then ! -1 <= zeta < 0
               ram1(i) = (log(zu/zo) - psi(1,zeta)+psi(1,zo/obu))
             else if ( zeta <= d_one ) then !  0 <= zeta <= 1
               ram1(i) = (log(zu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
             else                           !  1 < zeta, phi=5+zeta
               ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
-                          (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
             end if
+            call roughness(zo,ustar,visa,zot,zoq)
             !
             ! temperature
             !
             zeta = zh/obu
             if ( zeta < -zetat ) then      ! zeta < -1
               rah1(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
-                        0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+                      0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
             else if ( zeta < d_zero ) then ! -1 <= zeta < 0
               rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
             else if ( zeta <= d_one ) then !  0 <= ztea <= 1
               rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
             else                           !  1 < zeta, phi=5+zeta
               rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
-                      (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
             end if
             tstar = vonkar*dth/rah1(i)
             !
@@ -320,8 +241,8 @@ module mod_ocn_zeng
             zeta = zq/obu
             if ( zeta < -zetat ) then      ! zeta < -1
               qstar = vonkar*dqh/ &
-                     (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
-                           0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+                   (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
+                         0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
             else if ( zeta < d_zero ) then ! -1 <= zeta < 0
               qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
             else if ( zeta <= d_one ) then !  0 <= ztea <= 1
@@ -330,158 +251,235 @@ module mod_ocn_zeng
               qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
                       (5.0_rkx*log(zeta)+zeta-1.0_rkx))
             end if
-
-            thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
-            zeta = vonkar*egrav*thvstar*zq/(ustar**2*thv)
-            if ( zeta >= d_zero ) then     !  neutral or stable
+          else
+            if ( flag1 ) then  ! We don't have zo from the wave model
+              ! First estimate of ustar
+              if ( flag2 ) then  ! We don't have ustar from the wave model
+                ustar = um/25.0_rkx
+                do nconv = 1 , 2
+                  zo = ocnrough(ustar,um10(i),wc,visa)
+                  ustar = vonkar*um/log(1.0_rkx+zu/zo)
+                end do
+              else
+                zo = ocnrough(ustar,um10(i),wc,visa)
+              end if
+            else
+              if ( flag2 ) then  ! We don't have ustar from the wave model
+                ustar = vonkar*um/log(1.0_rkx+zu/zo)
+              end if
+            end if
+            br(i) = egrav*zu*dthv/(thv*um*um)
+            if ( br(i) >= d_zero ) then       ! neutral or stable
+              zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
               zeta = min(2.0_rkx,max(zeta,minz))
-            else                           ! unstable
-              wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
-              um = sqrt(uv995*uv995+wc*wc)
+            else                              ! unstable
+              zeta = br(i)*log(zu/zo)
               zeta = max(-100.0_rkx,min(zeta,-minz))
             end if
-            if ( .not. flag2 ) exit
-            ! Recompute ustar , zo
-            ustar = vonkar*um/log(1.0_rkx+zu/zo)
-            zo = ocnrough(ustar,um10(i),wc,visa)
-          end do
-          br(i) = egrav*zu*dthv/(thv*um*um)
-          if ( br(i) >= d_zero ) then       ! neutral or stable
-            zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-            zeta = min(2.0_rkx,max(zeta,minz))
-          else                              ! unstable
-            zeta = br(i)*log(zu/zo)
-            zeta = max(-100.0_rkx,min(zeta,-minz))
-          end if
-          obu = zu/zeta
-          cd = (ustar/um)**2
-        end if
-        tau = xdens*ustar*ustar*uv995/um
-        lh = -xdens*rlv*qstar*ustar
-        sh = -xdens*cpm*tstar*ustar
-        !
-        ! x and y components of tau:
-        ! lms%taux=xdens*ustar*ustar*u_x/um
-        ! lms%tauy=xdens*ustar*ustar*u_y/um
-        ! 10-meter wind (without w_* part)
-        !
-        zeta = z10/obu
-        if ( zeta < d_zero ) then
-          uv10 = uv995 + (ustar/vonkar)*(log(z10/zu)- &
-                          (psi(1,zeta)-psi(1,zu/obu)))
-        else
-          uv10 = uv995 + (ustar/vonkar)* &
-                         (log(z10/zu)+5.0_rkx*zeta-5.0_rkx*zu/obu)
-        end if
-        if ( ldcsst ) then
-          ! time step considered for the integration of prognostic skin
-          ! temperature , equal to BATS time step
-          ! Init local variables
-          sst(i) = tgb(i)
-          delta = deltas(i)
-          tdelta = tdeltas(i)
-          ! td is now the 3m bulk SST from the forcing variable
-          td = sst(i)
-          !
-          ! deep impact of aod on sst
-          ! if ( sum(aerext(i)) <= 1 ) then
-          !   td = sst(i) - sum(aerext(i))*0.8_rkx
-          ! else if ( sum(aerext(i)) > 1 ) then
-          !   td = sst(i)- d_one*0.8_rkx
-          ! end if
-          !
-          ! rs is the net surface sw flux (sw energy absorbed)
-          rs = rswf(i)
-          ! rd is sw flux at 3m
-          rd = rs*(a1*exp(-d*b1) + a2*exp(-d*b2) + a3*exp(-d*b3))
-          ! ustar water (with air density == 1)
-          ustarw = 0.5_rkx*ustar*sqrt(rhox(i)/rhoh2o)
-          ! lwds =  dwrlwf(i)
-          ! lwus =  emsw*sigm*(tsurf+273.16)**4
-          ! q is the skin cooling term inckude net lw flux from
-          ! the radiative scheme
-          ! q = -(lh+sh+(lwus-lwds))
-          q = -(lh+sh+rlwf(i))
-          ! fraction of solar radiation abosrbed in the sublayer
-          fs = 0.065_rkx+11.0_rkx*delta-(6.6e-5_rkx/delta) * &
-               (d_one-exp(-delta/8.0e-4_rkx))
-          ! dts= temperature difference between bulk level and skin level
-          ! determined from previous time step (via tdelta and td)
-          dts = tdelta-td
-          ! m.o lenght calculation
-          if ( dts > d_zero ) then
-            fd = sqrt(nu*egrav*alphaw/(5.0_rkx*d))*    &
-                       rhoh2o*cpw0*ustarw**2*sqrt(dts)
-          else
-            fd = egrav*alphaw*(q+rs-rd)
-          end if
-          if ( fd > d_zero ) then
-            l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
-            ! calulation of phidl (stability function)
-            if ( (d/l) >= d_zero ) then
-              phidl = d_one+5.0_rkx*(d/l)
-            else
-              phidl = (d_one-16.0_rkx*(d/l))**(-0.5_rkx)
-            end if
-          else
-             phidl = d_one
-          end if
-          ! prognostic evolution of dts
-          ! we can split the tendencies ddts/dt = a - b * dts
-          ! with a and b are ultimately function of dts through q
-          aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
-          bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
-          ! exponential solution
-          dtstend = aa - dts*(d_one-exp(-bb*dtsst))/dtsst
-          ! update dts
-          dts = dts + dtstend * dtsst
-          ! update tdelta
-          tdelta = dts + td
-          ! update delta thickness and cool skin tempearture
-          aa = -16.0_rkx*egrav*alphaw*rhoh2o*cpw0*nuw**3/(ustarw**4 * kw**2)
-          bb =  aa *(q+rs*fs)
-          if ( bb > d_zero ) then
-            ! case of cool skin layer correction
-            lamb = 6.0_rkx*((d_one+(aa*(q+rs*fs))**0.75_rkx)**(-onet))
-            delta = lamb*nuw/ustarw
-            tskin_new = delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
-          else
-            ! no cool skin layer in this case, tskin_new = warm layer temp
-            tskin_new = tdelta
-          end if
-          ! save the temperature difference and skin layer thickness
-          ! for next time step
-          deltas(i)   = delta
-          tdeltas(i)  = tdelta
-          tskin(i)   = tskin_new
-          ! now feedback tskin in surface variables
-          tgb(i) = tskin_new
-          tgrd(i) = tskin_new
-          tgbrd(i) = sst(i)
-        end if ! dcsst
+            obu = zu/zeta
+            !
+            ! main iterations (2-10 iterations would be fine)
+            !
+            do nconv = 1 , 5
+              call roughness(zo,ustar,visa,zot,zoq)
+              !
+              ! wind
+              !
+              if ( zeta < -zetam ) then      ! zeta < -1
+                ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
+                      psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
+              else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+                ram1(i) = (log(zu/zo) - psi(1,zeta)+psi(1,zo/obu))
+              else if ( zeta <= d_one ) then !  0 <= zeta <= 1
+                ram1(i) = (log(zu/zo) + 5.0_rkx*zeta-5.0_rkx*zo/obu)
+              else                           !  1 < zeta, phi=5+zeta
+                ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
+                          (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+              end if
+              !
+              ! temperature
+              !
+              zeta = zh/obu
+              if ( zeta < -zetat ) then      ! zeta < -1
+                rah1(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+                        0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+              else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+                rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
+              else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+                rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
+              else                           !  1 < zeta, phi=5+zeta
+                rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
+                          (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+              end if
+              tstar = vonkar*dth/rah1(i)
+              !
+              ! humidity
+              !
+              zeta = zq/obu
+              if ( zeta < -zetat ) then      ! zeta < -1
+                qstar = vonkar*dqh/ &
+                     (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
+                           0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
+              else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+                qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
+              else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+                qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
+              else                           !  1 < zeta, phi=5+zeta
+                qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
+                        (5.0_rkx*log(zeta)+zeta-1.0_rkx))
+              end if
 
-        sent(i) = sh
-        evpr(i) = lh/rlv
-        ! Back out Drag Coefficient
-        drag(i) = cd*uv995*xdens
-        ustr(i) = ustar
-        zoo(i)  = zo
-        u10m(i) = usw(i)*uv10/uv995
-        v10m(i) = vsw(i)*uv10/uv995
-        um10(i) = um10(i)*wt1 + uv10*wt2
-        taux(i) = tau*(usw(i)/uv995)
-        tauy(i) = tau*(vsw(i)/uv995)
-        facttq = log(z995*0.5_rkx)/log(z995/zo)
-        t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
-        q2m(i)  = q995 - dqh*facttq
-        rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
-        ! We need specific humidity in output
-        q2m(i) = q2m(i)/(d_one+q2m(i))
-      end block
-    end do
+              thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
+              zeta = vonkar*egrav*thvstar*zq/(ustar**2*thv)
+              if ( zeta >= d_zero ) then     !  neutral or stable
+                zeta = min(2.0_rkx,max(zeta,minz))
+              else                           ! unstable
+                wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
+                um = sqrt(uv995*uv995+wc*wc)
+                zeta = max(-100.0_rkx,min(zeta,-minz))
+              end if
+              if ( .not. flag2 ) exit
+              ! Recompute ustar , zo
+              ustar = vonkar*um/log(1.0_rkx+zu/zo)
+              zo = ocnrough(ustar,um10(i),wc,visa)
+            end do
+            br(i) = egrav*zu*dthv/(thv*um*um)
+            if ( br(i) >= d_zero ) then       ! neutral or stable
+              zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
+              zeta = min(2.0_rkx,max(zeta,minz))
+            else                              ! unstable
+              zeta = br(i)*log(zu/zo)
+              zeta = max(-100.0_rkx,min(zeta,-minz))
+            end if
+            obu = zu/zeta
+            cd = (ustar/um)**2
+          end if
+          tau = xdens*ustar*ustar*uv995/um
+          lh = -xdens*rlv*qstar*ustar
+          sh = -xdens*cpm*tstar*ustar
+          !
+          ! x and y components of tau:
+          ! lms%taux=xdens*ustar*ustar*u_x/um
+          ! lms%tauy=xdens*ustar*ustar*u_y/um
+          ! 10-meter wind (without w_* part)
+          !
+          zeta = z10/obu
+          if ( zeta < d_zero ) then
+            uv10 = uv995 + (ustar/vonkar)*(log(z10/zu)- &
+                           (psi(1,zeta)-psi(1,zu/obu)))
+          else
+            uv10 = uv995 + (ustar/vonkar)* &
+                         (log(z10/zu)+5.0_rkx*zeta-5.0_rkx*zu/obu)
+          end if
+          if ( ldcsst ) then
+            ! time step considered for the integration of prognostic skin
+            ! temperature , equal to BATS time step
+            ! Init local variables
+            sst(i) = tgb(i)
+            delta = deltas(i)
+            tdelta = tdeltas(i)
+            ! td is now the 3m bulk SST from the forcing variable
+            td = sst(i)
+            !
+            ! deep impact of aod on sst
+            ! if ( sum(aerext(i)) <= 1 ) then
+            !   td = sst(i) - sum(aerext(i))*0.8_rkx
+            ! else if ( sum(aerext(i)) > 1 ) then
+            !   td = sst(i)- d_one*0.8_rkx
+            ! end if
+            !
+            ! rs is the net surface sw flux (sw energy absorbed)
+            rs = rswf(i)
+            ! rd is sw flux at 3m
+            rd = rs*(a1*exp(-d*b1) + a2*exp(-d*b2) + a3*exp(-d*b3))
+            ! ustar water (with air density == 1)
+            ustarw = 0.5_rkx*ustar*sqrt(rhox(i)/rhoh2o)
+            ! lwds =  dwrlwf(i)
+            ! lwus =  emsw*sigm*(tsurf+273.16)**4
+            ! q is the skin cooling term inckude net lw flux from
+            ! the radiative scheme
+            ! q = -(lh+sh+(lwus-lwds))
+            q = -(lh+sh+rlwf(i))
+            ! fraction of solar radiation abosrbed in the sublayer
+            fs = 0.065_rkx+11.0_rkx*delta-(6.6e-5_rkx/delta) * &
+               (d_one-exp(-delta/8.0e-4_rkx))
+            ! dts= temperature difference between bulk level and skin level
+            ! determined from previous time step (via tdelta and td)
+            dts = tdelta-td
+            ! m.o lenght calculation
+            if ( dts > d_zero ) then
+              fd = sqrt(nu*egrav*alphaw/(5.0_rkx*d))*    &
+                        rhoh2o*cpw0*ustarw**2*sqrt(dts)
+            else
+              fd = egrav*alphaw*(q+rs-rd)
+            end if
+            if ( fd > d_zero ) then
+              l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
+              ! calulation of phidl (stability function)
+              if ( (d/l) >= d_zero ) then
+                phidl = d_one+5.0_rkx*(d/l)
+              else
+                phidl = (d_one-16.0_rkx*(d/l))**(-0.5_rkx)
+              end if
+            else
+               phidl = d_one
+            end if
+            ! prognostic evolution of dts
+            ! we can split the tendencies ddts/dt = a - b * dts
+            ! with a and b are ultimately function of dts through q
+            aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
+            bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
+            ! exponential solution
+            dtstend = aa - dts*(d_one-exp(-bb*dtsst))/dtsst
+            ! update dts
+            dts = dts + dtstend * dtsst
+            ! update tdelta
+            tdelta = dts + td
+            ! update delta thickness and cool skin tempearture
+            aa = -16.0_rkx*egrav*alphaw*rhoh2o*cpw0*nuw**3/(ustarw**4 * kw**2)
+            bb =  aa *(q+rs*fs)
+            if ( bb > d_zero ) then
+              ! case of cool skin layer correction
+              lamb = 6.0_rkx*((d_one+(aa*(q+rs*fs))**0.75_rkx)**(-onet))
+              delta = lamb*nuw/ustarw
+              tskin_new = delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
+            else
+              ! no cool skin layer in this case, tskin_new = warm layer temp
+              tskin_new = tdelta
+            end if
+            ! save the temperature difference and skin layer thickness
+            ! for next time step
+            deltas(i)   = delta
+            tdeltas(i)  = tdelta
+            tskin(i)   = tskin_new
+            ! now feedback tskin in surface variables
+            tgb(i) = tskin_new
+            tgrd(i) = tskin_new
+            tgbrd(i) = sst(i)
+          end if ! dcsst
+
+          sent(i) = sh
+          evpr(i) = lh/rlv
+          ! Back out Drag Coefficient
+          drag(i) = cd*uv995*xdens
+          ustr(i) = ustar
+          zoo(i)  = zo
+          u10m(i) = usw(i)*uv10/uv995
+          v10m(i) = vsw(i)*uv10/uv995
+          um10(i) = um10(i)*wt1 + uv10*wt2
+          taux(i) = tau*(usw(i)/uv995)
+          tauy(i) = tau*(vsw(i)/uv995)
+          facttq = log(z995*0.5_rkx)/log(z995/zo)
+          t2m(i)  = tatm(i) - (dth * (sfps(i)/p00)**rovcp) * facttq
+          q2m(i)  = q995 - dqh*facttq
+          rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
+          ! We need specific humidity in output
+          q2m(i) = q2m(i)/(d_one+q2m(i))
+        end block
+      end do
 
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx)
+      call time_end(subroutine_name,idindx)
 #endif
     contains
 

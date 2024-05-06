@@ -65,7 +65,6 @@ module mod_pbl_holtbl
   real(rkx) , pointer , dimension(:,:,:) :: ri
 
   ! minimum eddy diffusivity ( background value )
-  real(rkx) , parameter :: ustarmin = 0.01_rkx
   real(rkx) , parameter :: kzo = 1.0_rkx ! m^2s-1
   real(rkx) , parameter :: turbulent_lenght_scale = 100.0_rkx ! m
   real(rkx) , parameter :: szkm = (turbulent_lenght_scale*vonkar)**2

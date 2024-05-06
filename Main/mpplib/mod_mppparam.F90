@@ -68,7 +68,7 @@ module mod_mppparam
   public :: set_nproc , broadcast_params
 
   integer(ik4) :: cartesian_communicator
-  integer(ik4) :: node_local_communicator
+  !integer(ik4) :: node_local_communicator
   integer(ik4) :: ccid , ccio
 
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
@@ -317,6 +317,7 @@ module mod_mppparam
   end interface sumall
 #endif
 
+#ifndef USE_MPI3
   interface send_array
     module procedure send_array_logical, &
                      send_array_int4,    &
@@ -330,6 +331,7 @@ module mod_mppparam
                      recv_array_real4,   &
                      recv_array_real8
   end interface recv_array
+#endif
 
   interface c2l_ss
     module procedure cartesian_to_linear_integer_subgrid_subgrid,  &
@@ -994,6 +996,7 @@ module mod_mppparam
 #endif
   end subroutine sumall_int4_array
 
+#ifndef USE_MPI3
   subroutine send_array_logical(lval,isize,icpu,itag,req)
     implicit none
     integer(ik4) , intent(in) :: isize , icpu , itag
@@ -1113,6 +1116,7 @@ module mod_mppparam
     end if
 #endif
   end subroutine recv_array_real8
+#endif
 
   subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
@@ -1120,19 +1124,15 @@ module mod_mppparam
     real(rk8) , dimension(isize) , intent(in) :: rv1
     real(rk8) , dimension(isize) , intent(inout) :: rv2
     integer(ik4) , intent(out) :: srq , rrq
-!$acc host_data use_device(rv2) if(on_device)
     call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,rrq,mpierr)
-!$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
 #endif
-!$acc host_data use_device(rv1) if(on_device)
     call mpi_isend(rv1,isize,mpi_real8,icpu,tag2, &
                   cartesian_communicator,srq,mpierr)
-!$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
@@ -1167,11 +1167,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:) , intent(in) :: rv1
     real(rk8) , pointer , dimension(:) , intent(inout) :: rv2
     integer(ik4) , intent(in) :: isize , icpu1 , icpu2 , itag
-!$acc host_data use_device(rv1, rv2) if(on_device)
     call mpi_sendrecv(rv1,isize,mpi_real8,icpu1,itag, &
                       rv2,isize,mpi_real8,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
-!$acc end host_data
 #ifdef DEBUG
     if ( mpierr /= mpi_success ) then
       write(stderr, *) 'At line :', itag
@@ -7299,8 +7297,6 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
     end if
 
-!$acc data create(r8vector1, r8vector2) if(on_device)
-
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
@@ -7312,8 +7308,6 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -7322,14 +7316,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-right exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -7338,15 +7329,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       !********************************************************
       ! (2) Send left boundary to right side of left neighbor
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -7355,14 +7343,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-left exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -7371,7 +7356,6 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       if ( ma%crmflag ) then
         !*********************************************************
@@ -7383,8 +7367,6 @@ module mod_mppparam
         ssize = nex*jsize*ksize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7394,15 +7376,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7412,15 +7391,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7430,15 +7406,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7448,7 +7421,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !*******************************************************************
         ! (5) Send bottom-right boundary to top-left side of bottom-right
@@ -7458,8 +7430,6 @@ module mod_mppparam
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize
         ! loop over the exchange block and unravel it into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7468,15 +7438,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send down-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7485,14 +7452,11 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !**********************************************************************
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7501,15 +7465,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send up-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7518,15 +7479,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !******************************************************************
         ! (7) Send bottom-left boundary to top-right side of bottom-left
         !     neighbor
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7535,15 +7493,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send down-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7552,15 +7507,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !*****************************************************************
         ! (8) Send top-right boundary to bottom-left side of top-right
         !     neighbor
         !******************************************************************
         ! loop over the exchange block and unravel it into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7569,15 +7521,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send up-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7586,7 +7535,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
       end if
 
     else
@@ -7595,8 +7543,6 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -7606,7 +7552,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7616,8 +7561,6 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -7627,7 +7570,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7644,8 +7586,6 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7655,7 +7595,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7665,8 +7604,6 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7676,7 +7613,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7689,8 +7625,6 @@ module mod_mppparam
 
       if ( ma%topleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7699,7 +7633,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7709,8 +7642,6 @@ module mod_mppparam
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7719,7 +7650,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7732,8 +7662,6 @@ module mod_mppparam
 
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7742,7 +7670,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7752,8 +7679,6 @@ module mod_mppparam
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7762,7 +7687,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -7785,8 +7709,6 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -7796,13 +7718,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -7812,15 +7731,12 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -7830,13 +7746,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -7846,13 +7759,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = 1 , nex
@@ -7861,13 +7771,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottomright /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = 1 , nex
@@ -7876,13 +7783,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ssize =nex*nex*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = 1 , nex
@@ -7891,13 +7795,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ssize = nex*nex*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = 1 , nex
@@ -7906,12 +7807,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
     end if
-!$acc end data
   end subroutine real8_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -10269,8 +10168,6 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_right_bottom_top')
     end if
 
-!$acc data create(r8vector1, r8vector2) if(on_device)
-
     if ( ma%bandflag ) then
       ssize = nex*isize
       !********************************************************
@@ -10278,58 +10175,46 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
       do i = i1 , i2
         do j = 1 , nex
           ib = j + (i - i1) * nex
           r8vector1(ib) = ml(j2-j+1,i)
         end do
       end do
-!$acc end parallel
       ! do the send-right exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
       do i = i1 , i2
         do j = 1 , nex
           ib = j + (i - i1) * nex
           ml(j1-j,i) = r8vector2(ib)
         end do
       end do
-!$acc end parallel
 
       !********************************************************
       ! (2) Send left boundary to right side of left neighbor
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
       do i = i1 , i2
         do j = 1 , nex
           ib = j + (i - i1) * nex
           r8vector1(ib) = ml(j1+j-1,i)
         end do
       end do
-!$acc end parallel
       ! do the send-left exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
       do i = i1 , i2
         do j = 1 , nex
           ib = j + (i - i1) * nex
           ml(j2+j,i) = r8vector2(ib)
         end do
       end do
-!$acc end parallel
 
       if ( ma%crmflag ) then
         !*********************************************************
@@ -10338,60 +10223,48 @@ module mod_mppparam
         ssize = nex*jsize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             r8vector1(ib) = ml(j,i1+i-1)
           end do
         end do
-!$acc end parallel
 
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             ml(j,i2+i) = r8vector2(ib)
           end do
         end do
-!$acc end parallel
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             r8vector1(ib) = ml(j,i2-i+1)
           end do
         end do
-!$acc end parallel
 
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1)
             ml(j,i1-i) = r8vector2(ib)
           end do
         end do
-!$acc end parallel
 
       end if
 
@@ -10401,15 +10274,12 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = i1 , i2
           do j = 1 , nex
             ib = j + (i - i1) * nex + ipos - 1
             r8vector1(ib) = ml(j2-j+1,i)
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10419,15 +10289,12 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = i1 , i2
           do j = 1 , nex
             ib = j + (i - i1) * nex + ipos - 1
             r8vector1(ib) = ml(j1+j-1,i)
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10444,15 +10311,12 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
             r8vector1(ib) = ml(j,i2-i+1)
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10462,15 +10326,12 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
         do i = 1 , nex
           do j = j1 , j2
             ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
             r8vector1(ib) = ml(j,i1+i-1)
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10494,61 +10355,48 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
           do i = i1 , i2
             do j = 1 , nex
               ib = j + (i - i1) * nex + ipos - 1
               ml(j2+j,i) = r8vector2(ib)
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
           do i = i1 , i2
             do j = 1 , nex
               ib = j + (i - i1) * nex + ipos - 1
               ml(j1-j,i) = r8vector2(ib)
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
           do i = 1 , nex
             do j = j1 , j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
               ml(j,i2+i) = r8vector2(ib)
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(2)
           do i = 1 , nex
             do j = j1 , j2
               ib = (j - j1 + 1) + (i - 1) * (j2 - j1 + 1) + ipos - 1
               ml(j,i1-i) = r8vector2(ib)
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
     end if
-!$acc end data
   end subroutine real8_2d_exchange_left_right_bottom_top
 
   subroutine real8_3d_exchange_left_right_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -10580,8 +10428,6 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right_bottom_top')
     end if
 
-!$acc data create(r8vector1, r8vector2) if(on_device)
-
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
@@ -10593,8 +10439,6 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -10603,14 +10447,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-right exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -10619,15 +10460,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       !********************************************************
       ! (2) Send left boundary to right side of left neighbor
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -10636,14 +10474,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-left exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -10652,7 +10487,6 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       if ( ma%crmflag ) then
         !*********************************************************
@@ -10664,8 +10498,6 @@ module mod_mppparam
         ssize = nex*jsize*ksize
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10675,15 +10507,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10693,15 +10522,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
         !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10711,15 +10537,12 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
 
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10729,7 +10552,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
       end if
 
     else
@@ -10738,8 +10560,6 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -10749,7 +10569,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10759,8 +10578,6 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -10770,7 +10587,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10787,8 +10603,6 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10798,7 +10612,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10808,8 +10621,6 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -10819,7 +10630,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -10843,8 +10653,6 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -10854,13 +10662,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -10870,15 +10675,12 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -10888,13 +10690,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -10904,12 +10703,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
     end if
-!$acc end data
   end subroutine real8_3d_exchange_left_right_bottom_top
 
   subroutine real8_4d_exchange_left_right_bottom_top(ml,nex,j1,j2, &
@@ -12387,7 +12184,6 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right')
     end if
 
-!$acc data create(r8vector1, r8vector2) if(on_device)
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
@@ -12399,8 +12195,6 @@ module mod_mppparam
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the right boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -12409,14 +12203,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-right exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%right,ma%left,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the left boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -12425,15 +12216,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       !********************************************************
       ! (2) Send left boundary to right side of left neighbor
       !********************************************************
       ! loop over the given latitudes and number of exchange blocks
       ! and unravel the left boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -12442,14 +12230,11 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
       ! do the send-left exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%left,ma%right,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the right boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
@@ -12458,7 +12243,6 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
     else
 
@@ -12466,8 +12250,6 @@ module mod_mppparam
 
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -12477,7 +12259,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -12487,8 +12268,6 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -12498,7 +12277,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -12522,8 +12300,6 @@ module mod_mppparam
       if ( .not. ma%bandflag ) then
         if ( ma%right /= mpi_proc_null) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -12533,13 +12309,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%left /= mpi_proc_null ) then
           ssize = nex*isize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
@@ -12549,12 +12322,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
     end if
-!$acc end data
   end subroutine real8_3d_exchange_left_right
 
   subroutine real8_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -13455,8 +13226,6 @@ module mod_mppparam
       call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom_top')
     end if
 
-!$acc data create(r8vector1, r8vector2) if(on_device)
-
     if ( ma%crmflag ) then
       !*********************************************************
       ! (1) Send bottom boundary to top side of bottom neighbor
@@ -13467,8 +13236,6 @@ module mod_mppparam
       ssize = nex*jsize*ksize
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the bottom boundary into a vector
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -13478,15 +13245,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       ! do the send-up exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%bottom,ma%top,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the top boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -13496,15 +13260,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       !******************************************************
       ! (2) Send top boundary to bottom side of top neighbor
       !******************************************************
       ! loop over the given longitudes and number of exchange blocks
       ! and unravel the top boundary into a vector
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -13514,15 +13275,12 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
       ! do the send-down exchange
       call cyclic_exchange_array(r8vector1,r8vector2, &
                                  ssize,ma%top,ma%bottom,__LINE__)
       ! loop over the receiving dummy vector and ravel it into
       ! the bottom boundary of this block
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
@@ -13532,7 +13290,6 @@ module mod_mppparam
           end do
         end do
       end do
-!$acc end parallel
 
     else
 
@@ -13540,8 +13297,6 @@ module mod_mppparam
 
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -13551,7 +13306,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -13561,8 +13315,6 @@ module mod_mppparam
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-!$acc parallel present(r8vector1, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -13572,7 +13324,6 @@ module mod_mppparam
             end do
           end do
         end do
-!$acc end parallel
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
@@ -13596,8 +13347,6 @@ module mod_mppparam
       if ( .not. ma%crmflag ) then
         if ( ma%top /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -13607,13 +13356,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
         if ( ma%bottom /= mpi_proc_null) then
           ssize = nex*jsize*ksize
-!$acc parallel present(r8vector2, ml) private(ib) if(on_device)
-!$acc loop collapse(3)
           do k = k1 , k2
             do i = 1 , nex
               do j = j1 , j2
@@ -13623,12 +13369,10 @@ module mod_mppparam
               end do
             end do
           end do
-!$acc end parallel
           ipos = ipos + ssize
         end if
       end if
     end if
-!$acc end data
   end subroutine real8_3d_exchange_bottom_top
 
   subroutine real8_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)

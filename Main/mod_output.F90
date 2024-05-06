@@ -220,7 +220,6 @@ module mod_output
 
     if ( atm_stream > 0 ) then
       if ( ldoatm ) then
-!$acc wait(2) if (idynamic == 3)
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           ps_out(j,i) = sfs%psa(j,i)
         end do
@@ -259,14 +258,12 @@ module mod_output
           end if
         end if
         if ( associated(atm_omega_out) ) then
-!$acc update self(omega)
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
             atm_omega_out(j,i,k) = omega(j,i,k)*d_10
           end do
         end if
         if ( associated(atm_w_out) ) then
           if ( idynamic == 3 ) then
-!$acc update self(mo_atm%w)
             call wstagtox(mo_atm%w,atm_w_out)
           else
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -366,15 +363,11 @@ module mod_output
         end if
         if ( associated(atm_rh_out) ) then
           if ( idynamic == 3 ) then
-!$acc parallel copyout(atm_rh_out) present(mo_atm, mo_atm%qx, &
-!$acc&     mo_atm%t, mo_atm%p)
-!$acc loop collapse(3)
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * &
                     min(rhmax,max(rhmin,(mo_atm%qx(j,i,k,iqv) / &
                            pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
             end do
-!$acc end parallel
           else
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
               atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
@@ -384,7 +377,6 @@ module mod_output
           end if
         end if
         if ( associated(atm_pf_out) ) then
-!$acc update self(atms%pf3d)
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
             atm_pf_out(j,i,k) = atms%pf3d(j,i,k)
           end do
@@ -424,12 +416,9 @@ module mod_output
           end if
         else if ( idynamic == 3 ) then
           if ( associated(atm_ph_out) ) then
-!$acc parallel copyout(atm_ph_out) present(mo_atm, mo_atm%pai)
-!$acc loop collapse(3)
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
               atm_ph_out(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             end do
-!$acc end parallel
           end if
           if ( associated(atm_zh_out) ) then
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -553,7 +542,6 @@ module mod_output
         if ( ibltyp == 2 ) then
           if ( associated(atm_tke_out) ) then
             if ( idynamic == 3 ) then
-!$acc update self(mo_atm%tke)
               do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
                 atm_tke_out(j,i,k) = mo_atm%tke(j,i,k)
               end do
@@ -1862,8 +1850,8 @@ module mod_output
 
     contains
 
-#include <pfesat_acc.inc>
-#include <pfwsat_acc.inc>
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
   end subroutine output
 

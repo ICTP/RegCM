@@ -793,7 +793,6 @@ module mod_ncout
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
               'Vertical Component of Wind','upward_wind',.true.)
             atm_w_out => v3dvar_atm(atm_w)%rval
-!$acc enter data create(atm_w_out)
           end if
           if ( enable_atm3d_vars(atm_pp) ) then
             call setup_var(v3dvar_atm,atm_pp,vsize,'ppa','Pa', &
@@ -808,7 +807,6 @@ module mod_ncout
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
               'Vertical Component of Wind','upward_wind',.true.)
             atm_w_out => v3dvar_atm(atm_w)%rval
-!$acc enter data create(atm_w_out)
           end if
           if ( enable_atm3d_vars(atm_pai) ) then
             call setup_var(v3dvar_atm,atm_pai,vsize,'pai','1', &

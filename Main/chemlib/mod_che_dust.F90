@@ -704,10 +704,6 @@ module mod_che_dust
       real(rkx) , dimension(ilg,nsoil) :: utheff
 
       real(rkx) , parameter :: umin = 15.0_rkx
-      real(rkx) , parameter :: xz = 0.25_rkx
-      real(rkx) , parameter :: br = 202.0_rkx
-      real(rkx) , parameter :: ym = 0.16_rkx
-      real(rkx) , parameter :: sigr = 1.45_rkx
       real(rkx) , parameter :: z0s = 1.0e-3_rkx
       real(rkx) , parameter :: x = d_10
 

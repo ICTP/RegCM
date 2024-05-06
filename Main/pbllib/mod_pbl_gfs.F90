@@ -374,6 +374,7 @@ module mod_pbl_gfs
         end do
       end do
       ! Vertical background diffusivity for momentum
+      ptem1 = prsi(i,km)
       do k = 1 , km1
         do i = 1 , im
           ptem = prsi(i,k+1) / prsi(i,1)
