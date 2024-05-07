@@ -945,75 +945,72 @@ module mod_rad_radiation
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
       !
-      do n = rt%n1 , rt%n2
-        rt%solin(n) = rt%solin(n)*1.0e-3_rkx
-        rt%solout(n) = rt%solout(n)*1.0e-3_rkx
-        rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
-        rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
-        rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
-        rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
-        !
-        ! clear sky column partitioning for surface flux
-        ! note : should be generalised to the whole column to be
-        !        really in energy balance !
-        !
-        rt%totcf(n) = d_one
-        if ( luse_max_rnovl ) then
-          do k = 2 , kzp1
-            rt%totcf(n) = rt%totcf(n) * &
-                   (1.0001_rkx - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
-                   (1.0001_rkx - rt%cld(n,k-1))
-          end do
-        else
-          do k = 1 , kzp1
-            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(n,k))
-          end do
-        end if
-        rt%totcf(n) = d_one - rt%totcf(n)
-        !
-        ! maximum cld cover considered
-        ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(n,:)) + &
-        !           rt%fsnsc(n) * (1-maxval(rt%cld(n,:)))
-        ! random overlap assumption is tocf(n)
-        ! Now average btw rand ov and maximum cloud cover as fil suggest
-        ! rt%totcf(n) =  d_half * ( rt%totcf(n) + maxval(rt%cld(n,:)) )
-        ! abv is proportional to fsns in radcsw : Calculate the factor
-        if ( rt%fsns(n) > d_zero ) then
-          betafac = rt%abv(n) / rt%fsns(n)
-        else
-          betafac = d_zero
-        end if
-        ! Fil suggestion of putting a max on column cloud fraction
-        ! TAO: implement a user-specified CF maximum (default of 1.0)
-        if ( lsrfhack ) then
-          if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
-          if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
-          rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
-                       rt%fsnsc(n) * (d_one-rt%totcf(n))
-        end if
-        ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
-        rt%abv(n) = betafac * rt%fsns(n)
-        rt%fsds(n) = rt%fsds(n)*1.0e-3_rkx
-        rt%fsnirt(n) = rt%fsnirt(n)*1.0e-3_rkx
-        rt%fsnrtc(n) = rt%fsnrtc(n)*1.0e-3_rkx
-        rt%fsnirtsq(n) = rt%fsnirtsq(n)*1.0e-3_rkx
-      end do
-      !
-      ! Calculate/outfld albedo and clear sky albedo
-      !
-      do n = rt%n1 , rt%n2
-        if ( rt%solin(n) > d_zero ) then
-          rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
-        else
-          rt%alb(n) = d_zero
-        end if
-      end do
-      do n = rt%n1 , rt%n2
-        if ( rt%solin(n) > d_zero ) then
-          rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
-        else
-          rt%albc(n) = d_zero
-        end if
+      do concurrent ( n = rt%n1:rt%n2 )
+        block
+          integer(ik4) :: k
+          real(rkx) :: betafac
+          rt%solin(n) = rt%solin(n)*1.0e-3_rkx
+          rt%solout(n) = rt%solout(n)*1.0e-3_rkx
+          rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
+          rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
+          rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
+          rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
+          !
+          ! clear sky column partitioning for surface flux
+          ! note : should be generalised to the whole column to be
+          !        really in energy balance !
+          !
+          rt%totcf(n) = d_one
+          if ( luse_max_rnovl ) then
+            do k = 2 , kzp1
+              rt%totcf(n) = rt%totcf(n) * &
+                     (1.0001_rkx - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
+                     (1.0001_rkx - rt%cld(n,k-1))
+            end do
+          else
+            do k = 1 , kzp1
+              rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(n,k))
+            end do
+          end if
+          rt%totcf(n) = d_one - rt%totcf(n)
+          !
+          ! maximum cld cover considered
+          ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(n,:)) + &
+          !           rt%fsnsc(n) * (1-maxval(rt%cld(n,:)))
+          ! random overlap assumption is tocf(n)
+          ! Now average btw rand ov and maximum cloud cover as fil suggest
+          ! rt%totcf(n) =  d_half * ( rt%totcf(n) + maxval(rt%cld(n,:)) )
+          ! abv is proportional to fsns in radcsw : Calculate the factor
+          if ( rt%fsns(n) > d_zero ) then
+            betafac = rt%abv(n) / rt%fsns(n)
+          else
+            betafac = d_zero
+          end if
+          ! Fil suggestion of putting a max on column cloud fraction
+          ! TAO: implement a user-specified CF maximum (default of 1.0)
+          if ( lsrfhack ) then
+            if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
+            if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
+            rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
+                         rt%fsnsc(n) * (d_one-rt%totcf(n))
+          end if
+          ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
+          rt%abv(n) = betafac * rt%fsns(n)
+          rt%fsds(n) = rt%fsds(n)*1.0e-3_rkx
+          rt%fsnirt(n) = rt%fsnirt(n)*1.0e-3_rkx
+          rt%fsnrtc(n) = rt%fsnrtc(n)*1.0e-3_rkx
+          rt%fsnirtsq(n) = rt%fsnirtsq(n)*1.0e-3_rkx
+          !
+          ! Calculate/outfld albedo and clear sky albedo
+          !
+          if ( rt%solin(n) > d_zero ) then
+            rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
+            rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
+          else
+            rt%alb(n) = d_zero
+            rt%albc(n) = d_zero
+          end if
+        end block
       end do
     end if
     !
@@ -1034,7 +1031,7 @@ module mod_rad_radiation
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
-      do n = rt%n1 , rt%n2
+      do concurrent ( n = rt%n1:rt%n2 )
         rt%flnt(n) = rt%flnt(n)*1.0e-3_rkx
         rt%lwout(n) = rt%lwout(n)*1.0e-3_rkx
         rt%lwin(n) = rt%lwin(n)*1.0e-3_rkx
@@ -1227,14 +1224,11 @@ module mod_rad_radiation
     ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
     !-----------------------------------------------------------------------
     !
-    real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
-               dbarii , dbarli , ebarii , ebarli , fbarii , fbarli ,  &
-               h2ostr , path , pdel , psf , pthco2 , pthh2o , ptho2 , &
-               ptho3 , xptop , rdenom , sqrco2 , tmp1 , tmp1i ,       &
-               tmp1l , tmp2 , tmp2i , tmp2l , tmp3i , tmp3l ,         &
-               trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
+    real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
+                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli , &
+                 psf , tmp1 , tmp2 , trayoslp , wavmid , wgtint
     real(rkx) , dimension(4) :: ww
-    integer(ik4) :: n , indxsl , k , ns , is
+    integer(ik4) :: n , k , indxsl , ns , is
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radcsw'
     integer(ik4) :: indx = 0
@@ -1272,114 +1266,91 @@ module mod_rad_radiation
     !
     ! Define solar incident radiation and interface pressures:
     !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        solin(n) = scon*eccf*czen(n)
-        pflx(n,0) = d_zero
-      end if
-    end do
-    do k = 1 , kzp1
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          pflx(n,k) = pint(n,k)
-        end if
-      end do
-    end do
-    !
-    ! Compute optical paths:
-    ! CO2, use old scheme(as constant)
-    !
+
     tmp1 = d_half/(egravgts*sslp)
-    ! co2mmr = co2vmr*(mmwco2/mmwair)
-
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        sqrco2 = sqrt(co2mmr(n))
-        xptop = pflx(n,1)
-        ptho2 = o2mmr*xptop*regravgts
-        ptho3 = o3mmr(n,1)*xptop*regravgts
-        pthco2 = sqrco2*(xptop*regravgts)
-        h2ostr = sqrt(d_one/h2ommr(n,1))
-        zenfac(n) = sqrt(czen(n))
-        pthh2o = (xptop**2)*tmp1 + (xptop*regravgts) * (h2ostr*zenfac(n)*delta)
-        uh2o(n,0) = h2ommr(n,1)*pthh2o
-        uco2(n,0) = zenfac(n)*pthco2
-        uo2(n,0) = zenfac(n)*ptho2
-        uo3(n,0) = ptho3
-      end if
-    end do
-
     tmp2 = delta*regravgts
-    do k = 1 , kz
-      do n = n1 , n2
+
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: sqrco2 , xptop , pdel , path
+        real(rkx) :: ptho2 , ptho3 , pthco2 , pthh2o , h2ostr
+        !
+        ! Initialize spectrally integrated totals:
+        !
+        fswup(n,kzp1) = d_zero
+        fswdn(n,kzp1) = d_zero
         if ( czengt0(n) ) then
+          solin(n) = scon*eccf*czen(n)
+          pflx(n,0) = d_zero
+          do k = 1 , kzp1
+            pflx(n,k) = pint(n,k)
+          end do
+          !
+          ! Compute optical paths:
+          ! CO2, use old scheme(as constant)
+          !
+          ! co2mmr = co2vmr*(mmwco2/mmwair)
           sqrco2 = sqrt(co2mmr(n))
-          pdel = pflx(n,k+1) - pflx(n,k)
-          path = pdel*regravgts
-          ptho2 = o2mmr*path
-          ptho3 = o3mmr(n,k)*path
-          pthco2 = sqrco2*path
-          h2ostr = sqrt(d_one/h2ommr(n,k))
-          pthh2o = (pflx(n,k+1)**2-pflx(n,k)**2) * &
-                    tmp1 + pdel*h2ostr*zenfac(n)*tmp2
-          uh2o(n,k) = h2ommr(n,k)*pthh2o
-          uco2(n,k) = zenfac(n)*pthco2
-          uo2(n,k) = zenfac(n)*ptho2
-          uo3(n,k) = ptho3
+          xptop = pflx(n,1)
+          ptho2 = o2mmr*xptop*regravgts
+          ptho3 = o3mmr(n,1)*xptop*regravgts
+          pthco2 = sqrco2*(xptop*regravgts)
+          h2ostr = sqrt(d_one/h2ommr(n,1))
+          zenfac(n) = sqrt(czen(n))
+          pthh2o = (xptop**2)*tmp1 + &
+            (xptop*regravgts) * (h2ostr*zenfac(n)*delta)
+          uh2o(n,0) = h2ommr(n,1)*pthh2o
+          uco2(n,0) = zenfac(n)*pthco2
+          uo2(n,0) = zenfac(n)*ptho2
+          uo3(n,0) = ptho3
+          do k = 1 , kz
+            pdel = pflx(n,k+1) - pflx(n,k)
+            path = pdel*regravgts
+            ptho2 = o2mmr*path
+            ptho3 = o3mmr(n,k)*path
+            pthco2 = sqrco2*path
+            h2ostr = sqrt(d_one/h2ommr(n,k))
+            pthh2o = (pflx(n,k+1)**2-pflx(n,k)**2) * &
+                      tmp1 + pdel*h2ostr*zenfac(n)*tmp2
+            uh2o(n,k) = h2ommr(n,k)*pthh2o
+            uco2(n,k) = zenfac(n)*pthco2
+            uo2(n,k) = zenfac(n)*ptho2
+            uo3(n,k) = ptho3
+          end do
+          !
+          ! Compute column absorber amounts for the clear sky computation:
+          !
+          uth2o(n) = d_zero
+          uto3(n) = d_zero
+          utco2(n) = d_zero
+          uto2(n) = d_zero
+          do k = 1 , kz
+            uth2o(n) = uth2o(n) + uh2o(n,k)
+            uto3(n) = uto3(n) + uo3(n,k)
+            utco2(n) = utco2(n) + uco2(n,k)
+            uto2(n) = uto2(n) + uo2(n,k)
+          end do
+          do k = 0 , kz
+            totfld(n,k) = d_zero
+            fswup(n,k) = d_zero
+            fswdn(n,k) = d_zero
+          end do
+          !
+          ! Set cloud properties for top (0) layer; so long as tauxcl is zero,
+          ! there is no cloud above top of model; the other cloud properties
+          ! are arbitrary:
+          !
+          tauxcl(n,0,:) = d_zero
+          wcl(n,0) = verynearone
+          gcl(n,0) = 0.850_rkx
+          fcl(n,0) = 0.725_rkx
+          tauxci(n,0,:) = d_zero
+          wci(n,0) = verynearone
+          gci(n,0) = 0.850_rkx
+          fci(n,0) = 0.725_rkx
         end if
-      end do
-    end do
-    !
-    ! Compute column absorber amounts for the clear sky computation:
-    !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        uth2o(n) = d_zero
-        uto3(n) = d_zero
-        utco2(n) = d_zero
-        uto2(n) = d_zero
-      end if
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          uth2o(n) = uth2o(n) + uh2o(n,k)
-          uto3(n) = uto3(n) + uo3(n,k)
-          utco2(n) = utco2(n) + uco2(n,k)
-          uto2(n) = uto2(n) + uo2(n,k)
-        end if
-      end do
-    end do
-    !
-    ! Initialize spectrally integrated totals:
-    !
-    do k = 0 , kz
-      do n = n1 , n2
-        totfld(n,k) = d_zero
-        fswup(n,k) = d_zero
-        fswdn(n,k) = d_zero
-      end do
-    end do
-    do n = n1 , n2
-      fswup(n,kzp1) = d_zero
-      fswdn(n,kzp1) = d_zero
-    end do
-    !
-    ! Set cloud properties for top (0) layer; so long as tauxcl is zero,
-    ! there is no cloud above top of model; the other cloud properties
-    ! are arbitrary:
-    !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        tauxcl(n,0,:) = d_zero
-        wcl(n,0) = verynearone
-        gcl(n,0) = 0.850_rkx
-        fcl(n,0) = 0.725_rkx
-        tauxci(n,0,:) = d_zero
-        wci(n,0) = verynearone
-        gci(n,0) = 0.850_rkx
-        fci(n,0) = 0.725_rkx
-      end if
+      end block
     end do
     !
     ! Begin spectral loop
@@ -1428,94 +1399,92 @@ module mod_rad_radiation
       fbarii = fbari(indxsl)
 
       ww(indxsl) = ww(indxsl) + d_one
-
-      do k = 1 , kz
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            !
-            ! liquid
-            !
-            tmp1l = abarli + bbarli/rel(n,k)
-            tmp2l = d_one - cbarli - dbarli*rel(n,k)
-            tmp3l = fbarli*rel(n,k)
-            !
-            ! ice
-            !
-            tmp1i = abarii + bbarii/rei(n,k)
-            tmp2i = d_one - cbarii - dbarii*rei(n,k)
-            tmp3i = fbarii*rei(n,k)
-            !
-            !  Cloud fraction incorporated into cloud extinction optical depth
-            !  found April 12 2000, Filippo found the different scheme here:
-            !
-            ! Scheme     1
-            ! The one in ccm3.6.6
-            !tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
-            !          (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
-            !tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
-            !           fice(n,k) * cld(n,k) * sqrt(cld(n,k))
-            !
-            ! Scheme     2
-            ! unknown origin (?????)
-            !tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
-            !              (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
-            !              (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
-            !tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
-            !              (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
-            !              (clwp(n,k)*tmp1i*fice(n,k))))
-            !
-            tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
-                          (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
-                          (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
-            tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
-                          (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
-                          (clwp(n,k)*tmp1i*fice(n,k))))
-            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
-            outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
-            !
-            !scheme     3
-            ! tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)**0.85
-            ! tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
-            !
-            ! Do not let single scatter albedo be 1; delta-eddington
-            ! solution for non-conservative case:
-            !
-            wcl(n,k) = min(tmp2l,verynearone)
-            gcl(n,k) = ebarli + tmp3l
-            fcl(n,k) = gcl(n,k)*gcl(n,k)
-
-            wci(n,k) = min(tmp2i,verynearone)
-            gci(n,k) = ebarii + tmp3i
-            fci(n,k) = gci(n,k)*gci(n,k)
-
-          end if
-        end do
-      end do
       !
       ! Set reflectivities for surface based on mid-point wavelength
       !
       wavmid = (wavmin(ns)+wavmax(ns))*d_half
-      !
-      ! Wavelength less  than 0.7 micro-meter
-      !
-      if ( wavmid < 0.7_rkx ) then
-        do n = n1 , n2
+      do concurrent ( n = n1:n2 )
+        block
+          integer(ik4) :: k
+          real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
           if ( czengt0(n) ) then
-            diralb(n) = adirsw(n)
-            difalb(n) = adifsw(n)
+            do k = 1 , kz
+              !
+              ! liquid
+              !
+              tmp1l = abarli + bbarli/rel(n,k)
+              tmp2l = d_one - cbarli - dbarli*rel(n,k)
+              tmp3l = fbarli*rel(n,k)
+              !
+              ! ice
+              !
+              tmp1i = abarii + bbarii/rei(n,k)
+              tmp2i = d_one - cbarii - dbarii*rei(n,k)
+              tmp3i = fbarii*rei(n,k)
+              !
+              !  Cloud fraction incorporated into cloud extinction optical depth
+              !  found April 12 2000, Filippo found the different scheme here:
+              !
+              ! Scheme     1
+              ! The one in ccm3.6.6
+              !tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
+              !          (d_one-fice(n,k)) * cld(n,k) * sqrt(cld(n,k))
+              !tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
+              !           fice(n,k) * cld(n,k) * sqrt(cld(n,k))
+              !
+              ! Scheme     2
+              ! unknown origin (?????)
+              !tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))* &
+              !              (d_one-fice(n,k))*tmp1l) / &
+              !              (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
+              !              (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
+              !tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
+              !              (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
+              !              (clwp(n,k)*tmp1i*fice(n,k))))
+              !
+              tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k)) * &
+                (d_one-fice(n,k))*tmp1l) / &
+                (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
+                (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
+              tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
+                            (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
+                            (clwp(n,k)*tmp1i*fice(n,k))))
+              outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
+              outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
+              !
+              !scheme     3
+              ! tauxcl(n,k,ns) = clwp(n,k)*tmp1l* &
+              !           (d_one-fice(n,k))*cld(n,k)**0.85
+              ! tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
+              !
+              ! Do not let single scatter albedo be 1; delta-eddington
+              ! solution for non-conservative case:
+              !
+              wcl(n,k) = min(tmp2l,verynearone)
+              gcl(n,k) = ebarli + tmp3l
+              fcl(n,k) = gcl(n,k)*gcl(n,k)
+
+              wci(n,k) = min(tmp2i,verynearone)
+              gci(n,k) = ebarii + tmp3i
+              fci(n,k) = gci(n,k)*gci(n,k)
+            end do
+            if ( wavmid < 0.7_rkx ) then
+              !
+              ! Wavelength less  than 0.7 micro-meter
+              !
+              diralb(n) = adirsw(n)
+              difalb(n) = adifsw(n)
+            else
+              !
+              ! Wavelength greater than 0.7 micro-meter
+              !
+              diralb(n) = adirlw(n)
+              difalb(n) = adiflw(n)
+            end if
           end if
-        end do
-      !
-      ! Wavelength greater than 0.7 micro-meter
-      !
-      else
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            diralb(n) = adirlw(n)
-            difalb(n) = adiflw(n)
-          end if
-        end do
-      end if
+        end block
+      end do
+
       trayoslp = raytau(ns)/sslp
       !
       ! Layer input properties now completely specified; compute the
@@ -1526,55 +1495,48 @@ module mod_rad_radiation
       ! should be consistent with aeroppt routine
       !
       call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
-      !
-      ! Compute reflectivity to direct and diffuse radiation for layers
-      ! below by adding succesive layers starting from the surface and
-      ! working upwards:
-      !
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          rupdir(n,kzp1) = diralb(n)
-          rupdif(n,kzp1) = difalb(n)
-        end if
-      end do
-      do k = kz , 0 , -1
-        do n = n1 , n2
+
+      do concurrent ( n = n1:n2 )
+        block
+          integer(ik4) :: k
+          real(rkx) :: rdenom
           if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-(rdif(n,k)*rupdif(n,k+1)))
-            rupdir(n,k) = rdir(n,k) + tdif(n,k) *      &
-                          (rupdir(n,k+1)*explay(n,k) + &
-                           rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+            rupdir(n,kzp1) = diralb(n)
+            rupdif(n,kzp1) = difalb(n)
+            !
+            ! Compute reflectivity to direct and diffuse radiation for layers
+            ! below by adding succesive layers starting from the surface and
+            ! working upwards:
+            !
+            do k = kz , 0 , -1
+              rdenom = d_one/(d_one-(rdif(n,k)*rupdif(n,k+1)))
+              rupdir(n,k) = rdir(n,k) + tdif(n,k) *      &
+                            (rupdir(n,k+1)*explay(n,k) + &
+                             rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
+              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+            end do
+            !
+            ! Compute up and down fluxes for each interface, using the added
+            ! atmospheric layer properties at each interface:
+            !
+            do k = 0 , kzp1
+              rdenom = d_one/(d_one-(rdndif(n,k)*rupdif(n,k)))
+              fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+   &
+                            (tottrn(n,k)-exptdn(n,k))*rupdif(n,k))*rdenom
+              fluxdn(n,k) = exptdn(n,k) +                              &
+                            (tottrn(n,k) - exptdn(n,k) + exptdn(n,k) * &
+                            (rupdir(n,k)*rdndif(n,k)))*rdenom
+            end do
+            !
+            ! Compute flux divergence in each layer using the interface up
+            ! and down fluxes:
+            !
+            do k = 0 , kz
+              flxdiv(n,k) = (fluxdn(n,k) - fluxdn(n,k+1)) + &
+                            (fluxup(n,k+1) - fluxup(n,k))
+            end do
           end if
-        end do
-      end do
-      !
-      ! Compute up and down fluxes for each interface, using the added
-      ! atmospheric layer properties at each interface:
-      !
-      do k = 0 , kzp1
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-(rdndif(n,k)*rupdif(n,k)))
-            fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+   &
-                          (tottrn(n,k)-exptdn(n,k))*rupdif(n,k))*rdenom
-            fluxdn(n,k) = exptdn(n,k) +                              &
-                          (tottrn(n,k) - exptdn(n,k) + exptdn(n,k) * &
-                           (rupdir(n,k)*rdndif(n,k)))*rdenom
-          end if
-        end do
-      end do
-      !
-      ! Compute flux divergence in each layer using the interface up
-      ! and down fluxes:
-      !
-      do k = 0 , kz
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            flxdiv(n,k) = (fluxdn(n,k) - fluxdn(n,k+1)) + &
-                          (fluxup(n,k+1) - fluxup(n,k))
-          end if
-        end do
+        end block
       end do
       !
       ! Monochromatic computation completed; accumulate in totals;
@@ -1585,56 +1547,57 @@ module mod_rad_radiation
       if ( abs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
       if ( abs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
       if ( abs(po2(ns)) > dlowval ) psf = psf*po2(ns)
-      sfltot = d_zero
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          solflx(n) = solin(n)*frcsol(ns)*psf
-          fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
-          fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
-          solout(n) = solout(n) + solflx(n)*fluxup(n,0)
-          sfltot = sfltot + solflx(n)
-          fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
-          fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
-          !
-          ! Down spectral fluxes need to be in mks; thus the 0.001
-          ! conversion factors
-          !
-          if ( wavmid < 0.7_rkx ) then
-            sols(n) = sols(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
-            solsd(n) = solsd(n) + &
-                       ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
-            abv(n) = abv(n) + ((solflx(n) *               &
-                       (fluxdn(n,kzp1)-fluxup(n,kzp1)))*  &
-                       (d_one-asw(n))/(d_one-diralb(n)))*d_r1000
-          else
-            soll(n) = soll(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
-            solld(n) = solld(n) + &
-                   ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
-            fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-            abv(n) = abv(n) + &
-                       ((solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
-                        (d_one-alw(n))/(d_one-diralb(n)))*d_r1000
-          end if
-          fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
-        end if
-      end do
-      do k = 0 , kz
-        do n = n1 , n2
+      do concurrent ( n = n1:n2 )
+        block
+          integer(ik4) :: k
           if ( czengt0(n) ) then
-            totfld(n,k) = totfld(n,k) + solflx(n)*flxdiv(n,k)
-            fswup(n,k+1) = fswup(n,k+1) + solflx(n)*fluxup(n,k+1)
-            fswdn(n,k+1) = fswdn(n,k+1) + solflx(n)*fluxdn(n,k+1)
+            solflx(n) = solin(n)*frcsol(ns)*psf
+            fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
+            fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
+            solout(n) = solout(n) + solflx(n)*fluxup(n,0)
+            fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
+            fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
+            !
+            ! Down spectral fluxes need to be in mks; thus the 0.001
+            ! conversion factors
+            !
+            if ( wavmid < 0.7_rkx ) then
+              sols(n) = sols(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
+              solsd(n) = solsd(n) + &
+                         ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
+              abv(n) = abv(n) + ((solflx(n) *               &
+                         (fluxdn(n,kzp1)-fluxup(n,kzp1)))*  &
+                         (d_one-asw(n))/(d_one-diralb(n)))*d_r1000
+            else
+              soll(n) = soll(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
+              solld(n) = solld(n) + &
+                     ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
+              fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+              abv(n) = abv(n) + &
+                         ((solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
+                         (d_one-alw(n))/(d_one-diralb(n)))*d_r1000
+            end if
+            fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
+            do k = 0 , kz
+              totfld(n,k) = totfld(n,k) + solflx(n)*flxdiv(n,k)
+              fswup(n,k+1) = fswup(n,k+1) + solflx(n)*fluxup(n,k+1)
+              fswdn(n,k+1) = fswdn(n,k+1) + solflx(n)*fluxdn(n,k+1)
+            end do
+            ! solar is incident visible solar radiation
+            if ( ns == 8 ) then
+              sol(n) = (solflx(n)*fluxdn(n,kzp1))*d_r1000
+            end if
           end if
-        end do
+        end block
       end do
-      ! solar is incident visible solar radiation
-      if ( ns == 8 ) then
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            sol(n) = (solflx(n)*fluxdn(n,kzp1))*d_r1000
-          end if
-        end do
-      end if
+
+      !sfltot = d_zero
+      !do n = n1 , n2
+      !  if ( czengt0(n) ) then
+      !    sfltot = sfltot + solflx(n)
+      !  end if
+      !end do
+
       !FAB
       ! CLEAR SKY CALCULATION PLUS AEROSOL
       ! FORCING RAD CLR is called 2 times , one with O aerosol OP , and
@@ -1662,49 +1625,46 @@ module mod_rad_radiation
         ! refers to top of column; 2 on interface quantities refers to
         ! the surface:
         !
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            rupdir(n,2) = diralb(n)
-            rupdif(n,2) = difalb(n)
-          end if
-        end do
-        do k = 1 , 0 , -1
-          do n = n1 , n2
+        do concurrent ( n = n1:n2 )
+          block
+            integer(ik4) :: k
+            real(rkx) :: rdenom
             if ( czengt0(n) ) then
-              rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
-              rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
-                            (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
-                            (tdir(n,k)-explay(n,k)))*rdenom
-              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+              rupdir(n,2) = diralb(n)
+              rupdif(n,2) = difalb(n)
+              do k = 1 , 0 , -1
+                rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
+                rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
+                              (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
+                              (tdir(n,k)-explay(n,k)))*rdenom
+                rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+              end do
+              !
+              ! Compute up and down fluxes for each interface, using the added
+              ! atmospheric layer properties at each interface:
+              !
+              do k = 0 , 2
+                rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
+                fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
+                              exptdn(n,k))*rupdif(n,k))*rdenom
+                fluxdn(n,k) = exptdn(n,k) +                           &
+                              (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
+                               rupdir(n,k)*rdndif(n,k))*rdenom
+              end do
+              ! SAVE the ref net TOA flux
+              ! ( and put back the cumul variables to 0.)
+              x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+              x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
             end if
-          end do
+          end block
         end do
-        !
-        ! Compute up and down fluxes for each interface, using the added
-        ! atmospheric layer properties at each interface:
-        !
-        do k = 0 , 2
-          do n = n1 , n2
-            if ( czengt0(n) ) then
-              rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
-              fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
-                            exptdn(n,k))*rupdif(n,k))*rdenom
-              fluxdn(n,k) = exptdn(n,k) +                           &
-                            (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
-                             rupdir(n,k)*rdndif(n,k))*rdenom
-            end if
-          end do
-        end do
-        x0fsnrtc = d_zero
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            ! SAVE the ref net TOA flux
-            ! ( and put back the cumul variables to 0.)
-            x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-            x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
-            x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-          end if
-        end do
+
+        !x0fsnrtc = d_zero
+        !do n = n1 , n2
+        !  if ( czengt0(n) ) then
+        !    x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+        !  end if
+        !end do
         !
         ! End of clear sky calculation with O aerosol OP
         !
@@ -1727,45 +1687,37 @@ module mod_rad_radiation
       ! overlying surface; 0 on interface quantities refers to top of
       ! column; 2 on interface quantities refers to the surface:
       !
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          rupdir(n,2) = diralb(n)
-          rupdif(n,2) = difalb(n)
-        end if
-      end do
-      do k = 1 , 0 , -1
-        do n = n1 , n2
+      do concurrent ( n = n1:n2 )
+        block
+          integer(ik4) :: k
+          real(rkx) :: rdenom
           if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
-            rupdir(n,k) = rdir(n,k) + tdif(n,k) *     &
-                          (rupdir(n,k+1)*explay(n,k)+ &
-                           rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
+            rupdir(n,2) = diralb(n)
+            rupdif(n,2) = difalb(n)
+            do k = 1 , 0 , -1
+              rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
+              rupdir(n,k) = rdir(n,k) + tdif(n,k) *     &
+                            (rupdir(n,k+1)*explay(n,k)+ &
+                             rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
+              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
+            end do
+            !
+            ! Compute up and down fluxes for each interface, using the added
+            ! atmospheric layer properties at each interface:
+            !
+            do k = 0 , 2
+              rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
+              fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
+                             exptdn(n,k))*rupdif(n,k))*rdenom
+              fluxdn(n,k) = exptdn(n,k) +                           &
+                            (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
+                             rupdir(n,k)*rdndif(n,k))*rdenom
+            end do
+            fsntc(n) = fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+            fsnsc(n) = fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
+            fsnrtc(n) = fsnrtc(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
           end if
-        end do
-      end do
-      !
-      ! Compute up and down fluxes for each interface, using the added
-      ! atmospheric layer properties at each interface:
-      !
-      do k = 0 , 2
-        do n = n1 , n2
-          if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
-            fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
-                           exptdn(n,k))*rupdif(n,k))*rdenom
-            fluxdn(n,k) = exptdn(n,k) +                           &
-                          (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
-                           rupdir(n,k)*rdndif(n,k))*rdenom
-          end if
-        end do
-      end do
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          fsntc(n) = fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-          fsnsc(n) = fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
-          fsnrtc(n) = fsnrtc(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
-        end if
+        end block
       end do
       !
       ! End of clear sky calculation
@@ -1780,7 +1732,7 @@ module mod_rad_radiation
     ! FAB calculation of TOA aerosol radiative forcing
     ! convert from cgs to MKS
     if ( linteract ) then
-      do n = n1 , n2
+      do concurrent ( n = n1:n2 )
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000
           aeradfos(n) = -(x0fsnsc(n)-fsnsc(n)) * d_r1000
@@ -1790,17 +1742,15 @@ module mod_rad_radiation
     !
     ! Compute solar heating rate (k/s)
     !
-    do k = 1 , kz
-      do n = n1 , n2
-        if ( czengt0(n) ) then
-          qrs(n,k) = -(gocp*totfld(n,k))/(pint(n,k)-pint(n,k+1))
-        end if
-      end do
+    do concurrent( n = n1:n2, k = 1:kz )
+      if ( czengt0(n) ) then
+        qrs(n,k) = -(gocp*totfld(n,k))/(pint(n,k)-pint(n,k+1))
+      end if
     end do
     !
     ! Set the downwelling flux at the surface
     !
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
       fsds(n) = fswdn(n,kzp1)
     end do
 #ifdef DEBUG
@@ -1889,16 +1839,17 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-    do n = n1 , n2
-      rtclrsf(n,1) = d_one/tclrsf(n,1)
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        fclb4(n,k) = d_zero
-        fclt4(n,k) = d_zero
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-        rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
-      end do
+    do concurrent ( n = n1:n2 )
+      block
+      integer(ik4) :: k
+        rtclrsf(n,1) = d_one/tclrsf(n,1)
+        do k = 1 , kz
+          fclb4(n,k) = d_zero
+          fclt4(n,k) = d_zero
+          tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
+          rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
+        end do
+      end block
     end do
     !
     ! Calculate some temperatures needed to derive absorptivity and
@@ -1933,48 +1884,41 @@ module mod_rad_radiation
     ! Find the lowest and highest level cloud for each grid point
     ! Note: Vertical indexing here proceeds from bottom to top
     !
-    do n = n1 , n2
-      klov(n) = 0
-      done(n) = .false.
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        if ( .not. done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
-          done(n) = .true.
-          klov(n) = k
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        klov(n) = 0
+        done(n) = .false.
+        do k = 1 , kz
+          if ( .not. done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
+            done(n) = .true.
+            klov(n) = k
+          end if
+        end do
+        if ( klov(n) > 0 ) then
+          skip(n) = .false.
+        else
+          skip(n) = .true.
         end if
-      end do
-    end do
-    where ( klov > 0 )
-      skip = .false.
-    elsewhere
-      skip = .true.
-    end where
-    do n = n1 , n2
-      khiv(n) = klov(n)
-      done(n) = .false.
-    end do
-    do k = kz , 1 , -1
-      do n = n1 , n2
+        khiv(n) = klov(n)
+        done(n) = .false.
+        do k = kz , 1 , -1
+          if ( skip(n) ) cycle
+          if ( .not. done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
+            done(n) = .true.
+            khiv(n) = k
+          end if
+        end do
+        khivm(n) = khiv(n) - 1
         if ( skip(n) ) cycle
-        if ( .not.done(n) .and. cld(n,kzp2-k) > 0.0_rkx ) then
-          done(n) = .true.
-          khiv(n) = k
-        end if
-      end do
-    end do
-    do n = n1 , n2
-      khivm(n) = khiv(n) - 1
-    end do
-    !
-    ! Note: Vertical indexing here proceeds from bottom to top
-    !
-    do n = n1 , n2
-      if ( skip(n) ) cycle
-      do k = klov(n) , khiv(n)
-        fclt4(n,kzp1-k) = stebol*tint4(n,kzp2-k)
-        fclb4(n,kzp1-k) = stebol*tint4(n,kzp3-k)
-      end do
+        !
+        ! Note: Vertical indexing here proceeds from bottom to top
+        !
+        do k = klov(n) , khiv(n)
+          fclt4(n,kzp1-k) = stebol*tint4(n,kzp2-k)
+          fclb4(n,kzp1-k) = stebol*tint4(n,kzp3-k)
+        end do
+      end block
     end do
     !
     ! option to calculate LW aerosol radiative forcing
@@ -2012,83 +1956,73 @@ module mod_rad_radiation
       ! delt=t**4 in layer above current sigma level km.
       ! delt1=t**4 in layer below current sigma level km.
       !
-      do n = n1 , n2
-        delt(n) = tint4(n,kz) - tlayr4(n,kzp1)
-        delt1(n) = tlayr4(n,kzp1) - tint4(n,kzp1)
-        s(n,kzp1,kzp1) = stebol*(delt1(n)*absnxt(n,kz,1) + &
-                         delt(n)*absnxt(n,kz,4))
-        s(n,kz,kzp1) = stebol*(delt(n)*absnxt(n,kz,2) + &
-                         delt1(n)*absnxt(n,kz,3))
-      end do
-      do k = 1 , kz - 1
-        do n = n1 , n2
-          bk2 = (abstot(n,k,kz)+abstot(n,k,kzp1))*d_half
-          bk1 = bk2
-          s(n,k,kzp1) = stebol*(bk2*delt(n)+bk1*delt1(n))
-        end do
-      end do
-      !
-      ! All k, km>1
-      !
-      do km = kz , 2 , -1
-        do n = n1 , n2
-          delt(n) = tint4(n,km-1) - tlayr4(n,km)
-          delt1(n) = tlayr4(n,km) - tint4(n,km)
-        end do
-        do k = kzp1 , 1 , -1
-          do n = n1 , n2
-            if ( k == km ) then
-              bk2 = absnxt(n,km-1,4)
-              bk1 = absnxt(n,km-1,1)
-            else if ( k == km-1 ) then
-              bk2 = absnxt(n,km-1,2)
-              bk1 = absnxt(n,km-1,3)
-            else
-              bk2 = d_half * (abstot(n,k,km-1) + abstot(n,k,km))
-              bk1 = bk2
-            end if
-            s(n,k,km) = s(n,k,km+1) + stebol*(bk2*delt(n) + bk1*delt1(n))
+      do concurrent ( n = n1:n2 )
+        block
+          integer(ik4) :: k
+          real(rkx) :: bk1 , bk2 , absbt
+          delt(n) = tint4(n,kz) - tlayr4(n,kzp1)
+          delt1(n) = tlayr4(n,kzp1) - tint4(n,kzp1)
+          s(n,kzp1,kzp1) = stebol*(delt1(n)*absnxt(n,kz,1) + &
+                           delt(n)*absnxt(n,kz,4))
+          s(n,kz,kzp1) = stebol*(delt(n)*absnxt(n,kz,2) + &
+                           delt1(n)*absnxt(n,kz,3))
+          do k = 1 , kz - 1
+            bk2 = (abstot(n,k,kz)+abstot(n,k,kzp1))*d_half
+            bk1 = bk2
+            s(n,k,kzp1) = stebol*(bk2*delt(n)+bk1*delt1(n))
           end do
-        end do
-      end do
-      !
-      ! Computation of clear sky fluxes always set first level of fsul
-      !
-      do n = n1 , n2
-        fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
-      end do
-      !
-      ! Downward clear sky fluxes store intermediate quantities in down
-      ! flux Initialize fluxes to clear sky values.
-      !
-      do n = n1 , n2
-        tmp(n) = fsul(n,kzp1) - stebol*tint4(n,kzp1)
-        fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1) * tmp(n) + s(n,1,2)
-        fsdl(n,1) = emstot(n,1) * stebol * tplnke(n)**4
-        ful(n,1) = fsul(n,1)
-        fdl(n,1) = fsdl(n,1)
-      end do
-      !
-      ! fsdl(n,kzp1) assumes isothermal layer
-      !
-      do k = 2 , kz
-        do n = n1 , n2
-          fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n) + s(n,k,k+1)
-          ful(n,k) = fsul(n,k)
-          fsdl(n,k) = stebol*(tplnke(n)**4) * emstot(n,k) - &
-                              (s(n,k,2)-s(n,k,k+1))
-          fdl(n,k) = fsdl(n,k)
-        end do
-      end do
-      !
-      ! Store the downward emission from level 1 = total gas emission *
-      ! sigma t**4.  fsdl does not yet include all terms
-      !
-      do n = n1 , n2
-        ful(n,kzp1) = fsul(n,kzp1)
-        absbt = emstot(n,kzp1) * stebol * tplnke(n)**4
-        fsdl(n,kzp1) = absbt - s(n,kzp1,2)
-        fdl(n,kzp1) = fsdl(n,kzp1)
+          do km = kz , 2 , -1
+            delt(n) = tint4(n,km-1) - tlayr4(n,km)
+            delt1(n) = tlayr4(n,km) - tint4(n,km)
+            !
+            ! All k, km>1
+            !
+            do k = kzp1 , 1 , -1
+              if ( k == km ) then
+                bk2 = absnxt(n,km-1,4)
+                bk1 = absnxt(n,km-1,1)
+              else if ( k == km-1 ) then
+                bk2 = absnxt(n,km-1,2)
+                bk1 = absnxt(n,km-1,3)
+              else
+                bk2 = d_half * (abstot(n,k,km-1) + abstot(n,k,km))
+                bk1 = bk2
+              end if
+              s(n,k,km) = s(n,k,km+1) + stebol*(bk2*delt(n) + bk1*delt1(n))
+            end do
+          end do
+          !
+          ! Computation of clear sky fluxes always set first level of fsul
+          !
+          fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
+          !
+          ! Downward clear sky fluxes store intermediate quantities in down
+          ! flux Initialize fluxes to clear sky values.
+          !
+          tmp(n) = fsul(n,kzp1) - stebol*tint4(n,kzp1)
+          fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1) * tmp(n) + s(n,1,2)
+          fsdl(n,1) = emstot(n,1) * stebol * tplnke(n)**4
+          ful(n,1) = fsul(n,1)
+          fdl(n,1) = fsdl(n,1)
+          do k = 2 , kz
+            fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n) + s(n,k,k+1)
+            ful(n,k) = fsul(n,k)
+            fsdl(n,k) = stebol*(tplnke(n)**4) * emstot(n,k) - &
+                                (s(n,k,2)-s(n,k,k+1))
+            fdl(n,k) = fsdl(n,k)
+          end do
+          !
+          ! fsdl(n,kzp1) assumes isothermal layer
+          !
+          !
+          ! Store the downward emission from level 1 = total gas emission *
+          ! sigma t**4.  fsdl does not yet include all terms
+          !
+          ful(n,kzp1) = fsul(n,kzp1)
+          absbt = emstot(n,kzp1) * stebol * tplnke(n)**4
+          fsdl(n,kzp1) = absbt - s(n,kzp1,2)
+          fdl(n,kzp1) = fsdl(n,kzp1)
+        end block
       end do
       !
       ! FAB radiative forcing sur fsul
