@@ -1831,9 +1831,7 @@ module mod_rad_radiation
             aerlwfo , aerlwfos
     intent (inout) tclrsf
 
-    real(rkx) :: absbt , bk1 , bk2 , tmp1
-    integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
-               km3 , km4 , ns , irad , nradaer
+    integer(ik4) :: n , k , ns , khighest , irad , nradaer
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclw'
     integer(ik4) :: indx = 0
@@ -1939,8 +1937,8 @@ module mod_rad_radiation
       if  ( linteract .and. irad == 2 ) then
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
-        do k = 1 , kz  ! aertrlw defined on plev levels
-          do ns = 1 , 4
+        do ns = 1 , 4
+          do k = 1 , kz  ! aertrlw defined on plev levels
             absnxt(:,k,ns) = d_one-(d_one-absgasnxt(:,k,ns)) * &
                               (aertrlw(:,k,k+1)**xuinpl(:,k,ns))
           end do
@@ -1958,7 +1956,7 @@ module mod_rad_radiation
       !
       do concurrent ( n = n1:n2 )
         block
-          integer(ik4) :: k
+          integer(ik4) :: k , km
           real(rkx) :: bk1 , bk2 , absbt
           delt(n) = tint4(n,kz) - tlayr4(n,kzp1)
           delt1(n) = tlayr4(n,kzp1) - tint4(n,kzp1)
@@ -2085,137 +2083,112 @@ module mod_rad_radiation
     ! Note: Vertical indexing here proceeds from bottom to top
     !
     khighest = khiv(intmax(khiv))
-    do km = 3 , khighest
-      km1 = kzp1 - km
-      km2 = kzp2 - km
-      km4 = kzp4 - km
-      do n = n1 , n2
-        if ( skip(n) ) cycle
-        if ( km <= khiv(n) ) then
-          tmp1 = cld(n,km2)*tclrsf(n,kz)*rtclrsf(n,km2)
-          fdl(n,kzp1) = fdl(n,kzp1) + (fclb4(n,km1)-s(n,kzp1,km4))*tmp1
-        end if
-      end do
-    end do
-    !
-    ! Note: Vertical indexing here proceeds from bottom to top
-    !
-    do k = 1 , khighest - 1
-      k1 = kzp1 - k
-      k2 = kzp2 - k
-      k3 = kzp3 - k
-      do n = n1 , n2
-        if ( skip(n) ) cycle
-        if ( k >= klov(n) .and. k <= khivm(n) ) then
-          ful(n,k2) = fsul(n,k2)*(tclrsf(n,kzp1)*rtclrsf(n,k1))
-        end if
-      end do
-      do km = 1 , k
-        km1 = kzp1 - km
-        km2 = kzp2 - km
-        km3 = kzp3 - km
-        do n = n1 , n2
-          if ( skip(n) ) cycle
-          if ( k <= khivm(n) .and. km >= klov(n) .and. km <= khivm(n)) then
-            ful(n,k2) = ful(n,k2) + (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3)) * &
-                        cld(n,km2)*(tclrsf(n,km1)*rtclrsf(n,k1))
-          end if
-        end do
-      end do ! km = 1 , k
-    end do   ! k = 1 , khighest-1
-
-    do k = 1 , kzp1
-      k2 = kzp2 - k
-      k3 = kzp3 - k
-      do n = n1 , n2
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: km , km1 , km2 , km3 , km4
+        integer(ik4) :: k , k1 , k2 , k3
+        real(rkx) :: tmp1
         start(n) = .false.
-      end do
-      do n = n1 , n2
         if ( skip(n) ) cycle
-        if ( k >= khiv(n) ) then
-          start(n) = .true.
-          ful(n,k2) = fsul(n,k2)*tclrsf(n,kzp1)*rtclrsf(n,kzp1-khiv(n))
-        end if
-      end do
-      do km = 1 , khighest
-        km1 = kzp1 - km
-        km2 = kzp2 - km
-        km3 = kzp3 - km
-        do n = n1 , n2
-          if ( skip(n) ) cycle
-          if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
-            ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
-                  rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+        do km = 3 , khighest
+          km1 = kzp1 - km
+          km2 = kzp2 - km
+          km4 = kzp4 - km
+          if ( km <= khiv(n) ) then
+            tmp1 = cld(n,km2)*tclrsf(n,kz)*rtclrsf(n,km2)
+            fdl(n,kzp1) = fdl(n,kzp1) + (fclb4(n,km1)-s(n,kzp1,km4))*tmp1
           end if
         end do
-      end do  ! km = 1 , khighest
-    end do    ! k = 1 , kzp1
-    !
-    ! Computation of the downward fluxes
-    !
-    do k = 2 , khighest - 1
-      k1 = kzp1 - k
-      k2 = kzp2 - k
-      k3 = kzp3 - k
-      do n = n1 , n2
-        if ( skip(n) ) cycle
-        if ( k <= khivm(n) ) fdl(n,k2) = d_zero
-      end do
-      do km = k + 1 , khighest
-        km1 = kzp1 - km
-        km2 = kzp2 - km
-        km4 = kzp4 - km
-        do n = n1 , n2
-          if ( skip(n) ) cycle
-          if ( k <= khiv(n) .and. &
-               km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
-            fdl(n,k2) = fdl(n,k2)+(cld(n,km2)*tclrsf(n,k1)*rtclrsf(n,km2)) * &
-                        (fclb4(n,km1)-s(n,k2,km4)+s(n,k2,k3))
+        !
+        ! Note: Vertical indexing here proceeds from bottom to top
+        !
+        do k = 1 , khighest - 1
+          k1 = kzp1 - k
+          k2 = kzp2 - k
+          k3 = kzp3 - k
+          if ( k >= klov(n) .and. k <= khivm(n) ) then
+            ful(n,k2) = fsul(n,k2)*(tclrsf(n,kzp1)*rtclrsf(n,k1))
           end if
-        end do
-      end do ! km = k+1 , khighest
-      do n = n1 , n2
-        if ( skip(n) ) cycle
-        if ( k <= khivm(n) ) then
-          fdl(n,k2) = fdl(n,k2) + &
+          do km = 1 , k
+            km1 = kzp1 - km
+            km2 = kzp2 - km
+            km3 = kzp3 - km
+            if ( k <= khivm(n) .and. km >= klov(n) .and. km <= khivm(n)) then
+              ful(n,k2) = ful(n,k2) + (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3)) * &
+                          cld(n,km2)*(tclrsf(n,km1)*rtclrsf(n,k1))
+            end if
+          end do ! km = 1 , k
+        end do   ! k = 1 , khighest-1
+        do k = 1 , kzp1
+          k2 = kzp2 - k
+          k3 = kzp3 - k
+          if ( k >= khiv(n) ) then
+            start(n) = .true.
+            ful(n,k2) = fsul(n,k2)*tclrsf(n,kzp1)*rtclrsf(n,kzp1-khiv(n))
+          end if
+          do km = 1 , khighest
+            km1 = kzp1 - km
+            km2 = kzp2 - km
+            km3 = kzp3 - km
+            if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
+              ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
+                rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+            end if
+          end do  ! km = 1 , khighest
+        end do    ! k = 1 , kzp1
+        !
+        ! Computation of the downward fluxes
+        !
+        do k = 2 , khighest - 1
+          k1 = kzp1 - k
+          k2 = kzp2 - k
+          k3 = kzp3 - k
+          if ( k <= khivm(n) ) fdl(n,k2) = d_zero
+          do km = k + 1 , khighest
+            km1 = kzp1 - km
+            km2 = kzp2 - km
+            km4 = kzp4 - km
+            if ( k <= khiv(n) .and. &
+                 km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
+              fdl(n,k2) = fdl(n,k2)+(cld(n,km2)*tclrsf(n,k1)*rtclrsf(n,km2)) * &
+                      (fclb4(n,km1)-s(n,k2,km4)+s(n,k2,k3))
+            end if
+          end do ! km = k+1 , khighest
+          if ( k <= khivm(n) ) then
+             fdl(n,k2) = fdl(n,k2) + &
                   fsdl(n,k2)*(tclrsf(n,k1)*rtclrsf(n,kzp1-khiv(n)))
-        end if
-      end do
-    end do  ! k = 1 , khighest-1
-    !
-    ! End cloud modification loops
-    !
-    ! All longitudes: store history tape quantities
-    !
-    do n = n1 , n2
-      !
-      ! Downward longwave flux
-      !
-      flwds(n) = fdl(n,kzp1)
-      !
-      ! Net flux
-      !
-      flns(n) = ful(n,kzp1) - fdl(n,kzp1)
-      !
-      ! Clear sky flux at top of atmosphere
-      !
-      flntc(n) = fsul(n,1)
-      flnsc(n) = fsul(n,kzp1) - fsdl(n,kzp1)
-      !
-      ! Outgoing ir
-      !
-      flnt(n) = ful(n,1) - fdl(n,1)
-      lwout(n) = ful(n,1)
-      lwin(n) = fdl(n,1)
-    end do
-    !
-    ! Computation of longwave heating (k per sec)
-    !
-    do k = 1 , kz
-      do n = n1 , n2
-        qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
+          end if
+        end do  ! k = 1 , khighest-1
+        !
+        ! End cloud modification loops
+        !
+        !
+        ! Downward longwave flux
+        !
+        flwds(n) = fdl(n,kzp1)
+        !
+        ! Net flux
+        !
+        flns(n) = ful(n,kzp1) - fdl(n,kzp1)
+        !
+        ! Clear sky flux at top of atmosphere
+        !
+        flntc(n) = fsul(n,1)
+        flnsc(n) = fsul(n,kzp1) - fsdl(n,kzp1)
+        !
+        ! Outgoing ir
+        !
+        flnt(n) = ful(n,1) - fdl(n,1)
+        lwout(n) = ful(n,1)
+        lwin(n) = fdl(n,1)
+        !
+        ! Computation of longwave heating (k per sec)
+        !
+        do k = 1 , kz
+          qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
                     ((pint(n,k)-pint(n,k+1)))
-      end do
+        end do
+      end block
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
@@ -2281,10 +2254,7 @@ module mod_rad_radiation
     ! rdirexp  - Layer direct ref times exp transmission
     ! tdnmexp  - Total transmission minus exp transmission
     !
-    real(rkx) :: alp , amg , apg , arg , extins , ftot ,   &
-               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               tautot , tdnmexp , ts , ue , ws , wtot
-    integer(ik4) :: n , k
+    integer(ik4) :: n
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclr'
@@ -2305,59 +2275,120 @@ module mod_rad_radiation
     ! The top layer is assumed to be a purely absorbing ozone layer, and
     ! that the mean diffusivity for diffuse mod_transmission is 1.66:
     !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-
-        taugab(n) = abo3(ns)*uto3(n)
-
-        ! Limit argument of exponential, in case czen is very small:
-        arg = min(taugab(n)/czen(n),mxarg)
-        explay(n,0) = exp(-arg)
-        tdir(n,0) = explay(n,0)
-        !
-        ! Same limit for diffuse mod_transmission:
-        !
-        arg = min(1.66_rkx*taugab(n),mxarg)
-        tdif(n,0) = exp(-arg)
-
-        rdir(n,0) = d_zero
-        rdif(n,0) = d_zero
-        !
-        ! Initialize top interface of extra layer:
-        !
-        exptdn(n,0) = d_one
-        rdndif(n,0) = d_zero
-        tottrn(n,0) = d_one
-
-        rdndif(n,1) = rdif(n,0)
-        tottrn(n,1) = tdir(n,0)
-
-      end if
-    end do
-    !
-    ! Now, complete the rest of the column; if the total transmission
-    ! through the top ozone layer is less than trmin, then no
-    ! delta-Eddington computation for the underlying column is done:
-    !
-    do k = 1 , 1
-      !
-      ! Initialize current layer properties to zero;only if total
-      ! transmission to the top interface of the current layer exceeds
-      ! the minimum, will these values be computed below:
-      !
-      do n = n1 , n2
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: arg , rdenom , rdirexp , tdnmexp
+        real(rkx) :: tautot , wtot , gtot , ftot , extins
+        real(rkx) :: ts , ws , gs , lm , alp , gam , ue , ne
+        real(rkx) :: apg , amg
         if ( czengt0(n) ) then
-
-          rdir(n,k) = d_zero
-          rdif(n,k) = d_zero
-          tdir(n,k) = d_zero
-          tdif(n,k) = d_zero
-          explay(n,k) = d_zero
+          taugab(n) = abo3(ns)*uto3(n)
+          ! Limit argument of exponential, in case czen is very small:
+          arg = min(taugab(n)/czen(n),mxarg)
+          explay(n,0) = exp(-arg)
+          tdir(n,0) = explay(n,0)
           !
-          ! Calculates the solar beam transmission, total transmission,
-          ! and reflectivity for diffuse radiation from below at the
-          ! top of the current layer:
+          ! Same limit for diffuse mod_transmission:
           !
+          arg = min(1.66_rkx*taugab(n),mxarg)
+          tdif(n,0) = exp(-arg)
+          rdir(n,0) = d_zero
+          rdif(n,0) = d_zero
+          !
+          ! Initialize top interface of extra layer:
+          !
+          exptdn(n,0) = d_one
+          rdndif(n,0) = d_zero
+          tottrn(n,0) = d_one
+          rdndif(n,1) = rdif(n,0)
+          tottrn(n,1) = tdir(n,0)
+          !
+          ! Now, complete the rest of the column; if the total transmission
+          ! through the top ozone layer is less than trmin, then no
+          ! delta-Eddington computation for the underlying column is done:
+          !
+          do k = 1 , 1
+            !
+            ! Initialize current layer properties to zero;only if total
+            ! transmission to the top interface of the current layer exceeds
+            ! the minimum, will these values be computed below:
+            !
+            rdir(n,k) = d_zero
+            rdif(n,k) = d_zero
+            tdir(n,k) = d_zero
+            tdif(n,k) = d_zero
+            explay(n,k) = d_zero
+            !
+            ! Calculates the solar beam transmission, total transmission,
+            ! and reflectivity for diffuse radiation from below at the
+            ! top of the current layer:
+            !
+            exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+            rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
+            rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+            tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+            tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
+                          tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
+            rdndif(n,k) = rdif(n,k-1) + &
+                          (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
+            !
+            ! Compute next layer delta-Eddington solution only if total
+            ! transmission of radiation to the interface just above the layer
+            ! exceeds trmin.
+            !
+            if ( tottrn(n,k) > trmin ) then
+              !
+              ! Remember, no ozone absorption in this layer:
+              !
+              tauray(n) = trayoslp*pflx(n,kzp1)
+              taugab(n) = abh2o(ns)*uth2o(n) + &
+                          abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
+              if ( lcls ) then
+                tautot = tauray(n) + taugab(n)
+                wtot = (wray*tauray(n))/tautot
+                gtot = (gray*wray*tauray(n))/(wtot*tautot)
+                ftot = (fray*wray*tauray(n)/(wtot*tautot))
+              else
+                tautot = tauray(n) + taugab(n) + tauxar(n,ns)
+                wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
+                gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
+                ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
+              end if
+              ts = taus(wtot,ftot,tautot)
+              ws = omgs(wtot,ftot)
+              gs = asys(gtot,ftot)
+              lm = el(ws,gs)
+              alp = xalpha(ws,czen(n),gs,lm)
+              gam = xgamma(ws,czen(n),gs,lm)
+              ue = f_u(ws,gs,lm)
+              !
+              ! Limit argument of exponential, in case lm very large:
+              !
+              arg = min(lm*ts,mxarg)
+              extins = exp(-arg)
+              ne = f_n(ue,extins)
+              rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+              tdif(n,k) = d_four*ue/ne
+              ! Limit argument of exponential, in case czen is very small:
+              arg = min(ts/czen(n),mxarg)
+              explay(n,k) = exp(-arg)
+              apg = alp + gam
+              amg = alp - gam
+              rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
+              tdir(n,k) = apg*tdif(n,k) + &
+                          (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+              !
+              ! Under rare conditions, reflectivies and transmissivities
+              ! can be negative; zero out any negative values
+              !
+              rdir(n,k) = max(rdir(n,k),d_zero)
+              tdir(n,k) = max(tdir(n,k),d_zero)
+              rdif(n,k) = max(rdif(n,k),d_zero)
+              tdif(n,k) = max(tdif(n,k),d_zero)
+            end if
+          end do
+          k = 2
           exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
           rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
           rdirexp = rdir(n,k-1)*exptdn(n,k-1)
@@ -2366,89 +2397,14 @@ module mod_rad_radiation
                         tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
           rdndif(n,k) = rdif(n,k-1) + &
                         (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
-
         end if
-      end do
-      do n = n1 , n2
-        !
-        ! Compute next layer delta-Eddington solution only if total
-        ! transmission of radiation to the interface just above the layer
-        ! exceeds trmin.
-        !
-        if ( tottrn(n,k) > trmin ) then
-          !
-          ! Remember, no ozone absorption in this layer:
-          !
-          tauray(n) = trayoslp*pflx(n,kzp1)
-          taugab(n) = abh2o(ns)*uth2o(n) + abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
-          if ( lcls ) then
-            tautot = tauray(n) + taugab(n)
-            wtot = (wray*tauray(n))/tautot
-            gtot = (gray*wray*tauray(n))/(wtot*tautot)
-            ftot = (fray*wray*tauray(n)/(wtot*tautot))
-          else
-            tautot = tauray(n) + taugab(n) + tauxar(n,ns)
-            wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
-            gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
-            ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
-          end if
-
-          ts = taus(wtot,ftot,tautot)
-          ws = omgs(wtot,ftot)
-          gs = asys(gtot,ftot)
-          lm = el(ws,gs)
-          alp = xalpha(ws,czen(n),gs,lm)
-          gam = xgamma(ws,czen(n),gs,lm)
-          ue = f_u(ws,gs,lm)
-          !
-          ! Limit argument of exponential, in case lm very large:
-          !
-          arg = min(lm*ts,mxarg)
-          extins = exp(-arg)
-          ne = f_n(ue,extins)
-
-          rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif(n,k) = d_four*ue/ne
-
-          ! Limit argument of exponential, in case czen is very small:
-          arg = min(ts/czen(n),mxarg)
-          explay(n,k) = exp(-arg)
-
-          apg = alp + gam
-          amg = alp - gam
-          rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
-          tdir(n,k) = apg*tdif(n,k) + (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
-          !
-          ! Under rare conditions, reflectivies and transmissivities
-          ! can be negative; zero out any negative values
-          !
-          rdir(n,k) = max(rdir(n,k),d_zero)
-          tdir(n,k) = max(tdir(n,k),d_zero)
-          rdif(n,k) = max(rdif(n,k),d_zero)
-          tdif(n,k) = max(tdif(n,k),d_zero)
-
-        end if
-      end do
-
+      end block
     end do
     !
     ! Compute total direct beam transmission, total transmission, and
     ! reflectivity for diffuse radiation (from below) for both layers
     ! above the surface:
     !
-    k = 2
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-        rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
-        rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-        tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-        tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
-                      tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-        rdndif(n,k) = rdif(n,k-1) + &
-                      (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
-      end if
-    end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
@@ -2508,11 +2464,7 @@ module mod_rad_radiation
     ! amg      - Alp - gam
     ! apg      - Alp + gam
     !
-    real(rkx) :: alp , amg , apg , arg , extins , ftot ,        &
-               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               taucsc , tautot , tdnmexp , ts , ue , ws ,     &
-               wt , wtau , wtot
-    integer(ik4) :: n , k
+    integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radded'
     integer(ik4) :: indx = 0
@@ -2530,154 +2482,39 @@ module mod_rad_radiation
     ! above each interface by starting from the top and adding layers down:
     ! For the extra layer above model top:
     !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-
-        tauray(n) = trayoslp*(pflx(n,1)-pflx(n,0))
-        taugab(n) = abh2o(ns)*uh2o(n,0) + abo3(ns)*uo3(n,0) + &
-                    abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
-
-        if ( lzero ) then
-          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
-          taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
-          wtau = wray*tauray(n)
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0))/wt
-        else
-          tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
-                   tauray(n)+taugab(n)+tauxar3d(n,0,ns)
-          taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
-                   tauasc3d(n,0,ns)
-          wtau = wray*tauray(n)
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
-          ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                  tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
-        end if
-
-        ts = taus(wtot,ftot,tautot)
-        ws = omgs(wtot,ftot)
-        gs = asys(gtot,ftot)
-        lm = el(ws,gs)
-        alp = xalpha(ws,czen(n),gs,lm)
-        gam = xgamma(ws,czen(n),gs,lm)
-        ue = f_u(ws,gs,lm)
-        !
-        ! Limit argument of exponential, in case lm*ts very large:
-        !
-        arg = min(lm*ts,mxarg)
-        extins = exp(-arg)
-        ne = f_n(ue,extins)
-
-        rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-        tdif(n,0) = d_four*ue/ne
-
-        ! Limit argument of exponential, in case czen is very small:
-        arg = min(ts/czen(n),mxarg)
-        explay(n,0) = exp(-arg)
-
-        apg = alp + gam
-        amg = alp - gam
-        rdir(n,0) = amg*(tdif(n,0)*explay(n,0)-d_one) + apg*rdif(n,0)
-        tdir(n,0) = apg*tdif(n,0) + (amg*rdif(n,0)-(apg-d_one))*explay(n,0)
-        !
-        ! Under rare conditions, reflectivies and transmissivities can
-        ! be negative; zero out any negative values
-        !
-        rdir(n,0) = max(rdir(n,0),d_zero)
-        tdir(n,0) = max(tdir(n,0),d_zero)
-        rdif(n,0) = max(rdif(n,0),d_zero)
-        tdif(n,0) = max(tdif(n,0),d_zero)
-        !
-        ! Initialize top interface of extra layer:
-        !
-        exptdn(n,0) = d_one
-        rdndif(n,0) = d_zero
-        tottrn(n,0) = d_one
-
-        rdndif(n,1) = rdif(n,0)
-        tottrn(n,1) = tdir(n,0)
-
-      end if
-    end do
-    !
-    ! Now, continue down one layer at a time; if the total transmission
-    ! to the interface just above a given layer is less than trmin,
-    ! then no delta-eddington computation for that layer is done:
-    !
-    do k = 1 , kz
-      !
-      ! Initialize current layer properties to zero; only if total
-      ! transmission to the top interface of the current layer exceeds
-      ! the minimum, will these values be computed below:
-      !
-      do n = n1 , n2
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: tautot , taucsc , wtau , wt , wtot , gtot , ftot
+        real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue , arg
+        real(rkx) :: apg , amg , extins , rdenom , rdirexp , tdnmexp
         if ( czengt0(n) ) then
-
-          rdir(n,k) = d_zero
-          rdif(n,k) = d_zero
-          tdir(n,k) = d_zero
-          tdif(n,k) = d_zero
-          explay(n,k) = d_zero
-          !
-          ! Calculates the solar beam transmission, total transmission,
-          ! and reflectivity for diffuse radiation from below at the
-          ! top of the current layer:
-          !
-          exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-          if ( exptdn(n,k) < dlowval ) exptdn(n,k) = d_zero
-          rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
-          rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-          tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-          tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *     &
-                        (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-          rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *   &
-                        (tdif(n,k-1)*rdenom)
-        end if
-      end do
-
-      do n = n1 , n2
-        !
-        ! Compute next layer delta-eddington solution only if total
-        ! transmission of radiation to the interface just above the layer
-        ! exceeds trmin.
-        !
-        if ( tottrn(n,k) > trmin ) then
-
-          tauray(n) = trayoslp*(pflx(n,k+1)-pflx(n,k))
-          taugab(n) = abh2o(ns)*uh2o(n,k) + abo3(ns)*uo3(n,k) +  &
-                      abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
-
+          tauray(n) = trayoslp*(pflx(n,1)-pflx(n,0))
+          taugab(n) = abh2o(ns)*uh2o(n,0) + abo3(ns)*uo3(n,0) + &
+                      abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
           if ( lzero ) then
-            tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
-            taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
+            tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
+            taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
+            gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
+                    tauxci(n,0,ns)*wci(n,0))/wt
+            ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
+                    tauxci(n,0,ns)*wci(n,0))/wt
           else
-            tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
-                     taugab(n) + tauxar3d(n,k,ns)
-            taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
-                     tauasc3d(n,k,ns)
+            tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
+                     tauray(n)+taugab(n)+tauxar3d(n,0,ns)
+            taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
+                     tauasc3d(n,0,ns)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
-            ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
+            gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
+                    tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
+            ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
+                    tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
           end if
-
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
           gs = asys(gtot,ftot)
@@ -2686,52 +2523,151 @@ module mod_rad_radiation
           gam = xgamma(ws,czen(n),gs,lm)
           ue = f_u(ws,gs,lm)
           !
-          ! Limit argument of exponential, in case lm very large:
+          ! Limit argument of exponential, in case lm*ts very large:
           !
           arg = min(lm*ts,mxarg)
           extins = exp(-arg)
           ne = f_n(ue,extins)
-
-          rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif(n,k) = d_four*ue/ne
-
+          rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(n,0) = d_four*ue/ne
           ! Limit argument of exponential, in case czen is very small:
           arg = min(ts/czen(n),mxarg)
-          explay(n,k) = exp(-arg)
-
+          explay(n,0) = exp(-arg)
           apg = alp + gam
           amg = alp - gam
-          rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
-          tdir(n,k) = apg*tdif(n,k) + (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+          rdir(n,0) = amg*(tdif(n,0)*explay(n,0)-d_one) + apg*rdif(n,0)
+          tdir(n,0) = apg*tdif(n,0) + (amg*rdif(n,0)-(apg-d_one))*explay(n,0)
           !
-          ! Under rare conditions, reflectivies and transmissivities
-          ! can be negative; zero out any negative values
+          ! Under rare conditions, reflectivies and transmissivities can
+          ! be negative; zero out any negative values
           !
-          rdir(n,k) = max(rdir(n,k),d_zero)
-          tdir(n,k) = max(tdir(n,k),d_zero)
-          rdif(n,k) = max(rdif(n,k),d_zero)
-          tdif(n,k) = max(tdif(n,k),d_zero)
-        end if
-      end do
+          rdir(n,0) = max(rdir(n,0),d_zero)
+          tdir(n,0) = max(tdir(n,0),d_zero)
+          rdif(n,0) = max(rdif(n,0),d_zero)
+          tdif(n,0) = max(tdif(n,0),d_zero)
+          !
+          ! Initialize top interface of extra layer:
+          !
+          exptdn(n,0) = d_one
+          rdndif(n,0) = d_zero
+          tottrn(n,0) = d_one
+          rdndif(n,1) = rdif(n,0)
+          tottrn(n,1) = tdir(n,0)
+          !
+          ! Now, continue down one layer at a time; if the total transmission
+          ! to the interface just above a given layer is less than trmin,
+          ! then no delta-eddington computation for that layer is done:
+          !
+          do k = 1 , kz
+            !
+            ! Initialize current layer properties to zero; only if total
+            ! transmission to the top interface of the current layer exceeds
+            ! the minimum, will these values be computed below:
+            !
+            rdir(n,k) = d_zero
+            rdif(n,k) = d_zero
+            tdir(n,k) = d_zero
+            tdif(n,k) = d_zero
+            explay(n,k) = d_zero
+            !
+            ! Calculates the solar beam transmission, total transmission,
+            ! and reflectivity for diffuse radiation from below at the
+            ! top of the current layer:
+            !
+            exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+            if ( exptdn(n,k) < dlowval ) exptdn(n,k) = d_zero
+            rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
+            rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+            tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+            tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *     &
+                        (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
+            rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *   &
+                        (tdif(n,k-1)*rdenom)
+            !
+            ! Compute next layer delta-eddington solution only if total
+            ! transmission of radiation to the interface just above the layer
+            ! exceeds trmin.
+            !
+            if ( tottrn(n,k) > trmin ) then
+              tauray(n) = trayoslp*(pflx(n,k+1)-pflx(n,k))
+              taugab(n) = abh2o(ns)*uh2o(n,k) + abo3(ns)*uo3(n,k) +  &
+                          abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
 
-    end do
-    !
-    ! Compute total direct beam transmission, total transmission, and
-    ! reflectivity for diffuse radiation (from below) for all layers
-    ! above the surface:
-    !
-    k = kzp1
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-        rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
-        rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-        tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-        tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *       &
+              if ( lzero ) then
+                tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
+                taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
+                wtau = wray*tauray(n)
+                wt = wtau + taucsc
+                wtot = wt/tautot
+                gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns))/wt
+                ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns))/wt
+              else
+                tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
+                     taugab(n) + tauxar3d(n,k,ns)
+                taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
+                     tauasc3d(n,k,ns)
+                wtau = wray*tauray(n)
+                wt = wtau + taucsc
+                wtot = wt/tautot
+                gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
+                ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
+                    wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
+              end if
+
+              ts = taus(wtot,ftot,tautot)
+              ws = omgs(wtot,ftot)
+              gs = asys(gtot,ftot)
+              lm = el(ws,gs)
+              alp = xalpha(ws,czen(n),gs,lm)
+              gam = xgamma(ws,czen(n),gs,lm)
+              ue = f_u(ws,gs,lm)
+              !
+              ! Limit argument of exponential, in case lm very large:
+              !
+              arg = min(lm*ts,mxarg)
+              extins = exp(-arg)
+              ne = f_n(ue,extins)
+
+              rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+              tdif(n,k) = d_four*ue/ne
+
+              ! Limit argument of exponential, in case czen is very small:
+              arg = min(ts/czen(n),mxarg)
+              explay(n,k) = exp(-arg)
+
+              apg = alp + gam
+              amg = alp - gam
+              rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
+              tdir(n,k) = apg*tdif(n,k)+(amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+              !
+              ! Under rare conditions, reflectivies and transmissivities
+              ! can be negative; zero out any negative values
+              !
+              rdir(n,k) = max(rdir(n,k),d_zero)
+              tdir(n,k) = max(tdir(n,k),d_zero)
+              rdif(n,k) = max(rdif(n,k),d_zero)
+              tdif(n,k) = max(tdif(n,k),d_zero)
+            end if
+          end do
+          !
+          ! Compute total direct beam transmission, total transmission, and
+          ! reflectivity for diffuse radiation (from below) for all layers
+          ! above the surface:
+          !
+          k = kzp1
+          exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+          rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
+          rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+          tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+          tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *       &
                       (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-        rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *     &
+          rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *     &
                       (tdif(n,k-1)*rdenom)
-      end if
+        end if
+      end block
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
