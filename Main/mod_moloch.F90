@@ -83,7 +83,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: ud , vd
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
-  real(rkx) , dimension(:,:,:) , pointer :: qv , qf , qc , qi , qr , qs , qsat
+  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac

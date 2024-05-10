@@ -55,27 +55,8 @@ module mod_rad_radiation
     real(rkx) , dimension(:) , pointer :: totcl
     real(rkx) , dimension(:) , pointer :: totci
     real(rkx) , dimension(:) , pointer :: totwv
-    real(rkx) , dimension(:,:) , pointer :: pmid
-    real(rkx) , dimension(:,:) , pointer :: pint
-    real(rkx) , dimension(:,:) , pointer :: pmln
-    real(rkx) , dimension(:,:) , pointer :: piln
-    real(rkx) , dimension(:,:) , pointer :: t
-    real(rkx) , dimension(:,:) , pointer :: q
-    real(rkx) , dimension(:,:) , pointer :: ql
-    real(rkx) , dimension(:,:) , pointer :: qi
-    real(rkx) , dimension(:,:) , pointer :: dz
-    real(rkx) , dimension(:,:) , pointer :: rh
-    real(rkx) , dimension(:,:) , pointer :: rho
-    real(rkx) , dimension(:,:) , pointer :: cld
-    real(rkx) , dimension(:,:) , pointer :: effcld
-    real(rkx) , dimension(:,:) , pointer :: clwp
-    real(rkx) , dimension(:,:) , pointer :: qrs
-    real(rkx) , dimension(:,:) , pointer :: qrl
     real(rkx) , dimension(:) , pointer :: fsns
     real(rkx) , dimension(:) , pointer :: flwds
-    real(rkx) , dimension(:,:) , pointer :: rel
-    real(rkx) , dimension(:,:) , pointer :: rei
-    real(rkx) , dimension(:,:) , pointer :: fice
     real(rkx) , dimension(:) , pointer :: sols
     real(rkx) , dimension(:) , pointer :: soll
     real(rkx) , dimension(:) , pointer :: solsd
@@ -99,9 +80,7 @@ module mod_rad_radiation
     real(rkx) , dimension(:) , pointer :: fsnrtc
     real(rkx) , dimension(:) , pointer :: fsnirtsq
     real(rkx) , dimension(:) , pointer :: totcf
-    real(rkx) , dimension(:,:) , pointer :: o3vmr
     real(rkx) , dimension(:) , pointer :: czen
-    logical , dimension(:) , pointer :: czengt0
     real(rkx) , dimension(:) , pointer :: adirsw
     real(rkx) , dimension(:) , pointer :: adifsw
     real(rkx) , dimension(:) , pointer :: adirlw
@@ -114,17 +93,38 @@ module mod_rad_radiation
     real(rkx) , dimension(:) , pointer :: aeradfos
     real(rkx) , dimension(:) , pointer :: aerlwfo
     real(rkx) , dimension(:) , pointer :: aerlwfos
-    real(rkx) , dimension(:,:,:) , pointer :: absgasnxt
-    real(rkx) , dimension(:,:,:) , pointer :: absgastot
-    real(rkx) , dimension(:,:) , pointer :: emsgastot
-    real(rkx) , dimension(:,:,:) , pointer :: tauxcl
-    real(rkx) , dimension(:,:,:) , pointer :: tauxci
-    real(rkx) , dimension(:,:,:) , pointer :: outtaucl
-    real(rkx) , dimension(:,:,:) , pointer :: outtauci
     real(rkx) , dimension(:) , pointer :: asaeradfo
     real(rkx) , dimension(:) , pointer :: asaeradfos
     real(rkx) , dimension(:) , pointer :: asaerlwfo
     real(rkx) , dimension(:) , pointer :: asaerlwfos
+    logical , dimension(:) , pointer :: czengt0
+    real(rkx) , dimension(:,:) , pointer :: pmid
+    real(rkx) , dimension(:,:) , pointer :: pint
+    real(rkx) , dimension(:,:) , pointer :: pmln
+    real(rkx) , dimension(:,:) , pointer :: piln
+    real(rkx) , dimension(:,:) , pointer :: t
+    real(rkx) , dimension(:,:) , pointer :: q
+    real(rkx) , dimension(:,:) , pointer :: ql
+    real(rkx) , dimension(:,:) , pointer :: qi
+    real(rkx) , dimension(:,:) , pointer :: dz
+    real(rkx) , dimension(:,:) , pointer :: rh
+    real(rkx) , dimension(:,:) , pointer :: rho
+    real(rkx) , dimension(:,:) , pointer :: cld
+    real(rkx) , dimension(:,:) , pointer :: effcld
+    real(rkx) , dimension(:,:) , pointer :: clwp
+    real(rkx) , dimension(:,:) , pointer :: qrs
+    real(rkx) , dimension(:,:) , pointer :: qrl
+    real(rkx) , dimension(:,:) , pointer :: rel
+    real(rkx) , dimension(:,:) , pointer :: rei
+    real(rkx) , dimension(:,:) , pointer :: fice
+    real(rkx) , dimension(:,:) , pointer :: o3vmr
+    real(rkx) , dimension(:,:) , pointer :: emsgastot
+    real(rkx) , dimension(:,:,:) , pointer :: absgasnxt
+    real(rkx) , dimension(:,:,:) , pointer :: absgastot
+    real(rkx) , dimension(:,:,:) , pointer :: tauxcl
+    real(rkx) , dimension(:,:,:) , pointer :: tauxci
+    real(rkx) , dimension(:,:,:) , pointer :: outtaucl
+    real(rkx) , dimension(:,:,:) , pointer :: outtauci
   end type radtype
 
   logical , save :: linteract = .false.
@@ -258,7 +258,7 @@ module mod_rad_radiation
   !
   real(rkx) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,  &
         explay , flxdiv , totfld , wcl , gcl , fcl , wci , gci , fci , &
-        uh2o , uo3 , uco2 , uo2
+        uh2o , uo3 , uco2 , uo2 , h2ommr
   !
   ! These arrays are defined at model interfaces; 0 is the top of the
   ! extra layer above the model top; kzp1 is the earth surface:
@@ -598,10 +598,10 @@ module mod_rad_radiation
     implicit none
 
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
-    call getmem3d(absnxt,1,npoints,1,kz,1,4,'rad:absnxt')
-    call getmem3d(xuinpl,1,npoints,1,kz,1,4,'rad:xuinpl')
-    call getmem3d(abstot,1,npoints,1,kzp1,1,kzp1,'rad:abstot')
-    call getmem2d(emstot,1,npoints,1,kzp1,'rad:emstot')
+    call getmem3d(absnxt,1,kz,1,4,1,npoints,'rad:absnxt')
+    call getmem3d(xuinpl,1,kz,1,4,1,npoints,'rad:xuinpl')
+    call getmem3d(abstot,1,kzp1,1,kzp1,1,npoints,'rad:abstot')
+    call getmem2d(emstot,1,kzp1,1,npoints,'rad:emstot')
     call getmem1d(diralb,1,npoints,'rad:diralb')
     call getmem1d(difalb,1,npoints,'rad:difalb')
     call getmem1d(co2plk,1,npoints,'rad:co2plk')
@@ -629,98 +629,102 @@ module mod_rad_radiation
     call getmem1d(done,1,npoints,'rad:done')
     call getmem1d(start,1,npoints,'rad:start')
 
-    call getmem2d(co2ems,1,npoints,1,kzp1,'rad:co2ems')
-    call getmem2d(emstrc,1,npoints,1,kzp1,'rad:emstrc')
-    call getmem2d(h2oems,1,npoints,1,kzp1,'rad:h2oems')
-    call getmem2d(o3ems,1,npoints,1,kzp1,'rad:o3ems')
-    call getmem2d(dbvtit,1,npoints,1,kzp1,'rad:dbvtit')
-    call getmem2d(pnmsq,1,npoints,1,kzp1,'rad:pnmsq')
-    call getmem2d(term6,1,npoints,1,kzp1,'rad:term6')
-    call getmem2d(term9,1,npoints,1,kzp1,'rad:term9')
-    call getmem2d(bch4,1,npoints,1,kzp1,'rad:bch4')
-    call getmem2d(bn2o0,1,npoints,1,kzp1,'rad:bn2o0')
-    call getmem2d(bn2o1,1,npoints,1,kzp1,'rad:bn2o1')
-    call getmem2d(co2em,1,npoints,1,kzp1,'rad:co2em')
-    call getmem2d(co2t,1,npoints,1,kzp1,'rad:co2t')
-    call getmem2d(h2otr,1,npoints,1,kzp1,'rad:h2otr')
-    call getmem2d(ucfc11,1,npoints,1,kzp1,'rad:ucfc11')
-    call getmem2d(ucfc12,1,npoints,1,kzp1,'rad:ucfc12')
-    call getmem2d(un2o0,1,npoints,1,kzp1,'rad:un2o0')
-    call getmem2d(un2o1,1,npoints,1,kzp1,'rad:un2o1')
-    call getmem2d(uch4,1,npoints,1,kzp1,'rad:uch4')
-    call getmem2d(uco211,1,npoints,1,kzp1,'rad:uco211')
-    call getmem2d(uco212,1,npoints,1,kzp1,'rad:uco212')
-    call getmem2d(uco213,1,npoints,1,kzp1,'rad:uco213')
-    call getmem2d(uco221,1,npoints,1,kzp1,'rad:uco221')
-    call getmem2d(uco222,1,npoints,1,kzp1,'rad:uco222')
-    call getmem2d(uco223,1,npoints,1,kzp1,'rad:uco223')
-    call getmem2d(uptype,1,npoints,1,kzp1,'rad:uptype')
-    call getmem2d(plol,1,npoints,1,kzp1,'rad:plol')
-    call getmem2d(plos,1,npoints,1,kzp1,'rad:plos')
-    call getmem2d(tplnka,1,npoints,1,kzp1,'rad:tplnka')
-    call getmem2d(tint,1,npoints,1,kzp1,'rad:tint')
-    call getmem2d(tint4,1,npoints,1,kzp1,'rad:tint4')
-    call getmem2d(tlayr,1,npoints,1,kzp1,'rad:tlayr')
-    call getmem2d(tlayr4,1,npoints,1,kzp1,'rad:tlayr4')
-    call getmem2d(w,1,npoints,1,kzp1,'rad:w')
-    call getmem2d(s2c,1,npoints,1,kzp1,'rad:s2c')
-    call getmem2d(s2t,1,npoints,1,kzp1,'rad:s2t')
-    call getmem2d(co2eml,1,npoints,1,kzp1,'rad:co2eml')
-    call getmem2d(fdl,1,npoints,1,kzp1,'rad:fdl')
-    call getmem2d(fsdl,1,npoints,1,kzp1,'rad:fsdl')
-    call getmem2d(ful,1,npoints,1,kzp1,'rad:ful')
-    call getmem2d(fsul,1,npoints,1,kzp1,'rad:fsul')
-    call getmem2d(fdl0,1,npoints,1,kzp1,'rad:fdl0')
-    call getmem2d(fsdl0,1,npoints,1,kzp1,'rad:fsdl0')
-    call getmem2d(ful0,1,npoints,1,kzp1,'rad:ful0')
-    call getmem2d(fsul0,1,npoints,1,kzp1,'rad:fsul0')
-    call getmem2d(rtclrsf,1,npoints,1,kzp1,'rad:rtclrsf')
+    call getmem2d(co2ems,1,kzp1,1,npoints,'rad:co2ems')
+    call getmem2d(emstrc,1,kzp1,1,npoints,'rad:emstrc')
+    call getmem2d(h2oems,1,kzp1,1,npoints,'rad:h2oems')
+    call getmem2d(o3ems,1,kzp1,1,npoints,'rad:o3ems')
+    call getmem2d(dbvtit,1,kzp1,1,npoints,'rad:dbvtit')
+    call getmem2d(pnmsq,1,kzp1,1,npoints,'rad:pnmsq')
+    call getmem2d(term6,1,kzp1,1,npoints,'rad:term6')
+    call getmem2d(term9,1,kzp1,1,npoints,'rad:term9')
+    call getmem2d(bch4,1,kzp1,1,npoints,'rad:bch4')
+    call getmem2d(bn2o0,1,kzp1,1,npoints,'rad:bn2o0')
+    call getmem2d(bn2o1,1,kzp1,1,npoints,'rad:bn2o1')
+    call getmem2d(co2em,1,kzp1,1,npoints,'rad:co2em')
+    call getmem2d(co2t,1,kzp1,1,npoints,'rad:co2t')
+    call getmem2d(h2otr,1,kzp1,1,npoints,'rad:h2otr')
+    call getmem2d(ucfc11,1,kzp1,1,npoints,'rad:ucfc11')
+    call getmem2d(ucfc12,1,kzp1,1,npoints,'rad:ucfc12')
+    call getmem2d(un2o0,1,kzp1,1,npoints,'rad:un2o0')
+    call getmem2d(un2o1,1,kzp1,1,npoints,'rad:un2o1')
+    call getmem2d(uch4,1,kzp1,1,npoints,'rad:uch4')
+    call getmem2d(uco211,1,kzp1,1,npoints,'rad:uco211')
+    call getmem2d(uco212,1,kzp1,1,npoints,'rad:uco212')
+    call getmem2d(uco213,1,kzp1,1,npoints,'rad:uco213')
+    call getmem2d(uco221,1,kzp1,1,npoints,'rad:uco221')
+    call getmem2d(uco222,1,kzp1,1,npoints,'rad:uco222')
+    call getmem2d(uco223,1,kzp1,1,npoints,'rad:uco223')
+    call getmem2d(uptype,1,kzp1,1,npoints,'rad:uptype')
+    call getmem2d(plol,1,kzp1,1,npoints,'rad:plol')
+    call getmem2d(plos,1,kzp1,1,npoints,'rad:plos')
+    call getmem2d(tplnka,1,kzp1,1,npoints,'rad:tplnka')
+    call getmem2d(tint,1,kzp1,1,npoints,'rad:tint')
+    call getmem2d(tint4,1,kzp1,1,npoints,'rad:tint4')
+    call getmem2d(tlayr,1,kzp1,1,npoints,'rad:tlayr')
+    call getmem2d(tlayr4,1,kzp1,1,npoints,'rad:tlayr4')
+    call getmem2d(w,1,kzp1,1,npoints,'rad:w')
+    call getmem2d(s2c,1,kzp1,1,npoints,'rad:s2c')
+    call getmem2d(s2t,1,kzp1,1,npoints,'rad:s2t')
+    call getmem2d(co2eml,1,kzp1,1,npoints,'rad:co2eml')
+    call getmem2d(fdl,1,kzp1,1,npoints,'rad:fdl')
+    call getmem2d(fsdl,1,kzp1,1,npoints,'rad:fsdl')
+    call getmem2d(ful,1,kzp1,1,npoints,'rad:ful')
+    call getmem2d(fsul,1,kzp1,1,npoints,'rad:fsul')
+    call getmem2d(fdl0,1,kzp1,1,npoints,'rad:fdl0')
+    call getmem2d(fsdl0,1,kzp1,1,npoints,'rad:fsdl0')
+    call getmem2d(ful0,1,kzp1,1,npoints,'rad:ful0')
+    call getmem2d(fsul0,1,kzp1,1,npoints,'rad:fsul0')
+    call getmem2d(rtclrsf,1,kzp1,1,npoints,'rad:rtclrsf')
 
-    call getmem2d(dbvtly,1,npoints,1,kz,'rad:dbvtly')
-    call getmem2d(fclb4,1,npoints,1,kz,'rad:fclb4')
-    call getmem2d(fclt4,1,npoints,1,kz,'rad:fclt4')
+    call getmem2d(dbvtly,1,kz,1,npoints,'rad:dbvtly')
+    call getmem2d(fclb4,1,kz,1,npoints,'rad:fclb4')
+    call getmem2d(fclt4,1,kz,1,npoints,'rad:fclt4')
 
     call getmem2d(emplnk,1,14,1,npoints,'rad:emplnk')
     call getmem3d(bplnk,1,14,1,npoints,1,4,'rad:bplnk')
 
-    call getmem3d(abplnk1,1,14,1,npoints,1,kzp1,'rad:abplnk1')
-    call getmem3d(abplnk2,1,14,1,npoints,1,kzp1,'rad:abplnk2')
+    call getmem3d(abplnk1,1,kzp1,1,14,1,npoints,'rad:abplnk1')
+    call getmem3d(abplnk2,1,kzp1,1,14,1,npoints,'rad:abplnk2')
 
-    call getmem2d(exptdn,1,npoints,0,kzp1,'rad:exptdn')
-    call getmem2d(fluxdn,1,npoints,0,kzp1,'rad:fluxdn')
-    call getmem2d(fluxup,1,npoints,0,kzp1,'rad:fluxup')
-    call getmem2d(rdndif,1,npoints,0,kzp1,'rad:rdndif')
-    call getmem2d(rupdif,1,npoints,0,kzp1,'rad:rupdif')
-    call getmem2d(rupdir,1,npoints,0,kzp1,'rad:rupdir')
-    call getmem2d(tottrn,1,npoints,0,kzp1,'rad:tottrn')
-    call getmem2d(pflx,1,npoints,0,kzp1,'rad:pflx')
-    call getmem2d(fswup,1,npoints,0,kzp1,'rad:fswup')
-    call getmem2d(fswdn,1,npoints,0,kzp1,'rad:fswdn')
+    call getmem2d(exptdn,0,kzp1,1,npoints,'rad:exptdn')
+    call getmem2d(fluxdn,0,kzp1,1,npoints,'rad:fluxdn')
+    call getmem2d(fluxup,0,kzp1,1,npoints,'rad:fluxup')
+    call getmem2d(rdndif,0,kzp1,1,npoints,'rad:rdndif')
+    call getmem2d(rupdif,0,kzp1,1,npoints,'rad:rupdif')
+    call getmem2d(rupdir,0,kzp1,1,npoints,'rad:rupdir')
+    call getmem2d(tottrn,0,kzp1,1,npoints,'rad:tottrn')
+    call getmem2d(pflx,0,kzp1,1,npoints,'rad:pflx')
+    call getmem2d(fswup,0,kzp1,1,npoints,'rad:fswup')
+    call getmem2d(fswdn,0,kzp1,1,npoints,'rad:fswdn')
+    call getmem2d(plco2,1,kzp1,1,npoints,'rad:plco2')
+    call getmem2d(plh2o,1,kzp1,1,npoints,'rad:plh2o')
+    call getmem2d(tclrsf,1,kzp1,1,npoints,'rad:tclrsf')
 
-    call getmem2d(rdir,1,npoints,0,kz,'rad:rdir')
-    call getmem2d(rdif,1,npoints,0,kz,'rad:rdif')
-    call getmem2d(tdir,1,npoints,0,kz,'rad:tdir')
-    call getmem2d(tdif,1,npoints,0,kz,'rad:tdif')
-    call getmem2d(explay,1,npoints,0,kz,'rad:explay')
-    call getmem2d(flxdiv,1,npoints,0,kz,'rad:flxdiv')
-    call getmem2d(totfld,1,npoints,0,kz,'rad:totfld')
-    call getmem2d(wcl,1,npoints,0,kz,'rad:wcl')
-    call getmem2d(gcl,1,npoints,0,kz,'rad:gcl')
-    call getmem2d(fcl,1,npoints,0,kz,'rad:fcl')
-    call getmem2d(wci,1,npoints,0,kz,'rad:wci')
-    call getmem2d(gci,1,npoints,0,kz,'rad:gci')
-    call getmem2d(fci,1,npoints,0,kz,'rad:fci')
-    call getmem2d(uh2o,1,npoints,0,kz,'rad:uh2o')
-    call getmem2d(uo3,1,npoints,0,kz,'rad:uo3')
-    call getmem2d(uco2,1,npoints,0,kz,'rad:uco2')
-    call getmem2d(uo2,1,npoints,0,kz,'rad:uo2')
+    call getmem2d(rdir,0,kz,1,npoints,'rad:rdir')
+    call getmem2d(rdif,0,kz,1,npoints,'rad:rdif')
+    call getmem2d(tdir,0,kz,1,npoints,'rad:tdir')
+    call getmem2d(tdif,0,kz,1,npoints,'rad:tdif')
+    call getmem2d(explay,0,kz,1,npoints,'rad:explay')
+    call getmem2d(flxdiv,0,kz,1,npoints,'rad:flxdiv')
+    call getmem2d(totfld,0,kz,1,npoints,'rad:totfld')
+    call getmem2d(wcl,0,kz,1,npoints,'rad:wcl')
+    call getmem2d(gcl,0,kz,1,npoints,'rad:gcl')
+    call getmem2d(fcl,0,kz,1,npoints,'rad:fcl')
+    call getmem2d(wci,0,kz,1,npoints,'rad:wci')
+    call getmem2d(gci,0,kz,1,npoints,'rad:gci')
+    call getmem2d(fci,0,kz,1,npoints,'rad:fci')
+    call getmem2d(uh2o,0,kz,1,npoints,'rad:uh2o')
+    call getmem2d(uo3,0,kz,1,npoints,'rad:uo3')
+    call getmem2d(uco2,0,kz,1,npoints,'rad:uco2')
+    call getmem2d(uo2,0,kz,1,npoints,'rad:uo2')
+    call getmem2d(h2ommr,1,kz,1,npoints,'rad:h2ommr')
 
-    call getmem3d(s,1,npoints,1,kzp1,1,kzp1,'rad:s')
-    call getmem3d(s0,1,npoints,1,kzp1,1,kzp1,'rad:s0')
-    call getmem2d(pinpl,1,npoints,1,4,'rad:pinpl')
-    call getmem2d(uinpl,1,npoints,1,4,'rad:uinpl')
-    call getmem2d(winpl,1,npoints,1,4,'rad:winpl')
-    call getmem2d(tbar,1,npoints,1,4,'rad:tbar')
+    call getmem3d(s,1,kzp1,1,kzp1,1,npoints,'rad:s')
+    call getmem3d(s0,1,kzp1,1,kzp1,1,npoints,'rad:s0')
+    call getmem2d(pinpl,1,4,1,npoints,'rad:pinpl')
+    call getmem2d(uinpl,1,4,1,npoints,'rad:uinpl')
+    call getmem2d(winpl,1,4,1,npoints,'rad:winpl')
+    call getmem2d(tbar,1,4,1,npoints,'rad:tbar')
 
     call getmem1d(solflx,1,npoints,'rad:solflx')
     call getmem1d(utco2,1,npoints,'rad:utco2')
@@ -730,19 +734,15 @@ module mod_rad_radiation
     call getmem1d(x0fsnsc,1,npoints,'rad:x0fsnsc')
     call getmem1d(x0fsntc,1,npoints,'rad:x0fsntc')
     call getmem1d(zenfac,1,npoints,'rad:zenfac')
-
     call getmem1d(fslwdcs,1,npoints,'rad:fslwdcs')
-    call getmem2d(cfc11,1,npoints,1,kz,'rad:cfc11')
-    call getmem2d(cfc12,1,npoints,1,kz,'rad:cfc12')
-    call getmem2d(ch4,1,npoints,1,kz,'rad:ch4')
-    call getmem2d(n2o,1,npoints,1,kz,'rad:n2o')
-    call getmem2d(o3mmr,1,npoints,1,kz,'rad:o3mmr')
-    call getmem2d(pbr,1,npoints,1,kz,'rad:pbr')
 
-    call getmem2d(plco2,1,npoints,1,kzp1,'rad:plco2')
-    call getmem2d(plh2o,1,npoints,1,kzp1,'rad:plh2o')
-    call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
-    call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
+    call getmem2d(cfc11,1,kz,1,npoints,'rad:cfc11')
+    call getmem2d(cfc12,1,kz,1,npoints,'rad:cfc12')
+    call getmem2d(ch4,1,kz,1,npoints,'rad:ch4')
+    call getmem2d(n2o,1,kz,1,npoints,'rad:n2o')
+    call getmem2d(o3mmr,1,kz,1,npoints,'rad:o3mmr')
+    call getmem2d(pbr,1,kz,1,npoints,'rad:pbr')
+    call getmem2d(pnm,1,kzp1,1,npoints,'rad:pnm')
 
     call allocate_tracers(1,npoints)
 
@@ -905,8 +905,7 @@ module mod_rad_radiation
     ! eccf     - Earth/sun distance factor
     !
     type(radtype) , intent(inout) :: rt
-    integer(ik4) :: n , k
-    real(rkx) :: betafac
+    integer(ik4) :: n
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radctl'
@@ -929,11 +928,11 @@ module mod_rad_radiation
       !
       ! Specify aerosol mass mixing ratio
       !
-      call aermix(pnm,rt%n1,rt%n2)
+      call aermix(rt%pint,rt%n1,rt%n2)
 
       call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(rt%n1,rt%n2,pnm,rt%q,o3mmr,rt%cld,rt%clwp,        &
+      call radcsw(rt%n1,rt%n2,pnm,o3mmr,rt%cld,rt%clwp,             &
                   rt%rel,rt%rei,rt%fice,rt%eccf,rt%solin,rt%solout, &
                   rt%qrs,rt%fsns,rt%fsnt,rt%fsds,rt%fsnsc,rt%fsntc, &
                   rt%sols,rt%soll,rt%solsd,rt%solld,rt%fsnirt,      &
@@ -1129,7 +1128,7 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,       &
+  subroutine radcsw(n1,n2,pint,o3mmr,cld,clwp,rel,rei,fice,       &
                     eccf,solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,    &
                     sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw, &
                     adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,   &
@@ -1145,9 +1144,9 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:) :: cld , pint
     real(rkx) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
     real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-    real(rkx) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
+    real(rkx) , pointer , dimension(:,:) :: clwp , fice , o3mmr , &
              qrs , rei , rel
-    intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
+    intent (in) cld , clwp , eccf , fice , o3mmr , pint , rei , rel , &
            adirsw , adifsw , adirlw , adiflw , asw , alw
     intent (inout) aeradfo , aeradfos , fsds , qrs , abv , sol , &
             tauxcl , tauxci , outtaucl , outtauci
@@ -1253,15 +1252,15 @@ module mod_rad_radiation
     solld(:) = d_zero
     abv(:) = d_zero
     sol(:) = d_zero
-
     aeradfo(:) = d_zero
     aeradfos(:) = d_zero
     x0fsntc(:) = d_zero
     x0fsnsc(:) = d_zero
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
+    tauxcl(:,:,:) = d_zero
+    tauxci(:,:,:) = d_zero
     ww(:) = d_zero
-
     qrs(:,:) = d_zero
     !
     ! Define solar incident radiation and interface pressures:
@@ -1278,13 +1277,13 @@ module mod_rad_radiation
         !
         ! Initialize spectrally integrated totals:
         !
-        fswup(n,kzp1) = d_zero
-        fswdn(n,kzp1) = d_zero
+        fswup(kzp1,n) = d_zero
+        fswdn(kzp1,n) = d_zero
         if ( czengt0(n) ) then
           solin(n) = scon*eccf*czen(n)
-          pflx(n,0) = d_zero
+          pflx(0,n) = d_zero
           do k = 1 , kzp1
-            pflx(n,k) = pint(n,k)
+            pflx(k,n) = pint(k,n)
           end do
           !
           ! Compute optical paths:
@@ -1292,31 +1291,31 @@ module mod_rad_radiation
           !
           ! co2mmr = co2vmr*(mmwco2/mmwair)
           sqrco2 = sqrt(co2mmr(n))
-          xptop = pflx(n,1)
+          xptop = pflx(1,n)
           ptho2 = o2mmr*xptop*regravgts
-          ptho3 = o3mmr(n,1)*xptop*regravgts
+          ptho3 = o3mmr(1,n)*xptop*regravgts
           pthco2 = sqrco2*(xptop*regravgts)
-          h2ostr = sqrt(d_one/h2ommr(n,1))
+          h2ostr = sqrt(d_one/h2ommr(1,n))
           zenfac(n) = sqrt(czen(n))
           pthh2o = (xptop**2)*tmp1 + &
             (xptop*regravgts) * (h2ostr*zenfac(n)*delta)
-          uh2o(n,0) = h2ommr(n,1)*pthh2o
-          uco2(n,0) = zenfac(n)*pthco2
-          uo2(n,0) = zenfac(n)*ptho2
-          uo3(n,0) = ptho3
+          uh2o(0,n) = h2ommr(1,n)*pthh2o
+          uco2(0,n) = zenfac(n)*pthco2
+          uo2(0,n) = zenfac(n)*ptho2
+          uo3(0,n) = ptho3
           do k = 1 , kz
-            pdel = pflx(n,k+1) - pflx(n,k)
+            pdel = pflx(k+1,n) - pflx(k,n)
             path = pdel*regravgts
             ptho2 = o2mmr*path
-            ptho3 = o3mmr(n,k)*path
+            ptho3 = o3mmr(k,n)*path
             pthco2 = sqrco2*path
-            h2ostr = sqrt(d_one/h2ommr(n,k))
-            pthh2o = (pflx(n,k+1)**2-pflx(n,k)**2) * &
+            h2ostr = sqrt(d_one/h2ommr(k,n))
+            pthh2o = (pflx(k+1,n)**2-pflx(k,n)**2) * &
                       tmp1 + pdel*h2ostr*zenfac(n)*tmp2
-            uh2o(n,k) = h2ommr(n,k)*pthh2o
-            uco2(n,k) = zenfac(n)*pthco2
-            uo2(n,k) = zenfac(n)*ptho2
-            uo3(n,k) = ptho3
+            uh2o(k,n) = h2ommr(k,n)*pthh2o
+            uco2(k,n) = zenfac(n)*pthco2
+            uo2(k,n) = zenfac(n)*ptho2
+            uo3(k,n) = ptho3
           end do
           !
           ! Compute column absorber amounts for the clear sky computation:
@@ -1326,29 +1325,27 @@ module mod_rad_radiation
           utco2(n) = d_zero
           uto2(n) = d_zero
           do k = 1 , kz
-            uth2o(n) = uth2o(n) + uh2o(n,k)
-            uto3(n) = uto3(n) + uo3(n,k)
-            utco2(n) = utco2(n) + uco2(n,k)
-            uto2(n) = uto2(n) + uo2(n,k)
+            uth2o(n) = uth2o(n) + uh2o(k,n)
+            uto3(n) = uto3(n) + uo3(k,n)
+            utco2(n) = utco2(n) + uco2(k,n)
+            uto2(n) = uto2(n) + uo2(k,n)
           end do
           do k = 0 , kz
-            totfld(n,k) = d_zero
-            fswup(n,k) = d_zero
-            fswdn(n,k) = d_zero
+            totfld(k,n) = d_zero
+            fswup(k,n) = d_zero
+            fswdn(k,n) = d_zero
           end do
           !
           ! Set cloud properties for top (0) layer; so long as tauxcl is zero,
           ! there is no cloud above top of model; the other cloud properties
           ! are arbitrary:
           !
-          tauxcl(n,0,:) = d_zero
-          wcl(n,0) = verynearone
-          gcl(n,0) = 0.850_rkx
-          fcl(n,0) = 0.725_rkx
-          tauxci(n,0,:) = d_zero
-          wci(n,0) = verynearone
-          gci(n,0) = 0.850_rkx
-          fci(n,0) = 0.725_rkx
+          wcl(0,n) = verynearone
+          gcl(0,n) = 0.850_rkx
+          fcl(0,n) = 0.725_rkx
+          wci(0,n) = verynearone
+          gci(0,n) = 0.850_rkx
+          fci(0,n) = 0.725_rkx
         end if
       end block
     end do
@@ -1460,13 +1457,13 @@ module mod_rad_radiation
               ! Do not let single scatter albedo be 1; delta-eddington
               ! solution for non-conservative case:
               !
-              wcl(n,k) = min(tmp2l,verynearone)
-              gcl(n,k) = ebarli + tmp3l
-              fcl(n,k) = gcl(n,k)*gcl(n,k)
+              wcl(k,n) = min(tmp2l,verynearone)
+              gcl(k,n) = ebarli + tmp3l
+              fcl(k,n) = gcl(k,n)*gcl(k,n)
 
-              wci(n,k) = min(tmp2i,verynearone)
-              gci(n,k) = ebarii + tmp3i
-              fci(n,k) = gci(n,k)*gci(n,k)
+              wci(k,n) = min(tmp2i,verynearone)
+              gci(k,n) = ebarii + tmp3i
+              fci(k,n) = gci(k,n)*gci(k,n)
             end do
             if ( wavmid < 0.7_rkx ) then
               !
@@ -1501,39 +1498,39 @@ module mod_rad_radiation
           integer(ik4) :: k
           real(rkx) :: rdenom
           if ( czengt0(n) ) then
-            rupdir(n,kzp1) = diralb(n)
-            rupdif(n,kzp1) = difalb(n)
+            rupdir(kzp1,n) = diralb(n)
+            rupdif(kzp1,n) = difalb(n)
             !
             ! Compute reflectivity to direct and diffuse radiation for layers
             ! below by adding succesive layers starting from the surface and
             ! working upwards:
             !
             do k = kz , 0 , -1
-              rdenom = d_one/(d_one-(rdif(n,k)*rupdif(n,k+1)))
-              rupdir(n,k) = rdir(n,k) + tdif(n,k) *      &
-                            (rupdir(n,k+1)*explay(n,k) + &
-                             rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
-              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+              rdenom = d_one/(d_one-(rdif(k,n)*rupdif(k+1,n)))
+              rupdir(k,n) = rdir(k,n) + tdif(k,n) *      &
+                            (rupdir(k+1,n)*explay(k,n) + &
+                             rupdif(k+1,n)*(tdir(k,n)-explay(k,n)))*rdenom
+              rupdif(k,n) = rdif(k,n) + rupdif(k+1,n)*(tdif(k,n)**2)*rdenom
             end do
             !
             ! Compute up and down fluxes for each interface, using the added
             ! atmospheric layer properties at each interface:
             !
             do k = 0 , kzp1
-              rdenom = d_one/(d_one-(rdndif(n,k)*rupdif(n,k)))
-              fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+   &
-                            (tottrn(n,k)-exptdn(n,k))*rupdif(n,k))*rdenom
-              fluxdn(n,k) = exptdn(n,k) +                              &
-                            (tottrn(n,k) - exptdn(n,k) + exptdn(n,k) * &
-                            (rupdir(n,k)*rdndif(n,k)))*rdenom
+              rdenom = d_one/(d_one-(rdndif(k,n)*rupdif(k,n)))
+              fluxup(k,n) = (exptdn(k,n)*rupdir(k,n)+   &
+                            (tottrn(k,n)-exptdn(k,n))*rupdif(k,n))*rdenom
+              fluxdn(k,n) = exptdn(k,n) +                              &
+                            (tottrn(k,n) - exptdn(k,n) + exptdn(k,n) * &
+                            (rupdir(k,n)*rdndif(k,n)))*rdenom
             end do
             !
             ! Compute flux divergence in each layer using the interface up
             ! and down fluxes:
             !
             do k = 0 , kz
-              flxdiv(n,k) = (fluxdn(n,k) - fluxdn(n,k+1)) + &
-                            (fluxup(n,k+1) - fluxup(n,k))
+              flxdiv(k,n) = (fluxdn(k,n) - fluxdn(k+1,n)) + &
+                            (fluxup(k+1,n) - fluxup(k,n))
             end do
           end if
         end block
@@ -1552,40 +1549,40 @@ module mod_rad_radiation
           integer(ik4) :: k
           if ( czengt0(n) ) then
             solflx(n) = solin(n)*frcsol(ns)*psf
-            fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
-            fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
-            solout(n) = solout(n) + solflx(n)*fluxup(n,0)
-            fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
-            fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
+            fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(1,n)    - fluxup(1,n))
+            fsns(n) = fsns(n) + solflx(n)*(fluxdn(kzp1,n) - fluxup(kzp1,n))
+            solout(n) = solout(n) + solflx(n)*fluxup(0,n)
+            fswup(0,n) = fswup(0,n) + solflx(n)*fluxup(0,n)
+            fswdn(0,n) = fswdn(0,n) + solflx(n)*fluxdn(0,n)
             !
             ! Down spectral fluxes need to be in mks; thus the 0.001
             ! conversion factors
             !
             if ( wavmid < 0.7_rkx ) then
-              sols(n) = sols(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
+              sols(n) = sols(n) + (exptdn(kzp1,n)*solflx(n))*d_r1000
               solsd(n) = solsd(n) + &
-                         ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
+                         ((fluxdn(kzp1,n)-exptdn(kzp1,n))*solflx(n))*d_r1000
               abv(n) = abv(n) + ((solflx(n) *               &
-                         (fluxdn(n,kzp1)-fluxup(n,kzp1)))*  &
+                         (fluxdn(kzp1,n)-fluxup(kzp1,n)))*  &
                          (d_one-asw(n))/(d_one-diralb(n)))*d_r1000
             else
-              soll(n) = soll(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
+              soll(n) = soll(n) + (exptdn(kzp1,n)*solflx(n))*d_r1000
               solld(n) = solld(n) + &
-                     ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
-              fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+                     ((fluxdn(kzp1,n)-exptdn(kzp1,n))*solflx(n))*d_r1000
+              fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(0,n)-fluxup(0,n))
               abv(n) = abv(n) + &
-                         ((solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
+                         ((solflx(n)*(fluxdn(kzp1,n)-fluxup(kzp1,n)))* &
                          (d_one-alw(n))/(d_one-diralb(n)))*d_r1000
             end if
-            fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
+            fsnirt(n) = fsnirt(n)+wgtint*solflx(n)*(fluxdn(0,n)-fluxup(0,n))
             do k = 0 , kz
-              totfld(n,k) = totfld(n,k) + solflx(n)*flxdiv(n,k)
-              fswup(n,k+1) = fswup(n,k+1) + solflx(n)*fluxup(n,k+1)
-              fswdn(n,k+1) = fswdn(n,k+1) + solflx(n)*fluxdn(n,k+1)
+              totfld(k,n) = totfld(k,n) + solflx(n)*flxdiv(k,n)
+              fswup(k+1,n) = fswup(k+1,n) + solflx(n)*fluxup(k+1,n)
+              fswdn(k+1,n) = fswdn(k+1,n) + solflx(n)*fluxdn(k+1,n)
             end do
             ! solar is incident visible solar radiation
             if ( ns == 8 ) then
-              sol(n) = (solflx(n)*fluxdn(n,kzp1))*d_r1000
+              sol(n) = (solflx(n)*fluxdn(kzp1,n))*d_r1000
             end if
           end if
         end block
@@ -1630,31 +1627,31 @@ module mod_rad_radiation
             integer(ik4) :: k
             real(rkx) :: rdenom
             if ( czengt0(n) ) then
-              rupdir(n,2) = diralb(n)
-              rupdif(n,2) = difalb(n)
+              rupdir(2,n) = diralb(n)
+              rupdif(2,n) = difalb(n)
               do k = 1 , 0 , -1
-                rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
-                rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
-                              (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
-                              (tdir(n,k)-explay(n,k)))*rdenom
-                rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
+                rdenom = d_one/(d_one-rdif(k,n)*rupdif(k+1,n))
+                rupdir(k,n) = rdir(k,n) + tdif(k,n) *                    &
+                              (rupdir(k+1,n)*explay(k,n)+rupdif(k+1,n) * &
+                              (tdir(k,n)-explay(k,n)))*rdenom
+                rupdif(k,n) = rdif(k,n) + rupdif(k+1,n)*(tdif(k,n)**2)*rdenom
               end do
               !
               ! Compute up and down fluxes for each interface, using the added
               ! atmospheric layer properties at each interface:
               !
               do k = 0 , 2
-                rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
-                fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
-                              exptdn(n,k))*rupdif(n,k))*rdenom
-                fluxdn(n,k) = exptdn(n,k) +                           &
-                              (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
-                               rupdir(n,k)*rdndif(n,k))*rdenom
+                rdenom = d_one/(d_one-rdndif(k,n)*rupdif(k,n))
+                fluxup(k,n) = (exptdn(k,n)*rupdir(k,n)+(tottrn(k,n) - &
+                              exptdn(k,n))*rupdif(k,n))*rdenom
+                fluxdn(k,n) = exptdn(k,n) +                           &
+                              (tottrn(k,n)-exptdn(k,n)+exptdn(k,n) *  &
+                               rupdir(k,n)*rdndif(k,n))*rdenom
               end do
               ! SAVE the ref net TOA flux
               ! ( and put back the cumul variables to 0.)
-              x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-              x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
+              x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(0,n)-fluxup(0,n))
+              x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(2,n)-fluxup(2,n))
             end if
           end block
         end do
@@ -1662,7 +1659,7 @@ module mod_rad_radiation
         !x0fsnrtc = d_zero
         !do n = n1 , n2
         !  if ( czengt0(n) ) then
-        !    x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(n,0)-fluxup(n,0))
+        !    x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(0,n)-fluxup(0,n))
         !  end if
         !end do
         !
@@ -1692,30 +1689,30 @@ module mod_rad_radiation
           integer(ik4) :: k
           real(rkx) :: rdenom
           if ( czengt0(n) ) then
-            rupdir(n,2) = diralb(n)
-            rupdif(n,2) = difalb(n)
+            rupdir(2,n) = diralb(n)
+            rupdif(2,n) = difalb(n)
             do k = 1 , 0 , -1
-              rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
-              rupdir(n,k) = rdir(n,k) + tdif(n,k) *     &
-                            (rupdir(n,k+1)*explay(n,k)+ &
-                             rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
-              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
+              rdenom = d_one/(d_one-rdif(k,n)*rupdif(k+1,n))
+              rupdir(k,n) = rdir(k,n) + tdif(k,n) *     &
+                            (rupdir(k+1,n)*explay(k,n)+ &
+                             rupdif(k+1,n)*(tdir(k,n)-explay(k,n)))*rdenom
+              rupdif(k,n) = rdif(k,n) + rupdif(k+1,n)*tdif(k,n)**2*rdenom
             end do
             !
             ! Compute up and down fluxes for each interface, using the added
             ! atmospheric layer properties at each interface:
             !
             do k = 0 , 2
-              rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
-              fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+(tottrn(n,k) - &
-                             exptdn(n,k))*rupdif(n,k))*rdenom
-              fluxdn(n,k) = exptdn(n,k) +                           &
-                            (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) *  &
-                             rupdir(n,k)*rdndif(n,k))*rdenom
+              rdenom = d_one/(d_one-rdndif(k,n)*rupdif(k,n))
+              fluxup(k,n) = (exptdn(k,n)*rupdir(k,n)+(tottrn(k,n) - &
+                             exptdn(k,n))*rupdif(k,n))*rdenom
+              fluxdn(k,n) = exptdn(k,n) +                           &
+                            (tottrn(k,n)-exptdn(k,n)+exptdn(k,n) *  &
+                             rupdir(k,n)*rdndif(k,n))*rdenom
             end do
-            fsntc(n) = fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-            fsnsc(n) = fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
-            fsnrtc(n) = fsnrtc(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
+            fsntc(n) = fsntc(n) + solflx(n)*(fluxdn(0,n)-fluxup(0,n))
+            fsnsc(n) = fsnsc(n) + solflx(n)*(fluxdn(2,n)-fluxup(2,n))
+            fsnrtc(n) = fsnrtc(n)+wgtint*solflx(n)*(fluxdn(0,n)-fluxup(0,n))
           end if
         end block
       end do
@@ -1725,8 +1722,12 @@ module mod_rad_radiation
     end do ! End of spectral interval loop
 
     do is = 1 , 4
-      outtaucl(:,:,is) = outtaucl(:,:,is) / ww(is)
-      outtauci(:,:,is) = outtauci(:,:,is) / ww(is)
+      do k = 1 , kzp1
+        do n = n1, n2
+          outtaucl(n,k,is) = outtaucl(n,k,is) / ww(is)
+          outtauci(n,k,is) = outtauci(n,k,is) / ww(is)
+        end do
+      end do
     end do
 
     ! FAB calculation of TOA aerosol radiative forcing
@@ -1744,14 +1745,14 @@ module mod_rad_radiation
     !
     do concurrent( n = n1:n2, k = 1:kz )
       if ( czengt0(n) ) then
-        qrs(n,k) = -(gocp*totfld(n,k))/(pint(n,k)-pint(n,k+1))
+        qrs(n,k) = -(gocp*totfld(k,n))/(pint(k,n)-pint(k+1,n))
       end if
     end do
     !
     ! Set the downwelling flux at the surface
     !
     do concurrent ( n = n1:n2 )
-      fsds(n) = fswdn(n,kzp1)
+      fsds(n) = fswdn(kzp1,n)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
@@ -1831,7 +1832,7 @@ module mod_rad_radiation
             aerlwfo , aerlwfos
     intent (inout) tclrsf
 
-    integer(ik4) :: n , k , ns , khighest , irad , nradaer
+    integer(ik4) :: n , khighest , irad , nradaer
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclw'
     integer(ik4) :: indx = 0
@@ -1840,12 +1841,12 @@ module mod_rad_radiation
     do concurrent ( n = n1:n2 )
       block
       integer(ik4) :: k
-        rtclrsf(n,1) = d_one/tclrsf(n,1)
+        rtclrsf(1,n) = d_one/tclrsf(1,n)
         do k = 1 , kz
-          fclb4(n,k) = d_zero
-          fclt4(n,k) = d_zero
-          tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-          rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
+          fclb4(k,n) = d_zero
+          fclt4(k,n) = d_zero
+          tclrsf(k+1,n) = tclrsf(k,n)*(d_one-cld(n,k+1))
+          rtclrsf(k+1,n) = d_one/tclrsf(k+1,n)
         end do
       end block
     end do
@@ -1913,8 +1914,8 @@ module mod_rad_radiation
         ! Note: Vertical indexing here proceeds from bottom to top
         !
         do k = klov(n) , khiv(n)
-          fclt4(n,kzp1-k) = stebol*tint4(n,kzp2-k)
-          fclb4(n,kzp1-k) = stebol*tint4(n,kzp3-k)
+          fclt4(kzp1-k,n) = stebol*tint4(kzp2-k,n)
+          fclb4(kzp1-k,n) = stebol*tint4(kzp3-k,n)
         end do
       end block
     end do
@@ -1928,22 +1929,7 @@ module mod_rad_radiation
       nradaer = 2
     end if
 
-    abstot(:,:,:) = absgastot(:,:,:)
-    absnxt(:,:,:) = absgasnxt(:,:,:)
-    emstot(:,:)   = emsgastot(:,:)
-
     do irad = 1 , nradaer
-
-      if  ( linteract .and. irad == 2 ) then
-        abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
-        emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
-        do ns = 1 , 4
-          do k = 1 , kz  ! aertrlw defined on plev levels
-            absnxt(:,k,ns) = d_one-(d_one-absgasnxt(:,k,ns)) * &
-                              (aertrlw(:,k,k+1)**xuinpl(:,k,ns))
-          end do
-        end do
-      end if
       !
       ! Compute sums used in integrals (all longitude points)
       !
@@ -1956,81 +1942,120 @@ module mod_rad_radiation
       !
       do concurrent ( n = n1:n2 )
         block
-          integer(ik4) :: k , km
+          integer(ik4) :: k , km , ns
           real(rkx) :: bk1 , bk2 , absbt
-          delt(n) = tint4(n,kz) - tlayr4(n,kzp1)
-          delt1(n) = tlayr4(n,kzp1) - tint4(n,kzp1)
-          s(n,kzp1,kzp1) = stebol*(delt1(n)*absnxt(n,kz,1) + &
-                           delt(n)*absnxt(n,kz,4))
-          s(n,kz,kzp1) = stebol*(delt(n)*absnxt(n,kz,2) + &
-                           delt1(n)*absnxt(n,kz,3))
+          do ns = 1 , 4
+            do k = 1 , kz
+              absnxt(k,ns,n) = absgasnxt(k,ns,n)
+            end do
+          end do
+          do k = 1 , kzp1
+            emstot(k,n)   = emsgastot(k,n)
+          end do
+          do km = 1 , kzp1
+            do k = 1 , kzp1
+              abstot(k,km,n) = absgastot(k,km,n)
+            end do
+          end do
+          if  ( linteract .and. irad == 2 ) then
+            do ns = 1 , 4
+              do k = 1 , kz
+                absnxt(k,ns,n) = d_one-(d_one-absgasnxt(k,ns,n)) * &
+                                (aertrlw(n,k,k+1)**xuinpl(k,ns,n))
+              end do
+            end do
+            do k = 1 , kzp1
+              emstot(k,n) = d_one-(d_one-emsgastot(k,n)) * aertrlw(n,k,1)
+            end do
+            do km = 1 , kzp1
+              do k = 1 , kzp1
+                abstot(k,km,n) = d_one-(d_one-absgastot(k,km,n)) * &
+                                 aertrlw(n,k,km)
+              end do
+            end do
+          end if
+          delt(n) = tint4(kz,n) - tlayr4(kzp1,n)
+          delt1(n) = tlayr4(kzp1,n) - tint4(kzp1,n)
+          s(kzp1,kzp1,n) = stebol*(delt1(n)*absnxt(kz,1,n) + &
+                           delt(n)*absnxt(kz,4,n))
+          s(kz,kzp1,n) = stebol*(delt(n)*absnxt(kz,2,n) + &
+                           delt1(n)*absnxt(kz,3,n))
           do k = 1 , kz - 1
-            bk2 = (abstot(n,k,kz)+abstot(n,k,kzp1))*d_half
+            bk2 = (abstot(k,kz,n)+abstot(k,kzp1,n))*d_half
             bk1 = bk2
-            s(n,k,kzp1) = stebol*(bk2*delt(n)+bk1*delt1(n))
+            s(k,kzp1,n) = stebol*(bk2*delt(n)+bk1*delt1(n))
           end do
           do km = kz , 2 , -1
-            delt(n) = tint4(n,km-1) - tlayr4(n,km)
-            delt1(n) = tlayr4(n,km) - tint4(n,km)
+            delt(n) = tint4(km-1,n) - tlayr4(km,n)
+            delt1(n) = tlayr4(km,n) - tint4(km,n)
             !
             ! All k, km>1
             !
             do k = kzp1 , 1 , -1
               if ( k == km ) then
-                bk2 = absnxt(n,km-1,4)
-                bk1 = absnxt(n,km-1,1)
+                bk2 = absnxt(km-1,4,n)
+                bk1 = absnxt(km-1,1,n)
               else if ( k == km-1 ) then
-                bk2 = absnxt(n,km-1,2)
-                bk1 = absnxt(n,km-1,3)
+                bk2 = absnxt(km-1,2,n)
+                bk1 = absnxt(km-1,3,n)
               else
-                bk2 = d_half * (abstot(n,k,km-1) + abstot(n,k,km))
+                bk2 = d_half * (abstot(k,km-1,n) + abstot(k,km,n))
                 bk1 = bk2
               end if
-              s(n,k,km) = s(n,k,km+1) + stebol*(bk2*delt(n) + bk1*delt1(n))
+              s(k,km,n) = s(k,km+1,n) + stebol*(bk2*delt(n) + bk1*delt1(n))
             end do
           end do
           !
           ! Computation of clear sky fluxes always set first level of fsul
           !
-          fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
+          fsul(kzp1,n) = emiss(n) * stebol * ts(n)**4
           !
           ! Downward clear sky fluxes store intermediate quantities in down
           ! flux Initialize fluxes to clear sky values.
           !
-          tmp(n) = fsul(n,kzp1) - stebol*tint4(n,kzp1)
-          fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1) * tmp(n) + s(n,1,2)
-          fsdl(n,1) = emstot(n,1) * stebol * tplnke(n)**4
-          ful(n,1) = fsul(n,1)
-          fdl(n,1) = fsdl(n,1)
+          tmp(n) = fsul(kzp1,n) - stebol*tint4(kzp1,n)
+          fsul(1,n) = fsul(kzp1,n) - abstot(1,kzp1,n) * tmp(n) + s(1,2,n)
+          fsdl(1,n) = emstot(1,n) * stebol * tplnke(n)**4
+          ful(1,n) = fsul(1,n)
+          fdl(1,n) = fsdl(1,n)
           do k = 2 , kz
-            fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n) + s(n,k,k+1)
-            ful(n,k) = fsul(n,k)
-            fsdl(n,k) = stebol*(tplnke(n)**4) * emstot(n,k) - &
-                                (s(n,k,2)-s(n,k,k+1))
-            fdl(n,k) = fsdl(n,k)
+            fsul(k,n) = fsul(kzp1,n) - abstot(k,kzp1,n)*tmp(n) + s(k,k+1,n)
+            ful(k,n) = fsul(k,n)
+            fsdl(k,n) = stebol*(tplnke(n)**4) * emstot(k,n) - &
+                                (s(k,2,n)-s(k,k+1,n))
+            fdl(k,n) = fsdl(k,n)
           end do
           !
-          ! fsdl(n,kzp1) assumes isothermal layer
+          ! fsdl(kzp1,n) assumes isothermal layer
           !
           !
           ! Store the downward emission from level 1 = total gas emission *
           ! sigma t**4.  fsdl does not yet include all terms
           !
-          ful(n,kzp1) = fsul(n,kzp1)
-          absbt = emstot(n,kzp1) * stebol * tplnke(n)**4
-          fsdl(n,kzp1) = absbt - s(n,kzp1,2)
-          fdl(n,kzp1) = fsdl(n,kzp1)
+          ful(kzp1,n) = fsul(kzp1,n)
+          absbt = emstot(kzp1,n) * stebol * tplnke(n)**4
+          fsdl(kzp1,n) = absbt - s(kzp1,2,n)
+          fdl(kzp1,n) = fsdl(kzp1,n)
         end block
       end do
       !
       ! FAB radiative forcing sur fsul
       !
       if ( linteract .and. irad == 1 ) then
-        fsul0(:,:) = fsul(:,:) ! save fsul0 = no dust
-        fsdl0(:,:) = fsdl(:,:) !
-        ful0(:,:) = ful(:,:)
-        fdl0(:,:) = fdl(:,:)
-        s0(:,:,:) = s(:,:,:)
+        do concurrent ( n = n1:n2 )
+          block
+            integer(ik4) :: k1 , k2
+            do k1 = 1 , kzp1
+              fsul0(k1,n) = fsul(k1,n) ! save fsul0 = no dust
+              fsdl0(k1,n) = fsdl(k1,n) !
+              ful0(k1,n) = ful(k1,n)
+              fdl0(k1,n) = fdl(k1,n)
+              do k2 = 1 , kzp1
+                s0(k2,k1,n) = s(k2,k1,n)
+              end do
+            end do
+          end block
+        end do
       end if
 
     end do ! end rad loop
@@ -2039,22 +2064,35 @@ module mod_rad_radiation
     ! which is OK in case of idirect=2
     ! also convert rad for to MKSA
     if ( linteract ) then
-      aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
-      aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
-                      (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
+      do concurrent ( n = n1:n2 )
+        aerlwfo(n) = (fsul0(1,n) - fsul(1,n) ) * d_r1000
+        aerlwfos(n) = ( (fsul0(kzp1,n) - fsdl0(kzp1,n)) - &
+                        (fsul(kzp1,n)  - fsdl(kzp1,n) ) ) * d_r1000
+      end do
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
-        fsul(:,:) = fsul0(:,:)
-        fsdl(:,:) = fsdl0(:,:)
-        ful(:,:) = ful0(:,:)
-        fdl(:,:) = fdl0(:,:)
-        s(:,:,:) = s0(:,:,:)
+        do concurrent ( n = n1:n2 )
+          block
+            integer(ik4) :: k1 , k2
+            do k1 = 1 , kzp1
+              fsul(k1,n) = fsul0(k1,n)
+              fsdl(k1,n) = fsdl0(k1,n)
+              ful(k1,n) = ful0(k1,n)
+              fdl(k1,n) = fdl0(k1,n)
+              do k2 = 1 , kzp1
+                s(k2,k1,n) = s0(k2,k1,n)
+              end do
+            end do
+          end block
+        end do
       end if
     end if ! end aersol rad diagnostic
     !
     ! FAB MODIF  : save downward clear sky long wave flux in surface
     !
-    fslwdcs(:) = fsdl(:,kzp1)
+    do concurrent ( n = n1:n2 )
+      fslwdcs(n) = fsdl(kzp1,n)
+    end do
     !
     ! Modifications for clouds
     !
@@ -2062,11 +2100,13 @@ module mod_rad_radiation
     ! those locations where there are clouds
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
-    where ( tclrsf(:,kzp1) < 0.999_rkx )
-      skip = .false.
-    elsewhere
-      skip = .true.
-    end where
+    do concurrent ( n = n1:n2 )
+      if ( tclrsf(kzp1,n) < 0.999_rkx ) then
+        skip(n) = .false.
+      else
+        skip(n) = .true.
+      end if
+    end do
     !
     ! Compute downflux at level 1 for cloudy sky
     !
@@ -2075,8 +2115,8 @@ module mod_rad_radiation
       !
       ! First clear sky flux plus flux from cloud at level 1
       !
-      fdl(n,kzp1) = fsdl(n,kzp1)*tclrsf(n,kz) * &
-                    rtclrsf(n,kzp1-khiv(n))+fclb4(n,kz-1)*cld(n,kz)
+      fdl(kzp1,n) = fsdl(kzp1,n)*tclrsf(kz,n) * &
+                    rtclrsf(kzp1-khiv(n),n)+fclb4(kz-1,n)*cld(n,kz)
     end do
     !
     ! Flux emitted by other layers
@@ -2095,8 +2135,8 @@ module mod_rad_radiation
           km2 = kzp2 - km
           km4 = kzp4 - km
           if ( km <= khiv(n) ) then
-            tmp1 = cld(n,km2)*tclrsf(n,kz)*rtclrsf(n,km2)
-            fdl(n,kzp1) = fdl(n,kzp1) + (fclb4(n,km1)-s(n,kzp1,km4))*tmp1
+            tmp1 = cld(n,km2)*tclrsf(kz,n)*rtclrsf(km2,n)
+            fdl(kzp1,n) = fdl(kzp1,n) + (fclb4(km1,n)-s(kzp1,km4,n))*tmp1
           end if
         end do
         !
@@ -2107,15 +2147,15 @@ module mod_rad_radiation
           k2 = kzp2 - k
           k3 = kzp3 - k
           if ( k >= klov(n) .and. k <= khivm(n) ) then
-            ful(n,k2) = fsul(n,k2)*(tclrsf(n,kzp1)*rtclrsf(n,k1))
+            ful(k2,n) = fsul(k2,n)*(tclrsf(kzp1,n)*rtclrsf(k1,n))
           end if
           do km = 1 , k
             km1 = kzp1 - km
             km2 = kzp2 - km
             km3 = kzp3 - km
             if ( k <= khivm(n) .and. km >= klov(n) .and. km <= khivm(n)) then
-              ful(n,k2) = ful(n,k2) + (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3)) * &
-                          cld(n,km2)*(tclrsf(n,km1)*rtclrsf(n,k1))
+              ful(k2,n) = ful(k2,n) + (fclt4(km1,n)+s(k2,k3,n)-s(k2,km3,n)) * &
+                          cld(n,km2)*(tclrsf(km1,n)*rtclrsf(k1,n))
             end if
           end do ! km = 1 , k
         end do   ! k = 1 , khighest-1
@@ -2124,15 +2164,15 @@ module mod_rad_radiation
           k3 = kzp3 - k
           if ( k >= khiv(n) ) then
             start(n) = .true.
-            ful(n,k2) = fsul(n,k2)*tclrsf(n,kzp1)*rtclrsf(n,kzp1-khiv(n))
+            ful(k2,n) = fsul(k2,n)*tclrsf(kzp1,n)*rtclrsf(kzp1-khiv(n),n)
           end if
           do km = 1 , khighest
             km1 = kzp1 - km
             km2 = kzp2 - km
             km3 = kzp3 - km
             if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
-              ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
-                rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
+              ful(k2,n) = ful(k2,n) + (cld(n,km2)*tclrsf(km1,n)* &
+                rtclrsf(kzp1-khiv(n),n))*(fclt4(km1,n)+s(k2,k3,n)-s(k2,km3,n))
             end if
           end do  ! km = 1 , khighest
         end do    ! k = 1 , kzp1
@@ -2143,20 +2183,20 @@ module mod_rad_radiation
           k1 = kzp1 - k
           k2 = kzp2 - k
           k3 = kzp3 - k
-          if ( k <= khivm(n) ) fdl(n,k2) = d_zero
+          if ( k <= khivm(n) ) fdl(k2,n) = d_zero
           do km = k + 1 , khighest
             km1 = kzp1 - km
             km2 = kzp2 - km
             km4 = kzp4 - km
             if ( k <= khiv(n) .and. &
                  km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
-              fdl(n,k2) = fdl(n,k2)+(cld(n,km2)*tclrsf(n,k1)*rtclrsf(n,km2)) * &
-                      (fclb4(n,km1)-s(n,k2,km4)+s(n,k2,k3))
+              fdl(k2,n) = fdl(k2,n)+(cld(n,km2)*tclrsf(k1,n)*rtclrsf(km2,n)) * &
+                      (fclb4(km1,n)-s(k2,km4,n)+s(k2,k3,n))
             end if
           end do ! km = k+1 , khighest
           if ( k <= khivm(n) ) then
-             fdl(n,k2) = fdl(n,k2) + &
-                  fsdl(n,k2)*(tclrsf(n,k1)*rtclrsf(n,kzp1-khiv(n)))
+             fdl(k2,n) = fdl(k2,n) + &
+                  fsdl(k2,n)*(tclrsf(k1,n)*rtclrsf(kzp1-khiv(n),n))
           end if
         end do  ! k = 1 , khighest-1
         !
@@ -2165,28 +2205,28 @@ module mod_rad_radiation
         !
         ! Downward longwave flux
         !
-        flwds(n) = fdl(n,kzp1)
+        flwds(n) = fdl(kzp1,n)
         !
         ! Net flux
         !
-        flns(n) = ful(n,kzp1) - fdl(n,kzp1)
+        flns(n) = ful(kzp1,n) - fdl(kzp1,n)
         !
         ! Clear sky flux at top of atmosphere
         !
-        flntc(n) = fsul(n,1)
-        flnsc(n) = fsul(n,kzp1) - fsdl(n,kzp1)
+        flntc(n) = fsul(1,n)
+        flnsc(n) = fsul(kzp1,n) - fsdl(kzp1,n)
         !
         ! Outgoing ir
         !
-        flnt(n) = ful(n,1) - fdl(n,1)
-        lwout(n) = ful(n,1)
-        lwin(n) = fdl(n,1)
+        flnt(n) = ful(1,n) - fdl(1,n)
+        lwout(n) = ful(1,n)
+        lwin(n) = fdl(1,n)
         !
         ! Computation of longwave heating (k per sec)
         !
         do k = 1 , kz
-          qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
-                    ((pint(n,k)-pint(n,k+1)))
+          qrl(n,k) = (ful(k,n)-fdl(k,n)-ful(k+1,n)+fdl(k+1,n))*gocp / &
+                    ((pint(k,n)-pint(k+1,n)))
         end do
       end block
     end do
@@ -2261,12 +2301,6 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-    !-----------------------------------------------------------------------
-    !
-    ! Initialize all total transmimission values to 0, so that nighttime
-    ! values from previous computations are not used:
-    !
-    tottrn(:,:) = d_zero
     !
     ! Compute total direct beam transmission, total transmission, and
     ! reflectivity for diffuse radiation (from below) for all layers
@@ -2282,27 +2316,35 @@ module mod_rad_radiation
         real(rkx) :: tautot , wtot , gtot , ftot , extins
         real(rkx) :: ts , ws , gs , lm , alp , gam , ue , ne
         real(rkx) :: apg , amg
+        !-------------------------------------------------------------------
+        !
+        ! Initialize all total transmimission values to 0, so that nighttime
+        ! values from previous computations are not used:
+        !
+        do k = 1 , kzp1
+          tottrn(k,n) = d_zero
+        end do
         if ( czengt0(n) ) then
           taugab(n) = abo3(ns)*uto3(n)
           ! Limit argument of exponential, in case czen is very small:
           arg = min(taugab(n)/czen(n),mxarg)
-          explay(n,0) = exp(-arg)
-          tdir(n,0) = explay(n,0)
+          explay(0,n) = exp(-arg)
+          tdir(0,n) = explay(0,n)
           !
           ! Same limit for diffuse mod_transmission:
           !
           arg = min(1.66_rkx*taugab(n),mxarg)
-          tdif(n,0) = exp(-arg)
-          rdir(n,0) = d_zero
-          rdif(n,0) = d_zero
+          tdif(0,n) = exp(-arg)
+          rdir(0,n) = d_zero
+          rdif(0,n) = d_zero
           !
           ! Initialize top interface of extra layer:
           !
-          exptdn(n,0) = d_one
-          rdndif(n,0) = d_zero
-          tottrn(n,0) = d_one
-          rdndif(n,1) = rdif(n,0)
-          tottrn(n,1) = tdir(n,0)
+          exptdn(0,n) = d_one
+          rdndif(0,n) = d_zero
+          tottrn(0,n) = d_one
+          rdndif(1,n) = rdif(0,n)
+          tottrn(1,n) = tdir(0,n)
           !
           ! Now, complete the rest of the column; if the total transmission
           ! through the top ozone layer is less than trmin, then no
@@ -2314,34 +2356,34 @@ module mod_rad_radiation
             ! transmission to the top interface of the current layer exceeds
             ! the minimum, will these values be computed below:
             !
-            rdir(n,k) = d_zero
-            rdif(n,k) = d_zero
-            tdir(n,k) = d_zero
-            tdif(n,k) = d_zero
-            explay(n,k) = d_zero
+            rdir(k,n) = d_zero
+            rdif(k,n) = d_zero
+            tdir(k,n) = d_zero
+            tdif(k,n) = d_zero
+            explay(k,n) = d_zero
             !
             ! Calculates the solar beam transmission, total transmission,
             ! and reflectivity for diffuse radiation from below at the
             ! top of the current layer:
             !
-            exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-            rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
-            rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-            tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-            tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
-                          tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-            rdndif(n,k) = rdif(n,k-1) + &
-                          (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
+            exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+            rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
+            rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+            tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+            tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
+                          tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+            rdndif(k,n) = rdif(k-1,n) + &
+                          (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
             !
             ! Compute next layer delta-Eddington solution only if total
             ! transmission of radiation to the interface just above the layer
             ! exceeds trmin.
             !
-            if ( tottrn(n,k) > trmin ) then
+            if ( tottrn(k,n) > trmin ) then
               !
               ! Remember, no ozone absorption in this layer:
               !
-              tauray(n) = trayoslp*pflx(n,kzp1)
+              tauray(n) = trayoslp*pflx(kzp1,n)
               taugab(n) = abh2o(ns)*uth2o(n) + &
                           abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
               if ( lcls ) then
@@ -2368,35 +2410,35 @@ module mod_rad_radiation
               arg = min(lm*ts,mxarg)
               extins = exp(-arg)
               ne = f_n(ue,extins)
-              rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-              tdif(n,k) = d_four*ue/ne
+              rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+              tdif(k,n) = d_four*ue/ne
               ! Limit argument of exponential, in case czen is very small:
               arg = min(ts/czen(n),mxarg)
-              explay(n,k) = exp(-arg)
+              explay(k,n) = exp(-arg)
               apg = alp + gam
               amg = alp - gam
-              rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
-              tdir(n,k) = apg*tdif(n,k) + &
-                          (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+              rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
+              tdir(k,n) = apg*tdif(k,n) + &
+                          (amg*rdif(k,n)-(apg-d_one))*explay(k,n)
               !
               ! Under rare conditions, reflectivies and transmissivities
               ! can be negative; zero out any negative values
               !
-              rdir(n,k) = max(rdir(n,k),d_zero)
-              tdir(n,k) = max(tdir(n,k),d_zero)
-              rdif(n,k) = max(rdif(n,k),d_zero)
-              tdif(n,k) = max(tdif(n,k),d_zero)
+              rdir(k,n) = max(rdir(k,n),d_zero)
+              tdir(k,n) = max(tdir(k,n),d_zero)
+              rdif(k,n) = max(rdif(k,n),d_zero)
+              tdif(k,n) = max(tdif(k,n),d_zero)
             end if
           end do
           k = 2
-          exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-          rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
-          rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-          tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-          tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
-                        tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-          rdndif(n,k) = rdif(n,k-1) + &
-                        (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
+          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+          rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
+          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
+                        tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+          rdndif(k,n) = rdif(k-1,n) + &
+                        (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
         end if
       end block
     end do
@@ -2470,12 +2512,6 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-    !-----------------------------------------------------------------------
-    !
-    ! Initialize all total transmission values to 0, so that nighttime
-    ! values from previous computations are not used:
-    !
-    tottrn(:,:) = d_zero
     !
     ! Compute total direct beam transmission, total transmission, and
     ! reflectivity for diffuse radiation (from below) for all layers
@@ -2488,32 +2524,40 @@ module mod_rad_radiation
         real(rkx) :: tautot , taucsc , wtau , wt , wtot , gtot , ftot
         real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue , arg
         real(rkx) :: apg , amg , extins , rdenom , rdirexp , tdnmexp
+        !-----------------------------------------------------------------
+        !
+        ! Initialize all total transmission values to 0, so that nighttime
+        ! values from previous computations are not used:
+        !
+        do k = 1, kzp1
+          tottrn(k,n) = d_zero
+        end do
         if ( czengt0(n) ) then
-          tauray(n) = trayoslp*(pflx(n,1)-pflx(n,0))
-          taugab(n) = abh2o(ns)*uh2o(n,0) + abo3(ns)*uo3(n,0) + &
-                      abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
+          tauray(n) = trayoslp*(pflx(1,n)-pflx(0,n))
+          taugab(n) = abh2o(ns)*uh2o(0,n) + abo3(ns)*uo3(0,n) + &
+                      abco2(ns)*uco2(0,n) + abo2(ns)*uo2(0,n)
           if ( lzero ) then
             tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
-            taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
+            taucsc = tauxcl(n,0,ns)*wcl(0,n) + tauxci(n,0,ns)*wci(0,n)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                    tauxci(n,0,ns)*wci(n,0))/wt
-            ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                    tauxci(n,0,ns)*wci(n,0))/wt
+            gtot = (wtau*gray+gcl(0,n)*tauxcl(n,0,ns)*wcl(0,n)+gci(0,n) * &
+                    tauxci(n,0,ns)*wci(0,n))/wt
+            ftot = (wtau*fray+fcl(0,n)*tauxcl(n,0,ns)*wcl(0,n)+fci(0,n) * &
+                    tauxci(n,0,ns)*wci(0,n))/wt
           else
             tautot = tauxcl(n,0,ns)+tauxci(n,0,ns) + &
                      tauray(n)+taugab(n)+tauxar3d(n,0,ns)
-            taucsc = tauxcl(n,0,ns)*wcl(n,0)+tauxci(n,0,ns)*wci(n,0) + &
+            taucsc = tauxcl(n,0,ns)*wcl(0,n)+tauxci(n,0,ns)*wci(0,n) + &
                      tauasc3d(n,0,ns)
             wtau = wray*tauray(n)
             wt = wtau + taucsc
             wtot = wt/tautot
-            gtot = (wtau*gray+gcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+gci(n,0) * &
-                    tauxci(n,0,ns)*wci(n,0)+gtota3d(n,0,ns))/wt
-            ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
-                    tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
+            gtot = (wtau*gray+gcl(0,n)*tauxcl(n,0,ns)*wcl(0,n)+gci(0,n) * &
+                    tauxci(n,0,ns)*wci(0,n)+gtota3d(n,0,ns))/wt
+            ftot = (wtau*fray+fcl(0,n)*tauxcl(n,0,ns)*wcl(0,n)+fci(0,n) * &
+                    tauxci(n,0,ns)*wci(0,n)+ftota3d(n,0,ns))/wt
           end if
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
@@ -2528,31 +2572,31 @@ module mod_rad_radiation
           arg = min(lm*ts,mxarg)
           extins = exp(-arg)
           ne = f_n(ue,extins)
-          rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif(n,0) = d_four*ue/ne
+          rdif(0,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(0,n) = d_four*ue/ne
           ! Limit argument of exponential, in case czen is very small:
           arg = min(ts/czen(n),mxarg)
-          explay(n,0) = exp(-arg)
+          explay(0,n) = exp(-arg)
           apg = alp + gam
           amg = alp - gam
-          rdir(n,0) = amg*(tdif(n,0)*explay(n,0)-d_one) + apg*rdif(n,0)
-          tdir(n,0) = apg*tdif(n,0) + (amg*rdif(n,0)-(apg-d_one))*explay(n,0)
+          rdir(0,n) = amg*(tdif(0,n)*explay(0,n)-d_one) + apg*rdif(0,n)
+          tdir(0,n) = apg*tdif(0,n) + (amg*rdif(0,n)-(apg-d_one))*explay(0,n)
           !
           ! Under rare conditions, reflectivies and transmissivities can
           ! be negative; zero out any negative values
           !
-          rdir(n,0) = max(rdir(n,0),d_zero)
-          tdir(n,0) = max(tdir(n,0),d_zero)
-          rdif(n,0) = max(rdif(n,0),d_zero)
-          tdif(n,0) = max(tdif(n,0),d_zero)
+          rdir(0,n) = max(rdir(0,n),d_zero)
+          tdir(0,n) = max(tdir(0,n),d_zero)
+          rdif(0,n) = max(rdif(0,n),d_zero)
+          tdif(0,n) = max(tdif(0,n),d_zero)
           !
           ! Initialize top interface of extra layer:
           !
-          exptdn(n,0) = d_one
-          rdndif(n,0) = d_zero
-          tottrn(n,0) = d_one
-          rdndif(n,1) = rdif(n,0)
-          tottrn(n,1) = tdir(n,0)
+          exptdn(0,n) = d_one
+          rdndif(0,n) = d_zero
+          tottrn(0,n) = d_one
+          rdndif(1,n) = rdif(0,n)
+          tottrn(1,n) = tdir(0,n)
           !
           ! Now, continue down one layer at a time; if the total transmission
           ! to the interface just above a given layer is less than trmin,
@@ -2564,57 +2608,57 @@ module mod_rad_radiation
             ! transmission to the top interface of the current layer exceeds
             ! the minimum, will these values be computed below:
             !
-            rdir(n,k) = d_zero
-            rdif(n,k) = d_zero
-            tdir(n,k) = d_zero
-            tdif(n,k) = d_zero
-            explay(n,k) = d_zero
+            rdir(k,n) = d_zero
+            rdif(k,n) = d_zero
+            tdir(k,n) = d_zero
+            tdif(k,n) = d_zero
+            explay(k,n) = d_zero
             !
             ! Calculates the solar beam transmission, total transmission,
             ! and reflectivity for diffuse radiation from below at the
             ! top of the current layer:
             !
-            exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-            if ( exptdn(n,k) < dlowval ) exptdn(n,k) = d_zero
-            rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
-            rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-            tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-            tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *     &
-                        (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-            rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *   &
-                        (tdif(n,k-1)*rdenom)
+            exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+            if ( exptdn(k,n) < dlowval ) exptdn(k,n) = d_zero
+            rdenom = d_one/(d_one-min(rdif(k-1,n)*rdndif(k-1,n),verynearone))
+            rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+            tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+            tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *     &
+                        (tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+            rdndif(k,n) = rdif(k-1,n) + (rdndif(k-1,n)*tdif(k-1,n)) *   &
+                        (tdif(k-1,n)*rdenom)
             !
             ! Compute next layer delta-eddington solution only if total
             ! transmission of radiation to the interface just above the layer
             ! exceeds trmin.
             !
-            if ( tottrn(n,k) > trmin ) then
-              tauray(n) = trayoslp*(pflx(n,k+1)-pflx(n,k))
-              taugab(n) = abh2o(ns)*uh2o(n,k) + abo3(ns)*uo3(n,k) +  &
-                          abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
+            if ( tottrn(k,n) > trmin ) then
+              tauray(n) = trayoslp*(pflx(k+1,n)-pflx(k,n))
+              taugab(n) = abh2o(ns)*uh2o(k,n) + abo3(ns)*uo3(k,n) +  &
+                          abco2(ns)*uco2(k,n) + abo2(ns)*uo2(k,n)
 
               if ( lzero ) then
                 tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
-                taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
+                taucsc = tauxcl(n,k,ns)*wcl(k,n)+tauxci(n,k,ns)*wci(k,n)
                 wtau = wray*tauray(n)
                 wt = wtau + taucsc
                 wtot = wt/tautot
-                gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
-                ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns))/wt
+                gtot = (wtau*gray+gcl(k,n)*wcl(k,n)*tauxcl(n,k,ns)+gci(k,n) *  &
+                    wci(k,n)*tauxci(n,k,ns))/wt
+                ftot = (wtau*fray+fcl(k,n)*wcl(k,n)*tauxcl(n,k,ns)+fci(k,n) *  &
+                    wci(k,n)*tauxci(n,k,ns))/wt
               else
                 tautot = tauxcl(n,k,ns) + tauxci(n,k,ns) + tauray(n) + &
                      taugab(n) + tauxar3d(n,k,ns)
-                taucsc = tauxcl(n,k,ns)*wcl(n,k) + tauxci(n,k,ns)*wci(n,k) + &
+                taucsc = tauxcl(n,k,ns)*wcl(k,n) + tauxci(n,k,ns)*wci(k,n) + &
                      tauasc3d(n,k,ns)
                 wtau = wray*tauray(n)
                 wt = wtau + taucsc
                 wtot = wt/tautot
-                gtot = (wtau*gray+gcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+gci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
-                ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
-                    wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
+                gtot = (wtau*gray+gcl(k,n)*wcl(k,n)*tauxcl(n,k,ns)+gci(k,n) *  &
+                    wci(k,n)*tauxci(n,k,ns)+gtota3d(n,k,ns))/wt
+                ftot = (wtau*fray+fcl(k,n)*wcl(k,n)*tauxcl(n,k,ns)+fci(k,n) *  &
+                    wci(k,n)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
               end if
 
               ts = taus(wtot,ftot,tautot)
@@ -2631,25 +2675,25 @@ module mod_rad_radiation
               extins = exp(-arg)
               ne = f_n(ue,extins)
 
-              rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-              tdif(n,k) = d_four*ue/ne
+              rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+              tdif(k,n) = d_four*ue/ne
 
               ! Limit argument of exponential, in case czen is very small:
               arg = min(ts/czen(n),mxarg)
-              explay(n,k) = exp(-arg)
+              explay(k,n) = exp(-arg)
 
               apg = alp + gam
               amg = alp - gam
-              rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
-              tdir(n,k) = apg*tdif(n,k)+(amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+              rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
+              tdir(k,n) = apg*tdif(k,n)+(amg*rdif(k,n)-(apg-d_one))*explay(k,n)
               !
               ! Under rare conditions, reflectivies and transmissivities
               ! can be negative; zero out any negative values
               !
-              rdir(n,k) = max(rdir(n,k),d_zero)
-              tdir(n,k) = max(tdir(n,k),d_zero)
-              rdif(n,k) = max(rdif(n,k),d_zero)
-              tdif(n,k) = max(tdif(n,k),d_zero)
+              rdir(k,n) = max(rdir(k,n),d_zero)
+              tdir(k,n) = max(tdir(k,n),d_zero)
+              rdif(k,n) = max(rdif(k,n),d_zero)
+              tdif(k,n) = max(tdif(k,n),d_zero)
             end if
           end do
           !
@@ -2658,14 +2702,14 @@ module mod_rad_radiation
           ! above the surface:
           !
           k = kzp1
-          exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-          rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
-          rdirexp = rdir(n,k-1)*exptdn(n,k-1)
-          tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
-          tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *       &
-                      (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
-          rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *     &
-                      (tdif(n,k-1)*rdenom)
+          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+          rdenom = d_one/(d_one-min(rdif(k-1,n)*rdndif(k-1,n),verynearone))
+          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *       &
+                      (tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+          rdndif(k,n) = rdif(k-1,n) + (rdndif(k-1,n)*tdif(k-1,n)) *     &
+                      (tdif(k-1,n)*rdenom)
         end if
       end block
     end do
@@ -2860,25 +2904,8 @@ module mod_rad_radiation
     ! absbnd   - Proportional to co2 band absorptance
     ! dbvtit   - Intrfc drvtv plnck fnctn for o3
     !
-    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
-               absbnd , alphat , beta , cf812 , corfac , denom ,      &
-               dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
-               et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
-               oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
-               rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
-               rphat , rsqti , rsum , sqwp , t1t4 , t2t5 ,            &
-               tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
-               tr1 , tr2 , tr5 , tr6 , tr9 , tr10 , u1 , u13 , u2 ,   &
-               u8 , u9 , ubar , wco2 , dplh2o , dtp , dtz , sqti ,    &
-               dpnm , dtyp15 , dtyp15sq , f1sqwp , f2co2 , f3co2 ,    &
-               fwk , fwku , rbeta7 , sqrtu , t1co2 , to3h2o ,         &
-               tpatha , trab2 , trab4 , trab6 , u7 , uc1 , uc
-    real(rkx) , dimension(6) :: abso
-    real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
-               term3 , term4 , term5 , zinpl , temh2o
-    real(rkx) , dimension(2) :: r2st , term7 , term8 , trline
-    integer(ik4) :: n , iband , k , k1 , k2 , kn , wvl
-
+    integer(ik4) :: n
+    real(rkx) , dimension(2) :: r2st
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radabs'
     integer(ik4) :: indx = 0
@@ -2887,77 +2914,345 @@ module mod_rad_radiation
     !
     ! Initialize
     !
-    do k = 1 , kz
-      do n = n1 , n2
-        dbvtly(n,k) = dbvt(tlayr(n,k+1))
-        dbvtit(n,k) = dbvt(tint(n,k))
-      end do
-    end do
-    do n = n1 , n2
-      dbvtit(n,kzp1) = dbvt(tint(n,kzp1))
-    end do
-
     r2st(1) = d_one/(d_two*st(1))
     r2st(2) = d_one/(d_two*st(2))
-    ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
-    !
-    ! Non-adjacent layer absorptivity:
-    !
-    ! abso(1)     0 -  800 cm-1   h2o rotation band
-    ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-    ! abso(3)   800 - 1200 cm-1   h2o window
-    ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-    ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-    ! abso(6)   co2 15  micrometer band system
-    !
-    do k = 1 , kzp1
-      do n = n1 , n2
-        pnmsq(n,k) = pint(n,k)**2
-        dtx(n) = tplnka(n,k) - 250.0_rkx
-        term6(n,k) = coeff(1,2) + coeff(2,2)*dtx(n) *          &
-                      (d_one+c9*dtx(n)*(d_one+c11*dtx(n) *     &
-                      (d_one+c13*dtx(n)*(d_one+c15*dtx(n)))))
-        term9(n,k) = coefi(1,2) + coefi(2,2)*dtx(n) *          &
-                      (d_one+c19*dtx(n)*(d_one+c21*dtx(n) *    &
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k , k1 , k2 , iband ,  kn , wvl
+        real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,  &
+                   absbnd , alphat , beta , cf812 , corfac , denom ,      &
+                   dplco2 , dplol , dplos , ds2c , dtym10 , et , et2 ,    &
+                   et4 , f1co2 , g2 , g4 , k21 , k22 , o3bndi , omet ,    &
+                   oneme , p1 , p2 , pbar , phi , pi , posqt , psi ,      &
+                   rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , realnu , &
+                   rphat , rsqti , rsum , sqwp , t1t4 , t2t5 ,            &
+                   tcrfac , te , tlocal , tmp1 , tmp2 , tmp3 , tpath ,    &
+                   tr1 , tr2 , tr5 , tr6 , tr9 , tr10 , u1 , u13 , u2 ,   &
+                   u8 , u9 , ubar , wco2 , dplh2o , dtp , dtz , sqti ,    &
+                   dpnm , dtyp15 , dtyp15sq , f1sqwp , f2co2 , f3co2 ,    &
+                   fwk , fwku , rbeta7 , sqrtu , t1co2 , to3h2o ,         &
+                   tpatha , trab2 , trab4 , trab6 , u7 , uc1 , uc
+        real(rkx) , dimension(6) :: abso
+        real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
+                   term3 , term4 , term5 , zinpl , temh2o
+        real(rkx) , dimension(2) :: term7 , term8 , trline
+
+        dbvtit(kzp1,n) = dbvt(tint(kzp1,n))
+        do k = 1 , kz
+          dbvtly(k,n) = dbvt(tlayr(k+1,n))
+          dbvtit(k,n) = dbvt(tint(k,n))
+        end do
+
+        ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
+        !
+        ! Non-adjacent layer absorptivity:
+        !
+        ! abso(1)     0 -  800 cm-1   h2o rotation band
+        ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+        ! abso(3)   800 - 1200 cm-1   h2o window
+        ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+        ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+        ! abso(6)   co2 15  micrometer band system
+        !
+        do k = 1 , kzp1
+          pnmsq(k,n) = pint(k,n)**2
+          dtx(n) = tplnka(k,n) - 250.0_rkx
+          term6(k,n) = coeff(1,2) + coeff(2,2)*dtx(n) *          &
+                        (d_one+c9*dtx(n)*(d_one+c11*dtx(n) *     &
+                        (d_one+c13*dtx(n)*(d_one+c15*dtx(n)))))
+          term9(k,n) = coefi(1,2) + coefi(2,2)*dtx(n) *          &
+                        (d_one+c19*dtx(n)*(d_one+c21*dtx(n) *    &
                       (d_one+c23*dtx(n)*(d_one+c25*dtx(n)))))
-      end do
-    end do
-    !
-    ! Non-nearest layer level loops
-    !
-    do k1 = kzp1 , 1 , -1
-      do k2 = kzp1 , 1 , -1
-        if ( k1 /= k2 ) then
-          do n = n1 , n2
-            dplh2o = plh2o(n,k1) - plh2o(n,k2)
-            ux(n) = abs(dplh2o)
-            sqrtu = sqrt(ux(n))
-            ds2c = abs(s2c(n,k1)-s2c(n,k2))
-            dw(n) = abs(w(n,k1)-w(n,k2))
-            uc1 = (ds2c+1.7e-3_rkx*ux(n)) * &
+        end do
+        !
+        ! Non-nearest layer level loops
+        !
+        do k1 = kzp1 , 1 , -1
+          do k2 = kzp1 , 1 , -1
+            if ( k1 /= k2 ) then
+              dplh2o = plh2o(k1,n) - plh2o(k2,n)
+              ux(n) = abs(dplh2o)
+              sqrtu = sqrt(ux(n))
+              ds2c = abs(s2c(k1,n)-s2c(k2,n))
+              dw(n) = abs(w(k1,n)-w(k2,n))
+              uc1 = (ds2c+1.7e-3_rkx*ux(n)) * &
                    (d_one+d_two*ds2c)/(d_one+15.0_rkx*ds2c)
-            uc = ds2c + 2.0e-3_rkx*ux(n)
-            pnew(n) = ux(n)/dw(n)
-            tpatha = (s2t(n,k1)-s2t(n,k2))/dplh2o
-            dtx(n) = tplnka(n,k2) - 250.0_rkx
-            dty(n) = tpatha - 250.0_rkx
+              uc = ds2c + 2.0e-3_rkx*ux(n)
+              pnew(n) = ux(n)/dw(n)
+              tpatha = (s2t(k1,n)-s2t(k2,n))/dplh2o
+              dtx(n) = tplnka(k2,n) - 250.0_rkx
+              dty(n) = tpatha - 250.0_rkx
+              dtyp15 = dty(n) + 15.0_rkx
+              dtyp15sq = dtyp15**2
+              dtz = dtx(n) - 50.0_rkx
+              dtp = dty(n) - 50.0_rkx
+              do iband = 2 , 4 , 2
+                term1(iband) = coefe(1,iband) + &
+                           coefe(2,iband)*dtx(n)*(d_one+c1(iband)*dtx(n))
+                term2(iband) = coefb(1,iband) + &
+                           coefb(2,iband)*dtx(n)*(d_one+c2(iband)*dtx(n) * &
+                           (d_one+c3(iband)*dtx(n)))
+                term3(iband) = coefd(1,iband) + &
+                           coefd(2,iband)*dtx(n)*(d_one+c4(iband)*dtx(n) * &
+                           (d_one+c5(iband)*dtx(n)))
+                term4(iband) = coefa(1,iband) + &
+                           coefa(2,iband)*dty(n)*(d_one+c6(iband)*dty(n))
+                term5(iband) = coefc(1,iband) + &
+                           coefc(2,iband)*dty(n)*(d_one+c7(iband)*dty(n))
+              end do
+              !
+              ! abso(1)     0 -  800 cm-1   h2o rotation band
+              !
+              a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
+              a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
+              a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
+              a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
+              a23 = 1.00_rkx + 3.600_rkx*sqrtu
+              corfac = a31*(a11+((d_two*a21*a22)/a23))
+              t1t4 = term1(2)*term4(2)
+              t2t5 = term2(2)*term5(2)
+              a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+              fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+              fwku = fwk*ux(n)
+              rsum = exp(-a*(sqrtu+fwku))
+              abso(1) = (d_one-rsum)*term3(2)
+              ! trab1(n)  = rsum
+              !
+              ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+              !
+              a41 = 1.75_rkx - 3.960e-3_rkx*dtz
+              a51 = 1.00_rkx + 1.3_rkx*sqrtu
+              a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
+              corfac = 0.29_rkx*(d_one+a41/a51)*a61
+              t1t4 = term1(4)*term4(4)
+              t2t5 = term2(4)*term5(4)
+              a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+              rsum = exp(-a*(sqrtu+fwku))
+              abso(2) = (d_one-rsum)*term3(4)
+              ! trab7(n)  = rsum
+              !
+              ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+              !
+              do k = 1 , 2
+                phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
+                psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
+                ubar = dw(n)*phi*1.66_rkx*r80257
+                pbar = pnew(n)*(psi/phi)
+                cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
+                g2 = d_one + ubar*d_four*st(k)*cf812/pbar
+                g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
+                trline(k) = exp(-g4)
+              end do
+              term7(1) = coefj(1,1)+coefj(2,1)*dty(n)*(d_one+c16*dty(n))
+              term8(1) = coefk(1,1)+coefk(2,1)*dty(n)*(d_one+c17*dty(n))
+              term7(2) = coefj(1,2)+coefj(2,2)*dty(n)*(d_one+c26*dty(n))
+              term8(2) = coefk(1,2)+coefk(2,2)*dty(n)*(d_one+c27*dty(n))
+              !
+              ! abso(3)   800 - 1200 cm-1   h2o window
+              ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+              k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty(n)-d_10)* &
+                    (dty(n)-d_10))*sqrtu)
+              k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*sqrtu)
+              tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
+              tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
+              tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx(n))*uc1))
+              tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx(n))*uc1))
+              tr9 = tr1*tr5
+              tr10 = tr2*tr6
+              th2o(n) = tr10
+              trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
+              trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx(n))*uc)
+              trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx(n))*uc)
+              abso(3) = term6(k2,n)*(d_one-trab4*d_half*trline(2)- &
+                        trab6*d_half*trline(1))
+              abso(4) = term9(k2,n)*d_half*(tr1-tr9+tr2-tr10)
+              if ( k2 < k1 ) then
+                to3h2o = h2otr(k1,n)/h2otr(k2,n)
+              else
+                to3h2o = h2otr(k2,n)/h2otr(k1,n)
+              end if
+              !
+              ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+              !
+              dpnm = pint(k1,n) - pint(k2,n)
+              to3co2(n) = (pint(k1,n)*co2t(k1,n)-pint(k2,n)*co2t(k2,n))/dpnm
+              te = (to3co2(n)*r293)**0.7_rkx
+              dplos = plos(k1,n) - plos(k2,n)
+              dplol = plol(k1,n) - plol(k2,n)
+              u1 = 18.29_rkx*abs(dplos)/te
+              u2 = 0.5649_rkx*abs(dplos)/te
+              rphat = dplol/dplos
+              tlocal = tint(k2,n)
+              tcrfac = sqrt(tlocal*r250)*te
+              beta = r3205*(rphat+dpfo3*tcrfac)
+              realnu = te/beta
+              tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
+              tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
+              o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
+              abso(5) = o3bndi*to3h2o*dbvtit(k2,n)
+              to3(n) = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
+              ! trab5(n)  = d_one-(o3bndi/(1060-980.))
+              !
+              ! abso(6)      co2 15  micrometer band system
+              !
+              sqwp = sqrt(abs(plco2(k1,n)-plco2(k2,n)))
+              et = exp(-480.0_rkx/to3co2(n))
+              sqti = sqrt(to3co2(n))
+              rsqti = d_one/sqti
+              et2 = et*et
+              et4 = et2*et2
+              omet = d_one - 1.5_rkx*et2
+              f1co2 = 899.70_rkx*omet*rsqti* &
+                (d_one+1.94774_rkx*et+4.73486_rkx*et2)
+              f1sqwp = f1co2*sqwp
+              t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
+              oneme = d_one - et2
+              alphat = oneme**3*rsqti
+              pi = abs(dpnm)
+              wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
+              u7 = 4.9411e4_rkx*alphat*et2*wco2
+              u8 = 3.9744e4_rkx*alphat*et4*wco2
+              u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
+              u13 = 2.8388e3_rkx*alphat*et4*wco2
+              tpath = to3co2(n)
+              tlocal = tint(k2,n)
+              tcrfac = sqrt(tlocal*r250*tpath*r300)
+              posqt = ((pint(k2,n)+pint(k1,n))*r2sslp+dpfco2*tcrfac)*rsqti
+              rbeta7 = d_one/(5.3228_rkx*posqt)
+              rbeta8 = d_one/(10.6576_rkx*posqt)
+              rbeta9 = rbeta7
+              rbeta13 = rbeta9
+              f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
+                      (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
+                      (u9/sqrt(d_four+u9*(d_one+rbeta9)))
+              f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
+              if ( k2 >= k1 ) then
+                sqti = sqrt(tlayr(k2,n))
+              end if
+
+              tmp1 = log(d_one+f1sqwp)
+              tmp2 = log(d_one+f2co2)
+              tmp3 = log(d_one+f3co2)
+              absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
+              abso(6) = trab2*co2em(k2,n)*absbnd
+              tco2(n) = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
+              ! trab3(n)  = 1. - bndfct*absbnd
+              absgastot(k1,k2,n) = abso(1) + abso(2) + abso(3) + &
+                                   abso(4) + abso(5) + abso(6)
+              !
+              ! Calculate absorptivity due to trace gases
+              !
+              call trcab(n,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,  &
+                       uco211,uco212,uco213,uco221,uco222,uco223, &
+                       bn2o0,bn2o1,bch4,to3co2,pint,dw,pnew,s2c,  &
+                       uptype,ux,abplnk1,tco2,th2o,to3,abstrc)
+              !
+              ! Sum total absorptivity
+              !
+              absgastot(k1,k2,n) = absgastot(k1,k2,n) + abstrc(n)
+            end if
+          end do
+        end do  ! End of non-nearest layer level loops
+        !
+        ! Non-adjacent layer absorptivity:
+        !
+        ! abso(1)     0 -  800 cm-1   h2o rotation band
+        ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+        ! abso(3)   800 - 1200 cm-1   h2o window
+        ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+        ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+        ! abso(6)   co2 15  micrometer band system
+        !
+        ! Nearest layer level loop
+        !
+        do k2 = kz , 1 , -1
+          tbar(1,n) = (tint(k2+1,n)+tlayr(k2+1,n))*d_half
+          emm(1) = (co2em(k2+1,n)+co2eml(k2,n))*d_half
+          tbar(2,n) = (tlayr(k2+1,n)+tint(k2,n))*d_half
+          emm(2) = (co2em(k2,n)+co2eml(k2,n))*d_half
+          tbar(3,n) = (tbar(2,n)+tbar(1,n))*d_half
+          emm(3) = emm(1)
+          tbar(4,n) = tbar(3,n)
+          emm(4) = emm(2)
+          o3emm(1) = (dbvtit(k2+1,n)+dbvtly(k2,n))*d_half
+          o3emm(2) = (dbvtit(k2,n)+dbvtly(k2,n))*d_half
+          o3emm(3) = o3emm(1)
+          o3emm(4) = o3emm(2)
+          temh2o(1) = tbar(1,n)
+          temh2o(2) = tbar(2,n)
+          temh2o(3) = tbar(1,n)
+          temh2o(4) = tbar(2,n)
+          dpnm = pint(k2+1,n) - pint(k2,n)
+          !
+          ! Weighted Planck functions for trace gases
+          !
+          do wvl = 1 , 14
+            bplnk(wvl,n,1) = (abplnk1(k2+1,wvl,n)+abplnk2(k2,wvl,n))*d_half
+            bplnk(wvl,n,2) = (abplnk1(k2,wvl,n)+abplnk2(k2,wvl,n))*d_half
+            bplnk(wvl,n,3) = bplnk(wvl,n,1)
+            bplnk(wvl,n,4) = bplnk(wvl,n,2)
+          end do
+
+          rdpnmsq = d_one/(pnmsq(k2+1,n)-pnmsq(k2,n))
+          rdpnm = d_one/dpnm
+          p1 = (pmid(k2,n)+pint(k2+1,n))*d_half
+          p2 = (pmid(k2,n)+pint(k2,n))*d_half
+          uinpl(1,n) = (pnmsq(k2+1,n)-p1**2)*rdpnmsq
+          uinpl(2,n) = -(pnmsq(k2,n)-p2**2)*rdpnmsq
+          uinpl(3,n) = -(pnmsq(k2,n)-p1**2)*rdpnmsq
+          uinpl(4,n) = (pnmsq(k2+1,n)-p2**2)*rdpnmsq
+          winpl(1,n) = ((pint(k2+1,n)-pmid(k2,n))*d_half)*rdpnm
+          winpl(2,n) = ((-pint(k2,n)+pmid(k2,n))*d_half)*rdpnm
+          winpl(3,n) = ((pint(k2+1,n)+pmid(k2,n))*d_half-pint(k2,n))*rdpnm
+          winpl(4,n) = ((-pint(k2,n)-pmid(k2,n))*d_half+pint(k2+1,n))*rdpnm
+          tmp1 = d_one/(piln(n,k2+1)-piln(n,k2))
+          tmp2 = piln(n,k2+1) - pmln(n,k2)
+          tmp3 = piln(n,k2) - pmln(n,k2)
+          zinpl(1) = (tmp2*d_half)*tmp1
+          zinpl(2) = (-tmp3*d_half)*tmp1
+          zinpl(3) = (tmp2*d_half-tmp3)*tmp1
+          zinpl(4) = (tmp2-tmp3*d_half)*tmp1
+          pinpl(1,n) = (p1+pint(k2+1,n))*d_half
+          pinpl(2,n) = (p2+pint(k2,n))*d_half
+          pinpl(3,n) = (p1+pint(k2,n))*d_half
+          pinpl(4,n) = (p2+pint(k2+1,n))*d_half
+
+          ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
+          if ( linteract  ) then
+            do kn = 1 , 4
+              xuinpl(k2,kn,n) = uinpl(kn,n)
+            end do
+          end if
+          ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
+          do kn = 1 , 4
+            ux(n) = abs(uinpl(kn,n)*(plh2o(k2,n)-plh2o(k2+1,n)))
+            sqrtu = sqrt(ux(n))
+            dw(n) = abs(w(k2,n)-w(k2+1,n))
+            pnew(n) = ux(n)/(winpl(kn,n)*dw(n))
+            ds2c = abs(s2c(k2,n)-s2c(k2+1,n))
+            uc1 = uinpl(kn,n)*ds2c
+            uc1 = (uc1+1.7e-3_rkx*ux(n))*(d_one+d_two*uc1)/&
+                  (d_one+15.0_rkx*uc1)
+            uc = uinpl(kn,n)*ds2c + 2.0e-3_rkx*ux(n)
+            dtx(n) = temh2o(kn) - 250.0_rkx
+            dty(n) = tbar(kn,n) - 250.0_rkx
             dtyp15 = dty(n) + 15.0_rkx
             dtyp15sq = dtyp15**2
             dtz = dtx(n) - 50.0_rkx
             dtp = dty(n) - 50.0_rkx
             do iband = 2 , 4 , 2
-              term1(iband) = coefe(1,iband) + &
-                             coefe(2,iband)*dtx(n)*(d_one+c1(iband)*dtx(n))
-              term2(iband) = coefb(1,iband) + &
-                             coefb(2,iband)*dtx(n)*(d_one+c2(iband)*dtx(n) * &
+              term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx(n) * &
+                             (d_one+c1(iband)*dtx(n))
+              term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx(n) * &
+                             (d_one+c2(iband)*dtx(n)                * &
                              (d_one+c3(iband)*dtx(n)))
-              term3(iband) = coefd(1,iband) + &
-                             coefd(2,iband)*dtx(n)*(d_one+c4(iband)*dtx(n) * &
+              term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx(n) * &
+                             (d_one+c4(iband)*dtx(n)                * &
                              (d_one+c5(iband)*dtx(n)))
-              term4(iband) = coefa(1,iband) + &
-                             coefa(2,iband)*dty(n)*(d_one+c6(iband)*dty(n))
-              term5(iband) = coefc(1,iband) + &
-                             coefc(2,iband)*dty(n)*(d_one+c7(iband)*dty(n))
+              term4(iband) = coefa(1,iband) + coefa(2,iband)*dty(n) * &
+                             (d_one+c6(iband)*dty(n))
+              term5(iband) = coefc(1,iband) + coefc(2,iband)*dty(n) * &
+                             (d_one+c7(iband)*dty(n))
             end do
             !
             ! abso(1)     0 -  800 cm-1   h2o rotation band
@@ -2975,7 +3270,7 @@ module mod_rad_radiation
             fwku = fwk*ux(n)
             rsum = exp(-a*(sqrtu+fwku))
             abso(1) = (d_one-rsum)*term3(2)
-            ! trab1(n)  = rsum
+            ! trab1(n) = rsum
             !
             ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
             !
@@ -2988,14 +3283,14 @@ module mod_rad_radiation
             a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
             rsum = exp(-a*(sqrtu+fwku))
             abso(2) = (d_one-rsum)*term3(4)
-            ! trab7(n)  = rsum
+            ! trab7(n) = rsum
             !
             ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
             !
             do k = 1 , 2
               phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
               psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
-              ubar = dw(n)*phi*1.66_rkx*r80257
+              ubar = dw(n)*phi*winpl(kn,n)*1.66_rkx*r80257
               pbar = pnew(n)*(psi/phi)
               cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
               g2 = d_one + ubar*d_four*st(k)*cf812/pbar
@@ -3009,365 +3304,109 @@ module mod_rad_radiation
             !
             ! abso(3)   800 - 1200 cm-1   h2o window
             ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-            k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty(n)-d_10)* &
-                  (dty(n)-d_10))*sqrtu)
-            k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*sqrtu)
+            !
+            dtym10 = dty(n) - d_10
+            denom = d_one + (c30+c31*dtym10*dtym10)*sqrtu
+            k21 = term7(1) + term8(1)/denom
+            denom = d_one + (c28+c29*dtym10)*sqrtu
+            k22 = term7(2) + term8(2)/denom
+            term9(2,n) = coefi(1,2) + coefi(2,2)*dtx(n) *        &
+                         (d_one+c19*dtx(n)*(d_one+c21*dtx(n) *   &
+                       (d_one+c23*dtx(n)*(d_one+c25*dtx(n)))))
             tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
             tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
             tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx(n))*uc1))
             tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx(n))*uc1))
             tr9 = tr1*tr5
             tr10 = tr2*tr6
-            th2o(n) = tr10
             trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
+            th2o(n) = tr10
             trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx(n))*uc)
             trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx(n))*uc)
-            abso(3) = term6(n,k2)*(d_one-trab4*d_half*trline(2)- &
-                        trab6*d_half*trline(1))
-            abso(4) = term9(n,k2)*d_half*(tr1-tr9+tr2-tr10)
-            if ( k2 < k1 ) then
-              to3h2o = h2otr(n,k1)/h2otr(n,k2)
-            else
-              to3h2o = h2otr(n,k2)/h2otr(n,k1)
-            end if
+            term6(2,n) = coeff(1,2) + coeff(2,2)*dtx(n) *     &
+                         (d_one+c9*dtx(n)*(d_one+c11*dtx(n) * &
+                         (d_one+c13*dtx(n)*(d_one+c15*dtx(n)))))
+            abso(3) = term6(2,n)*(d_one-trab4*d_half*trline(2) - &
+                                      trab6*d_half*trline(1))
+            abso(4) = term9(2,n)*d_half*(tr1-tr9+tr2-tr10)
             !
-            ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+            ! abso(5)  o3  9.6 micrometer (nu3 and nu1 bands)
             !
-            dpnm = pint(n,k1) - pint(n,k2)
-            to3co2(n) = (pint(n,k1)*co2t(n,k1)-pint(n,k2)*co2t(n,k2))/dpnm
-            te = (to3co2(n)*r293)**0.7_rkx
-            dplos = plos(n,k1) - plos(n,k2)
-            dplol = plol(n,k1) - plol(n,k2)
-            u1 = 18.29_rkx*abs(dplos)/te
-            u2 = 0.5649_rkx*abs(dplos)/te
-            rphat = dplol/dplos
-            tlocal = tint(n,k2)
+            te = (tbar(kn,n)*r293)**0.7_rkx
+            dplos = abs(plos(k2+1,n)-plos(k2,n))
+            u1 = zinpl(kn)*18.29_rkx*dplos/te
+            u2 = zinpl(kn)*0.5649_rkx*dplos/te
+            tlocal = tbar(kn,n)
             tcrfac = sqrt(tlocal*r250)*te
-            beta = r3205*(rphat+dpfo3*tcrfac)
+            beta = r3205*(pinpl(kn,n)*rsslp+dpfo3*tcrfac)
             realnu = te/beta
             tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
             tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
             o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
-            abso(5) = o3bndi*to3h2o*dbvtit(n,k2)
+            abso(5) = o3bndi*o3emm(kn)*(h2otr(k2+1,n)/h2otr(k2,n))
             to3(n) = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
-            ! trab5(n)  = d_one-(o3bndi/(1060-980.))
+            ! trab5(n) = d_one-(o3bndi/(1060-980.))
             !
-            ! abso(6)      co2 15  micrometer band system
+            ! abso(6)   co2 15  micrometer band system
             !
-            sqwp = sqrt(abs(plco2(n,k1)-plco2(n,k2)))
-            et = exp(-480.0_rkx/to3co2(n))
-            sqti = sqrt(to3co2(n))
+            dplco2 = plco2(k2+1,n) - plco2(k2,n)
+            sqwp = sqrt(uinpl(kn,n)*dplco2)
+            et = exp(-480.0_rkx/tbar(kn,n))
+            sqti = sqrt(tbar(kn,n))
             rsqti = d_one/sqti
             et2 = et*et
             et4 = et2*et2
-            omet = d_one - 1.5_rkx*et2
-            f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
+            omet = (d_one-1.5_rkx*et2)
+            f1co2 = 899.70_rkx*omet*rsqti* &
+              (d_one+1.94774_rkx*et+4.73486_rkx*et2)
             f1sqwp = f1co2*sqwp
             t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
             oneme = d_one - et2
             alphat = oneme**3*rsqti
-            pi = abs(dpnm)
+            pi = abs(dpnm)*winpl(kn,n)
             wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
             u7 = 4.9411e4_rkx*alphat*et2*wco2
             u8 = 3.9744e4_rkx*alphat*et4*wco2
             u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
             u13 = 2.8388e3_rkx*alphat*et4*wco2
-            tpath = to3co2(n)
-            tlocal = tint(n,k2)
-            tcrfac = sqrt(tlocal*r250*tpath*r300)
-            posqt = ((pint(n,k2)+pint(n,k1))*r2sslp+dpfco2*tcrfac)*rsqti
+            tpath = tbar(kn,n)
+            tlocal = tbar(kn,n)
+            tcrfac = sqrt((tlocal*r250)*(tpath*r300))
+            posqt = (pinpl(kn,n)*rsslp+dpfco2*tcrfac)*rsqti
             rbeta7 = d_one/(5.3228_rkx*posqt)
             rbeta8 = d_one/(10.6576_rkx*posqt)
             rbeta9 = rbeta7
             rbeta13 = rbeta9
-            f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
-                    (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
-                    (u9/sqrt(d_four+u9*(d_one+rbeta9)))
+            f2co2 = u7/sqrt(d_four+u7*(d_one+rbeta7)) + &
+                    u8/sqrt(d_four+u8*(d_one+rbeta8)) + &
+                    u9/sqrt(d_four+u9*(d_one+rbeta9))
             f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-            if ( k2 >= k1 ) then
-              sqti = sqrt(tlayr(n,k2))
-            end if
-
             tmp1 = log(d_one+f1sqwp)
             tmp2 = log(d_one+f2co2)
             tmp3 = log(d_one+f3co2)
             absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-            abso(6) = trab2*co2em(n,k2)*absbnd
-            tco2(n) = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
-            ! trab3(n)  = 1. - bndfct*absbnd
-            absgastot(n,k1,k2) = abso(1) + abso(2) + abso(3) + &
+            abso(6) = trab2*emm(kn)*absbnd
+            tco2(n) = d_one/(d_one+d_10*u7/sqrt(d_four+u7*(d_one+rbeta7)))
+            ! trab3(n) = 1. - bndfct*absbnd
+            absgasnxt(k2,kn,n) = abso(1) + abso(2) + abso(3) + &
                                  abso(4) + abso(5) + abso(6)
           end do
           !
-          ! Calculate absorptivity due to trace gases
+          ! Calculate trace gas absorptivity for nearest layer
           !
-          call trcab(n1,n2,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,    &
-                     uco211,uco212,uco213,uco221,uco222,uco223,bn2o0,     &
-                     bn2o1,bch4,to3co2,pint,dw,pnew,s2c,uptype,ux,abplnk1, &
-                     tco2,th2o,to3,abstrc)
-          !
-          ! Sum total absorptivity
-          !
-          do n = n1 , n2
-            absgastot(n,k1,k2) = absgastot(n,k1,k2) + abstrc(n)
-          end do
-        end if
-      end do
-    end do  ! End of non-nearest layer level loops
-    !
-    ! Non-adjacent layer absorptivity:
-    !
-    ! abso(1)     0 -  800 cm-1   h2o rotation band
-    ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-    ! abso(3)   800 - 1200 cm-1   h2o window
-    ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-    ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-    ! abso(6)   co2 15  micrometer band system
-    !
-    ! Nearest layer level loop
-    !
-    do k2 = kz , 1 , -1
-      do n = n1 , n2
-        tbar(n,1) = (tint(n,k2+1)+tlayr(n,k2+1))*d_half
-        emm(1) = (co2em(n,k2+1)+co2eml(n,k2))*d_half
-        tbar(n,2) = (tlayr(n,k2+1)+tint(n,k2))*d_half
-        emm(2) = (co2em(n,k2)+co2eml(n,k2))*d_half
-        tbar(n,3) = (tbar(n,2)+tbar(n,1))*d_half
-        emm(3) = emm(1)
-        tbar(n,4) = tbar(n,3)
-        emm(4) = emm(2)
-        o3emm(1) = (dbvtit(n,k2+1)+dbvtly(n,k2))*d_half
-        o3emm(2) = (dbvtit(n,k2)+dbvtly(n,k2))*d_half
-        o3emm(3) = o3emm(1)
-        o3emm(4) = o3emm(2)
-        temh2o(1) = tbar(n,1)
-        temh2o(2) = tbar(n,2)
-        temh2o(3) = tbar(n,1)
-        temh2o(4) = tbar(n,2)
-        dpnm = pint(n,k2+1) - pint(n,k2)
-        !
-        ! Weighted Planck functions for trace gases
-        !
-        do wvl = 1 , 14
-          bplnk(wvl,n,1) = (abplnk1(wvl,n,k2+1)+abplnk2(wvl,n,k2))*d_half
-          bplnk(wvl,n,2) = (abplnk1(wvl,n,k2)+abplnk2(wvl,n,k2))*d_half
-          bplnk(wvl,n,3) = bplnk(wvl,n,1)
-          bplnk(wvl,n,4) = bplnk(wvl,n,2)
-        end do
-
-        rdpnmsq = d_one/(pnmsq(n,k2+1)-pnmsq(n,k2))
-        rdpnm = d_one/dpnm
-        p1 = (pmid(n,k2)+pint(n,k2+1))*d_half
-        p2 = (pmid(n,k2)+pint(n,k2))*d_half
-        uinpl(n,1) = (pnmsq(n,k2+1)-p1**2)*rdpnmsq
-        uinpl(n,2) = -(pnmsq(n,k2)-p2**2)*rdpnmsq
-        uinpl(n,3) = -(pnmsq(n,k2)-p1**2)*rdpnmsq
-        uinpl(n,4) = (pnmsq(n,k2+1)-p2**2)*rdpnmsq
-        winpl(n,1) = ((pint(n,k2+1)-pmid(n,k2))*d_half)*rdpnm
-        winpl(n,2) = ((-pint(n,k2)+pmid(n,k2))*d_half)*rdpnm
-        winpl(n,3) = ((pint(n,k2+1)+pmid(n,k2))*d_half-pint(n,k2))*rdpnm
-        winpl(n,4) = ((-pint(n,k2)-pmid(n,k2))*d_half+pint(n,k2+1))*rdpnm
-        tmp1 = d_one/(piln(n,k2+1)-piln(n,k2))
-        tmp2 = piln(n,k2+1) - pmln(n,k2)
-        tmp3 = piln(n,k2) - pmln(n,k2)
-        zinpl(1) = (tmp2*d_half)*tmp1
-        zinpl(2) = (-tmp3*d_half)*tmp1
-        zinpl(3) = (tmp2*d_half-tmp3)*tmp1
-        zinpl(4) = (tmp2-tmp3*d_half)*tmp1
-        pinpl(n,1) = (p1+pint(n,k2+1))*d_half
-        pinpl(n,2) = (p2+pint(n,k2))*d_half
-        pinpl(n,3) = (p1+pint(n,k2))*d_half
-        pinpl(n,4) = (p2+pint(n,k2+1))*d_half
-
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( linteract  ) then
           do kn = 1 , 4
-            xuinpl(n,k2,kn) = uinpl(n,kn)
+            call trcabn(n,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4,     &
+                    uco211,uco212,uco213,uco221,uco222,uco223,tbar, &
+                    bplnk,winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,  &
+                    ux,pnew,abstrc,uinpl)
+            !
+            ! Total next layer absorptivity:
+            !
+            absgasnxt(k2,kn,n) = absgasnxt(k2,kn,n) + abstrc(n)
           end do
-        end if
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        do kn = 1 , 4
-          ux(n) = abs(uinpl(n,kn)*(plh2o(n,k2)-plh2o(n,k2+1)))
-          sqrtu = sqrt(ux(n))
-          dw(n) = abs(w(n,k2)-w(n,k2+1))
-          pnew(n) = ux(n)/(winpl(n,kn)*dw(n))
-          ds2c = abs(s2c(n,k2)-s2c(n,k2+1))
-          uc1 = uinpl(n,kn)*ds2c
-          uc1 = (uc1+1.7e-3_rkx*ux(n))*(d_one+d_two*uc1)/(d_one+15.0_rkx*uc1)
-          uc = uinpl(n,kn)*ds2c + 2.0e-3_rkx*ux(n)
-          dtx(n) = temh2o(kn) - 250.0_rkx
-          dty(n) = tbar(n,kn) - 250.0_rkx
-          dtyp15 = dty(n) + 15.0_rkx
-          dtyp15sq = dtyp15**2
-          dtz = dtx(n) - 50.0_rkx
-          dtp = dty(n) - 50.0_rkx
-          do iband = 2 , 4 , 2
-            term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx(n) * &
-                           (d_one+c1(iband)*dtx(n))
-            term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx(n) * &
-                           (d_one+c2(iband)*dtx(n)                * &
-                           (d_one+c3(iband)*dtx(n)))
-            term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx(n) * &
-                           (d_one+c4(iband)*dtx(n)                * &
-                           (d_one+c5(iband)*dtx(n)))
-            term4(iband) = coefa(1,iband) + coefa(2,iband)*dty(n) * &
-                           (d_one+c6(iband)*dty(n))
-            term5(iband) = coefc(1,iband) + coefc(2,iband)*dty(n) * &
-                           (d_one+c7(iband)*dty(n))
-          end do
-          !
-          ! abso(1)     0 -  800 cm-1   h2o rotation band
-          !
-          a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
-          a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
-          a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
-          a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
-          a23 = 1.00_rkx + 3.600_rkx*sqrtu
-          corfac = a31*(a11+((d_two*a21*a22)/a23))
-          t1t4 = term1(2)*term4(2)
-          t2t5 = term2(2)*term5(2)
-          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-          fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
-          fwku = fwk*ux(n)
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(1) = (d_one-rsum)*term3(2)
-          ! trab1(n) = rsum
-          !
-          ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-          !
-          a41 = 1.75_rkx - 3.960e-3_rkx*dtz
-          a51 = 1.00_rkx + 1.3_rkx*sqrtu
-          a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
-          corfac = 0.29_rkx*(d_one+a41/a51)*a61
-          t1t4 = term1(4)*term4(4)
-          t2t5 = term2(4)*term5(4)
-          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(2) = (d_one-rsum)*term3(4)
-          ! trab7(n) = rsum
-          !
-          ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-          !
-          do k = 1 , 2
-            phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
-            psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
-            ubar = dw(n)*phi*winpl(n,kn)*1.66_rkx*r80257
-            pbar = pnew(n)*(psi/phi)
-            cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
-            g2 = d_one + ubar*d_four*st(k)*cf812/pbar
-            g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
-            trline(k) = exp(-g4)
-          end do
-          term7(1) = coefj(1,1)+coefj(2,1)*dty(n)*(d_one+c16*dty(n))
-          term8(1) = coefk(1,1)+coefk(2,1)*dty(n)*(d_one+c17*dty(n))
-          term7(2) = coefj(1,2)+coefj(2,2)*dty(n)*(d_one+c26*dty(n))
-          term8(2) = coefk(1,2)+coefk(2,2)*dty(n)*(d_one+c27*dty(n))
-          !
-          ! abso(3)   800 - 1200 cm-1   h2o window
-          ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-          !
-          dtym10 = dty(n) - d_10
-          denom = d_one + (c30+c31*dtym10*dtym10)*sqrtu
-          k21 = term7(1) + term8(1)/denom
-          denom = d_one + (c28+c29*dtym10)*sqrtu
-          k22 = term7(2) + term8(2)/denom
-          term9(n,2) = coefi(1,2) + coefi(2,2)*dtx(n) *        &
-                       (d_one+c19*dtx(n)*(d_one+c21*dtx(n) *   &
-                       (d_one+c23*dtx(n)*(d_one+c25*dtx(n)))))
-          tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
-          tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
-          tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx(n))*uc1))
-          tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx(n))*uc1))
-          tr9 = tr1*tr5
-          tr10 = tr2*tr6
-          trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
-          th2o(n) = tr10
-          trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx(n))*uc)
-          trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx(n))*uc)
-          term6(n,2) = coeff(1,2) + coeff(2,2)*dtx(n) *     &
-                       (d_one+c9*dtx(n)*(d_one+c11*dtx(n) * &
-                       (d_one+c13*dtx(n)*(d_one+c15*dtx(n)))))
-          abso(3) = term6(n,2)*(d_one-trab4*d_half*trline(2) - &
-                                      trab6*d_half*trline(1))
-          abso(4) = term9(n,2)*d_half*(tr1-tr9+tr2-tr10)
-          !
-          ! abso(5)  o3  9.6 micrometer (nu3 and nu1 bands)
-          !
-          te = (tbar(n,kn)*r293)**0.7_rkx
-          dplos = abs(plos(n,k2+1)-plos(n,k2))
-          u1 = zinpl(kn)*18.29_rkx*dplos/te
-          u2 = zinpl(kn)*0.5649_rkx*dplos/te
-          tlocal = tbar(n,kn)
-          tcrfac = sqrt(tlocal*r250)*te
-          beta = r3205*(pinpl(n,kn)*rsslp+dpfo3*tcrfac)
-          realnu = te/beta
-          tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
-          tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
-          o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
-          abso(5) = o3bndi*o3emm(kn)*(h2otr(n,k2+1)/h2otr(n,k2))
-          to3(n) = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
-          ! trab5(n) = d_one-(o3bndi/(1060-980.))
-          !
-          ! abso(6)   co2 15  micrometer band system
-          !
-          dplco2 = plco2(n,k2+1) - plco2(n,k2)
-          sqwp = sqrt(uinpl(n,kn)*dplco2)
-          et = exp(-480.0_rkx/tbar(n,kn))
-          sqti = sqrt(tbar(n,kn))
-          rsqti = d_one/sqti
-          et2 = et*et
-          et4 = et2*et2
-          omet = (d_one-1.5_rkx*et2)
-          f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
-          f1sqwp = f1co2*sqwp
-          t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
-          oneme = d_one - et2
-          alphat = oneme**3*rsqti
-          pi = abs(dpnm)*winpl(n,kn)
-          wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
-          u7 = 4.9411e4_rkx*alphat*et2*wco2
-          u8 = 3.9744e4_rkx*alphat*et4*wco2
-          u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
-          u13 = 2.8388e3_rkx*alphat*et4*wco2
-          tpath = tbar(n,kn)
-          tlocal = tbar(n,kn)
-          tcrfac = sqrt((tlocal*r250)*(tpath*r300))
-          posqt = (pinpl(n,kn)*rsslp+dpfco2*tcrfac)*rsqti
-          rbeta7 = d_one/(5.3228_rkx*posqt)
-          rbeta8 = d_one/(10.6576_rkx*posqt)
-          rbeta9 = rbeta7
-          rbeta13 = rbeta9
-          f2co2 = u7/sqrt(d_four+u7*(d_one+rbeta7)) + &
-                  u8/sqrt(d_four+u8*(d_one+rbeta8)) + &
-                  u9/sqrt(d_four+u9*(d_one+rbeta9))
-          f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-          tmp1 = log(d_one+f1sqwp)
-          tmp2 = log(d_one+f2co2)
-          tmp3 = log(d_one+f3co2)
-          absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-          abso(6) = trab2*emm(kn)*absbnd
-          tco2(n) = d_one/(d_one+d_10*u7/sqrt(d_four+u7*(d_one+rbeta7)))
-          ! trab3(n) = 1. - bndfct*absbnd
-          absgasnxt(n,k2,kn) = abso(1) + abso(2) + abso(3) + &
-                               abso(4) + abso(5) + abso(6)
-        end do
-      end do
-      !
-      ! Calculate trace gas absorptivity for nearest layer
-      !
-      do kn = 1 , 4
-        call trcabn(n1,n2,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4, &
-                    uco211,uco212,uco213,uco221,uco222,uco223,tbar,   &
-                    bplnk,winpl,pinpl,tco2,th2o,to3,uptype,dw,s2c,ux, &
-                    pnew,abstrc,uinpl)
-        !
-        ! Total next layer absorptivity:
-        !
-        do n = n1 , n2
-          absgasnxt(n,k2,kn) = absgasnxt(n,k2,kn) + abstrc(n)
-        end do
-      end do
-    end do  !  end of nearest layer level loop
+        end do  !  end of nearest layer level loop
+      end block
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
@@ -3533,22 +3572,7 @@ module mod_rad_radiation
     ! th2o    - h2o overlap factor
     ! to3     - o3 overlap factor
     !
-    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
-               absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
-               exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
-               g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
-               phi , pi , posqt , psi , k21 , k22 , trem4 , trem6 ,   &
-               rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
-               sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 , tpathe ,     &
-               tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
-               tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
-               tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
-               dtp , dtz , xpnew , rsum , uc , uc1 , troco2
-    real(rkx) , dimension(4) :: term1 , term2 , term3 , term4 , term5
-    real(rkx) , dimension(4) :: emis
-    real(rkx) :: xterm6 , xterm9
-    real(rkx) , dimension(2) :: term7 , term8 , trline
-    integer(ik4) :: n , k , kk , iband , l
+    integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radems'
     integer(ik4) :: indx = 0
@@ -3557,228 +3581,240 @@ module mod_rad_radiation
     !
     ! Planck function for co2
     !
-    do n = n1 , n2
-      ex = exp(960.0_rkx/tplnke(n))
-      co2plk(n) = 5.0e8_rkx/((tplnke(n)**4)*(ex-d_one))
-      co2t(n,1) = tplnke(n)
-      xsum(n) = co2t(n,1)*pint(n,1)
-    end do
-    kk = 1
-    do k = kzp1 , 2 , -1
-      kk = kk + 1
-      do n = n1 , n2
-        xsum(n) = xsum(n) + tlayr(n,kk)*(pint(n,kk)-pint(n,kk-1))
-        ex = exp(960.0_rkx/tlayr(n,kk))
-        tlayr5 = tlayr(n,kk)*tlayr4(n,kk)
-        co2eml(n,kk-1) = 1.2e11_rkx*ex/(tlayr5*(ex-d_one)**2)
-        co2t(n,kk) = xsum(n)/pint(n,kk)
-      end do
-    end do
-    !
-    ! bndfct = 2.d0*22.18/(sqrt(196.d0)*300.)
-    !
-    ! Calculate trace gas Planck functions
-    !
-    call trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
-    !
-    ! Interface loop
-    !
-    do k = 1 , kzp1
-      do n = n1 , n2
-        !
-        ! H2O emissivity
-        !
-        ! emis(1)     0 -  800 cm-1   rotation band
-        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
-        ! emis(3)   800 - 1200 cm-1   window
-        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
-        !
-        ! For the p type continuum
-        !
-        uc = s2c(n,k) + 2.0e-3_rkx*plh2o(n,k)
-        ux(n) = plh2o(n,k)
-        !
-        ! Apply scaling factor for 500-800 continuum
-        !
-        uc1 = (s2c(n,k)+1.7e-3_rkx*plh2o(n,k)) * &
-              (d_one+d_two*s2c(n,k))/(d_one+15.0_rkx*s2c(n,k))
-        tpathe = s2t(n,k)/plh2o(n,k)
-        dtx(n) = tplnke(n) - 250.0_rkx
-        dty(n) = tpathe - 250.0_rkx
-        !
-        ! emis(1)     0 -  800 cm-1   rotation band
-        !
-        do iband = 1 , 3 , 2
-          term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx(n) *   &
-                         (d_one+c1(iband)*dtx(n))
-          term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx(n) *   &
-                         (d_one+c2(iband)*dtx(n)*(d_one+c3(iband)*dtx(n)))
-          term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx(n) *   &
-                         (d_one+c4(iband)*dtx(n)*(d_one+c5(iband)*dtx(n)))
-          term4(iband) = coefa(1,iband) + coefa(2,iband)*dty(n) *   &
-                         (d_one+c6(iband)*dty(n))
-          term5(iband) = coefc(1,iband) + coefc(2,iband)*dty(n) *   &
-                         (d_one+c7(iband)*dty(n))
+    do concurrent ( n = n1:n2 )
+      block
+        real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,  &
+                   absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
+                   exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
+                   g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
+                   phi , pi , posqt , psi , k21 , k22 , trem4 , trem6 ,   &
+                   rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
+                   sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 , tpathe ,     &
+                   tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
+                   tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
+                   tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
+                   dtp , dtz , xpnew , rsum , uc , uc1 , troco2
+        real(rkx) , dimension(4) :: term1 , term2 , term3 , term4 , term5
+        real(rkx) , dimension(4) :: emis
+        real(rkx) :: xterm6 , xterm9
+        real(rkx) , dimension(2) :: term7 , term8 , trline
+        integer(ik4) :: k , kk , iband , l
+        ex = exp(960.0_rkx/tplnke(n))
+        co2plk(n) = 5.0e8_rkx/((tplnke(n)**4)*(ex-d_one))
+        co2t(1,n) = tplnke(n)
+        xsum(n) = co2t(1,n)*pint(1,n)
+        kk = 1
+        do k = kzp1 , 2 , -1
+          kk = kk + 1
+          xsum(n) = xsum(n) + tlayr(kk,n)*(pint(kk,n)-pint(kk-1,n))
+          ex = exp(960.0_rkx/tlayr(kk,n))
+          tlayr5 = tlayr(kk,n)*tlayr4(kk,n)
+          co2eml(kk-1,n) = 1.2e11_rkx*ex/(tlayr5*(ex-d_one)**2)
+          co2t(kk,n) = xsum(n)/pint(kk,n)
         end do
-        dtp = dty(n) - 50.0_rkx
-        dtz = dtx(n) - 50.0_rkx
-        a11 = 0.37_rkx - 3.33e-5_rkx*dtz + 3.33e-6_rkx*dtz*dtz
-        a31 = 1.07_rkx - 1.00e-3_rkx*dtp + 1.475e-5_rkx*dtp*dtp
-        a21 = 1.3870_rkx + 3.80e-3_rkx*dtz - 7.8e-6_rkx*dtz*dtz
-        a22 = d_one - 1.21e-3_rkx*dtp - 5.33e-6_rkx*dtp*dtp
-        a23 = 0.9_rkx + 2.62_rkx*sqrt(ux(n))
-        corfac = a31*(a11+((a21*a22)/a23))
-        t1t4 = term1(1)*term4(1)
-        t2t5 = term2(1)*term5(1)
-        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux(n))*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
-        rsum = exp(-a*(sqrt(ux(n))+fwk*ux(n)))
-        emis(1) = (d_one-rsum)*term3(1)
-        ! trem1  = rsum
         !
-        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+        ! bndfct = 2.d0*22.18/(sqrt(196.d0)*300.)
         !
-        a41 = 1.75_rkx - 3.96e-3_rkx*dtz
-        a51 = 1.00_rkx + 1.3_rkx*sqrt(ux(n))
-        a61 = 1.00_rkx + 1.25e-3_rkx*dtp + 6.25e-5_rkx*dtp*dtp
-        corfac = 0.3_rkx*(d_one+(a41)/(a51))*a61
-        t1t4 = term1(3)*term4(3)
-        t2t5 = term2(3)*term5(3)
-        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux(n))*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
-        rsum = exp(-a*(sqrt(ux(n))+fwk*ux(n)))
-        emis(2) = (d_one-rsum)*term3(3)
-        ! trem7 = rsum
+        ! Calculate trace gas Planck functions
         !
-        ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+        call trcplk(n,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
         !
-        ! emis(3)   800 - 1200 cm-1   window
+        ! Interface loop
         !
-        do l = 1 , 2
-          phi = a1(l)*(dty(n)+15.0_rkx)+a2(l)*(dty(n)+15.0_rkx)**2
-          psi = b1(l)*(dty(n)+15.0_rkx)+b2(l)*(dty(n)+15.0_rkx)**2
-          phi = exp(phi)
-          psi = exp(psi)
-          ubar = w(n,k)*phi
-          ubar = (ubar*1.66_rkx)*r80257
-          xpnew = ux(n)/w(n,k)
-          pbar = xpnew*(psi/phi)
-          cf812 = cfa1 + ((d_one-cfa1)/(d_one+ubar*pbar*d_10))
-          g1 = (realk(l)*pbar)/(d_two*st(l))
-          g2 = d_one + (ubar*d_four*st(l)*cf812)/pbar
-          g3 = sqrt(g2) - d_one
-          g4 = g1*g3
-          trline(l) = exp(-g4)
-        end do
-        xterm6 = coeff(1,1) + coeff(2,1)*dtx(n) *        &
-                 (d_one+c8*dtx(n)*(d_one+c10*dtx(n) *    &
-                 (d_one+c12*dtx(n)*(d_one+c14*dtx(n)))))
-        term7(1) = coefj(1,1)+coefj(2,1)*dty(n)*(d_one+c16*dty(n))
-        term8(1) = coefk(1,1)+coefk(2,1)*dty(n)*(d_one+c17*dty(n))
-        term7(2) = coefj(1,2)+coefj(2,2)*dty(n)*(d_one+c26*dty(n))
-        term8(2) = coefk(1,2)+coefk(2,2)*dty(n)*(d_one+c27*dty(n))
-        trem4 = exp(-(coefg(1,1)+coefg(2,1)*dtx(n))*uc)*trline(2)
-        trem6 = exp(-(coefg(1,2)+coefg(2,2)*dtx(n))*uc)*trline(1)
-        emis(3) = xterm6*(d_one-trem4*d_half-trem6*d_half)
-        !
-        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
-        !
-        k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty(n)-d_10) * &
-                 (dty(n)-d_10))*sqrt(ux(n)))
-        k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*sqrt(ux(n)))
-        xterm9 = coefi(1,1) + coefi(2,1)*dtx(n) *        &
-                (d_one+c18*dtx(n)*(d_one+c20*dtx(n) *   &
-                (d_one+c22*dtx(n)*(d_one+c24*dtx(n)))))
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
-        tr1 = exp(-(k21*(sqrt(ux(n))+fc1*fwk*ux(n))))
-        tr2 = exp(-(k22*(sqrt(ux(n))+fc1*fwk*ux(n))))
-        tr3 = exp(-((coefh(1,1)+coefh(2,1)*dtx(n))*uc1))
-        tr4 = exp(-((coefh(1,2)+coefh(2,2)*dtx(n))*uc1))
-        tr7 = tr1*tr3
-        tr8 = tr2*tr4
-        emis(4) = xterm9*d_half*(tr1-tr7+tr2-tr8)
-        h2oems(n,k) = emis(1) + emis(2) + emis(3) + emis(4)
-        troco2 = 0.65_rkx*tr7 + 0.35_rkx*tr8
-        th2o(n) = tr8
-        ! trem2(n) = troco2
-        !
-        ! CO2 emissivity for 15 micron band system
-        !
-        t1i = exp(-480.0_rkx/co2t(n,k))
-        sqti = sqrt(co2t(n,k))
-        rsqti = d_one/sqti
-        et = t1i
-        et2 = et*et
-        et4 = et2*et2
-        omet = d_one - 1.5_rkx*et2
-        f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
-        sqwp = sqrt(plco2(n,k))
-        f1sqwp = f1co2*sqwp
-        t1co2 = d_one/(d_one+245.18_rkx*omet*sqwp*rsqti)
-        oneme = d_one - et2
-        alphat = oneme**3*rsqti
-        wco2 = 2.5221_rkx*co2vmr(n)*pint(n,k)*regravgts
-        u7 = 4.9411e4_rkx*alphat*et2*wco2
-        u8 = 3.9744e4_rkx*alphat*et4*wco2
-        u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
-        u13 = 2.8388e3_rkx*alphat*et4*wco2
+        do k = 1 , kzp1
+          !
+          ! H2O emissivity
+          !
+          ! emis(1)     0 -  800 cm-1   rotation band
+          ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+          ! emis(3)   800 - 1200 cm-1   window
+          ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
+          !
+          ! For the p type continuum
+          !
+          uc = s2c(k,n) + 2.0e-3_rkx*plh2o(k,n)
+          ux(n) = plh2o(k,n)
+          !
+          ! Apply scaling factor for 500-800 continuum
+          !
+          uc1 = (s2c(k,n)+1.7e-3_rkx*plh2o(k,n)) * &
+              (d_one+d_two*s2c(k,n))/(d_one+15.0_rkx*s2c(k,n))
+          tpathe = s2t(k,n)/plh2o(k,n)
+          dtx(n) = tplnke(n) - 250.0_rkx
+          dty(n) = tpathe - 250.0_rkx
+          !
+          ! emis(1)     0 -  800 cm-1   rotation band
+          !
+          do iband = 1 , 3 , 2
+            term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx(n) *   &
+                           (d_one+c1(iband)*dtx(n))
+            term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx(n) *   &
+                           (d_one+c2(iband)*dtx(n)*(d_one+c3(iband)*dtx(n)))
+            term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx(n) *   &
+                           (d_one+c4(iband)*dtx(n)*(d_one+c5(iband)*dtx(n)))
+            term4(iband) = coefa(1,iband) + coefa(2,iband)*dty(n) *   &
+                           (d_one+c6(iband)*dty(n))
+            term5(iband) = coefc(1,iband) + coefc(2,iband)*dty(n) *   &
+                           (d_one+c7(iband)*dty(n))
+          end do
+          dtp = dty(n) - 50.0_rkx
+          dtz = dtx(n) - 50.0_rkx
+          a11 = 0.37_rkx - 3.33e-5_rkx*dtz + 3.33e-6_rkx*dtz*dtz
+          a31 = 1.07_rkx - 1.00e-3_rkx*dtp + 1.475e-5_rkx*dtp*dtp
+          a21 = 1.3870_rkx + 3.80e-3_rkx*dtz - 7.8e-6_rkx*dtz*dtz
+          a22 = d_one - 1.21e-3_rkx*dtp - 5.33e-6_rkx*dtp*dtp
+          a23 = 0.9_rkx + 2.62_rkx*sqrt(ux(n))
+          corfac = a31*(a11+((a21*a22)/a23))
+          t1t4 = term1(1)*term4(1)
+          t2t5 = term2(1)*term5(1)
+          a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux(n))*corfac)
+          fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+          rsum = exp(-a*(sqrt(ux(n))+fwk*ux(n)))
+          emis(1) = (d_one-rsum)*term3(1)
+          ! trem1  = rsum
+          !
+          ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+          !
+          a41 = 1.75_rkx - 3.96e-3_rkx*dtz
+          a51 = 1.00_rkx + 1.3_rkx*sqrt(ux(n))
+          a61 = 1.00_rkx + 1.25e-3_rkx*dtp + 6.25e-5_rkx*dtp*dtp
+          corfac = 0.3_rkx*(d_one+(a41)/(a51))*a61
+          t1t4 = term1(3)*term4(3)
+          t2t5 = term2(3)*term5(3)
+          a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux(n))*corfac)
+          fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+          rsum = exp(-a*(sqrt(ux(n))+fwk*ux(n)))
+          emis(2) = (d_one-rsum)*term3(3)
+          ! trem7 = rsum
+          !
+          ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+          !
+          ! emis(3)   800 - 1200 cm-1   window
+          !
+          do l = 1 , 2
+            phi = a1(l)*(dty(n)+15.0_rkx)+a2(l)*(dty(n)+15.0_rkx)**2
+            psi = b1(l)*(dty(n)+15.0_rkx)+b2(l)*(dty(n)+15.0_rkx)**2
+            phi = exp(phi)
+            psi = exp(psi)
+            ubar = w(k,n)*phi
+            ubar = (ubar*1.66_rkx)*r80257
+            xpnew = ux(n)/w(k,n)
+            pbar = xpnew*(psi/phi)
+            cf812 = cfa1 + ((d_one-cfa1)/(d_one+ubar*pbar*d_10))
+            g1 = (realk(l)*pbar)/(d_two*st(l))
+            g2 = d_one + (ubar*d_four*st(l)*cf812)/pbar
+            g3 = sqrt(g2) - d_one
+            g4 = g1*g3
+            trline(l) = exp(-g4)
+          end do
+          xterm6 = coeff(1,1) + coeff(2,1)*dtx(n) *        &
+                   (d_one+c8*dtx(n)*(d_one+c10*dtx(n) *    &
+                   (d_one+c12*dtx(n)*(d_one+c14*dtx(n)))))
+          term7(1) = coefj(1,1)+coefj(2,1)*dty(n)*(d_one+c16*dty(n))
+          term8(1) = coefk(1,1)+coefk(2,1)*dty(n)*(d_one+c17*dty(n))
+          term7(2) = coefj(1,2)+coefj(2,2)*dty(n)*(d_one+c26*dty(n))
+          term8(2) = coefk(1,2)+coefk(2,2)*dty(n)*(d_one+c27*dty(n))
+          trem4 = exp(-(coefg(1,1)+coefg(2,1)*dtx(n))*uc)*trline(2)
+          trem6 = exp(-(coefg(1,2)+coefg(2,2)*dtx(n))*uc)*trline(1)
+          emis(3) = xterm6*(d_one-trem4*d_half-trem6*d_half)
+          !
+          ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
+          !
+          k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty(n)-d_10) * &
+                   (dty(n)-d_10))*sqrt(ux(n)))
+          k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty(n)-d_10))*sqrt(ux(n)))
+          xterm9 = coefi(1,1) + coefi(2,1)*dtx(n) *     &
+                  (d_one+c18*dtx(n)*(d_one+c20*dtx(n) * &
+                  (d_one+c22*dtx(n)*(d_one+c24*dtx(n)))))
+          fwk = fwcoef + fwc1/(d_one+fwc2*ux(n))
+          tr1 = exp(-(k21*(sqrt(ux(n))+fc1*fwk*ux(n))))
+          tr2 = exp(-(k22*(sqrt(ux(n))+fc1*fwk*ux(n))))
+          tr3 = exp(-((coefh(1,1)+coefh(2,1)*dtx(n))*uc1))
+          tr4 = exp(-((coefh(1,2)+coefh(2,2)*dtx(n))*uc1))
+          tr7 = tr1*tr3
+          tr8 = tr2*tr4
+          emis(4) = xterm9*d_half*(tr1-tr7+tr2-tr8)
+          h2oems(k,n) = emis(1) + emis(2) + emis(3) + emis(4)
+          troco2 = 0.65_rkx*tr7 + 0.35_rkx*tr8
+          th2o(n) = tr8
+          ! trem2(n) = troco2
+          !
+          ! CO2 emissivity for 15 micron band system
+          !
+          t1i = exp(-480.0_rkx/co2t(k,n))
+          sqti = sqrt(co2t(k,n))
+          rsqti = d_one/sqti
+          et = t1i
+          et2 = et*et
+          et4 = et2*et2
+          omet = d_one - 1.5_rkx*et2
+          f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
+          sqwp = sqrt(plco2(k,n))
+          f1sqwp = f1co2*sqwp
+          t1co2 = d_one/(d_one+245.18_rkx*omet*sqwp*rsqti)
+          oneme = d_one - et2
+          alphat = oneme**3*rsqti
+          wco2 = 2.5221_rkx*co2vmr(n)*pint(k,n)*regravgts
+          u7 = 4.9411e4_rkx*alphat*et2*wco2
+          u8 = 3.9744e4_rkx*alphat*et4*wco2
+          u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
+          u13 = 2.8388e3_rkx*alphat*et4*wco2
 
-        tpath = co2t(n,k)
-        tlocal = tplnke(n)
-        tcrfac = sqrt((tlocal*r250)*(tpath*r300))
-        pi = pint(n,k)*rsslp + d_two*dpfco2*tcrfac
-        posqt = pi/(d_two*sqti)
-        rbeta7 = d_one/(5.3288_rkx*posqt)
-        rbeta8 = d_one/(10.6576_rkx*posqt)
-        rbeta9 = rbeta7
-        rbeta13 = rbeta9
-        f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
-                (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
-                (u9/sqrt(d_four+u9*(d_one+rbeta9)))
-        f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-        tmp1 = log(d_one+f1sqwp)
-        tmp2 = log(d_one+f2co2)
-        tmp3 = log(d_one+f3co2)
-        absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-        tco2(n) = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
-        co2ems(n,k) = troco2*absbnd*co2plk(n)
-        ex = exp(960.0_rkx/tint(n,k))
-        exm1sq = (ex-d_one)**2
-        co2em(n,k) = 1.2e11_rkx*ex/(tint(n,k)*tint4(n,k)*exm1sq)
-        ! trem3(n) = 1. - bndfct*absbnd
-        !
-        ! O3 emissivity
-        !
-        h2otr(n,k) = exp(-12.0_rkx*s2c(n,k))
-        te = (co2t(n,k)/293.0_rkx)**0.7_rkx
-        u1 = 18.29_rkx*plos(n,k)/te
-        u2 = 0.5649_rkx*plos(n,k)/te
-        phat = plos(n,k)/plol(n,k)
-        tlocal = tplnke(n)
-        tcrfac = sqrt(tlocal*r250)*te
-        beta = (d_one/0.3205_rkx)*((d_one/phat)+(dpfo3*tcrfac))
-        realnu = (d_one/beta)*te
-        o3bndi = 74.0_rkx*te*(tplnke(n)/375.0_rkx)*log(d_one+fo3(u1,realnu) + &
-                 fo3(u2,realnu))
-        dbvtt = dbvt(tplnke(n))
-        o3ems(n,k) = dbvtt*h2otr(n,k)*o3bndi
-        to3(n) = d_one/(d_one+0.1_rkx*fo3(u1,realnu)+0.1_rkx*fo3(u2,realnu))
-        ! trem5(n)    = d_one-(o3bndi/(1060-980.))
-      end do
-      !
-      ! Calculate trace gas emissivities
-      !
-      call trcems(n1,n2,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1,  &
+          tpath = co2t(k,n)
+          tlocal = tplnke(n)
+          tcrfac = sqrt((tlocal*r250)*(tpath*r300))
+          pi = pint(k,n)*rsslp + d_two*dpfco2*tcrfac
+          posqt = pi/(d_two*sqti)
+          rbeta7 = d_one/(5.3288_rkx*posqt)
+          rbeta8 = d_one/(10.6576_rkx*posqt)
+          rbeta9 = rbeta7
+          rbeta13 = rbeta9
+          f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
+                  (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
+                  (u9/sqrt(d_four+u9*(d_one+rbeta9)))
+          f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
+          tmp1 = log(d_one+f1sqwp)
+          tmp2 = log(d_one+f2co2)
+          tmp3 = log(d_one+f3co2)
+          absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
+          tco2(n) = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
+          co2ems(k,n) = troco2*absbnd*co2plk(n)
+          ex = exp(960.0_rkx/tint(k,n))
+          exm1sq = (ex-d_one)**2
+          co2em(k,n) = 1.2e11_rkx*ex/(tint(k,n)*tint4(k,n)*exm1sq)
+          ! trem3(n) = 1. - bndfct*absbnd
+          !
+          ! O3 emissivity
+          !
+          h2otr(k,n) = exp(-12.0_rkx*s2c(k,n))
+          te = (co2t(k,n)/293.0_rkx)**0.7_rkx
+          u1 = 18.29_rkx*plos(k,n)/te
+          u2 = 0.5649_rkx*plos(k,n)/te
+          phat = plos(k,n)/plol(k,n)
+          tlocal = tplnke(n)
+          tcrfac = sqrt(tlocal*r250)*te
+          beta = (d_one/0.3205_rkx)*((d_one/phat)+(dpfo3*tcrfac))
+          realnu = (d_one/beta)*te
+          o3bndi = 74.0_rkx*te*(tplnke(n)/375.0_rkx)* &
+                   log(d_one+fo3(u1,realnu)+fo3(u2,realnu))
+          dbvtt = dbvt(tplnke(n))
+          o3ems(k,n) = dbvtt*h2otr(k,n)*o3bndi
+          to3(n) = d_one/(d_one+0.1_rkx*fo3(u1,realnu)+0.1_rkx*fo3(u2,realnu))
+          ! trem5(n)    = d_one-(o3bndi/(1060-980.))
+          !
+          ! Calculate trace gas emissivities
+          !
+          call trcems(n,k,co2t,pint,ucfc11,ucfc12,un2o0,un2o1,    &
                   bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,  &
                   uco222,uco223,uptype,w,s2c,ux,emplnk,th2o,tco2,to3, &
                   emstrc)
-      !
-      ! Total emissivity:
-      !
-      do n = n1 , n2
-        emsgastot(n,k) = h2oems(n,k)+co2ems(n,k)+o3ems(n,k)+emstrc(n,k)
-      end do
-    end do  ! End of interface loop
+          !
+          ! Total emissivity:
+          !
+          emsgastot(k,n) = h2oems(k,n)+co2ems(k,n)+o3ems(k,n)+emstrc(k,n)
+        end do  ! End of interface loop
+      end block
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
@@ -3800,7 +3836,7 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:) :: o3vmr
     real(rkx) , pointer , dimension(:,:) :: pint
     intent (in) o3vmr , pint
-    integer(ik4) :: n , k
+    integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radoz2'
     integer(ik4) :: indx = 0
@@ -3812,17 +3848,18 @@ module mod_rad_radiation
     !
     ! Bug fix, 24 May 1996:  the 0.5 and 0.25 factors removed.
     !
-    do n = n1 , n2
-      plos(n,1) = 0.1_rkx*cplos*o3vmr(n,1)*pint(n,1)
-      plol(n,1) = 0.01_rkx*cplol*o3vmr(n,1)*pint(n,1)*pint(n,1)
-    end do
-    do k = 2 , kzp1
-      do n = n1 , n2
-        plos(n,k) = plos(n,k-1) + &
-             0.1_rkx*cplos*o3vmr(n,k-1)*(pint(n,k)-pint(n,k-1))
-        plol(n,k) = plol(n,k-1) + 0.01_rkx*cplol*o3vmr(n,k-1) * &
-                    (pint(n,k)*pint(n,k)-pint(n,k-1)*pint(n,k-1))
-      end do
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        plos(1,n) = 0.1_rkx*cplos*o3vmr(n,1)*pint(1,n)
+        plol(1,n) = 0.01_rkx*cplol*o3vmr(n,1)*pint(1,n)*pint(1,n)
+        do k = 2 , kzp1
+          plos(k,n) = plos(k-1,n) + &
+               0.1_rkx*cplos*o3vmr(n,k-1)*(pint(k,n)-pint(k-1,n))
+          plol(k,n) = plol(k-1,n) + 0.01_rkx*cplol*o3vmr(n,k-1) * &
+                      (pint(k,n)*pint(k,n)-pint(k-1,n)*pint(k-1,n))
+        end do
+      end block
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
@@ -3847,8 +3884,7 @@ module mod_rad_radiation
     ! dpnmsq - Prs squared difference across layer
     ! rtnm   - Inverse level temperature
     !
-    real(rkx) :: dpnm , dpnmsq , dy , rtnm
-    integer(ik4) :: n , k
+    integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radtpl'
     integer(ik4) :: indx = 0
@@ -3861,69 +3897,63 @@ module mod_rad_radiation
     ! Tint is lower interface temperature
     ! (not available for bottom layer, so use ground temperature)
     !
-    do n = n1 , n2
-      tint(n,kzp1) = ts(n)
-      tint4(n,kzp1) = tint(n,kzp1)**4
-      tplnka(n,1) = tnm(n,1)
-      tint(n,1) = tplnka(n,1)
-      tlayr4(n,1) = tplnka(n,1)**4
-      tint4(n,1) = tlayr4(n,1)
-    end do
-    !
-    ! Intermediate level temperatures are computed using temperature
-    ! at the full level below less dy*delta t,between the full level
-    !
-    do k = 2 , kz
-      do n = n1 , n2
-        dy = (piln(n,k)-pmln(n,k))/(pmln(n,k-1)-pmln(n,k))
-        tint(n,k) = tnm(n,k) - dy*(tnm(n,k)-tnm(n,k-1))
-        tint4(n,k) = tint(n,k)**4
-      end do
-    end do
-    !
-    ! Now set the layer temp=full level temperatures and establish a
-    ! planck temperature for absorption (tplnka) which is the average
-    ! the intermediate level temperatures.  Note that tplnka is not
-    ! equal to the full level temperatures.
-    !
-    do k = 2 , kzp1
-      do n = n1 , n2
-        tlayr(n,k) = tnm(n,k-1)
-        tlayr4(n,k) = tlayr(n,k)**4
-        tplnka(n,k) = (tint(n,k)+tint(n,k-1))*d_half
-      end do
-    end do
-    !
-    ! Calculate tplank for emissivity calculation.
-    ! Assume isothermal tplnke i.e. all levels=ttop.
-    !
-    do n = n1 , n2
-      tplnke(n) = tplnka(n,1)
-      tlayr(n,1) = tint(n,1)
-    end do
-    !
-    ! Now compute h2o path fields:
-    !
-    do n = n1 , n2
-      s2t(n,1) = plh2o(n,1)*tnm(n,1)
-      ! ccm3.2
-      ! w(n,1)   = (plh2o(n,1)*2.) / pint(n,1)
-      ! s2c(n,1) = plh2o(n,1) * qnm(n,1) * repsil
-      ! ccm3.6.6
-      w(n,1) = sslp*(plh2o(n,1)*d_two)/pint(n,1)
-      rtnm = d_one/tnm(n,1)
-      s2c(n,1) = plh2o(n,1)*exp(1800.0_rkx*(rtnm-r296))*qnm(n,1)*repsil
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        dpnm = pint(n,k+1) - pint(n,k)
-        dpnmsq = pint(n,k+1)**2 - pint(n,k)**2
-        rtnm = d_one/tnm(n,k)
-        s2t(n,k+1) = s2t(n,k) + rgsslp*dpnmsq*qnm(n,k)*tnm(n,k)
-        w(n,k+1) = w(n,k) + regravgts*qnm(n,k)*dpnm
-        s2c(n,k+1) = s2c(n,k) + rgsslp*dpnmsq*qnm(n,k) * &
-                     exp(1800.0_rkx*(rtnm-r296))*qnm(n,k)*repsil
-      end do
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: dpnm , dpnmsq , dy , rtnm
+        tint(kzp1,n) = ts(n)
+        tint4(kzp1,n) = tint(kzp1,n)**4
+        tplnka(1,n) = tnm(n,1)
+        tint(1,n) = tplnka(1,n)
+        tlayr4(1,n) = tplnka(1,n)**4
+        tint4(1,n) = tlayr4(1,n)
+        !
+        ! Intermediate level temperatures are computed using temperature
+        ! at the full level below less dy*delta t,between the full level
+        !
+        do k = 2 , kz
+          dy = (piln(n,k)-pmln(n,k))/(pmln(n,k-1)-pmln(n,k))
+          tint(k,n) = tnm(n,k) - dy*(tnm(n,k)-tnm(n,k-1))
+          tint4(k,n) = tint(k,n)**4
+        end do
+        !
+        ! Now set the layer temp=full level temperatures and establish a
+        ! planck temperature for absorption (tplnka) which is the average
+        ! the intermediate level temperatures.  Note that tplnka is not
+        ! equal to the full level temperatures.
+        !
+        do k = 2 , kzp1
+          tlayr(k,n) = tnm(n,k-1)
+          tlayr4(k,n) = tlayr(k,n)**4
+          tplnka(k,n) = (tint(k,n)+tint(k-1,n))*d_half
+        end do
+        !
+        ! Calculate tplank for emissivity calculation.
+        ! Assume isothermal tplnke i.e. all levels=ttop.
+        !
+        tplnke(n) = tplnka(1,n)
+        tlayr(1,n) = tint(1,n)
+        !
+        ! Now compute h2o path fields:
+        !
+        s2t(1,n) = plh2o(1,n)*tnm(n,1)
+        ! ccm3.2
+        ! w(1,n)   = (plh2o(1,n)*2.) / pint(1,n)
+        ! s2c(1,n) = plh2o(1,n) * qnm(n,1) * repsil
+        ! ccm3.6.6
+        w(1,n) = sslp*(plh2o(1,n)*d_two)/pint(1,n)
+        rtnm = d_one/tnm(n,1)
+        s2c(1,n) = plh2o(1,n)*exp(1800.0_rkx*(rtnm-r296))*qnm(n,1)*repsil
+        do k = 1 , kz
+          dpnm = pint(k+1,n) - pint(k,n)
+          dpnmsq = pint(k+1,n)**2 - pint(k,n)**2
+          rtnm = d_one/tnm(n,k)
+          s2t(k+1,n) = s2t(k,n) + rgsslp*dpnmsq*qnm(n,k)*tnm(n,k)
+          w(k+1,n) = w(k,n) + regravgts*qnm(n,k)*dpnm
+          s2c(k+1,n) = s2c(k,n) + rgsslp*dpnmsq*qnm(n,k) * &
+                       exp(1800.0_rkx*(rtnm-r296))*qnm(n,k)*repsil
+        end do
+      end block
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
@@ -3941,20 +3971,19 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pmidrd, &
+  subroutine radinp(n1,n2,pmid,pint,hus,cld,o3vmr,pmidrd, &
                     pintrd,plco2,plh2o,tclrsf,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , pointer , dimension(:,:) :: cld , pint , pintrd , plco2 ,   &
-           plh2o , tclrsf
-    real(rkx) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
-           pmidrd
-    intent (in) cld , h2ommr , o3vmr , pint , pmid
-    intent (inout) o3mmr , plco2 , pmidrd
-    intent (inout) pintrd , plh2o , tclrsf
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: cld , pint , pmid
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: hus , o3vmr
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: o3mmr , plco2
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pmidrd , pintrd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: plh2o , tclrsf
 
-    real(rkx) :: cpwpl , vmmr
-    integer(ik4) :: n , k
+    real(rkx) , parameter :: cpwpl = d_half*(amco2/amd)/(egravgts*sslp)
+    real(rkx) , parameter :: vmmr = amo3/amd
+    integer(ik4) :: n
     !
     !------------------------------Arguments--------------------------------
     !
@@ -3993,41 +4022,34 @@ module mod_rad_radiation
     !
     ! Convert pressure from pascals to dynes/cm2
     !
-    do k = 1 , kz
-      do n = n1 , n2
-        pmidrd(n,k) = pmid(n,k)*d_10
-        pintrd(n,k) = pint(n,k)*d_10
-      end do
-    end do
-    do n = n1 , n2
-      pintrd(n,kzp1) = pint(n,kzp1)*d_10
-    end do
-    !
-    ! Compute path quantities used in the longwave radiation:
-    !
-    vmmr = amco2/amd
-    cpwpl = vmmr*d_half/(egravgts*sslp)
-    do n = n1 , n2
-      plh2o(n,1) = rgsslp*h2ommr(n,1)*pintrd(n,1)*pintrd(n,1)
-      plco2(n,1) = co2vmr(n)*cpwpl*pintrd(n,1)*pintrd(n,1)
-      tclrsf(n,1) = d_one
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        plh2o(n,k+1) = plh2o(n,k) + rgsslp*(pintrd(n,k+1)**2 - &
-                       pintrd(n,k)**2) * h2ommr(n,k)
-        plco2(n,k+1) = co2vmr(n)*cpwpl*pintrd(n,k+1)**2
-        tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-      end do
-    end do
-    !
-    ! Convert ozone volume mixing ratio to mass mixing ratio:
-    !
-    vmmr = amo3/amd
-    do k = 1 , kz
-      do n = n1 , n2
-        o3mmr(n,k) = vmmr*o3vmr(n,k)
-      end do
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        pintrd(kzp1,n) = pint(n,kzp1)*d_10
+        do k = 1 , kz
+          h2ommr(k,n) = hus(n,k)
+          pmidrd(k,n) = pmid(n,k)*d_10
+          pintrd(k,n) = pint(n,k)*d_10
+        end do
+        !
+        ! Compute path quantities used in the longwave radiation:
+        !
+        plh2o(1,n) = rgsslp*h2ommr(1,n)*pintrd(1,n)*pintrd(1,n)
+        plco2(1,n) = co2vmr(n)*cpwpl*pintrd(1,n)*pintrd(1,n)
+        tclrsf(1,n) = d_one
+        do k = 1 , kz
+          plh2o(k+1,n) = plh2o(k,n) + rgsslp*(pintrd(k+1,n)**2 - &
+                         pintrd(k,n)**2) * h2ommr(k,n)
+          plco2(k+1,n) = co2vmr(n)*cpwpl*pintrd(k+1,n)**2
+          tclrsf(k+1,n) = tclrsf(k,n)*(d_one-cld(n,k+1))
+        end do
+        !
+        ! Convert ozone volume mixing ratio to mass mixing ratio:
+        !
+        do k = 1 , kz
+          o3mmr(k,n) = vmmr*o3vmr(n,k)
+        end do
+      end block
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)

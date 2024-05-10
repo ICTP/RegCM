@@ -123,7 +123,7 @@ module mod_rad_colmod3
     call getmem1d(rt%czen,1,npr,'colmod3:czen')
     call getmem1d(rt%czengt0,1,npr,'colmod3:czengt0')
     call getmem3d(rt%absgasnxt,1,npr,1,kz,1,4,'colmod3:absgasnxt')
-    call getmem3d(rt%absgastot,1,npr,1,kzp1,1,kzp1,'colmod3:absgastot')
+    call getmem3d(rt%absgastot,1,kzp1,1,kzp1,1,npr,'colmod3:absgastot')
     call getmem2d(rt%emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
     call getmem3d(rt%tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
     call getmem3d(rt%tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
@@ -393,7 +393,7 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rt%absgasnxt(n,k,m) = gasabsnxt(j,i,k,m)
+            rt%absgasnxt(k,m,n) = gasabsnxt(j,i,k,m)
             n = n + 1
           end do
         end do
@@ -404,7 +404,7 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rt%absgastot(n,k2,k) = gasabstot(j,i,k2,k)
+            rt%absgastot(k2,k,n) = gasabstot(j,i,k2,k)
             n = n + 1
           end do
         end do
@@ -414,7 +414,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rt%emsgastot(n,k) = gasemstot(j,i,k)
+          rt%emsgastot(k,n) = gasemstot(j,i,k)
           n = n + 1
         end do
       end do
@@ -757,7 +757,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              gasabsnxt(j,i,k,m) = rt%absgasnxt(n,k,m)
+              gasabsnxt(j,i,k,m) = rt%absgasnxt(k,m,n)
               n = n + 1
             end do
           end do
@@ -768,7 +768,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              gasabstot(j,i,k2,k) = rt%absgastot(n,k2,k)
+              gasabstot(j,i,k2,k) = rt%absgastot(k2,k,n)
               n = n + 1
             end do
           end do
@@ -778,7 +778,7 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            gasemstot(j,i,k) = rt%emsgastot(n,k)
+            gasemstot(j,i,k) = rt%emsgastot(k,n)
             n = n + 1
           end do
         end do
