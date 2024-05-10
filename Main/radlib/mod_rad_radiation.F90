@@ -1225,9 +1225,11 @@ module mod_rad_radiation
     !
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                  dbarii , dbarli , ebarii , ebarli , fbarii , fbarli , &
-                 psf , tmp1 , tmp2 , trayoslp , wavmid , wgtint
+                 psf , trayoslp , wavmid , wgtint
     real(rkx) , dimension(4) :: ww
     integer(ik4) :: n , k , indxsl , ns , is
+    real(rkx) , parameter :: tmp1 = d_half/(egravgts*sslp)
+    real(rkx) , parameter :: tmp2 = delta*regravgts
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radcsw'
     integer(ik4) :: indx = 0
@@ -1265,9 +1267,6 @@ module mod_rad_radiation
     !
     ! Define solar incident radiation and interface pressures:
     !
-
-    tmp1 = d_half/(egravgts*sslp)
-    tmp2 = delta*regravgts
 
     do concurrent ( n = n1:n2 )
       block
