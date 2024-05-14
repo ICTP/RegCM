@@ -370,7 +370,7 @@ module mod_clm_params
       write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
       write(stdout,*) 'Final date of this run               : ', appdat
-      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,*) 'Total simulation length              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
     end if
 
