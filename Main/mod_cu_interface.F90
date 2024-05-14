@@ -263,30 +263,6 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
-      if ( iconv == 1 ) then
-        ! Calculate average elevation of cmcptop level
-        nmctop = 0
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            iplmlc = 1
-            do k = 1 , kzp1
-              iplmlc = k
-              if ( m2c%pasf(j,i,k) >= cmcptop ) exit
-            end do
-            nmctop = nmctop + iplmlc
-          end do
-        end do
-        iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
-        call minall(iplmlc,mintop)
-        call maxall(iplmlc,maxtop)
-        nmctop = (mintop+maxtop)/2
-      else if ( iconv == 4 ) then
-        do k = 1 , kz
-          mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
-          call meanall(mymean,pmean(k))
-        end do
-      end if
-
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
@@ -348,6 +324,29 @@ module mod_cu_interface
         if ( any(icup == 5) ) then
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
+          if ( iconv == 1 ) then
+            ! Calculate average elevation of cmcptop level
+            nmctop = 0
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                iplmlc = 1
+                do k = 1 , kzp1
+                  iplmlc = k
+                  if ( m2c%pasf(j,i,k) >= cmcptop ) exit
+                end do
+                nmctop = nmctop + iplmlc
+              end do
+            end do
+            iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
+            call minall(iplmlc,mintop)
+            call maxall(iplmlc,maxtop)
+            nmctop = (mintop+maxtop)/2
+          else if ( iconv == 4 ) then
+            do k = 1 , kz
+              mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
+              call meanall(mymean,pmean(k))
+            end do
+          end if
         end if
 
         total_precip_points = 0
