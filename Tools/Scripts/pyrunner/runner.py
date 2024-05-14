@@ -13,6 +13,7 @@ extension = ""
 only_model = False
 only_preproc = False
 only_postproc = False
+keep_files = False
 
 parser = argparse.ArgumentParser(description = "Run a RegCM simulation",
         epilog = "Built to use SLURM.", allow_abbrev = True)
@@ -39,6 +40,9 @@ parser.add_argument("-omdl","--only-model",
 parser.add_argument("-opst","--only-postproc",
         help = "Run only the post-processing (no preproc or model)",
         action = "store_true")
+parser.add_argument("-keep","--keep-files",
+        help = "Do not remove original output file (enable for nesting into)",
+        action = "store_true")
 args = parser.parse_args()
 
 def parse_step(t1,step):
@@ -63,11 +67,12 @@ def runner(args):
     "Run the regcm model using a namelist from start_date to end_date"
     import f90nml
     import yaml
-    global extension, only_model, only_preproc, only_postproc
+    global extension, only_model, only_preproc, only_postproc , keep_files
 
     only_preproc = args.only_preproc
     only_model = args.only_model
     only_postproc = args.only_postproc
+    keep_files = args.keep_files
 
     if not args.directory:
         print("An output directory must be defined.")
@@ -345,7 +350,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     import glob
     from simple_slurm import Slurm
     from dateutil.rrule import rrule, MONTHLY, DAILY
-    global extension, only_preproc, only_model
+    global extension, only_preproc, only_model , keep_files
     if only_preproc or only_model:
         print("No postprocessing requested. Assuming products ready.")
         return 0
@@ -451,10 +456,11 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     for ff in stsfiles:
         slurm.add_cmd(command + " " + ff + " " + c["CORDEX"]["tier2_stsvars"])
     slurm.add_cmd("}")
-    slurm.add_cmd("rm "+(" ".join(str(x) for x in srffiles)))
-    slurm.add_cmd("rm "+(" ".join(str(x) for x in atmfiles)))
-    slurm.add_cmd("rm "+(" ".join(str(x) for x in radfiles)))
-    slurm.add_cmd("rm "+(" ".join(str(x) for x in stsfiles)))
+    if not keep_files:
+        slurm.add_cmd("rm -f "+(" ".join(str(x) for x in srffiles)))
+        slurm.add_cmd("rm -f "+(" ".join(str(x) for x in atmfiles)))
+        slurm.add_cmd("rm -f "+(" ".join(str(x) for x in radfiles)))
+        slurm.add_cmd("rm -f "+(" ".join(str(x) for x in stsfiles)))
     job_id = slurm.sbatch("echo Done.", verbose = True, shell = "/bin/bash")
     with open(os.path.join(io,"jobs","POST." + str(job_id) + ".job"),"w") as f:
         f.write(str(slurm))
