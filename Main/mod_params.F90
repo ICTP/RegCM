@@ -1126,6 +1126,25 @@ module mod_params
 
       minfrq = 86400.0_rkx
 
+      if ( ifcordex ) then
+        ! Save file setup and file granularity left to user.
+        ifatm = .true.
+        ifrad = .true.
+        ifsrf = .true.
+        ifsts = .true.
+        ifshf = .false.
+        iflak = .false.
+        ifsub = .false.
+        ifopt = .false.
+        ifchem = .false.
+        atmfrq = 6.0
+        radfrq = 1.0
+        srffrq = 1.0
+        lsync = .false. ! Faster this way
+        idiag = 0
+        icosp = 0
+        ! Variable selection in mod_ncout where list is
+      end if
       ! Check user input
       if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
       if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
@@ -1226,25 +1245,6 @@ module mod_params
     !
     ! Force to grant same output
     !
-    if ( ifcordex ) then
-      ! Save file setup and file granularity left to user.
-      ifatm = .true.
-      ifrad = .true.
-      ifsrf = .true.
-      ifsts = .true.
-      ifshf = .false.
-      iflak = .false.
-      ifsub = .false.
-      ifopt = .false.
-      ifchem = .false.
-      atmfrq = 6.0
-      radfrq = 1.0
-      srffrq = 1.0
-      lsync = .false. ! Faster this way
-      idiag = 0
-      icosp = 0
-      ! Variable selection in mod_ncout where list is
-    end if
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
@@ -1953,7 +1953,7 @@ module mod_params
       write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
       write(stdout,*) 'Final date of this run               : ', appdat
-      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,*) 'Total simulation length              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
       if ( idynamic == 1 ) then
         write(stdout,'(a,2f11.6)') ' Split explicit dtau = ', dtau
