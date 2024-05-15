@@ -177,8 +177,6 @@ module mod_micro_nogtom
   ! critical factors
   real(rkx) , pointer , dimension(:,:) :: xlcrit
   real(rkx) , pointer , dimension(:,:) :: rhcrit
-  ! Cloud coverage and clearsky portion
-  real(rkx) , pointer , dimension(:,:) :: covptot , covpclr
   ! fall speeds of three categories
   real(rkx) , pointer , dimension(:) :: vqx
   ! decoupled mixing ratios tendency
@@ -268,8 +266,6 @@ module mod_micro_nogtom
     call getmem3d(koop,1,kz,jci1,jci2,ici1,ici2,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
     call getmem2d(rhcrit,jci1,jci2,ici1,ici2,'cmicro:rhcrit')
-    call getmem2d(covptot,jci1,jci2,ici1,ici2,'cmicro:covptot')
-    call getmem2d(covpclr,jci1,jci2,ici1,ici2,'cmicro:covpclr')
     call getmem3d(eeliq,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeliq')
     call getmem3d(eeice,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeice')
     call getmem3d(eeliqt,1,kz,jci1,jci2,ici1,ici2,'cmicro:eeliqt')
@@ -377,12 +373,13 @@ module mod_micro_nogtom
       end do
     end if
 
-    ! Define the initial array qx
+    ! Define the initial array qx and reset total precipitation variables
     do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       qx(n,k,j,i) = mo2mc%qxx(j,i,k,n)
+      pfplsx(n,k,j,i) = d_zero
     end do
 
-    ! Define the initial array qx
+    ! Copy with transpose all the other variables
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       tx(k,j,i) = mo2mc%t(j,i,k)
       ph(k,j,i) = mo2mc%phs(j,i,k)
@@ -426,9 +423,6 @@ module mod_micro_nogtom
                         tx(k,j,i)))-rtice)*rtwat_rtice_r)**2),d_zero)
     end do
 
-    ! Reset total precipitation variables
-    pfplsx(:,:,:,:) = d_zero
-
     ! Compute supersaturations
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       eeliq(k,j,i) = c2es*exp(c3les*((tx(k,j,i)-tzero)/(tx(k,j,i)-c4les)))
@@ -443,19 +437,16 @@ module mod_micro_nogtom
     ! Starting budget if requested
     !
     if ( budget_compute ) then
-      ! Reset arrays
-      tentkp(:,:,:)  = d_zero
-      tenqkp(:,:,:,:) = d_zero
       ! Record the tendencies
       do concurrent ( n = 1:nqx, k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tenqkp(n,k,j,i) = qxtendc(n,k,j,i)
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         tentkp(k,j,i) = ttendc(k,j,i)
+        sumq0(k,j,i)  = d_zero
+        sumh0(k,j,i)  = d_zero
       end do
       ! initialize the flux arrays
-      sumq0(:,:,:)     = d_zero
-      sumh0(:,:,:)     = d_zero
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
           real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
@@ -475,26 +466,28 @@ module mod_micro_nogtom
           sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
         end block
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
           real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
-          tnew = tx(k,j,i)
-          dp = dpfs(k,j,i)
-          qe = qdetr(k,j,i)
-          sumq0(k,j,i) = sumq0(k-1,j,i) ! total water
-          sumh0(k,j,i) = sumh0(k-1,j,i) ! liquid water temperature
-          tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
-          tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
-          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-          sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
-
-          ! Detrained water treated here
-          if ( lmicro .and. abs(qe) > activqx ) then
-            sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
-            alfaw = qliq(k,j,i)
-            tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
-          end if
-          sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
+          integer(ik4) :: k
+          do k = 2 , kz
+            tnew = tx(k,j,i)
+            dp = dpfs(k,j,i)
+            qe = qdetr(k,j,i)
+            sumq0(k,j,i) = sumq0(k-1,j,i) ! total water
+            sumh0(k,j,i) = sumh0(k-1,j,i) ! liquid water temperature
+            tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
+            tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
+            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+            sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
+            ! Detrained water treated here
+            if ( lmicro .and. abs(qe) > activqx ) then
+              sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
+              alfaw = qliq(k,j,i)
+              tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
+            end if
+            sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
+          end do
         end block
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
@@ -547,7 +540,9 @@ module mod_micro_nogtom
     ! defined by cloudy layer below a layer with cloud frac <0.01
     !--------------------------------------------------------------
 
-    cldtopdist(:,:,:) = d_zero
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+      cldtopdist(k,j,i) = d_zero
+    end do
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       block
         integer(ik4) :: k , kk
@@ -585,17 +580,10 @@ module mod_micro_nogtom
 #endif
     !
     !----------------------------------------------------------------------
-    !                       INITIALIZE STORAGE
-    !----------------------------------------------------------------------
-    !
-    covptot(:,:) = d_zero
-    covpclr(:,:) = d_zero
-    !
-    !----------------------------------------------------------------------
     !                       START OF VERTICAL LOOP
     !----------------------------------------------------------------------
     !
-    ! Loop over points amd level
+    ! Loop over points
     !
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       block
@@ -647,6 +635,8 @@ module mod_micro_nogtom
         real(rkx) :: corqsliq , corqsice , corqsmix , evaplimmix
         real(rkx) :: ql_incld , qi_incld , qli_incld
         real(rkx) :: ldifdt , sink
+        ! Cloud coverage and clearsky portion
+        real(rkx) :: covptot , covpclr
         ! real(rkx) :: botm , rm
         real(rkx) :: qold , tcond , dqs
         real(rkx) :: chng , chngmax
@@ -663,14 +653,21 @@ module mod_micro_nogtom
         integer(ik4) :: k , n , m , jn , jo
 
         pbot = pf(kzp1,j,i)
+        covptot = d_zero
+        covpclr = d_zero
+
+        ! Loop over levels
+
         do k = 1 , kz
 
           supsat      = d_zero
           subsat      = d_zero
-          fallsrce(:) = d_zero
-          fallsink(:) = d_zero
-          convsrce(:) = d_zero
           ldefr       = d_zero
+          do n = 1 , nqx
+            fallsrce(n) = d_zero
+            fallsink(n) = d_zero
+            convsrce(n) = d_zero
+          end do
 
           !-------------------------------------------------------
           ! SOURCE/SINK array for implicit and explicit terms
@@ -702,8 +699,12 @@ module mod_micro_nogtom
           ! each of these is a parametrization for a microphysical process.
           !--------------------------------------------------------
           !
-          qsexp(:,:)  = d_zero
-          qsimp(:,:)  = d_zero
+          do n = 1 , nqx
+            do m = 1 , nqx
+              qsexp(m,n)  = d_zero
+              qsimp(m,n)  = d_zero
+            end do
+          end do
           !
           !---------------------------------
           ! First guess microphysics
@@ -1338,13 +1339,13 @@ module mod_micro_nogtom
             !   overlap for clouds separated by clear levels.
             !---------------------------------------------------------------
             if ( qpretot > d_zero ) then
-              covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
+              covptot = d_one - ((d_one-covptot) * &
                   (d_one - max(ccover,lccover))/(d_one-lccover))
-              covptot(j,i) = max(covptot(j,i),rcovpmin)
-              covpclr(j,i) = max(covptot(j,i)-ccover,d_zero)
+              covptot = max(covptot,rcovpmin)
+              covpclr = max(covptot-ccover,d_zero)
             else
-              covptot(j,i) = d_zero ! no flux - reset cover
-              covpclr(j,i) = d_zero ! no flux - reset cover
+              covptot = d_zero ! no flux - reset cover
+              covpclr = d_zero ! no flux - reset cover
             end if
             ! clear sky proportion
 
@@ -1392,8 +1393,8 @@ module mod_micro_nogtom
                     ! parametrization to be replaced by
                     ! Khairoutdinov and Kogan [2000]:
                     !-------------------------------------------------------
-                    if ( covptot(j,i) > d_zero ) then
-                      precip = (rainp+snowp)/covptot(j,i)
+                    if ( covptot > d_zero ) then
+                      precip = (rainp+snowp)/covptot
                       cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
                       alpha1 = alpha1*cfpr
                       acrit = acrit/cfpr
@@ -1572,7 +1573,7 @@ module mod_micro_nogtom
               end if
             end do
 
-            zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr(j,i)/(d_one-ccover)
+            zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr/(d_one-ccover)
             zrh = min(max(zrh,rprecrhmax),d_one)
 
             ! This is a critical relative humidity that is used to limit
@@ -1583,8 +1584,8 @@ module mod_micro_nogtom
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(min(qe,qsliq(k,j,i)),d_zero)
-            lactiv = covpclr(j,i) > d_zero .and. &
-                     covptot(j,i) > d_zero .and. &
+            lactiv = covpclr > d_zero .and. &
+                     covptot > d_zero .and. &
                      qpretot > d_zero .and.      &
                      qx0(iqqr) > activqx .and.   &
                      qe < zrh*qsliq(k,j,i)
@@ -1592,16 +1593,16 @@ module mod_micro_nogtom
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
+              preclr = qpretot*covpclr/(covptot*dtgdp)
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(ph(k,j,i)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
+              beta1 = sqrt(ph(k,j,i)/pbot)/5.09e-3_rkx*preclr/covpclr
               if ( beta1 > d_zero ) then
                 beta = d_half*egrav*rpecons*(beta1)**0.5777_rkx
                 denom = d_one + beta*dt*corqsliq
-                dpr = covpclr(j,i) * beta * (qsliq(k,j,i)-qe)/denom*dp*regrav
+                dpr = covpclr * beta * (qsliq(k,j,i)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
 
                 !---------------------------------------------------------
@@ -1617,9 +1618,9 @@ module mod_micro_nogtom
                 !-------------------------------------------------------------
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
-                covptot(j,i) = covptot(j,i) - max(d_zero, &
-                           (covptot(j,i)-ccover)*dpevap/qpretot)
-                covptot(j,i) = max(covptot(j,i),rcovpmin)
+                covptot = covptot - max(d_zero, &
+                           (covptot-ccover)*dpevap/qpretot)
+                covptot = max(covptot,rcovpmin)
               else
                 chng = qxfg(iqqr)
               end if
@@ -1640,8 +1641,8 @@ module mod_micro_nogtom
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(min(qe,qsice(k,j,i)),d_zero)
-            lactiv = covpclr(j,i) > d_zero .and. &
-                     covptot(j,i) > d_zero .and. &
+            lactiv = covpclr > d_zero .and. &
+                     covptot > d_zero .and. &
                      qpretot > d_zero .and.      &
                      qx0(iqqs) > activqx .and.   &
                      qe < zrh*qsice(k,j,i)
@@ -1649,15 +1650,15 @@ module mod_micro_nogtom
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
+              preclr = qpretot*covpclr/(covptot*dtgdp)
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
-              beta1 = sqrt(ph(k,j,i)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
+              beta1 = sqrt(ph(k,j,i)/pbot)/5.09e-3_rkx*preclr/covpclr
               if ( beta1 >= d_zero ) then
                 beta = d_half*egrav*rpecons*(beta1)**0.5777_rkx
                 denom = d_one + beta*dt*corqsice
-                dpr = covpclr(j,i) * beta * (qsice(k,j,i)-qe)/denom*dp*regrav
+                dpr = covpclr * beta * (qsice(k,j,i)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
 
                 ! sublimation of  snow
@@ -1669,9 +1670,9 @@ module mod_micro_nogtom
                 !-------------------------------------------------------------
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
-                covptot(j,i) = covptot(j,i) - &
-                     max(d_zero,(covptot(j,i)-ccover)*dpevap/qpretot)
-                covptot(j,i) = max(covptot(j,i),rcovpmin)
+                covptot = covptot - &
+                     max(d_zero,(covptot-ccover)*dpevap/qpretot)
+                covptot = max(covptot,rcovpmin)
               else
                 chng = qxfg(iqqs)
               end if
@@ -1698,8 +1699,14 @@ module mod_micro_nogtom
           ! this approach is inaccurate, but conserves -
           ! prob best can do with explicit (i.e. not implicit!) terms
           !----------------------------------------------------------
-          sinksum(:) = d_zero
-          lind2(:,:) = .false.
+          do n = 1 , nqx
+            sinksum(n) = d_zero
+          end do
+          do n = 1 , nqx
+            do m = 1 , nqx
+              lind2(m,n) = .false.
+            end do
+          end do
           !----------------------------
           ! collect sink terms and mark
           !----------------------------
@@ -1723,7 +1730,9 @@ module mod_micro_nogtom
           ! scale the sink terms, in the correct order,
           ! recalculating the scale factor each time
           !--------------------------------------------
-          sinksum(:) = d_zero
+          do n = 1 , nqx
+            sinksum(n) = d_zero
+          end do
           !----------------
           ! recalculate sum
           !----------------
@@ -1952,11 +1961,14 @@ module mod_micro_nogtom
     if ( budget_compute ) then
 
       ! Initialize the flux arrays
-      sumh1(:,:,:)   = d_zero
-      sumq1(:,:,:)   = d_zero
-      errorq(:,:)    = d_zero
-      errorh(:,:)    = d_zero
-
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+        sumh1(k,j,i) = d_zero
+        sumq1(k,j,i) = d_zero
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        errorq(j,i) = d_zero
+        errorh(j,i) = d_zero
+      end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
           real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
@@ -1972,21 +1984,24 @@ module mod_micro_nogtom
           sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
         end block
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 , k = 2:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
+          integer(ik4) :: k
           real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
-          dp = dpfs(k,j,i)
-          tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
-          qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
-          sumq1(k,j,i) = sumq1(k-1,j,i)
-          sumh1(k,j,i) = sumh1(k-1,j,i)
-          tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
-                 qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
-          tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
-                 qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
-          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-          sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
-          sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
+          do k = 2 , kz
+            dp = dpfs(k,j,i)
+            tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
+            qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
+            sumq1(k,j,i) = sumq1(k-1,j,i)
+            sumh1(k,j,i) = sumh1(k-1,j,i)
+            tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
+                   qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
+            tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
+                   qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
+            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+            sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
+            sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
+          end do
         end block
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -2011,14 +2026,17 @@ module mod_micro_nogtom
           end do
         end block
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
-      do k = 1 , kz
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
-          errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          integer(ik4) :: k
+          do k = 1 , kz
+            errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
+            errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
+          end do
+        end block
       end do
 
       lerror = .false.
@@ -2050,9 +2068,10 @@ module mod_micro_nogtom
 
     ! Sum fluxes over the levels
     ! Initialize fluxes
-    pfplsl(:,:,:) = d_zero
-    pfplsn(:,:,:) = d_zero
-    mc2mo%rainls(:,:,:) = d_zero
+    do concurrent ( k = 1:kzp1, j = jci1:jci2, i = ici1:ici2 )
+      pfplsl(k,j,i) = d_zero
+      pfplsn(k,j,i) = d_zero
+    end do
 
     !--------------------------------------------------------------------
     ! Copy general precip arrays back into FP arrays

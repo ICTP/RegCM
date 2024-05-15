@@ -2124,8 +2124,8 @@ module mod_rad_radiation
     khighest = khiv(intmax(khiv))
     do concurrent ( n = n1:n2 )
       block
-        integer(ik4) :: km , km1 , km2 , km3 , km4
         integer(ik4) :: k , k1 , k2 , k3
+        integer(ik4) :: km , km1 , km2 , km3 , km4
         real(rkx) :: tmp1
         start(n) = .false.
         if ( skip(n) ) cycle
@@ -2198,12 +2198,17 @@ module mod_rad_radiation
                   fsdl(k2,n)*(tclrsf(k1,n)*rtclrsf(kzp1-khiv(n),n))
           end if
         end do  ! k = 1 , khighest-1
-        !
-        ! End cloud modification loops
-        !
-        !
-        ! Downward longwave flux
-        !
+      end block
+    end do
+    !
+    ! End cloud modification loops
+    !
+    !
+    ! Downward longwave flux
+    !
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
         flwds(n) = fdl(kzp1,n)
         !
         ! Net flux

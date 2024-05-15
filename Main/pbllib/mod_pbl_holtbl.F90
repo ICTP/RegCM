@@ -354,7 +354,7 @@ module mod_pbl_holtbl
       end do
 
       ! top to bottom
-      do k = 2 , kz - 1
+      do k = 2 , kzm1
         do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -390,7 +390,7 @@ module mod_pbl_holtbl
         tpred1(j,i,kz) = coeff1(j,i,kz)
       end do
 
-      do k = kz - 1 , 1 , -1
+      do k = kzm1 , 1 , -1
         do concurrent ( j = jdii1:jdii2 , i = ici1:ici2 )
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
@@ -435,7 +435,7 @@ module mod_pbl_holtbl
       end do
 
       ! top to bottom
-      do k = 2 , kz - 1
+      do k = 2 , kzm1
         do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -471,7 +471,7 @@ module mod_pbl_holtbl
         tpred2(j,i,kz) = coeff2(j,i,kz)
       end do
 
-      do k = kz - 1 , 1 , -1
+      do k = kzm1 , 1 , -1
         do concurrent ( j = jci1:jci2 , i = idii1:idii2 )
           tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
         end do
@@ -521,7 +521,7 @@ module mod_pbl_holtbl
       end do
 
       ! top to bottom
-      do k = 2 , kz - 1
+      do k = 2 , kzm1
         do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -566,7 +566,7 @@ module mod_pbl_holtbl
         tpred2(j,i,kz) = coeff2(j,i,kz)
       end do
 
-      do k = kz - 1 , 1 , -1
+      do k = kzm1 , 1 , -1
         do concurrent ( j = jdii1:jdii2 , i = idii1:idii2 )
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
@@ -605,7 +605,7 @@ module mod_pbl_holtbl
       coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
     end do
 
-    do k = 2 , kz - 1
+    do k = 2 , kzm1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -634,7 +634,7 @@ module mod_pbl_holtbl
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
 
-    do k = kz - 1 , 1 , -1
+    do k = kzm1 , 1 , -1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
@@ -669,7 +669,7 @@ module mod_pbl_holtbl
       coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
     end do
 
-    do k = 2 , kz - 1
+    do k = 2 , kzm1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -699,7 +699,7 @@ module mod_pbl_holtbl
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
 
-    do k = kz - 1 , 1 , -1
+    do k = kzm1 , 1 , -1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
@@ -734,7 +734,7 @@ module mod_pbl_holtbl
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
       coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
     end do
-    do k = 2 , kz - 1
+    do k = 2 , kzm1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -762,7 +762,7 @@ module mod_pbl_holtbl
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
-    do k = kz - 1 , 1 , -1
+    do k = kzm1 , 1 , -1
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
       end do
@@ -792,7 +792,7 @@ module mod_pbl_holtbl
         coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
         coeff1(j,i,1) = m2p%qxatm(j,i,1,iqi)/coef2(j,i,1)
       end do
-      do k = 2 , kz - 1
+      do k = 2 , kzm1
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
@@ -820,7 +820,7 @@ module mod_pbl_holtbl
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         tpred1(j,i,kz) = coeff1(j,i,kz)
       end do
-      do k = kz - 1 , 1 , -1
+      do k = kzm1 , 1 , -1
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
         end do
@@ -929,7 +929,7 @@ module mod_pbl_holtbl
           if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
           if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
         end do
-        do k = 2 , kz - 1
+        do k = 2 , kzm1
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
             coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k) - &
                              coef3(j,i,k)*coefe(j,i,k-1))
@@ -956,7 +956,7 @@ module mod_pbl_holtbl
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
           tpred1(j,i,kz) = coeff1(j,i,kz)
         end do
-        do k = kz - 1 , 1 , -1
+        do k = kzm1 , 1 , -1
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
             tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
           end do

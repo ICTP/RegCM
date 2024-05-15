@@ -332,10 +332,10 @@ module mod_init
       if ( idcsst == 1 ) then
         do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
           lms%sst(n,j,i) = xtsb%b0(j,i)
+          lms%tskin(n,j,i) = lms%sst(n,j,i)
+          lms%deltas(n,j,i) = 0.001_rkx
+          lms%tdeltas(n,j,i) = lms%sst(n,j,i) - lms%deltas(n,j,i)
         end do
-        lms%tskin(:,:,:) = lms%sst
-        lms%deltas(:,:,:) = 0.001_rkx
-        lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
       do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
         lms%um10(n,j,i) = 1.0_rkx

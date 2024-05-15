@@ -487,16 +487,12 @@ module mod_cu_interface
       if ( idynamic == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%tten(j,i,k) = cu_tten(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%qxten(j,i,k,iqv) = cu_qten(j,i,k,iqv)
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
                           cu_tten(j,i,k) * m2c%psb(j,i)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
                           cu_qten(j,i,k,iqv) * m2c%psb(j,i)
         end do
