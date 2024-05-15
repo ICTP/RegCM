@@ -596,7 +596,6 @@ module mod_ocn_zeng
           zo = charnockog*ustar*ustar
         end if
       end if
-      zo = max(zo,1.0e-4_rkx)
     end function ocnrough
 
     pure real(rkx) function szo(visa,ustar)
