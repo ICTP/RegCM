@@ -54,7 +54,7 @@ module mod_cu_kf
   !
   !             Graziano Giuliani
   !
-  integer , parameter :: kf_trigger = 3
+  integer(ik4) , parameter :: kf_trigger = 3
   !
   public :: allocate_mod_cu_kf , kfdrv , kf_lutab
   !
@@ -176,7 +176,7 @@ module mod_cu_kf
   subroutine kfdrv(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    integer :: i , j ,  k , kk , np
+    integer(ik4) :: i , j ,  k , kk , np
     real(rkx) :: es
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'kfdrv'
@@ -2463,7 +2463,7 @@ module mod_cu_kf
     real(rkx) , parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
     real(rkx) , parameter :: dth = 1.0_rkx
-    integer , parameter :: maxiter = 25
+    integer(ik4) , parameter :: maxiter = 25
 
     ! top pressure (pascals)
     plutop = 5000.0 ! 50 mb

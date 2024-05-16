@@ -101,7 +101,7 @@ module mod_cu_shallow
       integer(ik4) , intent(in) :: klev , kbmax
       real(rkx) , intent(in) :: z1 , dtime , pcut , c0 , psur , rads
       real(rkx) , intent(out) :: xmb
-      integer , intent(out) :: ier
+      integer(ik4) , intent(out) :: ier
       real(rkx) , intent(out) :: pre
       !
       ! Environmental properties before large scale forcing,
@@ -820,7 +820,7 @@ module mod_cu_shallow
       real(rkx) , intent(in) :: c0 , pcut , qkb , r
       integer(ik4) :: ktop
       real(rkx) :: dh , dz , agamma , qrch
-      integer :: k
+      integer(ik4) :: k
       !
       ! Erase
       !

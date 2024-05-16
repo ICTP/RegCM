@@ -3975,7 +3975,7 @@ module mod_ncout
                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
     type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
-    integer , intent(in) :: ivar
+    integer(ik4) , intent(in) :: ivar
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
     character(len=*) , intent(in) , optional :: cell_method

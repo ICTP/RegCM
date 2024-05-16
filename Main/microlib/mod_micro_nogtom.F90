@@ -287,7 +287,7 @@ module mod_micro_nogtom
   subroutine init_nogtom(ldmsk)
     use mod_runparams , only : vfqr , vfqi , vfqs
     implicit none
-    integer , pointer , dimension(:,:) , intent(in) :: ldmsk
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmsk
     integer(ik4) :: i , j , n
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
@@ -2170,7 +2170,7 @@ module mod_micro_nogtom
    !   implicit none
    !   real(rk8) , intent(in) :: a(:)
    !   integer(ik4) , dimension(size(a)) :: b
-   !   integer :: n , i , imin , temp1
+   !   integer(ik4) :: n , i , imin , temp1
    !   real(rk8) :: temp2
    !   real(rk8) , dimension(size(a)) :: a2
    !   a2 = a

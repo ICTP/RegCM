@@ -3131,9 +3131,9 @@ module mod_params
         end if
       end subroutine compute_moloch_static
 
-      recursive integer function gcd_rec(u,v) result(gcd)
+      recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer , intent(in) :: u , v
+        integer(ik4) , intent(in) :: u , v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else

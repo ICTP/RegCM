@@ -82,7 +82,7 @@ module mod_update
     !     Local variable declarations
     !-----------------------------------------------------------------------
     !
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     real(rk8), parameter :: initval = 1.0e20_rk8
     real(rk8), parameter :: zeroval = 0.0e20_rk8
     !

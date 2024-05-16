@@ -67,7 +67,7 @@ module mod_cu_grell
               htmin2d
   integer(ik4) , public , pointer , dimension(:,:) :: kbmax2d
 
-  integer :: ncp , nap
+  integer(ik4) :: ncp , nap
 
   public :: allocate_mod_cu_grell , cuparan
 

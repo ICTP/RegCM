@@ -94,8 +94,8 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
   real(rkx) , pointer , dimension(:,:,:) :: tkeps
 
-  integer :: idgq
-  integer :: ithadv = 1
+  integer(ik4) :: idgq
+  integer(ik4) :: ithadv = 1
   integer(ik4) :: iqxvadv , itrvadv
 
   real(rkx) :: rptn ! Total number of internal points
@@ -2018,7 +2018,7 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:) :: ten0
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     if ( present(ten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         store(j,i,k) = store(j,i,k) + &
@@ -2037,7 +2037,7 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:) :: qen0
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     if ( present(qen0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         store(j,i,k) = store(j,i,k) + &
@@ -2056,7 +2056,7 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:,:) :: chiten0
-    integer :: i , j , k , n
+    integer(ik4) :: i , j , k , n
     if ( present(chiten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
         store(j,i,k,n) = store(j,i,k,n) + &

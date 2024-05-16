@@ -5425,7 +5425,7 @@ module mod_bdycod
     implicit none
     real(rkx) , dimension(:) , intent(inout) :: v
     real(rkx), dimension(size(v)) :: swap
-    integer :: nk , k , kk
+    integer(ik4) :: nk , k , kk
     swap = v
     nk = size(v)
     do k = 1 , nk

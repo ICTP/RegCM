@@ -4648,7 +4648,7 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
     do k = k1 , k2
@@ -4708,7 +4708,7 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ny , nk , nn , tx , sizex
+    integer(ik4) :: ndx , ny , nk , nn , tx , sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4722,7 +4722,7 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk8), dimension(ndx) :: sdata
     real(rk8), dimension(ndx), volatile :: rdata
-    integer :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
     do n = n1 , n2
@@ -4867,7 +4867,7 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer :: ib1 , ib2 , iex , k
+    integer(ik4) :: ib1 , ib2 , iex , k
 
     ib2 = 0
     do k = k1 , k2
@@ -4927,7 +4927,7 @@ module mod_mppparam
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer :: ndx , ny , nk , nn , tx , sizex
+    integer(ik4) :: ndx , ny , nk , nn , tx , sizex
 
     ny = i2-i1+1
     nk = k2-k1+1
@@ -4941,7 +4941,7 @@ module mod_mppparam
     integer(ik4), dimension(4) :: counts , displs
     real(rk4), dimension(ndx) :: sdata
     real(rk4), dimension(ndx), volatile :: rdata
-    integer :: ib1 , ib2 , iex , k , n
+    integer(ik4) :: ib1 , ib2 , iex , k , n
 
     ib2 = 0
     do n = n1 , n2
@@ -17362,7 +17362,7 @@ module mod_mppparam
 
   subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
-    integer , intent(in) :: i1 , i2 , j1 , j2
+    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)
@@ -17376,7 +17376,7 @@ module mod_mppparam
 
   subroutine real4_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
-    integer , intent(in) :: i1 , i2 , j1 , j2
+    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
     real(rk4) , pointer , dimension(:,:) , intent(in) :: a
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
     call grid_collect(a,b,i1,i2,j1,j2)

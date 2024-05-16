@@ -516,7 +516,7 @@ module mod_advection
 
     subroutine hadvqv(ften,f,iv)
       implicit none
-      integer , intent(in) :: iv
+      integer(ik4) , intent(in) :: iv
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
@@ -606,7 +606,7 @@ module mod_advection
     !
     subroutine hadvqx(ften,f,n1,n2)
       implicit none
-      integer , intent(in) :: n1 , n2
+      integer(ik4) , intent(in) :: n1 , n2
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
@@ -810,7 +810,7 @@ module mod_advection
 
     subroutine vadvqv(ften,f,n)
       implicit none
-      integer , intent(in) :: n
+      integer(ik4) , intent(in) :: n
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       integer(ik4) :: i , j , k

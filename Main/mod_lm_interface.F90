@@ -636,7 +636,7 @@ module mod_lm_interface
     type(imp_data) , intent(in) :: impfie
     real(rkx) , intent(in) :: tol
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
-    integer :: i , j , n
+    integer(ik4) :: i , j , n
     logical :: flag = .false.
 !    character (len=*) , parameter :: f99001 =                   &
 !       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &

@@ -535,7 +535,7 @@ module mod_ncio
     end if
   end subroutine read_subdomain_info
 
-  integer function clmbc_search(idate)
+  integer(ik4) function clmbc_search(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
@@ -563,7 +563,7 @@ module mod_ncio
     end if
   end function clmbc_search
 
-  integer function icbc_search(idate)
+  integer(ik4) function icbc_search(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
@@ -591,7 +591,7 @@ module mod_ncio
     end if
   end function icbc_search
 
-  integer function som_search(imon)
+  integer(ik4) function som_search(imon)
     implicit none
     integer(ik4) , intent(in) :: imon
     if ( .not. do_parallel_netcdf_in ) then

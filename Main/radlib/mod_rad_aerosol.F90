@@ -1156,7 +1156,7 @@ module mod_rad_aerosol
 
     subroutine allocate_mod_rad_aerosol
       implicit none
-      integer :: n , k , kk , kk1
+      integer(ik4) :: n , k , kk , kk1
 
       if ( irrtm == 1 ) then
         nband = nbndsw

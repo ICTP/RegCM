@@ -136,7 +136,7 @@ module mod_runparams
   integer(ik4) , public :: ibltyp
   ! Diffusion scheme
   integer(ik4) , public :: idiffu
-  integer , public :: idif
+  integer(ik4) , public :: idif
   ! Lake model activation index
   integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
@@ -514,9 +514,9 @@ module mod_runparams
   logical , public :: stats
   logical , public :: budget_compute
   ! Super saturation option
-  integer , public :: nssopt
+  integer(ik4) , public :: nssopt
   ! Choose the autoconversion paramaterization
-  integer , public :: iautoconv
+  integer(ik4) , public :: iautoconv
   ! Fall speed values
   real(rkx) , public :: vfqr
   real(rkx) , public :: vfqi

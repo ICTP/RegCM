@@ -386,7 +386,7 @@ module mod_regcm_interface
       acc_get_device_type, acc_get_num_devices, acc_set_device_num
     implicit none
     integer, intent(in) :: mpi_rank
-    integer :: idev, ndev
+    integer(ik4) :: idev, ndev
 
     ndev = acc_get_num_devices(acc_device_default)
     idev = mod(mpi_rank, ndev)
