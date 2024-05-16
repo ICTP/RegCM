@@ -89,48 +89,48 @@ module mod_rad_tracer
     ! ptrop  - pressure level of tropopause
     ! pratio - pressure divided by ptrop
     !
-    real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o , alat
-    integer(ik4) :: n , k
+    integer(ik4) :: n
 
-    xcfc11 = d_zero
-    xcfc12 = d_zero
-    xch4 = d_zero
-    xn2o = d_zero
-    do n = n1 , n2
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: pratio , alat
+        real(rkx) :: xcfc11 , xcfc12 , xch4 , xn2o
 #ifdef RCEMIP
-      xn2o = 0.3478_rkx
-      xch4 = 0.2353_rkx
-      xcfc11 = 0.7273_rkx
-      xcfc12 = 0.4000_rkx
-#else
-      alat = abs(dlat(n)) ! This is absolute value of latitude in degrees
-      if ( alat <= 45.0_rkx ) then
-        xn2o = 0.3478_rkx + 0.00116_rkx*alat
+        xn2o = 0.3478_rkx
         xch4 = 0.2353_rkx
-        xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
-        xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
-      else
-        xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
-        xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
-        xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
-        xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
-      end if
-#endif
-      !  set stratospheric scale height factor for gases
-      do k = 1 , kz
-        if ( pmid(n,k) >= xptrop(n) ) then
-          ch4(k,n) = ch40(n)
-          n2o(k,n) = n2o0(n)
-          cfc11(k,n) = cfc110(n)
-          cfc12(k,n) = cfc120(n)
+        xcfc11 = 0.7273_rkx
+        xcfc12 = 0.4000_rkx
+#else
+        alat = abs(dlat(n)) ! This is absolute value of latitude in degrees
+        if ( alat <= 45.0_rkx ) then
+          xn2o = 0.3478_rkx + 0.00116_rkx*alat
+          xch4 = 0.2353_rkx
+          xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
+          xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
         else
-          pratio = pmid(n,k)/xptrop(n)
-          ch4(k,n) = ch40(n)*(pratio**xch4)
-          n2o(k,n) = n2o0(n)*(pratio**xn2o)
-          cfc11(k,n) = cfc110(n)*(pratio**xcfc11)
-          cfc12(k,n) = cfc120(n)*(pratio**xcfc12)
+          xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
+          xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
         end if
-      end do
+#endif
+        !  set stratospheric scale height factor for gases
+        do k = 1 , kz
+          if ( pmid(n,k) >= xptrop(n) ) then
+            ch4(k,n) = ch40(n)
+            n2o(k,n) = n2o0(n)
+            cfc11(k,n) = cfc110(n)
+            cfc12(k,n) = cfc120(n)
+          else
+            pratio = pmid(n,k)/xptrop(n)
+            ch4(k,n) = ch40(n)*(pratio**xch4)
+            n2o(k,n) = n2o0(n)*(pratio**xn2o)
+            cfc11(k,n) = cfc110(n)*(pratio**xcfc11)
+            cfc12(k,n) = cfc120(n)*(pratio**xcfc12)
+          end if
+        end do
+      end block
     end do
   end subroutine trcmix
   !
@@ -199,72 +199,74 @@ module mod_rad_tracer
     !   pbar   - mean pressure
     !   dpnm   - difference in pressure
     !
-    real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
-    integer(ik4) :: n , k
+    integer(ik4) :: n
     real(rkx) , parameter :: diff = 1.66_rkx ! diffusivity factor
 
     !-----------------------------------------------------------------------
     !   Calculate path lengths for the trace gases
     !-----------------------------------------------------------------------
-    do n = n1 , n2
-      ucfc11(1,n) = 1.8_rkx*cfc11(1,n)*pnm(1,n)*regravgts
-      ucfc12(1,n) = 1.8_rkx*cfc12(1,n)*pnm(1,n)*regravgts
-      un2o0(1,n) = diff*1.02346e5_rkx*n2o(1,n)*pnm(1,n)*regravgts/sqrt(tnm(n,1))
-      un2o1(1,n) = diff*2.01909_rkx*un2o0(1,n)*exp(-847.36_rkx/tnm(n,1))
-      uch4(1,n) = diff*8.60957e4_rkx*ch4(1,n)*pnm(1,n)* &
-                  regravgts/sqrt(tnm(n,1))
-      co2fac = diff*co2mmr(n)*pnm(1,n)*regravgts
-      alpha1 = (d_one-exp(-1540.0_rkx/tnm(n,1)))**3/sqrt(tnm(n,1))
-      alpha2 = (d_one-exp(-1360.0_rkx/tnm(n,1)))**3/sqrt(tnm(n,1))
-      uco211(1,n) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(n,1))
-      uco212(1,n) = 6.02454e3_rkx*co2fac*alpha1*exp(-2782.1_rkx/tnm(n,1))
-      uco213(1,n) = 5.53143e3_rkx*co2fac*alpha1*exp(-3723.2_rkx/tnm(n,1))
-      uco221(1,n) = 3.88984e3_rkx*co2fac*alpha2*exp(-1997.6_rkx/tnm(n,1))
-      uco222(1,n) = 3.67108e3_rkx*co2fac*alpha2*exp(-3843.8_rkx/tnm(n,1))
-      uco223(1,n) = 6.50642e3_rkx*co2fac*alpha2*exp(-2989.7_rkx/tnm(n,1))
-      bn2o0(1,n) = diff*19.399_rkx*pnm(1,n)**2*n2o(1,n) * &
-                   1.02346e5_rkx*regravgts/(sslp*tnm(n,1))
-      bn2o1(1,n) = bn2o0(1,n)*exp(-847.36_rkx/tnm(n,1))*2.06646e5_rkx
-      bch4(1,n) = diff*2.94449_rkx*ch4(1,n)*pnm(1,n)**2*regravgts * &
-                  8.60957e4_rkx/(sslp*tnm(n,1))
-      uptype(1,n) = diff*qnm(n,1)*pnm(1,n)**2*exp(1800.0_rkx* &
-                   (d_one/tnm(n,1)-d_one/296.0_rkx))*regravgts/sslp
-    end do
-    do k = 1 , kz
-      do n = n1 , n2
-        rt = d_one/tnm(n,k)
-        rsqrt = sqrt(rt)
-        pbar = ((pnm(k+1,n)+pnm(k,n))*d_half)/sslp
-        dpnm = (pnm(k+1,n)-pnm(k,n))*regravgts
-        alpha1 = diff*rsqrt*(d_one-exp(-1540.0_rkx/tnm(n,k)))**3
-        alpha2 = diff*rsqrt*(d_one-exp(-1360.0_rkx/tnm(n,k)))**3
-        ucfc11(k+1,n) = ucfc11(k,n) + 1.8_rkx*cfc11(k,n)*dpnm
-        ucfc12(k+1,n) = ucfc12(k,n) + 1.8_rkx*cfc12(k,n)*dpnm
-        un2o0(k+1,n) = un2o0(k,n) + diff*1.02346e5_rkx*n2o(k,n)*rsqrt*dpnm
-        un2o1(k+1,n) = un2o1(k,n) + diff*2.06646e5_rkx*n2o(k,n) * &
-                       rsqrt*exp(-847.36_rkx/tnm(n,k))*dpnm
-        uch4(k+1,n) = uch4(k,n) + diff*8.60957e4_rkx*ch4(k,n)*rsqrt*dpnm
-        uco211(k+1,n) = uco211(k,n) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
-                        co2mmr(n)*exp(-1849.7_rkx/tnm(n,k))*dpnm
-        uco212(k+1,n) = uco212(k,n) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
-                        co2mmr(n)*exp(-2782.1_rkx/tnm(n,k))*dpnm
-        uco213(k+1,n) = uco213(k,n) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
-                        co2mmr(n)*exp(-3723.2_rkx/tnm(n,k))*dpnm
-        uco221(k+1,n) = uco221(k,n) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
-                        co2mmr(n)*exp(-1997.6_rkx/tnm(n,k))*dpnm
-        uco222(k+1,n) = uco222(k,n) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
-                        co2mmr(n)*exp(-3843.8_rkx/tnm(n,k))*dpnm
-        uco223(k+1,n) = uco223(k,n) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
-                        co2mmr(n)*exp(-2989.7_rkx/tnm(n,k))*dpnm
-        bn2o0(k+1,n) = bn2o0(k,n) + diff*19.399_rkx*pbar*rt * &
-                       1.02346e5_rkx*n2o(k,n)*dpnm
-        bn2o1(k+1,n) = bn2o1(k,n) + diff*19.399_rkx*pbar*rt * &
-                       2.06646e5_rkx*exp(-847.36_rkx/tnm(n,k))*n2o(k,n)*dpnm
-        bch4(k+1,n) = bch4(k,n) + diff*2.94449_rkx*rt*pbar * &
-                      8.60957e4_rkx*ch4(k,n)*dpnm
-        uptype(k+1,n) = uptype(k,n) + diff*qnm(n,k)*exp(1800.0_rkx*(d_one / &
-                        tnm(n,k)-d_one/296.0_rkx))*pbar*dpnm
-      end do
+    do concurrent ( n = n1:n2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
+        ucfc11(1,n) = 1.8_rkx*cfc11(1,n)*pnm(1,n)*regravgts
+        ucfc12(1,n) = 1.8_rkx*cfc12(1,n)*pnm(1,n)*regravgts
+        un2o0(1,n) = diff*1.02346e5_rkx*n2o(1,n)* &
+          pnm(1,n)*regravgts/sqrt(tnm(n,1))
+        un2o1(1,n) = diff*2.01909_rkx*un2o0(1,n)*exp(-847.36_rkx/tnm(n,1))
+        uch4(1,n) = diff*8.60957e4_rkx*ch4(1,n)*pnm(1,n)* &
+                    regravgts/sqrt(tnm(n,1))
+        co2fac = diff*co2mmr(n)*pnm(1,n)*regravgts
+        alpha1 = (d_one-exp(-1540.0_rkx/tnm(n,1)))**3/sqrt(tnm(n,1))
+        alpha2 = (d_one-exp(-1360.0_rkx/tnm(n,1)))**3/sqrt(tnm(n,1))
+        uco211(1,n) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(n,1))
+        uco212(1,n) = 6.02454e3_rkx*co2fac*alpha1*exp(-2782.1_rkx/tnm(n,1))
+        uco213(1,n) = 5.53143e3_rkx*co2fac*alpha1*exp(-3723.2_rkx/tnm(n,1))
+        uco221(1,n) = 3.88984e3_rkx*co2fac*alpha2*exp(-1997.6_rkx/tnm(n,1))
+        uco222(1,n) = 3.67108e3_rkx*co2fac*alpha2*exp(-3843.8_rkx/tnm(n,1))
+        uco223(1,n) = 6.50642e3_rkx*co2fac*alpha2*exp(-2989.7_rkx/tnm(n,1))
+        bn2o0(1,n) = diff*19.399_rkx*pnm(1,n)**2*n2o(1,n) * &
+                     1.02346e5_rkx*regravgts/(sslp*tnm(n,1))
+        bn2o1(1,n) = bn2o0(1,n)*exp(-847.36_rkx/tnm(n,1))*2.06646e5_rkx
+        bch4(1,n) = diff*2.94449_rkx*ch4(1,n)*pnm(1,n)**2*regravgts * &
+                    8.60957e4_rkx/(sslp*tnm(n,1))
+        uptype(1,n) = diff*qnm(n,1)*pnm(1,n)**2*exp(1800.0_rkx* &
+                     (d_one/tnm(n,1)-d_one/296.0_rkx))*regravgts/sslp
+        do k = 1 , kz
+          rt = d_one/tnm(n,k)
+          rsqrt = sqrt(rt)
+          pbar = ((pnm(k+1,n)+pnm(k,n))*d_half)/sslp
+          dpnm = (pnm(k+1,n)-pnm(k,n))*regravgts
+          alpha1 = diff*rsqrt*(d_one-exp(-1540.0_rkx/tnm(n,k)))**3
+          alpha2 = diff*rsqrt*(d_one-exp(-1360.0_rkx/tnm(n,k)))**3
+          ucfc11(k+1,n) = ucfc11(k,n) + 1.8_rkx*cfc11(k,n)*dpnm
+          ucfc12(k+1,n) = ucfc12(k,n) + 1.8_rkx*cfc12(k,n)*dpnm
+          un2o0(k+1,n) = un2o0(k,n) + diff*1.02346e5_rkx*n2o(k,n)*rsqrt*dpnm
+          un2o1(k+1,n) = un2o1(k,n) + diff*2.06646e5_rkx*n2o(k,n) * &
+                         rsqrt*exp(-847.36_rkx/tnm(n,k))*dpnm
+          uch4(k+1,n) = uch4(k,n) + diff*8.60957e4_rkx*ch4(k,n)*rsqrt*dpnm
+          uco211(k+1,n) = uco211(k,n) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
+                          co2mmr(n)*exp(-1849.7_rkx/tnm(n,k))*dpnm
+          uco212(k+1,n) = uco212(k,n) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
+                          co2mmr(n)*exp(-2782.1_rkx/tnm(n,k))*dpnm
+          uco213(k+1,n) = uco213(k,n) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
+                          co2mmr(n)*exp(-3723.2_rkx/tnm(n,k))*dpnm
+          uco221(k+1,n) = uco221(k,n) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
+                          co2mmr(n)*exp(-1997.6_rkx/tnm(n,k))*dpnm
+          uco222(k+1,n) = uco222(k,n) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
+                          co2mmr(n)*exp(-3843.8_rkx/tnm(n,k))*dpnm
+          uco223(k+1,n) = uco223(k,n) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
+                          co2mmr(n)*exp(-2989.7_rkx/tnm(n,k))*dpnm
+          bn2o0(k+1,n) = bn2o0(k,n) + diff*19.399_rkx*pbar*rt * &
+                         1.02346e5_rkx*n2o(k,n)*dpnm
+          bn2o1(k+1,n) = bn2o1(k,n) + diff*19.399_rkx*pbar*rt * &
+                         2.06646e5_rkx*exp(-847.36_rkx/tnm(n,k))*n2o(k,n)*dpnm
+          bch4(k+1,n) = bch4(k,n) + diff*2.94449_rkx*rt*pbar * &
+                        8.60957e4_rkx*ch4(k,n)*dpnm
+          uptype(k+1,n) = uptype(k,n) + diff*qnm(n,k)*exp(1800.0_rkx*(d_one / &
+                          tnm(n,k)-d_one/296.0_rkx))*pbar*dpnm
+        end do
+      end block
     end do
   end subroutine trcpth
   !
