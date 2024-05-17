@@ -28,9 +28,9 @@ module mod_write
 
   private
 
-  public :: setup_outvars , write_domain , lrmoist , ltsl
+  public :: setup_outvars , write_domain , lrmoist , lrts
 
-  logical :: lrmoist , ltsl
+  logical :: lrmoist , lrts
 
   integer(ik4) :: nvar2d
   integer(ik4) :: nvar3d
@@ -96,7 +96,7 @@ module mod_write
     implicit none
 
     lrmoist = .false.
-    ltsl = .false.
+    lrts = .false.
 
     if ( idynamic == 1 ) then
       nvar2d = 14
@@ -174,7 +174,7 @@ module mod_write
     v3dvar_base(1)%standard_name = 'volume_fraction_of_water_in_soil'
     v3dvar_base(1)%lfillvalue = .true.
     v3dvar_base(1)%axis = 'xys'
-    v3dvar_base(2)%vname = 'tsl'
+    v3dvar_base(2)%vname = 'rts'
     v3dvar_base(2)%vunit = 'K'
     v3dvar_base(2)%long_name = 'Soil Temperature'
     v3dvar_base(2)%standard_name = 'soil_temperature'
@@ -272,7 +272,7 @@ module mod_write
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap, &
                           umap,vmap,coriol,mask,htgrid,lndout,snowam,smoist, &
-                          rmoist,tsl,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
+                          rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
                           ts0,zeta,fmz)
     implicit none
     character (len=*) , intent(in) :: fname
@@ -293,7 +293,7 @@ module mod_write
     real(rkx) , dimension(:,:) , pointer , intent(in) :: texout
     real(rkx) , dimension(:,:) , pointer , intent(in) :: ps0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rmoist
-    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tsl
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rts
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: pr0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
@@ -352,7 +352,7 @@ module mod_write
        ncattribute_logical('initialized_soil_moisture',lrmoist))
 
     call outstream_addatt(ncout, &
-       ncattribute_logical('initialized_soil_temperature',ltsl))
+       ncattribute_logical('initialized_soil_temperature',lrts))
 
     do ivar = 1 , nvar2d
       v2dvar_base(ivar)%j1 = -1
@@ -388,7 +388,7 @@ module mod_write
     end do
 
     v3dvar_base(1)%rval => rmoist
-    v3dvar_base(2)%rval => tsl
+    v3dvar_base(2)%rval => rts
     v3dvar_base(3)%rval => frac_tex
 
     if ( lakedpth ) then

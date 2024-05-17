@@ -848,13 +848,13 @@ program terrain
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,    &
                       ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,     &
                       coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,smoist_s,  &
-                      rmoist_s,tsl_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,&
+                      rmoist_s,rts_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,&
                       t0_s,rho0_s,z0_s,ts0,zeta_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
-  call read_moist(moist_filename,rmoist,tsl,snowam, &
-                  jx,iy,num_soil_layers,lrmoist,ltsl)
+  call read_moist(moist_filename,rmoist,rts,snowam, &
+                  jx,iy,num_soil_layers,lrmoist,lrts)
 
   if ( idynamic == 1 ) then
     ! Write the levels out to the screen
@@ -932,7 +932,7 @@ program terrain
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
                     dmap,umap,vmap,coriol,mask,htgrid,lndout,snowam,      &
-                    smoist,rmoist,tsl,dpth,texout,frac_tex,ps0,pr0,t0,    &
+                    smoist,rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,    &
                     rho0,z0,ts0,zeta,fmz)
   write(stdout,*) 'Grid data written to output file'
 

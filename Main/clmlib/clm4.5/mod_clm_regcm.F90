@@ -90,6 +90,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,num_soil_layers))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -107,6 +108,13 @@ module mod_clm_regcm
       do ilev = 1 , num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)
         call assignpnt(adomain%rmoist,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+    end if
+    if ( replacetemp ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rts,p2,ilev)
+        call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
     end if
@@ -161,6 +169,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,num_soil_layers))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -178,6 +187,13 @@ module mod_clm_regcm
       do ilev = 1 , num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)
         call assignpnt(adomain%rmoist,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+    end if
+    if ( replacetemp ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rts,p2,ilev)
+        call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
     end if

@@ -90,8 +90,8 @@ module mod_ncio
   end function we_have_qi
 
   subroutine read_domain_info(ht,lnd,tex,mask,area,xlat,xlon,dlat,dlon, &
-                              ulat,ulon,vlat,vlon,msfx,msfd,msfu,  &
-                              msfv,coriol,snowam,smoist,rmoist,hlake,ts0)
+                              ulat,ulon,vlat,vlon,msfx,msfd,msfu,msfv,  &
+                              coriol,snowam,smoist,rmoist,rts,hlake,ts0)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
@@ -114,11 +114,12 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: snowam
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: smoist
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rts
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: hlake
     real(rkx) , intent(out) :: ts0
     real(rkx) , dimension(:,:) , pointer :: tempmoist
     character(len=256) :: dname
-    character(len=8) :: csmoist
+    character(len=8) :: csmoist , cstemp
     integer(ik4) :: idmin , ilev
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) , dimension(3) :: istart3 , icount3
@@ -145,6 +146,12 @@ module mod_ncio
         replacemoist = .true.
       else
         replacemoist = .false.
+      end if
+      call get_attribute(idmin,'initialized_soil_temperature',cstemp)
+      if ( cstemp == 'Yes' ) then
+        replacetemp = .true.
+      else
+        replacetemp = .false.
       end if
       lerror = .true.
       call read_var1d_static(idmin,'kz',sigma,lerror)
@@ -218,6 +225,17 @@ module mod_ncio
           rmoist(jde1:jde2,ide1:ide2,ilev) = rspace
         end do
       end if
+      if ( replacetemp ) then
+        istart3(1:2) = istart
+        icount3(1:2) = icount
+        icount3(3) = 1
+        do ilev = 1 , num_soil_layers
+          istart3(3) = ilev
+          call read_var2d_static(idmin,'rts',rspace, &
+                                 istart=istart3,icount=icount3)
+          rts(jde1:jde2,ide1:ide2,ilev) = rspace
+        end do
+      end if
       rspace = d_zero
       call read_var2d_static(idmin,'snowam',rspace,has_snow, &
            istart=istart,icount=icount)
@@ -252,6 +270,13 @@ module mod_ncio
           replacemoist = .false.
         end if
         call bcast(replacemoist)
+        call get_attribute(idmin,'initialized_soil_moisture',cstemp)
+        if ( cstemp == 'Yes' ) then
+          replacetemp = .true.
+        else
+          replacetemp = .false.
+        end if
+        call bcast(replacetemp)
         lerror = .true.
         call read_var1d_static(idmin,'kz',sigma,lerror)
         if ( .not. lerror ) then
@@ -341,6 +366,20 @@ module mod_ncio
           end do
           deallocate(tempmoist)
         end if
+        if ( replacetemp ) then
+          allocate(tempmoist(jde1:jde2,ide1:ide2))
+          istart3(1:2) = istart
+          icount3(1:2) = icount
+          icount3(3) = 1
+          do ilev = 1 , num_soil_layers
+            istart3(3) = ilev
+            call read_var2d_static(idmin,'rts',rspace, &
+                    istart=istart3,icount=icount3)
+            call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+            rts(jde1:jde2,ide1:ide2,ilev) = tempmoist
+          end do
+          deallocate(tempmoist)
+        end if
         rspace = d_zero
         call read_var2d_static(idmin,'snowam',rspace,has_snow, &
                 istart=istart,icount=icount)
@@ -355,6 +394,7 @@ module mod_ncio
       else
         call bcast(ts0)
         call bcast(replacemoist)
+        call bcast(replacetemp)
         call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
@@ -384,6 +424,14 @@ module mod_ncio
           do ilev = 1 , num_soil_layers
             call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
             rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
+          end do
+          deallocate(tempmoist)
+        end if
+        if ( replacetemp ) then
+          allocate(tempmoist(jde1:jde2,ide1:ide2))
+          do ilev = 1 , num_soil_layers
+            call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+            rts(jde1:jde2,ide1:ide2,ilev) = tempmoist
           end do
           deallocate(tempmoist)
         end if

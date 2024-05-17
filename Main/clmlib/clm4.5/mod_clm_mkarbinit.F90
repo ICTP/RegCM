@@ -4,7 +4,7 @@ module mod_clm_mkarbinit
   use mod_stdio
   use mod_mppparam
   use mod_dynparam
-  use mod_runparams , only : replacemoist
+  use mod_runparams , only : replacemoist , replacetemp
   use mod_clm_atmlnd
   use mod_clm_type
   use mod_clm_varpar , only : nlevsoi , nlevgrnd , nlevsno , nlevlak , nlevurb
@@ -1206,7 +1206,7 @@ module mod_clm_mkarbinit
 
     if ( replacemoist ) then
       if ( myid == italk ) then
-         write(stdout,*) 'Initializing moisture from DOMAIN file'
+         write(stdout,*) 'Initializing SOIL moisture from DOMAIN file'
       end if
       do c = begc , endc
         g = cgridcell(c)
@@ -1227,6 +1227,20 @@ module mod_clm_mkarbinit
             end do
           end if
         end if
+      end do
+    end if
+
+    if ( replacetemp ) then
+      if ( myid == italk ) then
+         write(stdout,*) 'Initializing SOIL temperature from DOMAIN file'
+      end if
+      do c = begc , endc
+        g = cgridcell(c)
+        do j = 1 , nlevs
+          if ( adomain%rts(g,j) < 1.0e+10_rk8 ) then
+            t_soisno(c,j) = adomain%rts(g,j)
+          end if
+        end do
       end do
     end if
 

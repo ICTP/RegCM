@@ -28,6 +28,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: snow
     real(rk8) , pointer , dimension(:) :: smoist
     real(rk8) , pointer , dimension(:,:) :: rmoist
+    real(rk8) , pointer , dimension(:,:) :: rts
     real(rk8) , pointer , dimension(:) :: tgrd
   end type atm_domain
 

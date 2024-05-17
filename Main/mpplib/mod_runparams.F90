@@ -224,6 +224,7 @@ module mod_runparams
   ! Moisture from previous run
 
   logical , public :: replacemoist = .false.
+  logical , public :: replacetemp = .false.
 
   ! Number od split exp modes
 
