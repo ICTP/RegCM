@@ -19,7 +19,7 @@ module mod_clm_regcm
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
   use mod_clm_varctl , only : ndep_nochem , luse_cru , crufile , lcru_rand
-  use mod_clm_varpar , only : nlevsoi
+  use mod_clm_varpar , only : nlevsoi , nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
@@ -90,7 +90,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
-    allocate(adomain%rts(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,nlevgrnd))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -117,6 +117,11 @@ module mod_clm_regcm
         call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
+      if ( num_soil_layers < nlevgrnd ) then
+        do ilev = num_soil_layers+1 , nlevgrnd
+          adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
+        end do
+      end if
     end if
 
     write(rdate,'(a)') tochar10(rcmtimer%idate)
@@ -169,7 +174,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
-    allocate(adomain%rts(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,nlevgrnd))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -196,6 +201,11 @@ module mod_clm_regcm
         call assignpnt(adomain%rts,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
+      if ( num_soil_layers < nlevgrnd ) then
+        do ilev = num_soil_layers+1 , nlevgrnd
+          adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
+        end do
+      end if
     end if
 
     write(rdate,'(a)') tochar10(rcmtimer%idate)

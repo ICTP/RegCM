@@ -1215,6 +1215,7 @@ module mod_clm_mkarbinit
           if ( ltype(l) == istsoil .or. &
                ltype(l) == istcrop .or. &
                ltype(l) == isturb ) then
+            nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
@@ -1236,11 +1237,19 @@ module mod_clm_mkarbinit
       end if
       do c = begc , endc
         g = cgridcell(c)
-        do j = 1 , nlevs
-          if ( adomain%rts(g,j) < 1.0e+10_rk8 ) then
-            t_soisno(c,j) = adomain%rts(g,j)
+        l = clandunit(c)
+        if ( .not. lakpoi(l) ) then  !not lake
+          if ( ltype(l) == istsoil .or. &
+               ltype(l) == istcrop .or. &
+               ltype(l) == isturb ) then
+            nlevs = nlevgrnd
+            do j = 1 , nlevs
+              if ( adomain%rts(g,j) < 1.0e+10_rk8 ) then
+                t_soisno(c,j) = adomain%rts(g,j)
+              end if
+            end do
           end if
-        end do
+        end if
       end do
     end if
 

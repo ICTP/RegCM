@@ -299,6 +299,7 @@ module mod_lm_interface
     call assignpnt(mddom%snowam,lm%snowam)
     call assignpnt(mddom%smoist,lm%smoist)
     call assignpnt(mddom%rmoist,lm%rmoist)
+    call assignpnt(mddom%rts,lm%rts)
     call assignpnt(mdsub%area,lm%area1)
     call assignpnt(mdsub%xlat,lm%xlat1)
     call assignpnt(mdsub%xlon,lm%xlon1)
