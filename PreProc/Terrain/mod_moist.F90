@@ -192,7 +192,7 @@ module mod_moist
             lrmoist = .true.
           end if
         end if
-        if ( ltsl ) then
+        if ( ltemp ) then
           istat = nf90_get_var(ncid,idtsl,tsl_in,istart,icount)
           if ( istat /= nf90_noerr ) then
             write(stderr,*) 'Error reading variable tsl in moisture file'
