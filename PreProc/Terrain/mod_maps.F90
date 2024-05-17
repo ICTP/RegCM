@@ -27,7 +27,7 @@ module mod_maps
                    dmap , htgrid , lndout , mask , dpth , snowam , &
                    smoist , texout , xlat , xlon , xmap , ps0 ,    &
                    ulat , ulon , vlat , vlon , umap , vmap
-  real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
+  real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist , tsl
   real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
   real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
 
@@ -37,7 +37,7 @@ module mod_maps
                       texout_s , xlat_s , xlon_s , xmap_s ,   &
                       ulat_s , ulon_s , vlat_s , vlon_s ,     &
                       umap_s , vmap_s , ps0_s
-  real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
+  real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s , tsl_s
   real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
   real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
 
@@ -66,6 +66,7 @@ module mod_maps
     call getmem2d(texout,1,jx,1,iy,'maps:texout')
     call getmem3d(frac_tex,1,jx,1,iy,1,ntex,'maps:frac_tex')
     call getmem3d(rmoist,1,jx,1,iy,1,nsoil,'maps:rmoist')
+    call getmem3d(tsl,1,jx,1,iy,1,nsoil,'maps:tsl')
     if ( idyn == 2 ) then
       call getmem2d(ps0,1,jx,1,iy,'maps:ps0')
       call getmem3d(pr0,1,jx,1,iy,1,kz+1,'maps:pr0')
@@ -109,6 +110,7 @@ module mod_maps
     call getmem2d(texout_s,1,jxsg,1,iysg,'maps:texout_s')
     call getmem3d(frac_tex_s,1,jxsg,1,iysg,1,ntex,'maps:frac_tex_s')
     call getmem3d(rmoist_s,1,jxsg,1,iysg,1,nsoil,'maps:rmoist_s')
+    call getmem3d(tsl_s,1,jxsg,1,iysg,1,nsoil,'maps:tsl_s')
     if ( idyn == 2 ) then
       call getmem2d(ps0_s,1,jxsg,1,iysg,'maps:ps0_s')
       call getmem3d(pr0_s,1,jxsg,1,iysg,1,kz+1,'maps:pr0_s')

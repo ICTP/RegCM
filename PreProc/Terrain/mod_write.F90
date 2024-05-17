@@ -28,9 +28,9 @@ module mod_write
 
   private
 
-  public :: setup_outvars , write_domain , lrmoist
+  public :: setup_outvars , write_domain , lrmoist , ltsl
 
-  logical :: lrmoist
+  logical :: lrmoist , ltsl
 
   integer(ik4) :: nvar2d
   integer(ik4) :: nvar3d
@@ -96,16 +96,17 @@ module mod_write
     implicit none
 
     lrmoist = .false.
+    ltsl = .false.
 
     if ( idynamic == 1 ) then
       nvar2d = 14
-      nvar3d = 2
+      nvar3d = 3
     else if ( idynamic == 2 ) then
       nvar2d = 15
-      nvar3d = 6
+      nvar3d = 7
     else if ( idynamic == 3 ) then
       nvar2d = 19
-      nvar3d = 4
+      nvar3d = 5
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
@@ -173,12 +174,18 @@ module mod_write
     v3dvar_base(1)%standard_name = 'volume_fraction_of_water_in_soil'
     v3dvar_base(1)%lfillvalue = .true.
     v3dvar_base(1)%axis = 'xys'
-    v3dvar_base(2)%vname = 'texture_fraction'
-    v3dvar_base(2)%vunit = '1'
-    v3dvar_base(2)%long_name = 'Texture category fraction'
-    v3dvar_base(2)%standard_name = 'soil_type_fraction'
-    v3dvar_base(2)%axis = 'xyT'
+    v3dvar_base(2)%vname = 'tsl'
+    v3dvar_base(2)%vunit = 'K'
+    v3dvar_base(2)%long_name = 'Soil Temperature'
+    v3dvar_base(2)%standard_name = 'soil_temperature'
     v3dvar_base(2)%lfillvalue = .true.
+    v3dvar_base(2)%axis = 'xys'
+    v3dvar_base(3)%vname = 'texture_fraction'
+    v3dvar_base(3)%vunit = '1'
+    v3dvar_base(3)%long_name = 'Texture category fraction'
+    v3dvar_base(3)%standard_name = 'soil_type_fraction'
+    v3dvar_base(3)%axis = 'xyT'
+    v3dvar_base(3)%lfillvalue = .true.
 
     if ( idynamic == 3 ) then
       v2dvar_base(13)%vname = 'ulon'
@@ -227,37 +234,37 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
-      v3dvar_base(3)%vname = 'zeta'
-      v3dvar_base(3)%vunit = 'm'
-      v3dvar_base(3)%long_name = 'Elevation above ground'
-      v3dvar_base(3)%standard_name = 'heigth'
-      v3dvar_base(3)%axis = 'xyz'
-      v3dvar_base(4)%vname = 'fmz'
-      v3dvar_base(4)%vunit = ''
-      v3dvar_base(4)%long_name = 'Vertical factor'
-      v3dvar_base(4)%standard_name = ''
+      v3dvar_base(4)%vname = 'zeta'
+      v3dvar_base(4)%vunit = 'm'
+      v3dvar_base(4)%long_name = 'Elevation above ground'
+      v3dvar_base(4)%standard_name = 'heigth'
       v3dvar_base(4)%axis = 'xyz'
-    else if ( idynamic == 2 ) then
-      v3dvar_base(3)%vname = 'pr0'
-      v3dvar_base(3)%vunit = 'Pa'
-      v3dvar_base(3)%long_name = 'Reference State Pressure'
-      v3dvar_base(3)%standard_name = 'air_pressure'
-      v3dvar_base(3)%axis = 'xyz'
-      v3dvar_base(4)%vname = 't0'
-      v3dvar_base(4)%vunit = 'K'
-      v3dvar_base(4)%long_name = 'Reference State Temperature'
-      v3dvar_base(4)%standard_name = 'air_temperature'
-      v3dvar_base(4)%axis = 'xyz'
-      v3dvar_base(5)%vname = 'rho0'
-      v3dvar_base(5)%vunit = 'kg m-3'
-      v3dvar_base(5)%long_name = 'Reference State Density'
-      v3dvar_base(5)%standard_name = 'air_density'
+      v3dvar_base(5)%vname = 'fmz'
+      v3dvar_base(5)%vunit = ''
+      v3dvar_base(5)%long_name = 'Vertical factor'
+      v3dvar_base(5)%standard_name = ''
       v3dvar_base(5)%axis = 'xyz'
-      v3dvar_base(6)%vname = 'z0'
-      v3dvar_base(6)%vunit = 'm'
-      v3dvar_base(6)%long_name = 'Reference State elevation'
-      v3dvar_base(6)%standard_name = 'heigth'
+    else if ( idynamic == 2 ) then
+      v3dvar_base(4)%vname = 'pr0'
+      v3dvar_base(4)%vunit = 'Pa'
+      v3dvar_base(4)%long_name = 'Reference State Pressure'
+      v3dvar_base(4)%standard_name = 'air_pressure'
+      v3dvar_base(4)%axis = 'xyz'
+      v3dvar_base(5)%vname = 't0'
+      v3dvar_base(5)%vunit = 'K'
+      v3dvar_base(5)%long_name = 'Reference State Temperature'
+      v3dvar_base(5)%standard_name = 'air_temperature'
+      v3dvar_base(5)%axis = 'xyz'
+      v3dvar_base(6)%vname = 'rho0'
+      v3dvar_base(6)%vunit = 'kg m-3'
+      v3dvar_base(6)%long_name = 'Reference State Density'
+      v3dvar_base(6)%standard_name = 'air_density'
       v3dvar_base(6)%axis = 'xyz'
+      v3dvar_base(7)%vname = 'z0'
+      v3dvar_base(7)%vunit = 'm'
+      v3dvar_base(7)%long_name = 'Reference State elevation'
+      v3dvar_base(7)%standard_name = 'heigth'
+      v3dvar_base(7)%axis = 'xyz'
     end if
 
   end subroutine setup_outvars
@@ -265,8 +272,8 @@ module mod_write
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap, &
                           umap,vmap,coriol,mask,htgrid,lndout,snowam,smoist, &
-                          rmoist,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,&
-                          zeta,fmz)
+                          rmoist,tsl,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,&
+                          ts0,zeta,fmz)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -286,6 +293,7 @@ module mod_write
     real(rkx) , dimension(:,:) , pointer , intent(in) :: texout
     real(rkx) , dimension(:,:) , pointer , intent(in) :: ps0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rmoist
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tsl
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: pr0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
@@ -343,6 +351,9 @@ module mod_write
     call outstream_addatt(ncout, &
        ncattribute_logical('initialized_soil_moisture',lrmoist))
 
+    call outstream_addatt(ncout, &
+       ncattribute_logical('initialized_soil_temperature',ltsl))
+
     do ivar = 1 , nvar2d
       v2dvar_base(ivar)%j1 = -1
       v2dvar_base(ivar)%j2 = -1
@@ -377,7 +388,8 @@ module mod_write
     end do
 
     v3dvar_base(1)%rval => rmoist
-    v3dvar_base(2)%rval => frac_tex
+    v3dvar_base(2)%rval => tsl
+    v3dvar_base(3)%rval => frac_tex
 
     if ( lakedpth ) then
       v2dvar_lake%j1 = -1
@@ -389,10 +401,10 @@ module mod_write
     end if
 
     if ( idynamic == 2 ) then
-      v3dvar_base(3)%rval => pr0
-      v3dvar_base(4)%rval => t0
-      v3dvar_base(5)%rval => rho0
-      v3dvar_base(6)%rval => z0
+      v3dvar_base(4)%rval => pr0
+      v3dvar_base(5)%rval => t0
+      v3dvar_base(6)%rval => rho0
+      v3dvar_base(7)%rval => z0
     end if
 
     if ( idynamic == 3 ) then
@@ -403,8 +415,8 @@ module mod_write
       v2dvar_base(17)%rval => xmap
       v2dvar_base(18)%rval => umap
       v2dvar_base(19)%rval => vmap
-      v3dvar_base(3)%rval => zeta
-      v3dvar_base(4)%rval => fmz
+      v3dvar_base(4)%rval => zeta
+      v3dvar_base(5)%rval => fmz
     else
       v2dvar_base(13)%rval => xmap
       v2dvar_base(14)%rval => dmap
