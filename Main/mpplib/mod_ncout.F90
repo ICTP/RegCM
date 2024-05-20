@@ -559,6 +559,7 @@ module mod_ncout
       ! enable basic geolocation + vertical coord variables
       enable_atm_vars(1:nbase) = .true.
       enable_atm_vars(atm_mrso) = .true.
+      enable_atm_vars(atm_tgb) = .true.
       enable_atm_vars(natm2dvars+atm_u) = .true.
       enable_atm_vars(natm2dvars+atm_v) = .true.
       enable_atm_vars(natm2dvars+atm_w) = .true.
