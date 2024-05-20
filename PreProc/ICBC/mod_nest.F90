@@ -767,6 +767,9 @@ module mod_nest
     !
     ! New calculation of P* on RegCM topography.
     !
+    if ( ltsl ) then
+      call readsst(ts,idate)
+    end if
     call intpsn(ps4,topogm,ps,zs,ts,ptop_out,jx,iy)
 
     if ( idynamic /= 3 ) then
@@ -790,9 +793,6 @@ module mod_nest
       call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
 
-    if ( ltsl ) then
-      call readsst(ts4,idate)
-    end if
     !
     ! Interpolate U, V, T, and Q.
     !
