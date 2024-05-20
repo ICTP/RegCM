@@ -776,7 +776,7 @@ module mod_dynparam
       ierr = 6
       return
     end if
-    if ( dattyp == 'CMIP6' ) then
+    if ( dattyp == 'CMIP6' .or. ssttyp == 'CMIP6' ) then
       rewind(ipunit)
       read(ipunit, nml=cmip6param, iostat=iresult)
       if ( iresult /= 0 ) then
@@ -785,7 +785,7 @@ module mod_dynparam
         return
       end if
     end if
-    if ( dattyp == 'PMIP4' ) then
+    if ( dattyp == 'PMIP4' .or. ssttyp == 'PMIP4' ) then
       rewind(ipunit)
       read(ipunit, nml=pmip4param, iostat=iresult)
       if ( iresult /= 0 ) then
