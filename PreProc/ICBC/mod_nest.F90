@@ -36,6 +36,7 @@ module mod_nest
   use mod_vectutil
   use mod_message
   use mod_memutil
+  use mod_mksst
   use mod_nchelper
   use mod_domain , only : read_reference_surface_temp
 
@@ -453,7 +454,7 @@ module mod_nest
     integer(ik4) :: i , j , k , istatus , ivarid , idimid , irec
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
-    logical :: lspch
+    logical :: lspch , ltsl
 
     if ( idate > itimes(nrec) ) then
       istatus = nf90_close(ncinp)
@@ -653,12 +654,31 @@ module mod_nest
     istatus = nf90_get_var(ncinp, ivarid, ps_in, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable ps read error')
+    ltsl = .false.
     istatus = nf90_inq_varid(ncinp, 'ts', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ts missing')
-    istatus = nf90_get_var(ncinp, ivarid, ts_in, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ts read error')
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(ncinp, 'tsl', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ts/tsl missing')
+      ltsl = .true.
+    end if
+    if ( ltsl ) then
+      istart(4) = irec
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = 1
+      icount(2) = iy_in
+      icount(1) = jx_in
+      istatus = nf90_get_var(ncinp, ivarid, ts_in, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable tsl read error')
+    else
+      istatus = nf90_get_var(ncinp, ivarid, ts_in, istart(1:3), icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ts read error')
+    end if
     if ( oidyn == 1 ) then
       pstar_in = ps_in - ptop_in
       do k = 1 , kz_in
@@ -770,9 +790,9 @@ module mod_nest
       call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
 
-    where ( mask == 0 )
-      ts4(:,:) = ts(:,:)
-    end where
+    if ( ltsl ) then
+      call readsst(ts4,idate)
+    end if
     !
     ! Interpolate U, V, T, and Q.
     !
