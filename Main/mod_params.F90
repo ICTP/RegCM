@@ -1127,6 +1127,26 @@ module mod_params
 
       minfrq = 86400.0_rkx
 
+      if ( ifcordex ) then
+        ! Save file setup and file granularity left to user.
+        ifatm = .true.
+        ifrad = .true.
+        ifsrf = .true.
+        ifsts = .true.
+        ifshf = .false.
+        iflak = .false.
+        ifsub = .false.
+        ifopt = .false.
+        ifchem = .false.
+        if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+        radfrq = 1.0_rkx
+        srffrq = 1.0_rkx
+        lsync = .false. ! Faster this way
+        idiag = 0
+        icosp = 0
+        ! Variable selection in mod_ncout where list is
+      end if
+
       ! Check user input
       if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
       if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
@@ -1226,25 +1246,6 @@ module mod_params
     !
     ! Force to grant same output
     !
-    if ( ifcordex ) then
-      ! Save file setup and file granularity left to user.
-      ifatm = .true.
-      ifrad = .true.
-      ifsrf = .true.
-      ifsts = .true.
-      ifshf = .false.
-      iflak = .false.
-      ifsub = .false.
-      ifopt = .false.
-      ifchem = .false.
-      atmfrq = 6.0
-      radfrq = 1.0
-      srffrq = 1.0
-      lsync = .false. ! Faster this way
-      idiag = 0
-      icosp = 0
-      ! Variable selection in mod_ncout where list is
-    end if
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
