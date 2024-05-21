@@ -1137,9 +1137,9 @@ module mod_params
         ifsub = .false.
         ifopt = .false.
         ifchem = .false.
-        atmfrq = 6.0
-        radfrq = 1.0
-        srffrq = 1.0
+        if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+        radfrq = 1.0_rkx
+        srffrq = 1.0_rkx
         lsync = .false. ! Faster this way
         idiag = 0
         icosp = 0
