@@ -579,8 +579,13 @@ module mod_atm_interface
       type(atmosphere) , intent(inout) :: atm
       call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
+#ifdef RCEMIP
+      call getmem3d(atm%ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:ux')
+      call getmem3d(atm%vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#else
       call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
       call getmem3d(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#endif
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
       call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
@@ -595,18 +600,10 @@ module mod_atm_interface
       call getmem3d(atm%dz,jce1,jce2,ice1,ice2,1,kz,'atmstate:dz')
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-#ifdef RCEMIP
-      call getmem3d(atm%tten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'atmstate:tten')
-      call getmem3d(atm%uten,jdi1ga,jdi2ga,ici1ga,ici2ga,1,kz,'atmstate:uten')
-      call getmem3d(atm%vten,jci1ga,jci2ga,idi1ga,idi2ga,1,kz,'atmstate:vten')
-      call getmem4d(atm%qxten,jci1ga,jci2ga,ici1ga,ici2ga, &
-              1,kz,1,nqx,'atmstate:qxten')
-#else
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
       call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
       call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
       call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
-#endif
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
         call getmem3d(atm%tketen,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tketen')

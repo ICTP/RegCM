@@ -383,7 +383,6 @@ module mod_projections
         pj%uvrotate3 => rotate3_rl
         pj%uvbkrotate2 => backrotate2_rl
         pj%uvbkrotate3 => backrotate3_rl
-        pj%mapfac => mapfac_ll
         pj%mapfac => mapfac_rl
       case default
         call setup_ll(pj,pjpara%clon,pjpara%clat,ci,cj,pjpara%ds)

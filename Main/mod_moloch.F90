@@ -92,22 +92,23 @@ module mod_moloch
   public :: uvstagtox , xtouvstag , wstagtox
 
   real(rkx) , parameter :: minden = 1.0e-30_rkx
+  real(rkx) , parameter :: xdamp = 0.0625_rkx
 
-  logical , parameter :: do_phys         = .true.
   logical , parameter :: do_fulleq       = .true.
-  logical , parameter :: do_vadvtwice    = .true.
   logical , parameter :: do_bdy          = .true.
   logical , parameter :: do_divdamp      = .true.
+  logical , parameter :: do_vadvtwice    = .true.
   logical , parameter :: do_filterpai    = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_diffutend    = .false.
+  logical , parameter :: do_gkfilter     = .true.
 #endif
-  logical , parameter :: do_convection    = .true.
-  logical , parameter :: do_microphysics  = .true.
-  logical , parameter :: do_radiation     = .true.
-  logical , parameter :: do_surface       = .true.
-  logical , parameter :: do_pbl           = .true.
+  logical , parameter :: do_phys         = .true.
+  logical , parameter :: do_convection   = .true.
+  logical , parameter :: do_microphysics = .true.
+  logical , parameter :: do_radiation    = .true.
+  logical , parameter :: do_surface      = .true.
+  logical , parameter :: do_pbl          = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -117,6 +118,48 @@ module mod_moloch
 
   real(rkx) :: dzita
   integer(ik4) :: jmin , jmax , imin , imax
+
+#ifdef RCEMIP
+  ! real(rkx) , parameter :: sigma = 0.5_rkx*sqrt(2.0_rkx)
+  ! do i = -2 , 2
+  !   do j = -2 , 2
+  !     kern(i+3,j+3) = (d_one/twopi)*exp(-(i*i+j*i)/(d_two*sigma**2))
+  !   end do
+  ! end do
+  ! kern = kern/sum(kern)
+  !real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
+  !       [ 1.0678874539336266E-004 , 2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 , &
+  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
+  !         0.1171080791453356E-000 , 4.3081654712647119E-002 , &
+  !         2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 0.1171080791453356E-000 , &
+  !         0.3183327635065094e-000 , 0.1171080791453356E-000 , &
+  !         5.8304679428380487E-003 , &
+  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
+  !         0.1171080791453356e-000 , 4.3081654712647119E-002 , &
+  !         2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 , 2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 ], [5,5])
+  real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
+         [ 1.2477641543232609E-002 , 2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
+           1.2477641543232609E-002 , &
+           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
+           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
+           2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 7.1803869414926613E-002 , &
+           9.2197993345293314E-002 , 7.1803869414926613E-002 , &
+           3.3917746268994867E-002 , &
+           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
+           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
+           2.6415167354310421E-002 , &
+           1.2477641543232609E-002 , 2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
+           1.2477641543232609E-002 ], [5,5])
+#endif
 
   contains
 
@@ -131,7 +174,11 @@ module mod_moloch
     call getmem2d(p2d,jdi1,jdi2,idi1,idi2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+#ifdef RCEMIP
+    call getmem3d(wx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wx')
+#else
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
+#endif
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
@@ -164,7 +211,8 @@ module mod_moloch
     end if
     call getmem1d(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = xdamp + &
+        (1.0_rkx-xdamp) * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
@@ -616,6 +664,161 @@ module mod_moloch
       end subroutine boundary
 
 #ifdef RCEMIP
+      subroutine gkfilter2d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:) :: temp
+        integer(ik4) :: i , j , n
+
+        call exchange(f,2,jce1,jce2,ice1,ice2)
+        allocate(temp, mold=f)
+        temp(:,:) = f(:,:)
+        do n = 1 , irep
+          do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
+            temp(j,i) = kern(1,1)*f(j-2,i-2) + &
+              kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
+              kern(4,1)*f(j+1,i-2) + kern(5,1)*f(j+2,i-2) + &
+              kern(1,2)*f(j-2,i-1) + kern(2,2)*f(j-1,i-1) + &
+              kern(3,2)*f(j,  i-1) + kern(4,2)*f(j+1,i-1) + &
+              kern(5,2)*f(j+2,i-1) + kern(1,3)*f(j-2,i  ) + &
+              kern(2,3)*f(j-1,i  ) + kern(3,3)*f(j,  i  ) + &
+              kern(4,3)*f(j+1,i  ) + kern(5,3)*f(j+2,i  ) + &
+              kern(1,4)*f(j-2,i+1) + kern(2,4)*f(j-1,i+1) + &
+              kern(3,4)*f(j,  i+1) + kern(4,4)*f(j+1,i+1) + &
+              kern(5,4)*f(j+2,i+1) + kern(1,5)*f(j-2,i+2) + &
+              kern(2,5)*f(j-1,i+2) + kern(3,5)*f(j,  i+2) + &
+              kern(4,5)*f(j+1,i+2) + kern(5,5)*f(j+2,i+2)
+          end do
+        end do
+        do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
+          f(j,i) = temp(j,i)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter2d
+
+      subroutine gkfilter3d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:,:) :: temp
+        integer(ik4) :: i , j , k , n
+
+        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=f)
+        temp(:,:,:) = f(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
+              kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
+              kern(4,1)*f(j+1,i-2,k) + kern(5,1)*f(j+2,i-2,k) + &
+              kern(1,2)*f(j-2,i-1,k) + kern(2,2)*f(j-1,i-1,k) + &
+              kern(3,2)*f(j,  i-1,k) + kern(4,2)*f(j+1,i-1,k) + &
+              kern(5,2)*f(j+2,i-1,k) + kern(1,3)*f(j-2,i  ,k) + &
+              kern(2,3)*f(j-1,i  ,k) + kern(3,3)*f(j,  i  ,k) + &
+              kern(4,3)*f(j+1,i  ,k) + kern(5,3)*f(j+2,i  ,k) + &
+              kern(1,4)*f(j-2,i+1,k) + kern(2,4)*f(j-1,i+1,k) + &
+              kern(3,4)*f(j,  i+1,k) + kern(4,4)*f(j+1,i+1,k) + &
+              kern(5,4)*f(j+2,i+1,k) + kern(1,5)*f(j-2,i+2,k) + &
+              kern(2,5)*f(j-1,i+2,k) + kern(3,5)*f(j,  i+2,k) + &
+              kern(4,5)*f(j+1,i+2,k) + kern(5,5)*f(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+          f(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter3d
+
+      subroutine gkfilter4d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:,:,:) :: temp
+        integer(ik4) :: i , j , k , n , m
+        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        allocate(temp, mold=f)
+        temp(:,:,:,:) = f(:,:,:,:)
+        do m = 1 , irep
+          do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz , n=1:nqx)
+            temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
+              kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
+              kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
+              kern(1,2)*f(j-2,i-1,k,n) + kern(2,2)*f(j-1,i-1,k,n) + &
+              kern(3,2)*f(j,  i-1,k,n) + kern(4,2)*f(j+1,i-1,k,n) + &
+              kern(5,2)*f(j+2,i-1,k,n) + kern(1,3)*f(j-2,i  ,k,n) + &
+              kern(2,3)*f(j-1,i  ,k,n) + kern(3,3)*f(j,  i  ,k,n) + &
+              kern(4,3)*f(j+1,i  ,k,n) + kern(5,3)*f(j+2,i  ,k,n) + &
+              kern(1,4)*f(j-2,i+1,k,n) + kern(2,4)*f(j-1,i+1,k,n) + &
+              kern(3,4)*f(j,  i+1,k,n) + kern(4,4)*f(j+1,i+1,k,n) + &
+              kern(5,4)*f(j+2,i+1,k,n) + kern(1,5)*f(j-2,i+2,k,n) + &
+              kern(2,5)*f(j-1,i+2,k,n) + kern(3,5)*f(j,  i+2,k,n) + &
+              kern(4,5)*f(j+1,i+2,k,n) + kern(5,5)*f(j+2,i+2,k,n)
+          end do
+        end do
+        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
+          f(j,i,k,n) = temp(j,i,k,n)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter4d
+
+      subroutine gkfilteruv(u,v,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+        real(rkx) , allocatable , dimension(:,:,:) :: temp
+        integer(ik4) :: i , j , k , n
+
+        call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=u)
+        temp(:,:,:) = u(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
+              kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
+              kern(4,1)*u(j+1,i-2,k) + kern(5,1)*u(j+2,i-2,k) + &
+              kern(1,2)*u(j-2,i-1,k) + kern(2,2)*u(j-1,i-1,k) + &
+              kern(3,2)*u(j,  i-1,k) + kern(4,2)*u(j+1,i-1,k) + &
+              kern(5,2)*u(j+2,i-1,k) + kern(1,3)*u(j-2,i  ,k) + &
+              kern(2,3)*u(j-1,i  ,k) + kern(3,3)*u(j,  i  ,k) + &
+              kern(4,3)*u(j+1,i  ,k) + kern(5,3)*u(j+2,i  ,k) + &
+              kern(1,4)*u(j-2,i+1,k) + kern(2,4)*u(j-1,i+1,k) + &
+              kern(3,4)*u(j,  i+1,k) + kern(4,4)*u(j+1,i+1,k) + &
+              kern(5,4)*u(j+2,i+1,k) + kern(1,5)*u(j-2,i+2,k) + &
+              kern(2,5)*u(j-1,i+2,k) + kern(3,5)*u(j,  i+2,k) + &
+              kern(4,5)*u(j+1,i+2,k) + kern(5,5)*u(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          u(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+        call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=v)
+        temp(:,:,:) = v(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
+              kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
+              kern(4,1)*v(j+1,i-2,k) + kern(5,1)*v(j+2,i-2,k) + &
+              kern(1,2)*v(j-2,i-1,k) + kern(2,2)*v(j-1,i-1,k) + &
+              kern(3,2)*v(j,  i-1,k) + kern(4,2)*v(j+1,i-1,k) + &
+              kern(5,2)*v(j+2,i-1,k) + kern(1,3)*v(j-2,i  ,k) + &
+              kern(2,3)*v(j-1,i  ,k) + kern(3,3)*v(j,  i  ,k) + &
+              kern(4,3)*v(j+1,i  ,k) + kern(5,3)*v(j+2,i  ,k) + &
+              kern(1,4)*v(j-2,i+1,k) + kern(2,4)*v(j-1,i+1,k) + &
+              kern(3,4)*v(j,  i+1,k) + kern(4,4)*v(j+1,i+1,k) + &
+              kern(5,4)*v(j+2,i+1,k) + kern(1,5)*v(j-2,i+2,k) + &
+              kern(2,5)*v(j-1,i+2,k) + kern(3,5)*v(j,  i+2,k) + &
+              kern(4,5)*v(j+1,i+2,k) + kern(5,5)*v(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          v(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+      end subroutine gkfilteruv
+
       subroutine filt3d(p,nu)
         implicit none
         real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
@@ -1033,6 +1236,68 @@ module mod_moloch
 
       end subroutine sound
 
+      subroutine divdamp(dts)
+        implicit none
+        real(rkx) , intent(in) :: dts
+        integer(ik4) :: i , j , k
+        real(rkx) :: ddamp
+
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+          end do
+        end if
+        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
+        ddamp = 0.125_rkx * (dx/dts)
+        if ( lrotllr ) then
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+            u(j,i,k) = u(j,i,k) + &
+                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+            v(j,i,k) = v(j,i,k) + &
+                    xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        else
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+            u(j,i,k) = u(j,i,k) + &
+                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+            v(j,i,k) = v(j,i,k) + &
+                    xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end if
+        ! Horizontal diffusion
+        ddamp = xdamp * 0.015625_rkx/dts
+        do k = 1 , kz
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                    zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                         d_half   * zdiv2(j,i,k)
+          end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p2d(j,i)
+          end do
+        end do
+      end subroutine divdamp
+
       subroutine advection(dta)
         implicit none
         real(rkx) , intent(in) :: dta
@@ -1081,6 +1346,12 @@ module mod_moloch
           end do
         end if
 
+#ifdef RCEMIP
+        if ( do_gkfilter ) then
+          call gkfilteruv(ux,vx,1)
+          call gkfilter3d(wx,1)
+        end if
+#endif
         ! Interpolate on staggered points
         call xtouvstag(ux,vx,u,v)
 
@@ -1677,17 +1948,6 @@ module mod_moloch
         !
         ! Update status
         !
-#ifdef RCEMIP
-        if ( do_diffutend ) then
-          call exchange_lrbt(mo_atm%tten,1,jci1,jci2,ici1,ici2,1,kz)
-          call filt3d(mo_atm%tten,mo_anu2)
-          call exchange_lrbt(mo_atm%qxten,1,jci1,jci2,ici1,ici2,1,kz,1,nqx)
-          call filt4d(mo_atm%qxten,mo_anu2,1,nqx)
-          call exchange_lrbt(mo_atm%uten,1,jdi1,jdi2,ici1,ici2,1,kz)
-          call exchange_lrbt(mo_atm%vten,1,jci1,jci2,idi1,idi2,1,kz)
-          call filtuv(mo_atm%uten,mo_atm%vten,mo_anu2)
-        end if
-#endif
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
         end do
@@ -1913,68 +2173,6 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
-
-  subroutine divdamp(dts)
-    implicit none
-    real(rkx) , intent(in) :: dts
-    integer(ik4) :: i , j , k
-    real(rkx) , parameter :: ddamp = 0.03125
-    real(rkx) , parameter :: nu2 = 0.05
-    real(rkx) :: ddamp1
-
-    ddamp1 = ddamp * ((dx**2)/dts)
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-      end do
-    end if
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
-    if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        v(j,i,k) = v(j,i,k) + &
-               ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        v(j,i,k) = v(j,i,k) + &
-                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    end if
-    do k = 1 , kz
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                     d_half   * zdiv2(j,i,k)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + nu2 * xknu(k) * p2d(j,i)
-      end do
-    end do
-  end subroutine divdamp
 
 end module mod_moloch
 
