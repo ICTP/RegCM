@@ -1209,11 +1209,6 @@ module mod_moloch
                                                   (d_one-zphi)*wz(j,i,k))
               end do
             end do
-            do j = jci1 , jci2
-              zrfmd = dtrdz * fmz(j,i,1)/fmzf(j,i,2)
-              zdv = -s(j,i,2) * zrfmd * wz(j,i,1)
-              wz(j,i,1) = wz(j,i,1) + wfw(j,2) * zrfmd + zdv
-            end do
             do k = 1 , kz
               do j = jci1 , jci2
                 zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
