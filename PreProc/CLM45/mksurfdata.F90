@@ -103,8 +103,10 @@ program mksurfdata
   integer(ik4) , parameter :: numurbl = 3
 
 #ifdef CN
+#ifndef DYNPFT
   integer(ik4) , parameter :: noleap_yday_3h = 365*8
   integer(ik4) , parameter :: nyears = 2100-1850+1
+#endif
 #endif
 #ifdef DYNPFT
   integer(ik4) , parameter :: noleap_yday_3h = 365*8
