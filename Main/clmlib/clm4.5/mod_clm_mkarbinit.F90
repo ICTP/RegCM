@@ -845,6 +845,7 @@ module mod_clm_mkarbinit
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    real(rk8) :: w1 , sfcsat
 #if (defined CN)
     real(rk8) :: vwc , psi      ! for calculating soilpsi
 #endif
@@ -1157,8 +1158,10 @@ module mod_clm_mkarbinit
             else
               ! h2osoi_vol(c,j) = 0.15_rk8
               ! h2osoi_vol(c,j) = watsat(c,j)*0.10_rk8
+              w1 = real(j,rk8)/real(nlevs,rk8)
               if ( lsmoist ) then
-                h2osoi_vol(c,j) = adomain%smoist(g)
+                sfcsat = adomain%smoist(g)
+                h2osoi_vol(c,j) = sfcsat + w1*(0.9_rk8*watsat(c,j)-sfcsat)
               else
                 h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
               end if
