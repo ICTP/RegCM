@@ -208,9 +208,9 @@ module mod_ncstream
           if ( ncstat /= nf90_noerr ) then
             call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-            write(stderr,*) 'Assuming hours since 1949-12-01 00:00:00 UTC'
+            write(stderr,*) 'Assuming hours since 1950-01-01 00:00:00 UTC'
             write(stderr,*) 'for file ',trim(stream%filename)
-            stream%tunit = 'hours since 1949-12-01 00:00:00 UTC'
+            stream%tunit = 'hours since 1950-01-01 00:00:00 UTC'
           end if
 #ifdef PNETCDF
           ncstat = nf90mpi_get_att(stream%id,stream%timeid, &
@@ -398,7 +398,7 @@ module mod_ncstream
       end if
       stream%progname     = params%pname
       tt = params%zero_date
-      reference_date      = 1949120100
+      reference_date      = 1950010100
       call setcal(reference_date,ical)
       call setcal(tt,reference_date)
       stream%zero_time     = hourdiff(tt,reference_date)
@@ -517,7 +517,7 @@ module mod_ncstream
 
       if ( stream%l_hasrec ) then
         stvar%time_var%vname = 'time'
-        stvar%time_var%vunit = 'hours since 1949-12-01 00:00:00 UTC'
+        stvar%time_var%vunit = 'hours since 1950-01-01 00:00:00 UTC'
         stvar%time_var%long_name = 'time'
         stvar%time_var%standard_name = 'time'
         stvar%time_var%lrecords = .true.
