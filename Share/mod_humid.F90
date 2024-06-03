@@ -51,6 +51,10 @@ module mod_humid
 
   contains
 
+#include <sig2p.inc>
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   subroutine sph2mxr_double(q,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
@@ -115,12 +119,6 @@ module mod_humid
       end do
     end do
 
-    contains
-
-#include <sig2p.inc>
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   end subroutine mxr2rh
 
   subroutine mxr2rh_o_double(t,q,ps,sigma,ptop,im,jm,km)
@@ -150,11 +148,6 @@ module mod_humid
         end do
       end do
     end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
   end subroutine mxr2rh_o_double
 
@@ -187,11 +180,6 @@ module mod_humid
       end do
     end do
 
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   end subroutine mxr2rh_o_single
 
   subroutine mxr2rh_o_double_nonhydro(t,q,p3d,ni,nj,nk)
@@ -213,11 +201,6 @@ module mod_humid
         end do
       end do
     end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
   end subroutine mxr2rh_o_double_nonhydro
 
@@ -241,11 +224,6 @@ module mod_humid
       end do
     end do
 
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   end subroutine mxr2rh_o_single_nonhydro
 
   subroutine rh2mxr_p1(t,q,p,nk)
@@ -263,11 +241,6 @@ module mod_humid
       qs = pfwsat(t(k),p(k))
       q(k) = max(q(k)*qs,d_zero)
     end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
   end subroutine rh2mxr_p1
 
@@ -291,11 +264,6 @@ module mod_humid
         end do
       end do
     end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
   end subroutine rh2mxr_p1d
 
@@ -322,11 +290,6 @@ module mod_humid
         end do
       end do
     end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
   end subroutine rh2mxr_p3d
 

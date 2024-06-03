@@ -176,10 +176,10 @@ program terrain
     call init_sigma(kz,dsmax,dsmin)
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
-    call model_zitaf(zita)
-    sigma = sigmazita(zita)
-    ak = md_ak(zita)
-    bk = md_bk(zita)
+    call model_zitaf(zita,mo_ztop)
+    sigma = sigmazita(zita,mo_ztop)
+    ak = md_ak(zita,mo_ztop,mo_h)
+    bk = md_bk(zita,mo_ztop,mo_a0)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
   end if
@@ -835,8 +835,8 @@ program terrain
       do k = 1 , kzp1
         do i = 1 , iysg
           do j = 1 , jxsg
-            zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i))
-            fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i))
+            zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
+            fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
       end do
@@ -896,8 +896,8 @@ program terrain
     do k = 1 , kzp1
       do i = 1 , iy
         do j = 1 , jx
-          zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i))
-          fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i))
+          zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
+          fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
         end do
       end do
     end do

@@ -468,14 +468,16 @@ module mod_micro_nogtom
       end do
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         block
-          real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
+          real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw , qprev , hprev
           integer(ik4) :: k
+          qprev = sumq0(1,j,i)
+          hprev = sumh0(1,j,i)
           do k = 2 , kz
             tnew = tx(k,j,i)
             dp = dpfs(k,j,i)
             qe = qdetr(k,j,i)
-            sumq0(k,j,i) = sumq0(k-1,j,i) ! total water
-            sumh0(k,j,i) = sumh0(k-1,j,i) ! liquid water temperature
+            sumq0(k,j,i) = qprev ! total water
+            sumh0(k,j,i) = hprev ! liquid water temperature
             tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
             tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
             tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
@@ -487,6 +489,8 @@ module mod_micro_nogtom
               tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
             end if
             sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
+            qprev = sumq0(k,j,i)
+            hprev = sumh0(k,j,i)
           end do
         end block
       end do
@@ -2128,6 +2132,7 @@ module mod_micro_nogtom
     contains
 
     pure real(rkx) function edem(t,phase)
+!$acc routine seq
       implicit none
       real(rkx) , intent(in):: t , phase
       edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
@@ -2135,6 +2140,7 @@ module mod_micro_nogtom
     end function edem
 
     pure real(rkx) function eldcpm(t)
+!$acc routine seq
       implicit none
       real(rkx) , intent(in):: t
       real(rkx) :: phase
@@ -2144,6 +2150,7 @@ module mod_micro_nogtom
     end function eldcpm
 
     pure real(rkx) function eewm(t,phase)
+!$acc routine seq
       implicit none
       real(rkx) , intent(in) :: t , phase
       real(rkx) :: eliq , eice

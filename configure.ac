@@ -171,6 +171,16 @@ if eval "test x"$USE_OPENACC" = x3"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+AC_ARG_ENABLE(openacc-stdpar,
+  AC_HELP_STRING([--enable-openacc-stdpar],
+                 [Compile OpenACC directives with stdpar (only for PGI fortran compilation)]),
+                 [USE_OPENACC="4"]
+)
+if eval "test x"$USE_OPENACC" = x4"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -473,7 +483,8 @@ AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
-AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" ] )
+AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" -o \
+                                           -z "${FCPROG##mpiifx*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 DEFINE="-D"
@@ -522,9 +533,9 @@ if test -z "$COMPILER_GNU_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+  OMPFLAGS="-qopenmp -qopt-report"
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
            -heap-arrays -fPIC"
-  OMPFLAGS="-qopenmp"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
@@ -696,7 +707,7 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+	    FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     AC_SUBST(NOOPTFC)
@@ -749,6 +760,12 @@ else
       FCFLAGS="$FCFLAGS -acc=gpu \
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
       NOOPTFC="$NOOPTFC -acc=gpu \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+    fi
+    if eval "test x"$USE_OPENACC" = x4"; then
+      FCFLAGS="$FCFLAGS -stdpar=gpu,multicore \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+      NOOPTFC="$NOOPTFC -stdpar=gpu,multicore \
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
     fi
     AC_SUBST(FCFLAGS)

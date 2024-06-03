@@ -3,6 +3,7 @@
   ! NOTE : THIS IS IN-CLOUD VARIABLE.
 !DIR$ ATTRIBUTES FORCEINLINE :: clwfromt
   pure elemental real(rkx) function clwfromt(t) result(clw)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t
     real(rkx) :: tcel

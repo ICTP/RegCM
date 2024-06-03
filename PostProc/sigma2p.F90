@@ -74,7 +74,7 @@ program sigma2p
   integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ppvarid , ip0varid
   integer(ik4) :: paivarid
   integer(ik4) :: jx , iy , kz , nt
-  real(rkx) :: ptop , dzita , ztop , htg
+  real(rkx) :: ptop , dzita , ztop , zh , a0 , htg
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
@@ -392,6 +392,14 @@ program sigma2p
 
   if ( is_icbc .and. iodyn == 3 ) then
     istatus = nf90_get_att(ncid, nf90_global, 'zita_height_top', ztop)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_height_top')
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_atmosphere_h', zh)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_atmosphere_h')
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_factor_a0', a0)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_factor_a0')
     allocate(fm(jx,iy,kz+1), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'fm')
     allocate(z0(jx,iy,kz), stat=istatus)
@@ -405,8 +413,8 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'zita')
     allocate(zitah(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zitah')
-    call model_zitaf(zita)
-    call model_zitah(zitah)
+    call model_zitaf(zita,ztop)
+    call model_zitah(zitah,ztop)
   end if
 
   if ( has_t ) then
@@ -539,7 +547,7 @@ program sigma2p
         do i = 1 , iy
           do j = 1 , jx
             htg = topo(j,i)
-            fm(j,i,k) = md_fmz_h(zita(k),htg)
+            fm(j,i,k) = md_fmz_h(zita(k),htg,ztop,zh,a0)
           end do
         end do
       end do
@@ -547,7 +555,7 @@ program sigma2p
         do i = 1 , iy
           do j = 1 , jx
             htg = topo(j,i)
-            z0(j,i,k) = md_zeta_h(zitah(k),htg)
+            z0(j,i,k) = md_zeta_h(zitah(k),htg,ztop,zh,a0)
           end do
         end do
       end do

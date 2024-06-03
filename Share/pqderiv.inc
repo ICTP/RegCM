@@ -1,5 +1,6 @@
 !DIR$ ATTRIBUTES FORCEINLINE :: pfqsdt
   pure real(rkx) function pfqsdt(t,p,e,dedt) result(qsdt)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)

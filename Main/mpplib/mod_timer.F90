@@ -192,13 +192,13 @@ module mod_timer
     t%nsyncro = 0
   end subroutine cleanup
 
-  logical function is_start(t)
+  pure logical function is_start(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
     is_start = t%lcount == 0
   end function is_start
 
-  logical function is_integrating(t)
+  pure logical function is_integrating(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
     is_integrating = t%lcount > 0
@@ -215,13 +215,13 @@ module mod_timer
     ns = t%model_timestring
   end function nowstring
 
-  integer(ik8) function step_from_start(t)
+  pure integer(ik8) function step_from_start(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
     step_from_start = t%model_internal_time/t%model_timestep
   end function step_from_start
 
-  integer(ik8) function time_from_start(t)
+  pure integer(ik8) function time_from_start(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
     time_from_start = t%model_internal_time
@@ -254,13 +254,13 @@ module mod_timer
     end if
   end subroutine syncro_check
 
-  logical function syncro_act(s) result(res)
+  pure logical function syncro_act(s) result(res)
     implicit none
     class(rcm_syncro) , intent(in) :: s
     res = (mod(s%timer%model_internal_time,s%frq) == 0)
   end function syncro_act
 
-  logical function syncro_willact(s,dt) result(res)
+  pure logical function syncro_willact(s,dt) result(res)
     implicit none
     class(rcm_syncro) , intent(in) :: s
     real(rkx) , optional , intent(in) :: dt

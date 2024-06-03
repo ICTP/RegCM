@@ -314,6 +314,7 @@ module mod_rad_tracer
                      uco211,uco212,uco213,uco221,uco222,uco223,bn2o0, &
                      bn2o1,bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o, &
                      abplnk1,tco2,th2o,to3,abstrc)
+!$acc routine seq
     implicit none
     integer(ik4) , intent(in) :: n , k1 , k2
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: abplnk1
@@ -508,14 +509,6 @@ module mod_rad_tracer
                 acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
                 aco21 + aco22
 
-    contains
-
-      pure real(rkx) function func(u,b)
-        implicit none
-        real(rkx) , intent(in) :: u , b
-        func = u/sqrt(d_four+u*(d_one+d_one/b))
-     end function func
-
   end subroutine trcab
   !
   !----------------------------------------------------------------------
@@ -561,6 +554,7 @@ module mod_rad_tracer
                          uco211,uco212,uco213,uco221,uco222,uco223, &
                          tbar,bplnk,winpl,pinpl,tco2,th2o,to3,      &
                          uptype,dw,s2c,up2,pnew,abstrc,uinpl)
+!$acc routine seq
     implicit none
     integer(ik4) , intent(in) :: n , k2 , kn
     real(rkx) , pointer , dimension(:) , intent(inout) :: abstrc
@@ -750,14 +744,6 @@ module mod_rad_tracer
                 acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
                 aco21 + aco22
 
-    contains
-
-      pure real(rkx) function func(u,b)
-        implicit none
-        real(rkx) , intent(in) :: u , b
-        func = u/sqrt(d_four+u*(d_one+d_one/b))
-     end function func
-
   end subroutine trcabn
   !
   !----------------------------------------------------------------------
@@ -778,9 +764,10 @@ module mod_rad_tracer
   ! abplnk1 - non-nearest layer Plack factor
   ! abplnk2 - nearest layer factor
   !
-  pure subroutine trcplk(n,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+  pure subroutine trcplk(n,nk,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+!$acc routine seq
     implicit none
-    integer(ik4) , intent(in) :: n
+    integer(ik4) , intent(in) :: n , nk
     real(rkx) , pointer , dimension(:,:) , intent(in) :: tint , tlayr
     real(rkx) , pointer , dimension(:) , intent(in) :: tplnke
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: abplnk1 , abplnk2
@@ -819,7 +806,7 @@ module mod_rad_tracer
     ! Calculate absorptivity Planck factor for tint and tlayr temperatures
     !
     do wvl = 1 , 14
-      do  k = 1 , kzp1
+      do  k = 1 , nk
         ! non-nearlest layer function
         abplnk1(k,wvl,n) = (f2(wvl)*exp(f3(wvl)/tint(k,n))) / &
                            (tint(k,n)**5*                     &
@@ -875,6 +862,7 @@ module mod_rad_tracer
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
                     uco222,uco223,uptype,w,s2c,up2,emplnk,th2o,tco2,   &
                     to3,emstrc)
+!$acc routine seq
     implicit none
     integer(ik4) , intent(in) :: n , k
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: emstrc
@@ -1044,15 +1032,15 @@ module mod_rad_tracer
     emstrc(k,n) = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
                   ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
                   eco21 + eco22
-    contains
-
-      pure real(rkx) function func(u,b)
-        implicit none
-        real(rkx) , intent(in) :: u , b
-        func = u/sqrt(d_four+u*(d_one+d_one/b))
-     end function func
 
   end subroutine trcems
+
+  pure real(rkx) function func(u,b)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: u , b
+    func = u/sqrt(d_four+u*(d_one+d_one/b))
+  end function func
 
 end module mod_rad_tracer
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

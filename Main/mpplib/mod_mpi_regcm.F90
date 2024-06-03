@@ -3874,6 +3874,13 @@ module mod_mpi_regcm
 
 end module mod_mpi_regcm
 
+#else
+
+module mod_mpi_regcm
+  implicit none
+  private
+end module mod_mpi_regcm
+
 #endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -53,6 +53,7 @@ module mod_sunorbit
   ! FUNCTION to return the cosine of the solar zenith angle.
   !
   pure real(rk8) function orb_cosz_r8(jday,lat,lon,declin)
+!$acc routine seq
     implicit none
     real(rk8) , intent(in) :: jday   ! Julian cal day
     real(rk8) , intent(in) :: lat    ! Centered latitude (radians)
@@ -63,6 +64,7 @@ module mod_sunorbit
   end function orb_cosz_r8
   !
   pure real(rk4) function orb_cosz_r4(jday,lat,lon,declin)
+!$acc routine seq
     implicit none
     real(rk4) , intent(in) :: jday   ! Julian cal day
     real(rk4) , intent(in) :: lat    ! Centered latitude (radians)

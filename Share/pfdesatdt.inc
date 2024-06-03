@@ -3,6 +3,7 @@
   !
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesdt
   pure elemental real(rkx) function pfesdt(t) result(esdt)
+!$acc routine seq
     implicit none
     real(rkx), intent(in)  :: t     ! Temperature (K)
 

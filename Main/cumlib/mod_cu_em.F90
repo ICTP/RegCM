@@ -312,9 +312,7 @@ module mod_cu_em
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-    contains
-#include <pfesat.inc>
-#include <pfqsat.inc>
+
   end subroutine cupemandrv
 !
 !**************************************************************************
@@ -1216,8 +1214,6 @@ module mod_cu_em
     contains
 
 #include <wlh.inc>
-#include <pfesat.inc>
-#include <pfqsat.inc>
 
       !
       ! Calculate lifting level temperature
@@ -1290,6 +1286,9 @@ module mod_cu_em
       end subroutine tlift
 
   end subroutine cupeman
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
 
 end module mod_cu_em
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -280,8 +280,8 @@ module mod_moloch
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
-    gzitak = gzita(zita)
-    gzitakh = gzita(zitah)
+    gzitak = gzita(zita,mo_ztop,mo_a0)
+    gzitakh = gzita(zitah,mo_ztop,mo_a0)
     dzita = mo_dzita
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,1) = d_zero

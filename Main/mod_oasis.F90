@@ -109,5 +109,12 @@ module mod_oasis
 
 end module mod_oasis
 
+#else
+
+module mod_oasis
+  implicit none
+  private
+end module mod_oasis
+
 #endif
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

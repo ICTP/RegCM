@@ -302,9 +302,275 @@ module mod_pbl_holtbl
 
     !
     ! compute diffusivities and counter gradient terms
+    ! for momentum, heat and moisture and the counter-gradient
+    ! terms for heat and moisture.
     !
+    ! reference : holtslag, de bruijn and pan - mwr - 8/90
+    !
+    ! input arguments :  j       longitudinal position index
+    !                    ubx3d   u wind component
+    !                    vbx3d   v wind component
+    !                    thatm   potential temperature
+    !                    thvx    virtual potential temperature
+    !                    za      height of half sigma levels
+    !                    f       coriolis parameter
+    !                    shum    specific humidity
+    !                    xhfx    sensible heat flux
+    !                    xqfx    sfc kinematic moisture flux
+    !                    thv10   virt. pot. temp. at 10m
+    !                    hfxv    surface virtual heat flux
+    !                    obklen  monin obukov length
+    !                    ustr    friction velocity
+    !
+    ! input/output
+    ! arguments :        therm   thermal temperature excess
+    !
+    ! output arguments : cgh     counter-gradient term for heat
+    !                    cgs     counter-gradient star term
+    !                    kvm     eddy diffusivity for momentum
+    !                    kvh     eddy diffusivity for heat
+    !                    kvq     eddy diffusivity for moisture
+    !                   zpbl     boundary layer height
+    ! ------------------------------------------------------------
+    !
+    !
+    ! note: kmxpbl, max no. of pbl levels (set in slice)
+    ! compute Bulk Richardson Number (BRN)
+    !
+    if ( idynamic == 3 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          real(rkx) :: zlv , tlv , ulv , vlv , zkv , tkv , vvk
+          integer(ik4) :: k
+          zlv = m2p%za(j,i,kz)
+          tlv = thv10(j,i)
+          ulv = m2p%uxatm(j,i,kz)
+          vlv = m2p%vxatm(j,i,kz)
+          do k = kzm1 , kmxpbl(j,i) , -1
+            zkv = m2p%za(j,i,k)
+            tkv = thvx(j,i,k)
+            vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
+            vvk = vvk + 1.0e-10_rkx
+            ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
+            ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
+          end do
+        end block
+      end do
+    else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          integer(ik4) :: k
+          do k = kzm1 , kmxpbl(j,i) , -1
+            ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
+                        (thv10(j,i)*vv(j,i,k))
+            ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
+          end do
+        end block
+      end do
+    end if
 
-    call blhnew( )
+    ! looking for first guess bl top
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        integer(ik4) :: k
+        p2m%zpbl(j,i) = m2p%za(j,i,kz)
+        do k = kzm1 , kmxpbl(j,i) + 1 , -1
+          ! bl height lies between this level and the last
+          ! use linear interp. of rich. no. to height of ri=ricr
+          if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
+               (ri(k-1,j,i) >= ricr(j,i)) ) then
+            p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
+                ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+          end if
+        end do
+      end block
+    end do
+
+    ! recompute richardson no. at lowest model level
+    if ( idynamic == 3 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          real(rkx) :: xfmt , wsc , therm
+          real(rkx) :: zlv , tlv , ulv , vlv
+          real(rkx) :: zkv , tkv , vvk
+          integer(ik4) :: k
+          if ( lunstb(j,i) ) then
+            ! estimate of convective velocity scale
+            xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
+            wsc = ustr(j,i)*xfmt
+            ! thermal temperature excess
+            therm = fak * hfxv(j,i)/wsc
+            zlv = m2p%za(j,i,kz)
+            tlv = thv10(j,i) + therm
+            ulv = m2p%uxatm(j,i,kz)
+            vlv = m2p%vxatm(j,i,kz)
+            !zlv = max(obklen(j,i),d_10)
+            !tlv = thv10(j,i) + therm
+            vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
+            ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
+            ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
+            ! recompute richardson no. at other model levels
+            do k = kzm1 , kmxpbl(j,i) , -1
+              zkv = m2p%za(j,i,k)
+              tkv = thvx(j,i,k)
+              vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
+              vvk = vvk + 1.0e-10_rkx
+              ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
+            end do
+          end if
+        end block
+      end do
+    else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          real(rkx) :: xfmt , wsc , therm
+          real(rkx) :: tlv , tkv
+          integer(ik4) :: k
+          if ( lunstb(j,i) ) then
+            ! estimate of convective velocity scale
+            xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
+            wsc = ustr(j,i)*xfmt
+            ! thermal temperature excess
+            therm = fak * hfxv(j,i)/wsc
+            tlv = thv10(j,i) + therm
+            ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vv(j,i,kz))
+            ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
+            ! recompute richardson no. at other model levels
+            do k = kzm1 , kmxpbl(j,i) , -1
+              tkv = thvx(j,i,k)
+              ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
+                 (thv10(j,i)*vv(j,i,k))
+              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
+            end do
+          end if
+        end block
+      end do
+    end if
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        integer(ik4) :: k
+        if ( lunstb(j,i) ) then
+          ! improve estimate of bl height under convective conditions
+          ! using convective temperature excess (therm)
+          do k = kz , kmxpbl(j,i) + 1 , -1
+            ! bl height lies between this level and the last
+            ! use linear interp. of rich. no. to height of ri=ricr
+            if ( (ri(k,j,i) < ricr(j,i)) .and. &
+                 (ri(k-1,j,i) >= ricr(j,i)) ) then
+              p2m%zpbl(j,i) = m2p%za(j,i,k) + &
+                (m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
+                ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
+            end if
+          end do
+        end if
+      end block
+    end do
+
+    ! Find the k of the level of the pbl
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: phpblm
+        ! BL height is at least the mechanical mixing depth
+        ! PBL height must be greater than some minimum mechanical mixing depth
+        ! Several investigators have proposed minimum mechanical mixing depth
+        ! relationships as a function of the local friction velocity, u*.  We
+        ! make use of a linear relationship of the form h = c u* where c=700.
+        ! The scaling arguments that give rise to this relationship most often
+        ! represent the coefficient c as some constant over the local coriolis
+        ! parameter.  Here we make use of the experimental results of Koracin
+        ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
+        ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
+        ! latitude value for f so that c = 0.07/f = 700.
+        !phpblm = 700.0_rkx*ustr(j,i)
+        phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
+        if ( p2m%zpbl(j,i) < phpblm ) then
+          p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
+        end if
+        do k = kz , kmxpbl(j,i) , -1
+          p2m%kpbl(j,i) = k
+          if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
+        end do
+      end block
+    end do
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        integer(ik4) :: k
+        real(rkx) :: zpbl , xfmt , xfht , wsc , term
+        real(rkx) :: z , zm , zp , zh , zl , wstr
+        real(rkx) :: zzh , zzhnew , zzhnew2
+        real(rkx) :: pblk , pblk1 , pblk2 , pr
+        real(rkx) :: fak1 , fak2 , fak3
+        zpbl = p2m%zpbl(j,i)
+        fak1 = ustr(j,i)*zpbl*vonkar
+        if ( lunstb(j,i) ) then
+          xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
+          xfht = sqrt(d_one-binh*zpbl/obklen(j,i))
+          wsc = ustr(j,i)*xfmt
+          fak2 = wsc*zpbl*vonkar
+        else
+          xfmt = d_zero
+          xfht = d_zero
+          wsc = d_zero
+          fak2 = d_zero
+        end if
+        do k = kz , p2m%kpbl(j,i) , -1
+          zm = m2p%za(j,i,k)
+          zp = m2p%za(j,i,k-1)
+          if ( zm < zpbl ) then
+            zp = min(zp,zpbl)
+            z = (zm+zp)*d_half
+            zh = z/zpbl
+            zl = z/obklen(j,i)
+            term = max(d_one-zh,d_zero)
+            zzh = zh*term**pink
+            zzhnew = zh*zhnew_fac*term
+            zzhnew2 = zh*(zhnew_fac*term)**pink
+            if ( lunstb(j,i) ) then
+              ! Convective velocity scale
+              wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
+              fak3 = fakn*wstr/wsc
+              if ( zh < sffrac ) then
+                term = (d_one-betam*zl)**onet
+                pblk = fak1*zzh*term
+                pblk1 = fak1*zzhnew*term
+                pblk2 = fak1*zzhnew2*term
+                pr = term/sqrt(d_one-betah*zl)
+              else
+                pblk = fak2*zzh
+                pblk1 = fak2*zzhnew
+                pblk2 = fak2*zzhnew2
+                ! compute counter gradient term
+                pr = (xfmt/xfht) + ccon*fak3/fak
+                cgs(j,i,k) = fak3/(zpbl*wsc)
+                cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
+             end if
+            else
+              if ( zl < d_one ) then
+                pblk = fak1*zzh/(d_one+betas*zl)
+                pblk1 = fak1*zzhnew/(d_one+betas*zl)
+                pblk2 = fak1*zzhnew2/(d_one+betas*zl)
+              else
+                pblk = fak1*zzh/(betas+zl)
+                pblk1 = fak1*zzhnew/(betas+zl)
+                pblk2 = fak1*zzhnew2/(betas+zl)
+              end if
+              pr = 1.0_rkx
+            end if
+            ! compute eddy diffusivities
+            kvm(j,i,k) = max(pblk,kvm(j,i,k))
+            kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
+            kvq(j,i,k) = max(pblk1,kvq(j,i,k))
+            if ( ichem == 1 ) then
+              kvc(j,i,k) = max(pblk2,kvc(j,i,k))
+            end if
+          end if
+        end do
+      end block
+    end do
 
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
       akzz1(j,i,k) = rhohf(j,i,k-1)*kvm(j,i,k)/dza(j,i,k-1)
@@ -886,7 +1152,7 @@ module mod_pbl_holtbl
     end if
 
 #ifdef RCEMIP
-    call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx)
+    call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx,m2p%psb)
 #endif
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
@@ -997,361 +1263,91 @@ module mod_pbl_holtbl
 #include <pfesat.inc>
 #include <pfqsat.inc>
 
-    !
-    ! ------------------------------------------------------------
-    ! this routine computes the boundary layer eddy diffusivities
-    ! for momentum, heat and moisture and the counter-gradient
-    ! terms for heat and moisture.
-    !
-    ! reference : holtslag, de bruijn and pan - mwr - 8/90
-    !
-    ! input arguments :  j       longitudinal position index
-    !                    ubx3d   u wind component
-    !                    vbx3d   v wind component
-    !                    thatm   potential temperature
-    !                    thvx    virtual potential temperature
-    !                    za      height of half sigma levels
-    !                    f       coriolis parameter
-    !                    shum    specific humidity
-    !                    xhfx    sensible heat flux
-    !                    xqfx    sfc kinematic moisture flux
-    !                    thv10   virt. pot. temp. at 10m
-    !                    hfxv    surface virtual heat flux
-    !                    obklen  monin obukov length
-    !                    ustr    friction velocity
-    !
-    ! input/output
-    ! arguments :        therm   thermal temperature excess
-    !
-    ! output arguments : cgh     counter-gradient term for heat
-    !                    cgs     counter-gradient star term
-    !                    kvm     eddy diffusivity for momentum
-    !                    kvh     eddy diffusivity for heat
-    !                    kvq     eddy diffusivity for moisture
-    !                   zpbl     boundary layer height
-    ! ------------------------------------------------------------
-    !
-    subroutine blhnew
-      implicit none
-      integer(ik4) :: i , j
-      !
-      ! note: kmxpbl, max no. of pbl levels (set in slice)
-      ! compute Bulk Richardson Number (BRN)
-      !
-      if ( idynamic == 3 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            real(rkx) :: zlv , tlv , ulv , vlv , zkv , tkv , vvk
-            integer(ik4) :: k
-            zlv = m2p%za(j,i,kz)
-            tlv = thv10(j,i)
-            ulv = m2p%uxatm(j,i,kz)
-            vlv = m2p%vxatm(j,i,kz)
-            do k = kzm1 , kmxpbl(j,i) , -1
-              zkv = m2p%za(j,i,k)
-              tkv = thvx(j,i,k)
-              vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-              vvk = vvk + 1.0e-10_rkx
-              ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
-              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-            end do
-          end block
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            integer(ik4) :: k
-            do k = kzm1 , kmxpbl(j,i) , -1
-              ri(k,j,i) = egrav*(thvx(j,i,k)-thv10(j,i))*m2p%za(j,i,k) / &
-                          (thv10(j,i)*vv(j,i,k))
-              ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-            end do
-          end block
-        end do
-      end if
-
-      ! looking for first guess bl top
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
-          p2m%zpbl(j,i) = m2p%za(j,i,kz)
-          do k = kzm1 , kmxpbl(j,i) + 1 , -1
-            ! bl height lies between this level and the last
-            ! use linear interp. of rich. no. to height of ri=ricr
-            if ( (ri(k,j,i)   <  ricr(j,i)) .and. &
-                 (ri(k-1,j,i) >= ricr(j,i)) ) then
-              p2m%zpbl(j,i) = m2p%za(j,i,k)+(m2p%za(j,i,k-1)-m2p%za(j,i,k)) * &
-                  ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
-            end if
-          end do
-        end block
-      end do
-
-      ! recompute richardson no. at lowest model level
-      if ( idynamic == 3 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            real(rkx) :: xfmt , wsc , therm
-            real(rkx) :: zlv , tlv , ulv , vlv
-            real(rkx) :: zkv , tkv , vvk
-            integer(ik4) :: k
-            if ( lunstb(j,i) ) then
-              ! estimate of convective velocity scale
-              xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-              wsc = ustr(j,i)*xfmt
-              ! thermal temperature excess
-              therm = fak * hfxv(j,i)/wsc
-              zlv = m2p%za(j,i,kz)
-              tlv = thv10(j,i) + therm
-              ulv = m2p%uxatm(j,i,kz)
-              vlv = m2p%vxatm(j,i,kz)
-              !zlv = max(obklen(j,i),d_10)
-              !tlv = thv10(j,i) + therm
-              vvk = ulv**2 + vlv**2 + fak*ustr(j,i)**2 + 1.0e-10_rkx
-              ri(kz,j,i) = -egrav*therm*zlv/(thv10(j,i)*vvk)
-              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
-              ! recompute richardson no. at other model levels
-              do k = kzm1 , kmxpbl(j,i) , -1
-                zkv = m2p%za(j,i,k)
-                tkv = thvx(j,i,k)
-                vvk = (m2p%uxatm(j,i,k)-ulv)**2+(m2p%vxatm(j,i,k)-vlv)**2
-                vvk = vvk + 1.0e-10_rkx
-                ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(thv10(j,i)*vvk)
-                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-              end do
-            end if
-          end block
-        end do
-      else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            real(rkx) :: xfmt , wsc , therm
-            real(rkx) :: tlv , tkv
-            integer(ik4) :: k
-            if ( lunstb(j,i) ) then
-              ! estimate of convective velocity scale
-              xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
-              wsc = ustr(j,i)*xfmt
-              ! thermal temperature excess
-              therm = fak * hfxv(j,i)/wsc
-              tlv = thv10(j,i) + therm
-              ri(kz,j,i) = -egrav*therm*m2p%za(j,i,kz)/(thv10(j,i)*vv(j,i,kz))
-              ri(kz,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(kz,j,i)))
-              ! recompute richardson no. at other model levels
-              do k = kzm1 , kmxpbl(j,i) , -1
-                tkv = thvx(j,i,k)
-                ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k) / &
-                   (thv10(j,i)*vv(j,i,k))
-                ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
-              end do
-            end if
-          end block
-        end do
-      end if
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
-          if ( lunstb(j,i) ) then
-            ! improve estimate of bl height under convective conditions
-            ! using convective temperature excess (therm)
-            do k = kz , kmxpbl(j,i) + 1 , -1
-              ! bl height lies between this level and the last
-              ! use linear interp. of rich. no. to height of ri=ricr
-              if ( (ri(k,j,i) < ricr(j,i)) .and. &
-                   (ri(k-1,j,i) >= ricr(j,i)) ) then
-                p2m%zpbl(j,i) = m2p%za(j,i,k) + &
-                  (m2p%za(j,i,k-1)-m2p%za(j,i,k))* &
-                  ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
-              end if
-            end do
-          end if
-        end block
-      end do
-
-      ! Find the k of the level of the pbl
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
-          real(rkx) :: phpblm
-          ! BL height is at least the mechanical mixing depth
-          ! PBL height must be greater than some minimum mechanical mixing depth
-          ! Several investigators have proposed minimum mechanical mixing depth
-          ! relationships as a function of the local friction velocity, u*.  We
-          ! make use of a linear relationship of the form h = c u* where c=700.
-          ! The scaling arguments that give rise to this relationship most often
-          ! represent the coefficient c as some constant over the local coriolis
-          ! parameter.  Here we make use of the experimental results of Koracin
-          ! and Berkowicz (1988) [BLM, Vol 43] for wich they recommend 0.07/f
-          ! where f was evaluated at 39.5 N and 52 N.  Thus we use a typical mid
-          ! latitude value for f so that c = 0.07/f = 700.
-          !phpblm = 700.0_rkx*ustr(j,i)
-          phpblm = (0.07_rkx*ustr(j,i))/pfcor(j,i)
-          if ( p2m%zpbl(j,i) < phpblm ) then
-            p2m%zpbl(j,i) = max(phpblm,p2m%zpbl(j,i))
-          end if
-          do k = kz , kmxpbl(j,i) , -1
-            p2m%kpbl(j,i) = k
-            if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
-          end do
-        end block
-      end do
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
-          real(rkx) :: zpbl , xfmt , xfht , wsc , term
-          real(rkx) :: z , zm , zp , zh , zl , wstr
-          real(rkx) :: zzh , zzhnew , zzhnew2
-          real(rkx) :: pblk , pblk1 , pblk2 , pr
-          real(rkx) :: fak1 , fak2 , fak3
-          zpbl = p2m%zpbl(j,i)
-          fak1 = ustr(j,i)*zpbl*vonkar
-          if ( lunstb(j,i) ) then
-            xfmt = (d_one-binm*zpbl/obklen(j,i))**onet
-            xfht = sqrt(d_one-binh*zpbl/obklen(j,i))
-            wsc = ustr(j,i)*xfmt
-            fak2 = wsc*zpbl*vonkar
-          else
-            xfmt = d_zero
-            xfht = d_zero
-            wsc = d_zero
-            fak2 = d_zero
-          end if
-          do k = kz , p2m%kpbl(j,i) , -1
-            zm = m2p%za(j,i,k)
-            zp = m2p%za(j,i,k-1)
-            if ( zm < zpbl ) then
-              zp = min(zp,zpbl)
-              z = (zm+zp)*d_half
-              zh = z/zpbl
-              zl = z/obklen(j,i)
-              term = max(d_one-zh,d_zero)
-              zzh = zh*term**pink
-              zzhnew = zh*zhnew_fac*term
-              zzhnew2 = zh*(zhnew_fac*term)**pink
-              if ( lunstb(j,i) ) then
-                ! Convective velocity scale
-                wstr = (hfxv(j,i)*egrav*zpbl/thv10(j,i))**onet
-                fak3 = fakn*wstr/wsc
-                if ( zh < sffrac ) then
-                  term = (d_one-betam*zl)**onet
-                  pblk = fak1*zzh*term
-                  pblk1 = fak1*zzhnew*term
-                  pblk2 = fak1*zzhnew2*term
-                  pr = term/sqrt(d_one-betah*zl)
-                else
-                  pblk = fak2*zzh
-                  pblk1 = fak2*zzhnew
-                  pblk2 = fak2*zzhnew2
-                  ! compute counter gradient term
-                  pr = (xfmt/xfht) + ccon*fak3/fak
-                  cgs(j,i,k) = fak3/(zpbl*wsc)
-                  cgh(j,i,k) = xhfx(j,i)*cgs(j,i,k)
-               end if
-              else
-                if ( zl < d_one ) then
-                  pblk = fak1*zzh/(d_one+betas*zl)
-                  pblk1 = fak1*zzhnew/(d_one+betas*zl)
-                  pblk2 = fak1*zzhnew2/(d_one+betas*zl)
-                else
-                  pblk = fak1*zzh/(betas+zl)
-                  pblk1 = fak1*zzhnew/(betas+zl)
-                  pblk2 = fak1*zzhnew2/(betas+zl)
-                end if
-                pr = 1.0_rkx
-              end if
-              ! compute eddy diffusivities
-              kvm(j,i,k) = max(pblk,kvm(j,i,k))
-              kvh(j,i,k) = max(pblk/pr,kvh(j,i,k))
-              kvq(j,i,k) = max(pblk1,kvq(j,i,k))
-              if ( ichem == 1 ) then
-                kvc(j,i,k) = max(pblk2,kvc(j,i,k))
-              end if
-            end if
-          end do
-        end block
-      end do
-    end subroutine blhnew
-
     pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
+!$acc routine seq
       implicit none
       real(rkx) , intent(in) :: thvs , ustar , bfs
       obk = -(thvs*ustar**3) / (gvk*bfs+sign(1.0e-10_rkx,bfs))
     end function comp_obklen
 
-    subroutine force_water_conserve(tendv,tendc,tendi,start,sflux)
-      implicit none
-      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendv
-      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendc
-      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendi
-      real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux
-      integer(ik4) :: i , j
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) , dimension(kz) :: qi , qf
-          real(rkx) :: sqtoti , sqtotf
-          integer(ik4) :: k
-          qi(1:kz) = start(j,i,1:kz,iqv)
-          qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
-          if ( idynamic /= 3 ) then
-            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
-            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
-          end if
-          sqtoti = sum(qi)
-          sqtotf = sum(qf)
-          sqtoti = sqtoti + sflux(j,i)
-          if ( abs(sqtotf-sqtoti) > minqq ) then
-            k = maxloc(qi,1)
-            tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
-          end if
-        end block
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) , dimension(kz) :: qi , qf
-          real(rkx) :: sqtoti , sqtotf
-          integer(ik4) :: k
-          qi(1:kz) = start(j,i,1:kz,iqc)
-          qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
-          if ( idynamic /= 3 ) then
-            qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
-            qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
-          end if
-          sqtoti = sum(qi)
-          sqtotf = sum(qf)
-          if ( abs(sqtotf-sqtoti) > minqq ) then
-            k = maxloc(qi,1)
-            tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
-          end if
-        end block
-      end do
-      if ( ipptls > 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            real(rkx) , dimension(kz) :: qi , qf
-            real(rkx) :: sqtoti , sqtotf
-            integer(ik4) :: k
-            qi(1:kz) = start(j,i,1:kz,iqi)
-            qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
-            if ( idynamic /= 3 ) then
-              qi(1:kz) = qi(1:kz) / m2p%psb(j,i)
-              qf(1:kz) = qf(1:kz) / m2p%psb(j,i)
-            end if
-            sqtoti = sum(qi)
-            sqtotf = sum(qf)
-            if ( abs(sqtotf-sqtoti) > minqq ) then
-              k = maxloc(qi,1)
-              tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
-            end if
-          end block
-        end do
-      end if
-    end subroutine force_water_conserve
-
   end subroutine holtbl
+
+  subroutine force_water_conserve(tendv,tendc,tendi,start,sflux,ps)
+    implicit none
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendv
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendc
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendi
+    real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux , ps
+    integer(ik4) :: i , j
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        real(rkx) , dimension(kz) :: qi , qf
+        real(rkx) :: sqtoti , sqtotf
+        integer(ik4) :: k
+        qi(1:kz) = start(j,i,1:kz,iqv)
+        qf(1:kz) = qi(1:kz) + tendv(j,i,1:kz) * dt
+        if ( idynamic /= 3 ) then
+          do k = 1 , kz
+            qi(k) = qi(k) / ps(j,i)
+            qf(k) = qf(k) / ps(j,i)
+          end do
+        end if
+        sqtoti = sum(qi)
+        sqtotf = sum(qf)
+        sqtoti = sqtoti + sflux(j,i)
+        if ( abs(sqtotf-sqtoti) > minqq ) then
+          k = maxloc(qi,1)
+          tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
+        end if
+      end block
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        real(rkx) , dimension(kz) :: qi , qf
+        real(rkx) :: sqtoti , sqtotf
+        integer(ik4) :: k
+        qi(1:kz) = start(j,i,1:kz,iqc)
+        qf(1:kz) = qi(1:kz) + tendc(j,i,1:kz) * dt
+        if ( idynamic /= 3 ) then
+          do k = 1 , kz
+            qi(k) = qi(k) / ps(j,i)
+            qf(k) = qf(k) / ps(j,i)
+          end do
+        end if
+        sqtoti = sum(qi)
+        sqtotf = sum(qf)
+        if ( abs(sqtotf-sqtoti) > minqq ) then
+          k = maxloc(qi,1)
+          tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
+        end if
+      end block
+    end do
+    if ( ipptls > 1 ) then
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        block
+          real(rkx) , dimension(kz) :: qi , qf
+          real(rkx) :: sqtoti , sqtotf
+          integer(ik4) :: k
+          qi(1:kz) = start(j,i,1:kz,iqi)
+          qf(1:kz) = qi(1:kz) + tendi(j,i,1:kz) * dt
+          if ( idynamic /= 3 ) then
+            do k = 1 , kz
+              qi(k) = qi(k) / ps(j,i)
+              qf(k) = qf(k) / ps(j,i)
+            end do
+          end if
+          sqtoti = sum(qi)
+          sqtotf = sum(qf)
+          if ( abs(sqtotf-sqtoti) > minqq ) then
+            k = maxloc(qi,1)
+            tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
+          end if
+        end block
+      end do
+    end if
+  end subroutine force_water_conserve
 
 end module mod_pbl_holtbl
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

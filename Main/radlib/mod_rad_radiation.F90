@@ -2240,6 +2240,7 @@ module mod_rad_radiation
     contains
 
       pure integer(ik4) function intmax(imax)
+!$acc routine seq
         implicit none
         integer(ik4) , pointer , dimension(:) , intent(in) :: imax
         integer(ik4) :: i , n , is , ie , mx
@@ -2315,11 +2316,11 @@ module mod_rad_radiation
     !
     do concurrent ( n = n1:n2 )
       block
-        integer(ik4) :: k
         real(rkx) :: arg , rdenom , rdirexp , tdnmexp
         real(rkx) :: tautot , wtot , gtot , ftot , extins
         real(rkx) :: ts , ws , gs , lm , alp , gam , ue , ne
         real(rkx) :: apg , amg
+        integer(ik4) :: k
         !-------------------------------------------------------------------
         !
         ! Initialize all total transmimission values to 0, so that nighttime
@@ -2526,14 +2527,14 @@ module mod_rad_radiation
       block
         integer(ik4) :: k
         real(rkx) :: tautot , taucsc , wtau , wt , wtot , gtot , ftot
-        real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue , arg
+        real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue
         real(rkx) :: apg , amg , extins , rdenom , rdirexp , tdnmexp
         !-----------------------------------------------------------------
         !
         ! Initialize all total transmission values to 0, so that nighttime
         ! values from previous computations are not used:
         !
-        do k = 1, kzp1
+        do k = 1 , kzp1
           tottrn(k,n) = d_zero
         end do
         if ( czengt0(n) ) then
@@ -2573,14 +2574,12 @@ module mod_rad_radiation
           !
           ! Limit argument of exponential, in case lm*ts very large:
           !
-          arg = min(lm*ts,mxarg)
-          extins = exp(-arg)
+          extins = exp(-min(lm*ts,mxarg))
           ne = f_n(ue,extins)
           rdif(0,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
           tdif(0,n) = d_four*ue/ne
           ! Limit argument of exponential, in case czen is very small:
-          arg = min(ts/czen(n),mxarg)
-          explay(0,n) = exp(-arg)
+          explay(0,n) = exp(-min(ts/czen(n),mxarg))
           apg = alp + gam
           amg = alp - gam
           rdir(0,n) = amg*(tdif(0,n)*explay(0,n)-d_one) + apg*rdif(0,n)
@@ -2675,16 +2674,14 @@ module mod_rad_radiation
               !
               ! Limit argument of exponential, in case lm very large:
               !
-              arg = min(lm*ts,mxarg)
-              extins = exp(-arg)
+              extins = exp(-min(lm*ts,mxarg))
               ne = f_n(ue,extins)
 
               rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
               tdif(k,n) = d_four*ue/ne
 
               ! Limit argument of exponential, in case czen is very small:
-              arg = min(ts/czen(n),mxarg)
-              explay(k,n) = exp(-arg)
+              explay(k,n) = exp(-min(ts/czen(n),mxarg))
 
               apg = alp + gam
               amg = alp - gam
@@ -2705,15 +2702,14 @@ module mod_rad_radiation
           ! reflectivity for diffuse radiation (from below) for all layers
           ! above the surface:
           !
-          k = kzp1
-          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-          rdenom = d_one/(d_one-min(rdif(k-1,n)*rdndif(k-1,n),verynearone))
-          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *       &
-                      (tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-          rdndif(k,n) = rdif(k-1,n) + (rdndif(k-1,n)*tdif(k-1,n)) *     &
-                      (tdif(k-1,n)*rdenom)
+          exptdn(kzp1,n) = exptdn(kz,n)*explay(kz,n)
+          rdenom = d_one/(d_one-min(rdif(kz,n)*rdndif(kz,n),verynearone))
+          rdirexp = rdir(kz,n)*exptdn(kz,n)
+          tdnmexp = tottrn(kz,n) - exptdn(kz,n)
+          tottrn(kzp1,n) = exptdn(kz,n)*tdir(kz,n) + tdif(kz,n) *       &
+                      (tdnmexp+rdndif(kz,n)*rdirexp)*rdenom
+          rdndif(kzp1,n) = rdif(kz,n) + (rdndif(kz,n)*tdif(kz,n)) *     &
+                      (tdif(kz,n)*rdenom)
         end if
       end block
     end do
@@ -3621,7 +3617,7 @@ module mod_rad_radiation
         !
         ! Calculate trace gas Planck functions
         !
-        call trcplk(n,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+        call trcplk(n,kzp1,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
         !
         ! Interface loop
         !
@@ -4062,6 +4058,7 @@ module mod_rad_radiation
 
   ! xalpha - Term in direct reflect and transmissivity
   pure real(rkx) function xalpha(wi,uui,gi,ei)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , uui , gi , ei
     real(rk8) :: w , uu , g , e
@@ -4072,8 +4069,10 @@ module mod_rad_radiation
     xalpha = real(0.75_rk8*(w*uu)*((1.0_rk8+(g*(1.0_rk8-w))) / &
                   (1.0_rk8-((e*e)*(uu*uu)))),rkx)
   end function xalpha
+
   ! xgamma - Term in direct reflect and transmissivity
   pure real(rkx) function xgamma(wi,uui,gi,ei)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , uui , gi , ei
     real(rk8) :: w , uu , g , e
@@ -4084,8 +4083,10 @@ module mod_rad_radiation
     xgamma = real((w*0.5_rk8)*((3.0_rk8*g*(1.0_rk8-w)*(uu*uu)+1.0_rk8) / &
                                (1.0_rk8-((e*e)*(uu*uu)))),rkx)
   end function xgamma
+
   ! el - Term in xalpha,xgamma,f_n,f_u
   pure real(rkx) function el(wi,gi)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , gi
     real(rk8) :: w , g
@@ -4093,8 +4094,10 @@ module mod_rad_radiation
     g = gi
     el = real(sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g)),rkx)
   end function el
+
   ! taus - Scaled extinction optical depth
   pure real(rkx) function taus(wi,fi,ti)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , fi , ti
     real(rk8) :: w , f , t
@@ -4103,8 +4106,10 @@ module mod_rad_radiation
     t = ti
     taus = real((1.0_rk8-w*f)*t,rkx)
   end function taus
+
   ! omgs - Scaled single particle scattering albedo
   pure real(rkx) function omgs(wi,fi)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , fi
     real(rk8) :: w , f
@@ -4112,8 +4117,10 @@ module mod_rad_radiation
     f = fi
     omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
   end function omgs
+
   ! asys - Scaled asymmetry parameter
   pure real(rkx) function asys(gi,fi)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: gi , fi
     real(rk8) :: g , f
@@ -4121,8 +4128,10 @@ module mod_rad_radiation
     f = fi
     asys = real((g-f)/(1.0_rk8-f),rkx)
   end function asys
+
   ! f_u - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_u(wi,gi,ei)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: wi , gi , ei
     real(rk8) :: w , g , e
@@ -4131,8 +4140,10 @@ module mod_rad_radiation
     e = ei
     f_u = real(1.50_rk8*(1.0_rk8-w*g)/e,rkx)
   end function f_u
+
   ! f_n - Term in diffuse reflect and transmissivity
   pure real(rkx) function f_n(uui,eti)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: uui , eti
     real(rk8) :: uu , et
@@ -4141,8 +4152,10 @@ module mod_rad_radiation
     f_n = real(((uu+1.0_rk8)*(uu+1.0_rk8)/et) - &
                ((uu-1.0_rk8)*(uu-1.0_rk8)*et),rkx)
   end function f_n
+
   ! dbvt - Planck fnctn tmp derivative for o3
   pure real(rkx) function dbvt(ti)
+!$acc routine seq
     ! Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
     real(rkx) , intent(in) :: ti
@@ -4152,7 +4165,9 @@ module mod_rad_radiation
            (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
            (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t),rkx)
   end function dbvt
+
   pure real(rkx) function fo3(uxi,vxi)
+!$acc routine seq
     ! an absorption function factor
     implicit none
     real(rkx) , intent(in) :: uxi , vxi

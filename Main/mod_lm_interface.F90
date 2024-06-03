@@ -625,10 +625,6 @@ module mod_lm_interface
       lm%dsrnof(:,:) = d_zero
     end if
 
-    contains
-
-#include <wlh.inc>
-
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
@@ -1223,97 +1219,98 @@ module mod_lm_interface
 #include <pfwsat.inc>
 #include <pfdesatdt.inc>
 #include <pqderiv.inc>
-#include <wlh.inc>
 #include <evpt.inc>
 
-    subroutine mslp
-      implicit none
-      integer(ik4) :: i , j , n
-      integer(ik4) , parameter :: niter = 20
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
-      real(rkx) , parameter :: alpha = lrate*rgas/egrav
-      real(rkx) :: mval , mall
-
-      ! Follow Kallen 1996
-      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-        block
-          real(rkx) :: tstar , hstar , raval
-          tstar = lm%tatm(j,i)
-          if ( tstar < 255.0_rkx ) then
-            tstar = (tstar+255.0_rkx)*0.5_rkx
-          else if ( tstar > 290.5_rkx ) then
-            tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
-          end if
-          hstar = lm%ht(j,i)/(rgas*tstar)
-          raval = d_half*alpha*hstar
-          slp(j,i) = lm%sfps(j,i) * &
-               exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
-         end block
-      end do
-      ! Gauss Siedel Filtering
-      mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
-      call sumall(mval,mall)
-      mval = mall/real(nproc,rkx)
-      sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
-      call exchange(slp,1,jce1,jce2,ice1,ice2)
-      call exchange(sfp,1,jce1,jce2,ice1,ice2)
-      slp1 = slp
-      mask = d_zero
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
-                     sfp(j-1,i)+sfp(j+1,i) - &
-                     4.0_rkx*sfp(j,i))/mval
-      end do
-      do n = 1 , niter
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
-                               slp1(j-1,i)+slp(j+1,i)-mask(j,i))
-        end do
-        if ( ma%has_bdyleft ) then
-          do i = ici1 , ici2
-            slp1(jce1,i) = slp1(jci1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ici1 , ici2
-            slp1(jce2,i) = slp1(jci2,i)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            slp1(j,ice1) = slp1(j,ici1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            slp1(j,ice2) = slp1(j,ici2)
-          end do
-        end if
-        call exchange(slp1,1,jce1,jce2,ice1,ice2)
-        slp(:,:) = slp1
-      end do
-    end subroutine mslp
-
-    subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
-      implicit none
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
-      real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
-      integer(ik4) :: i , j
-
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: delwind , spd1 , spd2
-          spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
-          spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
-          delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
-          gust(j,i) = max(gust(j,i),spd1+delwind)
-        end block
-      end do
-    end subroutine compute_maxgust
-
   end subroutine collect_output
+
+  subroutine mslp
+    implicit none
+    integer(ik4) :: i , j , n
+    integer(ik4) , parameter :: niter = 20
+    real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
+    real(rkx) , parameter :: alpha = lrate*rgas/egrav
+    real(rkx) :: mval , mall
+
+    ! Follow Kallen 1996
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+      block
+        real(rkx) :: tstar , hstar , raval
+        tstar = lm%tatm(j,i)
+        if ( tstar < 255.0_rkx ) then
+          tstar = (tstar+255.0_rkx)*0.5_rkx
+        else if ( tstar > 290.5_rkx ) then
+          tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
+        end if
+        hstar = lm%ht(j,i)/(rgas*tstar)
+        raval = d_half*alpha*hstar
+        slp(j,i) = lm%sfps(j,i) * &
+             exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
+       end block
+    end do
+    ! Gauss Siedel Filtering
+    mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
+    call sumall(mval,mall)
+    mval = mall/real(nproc,rkx)
+    sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
+    call exchange(slp,1,jce1,jce2,ice1,ice2)
+    call exchange(sfp,1,jce1,jce2,ice1,ice2)
+    slp1 = slp
+    mask = d_zero
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
+                   sfp(j-1,i)+sfp(j+1,i) - &
+                   4.0_rkx*sfp(j,i))/mval
+    end do
+    do n = 1 , niter
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
+                             slp1(j-1,i)+slp(j+1,i)-mask(j,i))
+      end do
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          slp1(jce1,i) = slp1(jci1,i)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          slp1(jce2,i) = slp1(jci2,i)
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          slp1(j,ice1) = slp1(j,ici1)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          slp1(j,ice2) = slp1(j,ici2)
+        end do
+      end if
+      call exchange(slp1,1,jce1,jce2,ice1,ice2)
+      slp(:,:) = slp1
+    end do
+  end subroutine mslp
+
+  subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
+    implicit none
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
+    real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
+    integer(ik4) :: i , j
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      block
+        real(rkx) :: delwind , spd1 , spd2
+        spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
+        spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
+        delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
+        gust(j,i) = max(gust(j,i),spd1+delwind)
+      end block
+    end do
+  end subroutine compute_maxgust
+
+#include <wlh.inc>
 
 end module mod_lm_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

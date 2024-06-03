@@ -574,18 +574,21 @@ module mod_runparams
   end subroutine allocate_mod_runparams
 
   pure logical function iswater(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     iswater = .false.
     if (a > 13.5_rkx .and. a < 15.5_rkx) iswater = .true.
   end function
 
   pure logical function isocean(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     isocean = .false.
     if (a > 14.5_rkx .and. a < 15.5_rkx) isocean = .true.
   end function
 
   pure logical function islake(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.

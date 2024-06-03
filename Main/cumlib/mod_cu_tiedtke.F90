@@ -657,24 +657,24 @@ module mod_cu_tiedtke
     if ( iconv /= 4 ) then
       do concurrent ( jl = 1:kproma, jk = 1:klev )
         block
-          real(rkx) :: zxlp1 , zxip1
           integer(ik4) :: it
+          real(rkx) :: zxlp , zxip
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
+          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
           it = int(ztp1(jl,jk)*d_1000)
-          if ( it < jptlucu1 .or. it > jptlucu2 ) then
 #ifdef DEBUG
+          if ( it < jptlucu1 .or. it > jptlucu2 ) then
             write(stderr,'(a,f12.4,a,i8)') &
               '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
               ' at ', rcmtimer%str( )
-#endif
             lookupoverflow = .true.
           end if
+#endif
           it = max(min(it,jptlucu2),jptlucu1)
           zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
           zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
@@ -689,14 +689,14 @@ module mod_cu_tiedtke
     else
       do concurrent ( jl = 1:kproma, jk = 1:klev )
         block
-          real(rkx) :: zxlp1 , zxip1
+          real(rkx) :: zxlp , zxip
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
+          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
         end block
       end do
     end if

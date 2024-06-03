@@ -596,22 +596,22 @@ module mod_clm_params
         implicit none
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
-        call model_zitaf(zita)
-        call model_zitah(zitah)
+        call model_zitaf(zita,mo_ztop)
+        call model_zitah(zitah,mo_ztop)
         mo_dzita = zita(kz)
-        sigma = sigmazita(zita)
-        hsigma = sigmazita(zitah)
-        fak = md_ak(zita)
-        fbk = md_bk(zita)
-        ak = md_ak(zitah)
-        bk = md_bk(zitah)
+        sigma = sigmazita(zita,mo_ztop)
+        hsigma = sigmazita(zitah,mo_ztop)
+        fak = md_ak(zita,mo_ztop,mo_h)
+        fbk = md_bk(zita,mo_ztop,mo_a0)
+        ak = md_ak(zitah,mo_ztop,mo_h)
+        bk = md_bk(zitah,mo_ztop,mo_a0)
         do k = 1 , kz
           dsigma(k) = (sigma(k+1)-sigma(k))
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
             zeta(j,i) = ak(kz) + (bk(kz) - d_one) * mddom%ht(j,i)*regrav
-            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i))
+            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
       end subroutine compute_moloch_static

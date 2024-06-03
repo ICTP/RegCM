@@ -60,11 +60,6 @@ module mod_pbl_thetal
       zerofunc = -(cpd/rwat)*(myp/es)*(wlh(t)*rcpd*qv/t)**2 - d_one
     end if
 
-    contains
-
-#include <pfesat.inc>
-#include <wlh.inc>
-
   end function zerofunc
 
   ! Determine temperature from the liquid water potential temperature,
@@ -361,12 +356,6 @@ module mod_pbl_thetal
       outqc = tempqc
     end if
 
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <wlh.inc>
-
   end function solve_for_t
 
   ! returns the saturation vapor pressure over water in units (cb)
@@ -429,11 +418,11 @@ module mod_pbl_thetal
       qc = d_zero
     end if
 
-    contains
+  end subroutine getqvqc
 
 #include <pfesat.inc>
-
-  end subroutine getqvqc
+#include <pfwsat.inc>
+#include <wlh.inc>
 
 end module mod_pbl_thetal
 

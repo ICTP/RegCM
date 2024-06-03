@@ -3,6 +3,7 @@
   ! Empirical Cube Polynomial Fit valid for T in range -40,40
 !DIR$ ATTRIBUTES FORCEINLINE :: wlh
   pure elemental real(rkx) function wlh(t)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t
     real(rk8) :: tc , lheat

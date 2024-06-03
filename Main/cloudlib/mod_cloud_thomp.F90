@@ -113,6 +113,7 @@ module mod_cloud_thomp
      ! a function of temperature and pressure
      !
      pure real(rkx) function rslf(p,t)
+!$acc routine seq
        implicit none
        real(rkx) , intent(in) :: p , t
        real(rkx) :: esl , x
@@ -135,6 +136,7 @@ module mod_cloud_thomp
      ! function of temperature and pressure
      !
      pure real(rkx) function rsif(p,t)
+!$acc routine seq
        implicit none
        real(rkx) , intent(in) :: p , t
        real(rkx) :: esi , x

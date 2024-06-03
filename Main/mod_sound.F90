@@ -76,6 +76,7 @@ module mod_sound
   real(rkx) :: cs , bp , bm , bpxbm , bpxbp
   real(rkx) :: dtsmax
   real(rkx) :: rnpts
+  logical :: lperi , lperj
 
   contains
 
@@ -124,6 +125,9 @@ module mod_sound
     if ( ma%crmflag ) then
       rnpts = d_one/real(nicross*njcross,rkx)
     end if
+
+    lperi = ma%crmflag
+    lperj = ma%crmflag .or. ma%bandflag
 
     if ( ifupr == 1 ) then
       !
@@ -558,9 +562,9 @@ module mod_sound
           block
             integer(ik4) :: nsi , inn , nsj , jnn
             do nsi = -6 , 6
-              inn = inrange_i(i+nsi)
+              inn = inrange(i+nsi,icross1,icross2,lperi)
               do nsj = -6 , 6
-                jnn = inrange_j(j+nsj)
+                jnn = inrange(j+nsj,jcross1,jcross2,lperj)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
@@ -721,31 +725,20 @@ module mod_sound
 
 #include <cpmf.inc>
 
-    pure integer(ik4) function inrange_i(i) result(inrange)
+    pure integer(ik4) function inrange(i,i1,i2,lper)
+!$acc routine seq
       implicit none
-      integer(ik4) , intent(in) :: i
+      integer(ik4) , intent(in) :: i , i1 , i2
+      logical , intent(in) :: lper
       inrange = i
-      if ( ma%crmflag ) then
-        if ( i > icross2 ) inrange = icross1 + (i - icross2)
-        if ( i < icross1 ) inrange = icross2 - (icross1 - i)
+      if ( lper ) then
+        if ( i > i2 ) inrange = i1 + (i - i2)
+        if ( i < i1 ) inrange = i2 - (i1 - i)
       else
-        if ( i > icross2-1 ) inrange = icross2 -1
-        if ( i < icross1+1 ) inrange = icross1 +1
+        if ( i > i2-1 ) inrange = i2 -1
+        if ( i < i1+1 ) inrange = i1 +1
       end if
-    end function inrange_i
-
-    pure integer(ik4) function inrange_j(j) result(inrange)
-      implicit none
-      integer(ik4) , intent(in) :: j
-      inrange = j
-      if ( ma%crmflag .or. ma%bandflag ) then
-        if ( j > jcross2 ) inrange = jcross1 + (j - jcross2)
-        if ( j < jcross1 ) inrange = jcross2 - (jcross1 - j)
-      else
-        if ( j > jcross2-1 ) inrange = jcross2 -1
-        if ( j < jcross1+1 ) inrange = jcross1 +1
-      end if
-    end function inrange_j
+    end function inrange
 
   end subroutine sound
 

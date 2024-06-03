@@ -139,12 +139,12 @@ module mod_grid
       call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
                        vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
                        lndcat=landuse)
-      call model_zitah(zitah)
-      sigmah = sigmazita(zitah)
+      call model_zitah(zitah,mo_ztop)
+      sigmah = sigmazita(zitah,mo_ztop)
       do k = 1 , kz
         do i = 1 , iy
           do j = 1 , jx
-            z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i))
+            z0(j,i,k) = md_zeta_h(zitah(k),topogm(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
         dsigma(k) = (sigmaf(k+1)-sigmaf(k))

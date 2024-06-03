@@ -5149,14 +5149,16 @@ module mod_bdycod
       block
         real(rkx) :: bval
         bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
-        uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-u(j,i,k))
+        uten(j,i,k) = uten(j,i,k) + &
+          tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (bval-u(j,i,k))
       end block
     end do
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk )
       block
         real(rkx) :: bval
         bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
-        vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-v(j,i,k))
+        vten(j,i,k) = vten(j,i,k) + &
+          tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (bval-v(j,i,k))
       end block
     end do
   end subroutine raydampuv
@@ -5170,10 +5172,12 @@ module mod_bdycod
     integer(ik4) :: i , j , k , maxk
     maxk = min(kzp1,rayndamp)
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk )
-      uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-u(j,i,k))
+      uten(j,i,k) = uten(j,i,k) + &
+        tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (sval-u(j,i,k))
     end do
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk )
-      vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-v(j,i,k))
+      vten(j,i,k) = vten(j,i,k) + &
+        tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (sval-v(j,i,k))
     end do
   end subroutine raydampuv_c
 
@@ -5186,7 +5190,8 @@ module mod_bdycod
     integer(ik4) :: i , j , k , maxk
     maxk = min(kzp1,rayndamp)
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk )
-        vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-var(j,i,k))
+        vten(j,i,k) = vten(j,i,k) + &
+          tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (sval-var(j,i,k))
     end do
   end subroutine raydamp3f
 
@@ -5204,7 +5209,8 @@ module mod_bdycod
       block
         real(rkx) :: bval
         bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
-        vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k))
+        vten(j,i,k) = vten(j,i,k) + &
+          tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k))
       end block
     end do
   end subroutine raydamp3
@@ -5223,7 +5229,8 @@ module mod_bdycod
       block
         real(rkx) :: bval
         bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
-        var(j,i,k) = var(j,i,k) + dt*tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k))
+        var(j,i,k) = var(j,i,k) + &
+          dt*tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k))
       end block
     end do
   end subroutine moraydamp
@@ -5243,7 +5250,7 @@ module mod_bdycod
         real(rkx) :: bval
         bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
         vten(j,i,k,iqv) = vten(j,i,k,iqv) + &
-                  tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k,iqv))
+                  tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k,iqv))
       end block
     end do
   end subroutine raydampqv
@@ -5272,11 +5279,12 @@ module mod_bdycod
     end do
   end subroutine timeint3
 
-  pure real(rkx) function tau(z,zmax)
+  pure real(rkx) function tau(z,zmax,r0,rhd)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: z , zmax
-    if ( z > zmax-rayhd ) then
-      tau = rayalpha0 * (sin(halfpi*(d_one-(zmax-z)/rayhd)))**2
+    real(rkx) , intent(in) :: z , zmax , r0 , rhd
+    if ( z > zmax-rhd ) then
+      tau = r0 * (sin(halfpi*(d_one-(zmax-z)/rhd)))**2
     else
       tau = d_zero
     end if
