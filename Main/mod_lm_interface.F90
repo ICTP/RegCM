@@ -1237,14 +1237,6 @@ module mod_lm_interface
     if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
     if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
 
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
-#include <evpt.inc>
-
   end subroutine collect_output
 
   subroutine mslp
@@ -1348,6 +1340,11 @@ module mod_lm_interface
     end do
   end subroutine compute_maxgust
 
+#include <pfesat.inc>
+#include <pfwsat.inc>
+#include <pfdesatdt.inc>
+#include <pqderiv.inc>
+#include <evpt.inc>
 #include <wlh.inc>
 
 end module mod_lm_interface
