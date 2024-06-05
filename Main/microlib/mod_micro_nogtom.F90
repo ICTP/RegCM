@@ -390,6 +390,10 @@ module mod_micro_nogtom
     logical :: lccn , lerror , ldetr , lconden , lactiv , locast
     logical :: ltkgt0 , ltklt0 , ltkgthomo , lcloud
     logical , dimension(nqx,nqx) :: lind2
+    integer(ik4) :: ii , jj , ll , imax , nn
+    real(rkx) :: aamax , dum , xsum , swap
+    real(rkx) , dimension(nqx) :: vv
+    integer(ik4) , dimension(nqx) :: indx
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -670,7 +674,8 @@ module mod_micro_nogtom
             acrit,precip,cfpr,qpretot,fluxq,vpice,vpliq,xadd,xbdd,cvds,  &
             qice0,qinew,rainaut,snowaut,dpmxdt,wtot,dtdiab,dtforc,qp,    &
             qsat,cond1,levap,leros,qsmixv,ccover,lccover,k,n,m,jn,jo,    &
-            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud)
+            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud,  &
+            ii,jj,kk,ll,imax,nn,aamax,dum,xsum,swap,vv,indx)
 #else
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -1824,113 +1829,107 @@ module mod_micro_nogtom
             qxn(n) = qx0(n) + rexplicit
           end do
 
-          mysolve : block
-            integer(ik4) :: ii , jj , jn , kk , ll , imax , n , m , nn
-            real(rkx) :: aamax , dum , xsum , swap
-            real(rkx) , dimension(nqx) :: vv
-            integer(ik4) , dimension(nqx) :: indx
-            do n = 1 , nqx
-              aamax = d_zero
-              do jn = 1 , nqx
-                if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
-              end do
+          do n = 1 , nqx
+            aamax = d_zero
+            do jn = 1 , nqx
+              if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
+            end do
 #ifdef DEBUG
-              if ( aamax == d_zero ) then
-                do nn = 1 , nqx
-                  write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
-                  do ll = 1 , nqx
-                    write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
-                        ll , nn , qlhs(ll,nn)
-                  end do
+            if ( aamax == d_zero ) then
+              do nn = 1 , nqx
+                write(stderr,'(a,i2,f20.9)') 'QX0 ', nn , qx0(nn)
+                do ll = 1 , nqx
+                  write(stderr,'(a,i2,i2,f20.9)') 'QLHS ', &
+                      ll , nn , qlhs(ll,nn)
                 end do
-              end if
-#endif
-              vv(n) = d_one/aamax ! Save the scaling.
-            end do
-            !                                                Ux=y
-            ! solve A x = b-------------> LU x = b---------> Ly=b
-            !
-            do n = 1 , nqx
-              ! This is the loop over columns
-              if ( n > 1 ) then
-                do m = 1 , n - 1
-                  xsum = qlhs(m,n)
-                  do kk = 1 , m - 1
-                    xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                  end do
-                  qlhs(m,n) = xsum
-                end do
-              end if
-              ! Initialize the search for largest pivot element.
-              aamax = d_zero
-              imax = n
-              do m = n , nqx
-                xsum = qlhs(m,n)
-                if ( n > 1 ) then
-                  do kk = 1 , n - 1
-                    xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                  end do
-                  qlhs(m,n) = xsum
-                end if
-                dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
-                if ( dum >= aamax ) then
-                  ! better than the best so far
-                  imax = m
-                  aamax = dum
-                end if
               end do
-              if ( n /= imax ) then
-                ! Do we need to interchange rows? yes, do so...
-                ! D = -D !...and change the parity of D.
-                do ii = 1 , nqx
-                  swap = qlhs(imax,ii)
-                  qlhs(imax,ii) = qlhs(n,ii)
-                  qlhs(n,ii) = swap
+            end if
+#endif
+            vv(n) = d_one/aamax ! Save the scaling.
+          end do
+          !                                                Ux=y
+          ! solve A x = b-------------> LU x = b---------> Ly=b
+          !
+          do n = 1 , nqx
+            ! This is the loop over columns
+            if ( n > 1 ) then
+              do m = 1 , n - 1
+                xsum = qlhs(m,n)
+                do kk = 1 , m - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
                 end do
-                vv(imax) = vv(n) ! Also interchange the scale factor.
+                qlhs(m,n) = xsum
+              end do
+            end if
+            ! Initialize the search for largest pivot element.
+            aamax = d_zero
+            imax = n
+            do m = n , nqx
+              xsum = qlhs(m,n)
+              if ( n > 1 ) then
+                do kk = 1 , n - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+                end do
+                qlhs(m,n) = xsum
               end if
-              indx(n) = imax
-              if ( n /= nqx ) then
-                dum = d_one/max(qlhs(n,n),verylowqx)
-                do m = n + 1 , nqx
-                  qlhs(m,n) = qlhs(m,n)*dum
-                end do
+              dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
+              if ( dum >= aamax ) then
+                ! better than the best so far
+                imax = m
+                aamax = dum
               end if
             end do
-            !
-            ! Now solve the set of n linear equations A * X = B.
-            ! B(1:N) is input as the right-hand side vector B,
-            ! and is used to store solution after back-substitution.
-            !
-            ii = 0
-            ! When ii is set to a positive value, it will become
-            ! the index of the  first nonvanishing element of B.
-            ! We now do the forward substitution, and the only new
-            ! wrinkle is to unscramble the permutation as we go.
-            do m = 1 , nqx
-              ll = indx(m)
-              xsum = qxn(ll)
-              qxn(ll) = qxn(m)
-              if ( ii == 0 ) then
-                if ( abs(xsum) > verylowqx ) ii = m
-              else
-                do jj = ii , m - 1
-                  xsum = xsum - qlhs(m,jj)*qxn(jj)
-                end do
-              end if
-              qxn(m) = xsum
-            end do
-
-            ! Now we do the backsubstitution
-            do m = nqx , 1 , -1
-              xsum = qxn(m)
-              do jj = m + 1 , nqx
+            if ( n /= imax ) then
+              ! Do we need to interchange rows? yes, do so...
+              ! D = -D !...and change the parity of D.
+              do ii = 1 , nqx
+                swap = qlhs(imax,ii)
+                qlhs(imax,ii) = qlhs(n,ii)
+                qlhs(n,ii) = swap
+              end do
+              vv(imax) = vv(n) ! Also interchange the scale factor.
+            end if
+            indx(n) = imax
+            if ( n /= nqx ) then
+              dum = d_one/max(qlhs(n,n),verylowqx)
+              do m = n + 1 , nqx
+                qlhs(m,n) = qlhs(m,n)*dum
+              end do
+            end if
+          end do
+          !
+          ! Now solve the set of n linear equations A * X = B.
+          ! B(1:N) is input as the right-hand side vector B,
+          ! and is used to store solution after back-substitution.
+          !
+          ii = 0
+          ! When ii is set to a positive value, it will become
+          ! the index of the  first nonvanishing element of B.
+          ! We now do the forward substitution, and the only new
+          ! wrinkle is to unscramble the permutation as we go.
+          do m = 1 , nqx
+            ll = indx(m)
+            xsum = qxn(ll)
+            qxn(ll) = qxn(m)
+            if ( ii == 0 ) then
+              if ( abs(xsum) > verylowqx ) ii = m
+            else
+              do jj = ii , m - 1
                 xsum = xsum - qlhs(m,jj)*qxn(jj)
               end do
-              ! Store a component of the solution vector qxn.
-              qxn(m) = xsum/qlhs(m,m)
+            end if
+            qxn(m) = xsum
+          end do
+
+          ! Now we do the backsubstitution
+          do m = nqx , 1 , -1
+            xsum = qxn(m)
+            do jj = m + 1 , nqx
+              xsum = xsum - qlhs(m,jj)*qxn(jj)
             end do
-          end block mysolve
+            ! Store a component of the solution vector qxn.
+            qxn(m) = xsum/qlhs(m,m)
+          end do
 
           !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
