@@ -105,6 +105,7 @@ module mod_slice
   subroutine mkslice
     implicit none
     integer(ik4) :: i , j , k , n
+    real(rkx) :: w1 , w2 , cell
 
     if ( idynamic == 3 ) then
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -155,10 +156,12 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            real(rkx) :: w1 , w2
-            integer(ik4) :: k
+#ifndef __GFORTRAN__
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(w1,w2,k)
+#else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
             atms%th700(j,i) = atms%th3d(j,i,kz)
             do k = 2 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
@@ -170,7 +173,9 @@ module mod_slice
                 exit
               end if
             end do
-          end block
+#ifdef __GFORTRAN__
+          end do
+#endif
         end do
       end if
 
@@ -309,13 +314,18 @@ module mod_slice
           atms%zq(j,i,kzp1) = d_zero
         end do
         do k = kz , 1, -1
-          do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
-            block
-              real(rkx) :: cell
+#ifndef __GFORTRAN__
+          do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga ) local(cell)
+#else
+          do i = ice1ga , ice2ga
+            do j = jce1ga , jce2ga
+#endif
               cell = ptop * rpsb(j,i)
               atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
                         log((sigma(k+1)+cell)/(sigma(k)+cell))
-            end block
+#ifdef __GFORTRAN__
+            end do
+#endif
           end do
         end do
         do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
@@ -337,9 +347,12 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          block
-            integer(ik4) :: k
+#ifndef __GFORTRAN__
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
+#else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
             atms%th700(j,i) = atms%th3d(j,i,kz)
             do k = 1 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0 ) then
@@ -348,7 +361,9 @@ module mod_slice
                 exit
               end if
             end do
-          end block
+#ifdef __GFORTRAN__
+          end do
+#endif
         end do
       end if
     end if
@@ -356,25 +371,35 @@ module mod_slice
     ! Find tropopause hgt.
     !
     ktrop(:,:) = kz
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        integer(ik4) :: k
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci1
+#endif
         do k = kzm1 , 2 , -1
           ktrop(j,i) = k
           if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
         end do
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
     if ( ibltyp == 1 ) then
       kmxpbl(:,:) = kz
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci1
+#endif
           do k = kzm1 , 2 , -1
             if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
     end if
 

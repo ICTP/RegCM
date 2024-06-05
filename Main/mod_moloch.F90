@@ -309,6 +309,7 @@ module mod_moloch
     implicit none
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin
+    real(rkx) :: fice , zdgz , lrt , tv
     !real(rk8) :: jday
     integer(ik4) :: i , j , k , n , nadv
     integer(ik4) :: iconvec
@@ -347,19 +348,27 @@ module mod_moloch
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
         if ( do_fulleq ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            if ( t(j,i,k) >= tzero ) then
-              qwltot(j,i,k) = qc(j,i,k)
-            else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
-              qwitot(j,i,k) = qc(j,i,k)
-            else
-              block
-                real(rkx) :: fice
-                fice = (tzero-t(j,i,k))/20.0_rkx
-                qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
-                qwitot(j,i,k) = qc(j,i,k) * fice
-              end block
-            end if
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(fice)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                if ( t(j,i,k) >= tzero ) then
+                  qwltot(j,i,k) = qc(j,i,k)
+                else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
+                  qwitot(j,i,k) = qc(j,i,k)
+                else
+                  fice = (tzero-t(j,i,k))/20.0_rkx
+                  qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
+                  qwitot(j,i,k) = qc(j,i,k) * fice
+                end if
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
         end if
       end if
@@ -479,16 +488,21 @@ module mod_moloch
 
     !jday = yeardayfrac(rcmtimer%idate)
 
-    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
-      block
-        real(rkx) :: zdgz , lrt , tv
+#ifndef __GFORTRAN__
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(zdgz,lrt,tv)
+#else
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+#endif
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
     !
     ! Recompute saturation
@@ -965,6 +979,11 @@ module mod_moloch
         integer(ik4) :: i , j , k , nsound
         real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
         real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
+        real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
+        real(rkx) :: zum , zup , zvm , zvp , zuh , zvh
+        real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
+        real(rkx) :: zcx , zcy , zfz
+        real(rkx) :: zrom1u , zcor1u , zrom1v , zcor1v
 
         dtrdx = dts/dx
         dtrdy = dts/dx
@@ -988,13 +1007,18 @@ module mod_moloch
 
           ! partial definition of the generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            block
-              real(rkx) :: zuh , zvh
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(zuh,zvh)
+#else
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
               zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
               w(j,i,kzp1) = d_half * (zuh+zvh)
-            end block
+#ifdef __GFORTRAN__
+            end do
+#endif
           end do
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -1003,51 +1027,73 @@ module mod_moloch
 
           ! Equation 10, generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            block
-              real(rkx) :: zuh , zvh
-              zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
-                    (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
-              zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
-                    (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
-              s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          k = 2:kz ) local(zuh,zvh)
+#else
+          do k = 2 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
+                      (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
+                zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
+                      (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
+                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
 
           ! Part of divergence (except w contribution) put in zdiv2
           ! Equation 16
 
           if ( lrotllr ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              block
-                real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
-                real(rkx) :: zum , zup , zvm , zvp
-                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                zum = dtrdx * u(j,i,k) * zrfmzum
-                zup = dtrdx * u(j+1,i,k) * zrfmzup
-                zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
-                zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
-                zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = dtrdx * u(j,i,k) * zrfmzum
+                  zup = dtrdx * u(j+1,i,k) * zrfmzup
+                  zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                  zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                  zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
           else
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              block
-                real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
-                real(rkx) :: zum , zup , zvm , zvp
-                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
-                zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
-                zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                  zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                  zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                  zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
           end if
 
@@ -1063,9 +1109,13 @@ module mod_moloch
           ! new w (implicit scheme) from Equation 19
 
           do k = kz , 2 , -1
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-              block
-                real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
+#ifndef __GFORTRAN__
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+              local(zrom1w,zwexpl,zqs,zdth,zu,zd,zrapp)
+#else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
                 deltaw(j,i,k) = -w(j,i,k)
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
@@ -1098,7 +1148,9 @@ module mod_moloch
                 zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
                 w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
                 wwkw(j,i,k) = zrapp * zu
-              end block
+#ifdef __GFORTRAN__
+              end do
+#endif
             end do
           end do
 
@@ -1154,71 +1206,103 @@ module mod_moloch
 
           if ( lrotllr ) then
             ! Equation 17
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              block
-                real(rkx) :: zcx , zfz , zrom1u , zcor1u
-                zcx = dtrdx * mu(j,i)
-                zfz = egrav * dts + 0.25_rkx * &
-                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1))
-                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
-                ! Equation 17
-                u(j,i,k) = u(j,i,k) + zcor1u - &
-                           zfz * hx(j,i) * gzitakh(k) - &
-                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+              local(zcx,zfz,zrom1u,zcor1u)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zcx = dtrdx * mu(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
             ! Equation 18
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              block
-                real(rkx) :: zcy , zfz , zrom1v , zcor1v
-                zcy = dtrdy
-                zfz = egrav * dts + 0.25_rkx * &
-                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1))
-                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
-                ! Equation 18
-                v(j,i,k) = v(j,i,k) - zcor1v - &
-                           zfz * hy(j,i) * gzitakh(k) -  &
-                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+              local(zcy,zfz,zrom1v,zcor1v)
+#else
+            do k = 1 , kz
+              do i = idi1 , idi2
+                do j = jci1 , jci2
+#endif
+                  zcy = dtrdy
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
           else
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              block
-                real(rkx) :: zcx , zfz , zrom1u , zcor1u
-                zcx = dtrdx * mu(j,i)
-                zfz = egrav * dts + 0.25_rkx * &
-                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1))
-                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
-                ! Equation 17
-                u(j,i,k) = u(j,i,k) + zcor1u - &
-                           zfz * hx(j,i) * gzitakh(k) - &
-                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+              local(zcx,zfz,zrom1u,zcor1u)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zcx = dtrdx * mu(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              block
-                real(rkx) :: zcy , zfz , zrom1v , zcor1v
-                zcy = dtrdy * mv(j,i)
-                zfz = egrav * dts + 0.25_rkx * &
-                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1))
-                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
-                ! Equation 18
-                v(j,i,k) = v(j,i,k) - zcor1v - &
-                           zfz * hy(j,i) * gzitakh(k) -  &
-                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
-              end block
+#ifndef __GFORTRAN__
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+              local(zcy,zfz,zrom1v,zcor1v)
+#else
+            do k = 1 , kz
+              do i = idi1 , idi2
+                do j = jci1 , jci2
+#endif
+                  zcy = dtrdy * mv(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifdef __GFORTRAN__
+                end do
+              end do
+#endif
             end do
           end if
 
@@ -1374,6 +1458,14 @@ module mod_moloch
         real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
         real(rkx) , dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
         real(rkx) , dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
+        real(rkx) :: zamu , is , r , b , zphi , zzden , zdv
+        real(rkx) :: zhxvtn , zhxvts , zcostx
+        real(rkx) :: zrfmu , zrfmd
+        real(rkx) :: zrfmn , zrfms
+        real(rkx) :: zrfme , zrfmw
+        integer(ik4) :: k1 , k1p1
+        integer(ik4) :: ih , ihm1
+        integer(ik4) :: jh , jhm1
 
         dtrdx = dta/dx
         dtrdy = dta/dx
@@ -1394,46 +1486,14 @@ module mod_moloch
           wfw(j,i,kzp1) = d_zero
         end do
 
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
-          block
-            real(rkx) :: zamu , is , r , b , zphi , zzden
-            integer(ik4) :: k1 , k1p1
-            zamu = s(j,i,k+1) * dtrdz
-            if ( zamu >= d_zero ) then
-              is = d_one
-              k1 = k + 1
-              k1p1 = k1 + 1
-              if ( k1p1 > kz ) k1p1 = kz
-            else
-              is = -d_one
-              k1 = k - 1
-              k1p1 = k
-              if ( k1 < 1 ) k1 = 1
-            end if
-            zzden = pp(j,i,k)-pp(j,i,k+1)
-            zzden = sign(max(abs(zzden),minden),zzden)
-            r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
-            b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-            zphi = is + zamu * b - is * b
-            wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                                  (d_one-zphi)*pp(j,i,k))
-          end block
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          block
-            real(rkx) :: zrfmu , zrfmd , zdv
-            zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
-            zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-            zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
-            wz(j,i,k) = pp(j,i,k) - wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
-          end block
-        end do
-
-        if ( do_vadvtwice ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 )
-            block
-              real(rkx) :: zamu , is , r , b , zphi , zzden
-              integer(ik4) :: k1 , k1p1
+#ifndef __GFORTRAN__
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
+          local(zamu,is,r,b,zphi,zzden,k1,k1p1)
+#else
+        do k = 1 , kzm1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
               zamu = s(j,i,k+1) * dtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
@@ -1446,24 +1506,87 @@ module mod_moloch
                 k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              zzden = wz(j,i,k)-wz(j,i,k+1)
+              zzden = pp(j,i,k)-pp(j,i,k+1)
               zzden = sign(max(abs(zzden),minden),zzden)
-              r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
+              r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
-                                                    (d_one-zphi)*wz(j,i,k))
-            end block
+              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                                    (d_one-zphi)*pp(j,i,k))
+#ifdef __GFORTRAN__
+            end do
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zrfmu , zrfmd , zdv
+#endif
+        end do
+#ifndef __GFORTRAN__
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zrfmu,zrfmd,zdv)
+#else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
               zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
-              wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
-                                      wfw(j,i,k+1)*zrfmd + zdv
-            end block
+              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
+              wz(j,i,k) = pp(j,i,k) - &
+                wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
+#ifdef __GFORTRAN__
+            end do
+          end do
+#endif
+        end do
+
+        if ( do_vadvtwice ) then
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
+            local(zamu,is,r,b,zphi,zzden,k1,k1p1)
+#else
+          do k = 1 , kzm1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zamu = s(j,i,k+1) * dtrdz
+                if ( zamu >= d_zero ) then
+                  is = d_one
+                  k1 = k + 1
+                  k1p1 = k1 + 1
+                  if ( k1p1 > kz ) k1p1 = kz
+                else
+                  is = -d_one
+                  k1 = k - 1
+                  k1p1 = k
+                  if ( k1 < 1 ) k1 = 1
+                end if
+                zzden = wz(j,i,k)-wz(j,i,k+1)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu * b - is * b
+                wfw(j,i,k+1) = d_half * s(j,i,k+1) * &
+                  ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
+          end do
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmu,zrfmd,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+                zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
+                zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
+                wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
+                                        wfw(j,i,k+1)*zrfmd + zdv
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
         end if
 
@@ -1483,39 +1606,54 @@ module mod_moloch
         if ( lrotllr ) then
 
           ! Meridional advection
-          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
-            block
-              real(rkx) :: zamu , is , r , b , zphi , zzden
-              integer(ik4) :: ih , ihm1
-              zamu = v(j,i,k) * dtrdy
-              if ( zamu > d_zero ) then
-                is = d_one
-                ih = i-1
-              else
-                is = -d_one
-                ih = min(i+1,imax)
-              end if
-              ihm1 = max(ih-1,imin)
-              zzden = wz(j,i,k)-wz(j,i-1,k)
-              zzden = sign(max(abs(zzden),minden),zzden)
-              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpby(j,i,k) = d_half * v(j,i,k) * &
-                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,ih,ihm1)
+#else
+          do k = 1 , kz
+            do i = ici1 , ice2ga
+              do j = jci1 , jci2
+#endif
+                zamu = v(j,i,k) * dtrdy
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  ih = i-1
+                else
+                  is = -d_one
+                  ih = min(i+1,imax)
+                end if
+                ihm1 = max(ih-1,imin)
+                zzden = wz(j,i,k)-wz(j,i-1,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpby(j,i,k) = d_half * v(j,i,k) * &
+                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zhxvtn , zhxvts , zrfmn , zrfms , zdv
-              zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
-              zhxvts = dtrdy * rmv(j,i) * mx(j,i)
-              zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-              zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-              zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
-              p0(j,i,k) = wz(j,i,k) + &
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zhxvtn,zhxvts,zrfmn,zrfms,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
+                zhxvts = dtrdy * rmv(j,i) * mx(j,i)
+                zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+                zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+                zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
+                p0(j,i,k) = wz(j,i,k) + &
                       zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv
-            end block
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
 
           if ( ma%has_bdyleft ) then
@@ -1534,76 +1672,106 @@ module mod_moloch
 
           ! Zonal advection
 
-          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zamu , is , r , b , zphi , zzden
-              integer(ik4) :: jh , jhm1
-              zamu = u(j,i,k) * mu(j,i) * dtrdx
-              if ( zamu > d_zero ) then
-                is = d_one
-                jh = j-1
-              else
-                is = -d_one
-                jh = min(j+1,jmax)
-              end if
-              jhm1 = max(jh-1,jmin)
-              zzden = p0(j,i,k)-p0(j-1,i,k)
-              zzden = sign(max(abs(zzden),minden),zzden)
-              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpbw(j,i,k) = d_half * u(j,i,k) * &
-                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jce2ga
+#endif
+                zamu = u(j,i,k) * mu(j,i) * dtrdx
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  jh = j-1
+                else
+                  is = -d_one
+                  jh = min(j+1,jmax)
+                end if
+                jhm1 = max(jh-1,jmin)
+                zzden = p0(j,i,k)-p0(j-1,i,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpbw(j,i,k) = d_half * u(j,i,k) * &
+                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zcostx , zrfme , zrfmw , zdv
-              zcostx = dtrdx * mu(j,i)
-              zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-              zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-              zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
-              pp(j,i,k) = p0(j,i,k) + &
-                     zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zcostx,zrfme,zrfmw,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zcostx = dtrdx * mu(j,i)
+                zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+                zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+                zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
+                pp(j,i,k) = p0(j,i,k) + &
+                       zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
 
         else
 
           ! Meridional advection
 
-          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz )
-            block
-              real(rkx) :: zamu , is , r , b , zphi , zzden
-              integer(ik4) :: ih , ihm1
-              zamu = v(j,i,k) * rmv(j,i) * dtrdy
-              if ( zamu > d_zero ) then
-                is = d_one
-                ih = i-1
-              else
-                is = -d_one
-                ih = min(i+1,imax)
-              end if
-              ihm1 = max(ih-1,imin)
-              zzden = wz(j,i,k)-wz(j,i-1,k)
-              zzden = sign(max(abs(zzden),minden),zzden)
-              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
-                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden)
+#else
+          do k = 1 , kz
+            do i = ici1 , ice2ga
+              do j = jci1 , jci2
+#endif
+                zamu = v(j,i,k) * rmv(j,i) * dtrdy
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  ih = i-1
+                else
+                  is = -d_one
+                  ih = min(i+1,imax)
+                end if
+                ihm1 = max(ih-1,imin)
+                zzden = wz(j,i,k)-wz(j,i-1,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
+                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zrfmn , zrfms , zdv
-              zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-              zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-              zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-                     v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
-              p0(j,i,k) = wz(j,i,k) + &
-                mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmn,zrfms,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+                zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+                zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
+                       v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
+                p0(j,i,k) = wz(j,i,k) + &
+                  mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
 
           if ( ma%has_bdyleft ) then
@@ -1622,39 +1790,54 @@ module mod_moloch
 
           ! Zonal advection
 
-          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zamu , is , r , b , zphi , zzden
-              integer(ik4) :: jh , jhm1
-              zamu = u(j,i,k) * rmu(j,i) * dtrdx
-              if ( zamu > d_zero ) then
-                is = d_one
-                jh = j-1
-              else
-                is = -d_one
-                jh = min(j+1,jmax)
-              end if
-              jhm1 = max(jh-1,jmin)
-              zzden = p0(j,i,k)-p0(j-1,i,k)
-              zzden = sign(max(abs(zzden),minden),zzden)
-              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
-                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jce2ga
+#endif
+                zamu = u(j,i,k) * rmu(j,i) * dtrdx
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  jh = j-1
+                else
+                  is = -d_one
+                  jh = min(j+1,jmax)
+                end if
+                jhm1 = max(jh-1,jmin)
+                zzden = p0(j,i,k)-p0(j-1,i,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
+                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            block
-              real(rkx) :: zrfme , zrfmw , zdv
-              zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-              zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-              zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-                     u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
-              pp(j,i,k) = p0(j,i,k) + &
-                  mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
-            end block
+#ifndef __GFORTRAN__
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfme,zrfmw,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+                zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+                zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
+                       u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
+                pp(j,i,k) = p0(j,i,k) + &
+                    mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+#ifdef __GFORTRAN__
+              end do
+            end do
+#endif
           end do
         end if
 

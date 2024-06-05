@@ -647,6 +647,8 @@ module mod_cu_tiedtke
     real(rkx) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
     real(rkx) , dimension(kbdim) :: pcape
     real(rkx) , dimension(kbdim,klev+1) :: pqhfl , pahfs
+    integer(ik4) :: it
+    real(rkx) :: zxlp , zxip
 
     lookupoverflow = .false.
     !
@@ -655,10 +657,12 @@ module mod_cu_tiedtke
     ! --------------------------------------
     !
     if ( iconv /= 4 ) then
-      do concurrent ( jl = 1:kproma, jk = 1:klev )
-        block
-          integer(ik4) :: it
-          real(rkx) :: zxlp , zxip
+#ifndef __GFORTRAN__
+      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(it,zxlp,zxip)
+#else
+      do jk = 1 , klev
+        do jl = 1 , kproma
+#endif
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
           zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
@@ -680,16 +684,21 @@ module mod_cu_tiedtke
           zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
           zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
           ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
       if ( lookupoverflow ) then
         call fatal(__FILE__,__LINE__, &
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
     else
-      do concurrent ( jl = 1:kproma, jk = 1:klev )
-        block
-          real(rkx) :: zxlp , zxip
+#ifndef __GFORTRAN__
+      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(zxlp,zxip)
+#else
+      do jk = 1 , klev
+        do jl = 1 , kproma
+#endif
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
           zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
@@ -697,7 +706,9 @@ module mod_cu_tiedtke
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
           zxp1(jl,jk) = max(d_zero,zxlp+zxip)
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
     end if
 

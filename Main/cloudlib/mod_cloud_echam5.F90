@@ -50,33 +50,41 @@ module mod_cloud_echam5
     real(rkx) , parameter :: cs = 0.85_rkx
     real(rkx) , parameter :: nx = 4.0_rkx
     integer(ik4) :: i , j , k
+    real(rkx) :: rhrng , rhcrit , sig
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      block
-        real(rkx) :: rhrng , rhcrit , sig
-
-        if ( qc(j,i,k) > qcrit(j,i) ) then
-          ! Relative humidity
-          rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-          sig = ps(j,i)/p(j,i,k)
-          rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
-          if ( rhrng < rhcrit ) then
-            fcc(j,i,k) = d_zero
-          else if ( rhrng > 0.99999_rkx ) then
-            fcc(j,i,k) = d_one
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(rhrng,rhcrit,sig)
+#else
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
+          if ( qc(j,i,k) > qcrit(j,i) ) then
+            ! Relative humidity
+            rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
+            sig = ps(j,i)/p(j,i,k)
+            rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
+            if ( rhrng < rhcrit ) then
+              fcc(j,i,k) = d_zero
+            else if ( rhrng > 0.99999_rkx ) then
+              fcc(j,i,k) = d_one
+            else
+              ! Sundqvist formula
+              fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                                          (1.0_rkx-rhcrit))
+            end if
           else
-            ! Sundqvist formula
-            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                                        (1.0_rkx-rhcrit))
+            fcc(j,i,k) = d_zero
           end if
-        else
-          fcc(j,i,k) = d_zero
-        end if
-      end block
+#ifdef __GFORTRAN__
+        end do
+      end do
+#endif
     end do
 
   end subroutine echam5_cldfrac

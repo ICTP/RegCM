@@ -103,7 +103,10 @@ module mod_micro_subex
     type(micro_2_mod) , intent(out) :: mc2mo
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
-    real(rkx) :: prainx
+    real(rkx) :: afc1 , qcw1 , qcincl1 , qcth1 , prainx , tcel1
+    real(rkx) :: pptnew , pptmax , afc , qcw , qcleft
+    real(rkx) :: pptkm1 , pptacc , dpovg
+    real(rkx) :: qs , dqv , rhcs , rdevap , rlv , ocpm
     !
     ! 0. Compute dqc
     !
@@ -116,57 +119,73 @@ module mod_micro_subex
         mc2mo%dia_qcr(:,:,:) = d_zero
         mc2mo%dia_qcl(:,:,:) = d_zero
       end if
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        block
-          real(rkx) :: afc1 , qcw1 , qcincl1 , qcth1
-          afc1 = mc2mo%fcc(j,i,k)
-          qcw1 = mo2mc%qcn(j,i,k)
-          if ( qcw1 > actliq .and. afc1 > actcld ) then
-            ! include aerosol second indirect effect on threshold
-            ! auto-conversion
-            ! rcrit is a critical cloud radius for cloud
-            ! water undergoing autoconversion
-            ! ccn = number of ccn /m3
-            ! In cloud mixing ratio [kg/kg]
-            qcincl1 = mo2mc%qcn(j,i,k)/afc1
-            qcth1 = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                    ((rcrit*1e-6_rkx)**3)*rhow
-            if ( idiag > 0 ) then
-              mc2mo%dia_qcr(j,i,k) = qcth1
-              mc2mo%dia_qcl(j,i,k) = qcincl1
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(afc1,qcw1,qcincl1,qcth1)
+#else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
+            afc1 = mc2mo%fcc(j,i,k)
+            qcw1 = mo2mc%qcn(j,i,k)
+            if ( qcw1 > actliq .and. afc1 > actcld ) then
+              ! include aerosol second indirect effect on threshold
+              ! auto-conversion
+              ! rcrit is a critical cloud radius for cloud
+              ! water undergoing autoconversion
+              ! ccn = number of ccn /m3
+              ! In cloud mixing ratio [kg/kg]
+              qcincl1 = mo2mc%qcn(j,i,k)/afc1
+              qcth1 = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                      ((rcrit*1e-6_rkx)**3)*rhow
+              if ( idiag > 0 ) then
+                mc2mo%dia_qcr(j,i,k) = qcth1
+                mc2mo%dia_qcl(j,i,k) = qcincl1
+              end if
+              dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
+            else
+              dqc(j,i,k) = d_zero
             end if
-            dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
-          else
-            dqc(j,i,k) = d_zero
-          end if
-        end block
+#ifdef __GFORTRAN__
+          end do
+        end do
+#endif
       end do
     else
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        block
-          real(rkx) :: afc1 , qcw1 , qcincl1 , tcel1 , qcth1
-          ! 1ad. Implement here the formula for qcth.
-          !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
-          !   - The factor of 1000 converts from g/kg to kg/kg
-          !   - The factor of cgul accounts for the fact that the Gultepe
-          !     and Isaac equation is for mean cloud water while qcth is the
-          !     theshhold for auto-conversion.
-          afc1 = mc2mo%fcc(j,i,k)
-          qcw1 = mo2mc%qcn(j,i,k)
-          if ( qcw1 > actliq .and. afc1 > actcld ) then
-            ! In cloud mixing ratio [kg/kg]
-            qcincl1 = mo2mc%qcn(j,i,k)/afc1
-            tcel1 = mo2mc%t(j,i,k) - tzero   ![C][avg]
-            qcth1 = cgul(j,i) * &
-                 (d_10**(-0.48911_rkx+0.01344_rkx*tcel1))*d_r1000
-            ! Use same function of Lemus et al., 1997 as in lwc computation
-            !qcth = cgul(j,i) * &
-            !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
-            dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
-          else
-            dqc(j,i,k) = d_zero
-          end if
-        end block
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(afc1,qcw1,qcincl1,qcth1,tcel1)
+#else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
+            ! 1ad. Implement here the formula for qcth.
+            !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
+            !   - The factor of 1000 converts from g/kg to kg/kg
+            !   - The factor of cgul accounts for the fact that the Gultepe
+            !     and Isaac equation is for mean cloud water while qcth is the
+            !     theshhold for auto-conversion.
+            afc1 = mc2mo%fcc(j,i,k)
+            qcw1 = mo2mc%qcn(j,i,k)
+            if ( qcw1 > actliq .and. afc1 > actcld ) then
+              ! In cloud mixing ratio [kg/kg]
+              qcincl1 = mo2mc%qcn(j,i,k)/afc1
+              tcel1 = mo2mc%t(j,i,k) - tzero   ![C][avg]
+              qcth1 = cgul(j,i) * &
+                   (d_10**(-0.48911_rkx+0.01344_rkx*tcel1))*d_r1000
+              ! Use same function of Lemus et al., 1997 as in lwc computation
+              !qcth = cgul(j,i) * &
+              !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
+              dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
+            else
+              dqc(j,i,k) = d_zero
+            end if
+#ifdef __GFORTRAN__
+          end do
+        end do
+#endif
       end do
     end if
     !--------------------------------------------------------------------
@@ -188,10 +207,13 @@ module mod_micro_subex
     end if
     ! 1a. Perform computations for the top layer (layer 1)
     !   maximum precipation rate (total cloud water/dt)
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        real(rkx) :: pptnew , pptmax , afc , qcw , qcleft
-        real(rkx) :: pptkm1 , pptacc , dpovg
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+      local(pptnew,pptmax,afc,qcw,qcleft,pptkm1,pptacc,dpovg)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
         pptnew = d_zero
         afc = min(mc2mo%fcc(j,i,1),d_one-actcld)                ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
@@ -237,18 +259,23 @@ module mod_micro_subex
             end if
           end if
         end if
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
 
     ! LAYER TWO TO KZ
     ! 1b. Perform computations for the 2nd layer to the surface
     ! precipation accumulated from above
     do k = 2 , kz
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: dpovg , afc , qcw , pptnew , pptkm1
-          real(rkx) :: qs , dqv , rhcs , rdevap , rlv , ocpm
-          real(rkx) :: pptmax , pptacc , qcleft
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(dpovg,afc,qcw,pptnew,pptkm1,qs,dqv,rhcs,rdevap, &
+              rlv,ocpm,pptmax,pptacc,qcleft)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
@@ -352,7 +379,9 @@ module mod_micro_subex
               end if
             end if
           end if
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
     end do
     !

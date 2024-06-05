@@ -345,8 +345,51 @@ module mod_micro_nogtom
 #endif
     type(mod_2_micro) , intent(in) :: mo2mc
     type(micro_2_mod) , intent(out) :: mc2mo
-    integer(ik4) :: i , j , k , n
-    logical :: lccn , lerror
+
+    integer(ik4) :: i , j , k , kk , n , m , jn , jo
+    real(rkx) :: tnew , dp , qe , tmpl , tmpi
+    real(rkx) :: qprev , hprev , zdelta , prainx , psnowx
+    ! for sedimentation source/sink terms
+    real(rkx) , dimension(nqx) :: fallsrce , fallsink
+    ! n x n matrix storing the LHS of implicit solver
+    real(rkx) , dimension(nqx,nqx) :: qlhs
+    ! explicit sources and sinks "q s exp"=q source explicit
+    real(rkx) , dimension(nqx,nqx) :: qsexp
+    ! implicit sources and sinks "q s imp"=q source/sink implicit
+    real(rkx) , dimension(nqx,nqx) :: qsimp
+    ! Initial values
+    real(rkx) , dimension(nqx) :: qx0 , qxfg , qxn
+    real(rkx) , dimension(nqx) :: ratio , sinksum
+    ! array for sorting explicit terms
+    ! integer(ik4) , dimension(nqx) :: iorder
+    real(rkx) :: tk , tc , dens , pbot , snowp , rainp , supsat , subsat
+    real(rkx) :: totcond , qliqfrac , qicefrac , qicetot
+    real(rkx) :: gdp , dtgdp , rdtgdp , alpha1 , ldefr
+    real(rkx) :: facl , faci , facw , corr , acond , zdl , infactor
+    real(rkx) :: alfaw , phases , qexc , rhc , zsig , preclr , arg
+    real(rkx) :: rexplicit , xlcondlim , tmpa , zrh , beta , beta1
+    real(rkx) :: cond , dtdp , cdmax , tdiff , cons1 , qvnew
+    ! local real constants for evaporation
+    real(rkx) :: dpr , denom , dpevap , evapi , evapl , excess
+    real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
+    real(rkx) :: corqsliq , corqsice , corqsmix , evaplimmix
+    real(rkx) :: ql_incld , qi_incld , qli_incld , ldifdt , sink
+    ! Cloud coverage and clearsky portion
+    real(rkx) :: covptot , covpclr
+    ! real(rkx) :: botm , rm
+    real(rkx) :: qold , tcond , dqs , chng , chngmax , icenuclei
+    real(rkx) :: qpretot , fluxq
+    ! constants for deposition process
+    real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
+                 qice0 , qinew , rainaut , snowaut
+    ! constants for condensation and turbulent mixing erosion of clouds
+    real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
+                 qp , qsat , cond1 , levap , leros
+    real(rkx) :: qsmixv , ccover , lccover , rain , rainh
+    real(rkx) :: precip , cfpr , acrit
+    logical :: lccn , lerror , ldetr , lconden , lactiv , locast
+    logical :: ltkgt0 , ltklt0 , ltkgthomo , lcloud
+    logical , dimension(nqx,nqx) :: lind2
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -447,9 +490,13 @@ module mod_micro_nogtom
         sumh0(k,j,i)  = d_zero
       end do
       ! initialize the flux arrays
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(tnew , dp , qe , tmpl , tmpi , alfaw)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           tnew = tx(1,j,i)
           dp = dpfs(1,j,i)
           qe = qdetr(1,j,i)
@@ -464,12 +511,17 @@ module mod_micro_nogtom
             tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
           end if
           sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: tnew , dp , qe , tmpl , tmpi , alfaw , qprev , hprev
-          integer(ik4) :: k
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(tnew,tmpi,alfaw,tmpl,qe,dp,qprev,hprev,k)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           qprev = sumq0(1,j,i)
           hprev = sumh0(1,j,i)
           do k = 2 , kz
@@ -492,7 +544,9 @@ module mod_micro_nogtom
             qprev = sumq0(k,j,i)
             hprev = sumh0(k,j,i)
           end do
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh0(k,j,i) = sumh0(k,j,i)/pf(k+1,j,i)
@@ -502,41 +556,49 @@ module mod_micro_nogtom
     ! -------------------------------
     ! Define saturation values
     !---------------------------
-    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-      block
-        real(rkx) :: zdelta , phases
-        ! zdelta = 1 if t > tzero
-        ! zdelta = 0 if t < tzero
-        zdelta = max(d_zero,sign(d_one,tx(k,j,i)-tzero))
-        !---------------------------------------------
-        ! mixed phase saturation
-        !--------------------------------------------
-        phases = qliq(k,j,i)
-        eewmt(k,j,i) = eeliq(k,j,i)*phases + eeice(k,j,i)*(d_one-phases)
-        eewmt(k,j,i) = min(eewmt(k,j,i)/ph(k,j,i),maxsat)
-        qsmix(k,j,i) = eewmt(k,j,i)
-        ! ep1 = rwat/rgas - d_one
-        qsmix(k,j,i) = qsmix(k,j,i)/(d_one-ep1*qsmix(k,j,i))
-        !--------------------------------------------
-        ! ice saturation T < 273K
-        ! liquid water saturation for T > 273K
-        !--------------------------------------------
-        eew(k,j,i) = (zdelta*eeliq(k,j,i) + &
+#ifndef __GFORTRAN__
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 ) &
+      local(zdelta , phases)
+#else
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
+          ! zdelta = 1 if t > tzero
+          ! zdelta = 0 if t < tzero
+          zdelta = max(d_zero,sign(d_one,tx(k,j,i)-tzero))
+          !---------------------------------------------
+          ! mixed phase saturation
+          !--------------------------------------------
+          phases = qliq(k,j,i)
+          eewmt(k,j,i) = eeliq(k,j,i)*phases + eeice(k,j,i)*(d_one-phases)
+          eewmt(k,j,i) = min(eewmt(k,j,i)/ph(k,j,i),maxsat)
+          qsmix(k,j,i) = eewmt(k,j,i)
+          ! ep1 = rwat/rgas - d_one
+          qsmix(k,j,i) = qsmix(k,j,i)/(d_one-ep1*qsmix(k,j,i))
+          !--------------------------------------------
+          ! ice saturation T < 273K
+          ! liquid water saturation for T > 273K
+          !--------------------------------------------
+          eew(k,j,i) = (zdelta*eeliq(k,j,i) + &
                (d_one-zdelta)*eeice(k,j,i))/ph(k,j,i)
-        eew(k,j,i) = min(eew(k,j,i),maxsat)
-        !ice water saturation
-        qsice(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
-        qsice(k,j,i) = qsice(k,j,i)/(d_one-ep1*qsice(k,j,i))
-        !----------------------------------
-        ! liquid water saturation
-        !----------------------------------
-        !eeliq is the saturation vapor pressure es(T)
-        !the saturation mixing ratio is ws = es(T)/p *0.622
-        !ws = ws/(-(d_one/eps - d_one)*ws)
-        eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
-        qsliq(k,j,i) = eeliqt(k,j,i)
-        qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
-      end block
+          eew(k,j,i) = min(eew(k,j,i),maxsat)
+          !ice water saturation
+          qsice(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
+          qsice(k,j,i) = qsice(k,j,i)/(d_one-ep1*qsice(k,j,i))
+          !----------------------------------
+          ! liquid water saturation
+          !----------------------------------
+          !eeliq is the saturation vapor pressure es(T)
+          !the saturation mixing ratio is ws = es(T)/p *0.622
+          !ws = ws/(-(d_one/eps - d_one)*ws)
+          eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
+          qsliq(k,j,i) = eeliqt(k,j,i)
+          qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
+#ifdef __GFORTRAN__
+        end do
+      end do
+#endif
     end do
 
     !--------------------------------ADEED BY RITA
@@ -547,9 +609,12 @@ module mod_micro_nogtom
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       cldtopdist(k,j,i) = d_zero
     end do
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        integer(ik4) :: k , kk
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k,kk)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
         do k = 2 , kz
           do kk = 2 , k
             if ( fcc(kk-1,j,i) > cldtopcf .and. &
@@ -558,7 +623,9 @@ module mod_micro_nogtom
             end if
           end do
         end do
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
 
 #ifdef DEBUG
@@ -589,72 +656,25 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        ! for sedimentation source/sink terms
-        real(rkx) , dimension(nqx) :: fallsrce
-        real(rkx) , dimension(nqx) :: fallsink
-        real(rkx) :: ldefr
-        ! n x n matrix storing the LHS of implicit solver
-        real(rkx) , dimension(nqx,nqx) :: qlhs
-        ! explicit sources and sinks "q s exp"=q source explicit
-        real(rkx) , dimension(nqx,nqx) :: qsexp
-        ! implicit sources and sinks "q s imp"=q source/sink implicit
-        real(rkx) , dimension(nqx,nqx) :: qsimp
-        ! Initial values
-        real(rkx) , dimension(nqx) :: qx0
-        real(rkx) , dimension(nqx) :: qxfg
-        ! new values for qxx at time+1
-        real(rkx) , dimension(nqx) :: qxn
-        logical , dimension(nqx,nqx) :: lind2
-        real(rkx) , dimension(nqx) :: ratio
-        real(rkx) , dimension(nqx) :: sinksum
-        ! array for sorting explicit terms
-        ! integer(ik4) , dimension(nqx) :: iorder
-        real(rkx) :: tk , tc , dens , pbot
-        real(rkx) :: snowp , rainp
-        real(rkx) :: supsat , subsat
-        real(rkx) :: totcond ! total condensate liquid+ice
-        real(rkx) :: qliqfrac , qicefrac
-        real(rkx) :: qicetot
-        logical :: ldetr , lconden , lactiv , locast
-        logical :: ltkgt0 , ltklt0 , ltkgthomo , lcloud
-        real(rkx) :: dp , gdp , dtgdp , rdtgdp
-        real(rkx) :: alpha1 ! coefficient autoconversion cold cloud
-        real(rkx) :: facl , faci , facw , corr , acond , zdl , infactor
-        real(rkx) :: alfaw , phases , qexc , rhc , zsig , &
-                     qe , preclr , arg
-        real(rkx) :: rexplicit , xlcondlim
-        real(rkx) :: tmpa
-        real(rkx) :: zrh
-        real(rkx) :: beta , beta1
-        ! local variables for condensation
-         real(rkx) :: cond , dtdp , cdmax
-        ! local variables for melting
-        real(rkx) :: tdiff
-        real(rkx) :: cons1
-        ! local real constants for evaporation
-        real(rkx) :: dpr , denom , dpevap , evapi , evapl , excess
-        real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
-        real(rkx) :: corqsliq , corqsice , corqsmix , evaplimmix
-        real(rkx) :: ql_incld , qi_incld , qli_incld
-        real(rkx) :: ldifdt , sink
-        ! Cloud coverage and clearsky portion
-        real(rkx) :: covptot , covpclr
-        ! real(rkx) :: botm , rm
-        real(rkx) :: qold , tcond , dqs
-        real(rkx) :: chng , chngmax
-        real(rkx) :: icenuclei
-        real(rkx) :: qpretot
-        real(rkx) :: fluxq
-        ! constants for deposition process
-        real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
-                     qice0 , qinew , rainaut , snowaut
-        ! constants for condensation and turbulent mixing erosion of clouds
-        real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
-                     qp , qsat , cond1 , levap , leros
-        real(rkx) :: qsmixv , ccover , lccover
-        integer(ik4) :: k , n , m , jn , jo
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+      local(fallsrce,fallsink,ldefr,qlhs,qsexp,qsimp,qx0,qxfg,qxn,lind2, &
+            ratio,sinksum,tk,tc,dens,pbot,snowp,rainp,supsat,subsat,     &
+            totcond,qliqfrac,qicefrac,qicetot,dp,gdp,dtgdp,rdtgdp,alpha1,&
+            facl,faci,facw,corr,acond,zdl,infactor,alfaw,phases,qexc,    &
+            rhc,zsig,qe,preclr,arg,rexplicit,xlcondlim,tmpa,zrh,beta,    &
+            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,    &
+            evapl,excess,dqsmixdt,dqsicedt,dqsliqdt,corqsliq,corqsice,   &
+            corqsmix,evaplimmix,ql_incld,qi_incld,qli_incld,ldifdt,sink, &
+            covptot,covpclr,qold,tcond,dqs,chng,chngmax,icenuclei,       &
+            acrit,precip,cfpr,qpretot,fluxq,vpice,vpliq,xadd,xbdd,cvds,  &
+            qice0,qinew,rainaut,snowaut,dpmxdt,wtot,dtdiab,dtforc,qp,    &
+            qsat,cond1,levap,leros,qsmixv,ccover,lccover,k,n,m,jn,jo,    &
+            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
 
         pbot = pf(kzp1,j,i)
         covptot = d_zero
@@ -1375,53 +1395,50 @@ module mod_micro_nogtom
                   qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + rainaut
                   qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
                 case (4) ! Sundqvist
-                  block
-                    real(rkx) :: precip , cfpr , arg , acrit , alpha1
-                    !alpha1 = min(rkconv*dt,ql_incld)
-                    alpha1 = rkconv*dt
-                    acrit = xlcrit(j,i)
-                    if ( lccn ) then
-                      if ( ccn(k,j,i) > 0._rkx ) then
-                        ! aerosol second indirect effect on autoconversion
-                        ! threshold, rcrit is a critical cloud radius for cloud
-                        ! water undergoing autoconversion
-                        ! ccn = number of ccn /m3
-                        acrit = ccn(k,j,i)*spherefac * &
-                            ((rcrit*1e-6_rkx)**3)*rhoh2o
-                      end if
+                  !alpha1 = min(rkconv*dt,ql_incld)
+                  alpha1 = rkconv*dt
+                  acrit = xlcrit(j,i)
+                  if ( lccn ) then
+                    if ( ccn(k,j,i) > 0._rkx ) then
+                      ! aerosol second indirect effect on autoconversion
+                      ! threshold, rcrit is a critical cloud radius for cloud
+                      ! water undergoing autoconversion
+                      ! ccn = number of ccn /m3
+                      acrit = ccn(k,j,i)*spherefac * &
+                          ((rcrit*1e-6_rkx)**3)*rhoh2o
                     end if
-                    !-------------------------------------------------------
-                    ! parameters for cloud collection by rain and snow.
-                    ! note that with new prognostic variable it is now
-                    ! possible to replace this with an explicit collection
-                    ! parametrization to be replaced by
-                    ! Khairoutdinov and Kogan [2000]:
-                    !-------------------------------------------------------
-                    if ( covptot > d_zero ) then
-                      precip = (rainp+snowp)/covptot
-                      cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
-                      alpha1 = alpha1*cfpr
-                      acrit = acrit/cfpr
-                    end if
+                  end if
+                  !-------------------------------------------------------
+                  ! parameters for cloud collection by rain and snow.
+                  ! note that with new prognostic variable it is now
+                  ! possible to replace this with an explicit collection
+                  ! parametrization to be replaced by
+                  ! Khairoutdinov and Kogan [2000]:
+                  !-------------------------------------------------------
+                  if ( covptot > d_zero ) then
+                    precip = (rainp+snowp)/covptot
+                    cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
+                    alpha1 = alpha1*cfpr
+                    acrit = acrit/cfpr
+                  end if
 
-                    ! security for exp for some compilers
-                    arg = (ql_incld/acrit)**2
-                    if ( arg < 25.0_rkx ) then
-                      rainaut = alpha1*(d_one - exp(-arg))
-                    else
-                      rainaut = alpha1
-                    end if
-                    ! clean up
-                    qsimp(iqql,iqqv) = d_zero
-                    if ( ltkgt0 ) then
-                      qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
-                    else
-                      !-----------------------
-                      ! rain freezes instantly
-                      !-----------------------
-                      qsimp(iqqs,iqql) = qsimp(iqqs,iqql) + rainaut
-                    end if
-                  end block
+                  ! security for exp for some compilers
+                  arg = (ql_incld/acrit)**2
+                  if ( arg < 25.0_rkx ) then
+                    rainaut = alpha1*(d_one - exp(-arg))
+                  else
+                    rainaut = alpha1
+                  end if
+                  ! clean up
+                  qsimp(iqql,iqqv) = d_zero
+                  if ( ltkgt0 ) then
+                    qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
+                  else
+                    !-----------------------
+                    ! rain freezes instantly
+                    !-----------------------
+                    qsimp(iqqs,iqql) = qsimp(iqqs,iqql) + rainaut
+                  end if
               end select
 #ifdef DEBUG
               if ( stats ) then
@@ -1937,7 +1954,9 @@ module mod_micro_nogtom
             end if
           end do
         end do  ! kz : end of vertical loop
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do      ! jx, iy : end of latitude-longitude loop
 
     if ( idynamic == 3 ) then
@@ -1973,9 +1992,13 @@ module mod_micro_nogtom
         errorq(j,i) = d_zero
         errorh(j,i) = d_zero
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(dp,tnew,qvnew,tmpl,tmpi)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           dp = dpfs(1,j,i)
           tnew = tx(1,j,i)+dt*(ttendc(1,j,i)-tentkp(1,j,i))
           qvnew = qx(iqqv,1,j,i)+dt*(qxtendc(iqqv,1,j,i)-tenqkp(iqqv,1,j,i))
@@ -1986,12 +2009,17 @@ module mod_micro_nogtom
           tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
           sumq1(1,j,i) = sumq1(1,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
           sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
-          real(rkx) :: dp , tnew , qvnew , tmpl , tmpi
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(dp,tnew,qvnew,tmpl,tmpi,k)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           do k = 2 , kz
             dp = dpfs(k,j,i)
             tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
@@ -2006,12 +2034,17 @@ module mod_micro_nogtom
             sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
             sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
           end do
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          real(rkx) :: dp , dtgdp , rain , rainh
-          integer(ik4) :: k , n
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(dp,dtgdp,rain,rainh,k,n)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           do k = 1 , kz
             dp = dpfs(k,j,i)
             dtgdp = dt*egrav/dp
@@ -2028,19 +2061,26 @@ module mod_micro_nogtom
             sumq1(k,j,i) = sumq1(k,j,i) + rain
             sumh1(k,j,i) = sumh1(k,j,i) - rainh
           end do
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        block
-          integer(ik4) :: k
+#ifndef __GFORTRAN__
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
+#else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
           do k = 1 , kz
             errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
             errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
           end do
-        end block
+#ifdef __GFORTRAN__
+        end do
+#endif
       end do
 
       lerror = .false.
@@ -2106,9 +2146,12 @@ module mod_micro_nogtom
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
     !--------------------------------------------------------------
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        real(rkx) :: prainx , psnowx
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(prainx,psnowx)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
         prainx = pfplsl(kzp1,j,i)*dt
         psnowx = pfplsn(kzp1,j,i)*dt
         if ( prainx > d_zero ) then
@@ -2122,7 +2165,9 @@ module mod_micro_nogtom
           mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
           mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
         end if
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
 
 #ifdef DEBUG

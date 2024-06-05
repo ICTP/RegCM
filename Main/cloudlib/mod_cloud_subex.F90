@@ -51,43 +51,51 @@ module mod_cloud_subex
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) , intent(in) :: tc0
     integer(ik4) :: i , j , k
+    real(rkx) :: rh0adj , rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
-
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      block
-        real(rkx) :: rh0adj , rhrng
-        if ( qc(j,i,k) > qcrit(j,i) ) then
-          ! Use Pal et al. formula
-          ! rhrng = rh(j,i,k)
-          ! Adjusted relative humidity threshold
-          rhrng = min(max(rh(j,i,k),rhmin),1.0_rkx)
-          if ( t(j,i,k) > tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(rh0adj,rhrng)
+#else
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
+          if ( qc(j,i,k) > qcrit(j,i) ) then
             ! Use Pal et al. formula
-            !rh0adj = rhmax - &
-            !    (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
-            ! Adjusted for Sundqvist
-            rh0adj = d_one - &
+            ! rhrng = rh(j,i,k)
+            ! Adjusted relative humidity threshold
+            rhrng = min(max(rh(j,i,k),rhmin),1.0_rkx)
+            if ( t(j,i,k) > tc0 ) then
+              rh0adj = rh0(j,i)
+            else ! high cloud (less subgrid variability)
+              ! Use Pal et al. formula
+              !rh0adj = rhmax - &
+              !    (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+              ! Adjusted for Sundqvist
+              rh0adj = d_one - &
                 (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
-          end if
-          if ( rhrng <= rh0adj ) then
-            fcc(j,i,k) = d_zero
-          else if ( rhrng > 0.99999_rkx ) then
-            fcc(j,i,k) = d_one
+            end if
+            if ( rhrng <= rh0adj ) then
+              fcc(j,i,k) = d_zero
+            else if ( rhrng > 0.99999_rkx ) then
+              fcc(j,i,k) = d_one
+            else
+              ! Use Pal et al. (2000) formula
+              ! fcc(j,i,k) = sqrt((rhrng-rh0adj)/(rhmax-rh0adj))
+              ! Use Sundqvist (1989) formula
+              fcc(j,i,k) = d_one-sqrt((d_one-rhrng)/(d_one-rh0adj))
+            end if
           else
-            ! Use Pal et al. (2000) formula
-            ! fcc(j,i,k) = sqrt((rhrng-rh0adj)/(rhmax-rh0adj))
-            ! Use Sundqvist (1989) formula
-            fcc(j,i,k) = d_one-sqrt((d_one-rhrng)/(d_one-rh0adj))
+            fcc(j,i,k) = d_zero
           end if
-        else
-          fcc(j,i,k) = d_zero
-        end if
-      end block
+#ifdef __GFORTRAN__
+        end do
+      end do
+#endif
     end do
     !
     ! Correction:

@@ -137,6 +137,28 @@ module mod_pbl_uwtcm
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j
+    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
+    real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
+                 dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
+                 thvflx , q0s , tvfac , svs , cpoxlv , pfcor , ustx
+    ! real(rkx) :: kh0
+    real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
+    integer(ik4) :: kpbl2dx  ! Top of PBL
+    real(rkx) , dimension(kzp2) :: zqx
+    real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
+         tkes , bbls , nsquar , presfl , exnerfl , rexnerfl !, epo , richnum
+    real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
+    integer(ik4) ::  k , itr ! , ibnd
+    integer(ik4) :: ilay , kpbconv , iteration
+    real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , &
+         kethl , thlx , thlxs , thxs , tx , tvx , rttenx , preshl , &
+         qcx , qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
+         rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
+         rimp1 , uimp2 , rimp2 , rlv , orlv , cp , ocp
+    real(rkx) , dimension(kz) :: qix , qixs
+    real(rkx) , dimension(kz,ntr) :: chix , chixs
+    real(rkx) , dimension(ntr) :: chifxx
+    integer(ik4) , dimension(kz) :: ktop , kbot
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -144,31 +166,21 @@ module mod_pbl_uwtcm
 #endif
 
     ! Main do loop
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      block
-        integer(ik4) ::  k , itr ! , ibnd
-        integer(ik4) :: ilay , kpbconv , iteration
-        real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
-        real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
-                     dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
-                     thvflx , q0s , tvfac , svs , cpoxlv , pfcor , ustx
-        ! real(rkx) :: kh0
-        real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
-        integer(ik4) :: kpbl2dx  ! Top of PBL
-        real(rkx) , dimension(kzp2) :: zqx
-        real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rcldb , tke , &
-                    tkes , bbls , nsquar , presfl , exnerfl , rexnerfl
-                    ! epo , richnum
-        real(rkx) , dimension(kz) :: shear , buoyan , rdza , rrhoxfl ! , svs
-        real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , &
-             kethl , thlx , thlxs , thxs , tx , tvx , rttenx , preshl , &
-             qcx , qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
-             rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
-             rimp1 , uimp2 , rimp2 , rlv , orlv , cp , ocp
-        real(rkx) , dimension(kz) :: qix , qixs
-        real(rkx) , dimension(kz,ntr) :: chix , chixs
-        real(rkx) , dimension(ntr) :: chifxx
-        integer(ik4) , dimension(kz) :: ktop , kbot
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+      local(temps,templ,deltat,rvls,pfac,rpfac,tbbls,uflxp,vflxp,rhoxsf,   &
+            tskx,tvcon,fracz,dudz,dvdz,thgb,pblx,ustxsq,qfxx,hfxx,uvdragx, &
+            thvflx,q0s,tvfac,svs,cpoxlv,pfcor,ustx,thv0,thx_t,thvx_t,dthv, &
+            dthv_t,zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,   &
+            exnerfl,rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx, &
+            zax,kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,   &
+            rrhoxhl,uxs,qxs,rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,    &
+            bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,    &
+            chix,chixs,chifxx,ktop,kbot,itr,ilay,kpbconv,iteration,k)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
 
 !*******************************************************************************
 !*******************************************************************************
@@ -723,7 +735,9 @@ module mod_pbl_uwtcm
 
         p2m%kpbl(j,i) = kpbl2dx
         p2m%zpbl(j,i) = pblx
-      end block
+#ifdef __GFORTRAN__
+      end do
+#endif
     end do
 
 #ifdef DEBUG

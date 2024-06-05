@@ -46,29 +46,38 @@ module mod_cloud_xuran
     real(rkx) , parameter :: parm_p = 0.25_rkx
     real(rkx) , parameter :: parm_gamma = 0.49_rkx
     real(rkx) , parameter :: parm_alpha0 = 100.0_rkx
+    real(rkx) :: botm , rm , qcld , rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-      block
-        real(rkx) :: botm , rm , qcld , rhrng
-        if ( qc(j,i,k) > qcrit(j,i) ) then
-          qcld = qc(j,i,k)
-          rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
-          if ( rhrng > 0.99999 ) then
-            fcc(j,i,k) = d_one
+#ifndef __GFORTRAN__
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(botm,rm,qcld,rhrng)
+#else
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+#endif
+          if ( qc(j,i,k) > qcrit(j,i) ) then
+            qcld = qc(j,i,k)
+            rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
+            if ( rhrng > 0.99999 ) then
+              fcc(j,i,k) = d_one
+            else
+              botm = rhrng ** parm_p
+              rm = -min((parm_alpha0 * qcld) / &
+                ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
+              fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
+            end if
           else
-            botm = rhrng ** parm_p
-            rm = -min((parm_alpha0 * qcld) / &
-              ((d_one-rhrng)*qs(j,i,k))**parm_gamma,25.0_rkx)
-            fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
+            fcc(j,i,k) = d_zero
           end if
-        else
-          fcc(j,i,k) = d_zero
-        end if
-      end block
+#ifdef __GFORTRAN__
+        end do
+      end do
+#endif
     end do
 
   end subroutine xuran_cldfrac
