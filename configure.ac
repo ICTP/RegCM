@@ -177,7 +177,7 @@ AC_ARG_ENABLE(openacc-stdpar,
                  [USE_OPENACC="4"]
 )
 if eval "test x"$USE_OPENACC" = x4"; then
-  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS"
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS -DSTDPAR"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -535,7 +535,7 @@ fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
   OMPFLAGS="-qopenmp -qopt-report"
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC"
+           -heap-arrays -fPIC -DSTDPAR $OMPFLAGS"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
