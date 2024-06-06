@@ -96,7 +96,7 @@ module mod_ocn_zeng
       wt1 = (threedays-dtocn)/threedays
       wt2 = 1.0_rkx-wt1
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( i = iocnbeg:iocnend ) &
         local(t995,q995,uv995,z995,dqh,dth,facttq,lh,qs,sh,zo,tau,tsurf, &
               ustar,uv10,zi,cd,dthv,zq,zh,zu,obu,qstar,xdens,th,thv,um,  &

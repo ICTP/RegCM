@@ -2021,7 +2021,7 @@ module mod_bdycod
       !
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( i = ici1:ici2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2035,7 +2035,7 @@ module mod_bdycod
               else
                 mo_atm%qx(jce1,i,k,iqv) = qint
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2044,7 +2044,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( i = ici1:ici2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2058,7 +2058,7 @@ module mod_bdycod
               else
                 mo_atm%qx(jce2,i,k,iqv) = qint
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2067,7 +2067,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jce1:jce2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2081,7 +2081,7 @@ module mod_bdycod
               else
                 mo_atm%qx(j,ice1,k,iqv) = qint
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2090,7 +2090,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jce1:jce2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2104,7 +2104,7 @@ module mod_bdycod
               else
                 mo_atm%qx(j,ice2,k,iqv) = qint
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2114,7 +2114,7 @@ module mod_bdycod
         ! west boundary:
         !
         if ( ma%has_bdyleft ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( i = ici1:ici2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2128,7 +2128,7 @@ module mod_bdycod
               else
                 atm1%qx(jce1,i,k,iqv) = qint*sfs%psa(jce1,i)
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2137,7 +2137,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( i = ici1:ici2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2151,7 +2151,7 @@ module mod_bdycod
               else
                 atm1%qx(jce2,i,k,iqv) = qint*sfs%psa(jce2,i)
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2160,7 +2160,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jce1:jce2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2174,7 +2174,7 @@ module mod_bdycod
               else
                 atm1%qx(j,ice1,k,iqv) = qint*sfs%psa(j,ice1)
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2183,7 +2183,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jce1:jce2, k = 1:kz ) local(qext,qint,windavg)
 #else
           do k = 1 , kz
@@ -2198,7 +2198,7 @@ module mod_bdycod
               else
                 atm1%qx(j,ice2,k,iqv) = qint*sfs%psa(j,ice2)
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -2221,7 +2221,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2234,7 +2234,7 @@ module mod_bdycod
                 else
                   mo_atm%qx(jce1,i,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2247,7 +2247,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2260,7 +2260,7 @@ module mod_bdycod
                 else
                   mo_atm%qx(jce2,i,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2273,7 +2273,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2286,7 +2286,7 @@ module mod_bdycod
                 else
                   mo_atm%qx(j,ice1,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2297,7 +2297,7 @@ module mod_bdycod
         !
         if ( ma%has_bdytop ) then
           do n = iqfrst , iqlst
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2310,7 +2310,7 @@ module mod_bdycod
                 else
                   mo_atm%qx(j,ice2,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2321,7 +2321,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2330,7 +2330,7 @@ module mod_bdycod
                 qxint = mo_atm%qx(jci1,i,k,n)
                 qrat  = mo_atm%qx(jce1,i,k,iqv)/mo_atm%qx(jci1,i,k,iqv)
                 mo_atm%qx(jce1,i,k,n) = qxint*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2343,7 +2343,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2352,7 +2352,7 @@ module mod_bdycod
                 qxint = mo_atm%qx(jci2,i,k,n)
                 qrat  = mo_atm%qx(jce2,i,k,iqv)/mo_atm%qx(jci2,i,k,iqv)
                 mo_atm%qx(jce2,i,k,n) = qxint*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2365,7 +2365,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2374,7 +2374,7 @@ module mod_bdycod
                 qxint = mo_atm%qx(j,ici1,k,n)
                 qrat  = mo_atm%qx(j,ice1,k,iqv)/mo_atm%qx(j,ici1,k,iqv)
                 mo_atm%qx(j,ice1,k,n) = qxint*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2387,7 +2387,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2396,7 +2396,7 @@ module mod_bdycod
                 qxint = mo_atm%qx(j,ici2,k,n)
                 qrat  = mo_atm%qx(j,ice2,k,iqv)/mo_atm%qx(j,ici2,k,iqv)
                 mo_atm%qx(j,ice2,k,n) = qxint*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2409,7 +2409,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2422,7 +2422,7 @@ module mod_bdycod
                 else
                   atm1%qx(jce1,i,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2435,7 +2435,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2448,7 +2448,7 @@ module mod_bdycod
                 else
                   atm1%qx(jce2,i,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2461,7 +2461,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2474,7 +2474,7 @@ module mod_bdycod
                 else
                   atm1%qx(j,ice1,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2487,7 +2487,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else
             do k = 1 , kz
@@ -2500,7 +2500,7 @@ module mod_bdycod
                 else
                   atm1%qx(j,ice2,k,n) = qxint
                 end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2511,7 +2511,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2520,7 +2520,7 @@ module mod_bdycod
                 qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
                 qrat  = atm1%qx(jce1,i,k,iqv)/atm1%qx(jci1,i,k,iqv)
                 atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2533,7 +2533,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( i = ici1:ici2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2542,7 +2542,7 @@ module mod_bdycod
                 qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
                 qrat  = atm1%qx(jce2,i,k,iqv)/atm1%qx(jci2,i,k,iqv)
                 atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2555,7 +2555,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2564,7 +2564,7 @@ module mod_bdycod
                 qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
                 qrat  = atm1%qx(j,ice1,k,iqv)/atm1%qx(j,ici1,k,iqv)
                 atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2577,7 +2577,7 @@ module mod_bdycod
           do n = iqfrst , iqlst
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,qrat)
 #else
             do k = 1 , kz
@@ -2586,7 +2586,7 @@ module mod_bdycod
                 qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
                 qrat  = atm1%qx(j,ice2,k,iqv)/atm1%qx(j,ici2,k,iqv)
                 atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)*qrat
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -2621,7 +2621,7 @@ module mod_bdycod
           if ( bdyflow ) then
             if ( ma%has_bdyleft ) then
               mo_atm%tke(jce1,:,1) = tkemin ! West boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( i = ice1:ice2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2635,7 +2635,7 @@ module mod_bdycod
                   else
                     mo_atm%tke(jce1,i,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2645,7 +2645,7 @@ module mod_bdycod
             !
             if ( ma%has_bdyright ) then
               mo_atm%tke(jce2,:,1) = tkemin ! East boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( i = ice1:ice2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2659,7 +2659,7 @@ module mod_bdycod
                   else
                     mo_atm%tke(jce2,i,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2669,7 +2669,7 @@ module mod_bdycod
             !
             if ( ma%has_bdybottom ) then
               mo_atm%tke(:,ice1,1) = tkemin  ! South boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( j = jci1:jci2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2683,7 +2683,7 @@ module mod_bdycod
                   else
                     mo_atm%tke(j,ice1,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2693,7 +2693,7 @@ module mod_bdycod
             !
             if ( ma%has_bdytop ) then
               mo_atm%tke(:,ice2,1) = tkemin  ! North boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( j = jci1:jci2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2707,7 +2707,7 @@ module mod_bdycod
                   else
                     mo_atm%tke(j,ice2,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2774,7 +2774,7 @@ module mod_bdycod
             if ( ma%has_bdyleft ) then
               atm1%tke(jce1,:,1) = tkemin ! West boundary
               atm2%tke(jce1,:,1) = tkemin ! West boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( i = ice1:ice2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2788,7 +2788,7 @@ module mod_bdycod
                   else
                     atm1%tke(jce1,i,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2799,7 +2799,7 @@ module mod_bdycod
             if ( ma%has_bdyright ) then
               atm1%tke(jce2,:,1) = tkemin ! East boundary
               atm2%tke(jce2,:,1) = tkemin ! East boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( i = ice1:ice2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2813,7 +2813,7 @@ module mod_bdycod
                   else
                     atm1%tke(jce2,i,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2824,7 +2824,7 @@ module mod_bdycod
             if ( ma%has_bdybottom ) then
               atm1%tke(:,ice1,1) = tkemin  ! South boundary
               atm2%tke(:,ice1,1) = tkemin  ! South boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( j = jci1:jci2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2838,7 +2838,7 @@ module mod_bdycod
                   else
                     atm1%tke(j,ice1,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2849,7 +2849,7 @@ module mod_bdycod
             if ( ma%has_bdytop ) then
               atm1%tke(:,ice2,1) = tkemin  ! North boundary
               atm2%tke(:,ice2,1) = tkemin  ! North boundary
-#ifndef __GFORTRAN__
+#ifdef STDPAR
               do concurrent ( j = jci1:jci2, k = 2:kz ) local(tkeint,windavg)
 #else
               do k = 2 , kz
@@ -2863,7 +2863,7 @@ module mod_bdycod
                   else
                     atm1%tke(j,ice2,k+1) = tkeint
                   end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
                 end do
 #endif
               end do
@@ -2957,7 +2957,7 @@ module mod_bdycod
     end if
 
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -2968,14 +2968,14 @@ module mod_bdycod
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k,m) = wgtx(ib)*ften(j,i,k,m) + &
                           (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -2986,14 +2986,14 @@ module mod_bdycod
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k,m) = wgtx(ib)*ften(j,i,k,m) + &
                             (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3004,14 +3004,14 @@ module mod_bdycod
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k,m) = wgtx(ib)*ften(j,i,k,m) + &
                             (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3022,7 +3022,7 @@ module mod_bdycod
           ib = ba_cr%ibnd(j,i)
           ften(j,i,k,m) = wgtx(ib)*ften(j,i,k,m) + &
                           (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3054,7 +3054,7 @@ module mod_bdycod
     end if
 
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3064,14 +3064,14 @@ module mod_bdycod
             if ( .not. ba_cr%bsouth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3081,14 +3081,14 @@ module mod_bdycod
             if ( .not. ba_cr%bnorth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3098,14 +3098,14 @@ module mod_bdycod
             if ( .not. ba_cr%bwest(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3115,7 +3115,7 @@ module mod_bdycod
             if ( .not. ba_cr%beast(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k,m) = f(j,i,k,m) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3145,7 +3145,7 @@ module mod_bdycod
     end if
 
     if ( ba_dt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3158,14 +3158,14 @@ module mod_bdycod
                           (d_one-wgtd(ib))*bndu%bt(j,i,k)
             ftenv(j,i,k) = wgtd(ib)*ftenv(j,i,k) + &
                           (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_dt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3178,14 +3178,14 @@ module mod_bdycod
                            (d_one-wgtd(ib))*bndu%bt(j,i,k)
             ftenv(j,i,k) = wgtd(ib)*ftenv(j,i,k) + &
                            (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_dt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3198,14 +3198,14 @@ module mod_bdycod
                            (d_one-wgtd(ib))*bndu%bt(j,i,k)
             ftenv(j,i,k) = wgtd(ib)*ftenv(j,i,k) + &
                            (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_dt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3218,7 +3218,7 @@ module mod_bdycod
                            (d_one-wgtd(ib))*bndu%bt(j,i,k)
             ftenv(j,i,k) = wgtd(ib)*ftenv(j,i,k) + &
                            (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3248,7 +3248,7 @@ module mod_bdycod
     end if
 
     if ( ba_ut%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3258,14 +3258,14 @@ module mod_bdycod
             if ( .not. ba_ut%bsouth(j,i) ) cycle
             ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_vt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3275,14 +3275,14 @@ module mod_bdycod
             if ( .not. ba_vt%bsouth(j,i) ) cycle
             ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_ut%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3292,14 +3292,14 @@ module mod_bdycod
             if ( .not. ba_ut%bnorth(j,i) ) cycle
             ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtx(ib))*bndu%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_vt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3309,14 +3309,14 @@ module mod_bdycod
             if ( .not. ba_vt%bnorth(j,i) ) cycle
             ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtd(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_ut%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3326,14 +3326,14 @@ module mod_bdycod
             if ( .not. ba_ut%bwest(j,i) ) cycle
             ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_vt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3343,14 +3343,14 @@ module mod_bdycod
             if ( .not. ba_vt%bwest(j,i) ) cycle
             ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_ut%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3360,14 +3360,14 @@ module mod_bdycod
             if ( .not. ba_ut%beast(j,i) ) cycle
             ib = ba_ut%ibnd(j,i)
             fu(j,i,k) = fu(j,i,k) + (d_one-wgtd(ib))*bndu%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_vt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) local(ib)
 #else
       do k = 1 , kz
@@ -3377,7 +3377,7 @@ module mod_bdycod
             if ( .not. ba_vt%beast(j,i) ) cycle
             ib = ba_vt%ibnd(j,i)
             fv(j,i,k) = fv(j,i,k) + (d_one-wgtx(ib))*bndv%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3409,7 +3409,7 @@ module mod_bdycod
 
     nk = size(ften,3)
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3419,14 +3419,14 @@ module mod_bdycod
             if ( .not. ba_cr%bsouth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k) = wgtx(ib)*ften(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3436,14 +3436,14 @@ module mod_bdycod
             if ( .not. ba_cr%bnorth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k) = wgtx(ib)*ften(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3453,14 +3453,14 @@ module mod_bdycod
             if ( .not. ba_cr%bwest(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k) = wgtx(ib)*ften(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3470,7 +3470,7 @@ module mod_bdycod
             if ( .not. ba_cr%beast(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             ften(j,i,k) = wgtx(ib)*ften(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3502,7 +3502,7 @@ module mod_bdycod
 
     nk = size(f,3)
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3512,14 +3512,14 @@ module mod_bdycod
             if ( .not. ba_cr%bsouth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3529,14 +3529,14 @@ module mod_bdycod
             if ( .not. ba_cr%bnorth(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3546,14 +3546,14 @@ module mod_bdycod
             if ( .not. ba_cr%bwest(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(ib)
 #else
       do k = 1 , nk
@@ -3563,7 +3563,7 @@ module mod_bdycod
             if ( .not. ba_cr%beast(j,i) ) cycle
             ib = ba_cr%ibnd(j,i)
             f(j,i,k) = f(j,i,k) + (d_one-wgtx(ib))*bnd%bt(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -3592,7 +3592,7 @@ module mod_bdycod
     end if
 
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3601,13 +3601,13 @@ module mod_bdycod
           if ( .not. ba_cr%bsouth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           ften(j,i) = wgtx(ib)*ften(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3616,13 +3616,13 @@ module mod_bdycod
           if ( .not. ba_cr%bnorth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           ften(j,i) = wgtx(ib)*ften(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3631,13 +3631,13 @@ module mod_bdycod
           if ( .not. ba_cr%bwest(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           ften(j,i) = wgtx(ib)*ften(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3646,7 +3646,7 @@ module mod_bdycod
           if ( .not. ba_cr%beast(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           ften(j,i) = wgtx(ib)*ften(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -3674,7 +3674,7 @@ module mod_bdycod
     end if
 
     if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3683,13 +3683,13 @@ module mod_bdycod
           if ( .not. ba_cr%bsouth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3698,13 +3698,13 @@ module mod_bdycod
           if ( .not. ba_cr%bnorth(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3713,13 +3713,13 @@ module mod_bdycod
           if ( .not. ba_cr%bwest(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
     if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ib)
 #else
       do i = ici1 , ici2
@@ -3728,7 +3728,7 @@ module mod_bdycod
           if ( .not. ba_cr%beast(j,i) ) cycle
           ib = ba_cr%ibnd(j,i)
           f(j,i) = f(j,i) + (d_one-wgtx(ib))*bnd%bt(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -3790,7 +3790,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3809,14 +3809,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3835,14 +3835,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3861,14 +3861,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3887,7 +3887,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -3895,7 +3895,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3914,14 +3914,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3940,14 +3940,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3966,14 +3966,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -3992,7 +3992,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
                               xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4032,7 +4032,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4051,14 +4051,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4077,14 +4077,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4103,14 +4103,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4129,7 +4129,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4137,7 +4137,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4156,14 +4156,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4182,14 +4182,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4208,14 +4208,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4234,7 +4234,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4276,7 +4276,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_dt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4302,14 +4302,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4335,14 +4335,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4368,14 +4368,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4401,7 +4401,7 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 -  &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4409,7 +4409,7 @@ module mod_bdycod
       end if
     else
       if ( ba_dt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4435,14 +4435,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4468,14 +4468,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4501,14 +4501,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_dt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
@@ -4534,7 +4534,7 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 -  &
                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4579,7 +4579,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_ut%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4598,14 +4598,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4624,14 +4624,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4650,14 +4650,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4676,14 +4676,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4702,14 +4702,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4728,14 +4728,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4754,14 +4754,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4780,7 +4780,7 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -4788,7 +4788,7 @@ module mod_bdycod
       end if
     else
       if ( ba_ut%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4807,14 +4807,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4833,14 +4833,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4859,14 +4859,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4885,14 +4885,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4911,14 +4911,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4937,14 +4937,14 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_ut%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4963,14 +4963,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               fu(j,i,k) = fu(j,i,k) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_vt%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -4989,7 +4989,7 @@ module mod_bdycod
               fls4 = fg2(j,i+1,k)
               fv(j,i,k) = fv(j,i,k) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -5086,7 +5086,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5105,14 +5105,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5131,14 +5131,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5157,14 +5157,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5183,7 +5183,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -5191,7 +5191,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5210,14 +5210,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5236,14 +5236,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5262,14 +5262,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5288,7 +5288,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
                             xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -5332,7 +5332,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5351,14 +5351,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5377,14 +5377,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5403,14 +5403,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5429,7 +5429,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 -  &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -5437,7 +5437,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5456,14 +5456,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5482,14 +5482,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5508,14 +5508,14 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 - &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = ns:nk ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5534,7 +5534,7 @@ module mod_bdycod
               fls4 = fg1(j,i+1,k)
               f(j,i,k) = f(j,i,k) + xf*fls0 -  &
                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -5576,7 +5576,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5594,13 +5594,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5618,13 +5618,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5642,13 +5642,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5666,14 +5666,14 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 -  &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5691,13 +5691,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5715,13 +5715,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5739,13 +5739,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5763,7 +5763,7 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             ften(j,i) = ften(j,i) + xf*fls0 -  &
                         xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -5803,7 +5803,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5821,13 +5821,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5845,13 +5845,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5869,13 +5869,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5893,14 +5893,14 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5918,13 +5918,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5942,13 +5942,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5966,13 +5966,13 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 - &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
           local(xf,xg,fls0,fls1,fls2,fls3,fls4,ib)
 #else
@@ -5990,7 +5990,7 @@ module mod_bdycod
             fls4 = fg1(j,i+1,1)
             f(j,i) = f(j,i) + xf*fls0 -  &
                           xg*(fls1+fls2+fls3+fls4-d_four*fls0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -6023,7 +6023,7 @@ module mod_bdycod
     real(rkx) :: bval
     xt = xbctime + dt
     maxk = min(kzp1,rayndamp)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk ) local(bval)
 #else
     do k = 1 , maxk
@@ -6033,12 +6033,12 @@ module mod_bdycod
           bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
           uten(j,i,k) = uten(j,i,k) + &
             tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (bval-u(j,i,k))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
     end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:maxk ) local(bval)
 #else
     do k = 1 , maxk
@@ -6048,7 +6048,7 @@ module mod_bdycod
           bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + &
             tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd) * (bval-v(j,i,k))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -6098,7 +6098,7 @@ module mod_bdycod
     real(rkx) :: bval
     xt = xbctime + dt
     maxk = min(kz,rayndamp)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk ) local(bval)
 #else
     do k = 1 , maxk
@@ -6108,7 +6108,7 @@ module mod_bdycod
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + &
             tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -6126,7 +6126,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , k3
     xt = xbctime + dt
     k3 = max(k2,rayndamp)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = j1:j2, i = i1:i2, k = k1:k3 ) local(bval)
 #else
     do k = k1 , k3
@@ -6136,7 +6136,7 @@ module mod_bdycod
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
           var(j,i,k) = var(j,i,k) + &
             dt*tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -6154,7 +6154,7 @@ module mod_bdycod
     real(rkx) :: bval
     xt = xbctime + dt
     maxk = min(kz,rayndamp)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:maxk ) local(bval)
 #else
     do k = 1 , maxk
@@ -6164,7 +6164,7 @@ module mod_bdycod
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
           vten(j,i,k,iqv) = vten(j,i,k,iqv) + &
                   tau(z(j,i,k),z(j,i,1),rayalpha0,rayhd)*(bval-var(j,i,k,iqv))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -6214,7 +6214,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k
     real(rkx) :: tv1 , tv2 , lrt , tv , zz , zb , p , zdelta
     ! Hydrostatic initialization of pai
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jce1:jce2, i = ice1:ice2 ) &
       local(tv1,tv2,lrt,tv,zz,p,zdelta)
 #else
@@ -6231,11 +6231,11 @@ module mod_bdycod
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
         pai(j,i,kz) = (p/p00)**rovcp
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jce1:jce2, i = ice1:ice2, k = kzm1:1:-1 ) &
       local(tv1,tv2,zb,zdelta)
 #else
@@ -6248,7 +6248,7 @@ module mod_bdycod
           zb = d_two*egrav*mo_dzita/(mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
           pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

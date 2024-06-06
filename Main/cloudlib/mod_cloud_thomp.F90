@@ -65,7 +65,7 @@ module mod_cloud_thomp
     rh_00l = 0.781_rkx + sqrt(d_one/(50.0_rkx+gridkm*gridkm*gridkm*0.5_rkx))
     rh_00o = 0.831_rkx + sqrt(d_one/(70.0_rkx+gridkm*gridkm*gridkm*0.5_rkx))
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
       local(rh_00,rhi_max,tk,tc,qvsi,qvsw,rhum)
 #else
@@ -110,7 +110,7 @@ module mod_cloud_thomp
             end if
             cldfra(j,i,k) = max(d_zero, min(cldfra(j,i,k), d_one))
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

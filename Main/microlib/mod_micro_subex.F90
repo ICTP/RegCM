@@ -119,7 +119,7 @@ module mod_micro_subex
         mc2mo%dia_qcr(:,:,:) = d_zero
         mc2mo%dia_qcl(:,:,:) = d_zero
       end if
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
         local(afc1,qcw1,qcincl1,qcth1)
 #else
@@ -147,13 +147,13 @@ module mod_micro_subex
             else
               dqc(j,i,k) = d_zero
             end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
       end do
     else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
         local(afc1,qcw1,qcincl1,qcth1,tcel1)
 #else
@@ -182,7 +182,7 @@ module mod_micro_subex
             else
               dqc(j,i,k) = d_zero
             end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -207,7 +207,7 @@ module mod_micro_subex
     end if
     ! 1a. Perform computations for the top layer (layer 1)
     !   maximum precipation rate (total cloud water/dt)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(pptnew,pptmax,afc,qcw,qcleft,pptkm1,pptacc,dpovg)
 #else
@@ -259,7 +259,7 @@ module mod_micro_subex
             end if
           end if
         end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -268,7 +268,7 @@ module mod_micro_subex
     ! 1b. Perform computations for the 2nd layer to the surface
     ! precipation accumulated from above
     do k = 2 , kz
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(dpovg,afc,qcw,pptnew,pptkm1,qs,dqv,rhcs,rdevap, &
               rlv,ocpm,pptmax,pptacc,qcleft)
@@ -379,7 +379,7 @@ module mod_micro_subex
               end if
             end if
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do

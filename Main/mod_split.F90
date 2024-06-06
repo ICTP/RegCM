@@ -213,7 +213,7 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(eps)
 #else
       do i = ice1 , ice2
@@ -221,7 +221,7 @@ module mod_split
 #endif
           eps = eps1*(sfs%psb(j,i)-pd)
           hstor(j,i,l) = pdlog + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -229,7 +229,7 @@ module mod_split
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(eps)
 #else
         do i = ice1 , ice2
@@ -238,7 +238,7 @@ module mod_split
             eps = eps1*(sfs%psb(j,i)-pd)
             hstor(j,i,l) = hstor(j,i,l) + pdlog + &
                            tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -335,7 +335,7 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(eps)
 #else
       do i = ice1 , ice2
@@ -343,14 +343,14 @@ module mod_split
 #endif
           eps = eps1*(sfs%psa(j,i)-pd)
           delh(j,i,l,3) = pdlog + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(eps)
 #else
         do i = ice1 , ice2
@@ -359,7 +359,7 @@ module mod_split
             eps = eps1*(sfs%psa(j,i)-pd)
             delh(j,i,l,3) = delh(j,i,l,3) + pdlog +  &
                     tau(l,k)*atm1%t(j,i,k)/sfs%psa(j,i) + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -375,7 +375,7 @@ module mod_split
     do l = 1 , nsplit
       pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 ) local(eps)
 #else
       do i = ice1 , ice2
@@ -383,14 +383,14 @@ module mod_split
 #endif
           eps = eps1*(sfs%psb(j,i)-pd)
           delh(j,i,l,2) = pdlog + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
       do k = 1 , kz
         pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 ) local(eps)
 #else
         do i = ice1 , ice2
@@ -399,7 +399,7 @@ module mod_split
             eps = eps1*(sfs%psb(j,i)-pd)
             delh(j,i,l,2) = delh(j,i,l,2) + pdlog +  &
                      tau(l,k)*atm2%t(j,i,k)/sfs%psb(j,i) + eps
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -445,7 +445,7 @@ module mod_split
     do l = 1 , nsplit
       do k = 1 , kz
         gnuzm = gnu1*zmatx(k,l)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2 ) local(fac,x,y)
 #else
         do i = idi1 , idi2
@@ -460,7 +460,7 @@ module mod_split
             atm1%v(j,i,k) = atm1%v(j,i,k) - zmatx(k,l)*y
             atm2%u(j,i,k) = atm2%u(j,i,k) - gnuzm*x
             atm2%v(j,i,k) = atm2%v(j,i,k) - gnuzm*y
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -508,7 +508,7 @@ module mod_split
       !
       xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n0)
       call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2, i = idi1:idi2 ) local(fac)
 #else
       do i = idi1 , idi2
@@ -519,7 +519,7 @@ module mod_split
                          xdelh(j-1,i)-xdelh(j-1,i-1))/fac
           work(j,i,2) = (xdelh(j,i)  +xdelh(j-1,i) - &
                          xdelh(j,i-1)-xdelh(j-1,i-1))/fac
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -590,7 +590,7 @@ module mod_split
         !
         xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n1)
         call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2 ) local(fac)
 #else
         do i = idi1 , idi2
@@ -601,7 +601,7 @@ module mod_split
                            xdelh(j-1,i)-xdelh(j-1,i-1))/fac
             work(j,i,2) = (xdelh(j,i)+xdelh(j-1,i)- &
                            xdelh(j,i-1)-xdelh(j-1,i-1))/fac
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do

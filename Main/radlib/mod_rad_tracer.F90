@@ -94,7 +94,7 @@ module mod_rad_tracer
     real(rkx) :: pratio , alat
     real(rkx) :: xcfc11 , xcfc12 , xch4 , xn2o
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(pratio,alat,xcfc11,xcfc12,xch4,xn2o,k)
 #else
@@ -210,7 +210,7 @@ module mod_rad_tracer
     !-----------------------------------------------------------------------
     !   Calculate path lengths for the trace gases
     !-----------------------------------------------------------------------
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(alpha1,alpha2,dpnm,pbar,rsqrt,rt,co2fac,k)
 #else

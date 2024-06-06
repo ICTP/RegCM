@@ -657,7 +657,7 @@ module mod_cu_tiedtke
     ! --------------------------------------
     !
     if ( iconv /= 4 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( jl = 1:kproma, jk = 1:klev ) local(it,zxlp,zxip)
 #else
       do jk = 1 , klev
@@ -684,7 +684,7 @@ module mod_cu_tiedtke
           zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
           zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
           ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -693,7 +693,7 @@ module mod_cu_tiedtke
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
     else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( jl = 1:kproma, jk = 1:klev ) local(zxlp,zxip)
 #else
       do jk = 1 , klev
@@ -706,7 +706,7 @@ module mod_cu_tiedtke
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
           zxp1(jl,jk) = max(d_zero,zxlp+zxip)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do

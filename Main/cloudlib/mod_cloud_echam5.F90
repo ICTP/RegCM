@@ -56,7 +56,7 @@ module mod_cloud_echam5
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
       local(rhrng,rhcrit,sig)
 #else
@@ -81,7 +81,7 @@ module mod_cloud_echam5
           else
             fcc(j,i,k) = d_zero
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

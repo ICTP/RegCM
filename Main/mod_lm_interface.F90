@@ -883,7 +883,7 @@ module mod_lm_interface
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
         if ( associated(srf_evpot_out) ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
             local(tas,ps,es,qs,qas,uas,rh,desdt,sws,lws)
 #else
@@ -906,7 +906,7 @@ module mod_lm_interface
                 srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
                    evpt_fao(ps,tas,uas,rh*es,es,desdt,sws,lws)
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -934,7 +934,7 @@ module mod_lm_interface
         if ( associated(shf_pcprcv_out) ) &
           shf_pcprcv_out = shf_pcprcv_out + lm%cprate*syncro_srf%rw
         if ( associated(shf_twetb_out) ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
             local(tas,ps,qs,qas,rh)
 #else
@@ -951,7 +951,7 @@ module mod_lm_interface
                       atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                       0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                       atan(0.023101_rkx * rh) - 4.686035_rkx)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -961,7 +961,7 @@ module mod_lm_interface
           if ( associated(srf_pcpmax_out) ) &
             srf_pcpmax_out = max(srf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
           if ( associated(srf_twetb_out) ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
             do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
               local(tas,ps,qs,qas,rh)
 #else
@@ -978,7 +978,7 @@ module mod_lm_interface
                         atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                         0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                         atan(0.023101_rkx * rh) - 4.686035_rkx)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
               end do
 #endif
             end do
@@ -1112,7 +1112,7 @@ module mod_lm_interface
           srf_q2m_out(:,:,1) = lm%q2m
         if ( associated(srf_rh2m_out) ) then
           srf_rh2m_out = d_zero
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
             local(qas,tas,ps,qs,n)
 #else
@@ -1127,7 +1127,7 @@ module mod_lm_interface
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                               min(max((qas/qs),rhmin),rhmax)*d_100
               end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -1249,7 +1249,7 @@ module mod_lm_interface
     real(rkx) :: tstar , hstar , raval
 
     ! Follow Kallen 1996
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jce1:jce2, i = ice1:ice2 ) &
       local(tstar,hstar,raval)
 #else
@@ -1266,7 +1266,7 @@ module mod_lm_interface
         raval = d_half*alpha*hstar
         slp(j,i) = lm%sfps(j,i) * &
              exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -1325,7 +1325,7 @@ module mod_lm_interface
     integer(ik4) :: i , j
     real(rkx) :: delwind , spd1 , spd2
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(delwind,spd1,spd2)
 #else
@@ -1336,7 +1336,7 @@ module mod_lm_interface
         spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
         delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
         gust(j,i) = max(gust(j,i),spd1+delwind)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do

@@ -53,7 +53,7 @@ module mod_cloud_guli2007
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
       local(qgkg,stddev)
 #else
@@ -73,7 +73,7 @@ module mod_cloud_guli2007
                                        0.2223_rkx*qgkg*qgkg - &
                                        0.0104_rkx*qgkg*qgkg*qgkg
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

@@ -946,7 +946,7 @@ module mod_rad_radiation
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
       !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = rt%n1:rt%n2 ) local(k,betafac)
 #else
       do n = rt%n1 , rt%n2
@@ -1273,7 +1273,7 @@ module mod_rad_radiation
     !
     ! Define solar incident radiation and interface pressures:
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(sqrco2,xptop,pdel,path,ptho2,ptho3,pthco2,pthh2o,h2ostr,k)
 #else
@@ -1404,7 +1404,7 @@ module mod_rad_radiation
       ! Set reflectivities for surface based on mid-point wavelength
       !
       wavmid = (wavmin(ns)+wavmax(ns))*d_half
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = n1:n2 ) &
         local(tmp1l,tmp2l,tmp3l,tmp1i,tmp2i,tmp3i,k)
 #else
@@ -1498,7 +1498,7 @@ module mod_rad_radiation
       !
       call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = n1:n2 ) local(rdenom,k)
 #else
       do n = n1 , n2
@@ -1549,7 +1549,7 @@ module mod_rad_radiation
       if ( abs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
       if ( abs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
       if ( abs(po2(ns)) > dlowval ) psf = psf*po2(ns)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = n1:n2 ) local(k)
 #else
       do n = n1 , n2
@@ -1628,7 +1628,7 @@ module mod_rad_radiation
         ! refers to top of column; 2 on interface quantities refers to
         ! the surface:
         !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( n = n1:n2 ) local(k,rdenom)
 #else
         do n = n1 , n2
@@ -1690,7 +1690,7 @@ module mod_rad_radiation
       ! overlying surface; 0 on interface quantities refers to top of
       ! column; 2 on interface quantities refers to the surface:
       !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = n1:n2 ) local(rdenom,k)
 #else
       do n = n1 , n2
@@ -1847,7 +1847,7 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
     do n = n1 , n2
@@ -1893,7 +1893,7 @@ module mod_rad_radiation
     ! Find the lowest and highest level cloud for each grid point
     ! Note: Vertical indexing here proceeds from bottom to top
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
     do n = n1 , n2
@@ -1951,7 +1951,7 @@ module mod_rad_radiation
       ! delt=t**4 in layer above current sigma level km.
       ! delt1=t**4 in layer below current sigma level km.
       !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,km,ns,k)
 #else
       do n = n1 , n2
@@ -2053,7 +2053,7 @@ module mod_rad_radiation
       ! FAB radiative forcing sur fsul
       !
       if ( linteract .and. irad == 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( n = n1:n2 ) local(k1,k2)
 #else
         do n = n1 , n2
@@ -2083,7 +2083,7 @@ module mod_rad_radiation
       end do
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( n = n1:n2 ) local(k1,k2)
 #else
         do n = n1 , n2
@@ -2136,7 +2136,7 @@ module mod_rad_radiation
     ! Note: Vertical indexing here proceeds from bottom to top
     !
     khighest = khiv(intmax(khiv))
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(tmp1,km,km1,km2,km3,km4,k,k1,k2,k3)
 #else
@@ -2220,7 +2220,7 @@ module mod_rad_radiation
     !
     ! Downward longwave flux
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
     do n = n1 , n2
@@ -2334,7 +2334,7 @@ module mod_rad_radiation
     ! The top layer is assumed to be a purely absorbing ozone layer, and
     ! that the mean diffusivity for diffuse mod_transmission is 1.66:
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(arg,rdenom,rdirexp,tdnmexp,tautot,wtot,gtot,ftot,extins, &
             ts,ws,gs,lm,alp,gam,ue,ne,apg,amg,k)
@@ -2546,7 +2546,7 @@ module mod_rad_radiation
     ! above each interface by starting from the top and adding layers down:
     ! For the extra layer above model top:
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(tautot,taucsc,wtau,wt,wtot,gtot,ftot,ws,gs,ts,lm,alp,gam, &
             ne,ue,apg,amg,extins,rdenom,rdirexp,tdnmexp,k)
@@ -2957,7 +2957,7 @@ module mod_rad_radiation
     !
     r2st(1) = d_one/(d_two*st(1))
     r2st(2) = d_one/(d_two*st(2))
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k,k1,k2,iband,kn,wvl,  &
       a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat,beta,  &
       cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,  &
@@ -3632,7 +3632,7 @@ module mod_rad_radiation
     !
     ! Planck function for co2
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k,kk,iband,l,xterm6,xterm9,emis, &
       a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat,beta,cf812,et,   &
       et2,et4,ex,exm1sq,f1co2,f1sqwp,f2co2,f3co2,fwk,g1,g2,g3,g4,omet, &
@@ -3895,7 +3895,7 @@ module mod_rad_radiation
     !
     ! Bug fix, 24 May 1996:  the 0.5 and 0.25 factors removed.
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
     do n = n1 , n2
@@ -3947,7 +3947,7 @@ module mod_rad_radiation
     ! Tint is lower interface temperature
     ! (not available for bottom layer, so use ground temperature)
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k,dpnm,dpnmsq,dy,rtnm)
 #else
     do n = n1 , n2
@@ -4073,7 +4073,7 @@ module mod_rad_radiation
     !
     ! Convert pressure from pascals to dynes/cm2
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
     do n = n1 , n2

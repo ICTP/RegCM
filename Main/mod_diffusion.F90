@@ -125,7 +125,7 @@ module mod_diffusion
       end do
       if ( diffu_hgtf == 1 ) then
         ! Should we have a vertical profile for this?
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1ga:jci2ga, i = ici1ga:ici2ga ) &
           local(hg1,hg2,hg3,hg4,hgmax)
 #else
@@ -138,7 +138,7 @@ module mod_diffusion
             hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
             hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
             hgfact(j,i) = xkhz/(d_one+hgmax**2)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -201,7 +201,7 @@ module mod_diffusion
       ! for dot-point variables.
       !
       if ( idynamic == 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz ) &
           local(dudx,dvdx,dudy,dvdy,duv)
 #else
@@ -220,13 +220,13 @@ module mod_diffusion
                      vd(j,i,k)   - vd(j+1,i,k)
               duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
               xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz ) &
           local(dudx,dvdx,dudy,dvdy,dwdz,duv)
 #else
@@ -247,7 +247,7 @@ module mod_diffusion
               duv = sqrt(max((dudx-dvdy)*(dudx-dvdy) + &
                              (dvdx+dudy)*(dvdx+dudy) - dwdz*dwdz,d_zero))
               xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif

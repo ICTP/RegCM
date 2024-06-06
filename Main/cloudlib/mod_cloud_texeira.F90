@@ -54,7 +54,7 @@ module mod_cloud_texeira
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
       local(rhrng,liq,spq)
 #else
@@ -73,7 +73,7 @@ module mod_cloud_texeira
           else
             fcc(j,i,k) = d_zero
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

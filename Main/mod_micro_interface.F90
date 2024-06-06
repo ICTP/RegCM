@@ -358,7 +358,7 @@ module mod_micro_interface
       end do
     else
       if ( any(icup > 1) ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(ls_exlwc,conv_exlwc,exlwc,ichi)
 #else
@@ -390,13 +390,13 @@ module mod_micro_interface
                 cldfra(j,i,k) = d_zero
                 cldlwc(j,i,k) = d_zero
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
         end do
       else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
           local(exlwc,ichi)
 #else
@@ -422,7 +422,7 @@ module mod_micro_interface
                 cldfra(j,i,k) = d_zero
                 cldlwc(j,i,k) = d_zero
               end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
           end do
 #endif
@@ -465,7 +465,7 @@ module mod_micro_interface
     !---------------------------------------------------------------------
     !     1.  Compute t, qv, and qc at tau+1 without condensational term
     !---------------------------------------------------------------------
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
       local(qccs,qvcs,tmp1,tmp2,tmp3,dqv,exces,pres,qvc_cld,qvs, &
             fccc,r1,rhc,rlv,cpm)
@@ -559,7 +559,7 @@ module mod_micro_interface
                   aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
             end if
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

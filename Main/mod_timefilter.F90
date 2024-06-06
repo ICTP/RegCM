@@ -63,7 +63,7 @@ module mod_timefilter
     real(rkx) , intent(in) :: alpha
     integer(ik4) :: i , j
     real(rkx) :: d
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(d)
 #else
     do i = ici1 , ici2
@@ -72,7 +72,7 @@ module mod_timefilter
         d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
         phinm1(j,i) = phin(j,i) + d
         phin(j,i) = phinp1(j,i)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -86,7 +86,7 @@ module mod_timefilter
     real(rkx) , intent(in) :: alpha , beta
     integer(ik4) :: i , j
     real(rkx) :: d
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(d)
 #else
     do i = ici1 , ici2
@@ -95,7 +95,7 @@ module mod_timefilter
         d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
         phinm1(j,i) = phin(j,i) + beta * d
         phin(j,i) = phinp1(j,i) + (beta - d_one) * d
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -110,7 +110,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -120,7 +120,7 @@ module mod_timefilter
           d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
           phinm1(j,i,k) = phin(j,i,k) + d
           phin(j,i,k) = phinp1(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -136,7 +136,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -146,7 +146,7 @@ module mod_timefilter
           d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
           phinm1(j,i,k) = phin(j,i,k) + beta * d
           phin(j,i,k) = phinp1(j,i,k) + (beta - d_one) * d
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -165,7 +165,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(un,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -178,7 +178,7 @@ module mod_timefilter
           d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
           vnm1(j,i,k) = vn(j,i,k) + d
           vn(j,i,k) = vnp1(j,i,k)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -197,7 +197,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(un,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -210,7 +210,7 @@ module mod_timefilter
           d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
           vnm1(j,i,k) = vn(j,i,k) + beta * d
           vn(j,i,k) = vnp1(j,i,k) + (beta - d_one) * d
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -227,7 +227,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , n , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:nk, n = n1:n2 ) local(d)
 #else
@@ -241,7 +241,7 @@ module mod_timefilter
             phinm1(j,i,k,n) = phin(j,i,k,n) + d
             if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = d_zero
             phin(j,i,k,n) = phinp1(j,i,k,n)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
       end do
@@ -259,7 +259,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -270,7 +270,7 @@ module mod_timefilter
               d_two * phin(j,i,k,iqv))
           phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + d, minqq*ps(j,i))
           phin(j,i,k,iqv) = phinp1(j,i,k,iqv)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -287,7 +287,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , n , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, &
                     k = 1:nk, n = n1:n2 ) local(d)
 #else
@@ -302,7 +302,7 @@ module mod_timefilter
             phin(j,i,k,n) = phinp1(j,i,k,n) + (beta - d_one) * d
             if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = d_zero
             if ( phin(j,i,k,n) < low ) phin(j,i,k,n) = d_zero
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
       end do
@@ -320,7 +320,7 @@ module mod_timefilter
     integer(ik4) :: i , j , k , nk
     real(rkx) :: d
     nk = size(phin,3)
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:nk ) local(d)
 #else
     do k = 1 , nk
@@ -332,7 +332,7 @@ module mod_timefilter
           phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + beta * d, minqq*psa(j,i))
           phin(j,i,k,iqv) = max(phinp1(j,i,k,iqv) + &
                       (beta - d_one) * d, minqq*psb(j,i))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif

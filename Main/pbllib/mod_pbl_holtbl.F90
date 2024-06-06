@@ -195,7 +195,7 @@ module mod_pbl_holtbl
     ! The unstable Richardson number function (Ri<0) is taken from  CCM1.
     ! f = sqrt(1 - 18*Ri)
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz ) &
       local(dudz,dvdz,ss,n2,rin,fofri,kzmax)
 #else
@@ -222,7 +222,7 @@ module mod_pbl_holtbl
           kzm(j,i,k) = szkm*sqrt(ss)*fofri
           kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           kzm(j,i,k) = max(min(kzm(j,i,k),kzmax),kzo)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -246,7 +246,7 @@ module mod_pbl_holtbl
       end if
     end do
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(rrho,uflxsfx,vflxsfx,uu)
 #else
@@ -266,7 +266,7 @@ module mod_pbl_holtbl
         ! Compute virtual heat flux at surface (surface kinematic buoyancy flux)
         hfxv(j,i) = xhfx(j,i) + ep1 * m2p%thatm(j,i,kz) * xqfx(j,i)
         lunstb(j,i) = (hfxv(j,i) > 0.0_rkx)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -276,7 +276,7 @@ module mod_pbl_holtbl
     ! calculate mixing ratio at 10m by assuming a constant
     ! value from the surface to the lowest model level.
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(sh10,oblen,iter)
 #else
     do i = ici1 , ici2
@@ -324,7 +324,7 @@ module mod_pbl_holtbl
         end if
         ! obklen compute obukhov length
         obklen(j,i) = comp_obklen(thv10(j,i),ustr(j,i),hfxv(j,i))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -367,7 +367,7 @@ module mod_pbl_holtbl
     ! compute Bulk Richardson Number (BRN)
     !
     if ( idynamic == 3 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(zlv,tlv,ulv,vlv,zkv,tkv,vvk,k)
 #else
@@ -386,12 +386,12 @@ module mod_pbl_holtbl
             ri(k,j,i) = egrav*(tkv-tlv)*(zkv-zlv)/(tlv*vvk)
             ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
       do i = ici1 , ici2
@@ -402,14 +402,14 @@ module mod_pbl_holtbl
                         (thv10(j,i)*vv(j,i,k))
             ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
 
     ! looking for first guess bl top
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
     do i = ici1 , ici2
@@ -425,14 +425,14 @@ module mod_pbl_holtbl
                 ((ricr(j,i)-ri(k,j,i))/(ri(k-1,j,i)-ri(k,j,i)))
           end if
         end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
 
     ! recompute richardson no. at lowest model level
     if ( idynamic == 3 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(xfmt,wsc,therm,zlv,tlv,ulv,vlv,zkv,tkv,vvk,k)
 #else
@@ -464,12 +464,12 @@ module mod_pbl_holtbl
               ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     else
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(xfmt,wsc,therm,tlv,tkv,k)
 #else
@@ -493,13 +493,13 @@ module mod_pbl_holtbl
               ri(k,j,i) = max(-5.0_rkx,min(10.0_rkx,ri(k,j,i)))
             end do
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
     end if
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
     do i = ici1 , ici2
@@ -519,13 +519,13 @@ module mod_pbl_holtbl
             end if
           end do
         end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
 
     ! Find the k of the level of the pbl
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k,phpblm)
 #else
     do i = ici1 , ici2
@@ -551,12 +551,12 @@ module mod_pbl_holtbl
           p2m%kpbl(j,i) = k
           if ( m2p%za(j,i,k) > p2m%zpbl(j,i) ) exit
         end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(zpbl,xfmt,xfht,wsc,term,z,zm,zp,zh,zl,wstr,zzh,zzhnew,zzhnew2, &
             pblk,pblk1,pblk2,pr,fak1,fak2,fak3,k)
@@ -629,7 +629,7 @@ module mod_pbl_holtbl
             end if
           end if
         end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -696,7 +696,7 @@ module mod_pbl_holtbl
       end do
 
       ! Nearest to surface
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdii1:jdii2, i = ici1:ici2 ) local(drgdot,uflxsf)
 #else
       do i = ici1 , ici2
@@ -711,7 +711,7 @@ module mod_pbl_holtbl
           coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
                           coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
                          (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -782,7 +782,7 @@ module mod_pbl_holtbl
       end do
 
       ! Nearest to surface
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = idii1:idii2 ) local(drgdot,vflxsf)
 #else
       do i = idii1 , idii2
@@ -797,7 +797,7 @@ module mod_pbl_holtbl
           coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
                           coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
                          (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -876,7 +876,7 @@ module mod_pbl_holtbl
       end do
 
       ! Nearest to surface
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdii1:jdii2, i = idii1:idii2 ) &
         local(drgdot,uflxsf,vflxsf)
 #else
@@ -897,7 +897,7 @@ module mod_pbl_holtbl
           coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
                           coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
                          (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -1361,7 +1361,7 @@ module mod_pbl_holtbl
     real(rkx) , dimension(kz) :: qi , qf
     real(rkx) :: sqtoti , sqtotf
 
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(qi,qf,sqtoti,sqtotf,k)
 #else
@@ -1383,11 +1383,11 @@ module mod_pbl_holtbl
           k = maxloc(qi,1)
           tendv(j,i,k) = tendv(j,i,k) + (sqtoti-sqtotf) * rdt
         end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(qi,qf,sqtoti,sqtotf,k)
 #else
@@ -1408,12 +1408,12 @@ module mod_pbl_holtbl
           k = maxloc(qi,1)
           tendc(j,i,k) = tendc(j,i,k) + (sqtoti-sqtotf) * rdt
         end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
     if ( ipptls > 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(qi,qf,sqtoti,sqtotf,k)
 #else
@@ -1434,7 +1434,7 @@ module mod_pbl_holtbl
             k = maxloc(qi,1)
             tendi(j,i,k) = tendi(j,i,k) + (sqtoti-sqtotf) * rdt
           end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do

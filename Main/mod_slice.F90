@@ -156,7 +156,7 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(w1,w2,k)
 #else
         do i = ici1 , ici2
@@ -173,7 +173,7 @@ module mod_slice
                 exit
               end if
             end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -314,7 +314,7 @@ module mod_slice
           atms%zq(j,i,kzp1) = d_zero
         end do
         do k = kz , 1, -1
-#ifndef __GFORTRAN__
+#ifdef STDPAR
           do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga ) local(cell)
 #else
           do i = ice1ga , ice2ga
@@ -323,7 +323,7 @@ module mod_slice
               cell = ptop * rpsb(j,i)
               atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
                         log((sigma(k+1)+cell)/(sigma(k)+cell))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
             end do
 #endif
           end do
@@ -347,7 +347,7 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
         do i = ici1 , ici2
@@ -361,7 +361,7 @@ module mod_slice
                 exit
               end if
             end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -371,7 +371,7 @@ module mod_slice
     ! Find tropopause hgt.
     !
     ktrop(:,:) = kz
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
     do i = ici1 , ici2
@@ -381,13 +381,13 @@ module mod_slice
           ktrop(j,i) = k
           if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
         end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
     if ( ibltyp == 1 ) then
       kmxpbl(:,:) = kz
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
       do i = ici1 , ici2
@@ -397,7 +397,7 @@ module mod_slice
             if ( atms%za(j,i,k) > 4000.0 ) exit
             kmxpbl(j,i) = k
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do

@@ -166,7 +166,7 @@ module mod_pbl_uwtcm
 #endif
 
     ! Main do loop
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(temps,templ,deltat,rvls,pfac,rpfac,tbbls,uflxp,vflxp,rhoxsf,   &
             tskx,tvcon,fracz,dudz,dvdz,thgb,pblx,ustxsq,qfxx,hfxx,uvdragx, &
@@ -735,7 +735,7 @@ module mod_pbl_uwtcm
 
         p2m%kpbl(j,i) = kpbl2dx
         p2m%zpbl(j,i) = pblx
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do

@@ -494,7 +494,7 @@ module mod_micro_nogtom
         sumh0(k,j,i)  = d_zero
       end do
       ! initialize the flux arrays
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(tnew , dp , qe , tmpl , tmpi , alfaw)
 #else
@@ -515,11 +515,11 @@ module mod_micro_nogtom
             tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
           end if
           sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(tnew,tmpi,alfaw,tmpl,qe,dp,qprev,hprev,k)
 #else
@@ -548,7 +548,7 @@ module mod_micro_nogtom
             qprev = sumq0(k,j,i)
             hprev = sumh0(k,j,i)
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -560,7 +560,7 @@ module mod_micro_nogtom
     ! -------------------------------
     ! Define saturation values
     !---------------------------
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 ) &
       local(zdelta , phases)
 #else
@@ -599,7 +599,7 @@ module mod_micro_nogtom
           eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
           qsliq(k,j,i) = eeliqt(k,j,i)
           qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
       end do
 #endif
@@ -613,7 +613,7 @@ module mod_micro_nogtom
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       cldtopdist(k,j,i) = d_zero
     end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k,kk)
 #else
     do i = ici1 , ici2
@@ -627,7 +627,7 @@ module mod_micro_nogtom
             end if
           end do
         end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do
@@ -660,7 +660,7 @@ module mod_micro_nogtom
     !
     ! Loop over points
     !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(fallsrce,fallsink,ldefr,qlhs,qsexp,qsimp,qx0,qxfg,qxn,lind2, &
             ratio,sinksum,tk,tc,dens,pbot,snowp,rainp,supsat,subsat,     &
@@ -1953,7 +1953,7 @@ module mod_micro_nogtom
             end if
           end do
         end do  ! kz : end of vertical loop
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do      ! jx, iy : end of latitude-longitude loop
@@ -1991,7 +1991,7 @@ module mod_micro_nogtom
         errorq(j,i) = d_zero
         errorh(j,i) = d_zero
       end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(dp,tnew,qvnew,tmpl,tmpi)
 #else
@@ -2008,11 +2008,11 @@ module mod_micro_nogtom
           tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
           sumq1(1,j,i) = sumq1(1,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
           sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(dp,tnew,qvnew,tmpl,tmpi,k)
 #else
@@ -2033,11 +2033,11 @@ module mod_micro_nogtom
             sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
             sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
         local(dp,dtgdp,rain,rainh,k,n)
 #else
@@ -2060,14 +2060,14 @@ module mod_micro_nogtom
             sumq1(k,j,i) = sumq1(k,j,i) + rain
             sumh1(k,j,i) = sumh1(k,j,i) - rainh
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
       do i = ici1 , ici2
@@ -2077,7 +2077,7 @@ module mod_micro_nogtom
             errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
             errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
           end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
         end do
 #endif
       end do
@@ -2145,7 +2145,7 @@ module mod_micro_nogtom
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
     !--------------------------------------------------------------
-#ifndef __GFORTRAN__
+#ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(prainx,psnowx)
 #else
     do i = ici1 , ici2
@@ -2164,7 +2164,7 @@ module mod_micro_nogtom
           mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
           mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
         end if
-#ifdef __GFORTRAN__
+#ifndef STDPAR
       end do
 #endif
     end do

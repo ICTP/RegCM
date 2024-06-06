@@ -277,7 +277,7 @@ module mod_sound
       !
       ! Advance u and v
       !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jdi1:jdi2 , i = idi1:idi2, k = 1:kz ) &
         local(rho,dppdp0,chh)
 #else
@@ -305,7 +305,7 @@ module mod_sound
                     chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
                            atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
                            atm0%dprddy(j,i,k) * dppdp0)
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
@@ -390,7 +390,7 @@ module mod_sound
       do k = 2 , kz
         kp1 = min(k+1,kz)
         km1 = k-1
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(rofac)
 #else
         do i = ici1 , ici2
@@ -432,7 +432,7 @@ module mod_sound
                           atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
                           atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
                         ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -489,7 +489,7 @@ module mod_sound
       ! Upward calculation of coefficients
       !
       do k = kz , 2 , -1
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(denom)
 #else
         do i = ici1 , ici2
@@ -498,7 +498,7 @@ module mod_sound
             denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
             e(j,i,k-1) = -c(j,i,k) / denom
             f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -513,7 +513,7 @@ module mod_sound
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
       if ( ifupr == 1 ) then
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 ) local(denom)
 #else
         do i = ici1 , ici2
@@ -522,7 +522,7 @@ module mod_sound
             denom = (cdd(j,i,1) + cj(j,i,1)) * bp
             estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
             astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -583,7 +583,7 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(nsi,inn,nsj,jnn)
 #else
         do i = ici1 , ici2
@@ -596,7 +596,7 @@ module mod_sound
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
 #endif
         end do
@@ -707,7 +707,7 @@ module mod_sound
       !
       ! Now compute the new pressure
       !
-#ifndef __GFORTRAN__
+#ifdef STDPAR
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
         local(ppold,cddtmp,cjtmp,cpm,dpterm)
 #else
@@ -730,7 +730,7 @@ module mod_sound
             dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
-#ifdef __GFORTRAN__
+#ifndef STDPAR
           end do
         end do
 #endif
