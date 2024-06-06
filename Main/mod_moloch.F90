@@ -1463,6 +1463,7 @@ module mod_moloch
         real(rkx) :: zrfmu , zrfmd
         real(rkx) :: zrfmn , zrfms
         real(rkx) :: zrfme , zrfmw
+        real(rkx) :: zfac , zmin
         integer(ik4) :: k1 , k1p1
         integer(ik4) :: ih , ihm1
         integer(ik4) :: jh , jhm1
@@ -1475,8 +1476,9 @@ module mod_moloch
         end if
 
         if ( present(pfac) ) then
+          zfac = pfac
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) * pfac
+            pp(j,i,k) = pp(j,i,k) * zfac
           end do
         end if
 
@@ -1843,12 +1845,13 @@ module mod_moloch
 
         if ( present(pfac) ) then
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) / pfac
+            pp(j,i,k) = pp(j,i,k) / zfac
           end do
         end if
         if ( present(pmin) ) then
+          zmin = pmin
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = max(pp(j,i,k),pmin)
+            pp(j,i,k) = max(pp(j,i,k),zmin)
           end do
         end if
       end subroutine wafone
