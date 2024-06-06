@@ -450,13 +450,13 @@ module mod_lm_interface
     if ( irceideal == 0 ) call runclm45(lm,lms)
     !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
     if ( ichem == 1 ) then
-      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
         voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
       end do
-      do concurrent ( n = 1:4, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:4 )
         dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
       end do
-      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
         ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
       end do
     end if
@@ -1285,9 +1285,11 @@ module mod_lm_interface
                    4.0_rkx*sfp(j,i))/mval
     end do
     do n = 1 , niter
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
-                             slp1(j-1,i)+slp(j+1,i)-mask(j,i))
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
+                               slp1(j-1,i)+slp(j+1,i)-mask(j,i))
+        end do
       end do
       if ( ma%has_bdyleft ) then
         do i = ici1 , ici2

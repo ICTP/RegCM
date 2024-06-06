@@ -307,7 +307,10 @@ module mod_micro_interface
     end select
 
     if ( ipptls == 1 ) then
-      rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-mc2mo%fcc),1.0e-5_rkx)**2
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        rh0adj(j,i,k) = d_one - (d_one-mo2mc%rh(j,i,k)) / &
+                        max((d_one-mc2mo%fcc(j,i,k)),1.0e-5_rkx)**2
+      end do
     end if
 
     !------------------------------------------
