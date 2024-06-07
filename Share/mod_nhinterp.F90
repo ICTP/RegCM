@@ -461,7 +461,7 @@ module mod_nhinterp
             t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
             alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
             z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
-#ifndef
+#ifndef STDPAR
           end do
         end do
 #endif
