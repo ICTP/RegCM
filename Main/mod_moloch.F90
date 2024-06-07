@@ -496,7 +496,7 @@ module mod_moloch
 #endif
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,xlat(j,i))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))

@@ -446,8 +446,17 @@ module mod_capecin
         slindx(i,j) = d_zero
       end do
       ! Find Exner at lowest level-------------------------------
+#ifdef STDPAR
+      do concurrent ( i = ista:iend, j = jsta:jend ) &
+        local(tbt,qbt,apebt,tthbt,tth,tqq,ittb,ittbk,bqs00,sqs00,&
+        bqs10,sqs10,bq,sq,tq,ppq,iqtb,iq,it,pp00,pp10,pp01,pp11, &
+        tpsp,apesp,thesp,tp,qq,iptb,iptbk,bthe00,sthe00,bthe10,  &
+        sthe10,bth,sth,pp,ithtb,ith,ip,t00,t10,t01,t11,partmp,   &
+        esatp,qsatp,tvp)
+#else
       do j = jsta , jend
         do i = ista , iend
+#endif
           tbt = t(i,j,kk)
           ! Specific Humidity expected.
           qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
@@ -562,7 +571,9 @@ module mod_capecin
           qsatp = ep2*esatp/(p500-esatp*oneps)
           tvp = partmp*(1.0_rkx+ep1*qsatp)
           slindx(i,j) = t500(i,j)-tvp
+#ifndef STDPAR
         end do
+#endif
       end do
 
       contains

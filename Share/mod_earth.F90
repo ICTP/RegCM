@@ -58,7 +58,8 @@ module mod_earth
 
   contains
 
-  real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
+  pure real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: lat1 , lon1 , lat2 , lon2
     real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
@@ -72,7 +73,8 @@ module mod_earth
     gcdist_simple = sngl(erkm*acos(crd))
   end function gcdist_simple
 
-  real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
+  pure real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: ds , lat1 , lon1 , lat2 , lon2
     real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , sdlon
@@ -121,7 +123,11 @@ module mod_earth
     real(rk8) , intent(out) , dimension(3,ni) :: x
     real(rk8) :: rlat , rlon
     integer(ik4) :: i
+#ifdef STDPAR
+    do concurrent ( i = 1:ni ) local(rlat,rlon)
+#else
     do i = 1 , ni
+#endif
       rlat = max(min(dble(lat(i)),89.999_rk8),-89.999_rk8)*degrad
       rlon = dble(lon(i))*degrad
       x(1,i) = cos(rlat) * sin(rlon)
@@ -136,20 +142,27 @@ module mod_earth
     real(rkx) , intent(in) , dimension(:) :: lon
     real(rk8) , intent(out) , dimension(:,:) :: x
     real(rk8) :: rlat , rlon
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , n , nlon , nlat
     if ( size(x,1) /= 3 .or.  size(x,2) /= size(lat) * size(lon) ) then
       return
     end if
-    n = 1
-    do j = 1 , size(lat)
-      do i = 1 , size(lon)
+    nlon = size(lon)
+    nlat = size(lat)
+#ifdef STDPAR
+    do concurrent ( i = 1:nlon, j = 1:nlat ) local(n,rlat,rlon)
+#else
+    do j = 1 , nlat
+      do i = 1 , nlon
+#endif
+        n = (j-1)*nlon+i
         rlat = max(min(dble(lat(j)),89.999_rk8),-89.999_rk8)*degrad
         rlon = dble(lon(i))*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
         x(3,n) = cos(rlat) * cos(rlon)
-        n = n + 1
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine ll2xyz_arrays
 
@@ -159,25 +172,33 @@ module mod_earth
     real(rkx) , intent(in) , dimension(:,:) :: lon
     real(rk8) , intent(out) , dimension(:,:) :: x
     real(rk8) :: rlat , rlon
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , n , nlon , nlat
     if ( size(x,1) /= 3 .or.  size(x,2) /= product(shape(lat)) .or. &
          product(shape(lat)) /= product(shape(lon))  ) then
       return
     end if
-    n = 1
-    do j = 1 , size(lat,2)
-      do i = 1 , size(lat,1)
+    nlon = size(lon,1)
+    nlat = size(lat,2)
+#ifdef STDPAR
+    do concurrent ( i = 1:nlon, j = 1:nlat ) local(n,rlat,rlon)
+#else
+    do j = 1 , nlat
+      do i = 1 , nlon
+#endif
+        n = (j-1)*nlon+i
         rlat = max(min(dble(lat(i,j)),89.999_rk8),-89.999_rk8)*degrad
         rlon = dble(lon(i,j))*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
         x(3,n) = cos(rlat) * cos(rlon)
-        n = n + 1
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine ll2xyz_grid
 
-  real(rk8) function longitude_circle(lat) result(er)
+  pure real(rk8) function longitude_circle(lat) result(er)
+!$acc routine seq
     implicit none
     real(rk8) , intent(in) :: lat
     er = d_two * mathpi * erkm * cos(lat*degrad)

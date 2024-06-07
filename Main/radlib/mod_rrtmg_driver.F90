@@ -661,11 +661,11 @@ module mod_rrtmg_driver
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
 #ifdef RCEMIP
-          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
-            tlay(n,kz))
+          tlay(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
+            play(n,k),istdatm_tempk),tlay(n,kz))
 #else
-          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
-            tlay(n,kz))
+          tlay(n,k) = max(stdatm_val(calday,dayspy,dlat(n), &
+            play(n,k),istdatm_tempk),tlay(n,kz))
 #endif
         end do
       end do
@@ -718,11 +718,11 @@ module mod_rrtmg_driver
     do k = kzp1 , ktf
       do n = 1 , npr
 #ifdef RCEMIP
-        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
-          tlev(n,kz))
+        tlev(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
+          plev(n,k),istdatm_tempk),tlev(n,kz))
 #else
-        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
-          tlev(n,kz))
+        tlev(n,k) = max(stdatm_val(calday,dayspy,dlat(n), &
+          plev(n,k),istdatm_tempk),tlev(n,kz))
 #endif
       end do
     end do
@@ -764,8 +764,8 @@ module mod_rrtmg_driver
         h2ommr(n,k) = 1.0e-14_rkx
 #else
         h2ommr(n,k) = &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_airdn) * amd/amw
 #endif
         h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
@@ -786,12 +786,12 @@ module mod_rrtmg_driver
       do n = 1 , npr
 #ifdef RCEMIP
         o3vmr(n,k) = &
-          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
-          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+          stdatm_val(calday,dayspy,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dayspy,d_zero,play(n,k),istdatm_airdn) * amd/amo3
 #else
         o3vmr(n,k) = &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
 #endif
       end do
     end do

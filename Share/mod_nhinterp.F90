@@ -50,10 +50,8 @@ module mod_nhinterp
       real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat    ! Latitude
       real(rkx) , dimension(j1:j2,i1:i2) :: ts0
       integer(ik4) :: i , j
-      do i = i1 , i2
-        do j = j1 , j2
-          ts0(j,i) = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk)
-        end do
+      do concurrent ( j = j1:j2, i = i1:i2 )
+        ts0(j,i) = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk)
       end do
       base_state_temperature = d_half*(maxval(ts0)+minval(ts0))
       write(stdout,*) 'Computed reference surface temperature for domain: ', &
@@ -87,8 +85,12 @@ module mod_nhinterp
       !
       ! Define ps0 from terrain heights and t0 profile.
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(ac,alnp,b,k)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           ac = d_half * govr * ter(j,i) / tlp
           b = st0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
@@ -101,7 +103,9 @@ module mod_nhinterp
             alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
             z0(j,i,k) = max(-(d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp),d_zero)
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
     end subroutine nhbase
     !
@@ -125,35 +129,51 @@ module mod_nhinterp
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs ) local(pr0,alnp)
+#else
       do k = 1 , kxs
         do i = i1 , i2
           do j = j1 , j2
+#endif
             pr0 = ps0(j,i) * sigmah(k) + ptoppa
             alnp = log(pr0/(ps0(j,i)+ptoppa))
             z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
       !  to nonhydrostatic model levels.
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(zq,k)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           zq(kxs+1) = d_zero
           do k = kxs , 1 , -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
               log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
             z(j,i,k) = d_half * (zq(k) + zq(k+1))
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
       !
       ! Interpolate from z to z0 levels.
       !
       if ( intmeth == 1 ) then
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) local(zl,zu,fu,fl,fn,k,l,ll)
+#else
         do i = i1 , i2
           do j = j1 , j2
+#endif
             do k = 1 , kxs
               do ll = 1 , kxs - 1
                 l = ll
@@ -169,11 +189,18 @@ module mod_nhinterp
             do k = 1 , kxs
               f(j,i,k) = fn(k)
             end do
+#ifndef STDPAR
           end do
+#endif
         end do
       else
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) &
+          local(zl,zu,fu,fl,wu,wl,alnqvn,fn,k,l,ll)
+#else
         do i = i1 , i2
           do j = j1 , j2
+#endif
             do k = 1 , kxs
               do ll = 1 , kxs - 1
                 l = ll
@@ -198,7 +225,9 @@ module mod_nhinterp
             do k = 1 , kxs
               f(j,i,k) = fn(k)
             end do
+#ifndef STDPAR
           end do
+#endif
         end do
       end if
     end subroutine nhinterp3d
@@ -221,35 +250,52 @@ module mod_nhinterp
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs ) local(pr0,alnp)
+#else
       do k = 1 , kxs
         do i = i1 , i2
           do j = j1 , j2
+#endif
             pr0 = ps0(j,i) * sigmah(k) + ptoppa
             alnp = log(pr0/(ps0(j,i)+ptoppa))
             z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
       !  to nonhydrostatic model levels.
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(zq,k)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           zq(kxs+1) = d_zero
           do k = kxs , 1 , -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
               log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
             z(j,i,k) = d_half * (zq(k) + zq(k+1))
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
       !
       ! Interpolate from z to z0 levels.
       !
       do n = 1 , nn
+#ifdef STDPAR
+        do concurrent( j = j1:j2, i = i1:i2 ) &
+          local(zu,zl,fu,fl,fn,wu,wl,alnqvn,k,l,ll)
+#else
         do i = i1 , i2
           do j = j1 , j2
+#endif
             do k = 1 , kxs
               do ll = 1 , kxs - 1
                 l = ll
@@ -274,7 +320,9 @@ module mod_nhinterp
             do k = 1 , kxs
               f(j,i,k,n) = fn(k)
             end do
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
     end subroutine nhinterp4d
@@ -295,8 +343,13 @@ module mod_nhinterp
       !
       !  Calculate p' at bottom and integrate upwards (hydrostatic balance).
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) &
+        local(p0surf,psp,delp0,tvk,tk,tvpot,tvkp1,tkp1,wtl,wtu,aa,bb,cc,k)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           !
           !  Correct pressure perturbation field (mass) to be consistent
           !  with psa assuming density perturbation remains constant in
@@ -323,14 +376,21 @@ module mod_nhinterp
                     wtu * ((tvk   - t0(j,i,k  )) / tk  )
             pp(j,i,k) = (egrav * tvpot + pp(j,i,k+1) * (aa - bb)) / (aa + cc)
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
       !
       !  Do vertical gradient check
       !
       do k = 1 , kxs - 1
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) &
+          local(wtu,wtl,tvpot,checkl,checkr,check)
+#else
         do i = i1 , i2
           do j = j1 , j2
+#endif
             wtu = (sigma(k+2) - sigma(k+1)) / (sigma(k+2) - sigma(k  ))
             wtl = d_one - wtu
             tvpot = wtl * (tv(j,i,k+1) - t0(j,i,k+1)) / t(j,i,k+1) + &
@@ -340,12 +400,16 @@ module mod_nhinterp
                  wtl * t0(j,i,k+1)/t(j,i,k+1) * pp(j,i,k+1)/pr0(j,i,k+1) - &
                  wtu * t0(j,i,k)  /t(j,i,k)   * pp(j,i,k)  /pr0(j,i,k)
             check = checkl + checkr
+#ifdef DEBUG
             if ( abs(check) > 1.e-2_rkx ) then
               write(stderr,'(A,3I4,3g14.6)') &
                 'NHPP vert gradient check error at ',i,j,k,check,checkl,checkr
             end if
+#endif
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
     end subroutine nhpp
     !
@@ -385,31 +449,49 @@ module mod_nhinterp
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2, k = 1:kxs+1 ) &
+        local(alnp)
+#else
       do k = 1 , kxs+1
         do i = i1 , i2
           do j = j1 , j2
+#endif
             pr0(j,i,k) = ps0(j,i) * sigma(k) + ptoppa
             t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
             alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
             z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+#ifndef
           end do
         end do
+#endif
       end do
       !
       !  Calculate heights of input temperature sounding for interpolation
       !  to nonhydrostatic model levels.
       !
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) local(k)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           z(j,i,kxs+1) = d_zero
           do k = kxs , 1 , -1
             z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
               log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
+#ifdef STDPAR
+      do concurrent ( j = j1:j2, i = i1:i2 ) &
+        local(ip,im,jp,jm,mdv,ua,va,ub,vb,qdt,lp,lm,ubar,vbar)
+#else
       do i = i1 , i2
         do j = j1 , j2
+#endif
           if ( icrm /= 1 ) then
             ip = min(i+1,i2)
             im = max(i-1,i1)
@@ -482,7 +564,9 @@ module mod_nhinterp
                     ((ps(jp,i) - ps(jm,i)) * ubar + &
                      (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
       !
       ! Remove signal from grid (need because interpolation in ATM)
@@ -492,8 +576,13 @@ module mod_nhinterp
       ! Vertical velocity from interpolated omega
       !
       do k = 2 , kxs + 1
+#ifdef STDPAR
+        do concurrent ( j = j1:j2, i = i1:i2 ) &
+          local(l,ll,zu,zl,omegau,omegal,wu,wl,omegan,rho)
+#else
         do i = i1 , i2
           do j = j1 , j2
+#endif
             do ll = 1 , kxs
               l = ll
               if (z(j,i,l+1) < z0(j,i,k)) exit
@@ -509,7 +598,9 @@ module mod_nhinterp
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -d_1000 * omegan/rho * regrav
           end do
+#ifndef STDPAR
         end do
+#endif
       end do
       wtmp(j1,:,:) = wtmp(j1+1,:,:)
       wtmp(j2-1,:,:) = wtmp(j2-2,:,:)

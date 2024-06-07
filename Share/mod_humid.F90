@@ -60,12 +60,8 @@ module mod_humid
     integer(ik4) , intent(in) :: ni , nj , nk
     real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
     integer(ik4) :: i , j , k
-    do k = 1 , nk
-      do j = 1 , nj
-        do i = 1 , ni
-          q(i,j,k) = q(i,j,k) / (1.0D0 - q(i,j,k))
-        end do
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
+      q(i,j,k) = q(i,j,k) / (1.0D0 - q(i,j,k))
     end do
   end subroutine sph2mxr_double
 
@@ -74,12 +70,8 @@ module mod_humid
     integer(ik4) , intent(in) :: ni , nj , nk
     real(rk4) , intent(inout) , dimension(ni,nj,nk) :: q
     integer(ik4) :: i , j , k
-    do k = 1 , nk
-      do j = 1 , nj
-        do i = 1 , ni
-          q(i,j,k) = q(i,j,k) / (1.0 - q(i,j,k))
-        end do
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
+      q(i,j,k) = q(i,j,k) / (1.0 - q(i,j,k))
     end do
   end subroutine sph2mxr_single
 
@@ -88,12 +80,8 @@ module mod_humid
     integer(ik4) , intent(in) :: ni , nj , nk
     real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
     integer(ik4) :: i , j , k
-    do k = 1 , nk
-      do j = 1 , nj
-        do i = 1 , ni
-          q(i,j,k) = q(i,j,k) / (d_one + q(i,j,k))
-        end do
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk )
+      q(i,j,k) = q(i,j,k) / (d_one + q(i,j,k))
     end do
   end subroutine mxr2sph
 
@@ -109,14 +97,20 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) local(p,qs)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           p = sig2p(ps,sigma(k),ptop)
           qs = pfwsat(t(i,j,k),p)
           q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine mxr2rh
@@ -136,17 +130,23 @@ module mod_humid
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     ! DATA ON SIGMA LEVELS
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm, k = 1:km ) local(p,qs)
+#else
     do k = 1 , km
       do j = 1 , jm
         do i = 1 , im
+#endif
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           p = (sigma(k)*(ps(i,j)-ptop)) + ptop
           qs = pfwsat(real(t(i,j,k),rkx),real(p,rkx))
           q(i,j,k) = max(q(i,j,k)/qs,0.0D0)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine mxr2rh_o_double
@@ -167,17 +167,23 @@ module mod_humid
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     ! DATA ON SIGMA LEVELS
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm, k = 1:km ) local(p,qs)
+#else
     do k = 1 , km
       do j = 1 , jm
         do i = 1 , im
+#endif
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           p = real(sigma(k),rkx)*(real(ps(i,j),rkx) - ptop) + ptop
           qs = real(pfwsat(real(t(i,j,k),rkx),p))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine mxr2rh_o_single
@@ -193,13 +199,19 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) local(qs)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           qs = pfwsat(real(t(i,j,k),rkx),real(p3d(i,j,k),rkx))
           q(i,j,k) = max(q(i,j,k)/qs,0.0D0)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine mxr2rh_o_double_nonhydro
@@ -215,13 +227,19 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) local(qs)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           qs = real(pfwsat(real(t(i,j,k),rkx),real(p3d(i,j,k),rkx)))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine mxr2rh_o_single_nonhydro
@@ -256,13 +274,19 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) local(qs)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           qs = pfwsat(t(i,j,k),p(k))
           q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine rh2mxr_p1d
@@ -281,14 +305,20 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) local(p,qs)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           p = (ptop + sigma(k)*ps(i,j))*d_1000
           qs = pfwsat(t(i,j,k),p)
           q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine rh2mxr_p3d
@@ -307,17 +337,24 @@ module mod_humid
     !
     ! THIS ROUTINE REPLACES ECMWF RELATIVE HUMIDITY BY MIXING RATIO
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:ni, j = 1:nj, k = 1:nk ) &
+      local(p,qs,hl,satvp)
+#else
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
+#endif
           p = (ptop + sigma(k)*ps(i,j))*d_10
           hl = 597.3_rkx - 0.566_rkx * (t(i,j,k) - tzero)
           satvp = 6.11_rkx * exp(9.045_rkx*hl*(rtzero - d_one/t(i,j,k)))
           qs = ep2 * satvp/(p-satvp)
           qs = qs/(d_one+qs)
           q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
   end subroutine ecmwf_rh2mxr
 

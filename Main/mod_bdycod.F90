@@ -6226,7 +6226,7 @@ module mod_bdycod
         tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
         lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(j,i))
         tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
