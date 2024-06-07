@@ -375,7 +375,7 @@ module mod_slice
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
     do i = ici1 , ici2
-      do j = jci1 , jci1
+      do j = jci1 , jci2
 #endif
         do k = kzm1 , 2 , -1
           ktrop(j,i) = k
@@ -391,7 +391,7 @@ module mod_slice
       do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
 #else
       do i = ici1 , ici2
-        do j = jci1 , jci1
+        do j = jci1 , jci2
 #endif
           do k = kzm1 , 2 , -1
             if ( atms%za(j,i,k) > 4000.0 ) exit
