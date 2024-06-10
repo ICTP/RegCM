@@ -354,6 +354,9 @@ module mod_write
     call outstream_addatt(ncout, &
        ncattribute_logical('initialized_soil_temperature',lrts))
 
+    call outstream_addatt(ncout, &
+       ncattribute_logical('initialized_surface_moisture',lsmoist))
+
     do ivar = 1 , nvar2d
       v2dvar_base(ivar)%j1 = -1
       v2dvar_base(ivar)%j2 = -1
