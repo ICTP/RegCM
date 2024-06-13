@@ -2195,17 +2195,13 @@ module mod_moloch
     implicit none
     real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
-    integer(ik4) :: i , j , k , i1 , i2 , j1 , j2
-    i1 = lbound(wx,2)
-    i2 = ubound(wx,2)
-    j1 = lbound(wx,1)
-    j2 = ubound(wx,1)
+    integer(ik4) :: i , j , k
 
-    do concurrent ( j = j1:j2, i = i1:i2, k = 2:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
-    do concurrent ( j = j1:j2, i = i1:i2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
       wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
     end do
