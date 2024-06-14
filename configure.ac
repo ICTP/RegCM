@@ -662,6 +662,10 @@ if eval "test x$DEBUG = x1"; then
     if test "test x$USE_OPENACC = x1"; then
       FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
     fi
+    if test "test x$USE_OPENACC = x4"; then
+      FCFLAGS="$FCFLAGS -acc=gpu \
+	      -gpu=$PGI_GPU_ARCH,managed,ptxinfo,lineinfo -Mnodepchk -Minfo=all"
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
