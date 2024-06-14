@@ -694,19 +694,21 @@ module mod_hgt
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: z
     integer(ik4) :: ni , nj , nk
     integer(ik4) :: i , j , k
-    real(rkx) :: tv0 , tv1
+    real(rkx) :: tv0 , h0 , p0 , tv1
     ni = size(z,1)
     nj = size(z,2)
     nk = size(z,3)
     if ( p(1,1,1) > p(1,1,nk) ) then
 #ifdef STDPAR
-      do concurrent( i = 1:ni, j = 1:nj ) local(tv0)
+      do concurrent( i = 1:ni, j = 1:nj ) local(h0,tv0)
 #else
       do j = 1 , nj
         do i = 1 , ni
 #endif
+          p0 = ps(i,j)
+          h0 = ht(i,j)
           tv0 = t(i,j,1) * (1.0_rkx + ep1 * q(i,j,1))
-          z(i,j,1) = ht(i,j) + rovg * tv0 * log(ps(i,j)/p(i,j,1))
+          z(i,j,1) = h0 + rovg * tv0 * log(p0/p(i,j,1))
 #ifndef STDPAR
         end do
 #endif
