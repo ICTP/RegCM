@@ -89,7 +89,6 @@ module mod_moloch
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
 
   public :: allocate_moloch , init_moloch , moloch
-  public :: uvstagtox , xtouvstag , wstagtox
 
   real(rkx) , parameter :: minden = 1.0e-30_rkx
   real(rkx) , parameter :: xdamp = 0.0625_rkx

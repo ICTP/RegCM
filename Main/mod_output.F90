@@ -1956,6 +1956,66 @@ module mod_output
     rotinit = .true.
   end subroutine alpharot_compute
 
+  subroutine wstagtox(w,wx)
+    implicit none
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
+    integer(ik4) :: i , j , k
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
+      wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
+                  0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
+      wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
+    end do
+  end subroutine wstagtox
+
+  subroutine uvstagtox(u,v,ux,vx)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
+    integer(ik4) :: i , j , k
+
+    call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
+    call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
+
+    ! Compute U-wind on T points
+
+    do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
+      ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                  0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
+    end do
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ice1:ice2, k = 1:kz )
+        ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ice1:ice2, k = 1:kz )
+        ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
+      end do
+    end if
+
+    ! Compute V-wind on T points
+
+    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
+      vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                  0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
+    end do
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jce1:jce2, k = 1:kz )
+        vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jce1:jce2, k = 1:kz )
+        vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
+      end do
+    end if
+  end subroutine uvstagtox
+
   subroutine windcompute(u,v,h)
     implicit none
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
