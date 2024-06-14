@@ -582,7 +582,7 @@ module mod_projections
     real(rk8) , intent(in) :: ci , cj , slon , clat , clon , ds , &
                               trlat1 , trlat2
     logical , intent(in) :: luvrot
-    real(rk8) :: arg , deltalon1 , tl1r , tl2r
+    real(rk8) :: arg , deltalon1 , tl1r , tl2r , pf3
     real(rkx) :: ri , rj , lat , lon
     integer(ik4) :: i , j
 
@@ -637,9 +637,10 @@ module mod_projections
           ri = i
           rj = j
           call ijll_lc(pj,ri,rj,lat,lon)
-          pj%f3(i,j) = uvrot_lc(pj,lon)
-          pj%f1(i,j) = cos(pj%f3(i,j))
-          pj%f2(i,j) = sin(pj%f3(i,j))
+          pf3 = uvrot_lc(pj,lon)
+          pj%f3(i,j) = pf3
+          pj%f1(i,j) = cos(pf3)
+          pj%f2(i,j) = sin(pf3)
         end do
       end do
     end if
@@ -700,7 +701,7 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: clat , clon , cj , ci , ds , slon
     logical , intent(in) :: luvrot
-    real(rk8) :: ala1 , alo1
+    real(rk8) :: ala1 , alo1 , pf3
     real(rkx) :: lat , lon , ri , rj
     integer(ik4) :: i , j
 
@@ -729,9 +730,10 @@ module mod_projections
           ri = i
           rj = j
           call ijll_ps(pj,ri,rj,lat,lon)
-          pj%f3(i,j) = uvrot_ps(pj,lon)
-          pj%f1(i,j) = cos(pj%f3(i,j))
-          pj%f2(i,j) = sin(pj%f3(i,j))
+          pf3 = uvrot_ps(pj,lon)
+          pj%f3(i,j) = pf3
+          pj%f1(i,j) = cos(pf3)
+          pj%f2(i,j) = sin(pf3)
         end do
       end do
     end if
@@ -832,7 +834,7 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
     logical , intent(in) :: luvrot
-    real(rk8) :: plam , pphi , zphipol
+    real(rk8) :: plam , pphi , zphipol , pf3
     real(rkx) :: lat , lon , ri , rj
     integer(ik4) :: i , j
     pj%p%dlon = ds*raddeg/earthrad
@@ -873,7 +875,8 @@ module mod_projections
           ri = i
           call ijll_rc(pj,ri,rj,lat,lon)
           call uvrot_rc(pj,lat,lon,pj%f1(i,j),pj%f2(i,j))
-          pj%f3(i,j) = acos(pj%f1(i,j))
+          pf3 = acos(pj%f1(i,j))
+          pj%f3(i,j) = pf3
         end do
       end do
     end if

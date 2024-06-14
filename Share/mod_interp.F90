@@ -407,9 +407,10 @@ module mod_interp
     integer(ik4) , intent(in) :: iy , jx , nlat , nlon
     real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
     real(rkx) , dimension(nlon,nlat) , intent(in) :: glat , glon
-    real(rkx) , dimension(jx,iy) , intent(out) :: d1xa , d1xb , d1xc , d1xd
-    integer(ik4) , dimension(jx,iy) , intent(out) :: i1dl , i1dr , &
-      i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: d1xa , &
+      d1xb , d1xc , d1xd
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: i1dl , &
+      i1dr , i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
     real(rkx) :: dist , wa , wb , wc , wd , distx
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , mx , nx
@@ -531,8 +532,9 @@ module mod_interp
     integer(ik4) , intent(in) :: nlon , nlat , jx , iy
     real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
     real(rkx) , dimension(jx,iy) , intent(out) :: b3
-    real(rkx) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
-    integer(ik4) , dimension(jx,iy) , intent(in) :: i1dl , i1dr , &
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: d1xa , d1xb , &
+      d1xc , d1xd
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
     real(rkx) :: wa , wb , wc , wd , wg , vv
     real(rkx) , dimension(jx,iy) :: smth1 , smth2
@@ -607,13 +609,11 @@ module mod_interp
 
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
-    integer(ik4) :: iy , jx , nlat , nlon
-    real(rkx) , dimension(jx,iy) :: alat , alon
-    real(rkx) , dimension(jx,iy) :: b3
-    real(rkx) , dimension(nlon,nlat) :: glat , glon
-    real(rkx) , dimension(nlon,nlat) :: b2
-    intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
-    intent (out) b3
+    integer(ik4) , intent(in) :: iy , jx , nlat , nlon
+    real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: glat , glon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
+    real(rkx) , dimension(jx,iy) , intent(out) :: b3
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.

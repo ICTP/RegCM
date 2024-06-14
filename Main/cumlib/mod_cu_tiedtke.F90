@@ -673,9 +673,6 @@ module mod_cu_tiedtke
           it = int(ztp1(jl,jk)*d_1000)
 #ifdef DEBUG
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
-            write(stderr,'(a,f12.4,a,i8)') &
-              '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
-              ' at ', rcmtimer%str( )
             lookupoverflow = .true.
           end if
 #endif
@@ -689,6 +686,16 @@ module mod_cu_tiedtke
 #endif
       end do
       if ( lookupoverflow ) then
+        do jk = 1 , klev
+          do jl = 1 , kproma
+            it = int(ztp1(jl,jk)*d_1000)
+            if ( it < jptlucu1 .or. it > jptlucu2 ) then
+              write(stderr,'(a,f12.4,a,i8)') &
+                '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
+                ' at ', rcmtimer%str( )
+            end if
+          end do
+        end do
         call fatal(__FILE__,__LINE__, &
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
