@@ -364,12 +364,12 @@ module mod_rad_tracer
     !-----------------------------------------------------------------------
     !
     real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
-               acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
-               dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
-               dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
-               du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
-               phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
-               tch4 , tlw , w1 , sqti , ds2c , duptyp , tt
+                 acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
+                 dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
+                 dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
+                 du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
+                 phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
+                 tch4 , tlw , w1 , sqti , ds2c , duptyp , tt
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
 

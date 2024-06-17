@@ -1830,6 +1830,7 @@ module mod_rad_radiation
     integer(ik4) :: n , khighest , irad , nradaer
     integer(ik4) :: k , km , k1 , k2 , k3 , ns
     real(rkx) :: bk1 , bk2 , absbt , tmp , tmp1 , delt , delt1
+    real(rkx) , dimension(kz) :: tt , qq
     integer(ik4) :: km1 , km2 , km3 , km4
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclw'
@@ -1867,15 +1868,20 @@ module mod_rad_radiation
       ! Compute trace gas path lengths
       !
 #ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(k)
+      do concurrent ( n = n1:n2 ) local(k,tt,qq)
 #else
       do n = n1 , n2
 #endif
-        call trcpth(kz,tnm(:,n),pint(:,n),qnm(:,n),cfc11(:,n),cfc12(:,n), &
-                    n2o(:,n),ch4(:,n),co2mmr(n),ucfc11(:,n),ucfc12(:,n),  &
-                    un2o0(:,n),un2o1(:,n),uch4(:,n),uco211(:,n),          &
-                    uco212(:,n),uco213(:,n),uco221(:,n),uco222(:,n),      &
-                    uco223(:,n),bn2o0(:,n),bn2o1(:,n),bch4(:,n),uptype(:,n))
+        do k = 1 , kz
+          tt(k) = tnm(n,k)
+          qq(k) = qnm(n,k)
+        end do
+        call trcpth(kz,tt,pint(:,n),qq,cfc11(:,n),cfc12(:,n), &
+                    n2o(:,n),ch4(:,n),co2mmr(n),ucfc11(:,n),  &
+                    ucfc12(:,n),un2o0(:,n),un2o1(:,n),uch4(:,n), &
+                    uco211(:,n),uco212(:,n),uco213(:,n),uco221(:,n), &
+                    uco222(:,n),uco223(:,n),bn2o0(:,n),bn2o1(:,n), &
+                    bch4(:,n),uptype(:,n))
       end do
       !
       ! Compute total emissivity:
