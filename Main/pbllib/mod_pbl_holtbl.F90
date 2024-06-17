@@ -1230,7 +1230,7 @@ module mod_pbl_holtbl
     end if
 
 #ifdef RCEMIP
-    call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx,m2p%psb)
+    !call force_water_conserve(qtenv,qtenc,qteni,m2p%qxatm,xqfx,m2p%psb)
 #endif
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + qtenv(j,i,k)
@@ -1336,25 +1336,24 @@ module mod_pbl_holtbl
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-    contains
+
+  end subroutine holtbl
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
 
-    pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
+  pure real(rkx) function comp_obklen(thvs,ustar,bfs) result(obk)
 !$acc routine seq
-      implicit none
-      real(rkx) , intent(in) :: thvs , ustar , bfs
-      obk = -(thvs*ustar**3) / (gvk*bfs+sign(1.0e-10_rkx,bfs))
-    end function comp_obklen
-
-  end subroutine holtbl
+    implicit none
+    real(rkx) , intent(in) :: thvs , ustar , bfs
+    obk = -(thvs*ustar**3) / (gvk*bfs+sign(1.0e-10_rkx,bfs))
+  end function comp_obklen
 
   subroutine force_water_conserve(tendv,tendc,tendi,start,sflux,ps)
     implicit none
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendv
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendc
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: tendi
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tendv
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tendc
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tendi
     real(rkx) , dimension(:,:,:,:) , pointer , intent(in) :: start
     real(rkx) , dimension(:,:) , pointer , intent(in) :: sflux , ps
     integer(ik4) :: i , j , k

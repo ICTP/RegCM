@@ -97,6 +97,10 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
+
+  real(rkx) , pointer , dimension(:) :: cfc110 , cfc120 , ch40
+  real(rkx) , pointer , dimension(:) :: co2mmr , co2vmr , n2o0
+
   integer(ik4) :: npr , npj
 
   integer(ik4) :: permuteseed = 37_ik4
@@ -155,6 +159,12 @@ module mod_rrtmg_driver
     call getmem1d(totwv,1,npr,'rrtmg:totwv')
     call getmem1d(totcl,1,npr,'rrtmg:totlf')
     call getmem1d(totci,1,npr,'rrtmg:totif')
+    call getmem1d(co2mmr,1,npr,'rrtmg:co2mmr')
+    call getmem1d(co2vmr,1,npr,'rrtmg:co2vmr')
+    call getmem1d(n2o0,1,npr,'rrtmg:n2o0')
+    call getmem1d(ch40,1,npr,'rrtmg:ch40')
+    call getmem1d(cfc110,1,npr,'rrtmg:cfc110')
+    call getmem1d(cfc120,1,npr,'rrtmg:cfc120')
 
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       call getmem2d(pint,1,npr,1,kzp1,'rrtmg:pint')
@@ -246,7 +256,6 @@ module mod_rrtmg_driver
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
-    call allocate_tracers(1,npr)
   end subroutine allocate_mod_rad_rrtmg
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
@@ -510,6 +519,8 @@ module mod_rrtmg_driver
     real(rkx) , parameter :: verynearone = 0.999999_rkx
     real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
     real(rkx) :: w1 , w2 , p1 , p2
+    real(rkx) :: pratio , alat
+    real(rkx) :: xcfc11 , xcfc12 , xch4 , xn2o
 !
 !   Set index for cloud particle properties based on the wavelength,
 !   according to A. Slingo (1989) equations 1-3:
@@ -796,9 +807,7 @@ module mod_rrtmg_driver
       end do
     end do
     !
-    ! cgas is in ppm , ppb , ppt
-    !
-    ! Transform in mass mixing ratios (g/g) for trcmix
+    ! Transform in mass mixing ratios (g/g)
     !
 #ifdef RCEMIP
     do n = 1 , npr
@@ -820,13 +829,19 @@ module mod_rrtmg_driver
     end do
 #endif
 
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         co2vmrk(n,k) = co2vmr(n)
       end do
     end do
 
-    call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+    do k = 1 , kth
+      do n = 1 , npr
+        call trcmix(dlat(n),xptrop(n),play(n,k),         &
+                    n2o0(n),ch40(n),cfc110(n),cfc120(n), &
+                    n2ommr(n,k),ch4mmr(n,k),cfc11mmr(n,k),cfc12mmr(n,k))
+      end do
+    end do
 
     do k = 1 , kth
       do n = 1 , npr

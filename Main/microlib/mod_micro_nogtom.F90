@@ -2173,77 +2173,75 @@ module mod_micro_nogtom
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
-
-    pure real(rkx) function edem(t,phase)
-!$acc routine seq
-      implicit none
-      real(rkx) , intent(in):: t , phase
-      edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
-               (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
-    end function edem
-
-    pure real(rkx) function eldcpm(t)
-!$acc routine seq
-      implicit none
-      real(rkx) , intent(in):: t
-      real(rkx) :: phase
-      phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
-                              rtwat_rtice_r)**2),d_zero)
-      eldcpm = phase*wlhvocp + (d_one-phase)*wlhsocp
-    end function eldcpm
-
-    pure real(rkx) function eewm(t,phase)
-!$acc routine seq
-      implicit none
-      real(rkx) , intent(in) :: t , phase
-      real(rkx) :: eliq , eice
-      eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
-      eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
-      eewm = phase * eliq + (d_one-phase) * eice
-    end function eewm
-
-   ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
-   !   implicit none
-   !   real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
-   !   real(rkx) , pointer , intent(inout) , dimension(:) :: fg
-   !   real(rkx) , intent(in) :: proc
-   !   integer(ik4) , intent(in) :: src , snk
-   !   real(rkx) , intent(in) :: beta
-   !   zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
-   !   zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
-   !   fg(src) = fg(src) + (d_one-beta)*proc
-   !   fg(snk) = fg(snk) - (d_one-beta)*proc
-   !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
-   ! end subroutine addpath
-
-   ! pure function argsort(a) result(b)
-   !   implicit none
-   !   real(rk8) , intent(in) :: a(:)
-   !   integer(ik4) , dimension(size(a)) :: b
-   !   integer(ik4) :: n , i , imin , temp1
-   !   real(rk8) :: temp2
-   !   real(rk8) , dimension(size(a)) :: a2
-   !   a2 = a
-   !   n = size(a)
-   !   do i = 1 , n
-   !     b(i) = i
-   !   end do
-   !   if ( n == 1 ) return
-   !   do i = 1 , n-1
-   !     imin = minloc(a2(i:),1) + i - 1
-   !     if ( imin /= i ) then
-   !       temp2 = a2(i)
-   !       a2(i) = a2(imin)
-   !       a2(imin) = temp2
-   !       temp1 = b(i)
-   !       b(i) = b(imin)
-   !       b(imin) = temp1
-   !     end if
-   !   end do
-   ! end function argsort
-
   end subroutine nogtom
+
+  pure real(rkx) function edem(t,phase)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in):: t , phase
+    edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
+               (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
+  end function edem
+
+  pure real(rkx) function eldcpm(t)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in):: t
+    real(rkx) :: phase
+    phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
+                            rtwat_rtice_r)**2),d_zero)
+    eldcpm = phase*wlhvocp + (d_one-phase)*wlhsocp
+  end function eldcpm
+
+  pure real(rkx) function eewm(t,phase)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: t , phase
+    real(rkx) :: eliq , eice
+    eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
+    eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
+    eewm = phase * eliq + (d_one-phase) * eice
+  end function eewm
+
+ ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
+ !   implicit none
+ !   real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
+ !   real(rkx) , pointer , intent(inout) , dimension(:) :: fg
+ !   real(rkx) , intent(in) :: proc
+ !   integer(ik4) , intent(in) :: src , snk
+ !   real(rkx) , intent(in) :: beta
+ !   zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
+ !   zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
+ !   fg(src) = fg(src) + (d_one-beta)*proc
+ !   fg(snk) = fg(snk) - (d_one-beta)*proc
+ !   zsqb(src,snk) = zsqb(src,snk) + beta*proc
+ ! end subroutine addpath
+
+ ! pure function argsort(a) result(b)
+ !   implicit none
+ !   real(rk8) , intent(in) :: a(:)
+ !   integer(ik4) , dimension(size(a)) :: b
+ !   integer(ik4) :: n , i , imin , temp1
+ !   real(rk8) :: temp2
+ !   real(rk8) , dimension(size(a)) :: a2
+ !   a2 = a
+ !   n = size(a)
+ !   do i = 1 , n
+ !     b(i) = i
+ !   end do
+ !   if ( n == 1 ) return
+ !   do i = 1 , n-1
+ !     imin = minloc(a2(i:),1) + i - 1
+ !     if ( imin /= i ) then
+ !       temp2 = a2(i)
+ !       a2(i) = a2(imin)
+ !       a2(imin) = temp2
+ !       temp1 = b(i)
+ !       b(i) = b(imin)
+ !       b(imin) = temp1
+ !     end if
+ !   end do
+ ! end function argsort
 
 end module mod_micro_nogtom
 
