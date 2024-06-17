@@ -519,8 +519,6 @@ module mod_rrtmg_driver
     real(rkx) , parameter :: verynearone = 0.999999_rkx
     real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
     real(rkx) :: w1 , w2 , p1 , p2
-    real(rkx) :: pratio , alat
-    real(rkx) :: xcfc11 , xcfc12 , xch4 , xn2o
 !
 !   Set index for cloud particle properties based on the wavelength,
 !   according to A. Slingo (1989) equations 1-3:

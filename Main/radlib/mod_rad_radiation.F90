@@ -1871,11 +1871,11 @@ module mod_rad_radiation
 #else
       do n = n1 , n2
 #endif
-        call trcpth(kz,tnm(n,:),pint(n,:),qnm(n,:),cfc11(n,:),cfc12(n,:), &
-                    n2o(n,:),ch4(n,:),co2mmr(n),ucfc11(n,:),ucfc12(n,:),  &
-                    un2o0(n,:),un2o1(n,:),uch4(n,:),uco211(n,:),          &
-                    uco212(n,:),uco213(n,:),uco221(n,:),uco222(n,:),      &
-                    uco223(n,:),bn2o0(n,:),bn2o1(n,:),bch4(n,:),uptype(n,:))
+        call trcpth(kz,tnm(:,n),pint(:,n),qnm(:,n),cfc11(:,n),cfc12(:,n), &
+                    n2o(:,n),ch4(:,n),co2mmr(n),ucfc11(:,n),ucfc12(:,n),  &
+                    un2o0(:,n),un2o1(:,n),uch4(:,n),uco211(:,n),          &
+                    uco212(:,n),uco213(:,n),uco221(:,n),uco222(:,n),      &
+                    uco223(:,n),bn2o0(:,n),bn2o1(:,n),bch4(:,n),uptype(:,n))
       end do
       !
       ! Compute total emissivity:
@@ -3179,7 +3179,7 @@ module mod_rad_radiation
             !
             ! Calculate absorptivity due to trace gases
             !
-            call trcab(kz,k1,k2,ucfc11(:,n),ucfc12(:,n),un2o0(:,n),     &
+            call trcab(kzp1,k1,k2,ucfc11(:,n),ucfc12(:,n),un2o0(:,n),   &
                        un2o1(:,n),uch4(:,n),uco211(:,n),uco212(:,n),    &
                        uco213(:,n),uco221(:,n),uco222(:,n),uco223(:,n), &
                        bn2o0(:,n),bn2o1(:,n),bch4(:,n),to3co2,          &
@@ -3434,7 +3434,7 @@ module mod_rad_radiation
         ! Calculate trace gas absorptivity for nearest layer
         !
         do kn = 1 , 4
-          call trcabn(kz,k2,kn,ucfc11(:,n),ucfc12(:,n),un2o0(:,n),     &
+          call trcabn(kzp1,k2,kn,ucfc11(:,n),ucfc12(:,n),un2o0(:,n),   &
                       un2o1(:,n),uch4(:,n),uco211(:,n),uco212(:,n),    &
                       uco213(:,n),uco221(:,n),uco222(:,n),uco223(:,n), &
                       tbar(:,n),bplnk,winpl(:,n),pinpl(:,n),tco2,      &
@@ -3860,11 +3860,11 @@ module mod_rad_radiation
         !
         ! Calculate trace gas emissivities
         !
-        call trcems(kz,k,co2t(:,n),pint(:,n),ucfc11(:,n),ucfc12(:,n),   &
-                    un2o0(:,n),un2o1(:,n),bn2o0(:,n),bn2o1(:,n),     &
-                    uch4(:,n),bch4(:,n),uco211(:,n),uco212(:,n),     &
-                    uco213(:,n),uco221(:,n),uco222(:,n),uco223(:,n), &
-                    uptype(:,n),w(:,n),s2c(:,n),ux,emplnk(:,n),   &
+        call trcems(kzp1,k,co2t(:,n),pint(:,n),ucfc11(:,n),ucfc12(:,n), &
+                    un2o0(:,n),un2o1(:,n),bn2o0(:,n),bn2o1(:,n),        &
+                    uch4(:,n),bch4(:,n),uco211(:,n),uco212(:,n),        &
+                    uco213(:,n),uco221(:,n),uco222(:,n),uco223(:,n),    &
+                    uptype(:,n),w(:,n),s2c(:,n),ux,emplnk(:,n),         &
                     th2o,tco2,to3,emstrc)
         !
         ! Total emissivity:

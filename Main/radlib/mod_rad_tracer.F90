@@ -70,8 +70,10 @@ module mod_rad_tracer
     real(rkx) , intent(in) :: pmid , dlat , xptrop
     real(rkx) , intent(in) :: n2o0 , ch40 , cfc110 , cfc120
     real(rkx) , intent(out) :: cfc11 , cfc12 , ch4 , n2o
-    real(rkx) :: pratio , alat
-    real(rkx) :: xcfc11 , xcfc12 , xch4 , xn2o
+#ifndef RCEMIP
+    real(rkx) :: alat
+#endif
+    real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o
 
 #ifdef RCEMIP
     xn2o = 0.3478_rkx
@@ -153,18 +155,19 @@ module mod_rad_tracer
 !$acc routine seq
     implicit none
     integer , intent(in) :: nk
-    real(rkx) , dimension(nk) , intent(in) :: tnm , pnm , qnm
+    real(rkx) , dimension(nk+1) , intent(in) :: pnm
+    real(rkx) , dimension(nk) , intent(in) :: tnm , qnm
     real(rkx) , dimension(nk) , intent(in) :: n2o , ch4
     real(rkx) , dimension(nk) , intent(in) :: cfc11 , cfc12
     real(rkx) , intent(in) :: co2mmr
-    real(rkx) , dimension(nk) , intent(inout) :: bch4 , uch4
-    real(rkx) , dimension(nk) , intent(inout) :: bn2o0 , un2o0
-    real(rkx) , dimension(nk) , intent(inout) :: bn2o1 , un2o1
-    real(rkx) , dimension(nk) , intent(inout) :: ucfc11 , ucfc12
-    real(rkx) , dimension(nk) , intent(inout) :: uco211 , uco212
-    real(rkx) , dimension(nk) , intent(inout) :: uco213 , uco221
-    real(rkx) , dimension(nk) , intent(inout) :: uco222 , uco223
-    real(rkx) , dimension(nk) , intent(inout) :: uptype
+    real(rkx) , dimension(nk+1) , intent(inout) :: bch4 , uch4
+    real(rkx) , dimension(nk+1) , intent(inout) :: bn2o0 , un2o0
+    real(rkx) , dimension(nk+1) , intent(inout) :: bn2o1 , un2o1
+    real(rkx) , dimension(nk+1) , intent(inout) :: ucfc11 , ucfc12
+    real(rkx) , dimension(nk+1) , intent(inout) :: uco211 , uco212
+    real(rkx) , dimension(nk+1) , intent(inout) :: uco213 , uco221
+    real(rkx) , dimension(nk+1) , intent(inout) :: uco222 , uco223
+    real(rkx) , dimension(nk+1) , intent(inout) :: uptype
     !
     !   co2fac - co2 factor
     !   alpha1 - stimulated emission term
@@ -285,7 +288,7 @@ module mod_rad_tracer
 !$acc routine seq
     implicit none
     integer(ik4) , intent(in) :: nk , k1 , k2
-    real(rkx) , dimension(nk+1,14) , intent(in) :: abplnk1
+    real(rkx) , dimension(nk,14) , intent(in) :: abplnk1
     real(rkx) , dimension(nk) , intent(in) :: uptype
     real(rkx) , dimension(nk) , intent(in) :: ucfc11 , ucfc12
     real(rkx) , dimension(nk) , intent(in) :: s2c
