@@ -29,7 +29,7 @@ module mod_rad_tracer
 
   private
 
-  public :: trcmix , trcpth , trcab , trcabn , trcems , trcplk
+  public :: trcmix , trcab , trcabn , trcems
 
   contains
 
@@ -110,138 +110,6 @@ module mod_rad_tracer
   end subroutine trcmix
   !
   !----------------------------------------------------------------------
-  ! Calculate path lengths and pressure factors for CH4, N2O, CFC11
-  ! and CFC12.
-  !           Coded by J.T. Kiehl, November 21, 1994.
-  !
-  !-----------------------------------------------------------------------
-  !
-  !------------------------------Arguments--------------------------------
-  !
-  ! Input arguments
-  !
-  ! tnm    - Model level temperatures
-  ! pnm    - Pressure at model interfaces (dynes/cm2)
-  ! qmn    - h2o specific humidity
-  ! cfc11  - CFC11 mass mixing ratio
-  ! cfc12  - CFC12 mass mixing ratio
-  ! n2o    - N2O mass mixing ratio
-  ! ch4    - CH4 mass mixing ratio
-  !
-  ! Output arguments
-  !
-  ! ucfc11 - CFC11 path length
-  ! ucfc12 - CFC12 path length
-  ! un2o0  - N2O path length
-  ! un2o1  - N2O path length (hot band)
-  ! uch4   - CH4 path length
-  ! uco211 - CO2 9.4 micron band path length
-  ! uco212 - CO2 9.4 micron band path length
-  ! uco213 - CO2 9.4 micron band path length
-  ! uco221 - CO2 10.4 micron band path length
-  ! uco222 - CO2 10.4 micron band path length
-  ! uco223 - CO2 10.4 micron band path length
-  ! bn2o0  - pressure factor for n2o
-  ! bn2o1  - pressure factor for n2o
-  ! bch4   - pressure factor for ch4
-  ! uptype - p-type continuum path length
-  !
-  !-----------------------------------------------------------------------
-  !
-  pure subroutine trcpth(nk,tnm,pnm,qnm,cfc11,cfc12,n2o,ch4,co2mmr,    &
-                         ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
-                         uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4, &
-                         uptype)
-!$acc routine seq
-    implicit none
-    integer , intent(in) :: nk
-    real(rkx) , dimension(nk+1) , intent(in) :: pnm
-    real(rkx) , dimension(nk) , intent(in) :: tnm , qnm
-    real(rkx) , dimension(nk) , intent(in) :: n2o , ch4
-    real(rkx) , dimension(nk) , intent(in) :: cfc11 , cfc12
-    real(rkx) , intent(in) :: co2mmr
-    real(rkx) , dimension(nk+1) , intent(inout) :: bch4 , uch4
-    real(rkx) , dimension(nk+1) , intent(inout) :: bn2o0 , un2o0
-    real(rkx) , dimension(nk+1) , intent(inout) :: bn2o1 , un2o1
-    real(rkx) , dimension(nk+1) , intent(inout) :: ucfc11 , ucfc12
-    real(rkx) , dimension(nk+1) , intent(inout) :: uco211 , uco212
-    real(rkx) , dimension(nk+1) , intent(inout) :: uco213 , uco221
-    real(rkx) , dimension(nk+1) , intent(inout) :: uco222 , uco223
-    real(rkx) , dimension(nk+1) , intent(inout) :: uptype
-    !
-    !   co2fac - co2 factor
-    !   alpha1 - stimulated emission term
-    !   alpha2 - stimulated emission term
-    !   rt     - reciprocal of local temperature
-    !   rsqrt  - reciprocal of sqrt of temp
-    !   pbar   - mean pressure
-    !   dpnm   - difference in pressure
-    !
-    real(rkx) , parameter :: diff = 1.66_rkx ! diffusivity factor
-    real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
-    integer(ik4) :: k
-
-    !-----------------------------------------------------------------------
-    !   Calculate path lengths for the trace gases
-    !-----------------------------------------------------------------------
-    ucfc11(1) = 1.8_rkx*cfc11(1)*pnm(1)*regravgts
-    ucfc12(1) = 1.8_rkx*cfc12(1)*pnm(1)*regravgts
-    un2o0(1) = diff*1.02346e5_rkx*n2o(1)*pnm(1)*regravgts/sqrt(tnm(1))
-    un2o1(1) = diff*2.01909_rkx*un2o0(1)*exp(-847.36_rkx/tnm(1))
-    uch4(1) = diff*8.60957e4_rkx*ch4(1)*pnm(1)*regravgts/sqrt(tnm(1))
-    co2fac = diff*co2mmr*pnm(1)*regravgts
-    alpha1 = (d_one-exp(-1540.0_rkx/tnm(1)))**3/sqrt(tnm(1))
-    alpha2 = (d_one-exp(-1360.0_rkx/tnm(1)))**3/sqrt(tnm(1))
-    uco211(1) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(1))
-    uco212(1) = 6.02454e3_rkx*co2fac*alpha1*exp(-2782.1_rkx/tnm(1))
-    uco213(1) = 5.53143e3_rkx*co2fac*alpha1*exp(-3723.2_rkx/tnm(1))
-    uco221(1) = 3.88984e3_rkx*co2fac*alpha2*exp(-1997.6_rkx/tnm(1))
-    uco222(1) = 3.67108e3_rkx*co2fac*alpha2*exp(-3843.8_rkx/tnm(1))
-    uco223(1) = 6.50642e3_rkx*co2fac*alpha2*exp(-2989.7_rkx/tnm(1))
-    bn2o0(1) = diff*19.399_rkx*pnm(1)**2*n2o(1) * &
-               1.02346e5_rkx*regravgts/(sslp*tnm(1))
-    bn2o1(1) = bn2o0(1)*exp(-847.36_rkx/tnm(1))*2.06646e5_rkx
-    bch4(1) = diff*2.94449_rkx*ch4(1)*pnm(1)**2*regravgts * &
-              8.60957e4_rkx/(sslp*tnm(1))
-    uptype(1) = diff*qnm(1)*pnm(1)**2*exp(1800.0_rkx* &
-                (d_one/tnm(1)-d_one/296.0_rkx))*regravgts/sslp
-    do k = 1 , nk
-      rt = d_one/tnm(k)
-      rsqrt = sqrt(rt)
-      pbar = ((pnm(k+1)+pnm(k))*d_half)/sslp
-      dpnm = (pnm(k+1)-pnm(k))*regravgts
-      alpha1 = diff*rsqrt*(d_one-exp(-1540.0_rkx/tnm(k)))**3
-      alpha2 = diff*rsqrt*(d_one-exp(-1360.0_rkx/tnm(k)))**3
-      ucfc11(k+1) = ucfc11(k) + 1.8_rkx*cfc11(k)*dpnm
-      ucfc12(k+1) = ucfc12(k) + 1.8_rkx*cfc12(k)*dpnm
-      un2o0(k+1) = un2o0(k) + diff*1.02346e5_rkx*n2o(k)*rsqrt*dpnm
-      un2o1(k+1) = un2o1(k) + diff*2.06646e5_rkx*n2o(k) * &
-                   rsqrt*exp(-847.36_rkx/tnm(k))*dpnm
-      uch4(k+1) = uch4(k) + diff*8.60957e4_rkx*ch4(k)*rsqrt*dpnm
-      uco211(k+1) = uco211(k) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
-                    co2mmr*exp(-1849.7_rkx/tnm(k))*dpnm
-      uco212(k+1) = uco212(k) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
-                    co2mmr*exp(-2782.1_rkx/tnm(k))*dpnm
-      uco213(k+1) = uco213(k) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
-                    co2mmr*exp(-3723.2_rkx/tnm(k))*dpnm
-      uco221(k+1) = uco221(k) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
-                    co2mmr*exp(-1997.6_rkx/tnm(k))*dpnm
-      uco222(k+1) = uco222(k) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
-                    co2mmr*exp(-3843.8_rkx/tnm(k))*dpnm
-      uco223(k+1) = uco223(k) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
-                    co2mmr*exp(-2989.7_rkx/tnm(k))*dpnm
-      bn2o0(k+1) = bn2o0(k) + diff*19.399_rkx*pbar*rt * &
-                   1.02346e5_rkx*n2o(k)*dpnm
-      bn2o1(k+1) = bn2o1(k) + diff*19.399_rkx*pbar*rt * &
-                   2.06646e5_rkx*exp(-847.36_rkx/tnm(k))*n2o(k)*dpnm
-      bch4(k+1) = bch4(k) + diff*2.94449_rkx*rt*pbar * &
-                  8.60957e4_rkx*ch4(k)*dpnm
-      uptype(k+1) = uptype(k) + diff*qnm(k)*exp(1800.0_rkx*(d_one / &
-                    tnm(k)-d_one/296.0_rkx))*pbar*dpnm
-    end do
-  end subroutine trcpth
-  !
-  !----------------------------------------------------------------------
   ! Calculate absorptivity for non nearest layers for CH4, N2O, CFC11 and
   ! CFC12.
   !
@@ -281,25 +149,19 @@ module mod_rad_tracer
   !
   !-----------------------------------------------------------------------
   !
-  pure subroutine trcab(nk,k1,k2,ucfc11,ucfc12,un2o0,un2o1,uch4,      &
-                     uco211,uco212,uco213,uco221,uco222,uco223,bn2o0, &
-                     bn2o1,bch4,to3co2,pnm,dw,pnew,s2c,uptype,dplh2o, &
-                     abplnk1,tco2,th2o,to3,abstrc)
+  pure real(rkx) function trcab(dpint,ds2c,duptyp,du1,du2,duch4,dbetac, &
+      du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
+      duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
 !$acc routine seq
     implicit none
-    integer(ik4) , intent(in) :: nk , k1 , k2
-    real(rkx) , dimension(nk,14) , intent(in) :: abplnk1
-    real(rkx) , dimension(nk) , intent(in) :: uptype
-    real(rkx) , dimension(nk) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(nk) , intent(in) :: s2c
-    real(rkx) , dimension(nk) , intent(in) :: un2o0 , un2o1 , uch4
-    real(rkx) , dimension(nk) , intent(in) :: bn2o0 , bn2o1 , bch4
-    real(rkx) , dimension(nk) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(nk) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(nk) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(nk) , intent(in) :: pnm
-    real(rkx) , intent(in) :: to3co2 , dw , pnew , dplh2o , tco2 , th2o , to3
-    real(rkx) , intent(out) :: abstrc
+    real(rkx) , intent(in) :: dpint , ds2c , duptyp , du1 , du2
+    real(rkx) , intent(in) :: duch4 , dbetac , du01 , du11
+    real(rkx) , intent(in) :: dbeta01 , dbeta11
+    real(rkx) , intent(in) :: duco11 , duco12 , duco13
+    real(rkx) , intent(in) :: duco21 , duco22 , duco23
+    real(rkx) , intent(in) :: to3co2 , dw , pnew , dplh2o
+    real(rkx) , intent(in) :: tco2 , th2o , to3
+    real(rkx) , dimension(14) , intent(in) :: abplnk1
     !
     !-----------------------------------------------------------------------
     !
@@ -363,13 +225,10 @@ module mod_rad_tracer
     !
     !-----------------------------------------------------------------------
     !
-    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
-                 acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
-                 dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
-                 dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
-                 du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
-                 phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
-                 tch4 , tlw , w1 , sqti , ds2c , duptyp , tt
+    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 , &
+      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta02 ,   &
+      dbeta03 , dbetc1 , dbetc2 , du02 , du12 , du03 , p1 , phi1 , psi1 ,&
+      tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , w1 , sqti , tt
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
 
@@ -401,8 +260,6 @@ module mod_rad_tracer
     sqti = sqrt(to3co2)
     ! h2o transmission
     tt = abs(to3co2-250.0_rkx)
-    ds2c = abs(s2c(k1)-s2c(k2))
-    duptyp = abs(uptype(k1)-uptype(k2))
     do l = 1 , 6
       psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
       phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
@@ -411,8 +268,6 @@ module mod_rad_tracer
       tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
                    d_one)-g3(l)*ds2c-g4(l)*duptyp)
     end do
-    du1 = abs(ucfc11(k1)-ucfc11(k2))
-    du2 = abs(ucfc12(k1)-ucfc12(k2))
     ! cfc transmissions
     tcfc3 = exp(-175.005_rkx*du1)
     tcfc4 = exp(-1202.18_rkx*du1)
@@ -420,64 +275,49 @@ module mod_rad_tracer
     tcfc7 = exp(-2873.51_rkx*du2)
     tcfc8 = exp(-2085.59_rkx*du2)
     ! Absorptivity for CFC11 bands
-    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*abplnk1(k2,7)
-    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*abplnk1(k2,8)
-    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*abplnk1(k2,9)
-    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*abplnk1(k2,10)
+    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*abplnk1(7)
+    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*abplnk1(8)
+    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*abplnk1(9)
+    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*abplnk1(10)
     ! Absorptivity for CFC12 bands
-    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*abplnk1(k2,11)
-    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*abplnk1(k2,12)
-    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*abplnk1(k2,13)
-    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*abplnk1(k2,14)
+    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*abplnk1(11)
+    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*abplnk1(12)
+    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*abplnk1(13)
+    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*abplnk1(14)
     ! Emissivity for CH4 band 1306 cm-1
     tlw = exp(-d_one*sqrt(dplh2o))
-    duch4 = abs(uch4(k1)-uch4(k2))
-    dbetac = abs(bch4(k1)-bch4(k2))/duch4
-    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac)) * &
-           tlw*abplnk1(k2,3)
+    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*abplnk1(3)
     tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
     ! Absorptivity for N2O bands
-    du01 = abs(un2o0(k1)-un2o0(k2))
-    du11 = abs(un2o1(k1)-un2o1(k2))
-    dbeta01 = abs(bn2o0(k1)-bn2o0(k2))/du01
-    dbeta11 = abs(bn2o1(k1)-bn2o1(k2))/du11
     ! 1285 cm-1 band
-    an2o1 = 2.35558_rkx*sqti * &
-           log(d_one+func(du01,dbeta01)+func(du11,dbeta11)) * &
-           tlw*tch4*abplnk1(k2,4)
+    an2o1 = 2.35558_rkx*sqti * log(d_one+func(du01,dbeta01) + &
+            func(du11,dbeta11)) * tlw*tch4*abplnk1(4)
     du02 = 0.100090_rkx*du01
     du12 = 0.0992746_rkx*du11
     dbeta02 = 0.964282_rkx*dbeta01
     ! 589 cm-1 band
-    an2o2 = 2.65581_rkx*sqti * &
-            log(d_one+func(du02,dbeta02) + &
-            func(du12,dbeta02))*th2o*tco2*abplnk1(k2,5)
+    an2o2 = 2.65581_rkx*sqti * log(d_one+func(du02,dbeta02) + &
+            func(du12,dbeta02))*th2o*tco2*abplnk1(5)
     du03 = 0.0333767_rkx*du01
     dbeta03 = 0.982143_rkx*dbeta01
     ! 1168 cm-1 band
     an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03)) * &
-            tw(6)*tcfc8*abplnk1(k2,6)
+            tw(6)*tcfc8*abplnk1(6)
     ! Emissivity for 1064 cm-1 band of CO2
-    du11 = abs(uco211(k1)-uco211(k2))
-    du12 = abs(uco212(k1)-uco212(k2))
-    du13 = abs(uco213(k1)-uco213(k2))
-    dbetc1 = 2.97558_rkx*abs(pnm(k1)+pnm(k2))/(d_two*sslp*sqti)
+    dbetc1 = 2.97558_rkx*dpint/(d_two*sslp*sqti)
     dbetc2 = d_two*dbetc1
     aco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(du11,dbetc1)+func(du12,dbetc2) + &
-            func(du13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*abplnk1(k2,2)
+            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
+            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*abplnk1(2)
     ! Emissivity for 961 cm-1 band
-    du21 = abs(uco221(k1)-uco221(k2))
-    du22 = abs(uco222(k1)-uco222(k2))
-    du23 = abs(uco223(k1)-uco223(k2))
     aco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(du21,dbetc1)+func(du22,dbetc1) + &
-            func(du23,dbetc2))*tw(4)*tcfc3*tcfc6*abplnk1(k2,1)
+            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
+            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*abplnk1(1)
     ! total trace gas absorptivity
     abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +  &
              acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
              aco21 + aco22
-  end subroutine trcab
+  end function trcab
   !
   !----------------------------------------------------------------------
   ! Calculate nearest layer absorptivity due to CH4, N2O, CFC11 and CFC12
@@ -518,24 +358,16 @@ module mod_rad_tracer
   !
   !-----------------------------------------------------------------------
   !
-  pure subroutine trcabn(nk,k2,kn,ucfc11,ucfc12,un2o0,un2o1,uch4,   &
-                         uco211,uco212,uco213,uco221,uco222,uco223, &
-                         tbar,bplnk,winpl,pinpl,tco2,th2o,to3,      &
-                         uptype,dw,s2c,up2,pnew,uinpl,abstrc)
+  pure real(rkx) function trcabn(tbar,dw,pnew,tco2,th2o,to3,up2,     &
+      pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
+      duco13,duco21,duco22,duco23,bplnk) result(abstrc)
 !$acc routine seq
     implicit none
-    integer(ik4) , intent(in) :: nk , k2 , kn
-    real(rkx) , intent(in) :: dw , pnew , tco2 , th2o , to3 , up2
-    real(rkx) , dimension(14,4) , intent(in) :: bplnk
-    real(rkx) , dimension(nk) , intent(in) :: pinpl , tbar
-    real(rkx) , dimension(nk) , intent(in) :: uinpl , winpl
-    real(rkx) , dimension(nk) , intent(in) :: s2c , ucfc11
-    real(rkx) , dimension(nk) , intent(in) :: ucfc12 , uch4
-    real(rkx) , dimension(nk) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(nk) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(nk) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(nk) , intent(in) :: un2o0 , un2o1 , uptype
-    real(rkx) , intent(out) :: abstrc
+    real(rkx) , intent(in) :: tbar , dw , pnew , tco2 , th2o , to3 , up2
+    real(rkx) , intent(in) :: winpl , pinpl , ds2c , duptyp , du1 , du2
+    real(rkx) , intent(in) :: duch4 , du01 , du11 , duco11 , duco12
+    real(rkx) , intent(in) :: duco13 , duco21 , duco22 , duco23
+    real(rkx) , dimension(14) , intent(in) :: bplnk
     !
     ! sqti    - square root of mean temp
     ! rsqti   - reciprocal of sqti
@@ -597,12 +429,10 @@ module mod_rad_tracer
     ! tch4   -  ch4 transmission
     !
     real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
-                 acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , &
-                 dbeta01 , dbeta02 , dbeta03 , dbeta11 , dbetac ,       &
-                 dbetc1 , dbetc2 , du01 , du02 , du03 , du1 , du11 ,    &
-                 du12 , du13 , du2 , du21 , du22 , du23 , duch4 , p1 ,  &
-                 phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 ,  &
-                 tch4 , tlw , w1 , ds2c , duptyp , rsqti , sqti , tt
+      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta01 ,  &
+      dbeta02 , dbeta03 , dbeta11 , dbetac , dbetc1 , dbetc2 , du02 ,   &
+      du03 , p1 , phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , &
+      tch4 , tlw , w1 , rsqti , sqti , tt , du12
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
 
@@ -631,22 +461,18 @@ module mod_rad_tracer
      [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
        -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
-    sqti = sqrt(tbar(kn))
+    sqti = sqrt(tbar)
     rsqti = d_one/sqti
     ! h2o transmission
-    tt = abs(tbar(kn)-250.0_rkx)
-    ds2c = abs(s2c(k2+1)-s2c(k2))*uinpl(kn)
-    duptyp = abs(uptype(k2+1)-uptype(k2))*uinpl(kn)
+    tt = abs(tbar-250.0_rkx)
     do l = 1 , 6
       psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
       phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
       p1 = pnew*(psi1/phi1)/sslp
-      w1 = dw*winpl(kn)*phi1
+      w1 = dw*winpl*phi1
       tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1))-d_one)-g3(l) * &
                    ds2c-g4(l)*duptyp)
     end do
-    du1 = abs(ucfc11(k2+1)-ucfc11(k2))*winpl(kn)
-    du2 = abs(ucfc12(k2+1)-ucfc12(k2))*winpl(kn)
     ! cfc transmissions
     tcfc3 = exp(-175.005_rkx*du1)
     tcfc4 = exp(-1202.18_rkx*du1)
@@ -654,133 +480,54 @@ module mod_rad_tracer
     tcfc7 = exp(-2873.51_rkx*du2)
     tcfc8 = exp(-2085.59_rkx*du2)
     ! Absorptivity for CFC11 bands
-    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*bplnk(7,kn)
-    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*bplnk(8,kn)
-    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*bplnk(9,kn)
-    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*bplnk(10,kn)
+    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*bplnk(7)
+    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*bplnk(8)
+    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*bplnk(9)
+    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*bplnk(10)
     ! Absorptivity for CFC12 bands
-    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*bplnk(11,kn)
-    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*bplnk(12,kn)
-    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*bplnk(13,kn)
-    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*bplnk(14,kn)
+    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*bplnk(11)
+    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*bplnk(12)
+    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*bplnk(13)
+    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*bplnk(14)
     ! Emissivity for CH4 band 1306 cm-1
     tlw = exp(-d_one*sqrt(up2))
-    duch4 = abs(uch4(k2+1)-uch4(k2))*winpl(kn)
-    dbetac = 2.94449_rkx*pinpl(kn)*rsqti/sslp
-    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*bplnk(3,kn)
+    dbetac = 2.94449_rkx*pinpl*rsqti/sslp
+    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*bplnk(3)
     tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
     ! Absorptivity for N2O bands
-    du01 = abs(un2o0(k2+1)-un2o0(k2))*winpl(kn)
-    du11 = abs(un2o1(k2+1)-un2o1(k2))*winpl(kn)
-    dbeta01 = 19.399_rkx*pinpl(kn)*rsqti/sslp
+    dbeta01 = 19.399_rkx*pinpl*rsqti/sslp
     dbeta11 = dbeta01
     ! 1285 cm-1 band
     an2o1 = 2.35558_rkx*sqti * &
             log(d_one+func(du01,dbeta01)+func(du11,dbeta11)) * &
-            tlw*tch4*bplnk(4,kn)
+            tlw*tch4*bplnk(4)
     du02 = 0.100090_rkx*du01
     du12 = 0.0992746_rkx*du11
     dbeta02 = 0.964282_rkx*dbeta01
     ! 589 cm-1 band
     an2o2 = 2.65581_rkx*sqti * &
             log(d_one+func(du02,dbeta02)+func(du12,dbeta02)) * &
-            tco2*th2o*bplnk(5,kn)
+            tco2*th2o*bplnk(5)
     du03 = 0.0333767_rkx*du01
     dbeta03 = 0.982143_rkx*dbeta01
     ! 1168 cm-1 band
     an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03))*tw(6) * &
-            tcfc8*bplnk(6,kn)
+            tcfc8*bplnk(6)
     ! Emissivity for 1064 cm-1 band of CO2
-    du11 = abs(uco211(k2+1)-uco211(k2))*winpl(kn)
-    du12 = abs(uco212(k2+1)-uco212(k2))*winpl(kn)
-    du13 = abs(uco213(k2+1)-uco213(k2))*winpl(kn)
-    dbetc1 = 2.97558_rkx*pinpl(kn)*rsqti/sslp
+    dbetc1 = 2.97558_rkx*pinpl*rsqti/sslp
     dbetc2 = d_two*dbetc1
     aco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(du11,dbetc1)+func(du12,dbetc2) + &
-            func(du13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*bplnk(2,kn)
+            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
+            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*bplnk(2)
     ! Emissivity for 961 cm-1 band of co2
-    du21 = abs(uco221(k2+1)-uco221(k2))*winpl(kn)
-    du22 = abs(uco222(k2+1)-uco222(k2))*winpl(kn)
-    du23 = abs(uco223(k2+1)-uco223(k2))*winpl(kn)
     aco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(du21,dbetc1)+func(du22,dbetc1) + &
-            func(du23,dbetc2))*tw(4)*tcfc3*tcfc6*bplnk(1,kn)
+            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
+            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*bplnk(1)
     ! total trace gas absorptivity
     abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 + &
              acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
              aco21 + aco22
-  end subroutine trcabn
-  !
-  !----------------------------------------------------------------------
-  !   Calculate Planck factors for absorptivity and emissivity of
-  !   CH4, N2O, CFC11 and CFC12
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Input arguments
-  !
-  ! tint    - interface temperatures
-  ! tlayr   - k-1 level temperatures
-  ! tplnke  - Top Layer temperature
-  !
-  ! output arguments
-  !
-  ! emplnk  - emissivity Planck factor
-  ! abplnk1 - non-nearest layer Plack factor
-  ! abplnk2 - nearest layer factor
-  !
-  pure subroutine trcplk(nk,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
-!$acc routine seq
-    implicit none
-    integer(ik4) , intent(in) :: nk
-    real(rkx) , intent(in) :: tplnke
-    real(rkx) , dimension(nk) , intent(in) :: tint , tlayr
-    real(rkx) , dimension(nk,14) , intent(out) :: abplnk1 , abplnk2
-    real(rkx) , dimension(14) , intent(out) :: emplnk
-    !
-    ! wvl   - wavelength index
-    ! f1    - Planck function factor
-    ! f2    -       "
-    ! f3    -       "
-    !
-    integer(ik4) :: k , wvl
-
-    real(rkx) , dimension(14) , parameter :: f1 = &
-     [ 5.85713e8_rkx , 7.94950e8_rkx , 1.47009e9_rkx , 1.40031e9_rkx , &
-       1.34853e8_rkx , 1.05158e9_rkx , 3.35370e8_rkx , 3.99601e8_rkx , &
-       5.35994e8_rkx , 8.42955e8_rkx , 4.63682e8_rkx , 5.18944e8_rkx , &
-       8.83202e8_rkx , 1.03279e9_rkx ]
-    real(rkx) , dimension(14) , parameter :: f2 = &
-     [ 2.02493e11_rkx , 3.04286e11_rkx , 6.90698e11_rkx , &
-       6.47333e11_rkx , 2.85744e10_rkx , 4.41862e11_rkx , &
-       9.62780e10_rkx , 1.21618e11_rkx , 1.79905e11_rkx , &
-       3.29029e11_rkx , 1.48294e11_rkx , 1.72315e11_rkx , &
-       3.50140e11_rkx , 4.31364e11_rkx ]
-    real(rkx) , dimension(14) , parameter :: f3 = &
-     [ 1383.0_rkx , 1531.0_rkx , 1879.0_rkx , 1849.0_rkx ,  848.0_rkx , &
-       1681.0_rkx , 1148.0_rkx , 1217.0_rkx , 1343.0_rkx , 1561.0_rkx , &
-       1279.0_rkx , 1328.0_rkx , 1586.0_rkx , 1671.0_rkx ]
-    !
-    ! Calculate emissivity Planck factor
-    !
-    do wvl = 1 , 14
-      emplnk(wvl) = f1(wvl)/(tplnke**4*(exp(f3(wvl)/tplnke)-d_one))
-    end do
-    !
-    ! Calculate absorptivity Planck factor for tint and tlayr temperatures
-    !
-    do wvl = 1 , 14
-      do  k = 1 , nk
-        ! non-nearlest layer function
-        abplnk1(k,wvl) = (f2(wvl)*exp(f3(wvl)/tint(k))) / &
-                         (tint(k)**5*(exp(f3(wvl)/tint(k))-d_one)**2)
-        ! nearest layer function
-        abplnk2(k,wvl) = (f2(wvl)*exp(f3(wvl)/tlayr(k))) / &
-                         (tlayr(k)**5*(exp(f3(wvl)/tlayr(k))-d_one)**2)
-      end do
-    end do
-  end subroutine trcplk
+  end function trcabn
   !
   !----------------------------------------------------------------------
   !  Calculate emissivity for CH4, N2O, CFC11 and CFC12 bands.
@@ -821,25 +568,22 @@ module mod_rad_tracer
   !
   !-----------------------------------------------------------------------
   !
-  pure subroutine trcems(nk,k,co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,      &
-                    bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
-                    uco222,uco223,uptype,w,s2c,up2,emplnk,th2o,tco2,   &
-                    to3,emstrc)
+  pure real(rkx) function trcems(co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
+     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &
+     uptype,w,s2c,up2,emplnk,th2o,tco2,to3) result(emstrc)
 !$acc routine seq
     implicit none
-    integer(ik4) , intent(in) :: nk , k
-    real(rkx) , dimension(nk) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , dimension(nk) , intent(in) :: un2o0 , un2o1
-    real(rkx) , dimension(nk) , intent(in) :: bch4 , uch4 , co2t
-    real(rkx) , dimension(nk) , intent(in) :: pnm , s2c
-    real(rkx) , dimension(nk) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(nk) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(nk) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(nk) , intent(in) :: uco222 , uco223
+    real(rkx) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , intent(in) :: un2o0 , un2o1
+    real(rkx) , intent(in) :: bch4 , uch4 , co2t
+    real(rkx) , intent(in) :: pnm , s2c
+    real(rkx) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , intent(in) :: uco211 , uco212
+    real(rkx) , intent(in) :: uco213 , uco221
+    real(rkx) , intent(in) :: uco222 , uco223
     real(rkx) , intent(in) :: tco2 , th2o , to3 , up2
-    real(rkx) , dimension(nk) , intent(in) :: uptype , w
+    real(rkx) , intent(in) :: uptype , w
     real(rkx) , dimension(14) , intent(in) :: emplnk
-    real(rkx) , intent(out) :: emstrc
     !
     ! sqti   - square root of mean temp
     ! ecfc1  - emissivity of cfc11 798 cm-1 band
@@ -924,43 +668,43 @@ module mod_rad_tracer
       [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
         -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
-    sqti = sqrt(co2t(k))
+    sqti = sqrt(co2t)
     ! Transmission for h2o
-    tt = abs(co2t(k)-250.0_rkx)
+    tt = abs(co2t-250.0_rkx)
     ! transmission due to cfc bands
     do l = 1 , 6
       psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
       phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
-      p1 = pnm(k)*(psi1/phi1)/sslp
-      w1 = w(k)*phi1
+      p1 = pnm*(psi1/phi1)/sslp
+      w1 = w*phi1
       tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
-              d_one)-g3(l)*s2c(k)-g4(l)*uptype(k))
+              d_one)-g3(l)*s2c-g4(l)*uptype)
     end do
-    tcfc3 = exp(-175.005_rkx*ucfc11(k))
-    tcfc4 = exp(-1202.18_rkx*ucfc11(k))
-    tcfc6 = exp(-5786.73_rkx*ucfc12(k))
-    tcfc7 = exp(-2873.51_rkx*ucfc12(k))
-    tcfc8 = exp(-2085.59_rkx*ucfc12(k))
+    tcfc3 = exp(-175.005_rkx*ucfc11)
+    tcfc4 = exp(-1202.18_rkx*ucfc11)
+    tcfc6 = exp(-5786.73_rkx*ucfc12)
+    tcfc7 = exp(-2873.51_rkx*ucfc12)
+    tcfc8 = exp(-2085.59_rkx*ucfc12)
     ! Emissivity for CFC11 bands
-    ecfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*ucfc11(k)))*tw(1)*emplnk(7)
-    ecfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*ucfc11(k)))*tw(2)*emplnk(8)
+    ecfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*ucfc11))*tw(1)*emplnk(7)
+    ecfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*ucfc11))*tw(2)*emplnk(8)
     ecfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*emplnk(9)
     ecfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*emplnk(10)
     ! Emissivity for CFC12 bands
-    ecfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*ucfc12(k)))*tw(3)*emplnk(11)
+    ecfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*ucfc12))*tw(3)*emplnk(11)
     ecfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*emplnk(12)
     ecfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*emplnk(13)
     ecfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*emplnk(14)
     ! Emissivity for CH4 band 1306 cm-1
     tlw = exp(-d_one*sqrt(up2))
-    betac = bch4(k)/uch4(k)
-    ech4 = 6.00444_rkx*sqti*log(d_one+func(uch4(k),betac))*tlw*emplnk(3)
-    tch4 = d_one/(d_one+0.02_rkx*func(uch4(k),betac))
+    betac = bch4/uch4
+    ech4 = 6.00444_rkx*sqti*log(d_one+func(uch4,betac))*tlw*emplnk(3)
+    tch4 = d_one/(d_one+0.02_rkx*func(uch4,betac))
     ! Emissivity for N2O bands
-    u01 = un2o0(k)
-    u11 = un2o1(k)
-    beta01 = bn2o0(k)/un2o0(k)
-    beta11 = bn2o1(k)/un2o1(k)
+    u01 = un2o0
+    u11 = un2o1
+    beta01 = bn2o0/un2o0
+    beta11 = bn2o1/un2o1
     ! 1285 cm-1 band
     en2o1 = 2.35558_rkx*sqti * &
            log(d_one+func(u01,beta01)+func(u11,beta11))*tlw*tch4*emplnk(4)
@@ -976,20 +720,20 @@ module mod_rad_tracer
     ! 1168 cm-1 band
     en2o3 = 2.54034_rkx*sqti*log(d_one+func(u03,beta03))*tw(6)*tcfc8*emplnk(6)
     ! Emissivity for 1064 cm-1 band of CO2
-    betac1 = 2.97558_rkx*pnm(k)/(sslp*sqti)
+    betac1 = 2.97558_rkx*pnm/(sslp*sqti)
     betac2 = d_two*betac1
     eco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(uco211(k),betac1) + func(uco212(k),betac2) + &
-                func(uco213(k),betac2))*to3*tw(5)*tcfc4*tcfc7*emplnk(2)
+            log(d_one+func(uco211,betac1) + func(uco212,betac2) + &
+                func(uco213,betac2))*to3*tw(5)*tcfc4*tcfc7*emplnk(2)
     ! Emissivity for 961 cm-1 band
     eco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(uco221(k),betac1) + func(uco222(k),betac1) +  &
-                func(uco223(k),betac2))*tw(4)*tcfc3*tcfc6*emplnk(1)
+            log(d_one+func(uco221,betac1) + func(uco222,betac1) +  &
+                func(uco223,betac2))*tw(4)*tcfc3*tcfc6*emplnk(1)
     ! total trace gas emissivity
     emstrc = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
              ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
              eco21 + eco22
-  end subroutine trcems
+  end function trcems
 
   pure real(rkx) function func(u,b)
 !$acc routine seq

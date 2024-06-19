@@ -16,8 +16,17 @@ try:
 except:
     res = 0.5
 
-lat = ds.variables['xlat']
-lon = ds.variables['xlon']
+try:
+    lat = ds.variables['xlat']
+    lon = ds.variables['xlon']
+except:
+    try:
+        lat = ds.variables['lat']
+        lon = ds.variables['lon']
+    except:
+        print('No recognizable coordinates.')
+        sys.exit(-1)
+
 
 la1 = res*floor(min(lat[1,:])/res)
 la2 = res*ceil(max(lat[-1,:])/res)

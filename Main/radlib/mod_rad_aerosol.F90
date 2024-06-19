@@ -48,7 +48,7 @@ module mod_rad_aerosol
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
   public :: tauxar , tauasc , gtota , ftota
   public :: aermmr , aertrlw , tauxar3d_lw
-  public :: allocate_mod_rad_aerosol , aermix , aeroppt
+  public :: allocate_mod_rad_aerosol , aeroppt
   public :: read_aerclima , close_aerclima
   public :: init_aeroppdata , read_aeroppdata
   public :: cmip6_plume_profile
@@ -127,10 +127,6 @@ module mod_rad_aerosol
   !
   real(rkx) , pointer , dimension(:,:) :: path
   !
-  ! Background aerosol mass mixing ratio
-  !
-  real(rkx) , pointer , dimension(:,:) :: aermmb
-  !
   ! Aerosol optical properties (for the mixing)
   !
   real(rkx) , pointer , dimension(:) :: gsbc_hb , gsbc_hl , gsoc_hb , &
@@ -159,7 +155,7 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:) :: aermtot , aervtot
   real(rkx) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
   real(rkx) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
-  integer(ik4) :: npoints
+  integer(ik4) :: npoints , nj
   integer(ik4) :: nband
   !
   ! Aersol LW optical properties
@@ -1164,7 +1160,8 @@ module mod_rad_aerosol
         nband = nspi
       end if
 
-      npoints = (jci2-jci1+1)*(ici2-ici1+1)
+      nj = (jci2-jci1+1)
+      npoints = nj*(ici2-ici1+1)
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         call getmem3d(aermmr,1,npoints,1,kz,1,ntr,'aerosol:aermmr')
@@ -1207,7 +1204,6 @@ module mod_rad_aerosol
       call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
       call getmem2d(path,1,npoints,1,kz,'aerosol:path')
-      call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
       call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
 
       ! these variables are defined on full rad grid including hat
@@ -1431,11 +1427,10 @@ module mod_rad_aerosol
       w2 = d_one - w1
       do n = 1 , ntr
         do k = 1 , kz
-          ib = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
+              ib = (j-jci1)+(i-ici1)*nj+1
               aermmr(ib,k,n) = max(w1*aerm1(j,i,k,n) + w2*aerm2(j,i,k,n),d_zero)
-              ib = ib + 1
             end do
           end do
         end do
@@ -2034,87 +2029,6 @@ module mod_rad_aerosol
       end if
     end subroutine readvar3d
     !
-    !-----------------------------------------------------------------------
-    !
-    ! SUBROUTINE AERMIX
-    !
-    ! Set global mean tropospheric aerosol
-    !
-    ! Specify aerosol mixing ratio and compute relative humidity for later
-    ! adjustment of aerosol optical properties. Aerosol mass mixing ratio
-    ! is specified so that the column visible aerosol optical depth is a
-    ! specified global number (tauvis). This means that the actual mixing
-    ! ratio depends on pressure thickness of the lowest three atmospheric
-    ! layers near the surface.
-    !
-    ! Optical properties and relative humidity parameterization are from:
-    !
-    ! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
-    ! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
-    ! 16 April 1993
-    !
-    ! Visible (vis) here means 0.5-0.7 micro-meters
-    ! Forward scattering fraction is taken as asymmetry parameter squared
-    !
-    !---------------------------Code history--------------------------------
-    !
-    ! Original version:  B. Briegleb  March 1995
-    ! Standarized:       L. Buja,     Feb 1996
-    ! Reviewed:          B. Briegleb, Mar 1996
-    !
-    !-----------------------------------------------------------------------
-    !
-    subroutine aermix(pint,n1,n2)
-      implicit none
-      integer(ik4) , intent(in) :: n1 , n2
-      ! Radiation level interface pressures (dynes/cm2)
-      real(rkx) , intent(in) , pointer , dimension(:,:) :: pint
-      !
-      !-----------------------------------------------------------------------
-      !
-      ! mxaerl - max nmbr aerosol levels counting up from surface
-      ! tauvis - visible optical depth
-      ! kaervs - visible extinction coefficiant of aerosol (m2/g)
-      ! omgvis - visible omega0
-      ! gvis   - visible forward scattering asymmetry parameter
-      !
-      !-----------------------------------------------------------------------
-      !
-      integer(ik4) , parameter :: mxaerl = 4
-      ! multiplication factor for kaer
-      real(rkx) , parameter :: kaervs = 5.3012_rkx
-      real(rkx) , parameter :: omgvis = 0.999999_rkx
-      real(rkx) , parameter :: gvis = 0.694889_rkx
-      ! EES added for efficiency
-      real(rkx) , parameter :: rhfac = 1.6718_rkx
-      !
-      integer(ik4) :: n , k
-      !fil  tauvis = 0.01_rkx
-      real(rkx) , parameter :: tauvis = 0.04_rkx
-      !
-      !-----------------------------------------------------------------------
-      !
-      ! Set relative humidity and factor; then aerosol amount:
-      !
-      do k = 1 , kz
-        do n = n1 , n2
-          !
-          ! Define background aerosol
-          ! Find constant aerosol mass mixing ratio for specified levels
-          ! in the column, converting units where appropriate
-          ! for the moment no more used
-          !
-          if ( k >= kz + 1 - mxaerl ) then
-            aermmb(n,k) = egravgts * tauvis / &
-                         (d10e4*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
-                         (pint(n,kzp1)-pint(n,kzp1-mxaerl)))
-          else
-            aermmb(n,k) = d_zero
-          end if
-        end do
-      end do
-    end subroutine aermix
-    !
     ! SUBROUTINE AEROPPT
     !
     subroutine aeroppt(rh,pint,n1,n2)
@@ -2155,9 +2069,9 @@ module mod_rad_aerosol
           wavncl(3)  = wavn(10)
           wavncl(4)  = wavn(13)
           do k = 1 , kth
-            n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
+                n = (j-jci1)+(i-ici1)*nj+1
                 ! Spectral interpolation for all RRTM band
                 ! Special band 14 is left aside. Use constant extrapolation
                 ! between clim data wn points ( check interp1d code in Share)
@@ -2188,59 +2102,56 @@ module mod_rad_aerosol
                 do ns = 1 , nbndlw
                   tauxar3d_lw(n,k,ns) = extprof(j,i,k,5)
                 end do
-                n = n + 1
               end do
             end do
           end do
         else if ( irrtm == 0 ) then
           visband = 8
           ns = visband
-          tauxar(:,ns) = d_zero
-          tauasc(:,ns) = d_zero
-          gtota(:,ns) = d_zero
-          ftota(:,ns) = d_zero
+          tauxar(ns,:) = d_zero
+          tauasc(ns,:) = d_zero
+          gtota(ns,:) = d_zero
+          ftota(ns,:) = d_zero
           ! adapt the clim vert grid (1 to kth) to the standard
           ! rad grid ( 0 to kz) first Treat the top radiative layer
-          ! tauxar3d(n,0,ns)
+          ! tauxar3d(ns,0,n)
           if ( kth > kz ) then
-            n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 !
                 ! index 3 correponds to clim vis band
                 ! MIGHT CHANGE IN FUTURE
                 !
-                tauxar3d(n,0,ns) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
-                tauasc3d(n,0,ns) = tauxar3d(n,0,ns) * &
+                n = (j-jci1)+(i-ici1)*nj+1
+                tauxar3d(ns,0,n) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
+                tauasc3d(ns,0,n) = tauxar3d(ns,0,n) * &
                   max(sum(ssaprof(j,i,1:kth-kz,3))/real(kth-kz,rkx),0.0_rkx)
-                gtota3d(n,0,ns) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
+                gtota3d(ns,n,0) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
                          real(kth-kz,rkx),0.0_rkx)
-                ftota3d(n,0,ns) = tauasc3d(n,0,ns) * gtota3d(n,0,ns)**2
-                gtota3d(n,0,ns) = tauasc3d(n,0,ns) * gtota3d(n,0,ns)
-                n = n +1
+                ftota3d(ns,0,n) = tauasc3d(ns,0,n) * gtota3d(ns,0,n)**2
+                gtota3d(ns,0,n) = tauasc3d(ns,0,n) * gtota3d(ns,0,n)
               end do
             end do
           end if
           do k = 1 , kz
-            n = 1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ! already scaled for layer height
                 ! grid is top down
                 ! FAB : index 2 is the vis band in MERRA aerclim
                 ! MIGHT CHANGE
-                tauxar3d(n,k,ns) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
-                tauasc3d(n,k,ns) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
-                gtota3d(n,k,ns) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
+                n = (j-jci1)+(i-ici1)*nj+1
+                tauxar3d(ns,k,n) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
+                tauasc3d(ns,k,n) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
+                gtota3d(ns,k,n) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(n,k,ns) = tauasc3d(n,k,ns) * tauxar3d(n,k,ns)
-                ftota3d(n,k,ns) = gtota3d(n,k,ns)**2 * tauasc3d(n,k,ns)
-                gtota3d(n,k,ns) = gtota3d(n,k,ns) * tauasc3d(n,k,ns)
-                tauxar(n,ns) = tauxar(n,ns) + tauxar3d(n,k,ns)
-                tauasc(n,ns) = tauasc(n,ns) + tauasc3d(n,k,ns)
-                gtota(n,ns)  = gtota(n,ns)  + gtota3d(n,k,ns)
-                ftota(n,ns)  = ftota(n,ns)  + ftota3d(n,k,ns)
-                n = n + 1
+                tauasc3d(ns,k,n) = tauasc3d(ns,k,n) * tauxar3d(ns,k,n)
+                ftota3d(ns,k,n) = gtota3d(ns,k,n)**2 * tauasc3d(ns,k,n)
+                gtota3d(ns,k,n) = gtota3d(ns,k,n) * tauasc3d(ns,k,n)
+                tauxar(ns,n) = tauxar(ns,n) + tauxar3d(ns,k,n)
+                tauasc(ns,n) = tauasc(ns,n) + tauasc3d(ns,k,n)
+                gtota(ns,n)  = gtota(ns,n)  + gtota3d(ns,k,n)
+                ftota(ns,n)  = ftota(ns,n)  + ftota3d(ns,k,n)
               end do
             end do
           end do
@@ -2264,19 +2175,19 @@ module mod_rad_aerosol
             do k = 1 , kth
               do i = 1 , npoints
                 ! already scaled for layer height
-                tauxar3d(i,k,n) = extprofr4(i,k,n)
+                tauxar3d(n,k,i) = extprofr4(i,k,n)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(i,k,n) = ssaprofr4(i,k,n) * tauxar3d(i,k,n)
-                gtota3d(i,k,n)  = asyprofr4(i,k,n) * &
-                       ssaprofr4(i,k,n) * tauxar3d(i,k,n)
-                ftota3d(i,k,n)  = asyprofr4(i,k,n)**2 * &
-                       ssaprofr4(i,k,n) * tauxar3d(i,k,n)
+                tauasc3d(n,k,i) = ssaprofr4(i,k,n) * tauxar3d(n,k,i)
+                gtota3d(n,k,i)  = asyprofr4(i,k,n) * &
+                       ssaprofr4(i,k,n) * tauxar3d(n,k,i)
+                ftota3d(n,k,i)  = asyprofr4(i,k,n)**2 * &
+                       ssaprofr4(i,k,n) * tauxar3d(n,k,i)
 
                 ! define also tauxar for std scheme clear sky diagnostics
-                tauxar(i,n) = tauxar(i,n) + tauxar3d(i,k,n)
-                tauasc(i,n) = tauasc(i,n) + tauasc3d(i,k,n)
-                ftota(i,n) =  ftota(i,n)  + ftota3d(i,k,n)
-                gtota(i,n) =  gtota(i,n)  + gtota3d(i,k,n)
+                tauxar(n,i) = tauxar(n,i) + tauxar3d(n,k,i)
+                tauasc(n,i) = tauasc(n,i) + tauasc3d(n,k,i)
+                ftota(n,i) =  ftota(n,i)  + ftota3d(n,k,i)
+                gtota(n,i) =  gtota(n,i)  + gtota3d(n,k,i)
               end do
             end do
           end do
