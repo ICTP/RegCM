@@ -135,6 +135,7 @@ module mod_rad_radiation
   integer(ik4) :: npoints
 
   real(rkx) , pointer , dimension(:) :: diralb , difalb
+  real(rkx) , pointer , dimension(:) :: tauaer , tauasc , gtota , ftota
   real(rkx) , pointer , dimension(:,:) :: emplnk
   real(rkx) , pointer , dimension(:,:) :: emstot
   real(rkx) , pointer , dimension(:,:,:) :: absnxt , abstot , xuinpl
@@ -305,7 +306,6 @@ module mod_rad_radiation
   real(rkx) , pointer , dimension(:,:) :: pmidrd , pintrd
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o
   real(rkx) , pointer , dimension(:,:) :: o3mmr , plco2 , plh2o , tclrsf
-
   real(rkx) , parameter :: verynearone = 0.999999_rkx
 
   ! r80257   - Conversion factor for h2o pathlength
@@ -670,6 +670,10 @@ module mod_rad_radiation
     call getmem2d(emstot,1,kzp1,1,npoints,'rad:emstot')
     call getmem1d(diralb,1,npoints,'rad:diralb')
     call getmem1d(difalb,1,npoints,'rad:difalb')
+    call getmem1d(tauaer,1,npoints,'rad:tauaer')
+    call getmem1d(tauasc,1,npoints,'rad:tauasc')
+    call getmem1d(gtota,1,npoints,'rad:gtota')
+    call getmem1d(ftota,1,npoints,'rad:ftota')
     call getmem1d(skip,1,npoints,'rad:skip')
     call getmem1d(khiv,1,npoints,'rad:khiv')
     call getmem1d(khivm,1,npoints,'rad:khivm')
@@ -1191,7 +1195,7 @@ module mod_rad_radiation
     real(rkx) , dimension(n1:n2) , intent(out) :: sol
     real(rkx) , dimension(n1:n2) , intent(out) :: czen
     real(rkx) , dimension(kzp1,4,n1:n2) , intent(out) ::  outtaucl , outtauci
-    real(rkx) , dimension(nspi,0:kz,n1:n2) , intent(out) :: tauxcl , tauxci
+    real(rkx) , dimension(0:kz,n1:n2,nspi) , intent(out) :: tauxcl , tauxci
     real(rkx) , dimension(kz,n1:n2) , intent(out) :: qrs
     !
     ! indxsl   - Index for cloud particle properties
@@ -1471,35 +1475,35 @@ module mod_rad_radiation
             !
             ! Scheme     1
             ! The one in ccm3.6.6
-            !tauxcl(ns,k,n) = clwp(k,n) * tmp1l * &
+            !tauxcl(k,n,ns) = clwp(k,n) * tmp1l * &
             !          (d_one-fice(k,n)) * cld(k,n) * sqrt(cld(k,n))
-            !tauxci(ns,k,n) = clwp(k,n) * tmp1i * &
+            !tauxci(k,n,ns) = clwp(k,n) * tmp1i * &
             !           fice(k,n) * cld(k,n) * sqrt(cld(k,n))
             !
             ! Scheme     2
             ! unknown origin (?????)
-            !tauxcl(ns,k,n) = ((clwp(k,n)*cld(k,n))* &
+            !tauxcl(k,n,ns) = ((clwp(k,n)*cld(k,n))* &
             !              (d_one-fice(k,n))*tmp1l) / &
             !              (d_one+(d_one-0.85_rkx)*((d_one-cld(k,n))*      &
             !              (clwp(k,n)*tmp1l*(d_one-fice(k,n)))))
-            !tauxci(ns,k,n) = (clwp(k,n)*cld(k,n)*fice(k,n)*tmp1i) /  &
+            !tauxci(k,n,ns) = (clwp(k,n)*cld(k,n)*fice(k,n)*tmp1i) /  &
             !              (d_one+(d_one-0.78_rkx)*((d_one-cld(k,n)) * &
             !              (clwp(k,n)*tmp1i*fice(k,n))))
             !
-            tauxcl(ns,k,n) = ((clwp(k,n)*cld(k,n)) * &
+            tauxcl(k,n,ns) = ((clwp(k,n)*cld(k,n)) * &
               (d_one-fice(k,n))*tmp1l) / &
               (d_one+(d_one-0.85_rkx)*((d_one-cld(k,n))*      &
               (clwp(k,n)*tmp1l*(d_one-fice(k,n)))))
-            tauxci(ns,k,n) = (clwp(k,n)*cld(k,n)*fice(k,n)*tmp1i) /  &
+            tauxci(k,n,ns) = (clwp(k,n)*cld(k,n)*fice(k,n)*tmp1i) /  &
                           (d_one+(d_one-0.78_rkx)*((d_one-cld(k,n)) * &
                           (clwp(k,n)*tmp1i*fice(k,n))))
-            outtaucl(k,indxsl,n) = outtaucl(k,indxsl,n) + tauxcl(ns,k,n)
-            outtauci(k,indxsl,n) = outtauci(k,indxsl,n) + tauxci(ns,k,n)
+            outtaucl(k,indxsl,n) = outtaucl(k,indxsl,n) + tauxcl(k,n,ns)
+            outtauci(k,indxsl,n) = outtauci(k,indxsl,n) + tauxci(k,n,ns)
             !
             !scheme     3
-            ! tauxcl(ns,k,n) = clwp(k,n)*tmp1l* &
+            ! tauxcl(k,n,ns) = clwp(k,n)*tmp1l* &
             !           (d_one-fice(k,n))*cld(k,n)**0.85
-            ! tauxci(ns,k,n) = clwp(k,n)*tmp1i*fice(k,n)*cld(k,n)**0.85
+            ! tauxci(k,n,ns) = clwp(k,n)*tmp1i*fice(k,n)*cld(k,n)**0.85
             !
             ! Do not let single scatter albedo be 1; delta-eddington
             ! solution for non-conservative case:
@@ -1537,13 +1541,13 @@ module mod_rad_radiation
       ! options for aerosol: no climatic feedback if idirect == 1
       ! should be consistent with aeroppt routine
       !
-      call radded(n1,n2,trayoslp,czen,czengt0,pflx,uh2o,uo3, &
-        uco2,uo2,tauxcl(ns,:,:),wcl,gcl,fcl,tauxci,(ns,:,:), &
-        wci,gci,fci,tauxar3d(ns,:,:),wa,ga,fa, &
-      tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-      call radded(n1,n2,ns,trayoslp,czen,czengt0,pflx,uh2o,tauxcl,tauxci, &
+      call radded(n1,n2,trayoslp,czen,czengt0,pflx,       &
+                  abh2o(ns),abo3(ns),abco2(ns),abo2(ns),  &
+                  uh2o,uo3,uco2,uo2,tauxcl(:,:,ns),       &
+                  wcl,gcl,fcl,tauxci(:,:,ns),wci,gci,fci, &
+                  tauxar3d(:,:,ns),tauasc3d(:,:,ns),      &
+                  gtota3d(:,:,ns),ftota3d(:,:,ns),        &
                   tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-
 #ifdef STDPAR
       do concurrent ( n = n1:n2 ) local(rdenom,k)
 #else
@@ -1647,6 +1651,22 @@ module mod_rad_radiation
       !  end if
       !end do
 
+#ifdef STDPAR
+      do concurrent ( n = n1:n2 ) local(k)
+#else
+      do n = n1 , n2
+#endif
+        tauaer(n) = tauxar3d(1,n,ns)
+        tauasc(n) = tauasc3d(1,n,ns)
+        ftota(n) =  ftota3d(1,n,ns)
+        gtota(n) =  gtota3d(1,n,ns)
+        do k = 2 , kz
+          tauaer(n) = tauaer(n) + tauxar3d(k,n,ns)
+          tauasc(n) = tauasc(n) + tauasc3d(k,n,ns)
+          ftota(n) =  ftota(n)  + ftota3d(k,n,ns)
+          gtota(n) =  gtota(n)  + gtota3d(k,n,ns)
+        end do
+      end do
       !FAB
       ! CLEAR SKY CALCULATION PLUS AEROSOL
       ! FORCING RAD CLR is called 2 times , one with O aerosol OP , and
@@ -1666,9 +1686,10 @@ module mod_rad_radiation
         ! 0 for interface quantities refers to top of atmos- phere,
         ! while 1 refers to the surface:
         !
-        call radclr(n1,n2,trayoslp,czen,czengt0,.true.,pflx,abh2o(ns), &
-                    abo3(ns),abco2(ns),abo2(ns),uth2o,uto3,utco2,uto2, &
-                    tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
+        call radclr(n1,n2,trayoslp,czen,czengt0,.true.,pflx,  &
+                    abh2o(ns),abco2(ns),abo2(ns),abo3(ns),    &
+                    uth2o,uto3,utco2,uto2,tauaer,tauasc,gtota,&
+                    ftota,tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
         !
         ! Compute reflectivity to direct and diffuse radiation for
         ! entire column; 0,1 on layer quantities refers to two
@@ -1731,8 +1752,10 @@ module mod_rad_radiation
       ! quantities refers to top of atmos- phere, while 1 refers to the
       ! surface:
       !
-      call radclr(n1,n2,ns,trayoslp,czen,czengt0,.false., &
-                  tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
+      call radclr(n1,n2,trayoslp,czen,czengt0,.false.,pflx, &
+                  abh2o(ns),abco2(ns),abo2(ns),abo3(ns),    &
+                  uth2o,uto3,utco2,uto2,tauaer,tauasc,gtota,&
+                  ftota,tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
       !
       ! Compute reflectivity to direct and diffuse radiation for entire
       ! column; 0,1 on layer quantities refers to two effective layers
@@ -2336,23 +2359,61 @@ module mod_rad_radiation
   !
   ! Input arguments
   !
-  ! trayoslp - Tray/sslp
+  !   trayoslp  - Tray/sslp
+  !   czen      - Cosine zenith angle
+  !   czengt0   - logical cosine zenith angle greater than zero
+  !   lcls      - Add or remove aerosol effect
+  !   pflx      - Interface pressure
+  !   abh2o     - Absorption coefficiant for h2o
+  !   abo3      - Absorption coefficiant for o3
+  !   abco2     - Absorption coefficiant for co2
+  !   abo2      - Absorption coefficiant for o2
+  !   uth2o     - Total column absorber amount of h2o
+  !   uto3      - Total column absorber amount of  o3
+  !   utco2     - Total column absorber amount of co2
+  !   uto2      - Total column absorber amount of  o2
+  !   tauaer    - Total column aerosol extinction
+  !   tauasc    - Aerosol single scattering albedo * extinction
+  !   gtota     - Aerosol asymmetry parameter * SSA * EXT
+  !   ftota     - Aerosol *forward scattering fraction * SSA * EXT
   !
-  subroutine radclr(n1,n2,trayoslp,czen,czengt0,lcls,pflx,
-                    tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
+  ! Output
+  !
+  !   tottrn    - Total transmission for layers above
+  !   exptdn    - Solar beam exp down transmn from top
+  !   rdndif    - Added dif ref for layers above
+  !   rdif      - Layer refflectivity to diffuse rad
+  !   tdif      - Layer transmission to diffuse rad
+  !   rdir      - Layer reflectivity to direct rad
+  !   tdir      - Layer transmission to direct rad
+  !   explay    - Solar beam exp transmn for layer
+  !
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,lcls,pflx,  &
+                    abh2o,abco2,abo2,abo3,uth2o,uto3,utco2, &
+                    uto2,tauaer,tauasc,gtota,ftota,tottrn,  &
+                    exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
+    logical , intent(in) :: lcls
     real(rkx) , intent(in) :: trayoslp
     real(rkx) , dimension(n1:n2) , intent(in) :: czen
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
+    real(rkx) , intent(in) :: abh2o , abco2 , abo2 , abo3
+    real(rkx) , dimension(n1:n2) , intent(in) :: uth2o
+    real(rkx) , dimension(n1:n2) , intent(in) :: uto3
+    real(rkx) , dimension(n1:n2) , intent(in) :: utco2
+    real(rkx) , dimension(n1:n2) , intent(in) :: uto2
+    real(rkx) , dimension(n1:n2) , intent(in) :: tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: tauasc ! waer * tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: gtota  ! gaer * waer * tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: ftota  ! faer * waer * tauaer
+    logical , dimension(n1:n2) , intent(in) :: czengt0
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: rdndif
     real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
     real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , rdif
     real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: tdir , tdif
-    logical , dimension(n1:n2) , intent(in) :: czengt0
-    logical , intent(in) :: lcls
     !
     ! taugab   - Total column gas absorption optical depth
     ! tauray   - Column rayleigh optical depth
@@ -2403,7 +2464,7 @@ module mod_rad_radiation
         tottrn(k,n) = d_zero
       end do
       if ( czengt0(n) ) then
-        taugab = abo3(ns)*uto3(n)
+        taugab = abo3*uto3(n)
         ! Limit argument of exponential, in case czen is very small:
         arg = min(taugab/czen(n),mxarg)
         explay(0,n) = exp(-arg)
@@ -2462,18 +2523,17 @@ module mod_rad_radiation
             ! Remember, no ozone absorption in this layer:
             !
             tauray = trayoslp*pflx(kzp1,n)
-            taugab = abh2o(ns)*uth2o(n) + &
-                        abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
+            taugab = abh2o*uth2o(n) + abco2*utco2(n) + abo2*uto2(n)
             if ( lcls ) then
               tautot = tauray + taugab
               wtot = (wray*tauray)/tautot
               gtot = (gray*wray*tauray)/(wtot*tautot)
               ftot = (fray*wray*tauray/(wtot*tautot))
             else
-              tautot = tauray + taugab + tauxar(n,ns)
-              wtot = (wray*tauray+tauasc(n,ns))/tautot
-              gtot = (gray*wray*tauray+gtota(n,ns))/(wtot*tautot)
-              ftot = (fray*wray*tauray+ftota(n,ns))/(wtot*tautot)
+              tautot = tauray + taugab + tauaer(n)
+              wtot = (wray*tauray + tauasc(n))/tautot
+              gtot = (gray*wray*tauray + gtota(n))/(wtot*tautot)
+              ftot = (fray*wray*tauray + ftota(n))/(wtot*tautot)
             end if
             ts = taus(wtot,ftot,tautot)
             ws = omgs(wtot,ftot)
@@ -2543,25 +2603,65 @@ module mod_rad_radiation
   ! Approximation for Solar Radiation in the NCAR Community Climate Model,
   ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
   !
+  ! Input Arguments
+  !   trayoslp - Tray/sslp
+  !   czen     - Cosine zenith angle
+  !   czengt0  - Logical czen greater zero
+  !   pflx     - Interface pressure
+  !   abh2o    - Absorption coefficiant for h2o
+  !   abo3     - Absorption coefficiant for o3
+  !   abco2    - Absorption coefficiant for co2
+  !   abo2     - Absorption coefficiant for o2
+  !   uh2o     - Layer absorber amount of h2o
+  !   uo3      - Layer absorber amount of  o3
+  !   uco2     - Layer absorber amount of co2
+  !   uo2      - Layer absorber amount of  o2
+  !   tauxcl   - Cloud extinction optical depth (liquid)
+  !   tauxci   - Cloud extinction optical depth (ice)
+  !   tauaer   - Aerosol extinction optical depth
+  !   wcl      - Cloud single scattering albedo (liquid)
+  !   gcl      - Cloud asymmetry parameter (liquid)
+  !   fcl      - Cloud forward scattered fraction (liquid)
+  !   wci      - Cloud single scattering albedo (ice)
+  !   gci      - Cloud asymmetry parameter (ice)
+  !   fci      - Cloud forward scattered fraction (ice)
+  !   tauasc   - Aerosol single scattering albedo * extinction
+  !   gtota    - Aerosol asymmetry parameter * SSA * extinction
+  !   ftota    - Aerosol forward scattered fraction * SSA * extinction
+  !
+  ! Output Arguments
+  !   tottrn   - Total transmission for layers above
+  !   exptdn   - Solar beam exp down transm from top
+  !   rdndif   - Added dif ref for layers above
+  !   rdif     - Layer refflectivity to diffuse rad
+  !   tdif     - Layer transmission to diffuse rad
+  !   rdir     - Layer reflectivity to direct rad
+  !   tdir     - Layer transmission to direct rad
+  !   explay   - Solar beam exp transm for layer
+  !
   !-----------------------------------------------------------------------
   !
-  subroutine radded(n1,n2,trayoslp,czen,czengt0,pflx,uh2o,uo3,uco2,uo2, &
-      tauxcl,wcl,gcl,fcl,tauxci,wci,gci,fci,tauxar,wa,ga,fa,tottrn,     &
-      exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,pflx, &
+      abh2o,abo3,abco2,abo2,uh2o,uo3,uco2,uo2,        &
+      tauxcl,wcl,gcl,fcl,tauxci,wci,gci,fci,          &
+      tauaer,tauasc,gtota,ftota,                      &
+      tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , dimension(n1:n2) , intent(in) :: czen
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
+    real(rkx) , intent(in) :: abh2o , abo3 , abco2 , abo2
     real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uh2o , uo3
     real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uco2 , uo2
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauxcl , tauxci , tauxar
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauxcl , tauxci , tauaer
     real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wcl , gcl , fcl
     real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wci , gci , fci
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wa , ga , fa
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauasc , gtota , ftota
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
     real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn , rdndif
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdif , tdif , explay
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdif , tdif
     real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , tdir
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
     logical , dimension(n1:n2) , intent(in) :: czengt0
     real(rkx) , intent(in) :: trayoslp
     !
@@ -2626,30 +2726,35 @@ module mod_rad_radiation
         tottrn(k,n) = d_zero
       end do
       if ( czengt0(n) ) then
-        tauray = trayoslp*(pflx(1,n)-pflx(0,n))
-        taugab = abh2o(ns)*uh2o(0,n) + abo3(ns)*uo3(0,n) + &
-                 abco2(ns)*uco2(0,n) + abo2(ns)*uo2(0,n)
+        tauray = trayoslp * (pflx(1,n)-pflx(0,n))
+        taugab = abh2o*uh2o(0,n) + abo3*uo3(0,n) + &
+                 abco2*uco2(0,n) + abo2*uo2(0,n)
         if ( lzero ) then
-          tautot = tauxcl(0,n)+tauxci(0,n)+tauray+taugab
-          taucsc = tauxcl(0,n)*wcl(0,n) + tauxci(0,n)*wci(0,n)
+          tautot = tauray + taugab + tauxcl(0,n) + tauxci(0,n)
+          taucsc = tauxcl(0,n)*wcl(0,n) + &
+                   tauxci(0,n)*wci(0,n)
           wtau = wray*tauray
           wt = wtau + taucsc
           wtot = wt/tautot
-          gtot = (wtau*gray+gcl(0,n)*tauxcl(0,n)*wcl(0,n)+gci(0,n) * &
-                  tauxci(0,n)*wci(0,n))/wt
-          ftot = (wtau*fray+fcl(0,n)*tauxcl(0,n)*wcl(0,n)+fci(0,n) * &
-                  tauxci(0,n)*wci(0,n))/wt
+          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n)+ &
+                              gci(0,n)*tauxci(0,n)*wci(0,n)) / wt
+          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              fci(0,n)*tauxci(0,n)*wci(0,n)) / wt
         else
-          tautot = tauxcl(0,n)+tauxci(0,n)+tauray+taugab+tauxar(0,n)
-          taucsc = tauxcl(0,n)*wcl(0,n)+tauxci(0,n)*wci(0,n) + &
-                   tauasc3d(0,ns,n)
+          tautot = tauray + taugab + &
+                   tauxcl(0,n) + tauxci(0,n) + tauaer(0,n)
+          taucsc = tauxcl(0,n)*wcl(0,n) + &
+                   tauxci(0,n)*wci(0,n) + &
+                   tauasc(0,n)
           wtau = wray*tauray
           wt = wtau + taucsc
           wtot = wt/tautot
-          gtot = (wtau*gray+gcl(0,n)*tauxcl(0,n)*wcl(0,n)+gci(0,n) * &
-                  tauxci(0,n)*wci(0,n)+gtota3d(0,ns,n))/wt
-          ftot = (wtau*fray+fcl(0,n)*tauxcl(0,n)*wcl(0,n)+fci(0,n) * &
-                  tauxci(0,n)*wci(0,n)+ftota3d(0,ns,n))/wt
+          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              gci(0,n)*tauxci(0,n)*wci(0,n) + &
+                              gtota(0,n)) / wt
+          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              fci(0,n)*tauxci(0,n)*wci(0,n) + &
+                              ftota(0,n)) / wt
         end if
         ts = taus(wtot,ftot,tautot)
         ws = omgs(wtot,ftot)
@@ -2709,8 +2814,7 @@ module mod_rad_radiation
           ! top of the current layer:
           !
           exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-          if ( exptdn(k,n) < dlowval ) exptdn(k,n) = d_zero
-          rdenom = d_one/(d_one-min(rdif(k-1,n)*rdndif(k-1,n),verynearone))
+          rdenom = d_one/(d_one - rdif(k-1,n)*rdndif(k-1,n))
           rdirexp = rdir(k-1,n)*exptdn(k-1,n)
           tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
           tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *     &
@@ -2724,32 +2828,34 @@ module mod_rad_radiation
           !
           if ( tottrn(k,n) > trmin ) then
             tauray = trayoslp*(pflx(k+1,n)-pflx(k,n))
-            taugab = abh2o(ns)*uh2o(k,n) + abo3(ns)*uo3(k,n) +  &
-                     abco2(ns)*uco2(k,n) + abo2(ns)*uo2(k,n)
+            taugab = abh2o*uh2o(k,n) + abo3*uo3(k,n) +  &
+                     abco2*uco2(k,n) + abo2*uo2(k,n)
 
             if ( lzero ) then
-              tautot = tauxcl(k,n)+tauxci(k,n)+tauray+taugab
-              taucsc = tauxcl(k,n)*wcl(k,n)+tauxci(k,n)*wci(k,n)
+              tautot = tauray + taugab + tauxcl(k,n) + tauxci(k,n)
+              taucsc = tauxcl(k,n)*wcl(k,n) + tauxci(k,n)*wci(k,n)
               wtau = wray*tauray
               wt = wtau + taucsc
               wtot = wt/tautot
-              gtot = (wtau*gray+gcl(k,n)*wcl(k,n)*tauxcl(k,n)+gci(k,n) *  &
-                  wci(k,n)*tauxci(k,n))/wt
-              ftot = (wtau*fray+fcl(k,n)*wcl(k,n)*tauxcl(k,n)+fci(k,n) *  &
-                  wci(k,n)*tauxci(k,n))/wt
+              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  gci(k,n)*wci(k,n)*tauxci(k,n))/wt
+              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  fci(k,n)*wci(k,n)*tauxci(k,n))/wt
             else
-              tautot = tauxcl(k,n)+tauxci(k,n)+tauray+taugab+tauxar(k,n)
-              taucsc = tauxcl(k,n)*wcl(k,n) + tauxci(k,n)*wci(k,n) + &
-                       tauasc3d(k,ns,n)
+              tautot = tauray+taugab + tauxcl(k,n)+tauxci(k,n)+tauaer(k,n)
+              taucsc = tauxcl(k,n)*wcl(k,n) + &
+                       tauxci(k,n)*wci(k,n) + &
+                       tauasc(k,n)
               wtau = wray*tauray
               wt = wtau + taucsc
               wtot = wt/tautot
-              gtot = (wtau*gray+gcl(k,n)*wcl(k,n)*tauxcl(k,n)+gci(k,n) *  &
-                  wci(k,n)*tauxci(k,n)+gtota3d(k,ns,n))/wt
-              ftot = (wtau*fray+fcl(k,n)*wcl(k,n)*tauxcl(k,n)+fci(k,n) *  &
-                  wci(k,n)*tauxci(k,n)+ftota3d(k,ns,n))/wt
+              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  gci(k,n)*wci(k,n)*tauxci(k,n) + &
+                                  gtota(k,n))/wt
+              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  fci(k,n)*wci(k,n)*tauxci(k,n) + &
+                                  ftota(k,n))/wt
             end if
-
             ts = taus(wtot,ftot,tautot)
             ws = omgs(wtot,ftot)
             gs = asys(gtot,ftot)
@@ -2762,13 +2868,10 @@ module mod_rad_radiation
             !
             extins = exp(-min(lm*ts,mxarg))
             ne = f_n(ue,extins)
-
             rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
             tdif(k,n) = d_four*ue/ne
-
             ! Limit argument of exponential, in case czen is very small:
             explay(k,n) = exp(-min(ts/czen(n),mxarg))
-
             apg = alp + gam
             amg = alp - gam
             rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
@@ -2789,12 +2892,12 @@ module mod_rad_radiation
         ! above the surface:
         !
         exptdn(kzp1,n) = exptdn(kz,n)*explay(kz,n)
-        rdenom = d_one/(d_one-min(rdif(kz,n)*rdndif(kz,n),verynearone))
+        rdenom = d_one/(d_one-rdif(kz,n)*rdndif(kz,n))
         rdirexp = rdir(kz,n)*exptdn(kz,n)
         tdnmexp = tottrn(kz,n) - exptdn(kz,n)
-        tottrn(kzp1,n) = exptdn(kz,n)*tdir(kz,n) + tdif(kz,n) *       &
+        tottrn(kzp1,n) = exptdn(kz,n)*tdir(kz,n) + tdif(kz,n) *   &
                     (tdnmexp+rdndif(kz,n)*rdirexp)*rdenom
-        rdndif(kzp1,n) = rdif(kz,n) + (rdndif(kz,n)*tdif(kz,n)) *     &
+        rdndif(kzp1,n) = rdif(kz,n) + (rdndif(kz,n)*tdif(kz,n)) * &
                     (tdif(kz,n)*rdenom)
       end if
     end do

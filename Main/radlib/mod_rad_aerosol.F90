@@ -46,7 +46,6 @@ module mod_rad_aerosol
   private
 
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
-  public :: tauxar , tauasc , gtota , ftota
   public :: aermmr , aertrlw , tauxar3d_lw
   public :: allocate_mod_rad_aerosol , aeroppt
   public :: read_aerclima , close_aerclima
@@ -138,7 +137,6 @@ module mod_rad_aerosol
 
   real(rkx) , pointer , dimension(:,:,:) :: ftota3d , gtota3d , &
     tauasc3d , tauxar3d, tauxar3d_lw
-  real(rkx) , pointer , dimension(:,:) :: ftota , gtota , tauasc , tauxar
   !
   ! Work arrays for aeroppt (aerosol individual optical properties SW)
   !
@@ -1203,29 +1201,26 @@ module mod_rad_aerosol
       ! op propert lw for rrtm
       call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
-      call getmem2d(path,1,npoints,1,kz,'aerosol:path')
-      call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
 
+      call getmem2d(path,1,npoints,1,kz,'aerosol:path')
       ! these variables are defined on full rad grid including hat
       if ( irrtm == 1 ) then
         call getmem3d(gtota3d,1,npoints,0,kth,1,nband,'aerosol:gtota3d')
+        call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
         call getmem3d(tauasc3d,1,npoints,0,kth,1,nband,'aerosol:tauasc3d')
         call getmem3d(tauxar3d,1,npoints,0,kth,1,nband,'aerosol:tauxar3d')
         call getmem3d(tauxar3d_lw,1,npoints, &
                       0,kth,1,nbndlw,'aerosol:tauxar3d_lw')
       else ! standard scheme has one extra strato level at k = 0
-        call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
-        call getmem3d(tauasc3d,1,npoints,0,kz,1,nband,'aerosol:tauasc3d')
-        call getmem3d(tauxar3d,1,npoints,0,kz,1,nband,'aerosol:tauxar3d')
+        call getmem3d(gtota3d,0,kz,1,npoints,1,nband,'aerosol:gtota3d')
+        call getmem3d(ftota3d,0,kz,1,npoints,1,nband,'aerosol:ftota3d')
+        call getmem3d(tauasc3d,0,kz,1,npoints,1,nband,'aerosol:tauasc3d')
+        call getmem3d(tauxar3d,0,kz,1,npoints,1,nband,'aerosol:tauxar3d')
+        call getmem3d(aertrlw,1,kzp1,1,kzp1,1,npoints,'aerosol:aertrlw')
       end if
 
-      call getmem2d(ftota,1,npoints,1,nband,'aerosol:ftota')
-      call getmem2d(gtota,1,npoints,1,nband,'aerosol:gtota')
-      call getmem2d(tauasc,1,npoints,1,nband,'aerosol:tauasc')
-      call getmem2d(tauxar,1,npoints,1,nspi,'aerosol:tauxar')
       call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
       call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
-      call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
         call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
@@ -2055,7 +2050,6 @@ module mod_rad_aerosol
       ! Directly force aerosol properties passed to radiation driver and exit
 
       if ( iclimaaer == 2 ) then
-        aertrlw(:,:,:) = d_one
         if ( irrtm == 1 ) then
           do ns = 1 , 13
             wavn(ns) = 0.5_rkx*(wavnm2(ns) + wavnm1(ns))
@@ -2105,16 +2099,13 @@ module mod_rad_aerosol
               end do
             end do
           end do
-        else if ( irrtm == 0 ) then
+        else
+          aertrlw(:,:,:) = d_one
           visband = 8
           ns = visband
-          tauxar(ns,:) = d_zero
-          tauasc(ns,:) = d_zero
-          gtota(ns,:) = d_zero
-          ftota(ns,:) = d_zero
           ! adapt the clim vert grid (1 to kth) to the standard
           ! rad grid ( 0 to kz) first Treat the top radiative layer
-          ! tauxar3d(ns,0,n)
+          ! tauxar3d(0,n,ns)
           if ( kth > kz ) then
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -2123,71 +2114,63 @@ module mod_rad_aerosol
                 ! MIGHT CHANGE IN FUTURE
                 !
                 n = (j-jci1)+(i-ici1)*nj+1
-                tauxar3d(ns,0,n) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
-                tauasc3d(ns,0,n) = tauxar3d(ns,0,n) * &
+                tauxar3d(0,n,ns) = max(sum(extprof(j,i,1:kth-kz,3)),0.0_rkx)
+                tauasc3d(0,n,ns) = tauxar3d(0,n,ns) * &
                   max(sum(ssaprof(j,i,1:kth-kz,3))/real(kth-kz,rkx),0.0_rkx)
-                gtota3d(ns,n,0) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
+                gtota3d(0,n,ns) = max(sum(asyprof(j,i,1:kth-kz,3)) / &
                          real(kth-kz,rkx),0.0_rkx)
-                ftota3d(ns,0,n) = tauasc3d(ns,0,n) * gtota3d(ns,0,n)**2
-                gtota3d(ns,0,n) = tauasc3d(ns,0,n) * gtota3d(ns,0,n)
               end do
             end do
           end if
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+               do k = 1 , kz
                 ! already scaled for layer height
                 ! grid is top down
                 ! FAB : index 2 is the vis band in MERRA aerclim
                 ! MIGHT CHANGE
                 n = (j-jci1)+(i-ici1)*nj+1
-                tauxar3d(ns,k,n) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
-                tauasc3d(ns,k,n) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
-                gtota3d(ns,k,n) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
-                ! here the standard scheme expect layer scaled quantity
-                tauasc3d(ns,k,n) = tauasc3d(ns,k,n) * tauxar3d(ns,k,n)
-                ftota3d(ns,k,n) = gtota3d(ns,k,n)**2 * tauasc3d(ns,k,n)
-                gtota3d(ns,k,n) = gtota3d(ns,k,n) * tauasc3d(ns,k,n)
-                tauxar(ns,n) = tauxar(ns,n) + tauxar3d(ns,k,n)
-                tauasc(ns,n) = tauasc(ns,n) + tauasc3d(ns,k,n)
-                gtota(ns,n)  = gtota(ns,n)  + gtota3d(ns,k,n)
-                ftota(ns,n)  = ftota(ns,n)  + ftota3d(ns,k,n)
+                tauxar3d(k,n,ns) = max(extprof(j,i,kth-kz+k,3),0.0_rkx)
+                tauasc3d(k,n,ns) = max(ssaprof(j,i,kth-kz+k,3),0.0_rkx)
+                gtota3d(k,n,ns) = max(asyprof(j,i,kth-kz+k,3),0.0_rkx)
               end do
+            end do
+          end do
+          do n = 1 , npoints
+            do k = 1 , kz
+              ! here the standard scheme expect layer scaled quantity
+              tauasc3d(k,n,ns) = tauasc3d(k,n,ns) * tauxar3d(k,n,ns)
+              ftota3d(k,n,ns) = gtota3d(k,n,ns)**2 * tauasc3d(k,n,ns)
+              gtota3d(k,n,ns) = gtota3d(k,n,ns) * tauasc3d(k,n,ns)
             end do
           end do
         end if
         return  ! important
       else if ( iclimaaer == 3 ) then
         ! Limit only to SW (?)
-        aertrlw(:,:,:) = d_one
         if ( irrtm == 1 ) then
-          do n = 1 , nband
+          do ns = 1 , nband
             do k = 1 , kth
               do i = 1 , npoints
-                tauxar3d(i,k,n) = extprofr4(i,k,n)
-                tauasc3d(i,k,n) = ssaprofr4(i,k,n)
-                gtota3d(i,k,n)  = asyprofr4(i,k,n)
+                tauxar3d(i,k,ns) = extprofr4(i,k,ns)
+                tauasc3d(i,k,ns) = ssaprofr4(i,k,ns)
+                gtota3d(i,k,ns)  = asyprofr4(i,k,ns)
               end do
             end do
           end do
-        else if ( irrtm == 0 ) then
-          do n = 1 , nband
+        else
+          aertrlw(:,:,:) = d_one
+          do ns = 1 , nband
             do k = 1 , kth
               do i = 1 , npoints
                 ! already scaled for layer height
-                tauxar3d(n,k,i) = extprofr4(i,k,n)
+                tauxar3d(k,i,ns) = extprofr4(i,k,ns)
                 ! here the standard scheme expect layer scaled quantity
-                tauasc3d(n,k,i) = ssaprofr4(i,k,n) * tauxar3d(n,k,i)
-                gtota3d(n,k,i)  = asyprofr4(i,k,n) * &
-                       ssaprofr4(i,k,n) * tauxar3d(n,k,i)
-                ftota3d(n,k,i)  = asyprofr4(i,k,n)**2 * &
-                       ssaprofr4(i,k,n) * tauxar3d(n,k,i)
-
-                ! define also tauxar for std scheme clear sky diagnostics
-                tauxar(n,i) = tauxar(n,i) + tauxar3d(n,k,i)
-                tauasc(n,i) = tauasc(n,i) + tauasc3d(n,k,i)
-                ftota(n,i) =  ftota(n,i)  + ftota3d(n,k,i)
-                gtota(n,i) =  gtota(n,i)  + gtota3d(n,k,i)
+                tauasc3d(k,i,ns) = ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
+                gtota3d(k,i,ns)  = asyprofr4(i,k,ns) * &
+                       ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
+                ftota3d(k,i,ns)  = asyprofr4(i,k,ns)**2 * &
+                       ssaprofr4(i,k,ns) * extprofr4(i,k,ns)
               end do
             end do
           end do
@@ -2199,17 +2182,18 @@ module mod_rad_aerosol
       ! climatology)
 
       if ( ichem /= 1 .and. iclimaaer /= 1 ) then
-        tauxar(:,:)     = d_zero
-        tauasc(:,:)     = d_zero
-        gtota(:,:)      = d_zero
-        ftota(:,:)      = d_zero
-        tauxar3d(:,:,:) = d_zero
-        tauasc3d(:,:,:) = d_zero
-        gtota3d(:,:,:)  = d_zero
-        ftota3d(:,:,:)  = d_zero
-        aertrlw (:,:,:) = d_one
         if ( irrtm == 1 ) then
+          tauxar3d(:,:,:) = d_zero
+          tauasc3d(:,:,:) = d_zero
+          gtota3d(:,:,:)  = d_zero
+          ftota3d(:,:,:)  = d_zero
           tauxar3d_lw(:,:,:) = d_zero
+        else
+          tauxar3d(:,:,:) = d_zero
+          tauasc3d(:,:,:) = d_zero
+          gtota3d(:,:,:)  = d_zero
+          ftota3d(:,:,:)  = d_zero
+          aertrlw (:,:,:) = d_one
         end if
         return
       end if
@@ -2227,23 +2211,22 @@ module mod_rad_aerosol
       !   Melange externe
       !
       !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      if ( irrtm == 1 ) then
+        do concurrent ( n = n1:n2, k = 1:kz )
+          path(n,k) = (pint(n,k+1)-pint(n,k))*regravgts
+        end do
+      else
+        do concurrent ( n = n1:n2, k = 1:kz )
+          path(n,k) = (pint(k+1,n)-pint(k,n))*regravgts
+        end do
+      end if
       !
       !   Spectral loop
       !
-      do concurrent ( n = n1:n2, k = 1:kz )
-        path(n,k) = (pint(n,k+1)-pint(n,k))*regravgts
-      end do
-
       do ns = 1 , nband
-        tauxar(:,ns) = d_zero
-        tauasc(:,ns) = d_zero
-        gtota(:,ns) = d_zero
-        ftota(:,ns) = d_zero
-
-        tauxar3d(:,:,ns) = d_zero
-        tauasc3d(:,:,ns) = d_zero
-        gtota3d(:,:,ns) = d_zero
-        ftota3d(:,:,ns) = d_zero
+      !
+      !   Spectral loop
+      !
 
         uaer(:,:,:) = d_zero
         tx(:,:,:) = d_zero
@@ -2426,16 +2409,20 @@ module mod_rad_aerosol
         ! melange externe
         !
         ! only for climatic feedback allowed
-
+        !
         if ( irrtm == 0 ) then
+          tauxar3d(:,:,ns) = d_zero
+          tauasc3d(:,:,ns) = d_zero
+          gtota3d(:,:,ns) = d_zero
+          ftota3d(:,:,ns) = d_zero
           do itr = 1 , ntr
-            do k = 0 , kz
-              do n = n1 , n2
-                tauxar3d(n,k,ns) = tauxar3d(n,k,ns) + tx(n,k,itr)
-                tauasc3d(n,k,ns) = tauasc3d(n,k,ns) + tx(n,k,itr)*wa(n,k,itr)
-                gtota3d(n,k,ns) = gtota3d(n,k,ns) + ga(n,k,itr) * &
+            do n = n1 , n2
+              do k = 0 , kz
+                tauxar3d(k,n,ns) = tauxar3d(k,n,ns) + tx(n,k,itr)
+                tauasc3d(k,n,ns) = tauasc3d(k,n,ns) + tx(n,k,itr)*wa(n,k,itr)
+                gtota3d(k,n,ns) = gtota3d(k,n,ns) + ga(n,k,itr) * &
                                   tx(n,k,itr)*wa(n,k,itr)
-                ftota3d(n,k,ns) = ftota3d(n,k,ns) + fa(n,k,itr) * &
+                ftota3d(k,n,ns) = ftota3d(k,n,ns) + fa(n,k,itr) * &
                                   tx(n,k,itr)*wa(n,k,itr)
               end do
             end do
@@ -2443,36 +2430,23 @@ module mod_rad_aerosol
           do k = 0 , kz
             do n = n1 , n2
               !consider a minimal extinction and reflectivity background
-              if ( tauxar3d(n,k,ns) < 1.E-10_rkx ) then
-                tauxar3d(n,k,ns) = 1.E-10_rkx
-                tauasc3d(n,k,ns) = 0.999999_rkx * tauxar3d(n,k,ns)
-                gtota3d(n,k,ns) = 0.5_rkx * tauasc3d(n,k,ns)
-                ftota3d(n,k,ns) = 0.5_rkx * gtota3d(n,k,ns)
+              if ( tauxar3d(k,n,ns) < 1.E-10_rkx ) then
+                tauxar3d(k,n,ns) = 1.E-10_rkx
+                tauasc3d(k,n,ns) = 0.999999_rkx * tauxar3d(k,n,ns)
+                gtota3d(k,n,ns) = 0.5_rkx * tauasc3d(k,n,ns)
+                ftota3d(k,n,ns) = 0.5_rkx * gtota3d(k,n,ns)
               end if
             end do
           end do
+        else
           !
-          ! Clear sky (always calcuated if ichdir >=1 for
-          ! diagnostic radiative forcing)
-          !
-          do itr = 1 , ntr
-            do n = n1 , n2
-              tauxar(n,ns) = tauxar(n,ns) + tauaer(n,itr)
-              if (waer(n,itr) > minimum_waer) then
-                tauasc(n,ns) = tauasc(n,ns) + tauaer(n,itr)*waer(n,itr)
-              end if
-              if (gaer(n,itr) > minimum_gaer .and.  &
-                waer(n,itr) > minimum_gaer) then
-                gtota(n,ns) = gtota(n,ns) + gaer(n,itr) * &
-                                tauaer(n,itr)*waer(n,itr)
-                ftota(n,ns) = ftota(n,ns) + faer(n,itr) * &
-                                tauaer(n,itr)*waer(n,itr)
-              end if
-            end do
-          end do
           ! in the case RRTM expect the layer extinction, and effective
           ! SSA and asym relative to the mixture
-        else if ( irrtm == 1 ) then
+          !
+          tauxar3d(:,:,ns) = d_zero
+          tauasc3d(:,:,ns) = d_zero
+          gtota3d(:,:,ns) = d_zero
+          ftota3d(:,:,ns) = d_zero
           do itr = 1 , ntr
             do k = 1 , kz
               do n = n1 , n2
@@ -2503,8 +2477,14 @@ module mod_rad_aerosol
           tauasc3d(n1:n2,0:kth -kz,ns) = 0.999999_rkx
           gtota3d(n1:n2 ,0:kth -kz,ns) = 0.5_rkx
         end if
-      end do ! end spectral loop
-
+      !
+      !   End spectral loop
+      !
+      end do
+      !
+      !   End spectral loop
+      !
+      !
       ! DUST LW emissivity
       !
       if ( irrtm == 0 ) then
@@ -2515,25 +2495,25 @@ module mod_rad_aerosol
         !
         do itr = 1 , ntr
           if ( chtrname(itr)(1:4) == 'DUST' ) then
-            do k1 = 1 , kzp1
-              do k2 = 1 , kzp1
-                do n = n1 , n2
-                  if ( k1 == k2 ) aertrlw(n,k1,k2) = d_one
+            do n = n1 , n2
+              do k1 = 1 , kzp1
+                do k2 = 1 , kzp1
+                  if ( k1 == k2 ) aertrlw(k1,k2,n) = d_one
                   ! aerosol path btw k1 and k2 flux level
                   uaerdust = d_zero
                   if ( k1<k2 ) then
                     uaerdust =  uaerdust + d10e5 * sum(uaer(n,k1:k2-1,itr))
-                    aertrlw(n,k1,k2) = exp(-fiveothree * qabslw * uaerdust)
+                    aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
                   else if ( k1>k2 ) then
                     uaerdust =  uaerdust + d10e5 * sum(uaer(n,k2:k1-1,itr))
-                    aertrlw(n,k1,k2) = exp(-fiveothree * qabslw * uaerdust)
+                    aertrlw(k1,k2,n) = exp(-fiveothree * qabslw * uaerdust)
                   end if
                 end do
               end do
             end do
           end if
         end do
-      else if ( irrtm == 1 ) then
+      else
         ! in this case use directly the LW extinction.
         do ns = 1 , nbndlw
           tauxar3d_lw(:,:,ns) = 1.0E-10_rkx
@@ -2554,6 +2534,7 @@ module mod_rad_aerosol
           end do
         end do
       end if
+
     end subroutine aeroppt
 
     subroutine cmip6_plume_profile(x,m2r)
