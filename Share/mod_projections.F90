@@ -85,7 +85,8 @@ module mod_projections
       procedure , public :: wind2_rotate
       procedure , public :: wind_antirotate
       procedure , public :: wind2_antirotate
-      procedure , public :: rl00 , conefac
+      procedure , public :: rl00
+      procedure , public :: conefac
       procedure , public :: destruct
 
   end type regcm_projection
