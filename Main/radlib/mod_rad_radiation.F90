@@ -255,7 +255,7 @@ module mod_rad_radiation
   !
   real(rkx) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,  &
         explay , flxdiv , totfld , wcl , gcl , fcl , wci , gci , fci , &
-        uh2o , uo3 , uco2 , uo2 , h2ommr
+        uh2o , uo3 , uco2 , uo2
   !
   ! These arrays are defined at model interfaces; 0 is the top of the
   ! extra layer above the model top; kzp1 is the earth surface:
@@ -785,7 +785,6 @@ module mod_rad_radiation
     call getmem2d(n2o,1,kz,1,npoints,'rad:n2o')
     call getmem2d(pmidrd,1,kz,1,npoints,'rad:pmidrd')
     call getmem2d(pintrd,1,kz,1,npoints,'rad:pintrd')
-    call getmem2d(h2ommr,1,kz,1,npoints,'rad:h2ommr')
     call getmem2d(o3mmr,1,kz,1,npoints,'rad:o3mmr')
 
   end subroutine allocate_mod_rad_radiation
@@ -948,7 +947,7 @@ module mod_rad_radiation
 
       call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(rt%n1,rt%n2,rt%pmid,o3mmr,aermmb,rt%cld,rt%clwp,     &
+      call radcsw(rt%n1,rt%n2,pintrd,rt%q,o3mmr,aermmb,rt%cld,rt%clwp,&
                   rt%rel,rt%rei,rt%fice,rt%eccf,rt%solin,rt%solout,    &
                   rt%qrs,rt%fsns,rt%fsnt,rt%fsds,rt%fsnsc,rt%fsntc,    &
                   rt%sols,rt%soll,rt%solsd,rt%solld,rt%fsnirt,         &
@@ -1127,7 +1126,7 @@ module mod_rad_radiation
   !
   ! Input arguments
   !
-  ! pint    - Interface pressure
+  ! pint    - Interface pressure (dynes/cm2)
   ! h2ommr  - Specific humidity (h2o mass mix ratio)
   ! o3mmr   - Ozone mass mixing ratio
   ! cld     - Fractional cloud cover
@@ -1155,7 +1154,7 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,pint,o3mmr,aermmb,cld,clwp,rel,rei,fice,       &
+  subroutine radcsw(n1,n2,pint,h2ommr,o3mmr,aermmb,cld,clwp,rel,rei,fice,&
                     eccf,solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,    &
                     sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw, &
                     adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,   &
@@ -1172,7 +1171,7 @@ module mod_rad_radiation
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pint
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: clwp , fice , rel , rei
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3mmr
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3mmr , h2ommr
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: aermmb
     logical , dimension(n1:n2) , intent(in) :: czengt0
     real(rkx) , dimension(n1:n2) , intent(out) :: aeradfo

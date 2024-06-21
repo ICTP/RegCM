@@ -1201,7 +1201,6 @@ module mod_rad_aerosol
       ! op propert lw for rrtm
       call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
-
       call getmem2d(path,1,npoints,1,kz,'aerosol:path')
       ! these variables are defined on full rad grid including hat
       if ( irrtm == 1 ) then

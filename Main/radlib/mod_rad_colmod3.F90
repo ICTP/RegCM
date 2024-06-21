@@ -125,13 +125,13 @@ module mod_rad_colmod3
     call getmem3d(rt%absgasnxt,1,kz,1,4,1,npr,'colmod3:absgasnxt')
     call getmem3d(rt%absgastot,1,kzp1,1,kzp1,1,npr,'colmod3:absgastot')
     call getmem2d(rt%emsgastot,1,kzp1,1,npr,'colmod3:emsgastot')
-    call getmem3d(rt%tauxcl,0,kz,1,nspi,1,npr,'colmod3:tauxcl')
-    call getmem3d(rt%tauxci,0,kz,1,nspi,1,npr,'colmod3:tauxci')
+    call getmem3d(rt%tauxcl,0,kz,1,npr,1,nspi,'colmod3:tauxcl')
+    call getmem3d(rt%tauxci,0,kz,1,npr,1,nspi,'colmod3:tauxci')
     call getmem3d(rt%outtaucl,1,kzp1,1,4,1,npr,'colmod3:outtaucl')
     call getmem3d(rt%outtauci,1,kzp1,1,4,1,npr,'colmod3:outtauci')
     call getmem1d(rt%ioro,1,npr,'colmod3:ioro')
     dosw = .true.
-    dolw = .true.
+    dolw = .false.
     doabsems = .true.
   end subroutine allocate_mod_rad_colmod3
   !
@@ -429,6 +429,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           n = (j-jci1)+(i-ici1)*nj+1
           rt%pmid(k,n) = m2r%phatms(j,i,k)
+          rt%pmln(k,n) = log(m2r%phatms(j,i,k))
           rt%t(k,n)    = m2r%tatms(j,i,k)
           rt%rh(k,n)   = m2r%rhatms(j,i,k)
           rt%q(k,n)    = m2r%qxatms(j,i,k,iqv)
@@ -442,6 +443,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           n = (j-jci1)+(i-ici1)*nj+1
           rt%pint(k,n) = m2r%pfatms(j,i,k)
+          rt%piln(k,n) = log(m2r%pfatms(j,i,k))
         end do
       end do
     end do
@@ -450,8 +452,6 @@ module mod_rad_colmod3
     !
     do n = rt%n1 , rt%n2
       do k = 1 , kz
-        rt%pmln(k,n) = log(rt%pmid(k,n))
-        rt%piln(k,n) = log(rt%pint(k,n))
         rt%rho(k,n) = (rt%pmid(k,n)*amdk)/(rt%t(k,n)*rgasmol)
       end do
     end do
@@ -741,7 +741,7 @@ module mod_rad_colmod3
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1)+(i-ici1)*nj+1
-              taucldsp(j,i,k,m)  = rt%tauxcl(k,m,n) + rt%tauxci(k,m,n)
+              taucldsp(j,i,k,m)  = rt%tauxcl(k,n,m) + rt%tauxci(k,n,m)
             end do
           end do
         end do
