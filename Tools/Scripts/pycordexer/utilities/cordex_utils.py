@@ -298,7 +298,7 @@ class RegcmOutputFile(object):
         if regcm_version is not None:
             self._revision = regcm_version
             if regcm_version_id is not None:
-                self._rev_version = 'v' + str(regcm_version_id)
+                self._rev_version = str(regcm_version_id)
                 self._nest_tag = None
             elif regcm_nest_tag is not None:
                 self._rev_version = regcm_nest_tag
@@ -322,7 +322,7 @@ class RegcmOutputFile(object):
                     rev_numbers = [int(i) for i in cleaned_rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
                     self._revision = '-'.join(rev_numbers_str)
-                    self._rev_version = 'v{}'.format(rev_numbers[-1])
+                    self._rev_version = '{}'.format(rev_numbers[-1])
                 else:
                     LOGGER.debug('Found an untagged version of RegCM')
                     if rev_temp.lower().startswith('rev'):
@@ -634,7 +634,7 @@ class CordexDataset(Dataset):
         )
 
         if regcm_file.revision is not None:
-            ICTP_Model = 'ICTP-RegCM{}'.format(regcm_file.revision)
+            ICTP_Model = 'RegCM{}'.format(regcm_file.revision)
             ICTP_Model_Version = regcm_file.revision_version
         else:
             LOGGER.warning('Using fallback values for RegCM version...')
@@ -643,32 +643,33 @@ class CordexDataset(Dataset):
 
         scenario = simulation.experiment.upper().replace('.', '')
         newattr = {
-            'project_id': 'CORDEX',
-            'ipcc_scenario_code': scenario,
-            'institute_id': 'ICTP',
-            'note': 'The domain is larger than ' + simulation.domain,
+            'activity_id': 'DD',      #only option allowed
             'comment': 'RegCM CORDEX {} run'.format(regcm_file.domain),
-            'experiment': simulation.domain,
-            'experiment_id': simulation.experiment.replace('.', ''),
-            'driving_experiment': '{}, {}, {}'.format(
-                simulation.global_model,
-                simulation.experiment.replace('.', ''),
-                simulation.ensemble
-            ),
-            'driving_model_id': simulation.global_model,
-            'driving_model_ensemble_member': simulation.ensemble,
-            'driving_experiment_name': simulation.experiment.replace('.', ''),
-            'institution': 'International Centre for Theoretical Physics',
-            'model_id': ICTP_Model,
+            'note': 'The domain ' + simulation.domain + ' is smaller than the EUR-11 domain', #This will be different for every simulation
+            'contact': simulation.mail,
+            'Conventions': 'CF-1.11',  #only option allowed in CMIP6
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                            time.localtime(time.time())),
-            'CORDEX_domain': simulation.domain,
-            'rcm_version_id': ICTP_Model_Version,
-            'ICTP_version_note': simulation.notes,
-            'contact': simulation.mail,
-            'product': 'output',
-            'Conventions': 'CF-1.7',
+            'domain': 'Europe',        #should be linked to the domain_id
+            'domain_id': simulation.domain,
+            'driving_experiment':'evaluation run with reanalysis forcing',  #should be linked to driving_experiment_id
+            'driving_experiment_id': simulation.experiment.replace('.', ''),
+            'driving_institution_id': 'ECMWF',   #should be linked to driving_source_id or additional input parameter
+            'driving_source_id': 'ERA5',         #should be added as input parameter to pycordex
+            'driving_variant_label': simulation.ensemble,
+            'grid': 'Rotated-pole latitude-longitude with 3km grid spacing',   #should be changed based on the simulation resolution
+            'institution': 'International Centre for Theoretical Physics',
+            'institution_id': 'ICTP',
+            'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
+            'mip_era': 'CMIP6',      #only option allowed
+            'product': 'model-output',    #only option allowed
+            'project_id': 'CORDEX',            #only option allowed
+            'source': 'ICTP Regional Climatic model V5',
+            'source_id': ICTP_Model,
+            'source_type': 'ARCM',             #should be added as input parameter to pycordex (4 options: ARCM AORCM AGCM AOGCM)
             'tracking_id': str(uuid.uuid1()),
+            'version_realization': ICTP_Model_Version,
+            'version_realization_info': 'none',
         }
 
         if regcm_file.nesting_tag is not None:
@@ -1069,6 +1070,7 @@ class CordexDataset(Dataset):
 
         LOGGER.debug('Setting parameter "frequency" for the netCDF file')
         self.setncattr('frequency', cordex_var.frequency)
+        self.setncattr('variable_id', cordex_var.name)
 
         if 'coordinates' in attributes:
             # The "coordinates" attribute refers to variables that could have
@@ -1310,13 +1312,14 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     # This is the directory where the NetCDf file will be saved
     cordex_last_dir = os.path.join(
         cordex_dir,
-        simul.product,
+        'CMIP6',
+        'DD',
         simul.domain,
         'ICTP',
         simul.global_model,
         simul.experiment.translate({None: '.'}),
         simul.ensemble,
-        ICTP_Model,
+        'RegCM5',
         ICTP_Model_Version,
         var_freq,
         var_name
@@ -1349,7 +1352,8 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         simul.global_model,
         simul.experiment.translate({None: '.'}),
         simul.ensemble,
-        ICTP_Model,
+        'ICTP',
+        'RegCM5',
         ICTP_Model_Version,
         var_freq,
         dd1 + '-' + dd2 + '.nc',
