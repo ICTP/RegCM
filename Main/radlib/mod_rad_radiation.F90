@@ -1916,7 +1916,7 @@ module mod_rad_radiation
     real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
     real(rkx) , dimension(kz,n1:n2) , intent(out) :: qrl
     integer(ik4) :: n , khighest , irad , nradaer
-    integer(ik4) :: k , km , k1 , k2 , k3 , ns
+    integer(ik4) :: k , km , k1 , k2 , k3
     real(rkx) :: bk1 , bk2 , absbt , tmp , tmp1 , delt , delt1
     integer(ik4) :: km1 , km2 , km3 , km4
 #ifdef DEBUG
@@ -2042,13 +2042,13 @@ module mod_rad_radiation
       ! delt1=t**4 in layer below current sigma level km.
       !
 #ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,delt,delt1,km,ns,k)
+      do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,delt,delt1,k,km)
 #else
       do n = n1 , n2
 #endif
-        do ns = 1 , 4
+        do km = 1 , 4
           do k = 1 , kz
-            absnxt(k,ns,n) = absgasnxt(k,ns,n)
+            absnxt(k,km,n) = absgasnxt(k,km,n)
           end do
         end do
         do k = 1 , kzp1
@@ -2060,10 +2060,10 @@ module mod_rad_radiation
           end do
         end do
         if  ( linteract .and. irad == 2 ) then
-          do ns = 1 , 4
+          do km = 1 , 4
             do k = 1 , kz
-              absnxt(k,ns,n) = d_one-(d_one-absgasnxt(k,ns,n)) * &
-                              (aertrlw(k,k+1,n)**xuinpl(k,ns,n))
+              absnxt(k,km,n) = d_one-(d_one-absgasnxt(k,km,n)) * &
+                              (aertrlw(k,k+1,n)**xuinpl(k,km,n))
             end do
           end do
           do k = 1 , kzp1
