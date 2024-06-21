@@ -833,13 +833,8 @@ module mod_rrtmg_driver
       end do
     end do
 
-    do k = 1 , kth
-      do n = 1 , npr
-        call trcmix(dlat(n),xptrop(n),play(n,k),         &
-                    n2o0(n),ch40(n),cfc110(n),cfc120(n), &
-                    n2ommr(n,k),ch4mmr(n,k),cfc11mmr(n,k),cfc12mmr(n,k))
-      end do
-    end do
+    call trcmix(1,npr,dlat,xptrop,play,n2o0,ch40,cfc110,cfc120, &
+                n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kth
       do n = 1 , npr

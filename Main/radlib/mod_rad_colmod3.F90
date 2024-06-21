@@ -131,7 +131,7 @@ module mod_rad_colmod3
     call getmem3d(rt%outtauci,1,kzp1,1,4,1,npr,'colmod3:outtauci')
     call getmem1d(rt%ioro,1,npr,'colmod3:ioro')
     dosw = .true.
-    dolw = .false.
+    dolw = .true.
     doabsems = .true.
   end subroutine allocate_mod_rad_colmod3
   !

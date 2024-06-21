@@ -31,6 +31,31 @@ module mod_rad_tracer
 
   public :: trcmix , trcab , trcabn , trcems
 
+  real(rkx) , dimension(6) , parameter :: g1 = &
+      [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
+        0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx ]
+  real(rkx) , dimension(6) , parameter :: g2 = &
+      [ 14.48320_rkx , 4.302420_rkx ,  5.23523_rkx , &
+         3.25342_rkx , 0.698935_rkx , 16.55990_rkx ]
+  real(rkx) , dimension(6) , parameter :: g3 = &
+      [ 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
+        12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx ]
+  real(rkx) , dimension(6) , parameter :: g4 = &
+      [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
+        0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
+  real(rkx) , dimension(6) , parameter :: ab = &
+      [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
+        2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
+  real(rkx) , dimension(6) , parameter :: bb = &
+      [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
+        -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
+  real(rkx) , dimension(6) , parameter :: abp = &
+      [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
+        2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
+  real(rkx) , dimension(6) , parameter :: bbp = &
+      [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
+        -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
+
   contains
 
   !-----------------------------------------------------------------------
@@ -54,9 +79,8 @@ module mod_rad_tracer
   !
   !-----------------------------------------------------------------------
   !
-  pure subroutine trcmix(dlat,xptrop,pmid,n2o0,ch40,cfc110,cfc120, &
+  pure subroutine trcmix(n1,n2,dlat,ptrop,pmid,n2o0,ch40,cfc110,cfc120, &
                          n2o,ch4,cfc11,cfc12)
-!$acc routine seq
     implicit none
     !
     ! dlat   - latitude in degrees
@@ -67,46 +91,58 @@ module mod_rad_tracer
     ! ptrop  - pressure level of tropopause
     ! pratio - pressure divided by ptrop
     !
-    real(rkx) , intent(in) :: pmid , dlat , xptrop
-    real(rkx) , intent(in) :: n2o0 , ch40 , cfc110 , cfc120
-    real(rkx) , intent(out) :: cfc11 , cfc12 , ch4 , n2o
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: dlat , ptrop
+    real(rkx) , dimension(n1:n2,kz) , intent(in) :: pmid
+    real(rkx) , dimension(n1:n2) , intent(in) :: n2o0 , ch40 , cfc110 , cfc120
+    real(rkx) , dimension(n1:n2,kz) , intent(out) :: cfc11 , cfc12 , ch4 , n2o
 #ifndef RCEMIP
     real(rkx) :: alat
 #endif
     real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o
+    integer(ik4) :: n , k
 
 #ifdef RCEMIP
     xn2o = 0.3478_rkx
     xch4 = 0.2353_rkx
     xcfc11 = 0.7273_rkx
     xcfc12 = 0.4000_rkx
-#else
-    alat = abs(dlat) ! This is absolute value of latitude in degrees
-    if ( alat <= 45.0_rkx ) then
-      xn2o = 0.3478_rkx + 0.00116_rkx*alat
-      xch4 = 0.2353_rkx
-      xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
-      xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
-    else
-      xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
-      xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
-      xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
-      xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
-    end if
 #endif
-    !  set stratospheric scale height factor for gases
-    if ( pmid >= xptrop ) then
-      ch4 = ch40
-      n2o = n2o0
-      cfc11 = cfc110
-      cfc12 = cfc120
-    else
-      pratio = pmid/xptrop
-      ch4 = ch40*(pratio**xch4)
-      n2o = n2o0*(pratio**xn2o)
-      cfc11 = cfc110*(pratio**xcfc11)
-      cfc12 = cfc120*(pratio**xcfc12)
-    end if
+    do k = 1 , kz
+#ifdef STDPAR
+      do concurrent ( n = n1:n2 )
+#else
+      do n = n1 , n2
+#endif
+#ifndef RCEMIP
+        alat = abs(dlat(n))
+        if ( alat <= 45.0_rkx ) then
+          xn2o = 0.3478_rkx + 0.00116_rkx*alat
+          xch4 = 0.2353_rkx
+          xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
+          xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
+        else
+          xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
+          xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
+        end if
+#endif
+        !  set stratospheric scale height factor for gases
+        if ( pmid(n,k) >= ptrop(n) ) then
+          ch4(n,k) = ch40(n)
+          n2o(n,k) = n2o0(n)
+          cfc11(n,k) = cfc110(n)
+          cfc12(n,k) = cfc120(n)
+        else
+          pratio = pmid(n,k)/ptrop(n)
+          ch4(n,k) = ch40(n)*(pratio**xch4)
+          n2o(n,k) = n2o0(n)*(pratio**xn2o)
+          cfc11(n,k) = cfc110(n)*(pratio**xcfc11)
+          cfc12(n,k) = cfc120(n)*(pratio**xcfc12)
+        end if
+      end do
+    end do
   end subroutine trcmix
   !
   !----------------------------------------------------------------------
@@ -231,31 +267,6 @@ module mod_rad_tracer
       tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , w1 , sqti , tt
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
-
-    real(rkx) , dimension(6) , parameter :: g1 = &
-        [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-          0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx ]
-    real(rkx) , dimension(6) , parameter :: g2 = &
-        [ 14.48320_rkx , 4.302420_rkx ,  5.23523_rkx , &
-           3.25342_rkx , 0.698935_rkx , 16.55990_rkx ]
-    real(rkx) , dimension(6) , parameter :: g3 = &
-        [ 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
-          12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx ]
-    real(rkx) , dimension(6) , parameter :: g4 = &
-        [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-          0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
-    real(rkx) , dimension(6) , parameter :: ab = &
-        [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-          2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bb = &
-        [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-          -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
-    real(rkx) , dimension(6) , parameter :: abp = &
-        [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-          2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bbp = &
-        [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-          -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     sqti = sqrt(to3co2)
     ! h2o transmission
@@ -435,31 +446,6 @@ module mod_rad_tracer
       tch4 , tlw , w1 , rsqti , sqti , tt , du12
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
-
-    real(rkx) , dimension(6) , parameter :: g1 = &
-     [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-       0.0304380_rkx , 0.0540398_rkx ,  0.0321962_rkx ]
-    real(rkx) , dimension(6) , parameter :: g2 = &
-     [ 14.483200_rkx ,  4.302420_rkx ,  5.2352300_rkx , &
-        3.253420_rkx ,  0.698935_rkx , 16.5599000_rkx ]
-    real(rkx) , dimension(6) , parameter :: g3 = &
-     [ 26.18980_rkx , 18.44760_rkx , 15.36330_rkx , &
-       12.19270_rkx ,  9.14992_rkx ,  8.07092_rkx ]
-    real(rkx) , dimension(6) , parameter :: g4 = &
-     [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-       0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
-    real(rkx) , dimension(6) , parameter :: ab = &
-     [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-       2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bb = &
-     [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-       -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
-    real(rkx) , dimension(6) , parameter :: abp = &
-     [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-       2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bbp = &
-     [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-       -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     sqti = sqrt(tbar)
     rsqti = d_one/sqti
@@ -642,31 +628,6 @@ module mod_rad_tracer
                  u02 , u03 , u11 , u12 , w1
     real(rkx) , dimension(6) :: tw
     integer(ik4) :: l
-
-    real(rkx) , dimension(6) , parameter :: g1 = &
-      [ 0.0468556_rkx , 0.0397454_rkx , 0.0407664_rkx , &
-        0.0304380_rkx , 0.0540398_rkx , 0.0321962_rkx ]
-    real(rkx) , dimension(6) , parameter :: g2 = &
-      [ 14.48320_rkx ,  4.302420_rkx ,  5.23523_rkx , &
-         3.25342_rkx ,  0.698935_rkx , 16.55990_rkx  ]
-    real(rkx) , dimension(6) , parameter :: g3 = &
-      [ 26.1898_rkx , 18.44760_rkx , 15.36330_rkx , &
-        12.1927_rkx ,  9.14992_rkx ,  8.07092_rkx ]
-    real(rkx) , dimension(6) , parameter :: g4 = &
-      [ 0.0261782_rkx , 0.0369516_rkx , 0.0307266_rkx , &
-        0.0243854_rkx , 0.0182932_rkx , 0.0161418_rkx ]
-    real(rkx) , dimension(6) , parameter :: ab = &
-      [ 3.0857e-2_rkx , 2.3524e-2_rkx , 1.7310e-2_rkx , &
-        2.6661e-2_rkx , 2.8074e-2_rkx , 2.2915e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bb = &
-      [ -1.3512e-4_rkx ,-6.8320e-5_rkx ,-3.2609e-5_rkx , &
-        -1.0228e-5_rkx ,-9.5743e-5_rkx ,-1.0304e-4_rkx ]
-    real(rkx) , dimension(6) , parameter :: abp = &
-      [ 2.9129e-2_rkx , 2.4101e-2_rkx , 1.9821e-2_rkx , &
-        2.6904e-2_rkx , 2.9458e-2_rkx , 1.9892e-2_rkx ]
-    real(rkx) , dimension(6) , parameter :: bbp = &
-      [ -1.3139e-4_rkx ,-5.5688e-5_rkx ,-4.6380e-5_rkx , &
-        -8.0362e-5_rkx ,-1.0115e-4_rkx ,-8.8061e-5_rkx ]
 
     sqti = sqrt(co2t)
     ! Transmission for h2o
