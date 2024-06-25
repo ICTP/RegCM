@@ -495,6 +495,9 @@ module mod_cams
       nsp = 13
       varname(1:nsp) = aername(1:nsp)
       fname(1:nsp) = afname(1:nsp)
+    else
+      write(stderr, *) 'Unknown type! Support only CH and AE'
+      call die('mod_ch_cams','Unknown simulattion type.')
     end if
 
     call split_idate(idate,year,month,day,hour)

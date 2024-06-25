@@ -326,6 +326,7 @@ module mod_kdtree2_priority
   real(kdkind) function pq_maxpri(a)
     implicit none
     type(pq) , pointer :: a
+    pq_maxpri = -1
     if ( a%heap_size > 0 ) then
       pq_maxpri = a%elems(1)%dis
     else

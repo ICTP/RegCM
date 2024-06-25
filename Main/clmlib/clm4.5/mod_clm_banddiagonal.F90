@@ -189,13 +189,13 @@ module mod_clm_banddiagonal
         write(stdout,*)'index: ', ci
         write(stdout,*)'n,kl,ku,m ',n,kl,ku,m
         write(stdout,*)'dgbsv info: ',ci,info
-        write(stdout,*) ''
+        write(stdout,*) ' '
         write(stdout,*) 'ab matrix'
         do j = 1 , n
           ! write(stdout,'(i2,7f18.7)') j,temp(:,j)
           write(stdout,'(i2,5f18.7)') j,temp(3:7,j)
         end do
-        write(stdout,*) ''
+        write(stdout,*) ' '
         call fatal(__FILE__,__LINE__,'Linear algebra error')
       end if
       deallocate(temp)

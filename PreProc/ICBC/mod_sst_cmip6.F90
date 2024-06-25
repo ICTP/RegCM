@@ -67,7 +67,7 @@ module mod_sst_cmip6
       implicit none
       type(rcm_time_and_date) :: idate , idatef , idateo
       type(rcm_time_interval) :: tdif , step
-      procedure(read_cmip6_sst) , pointer :: read_func
+      procedure(read_cmip6_sst) , pointer :: read_func => null( )
       integer :: nsteps , n
 
       idateo = globidate1

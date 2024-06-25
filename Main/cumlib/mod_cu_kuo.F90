@@ -176,6 +176,7 @@ module mod_cu_kuo
           !    eqt is the eqt of cloud (same as lcl eqt).
           !
           ktop = max(kbase-3,1)
+          kk = 1
           do k = 1 , kbase
             kk = kbase + 1 - k
             deqt = seqt(kk) - eqtm
