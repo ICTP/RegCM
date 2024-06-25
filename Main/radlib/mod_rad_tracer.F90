@@ -79,6 +79,8 @@ module mod_rad_tracer
   !
   !-----------------------------------------------------------------------
   !
+  ! This is now inline in CCM, and is used here by RRTM
+  !
   pure subroutine trcmix(n1,n2,dlat,ptrop,pmid,n2o0,ch40,cfc110,cfc120, &
                          n2o,ch4,cfc11,cfc12)
     implicit none
@@ -153,44 +155,44 @@ module mod_rad_tracer
   !-----------------------------------------------------------------------
   !
   !------------------------------Arguments--------------------------------
+  ! tpnm    - interface pressures total path
   ! to3co2  - pressure weighted temperature
-  ! pnm     - interface pressures
-  ! ucfc11  - CFC11 path length
-  ! ucfc12  - CFC12 path length
-  ! un2o0   - N2O path length
-  ! un2o1   - N2O path length (hot band)
-  ! uch4    - CH4 path length
-  ! uco211  - CO2 9.4 micron band path length
-  ! uco212  - CO2 9.4 micron band path length
-  ! uco213  - CO2 9.4 micron band path length
-  ! uco221  - CO2 10.4 micron band path length
-  ! uco222  - CO2 10.4 micron band path length
-  ! uco223  - CO2 10.4 micron band path length
-  ! bn2o0   - pressure factor for n2o
-  ! bn2o1   - pressure factor for n2o
-  ! bch4    - pressure factor for ch4
+  ! ds2c    - continuum path length
+  ! duptyp  - p-type path length
+  ! du1     - cfc11 path length
+  ! du2     - cfc12 path length
+  ! duch4   - ch4 path length
+  ! dbetac  - ch4 pressure factor
+  ! du01    - n2o path length
+  ! du11    - n2o path length
+  ! dbeta01 - n2o pressure factor
+  ! dbeta11 -        "
+  ! duco21  - co2 path length
+  ! duco22  -       "
+  ! duco23  -       "
+  ! duco11  - co2 path length
+  ! duco12  -       "
+  ! duco13  -       "
   ! dw      - h2o path length
   ! pnew    - pressure
-  ! s2c     - continuum path length
-  ! uptype  - p-type h2o path length
   ! dplh2o  - p squared h2o path length
   ! abplnk1 - Planck factor
   ! tco2    - co2 transmission factor
   ! th2o    - h2o transmission factor
   ! to3     - o3 transmission factor
   !
-  !------------------------------Output Arguments-------------------------
+  !------------------------------Output Value-------------------------
   !
   ! abstrc  - total trace gas absorptivity
   !
-  !-----------------------------------------------------------------------
+  !-------------------------------------------------------------------
   !
-  pure real(rkx) function trcab(dpint,ds2c,duptyp,du1,du2,duch4,dbetac, &
+  pure real(rkx) function trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
       du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
       duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
 !$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: dpint , ds2c , duptyp , du1 , du2
+    real(rkx) , intent(in) :: tpnm , ds2c , duptyp , du1 , du2
     real(rkx) , intent(in) :: duch4 , dbetac , du01 , du11
     real(rkx) , intent(in) :: dbeta01 , dbeta11
     real(rkx) , intent(in) :: duco11 , duco12 , duco13
@@ -202,8 +204,6 @@ module mod_rad_tracer
     !-----------------------------------------------------------------------
     !
     ! sqti    - square root of mean temp
-    ! du1     - cfc11 path length
-    ! du2     - cfc12 path length
     ! acfc1   - cfc11 absorptivity 798 cm-1
     ! acfc2   - cfc11 absorptivity 846 cm-1
     ! acfc3   - cfc11 absorptivity 933 cm-1
@@ -212,9 +212,6 @@ module mod_rad_tracer
     ! acfc6   - cfc12 absorptivity 923 cm-1
     ! acfc7   - cfc12 absorptivity 1102 cm-1
     ! acfc8   - cfc12 absorptivity 1161 cm-1
-    ! du01    - n2o path length
-    ! dbeta01 - n2o pressure factor
-    ! dbeta11 -        "
     ! an2o1   - absorptivity of 1285 cm-1 n2o band
     ! du02    - n2o path length
     ! dbeta02 - n2o pressure factor
@@ -222,26 +219,16 @@ module mod_rad_tracer
     ! du03    - n2o path length
     ! dbeta03 - n2o pressure factor
     ! an2o3   - absorptivity of 1168 cm-1 n2o band
-    ! duch4   - ch4 path length
-    ! dbetac  - ch4 pressure factor
     ! ach4    - absorptivity of 1306 cm-1 ch4 band
-    ! du11    - co2 path length
-    ! du12    -       "
-    ! du13    -       "
+    ! aco21   - absorptivity of 1064 cm-1 band
+    ! aco22   - absorptivity of 961 cm-1 band
     ! dbetc1  - co2 pressure factor
     ! dbetc2  - co2 pressure factor
-    ! aco21   - absorptivity of 1064 cm-1 band
-    ! du21    - co2 path length
-    ! du22    -       "
-    ! du23    -       "
-    ! aco22   - absorptivity of 961 cm-1 band
     ! tt      - temp. factor for h2o overlap factor
     ! psi1    -                 "
     ! phi1    -                 "
     ! p1      - h2o overlap factor
     ! w1      -        "
-    ! ds2c    - continuum path length
-    ! duptyp  - p-type path length
     ! tw      - h2o transmission factor
     ! g1      -         "
     ! g2      -         "
@@ -315,7 +302,7 @@ module mod_rad_tracer
     an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03)) * &
             tw(6)*tcfc8*abplnk1(6)
     ! Emissivity for 1064 cm-1 band of CO2
-    dbetc1 = 2.97558_rkx*dpint/(d_two*sslp*sqti)
+    dbetc1 = 2.97558_rkx*tpnm/(d_two*sslp*sqti)
     dbetc2 = d_two*dbetc1
     aco21 = 3.7571_rkx*sqti * &
             log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
@@ -338,36 +325,35 @@ module mod_rad_tracer
   !
   !------------------------------Arguments--------------------------------
   !
-  ! tbar   - pressure weighted temperature
-  ! ucfc11 - CFC11 path length
-  ! ucfc12 - CFC12 path length
-  ! un2o0  - N2O path length
-  ! un2o1  - N2O path length (hot band)
-  ! uch4   - CH4 path length
-  ! uco211 - CO2 9.4 micron band path length
-  ! uco212 - CO2 9.4 micron band path length
-  ! uco213 - CO2 9.4 micron band path length
-  ! uco221 - CO2 10.4 micron band path length
-  ! uco222 - CO2 10.4 micron band path length
-  ! uco223 - CO2 10.4 micron band path length
-  ! bplnk  - weighted Planck function for absorptivity
-  ! winpl  - fractional path length
-  ! pinpl  - pressure factor for subdivided layer
-  ! tco2   - co2 transmission
-  ! th2o   - h2o transmission
-  ! to3    - o3 transmission
-  ! dw     - h2o path length
-  ! pnew   - pressure factor
-  ! s2c    - h2o continuum factor
-  ! uptype - p-type path length
-  ! up2    - p squared path length
-  ! uinpl  - Nearest layer subdivision factor
+  ! tbar    - pressure weighted temperature
+  ! dw      - h2o path length
+  ! pnew    - pressure factor
+  ! tco2    - co2 transmission
+  ! th2o    - h2o transmission
+  ! to3     - o3 transmission
+  ! up2     - p squared path length
+  ! pinpl   - pressure factor for subdivided layer
+  ! winpl   - fractional path length
+  ! ds2c    - h2o continuum factor
+  ! duptype - p-type path length
+  ! du1     - cfc11 path length
+  ! du2     - cfc12 path length
+  ! duch4   - ch4 path length
+  ! du01    - n2o path length
+  ! du11    - n2o path length
+  ! duco11  - co2 path length
+  ! duco12  -       "
+  ! duco13  -       "
+  ! duco21  - co2 path length
+  ! duco22  -       "
+  ! duco23  -       "
+  ! bplnk   - weighted Planck function for absorptivity
   !
-  !------------------------------Output Arguments-------------------------
+  !------------------------------Output Value-------------------------
   !
   ! abstrc - total trace gas absorptivity
   !
-  !-----------------------------------------------------------------------
+  !-------------------------------------------------------------------
   !
   pure real(rkx) function trcabn(tbar,dw,pnew,tco2,th2o,to3,up2,     &
       pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
@@ -382,8 +368,6 @@ module mod_rad_tracer
     !
     ! sqti    - square root of mean temp
     ! rsqti   - reciprocal of sqti
-    ! du1     - cfc11 path length
-    ! du2     - cfc12 path length
     ! acfc1   - absorptivity of cfc11 798 cm-1 band
     ! acfc2   - absorptivity of cfc11 846 cm-1 band
     ! acfc3   - absorptivity of cfc11 933 cm-1 band
@@ -392,7 +376,6 @@ module mod_rad_tracer
     ! acfc6   - absorptivity of cfc11 923 cm-1 band
     ! acfc7   - absorptivity of cfc11 1102 cm-1 band
     ! acfc8   - absorptivity of cfc11 1161 cm-1 band
-    ! du01    - n2o path length
     ! dbeta01 - n2o pressure factors
     ! dbeta11 -        "
     ! an2o1   - absorptivity of the 1285 cm-1 n2o band
@@ -402,18 +385,11 @@ module mod_rad_tracer
     ! du03    - n2o path length
     ! dbeta03 - n2o pressure factor
     ! an2o3   - absorptivity of the 1168 cm-1 n2o band
-    ! duch4   - ch4 path length
     ! dbetac  - ch4 pressure factor
     ! ach4    - absorptivity of the 1306 cm-1 ch4 band
-    ! du11    - co2 path length
-    ! du12    -       "
-    ! du13    -       "
     ! dbetc1 -  co2 pressure factor
     ! dbetc2 -  co2 pressure factor
     ! aco21  -  absorptivity of the 1064 cm-1 co2 band
-    ! du21   -  co2 path length
-    ! du22   -        "
-    ! du23   -        "
     ! aco22  -  absorptivity of the 961 cm-1 co2 band
     ! tt     -  temp. factor for h2o overlap
     ! psi1   -           "
@@ -528,7 +504,10 @@ module mod_rad_tracer
   ! ucfc12 - CFC12 path length
   ! un2o0  - N2O path length
   ! un2o1  - N2O path length (hot band)
+  ! bn2o0  - pressure factor for n2o
+  ! bn2o1  - pressure factor for n2o
   ! uch4   - CH4 path length
+  ! bch4   - pressure factor for ch4
   ! uco211 - CO2 9.4 micron band path length
   ! uco212 - CO2 9.4 micron band path length
   ! uco213 - CO2 9.4 micron band path length
@@ -536,23 +515,19 @@ module mod_rad_tracer
   ! uco222 - CO2 10.4 micron band path length
   ! uco223 - CO2 10.4 micron band path length
   ! uptype - continuum path length
-  ! bn2o0  - pressure factor for n2o
-  ! bn2o1  - pressure factor for n2o
-  ! bch4   - pressure factor for ch4
+  ! w      - h2o path length
+  ! s2c    - h2o continuum path length
+  ! up2    - pressure squared h2o path length
   ! emplnk - emissivity Planck factor
   ! th2o   - water vapor overlap factor
   ! tco2   - co2 overlap factor
   ! to3    - o3 overlap factor
-  ! s2c    - h2o continuum path length
-  ! w      - h2o path length
-  ! up2    - pressure squared h2o path length
-  ! k      - level index
   !
-  !------------------------------Output Arguments-------------------------
+  !------------------------------Output Value-------------------------
   !
   ! emstrc - total trace gas emissivity
   !
-  !-----------------------------------------------------------------------
+  !-------------------------------------------------------------------
   !
   pure real(rkx) function trcems(co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
      bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &

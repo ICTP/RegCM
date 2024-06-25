@@ -104,7 +104,7 @@ module mod_rad_colmod3
     call getmem2d(rt%rho,1,kz,1,npr,'colmod3:rho')
     call getmem2d(rt%clwp,1,kz,1,npr,'colmod3:clwp')
     call getmem2d(rt%fice,1,kz,1,npr,'colmod3:fice')
-    call getmem2d(rt%o3vmr,1,kzp1,1,npr,'colmod3:o3vmr')
+    call getmem2d(rt%o3vmr,1,kz,1,npr,'colmod3:o3vmr')
     call getmem2d(rt%pmid,1,kz,1,npr,'colmod3:pmid')
     call getmem2d(rt%pmln,1,kz,1,npr,'colmod3:pmln')
     call getmem2d(rt%q,1,kz,1,npr,'colmod3:q')
