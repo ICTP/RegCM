@@ -125,7 +125,9 @@ module mod_rad_outrad
     if ( myid == 0 ) then
       do k = 1 , kz
         write(0,*) 'HEATRT ', k, maxval(r2m%heatrt(:,:,k)), &
-          minval(r2m%heatrt(:,:,k)
+          minval(r2m%heatrt(:,:,k))
+        write(0,*) 'QRS    ', k, maxval(qrs(k,:)) , minval(qrs(k,:))
+        write(0,*) 'QRL    ', k, maxval(qrl(k,:)) , minval(qrl(k,:))
       end do
     end if
     !
@@ -172,8 +174,8 @@ module mod_rad_outrad
       write(0,*) 'SABVEG ', maxval(r2m%sabveg), minval(r2m%sabveg)
       write(0,*) 'SOLVS  ', maxval(r2m%solvs), minval(r2m%solvs)
       write(0,*) 'SOLVSD ', maxval(r2m%solvsd), minval(r2m%solvsd)
-      write(0,*) 'SOLVL  ', maxval(r2m%soll), minval(r2m%soll)
-      write(0,*) 'SOLVLD ', maxval(r2m%solld), minval(r2m%solld)
+      write(0,*) 'SOLVL  ', maxval(r2m%solvl), minval(r2m%solvl)
+      write(0,*) 'SOLVLD ', maxval(r2m%solvld), minval(r2m%solvld)
       write(0,*) 'SINC   ', maxval(r2m%sinc), minval(r2m%sinc)
       call fatal(__FILE__,__LINE__,'Killing myself')
     end if

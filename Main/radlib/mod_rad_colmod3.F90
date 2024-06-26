@@ -23,7 +23,7 @@ module mod_rad_colmod3
   use mod_constants , only : amd , amdk , amo3 , mathpi
   use mod_constants , only : rgasmol , rhoh2o , tzero
   use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , kz , kzp1
-  use mod_dynparam , only : ntr , nspi
+  use mod_dynparam , only : ntr , nspi , myid
   use mod_memutil , only : getmem1d , getmem2d , getmem3d
   use mod_runparams , only : ipptls , eccf , ichem , idirect , iindirect
   use mod_runparams , only : iqv , iqc , iqi , ncld , chtrname
@@ -702,6 +702,11 @@ module mod_rad_colmod3
     rt%eccf = real(eccf,rkx)
     rt%labsem = labsem
     call radctl(rt,iyear,imonth)
+    if ( myid == 0 ) then
+      do k = 1 , kz
+        write(0,*) 'QRS  :', k, maxval(rt%qrs(k,:)) , minval(rt%qrs(k,:))
+      end do
+    end if
     !
     ! Save gas emission/absorbtion
     !

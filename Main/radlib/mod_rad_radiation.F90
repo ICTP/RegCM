@@ -968,14 +968,14 @@ module mod_rad_radiation
 
       call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(rt%n1,rt%n2,pnm,rt%q,o3mmr,aermmb,rt%cld,rt%clwp,    &
-                  rt%rel,rt%rei,rt%fice,rt%eccf,rt%solin,rt%solout,    &
-                  rt%qrs,rt%fsns,rt%fsnt,rt%fsds,rt%fsnsc,rt%fsntc,    &
-                  rt%sols,rt%soll,rt%solsd,rt%solld,rt%fsnirt,         &
-                  rt%fsnrtc,rt%fsnirtsq,rt%adirsw,rt%adifsw,rt%adirlw, &
-                  rt%adiflw,rt%asw,rt%alw,rt%abv,rt%sol,rt%czen,       &
-                  rt%czengt0,rt%aeradfo,rt%aeradfos,rt%tauxcl,         &
-                  rt%tauxci,rt%outtaucl,rt%outtauci)
+      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,o3mmr,aermmb,rt%cld,   &
+                  rt%clwp,rt%rel,rt%rei,rt%fice,rt%czen,rt%czengt0,   &
+                  rt%adirsw,rt%adifsw,rt%adirlw,rt%adiflw,rt%asw,     &
+                  rt%alw,rt%solin,rt%solout,rt%qrs,rt%fsns,rt%fsnt,   &
+                  rt%fsds,rt%fsnsc,rt%fsntc,rt%sols,rt%soll,rt%solsd, &
+                  rt%solld,rt%fsnirt,rt%fsnrtc,rt%fsnirtsq,rt%abv,    &
+                  rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,rt%tauxci,  &
+                  rt%outtaucl,rt%outtauci)
       !
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
@@ -1096,12 +1096,12 @@ module mod_rad_radiation
           end if
         end do
       end do
-      call radclw(rt%n1,rt%n2,rt%ts,rt%t,rt%q,rt%o3vmr,pbr,pnm,         &
-                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,tclrsf, &
-                  rt%qrl,rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,     &
-                  rt%flntc,rt%flwds,fslwdcs,rt%emiss,rt%aerlwfo,        &
-                  rt%aerlwfos,rt%absgasnxt,rt%absgastot,rt%emsgastot,   &
-                  rt%labsem)
+      call radclw(rt%n1,rt%n2,rt%labsem,rt%ts,rt%emiss,rt%t,rt%q,   &
+                  rt%o3vmr,pbr,pnm,rt%pmln,rt%piln,n2o,ch4,cfc11,   &
+                  cfc12,rt%effcld,tclrsf,rt%flns,rt%flnt,rt%lwout,  &
+                  rt%lwin,rt%flnsc,rt%flntc,rt%flwds,fslwdcs,       &
+                  rt%aerlwfo,rt%aerlwfos,rt%absgasnxt,rt%absgastot, &
+                  rt%emsgastot,rt%qrl)
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
@@ -1203,26 +1203,26 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,pnm,h2ommr,o3mmr,aermmb,cld,clwp,rel,rei,fice, &
-                    eccf,solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,    &
-                    sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw, &
-                    adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,   &
-                    aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
+  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,o3mmr,aermmb,cld,clwp,rel,rei,   &
+                    fice,czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
+                    solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
+                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,abv,sol,aeradfo,    &
+                    aeradfos,tauxcl,tauxci,outtaucl,outtauci)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , intent(in) :: eccf
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3mmr , h2ommr , aermmb
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: clwp , fice , rel , rei
+    real(rkx) , dimension(n1:n2) , intent(in) :: czen
+    logical , dimension(n1:n2) , intent(in) :: czengt0
     real(rkx) , dimension(n1:n2) , intent(in) :: adirsw
     real(rkx) , dimension(n1:n2) , intent(in) :: adifsw
     real(rkx) , dimension(n1:n2) , intent(in) :: adirlw
     real(rkx) , dimension(n1:n2) , intent(in) :: adiflw
     real(rkx) , dimension(n1:n2) , intent(in) :: asw
     real(rkx) , dimension(n1:n2) , intent(in) :: alw
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: clwp , fice , rel , rei
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3mmr , h2ommr
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: aermmb
-    logical , dimension(n1:n2) , intent(in) :: czengt0
     real(rkx) , dimension(n1:n2) , intent(out) :: aeradfo
     real(rkx) , dimension(n1:n2) , intent(out) :: aeradfos
     real(rkx) , dimension(n1:n2) , intent(out) :: fsds
@@ -1241,7 +1241,6 @@ module mod_rad_radiation
     real(rkx) , dimension(n1:n2) , intent(out) :: solsd
     real(rkx) , dimension(n1:n2) , intent(out) :: abv
     real(rkx) , dimension(n1:n2) , intent(out) :: sol
-    real(rkx) , dimension(n1:n2) , intent(out) :: czen
     real(rkx) , dimension(kzp1,4,n1:n2) , intent(out) ::  outtaucl , outtauci
     real(rkx) , dimension(0:kz,n1:n2,nspi) , intent(out) :: tauxcl , tauxci
     real(rkx) , dimension(kz,n1:n2) , intent(out) :: qrs
@@ -1944,25 +1943,25 @@ module mod_rad_radiation
   !  cs is clearsky
   !  Aerosol longwave added
   !
-  subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pbr,pnm,pmln,piln,n2o,ch4,&
-                    cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,lwout,lwin,   &
-                    flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
-                    absgasnxt,absgastot,emsgastot,labsem)
+  subroutine radclw(n1,n2,labsem,ts,emiss,tnm,qnm,o3vmr,pbr,pnm,    &
+                    pmln,piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,       &
+                    flns,flnt,lwout,lwin,flnsc,flntc,flwds,fslwdcs, &
+                    aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,qrl)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(rkx) , dimension(n1:n2) , intent(in) :: ts , emiss
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: qnm , tnm
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln , o3vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: piln , pnm
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cfc11 , cfc12
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ch4 , n2o
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln , o3vmr
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: qnm , tnm
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: piln , pnm
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tclrsf
     real(rkx) , dimension(n1:n2) , intent(out) :: flns , flnsc , flnt
     real(rkx) , dimension(n1:n2) , intent(out) :: flntc , flwds , fslwdcs
     real(rkx) , dimension(n1:n2) , intent(out) :: lwout , lwin
     real(rkx) , dimension(n1:n2) , intent(out) :: aerlwfo , aerlwfos
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tclrsf
     real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
     real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: emsgastot
     real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
