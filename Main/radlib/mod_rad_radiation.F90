@@ -41,7 +41,7 @@ module mod_rad_radiation
 
   private
 
-  public :: allocate_mod_rad_radiation , radini , radctl , radtype
+  public :: radctl , radtype
 
   type radtype
     integer(ik4) :: n1 , n2
@@ -81,6 +81,7 @@ module mod_rad_radiation
     real(rkx) , dimension(:) , pointer :: fsnirtsq
     real(rkx) , dimension(:) , pointer :: totcf
     real(rkx) , dimension(:) , pointer :: czen
+    logical , dimension(:) , pointer :: czengt0
     real(rkx) , dimension(:) , pointer :: adirsw
     real(rkx) , dimension(:) , pointer :: adifsw
     real(rkx) , dimension(:) , pointer :: adirlw
@@ -97,7 +98,6 @@ module mod_rad_radiation
     real(rkx) , dimension(:) , pointer :: asaeradfos
     real(rkx) , dimension(:) , pointer :: asaerlwfo
     real(rkx) , dimension(:) , pointer :: asaerlwfos
-    logical , dimension(:) , pointer :: czengt0
     real(rkx) , dimension(:,:) , pointer :: pmid
     real(rkx) , dimension(:,:) , pointer :: pint
     real(rkx) , dimension(:,:) , pointer :: pmln
@@ -131,199 +131,6 @@ module mod_rad_radiation
 
   logical , save :: linteract = .false.
   logical , save :: lzero = .false.
-
-  integer(ik4) :: npoints
-
-  real(rkx) , pointer , dimension(:) :: diralb , difalb
-  real(rkx) , pointer , dimension(:) :: cfc11mmr , cfc12mmr
-  real(rkx) , pointer , dimension(:) :: ch4mmr , n2ommr
-  real(rkx) , pointer , dimension(:) :: co2mmr , co2vmr
-  real(rkx) , pointer , dimension(:) :: tauaer , tauasc , gtota , ftota
-  real(rkx) , pointer , dimension(:,:) :: emplnk , emstot
-  real(rkx) , pointer , dimension(:,:,:) :: absnxt , abstot , xuinpl
-  !
-  ! Background aerosol mass mixing ratio
-  !
-  real(rkx) , pointer , dimension(:,:) :: aermmb
-  !
-  ! Trace gas variables
-  !
-  ! bch4     - pressure factor for ch4
-  real(rkx) , pointer , dimension(:,:) :: bch4
-  ! bn2o0   - pressure factor for n2o
-  real(rkx) , pointer , dimension(:,:) :: bn2o0
-  ! bn2o1   - pressure factor for n2o
-  real(rkx) , pointer , dimension(:,:) :: bn2o1
-  ! co2em   - Layer co2 normalized planck funct. derivative
-  real(rkx) , pointer , dimension(:,:) :: co2em
-  ! co2eml  - Interface co2 normalized planck funct. deriv.
-  real(rkx) , pointer , dimension(:,:) :: co2eml
-  ! co2t    - Prs wghted temperature path
-  real(rkx) , pointer , dimension(:,:) :: co2t
-  ! h2otr   - H2o trnmsn for o3 overlap
-  real(rkx) , pointer , dimension(:,:) :: h2otr
-  ! ucfc11  - CFC11 path length
-  real(rkx) , pointer , dimension(:,:) :: ucfc11
-  ! ucfc12  - CFC12 path length
-  real(rkx) , pointer , dimension(:,:) :: ucfc12
-  ! un2o0   - N2O path length
-  real(rkx) , pointer , dimension(:,:) :: un2o0
-  ! un2o1   - N2O path length (hot band)
-  real(rkx) , pointer , dimension(:,:) :: un2o1
-  ! uch4    - CH4 path length
-  real(rkx) , pointer , dimension(:,:) :: uch4
-  ! uco211  - CO2 9.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco211
-  ! uco212  - CO2 9.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco212
-  ! uco213  - CO2 9.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco213
-  ! uco221  - CO2 10.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco221
-  ! uco222  - CO2 10.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco222
-  ! uco223  - CO2 10.4 micron band path length
-  real(rkx) , pointer , dimension(:,:) :: uco223
-  ! uptype   - continuum path length
-  real(rkx) , pointer , dimension(:,:) :: uptype
-  ! plol     - Ozone prs wghted path length
-  real(rkx) , pointer , dimension(:,:) :: plol
-  ! plos     - Ozone path length
-  real(rkx) , pointer , dimension(:,:) :: plos
-  ! tplnka   - Planck fnctn level temperature
-  real(rkx) , pointer , dimension(:,:) :: tplnka
-  ! tint    - Interface temperature
-  real(rkx) , pointer , dimension(:,:) :: tint
-  ! tint4   - Interface temperature**4
-  real(rkx) , pointer , dimension(:,:) :: tint4
-  ! tlayr   - Level temperature
-  real(rkx) , pointer , dimension(:,:) :: tlayr
-  ! tlayr4  - Level temperature**4
-  real(rkx) , pointer , dimension(:,:) :: tlayr4
-  ! w       - H2o path
-  real(rkx) , pointer , dimension(:,:) :: wh2op
-  ! s2c     - H2o cont amount
-  real(rkx) , pointer , dimension(:,:) :: s2c
-  ! s2t     - H2o cont temperature
-  real(rkx) , pointer , dimension(:,:) :: s2t
-  ! ful     - Total upwards longwave flux
-  real(rkx) , pointer , dimension(:,:) :: ful , ful0
-  ! fsul    - Clear sky upwards longwave flux
-  real(rkx) , pointer , dimension(:,:) :: fsul , fsul0
-  ! fdl     - Total downwards longwave flux
-  real(rkx) , pointer , dimension(:,:) :: fdl , fdl0
-  ! fsdl    - Clear sky downwards longwv flux
-  real(rkx) , pointer , dimension(:,:) :: fsdl , fsdl0
-  ! fis     - Flx integral sum
-  real(rkx) , pointer , dimension(:,:,:) :: fis , fis0
-  ! rtclrsf - d_one/tclrsf(k,n)
-  real(rkx) , pointer , dimension(:,:) :: rtclrsf
-  ! tplnke  - Planck fnctn temperature
-  real(rkx) , pointer , dimension(:) :: tplnke
-  ! fclb4   - Sig t**4 for cld bottom interfc
-  real(rkx) , pointer , dimension(:,:) :: fclb4
-  ! fclt4   - Sig t**4 for cloud top interfc
-  real(rkx) , pointer , dimension(:,:) :: fclt4
-  ! klov    - Cloud lowest level index
-  integer(ik4) , pointer , dimension(:) :: klov
-  ! khiv    - Cloud highest level index
-  integer(ik4) , pointer , dimension(:) :: khiv
-  ! khivm   - khiv(n) - 1
-  integer(ik4) , pointer , dimension(:) :: khivm
-  ! Control logicals
-  logical , pointer , dimension(:) :: skip , done
-  !
-  ! These arrays are defined for kz model layers; 0 refers to the
-  ! extra layer on top:
-  !
-  ! rdir     - Layer reflectivity to direct rad
-  ! rdif     - Layer reflectivity to diffuse rad
-  ! tdir     - Layer transmission to direct rad
-  ! tdif     - Layer transmission to diffuse rad
-  ! explay   - Solar beam exp transmission for layer
-  ! flxdiv   - Flux divergence for layer
-  ! totfld   - Spectrally summed flux divergence
-  !
-  real(rkx) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif
-  real(rkx) , pointer , dimension(:,:) :: explay , flxdiv , totfld
-  !
-  ! Cloud radiative property arrays
-  !
-  ! tauxcl   - water cloud extinction optical depth   ( from interface )
-  ! tauxci   - ice cloud extinction optical depth     ( from interface )
-  ! wcl      - liquid cloud single scattering albedo
-  ! gcl      - liquid cloud asymmetry parameter
-  ! fcl      - liquid cloud forward scattered fraction
-  ! wci      - ice cloud single scattering albedo
-  ! gci      - ice cloud asymmetry parameter
-  ! fci      - ice cloud forward scattered fraction
-  !
-  real(rkx) , pointer , dimension(:,:) :: wcl , gcl , fcl , wci , gci , fci
-  !
-  ! Layer absorber amounts
-  !
-  ! uh2o     - Layer absorber amount of h2o
-  ! uo3      - Layer absorber amount of  o3
-  ! uco2     - Layer absorber amount of co2
-  ! uo2      - Layer absorber amount of  o2
-  !
-  real(rkx) , pointer , dimension(:,:) :: uh2o , uo3 , uco2 , uo2
-  !
-  ! These arrays are defined at model interfaces; 0 is the top of the
-  ! extra layer above the model top; kzp1 is the earth surface:
-  !
-  ! rupdir   - Ref to dir rad for layers below
-  ! rupdif   - Ref to dif rad for layers below
-  ! rdndif   - Ref to dif rad for layers above
-  ! exptdn   - Solar beam exp down transm from top
-  ! tottrn   - Total transmission for layers above
-  ! fluxup   - Up   flux at model interface
-  ! fluxdn   - Down flux at model interface
-  ! pflx     - Interface press, including extra layer
-  ! fswup    - Spectrally summed up flux
-  ! fswdn    - Spectrally summed down flux
-  !
-  real(rkx) , pointer , dimension(:,:) :: rupdir , rupdif , rdndif , &
-        exptdn , tottrn , fluxup , fluxdn , pflx , fswup , fswdn
-  !
-  ! abplnk1 - non-nearest layer Plack factor
-  ! abplnk2 - nearest layer factor
-  !
-  real(rkx) , pointer , dimension(:,:,:) :: abplnk1 , abplnk2
-  !
-  ! solflx   - Solar flux in current interval
-  ! uth2o    - Total column  absorber amount of h2o
-  ! uto3     - Total column  absorber amount of  o3
-  ! utco2    - Total column  absorber amount of co2
-  ! uto2     - Total column  absorber amount of  o2
-  !
-  real(rkx) , pointer , dimension(:) :: solflx
-  real(rkx) , pointer , dimension(:) :: utco2 , uth2o , uto2 , uto3
-  ! ref net TOA flux
-  real(rkx) , pointer , dimension(:) :: toafsnsc ,  toafsntc
-  !
-  ! o3mmr    - Ozone mass mixing ratio
-  ! cfc11    - cfc11 mass mixing ratio
-  ! cfc12    - cfc12 mass mixing ratio
-  ! ch4      - methane mass mixing ratio
-  ! n2o      - nitrous oxide mass mixing ratio
-  !
-  real(rkx) , pointer , dimension(:,:) :: o3mmr , cfc11 , cfc12 , ch4 , n2o
-  !
-  ! pbr      - Model mid-level pressures (dynes/cm2)
-  ! pnm      - Model interface pressures (dynes/cm2)
-  !
-  real(rkx) , pointer , dimension(:,:) :: pbr , pnm
-  !
-  ! plco2    - Prs weighted CO2 path
-  ! plh2o    - Prs weighted H2O path
-  ! tclrsf   - Total clear sky fraction, level to space
-  !
-  real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , tclrsf
-  !
-  ! fslwdcs  - Downward clear sky long wave flux at surface
-  !
-  real(rkx) , pointer , dimension(:) :: fslwdcs
 
   real(rkx) , parameter :: verynearone = 0.999999_rkx
   ! r80257   - Conversion factor for h2o pathlength
@@ -677,135 +484,6 @@ module mod_rad_radiation
 #endif
 
   contains
-
-  subroutine allocate_mod_rad_radiation
-    implicit none
-
-    npoints = (jci2-jci1+1)*(ici2-ici1+1)
-    call getmem3d(absnxt,1,kz,1,4,1,npoints,'rad:absnxt')
-    call getmem3d(xuinpl,1,kz,1,4,1,npoints,'rad:xuinpl')
-    call getmem3d(abstot,1,kzp1,1,kzp1,1,npoints,'rad:abstot')
-    call getmem2d(emstot,1,kzp1,1,npoints,'rad:emstot')
-    call getmem1d(diralb,1,npoints,'rad:diralb')
-    call getmem1d(difalb,1,npoints,'rad:difalb')
-    call getmem1d(tauaer,1,npoints,'rad:tauaer')
-    call getmem1d(tauasc,1,npoints,'rad:tauasc')
-    call getmem1d(gtota,1,npoints,'rad:gtota')
-    call getmem1d(ftota,1,npoints,'rad:ftota')
-    call getmem1d(skip,1,npoints,'rad:skip')
-    call getmem1d(khiv,1,npoints,'rad:khiv')
-    call getmem1d(khivm,1,npoints,'rad:khivm')
-    call getmem1d(klov,1,npoints,'rad:klov')
-    call getmem1d(tplnke,1,npoints,'rad:tplnke')
-    call getmem1d(done,1,npoints,'rad:done')
-    call getmem1d(co2mmr,1,npoints,'rad:co2mmr')
-    call getmem1d(co2vmr,1,npoints,'rad:co2vmr')
-    call getmem1d(n2ommr,1,npoints,'rad:n2ommr')
-    call getmem1d(ch4mmr,1,npoints,'rad:ch4mmr')
-    call getmem1d(cfc11mmr,1,npoints,'rad:cfc11mmr')
-    call getmem1d(cfc12mmr,1,npoints,'rad:cfc12mmr')
-    call getmem2d(bch4,1,kzp1,1,npoints,'rad:bch4')
-    call getmem2d(bn2o0,1,kzp1,1,npoints,'rad:bn2o0')
-    call getmem2d(bn2o1,1,kzp1,1,npoints,'rad:bn2o1')
-    call getmem2d(co2em,1,kzp1,1,npoints,'rad:co2em')
-    call getmem2d(co2eml,1,kzp1,1,npoints,'rad:co2eml')
-    call getmem2d(co2t,1,kzp1,1,npoints,'rad:co2t')
-    call getmem2d(h2otr,1,kzp1,1,npoints,'rad:h2otr')
-    call getmem2d(ucfc11,1,kzp1,1,npoints,'rad:ucfc11')
-    call getmem2d(ucfc12,1,kzp1,1,npoints,'rad:ucfc12')
-    call getmem2d(un2o0,1,kzp1,1,npoints,'rad:un2o0')
-    call getmem2d(un2o1,1,kzp1,1,npoints,'rad:un2o1')
-    call getmem2d(uch4,1,kzp1,1,npoints,'rad:uch4')
-    call getmem2d(uco211,1,kzp1,1,npoints,'rad:uco211')
-    call getmem2d(uco212,1,kzp1,1,npoints,'rad:uco212')
-    call getmem2d(uco213,1,kzp1,1,npoints,'rad:uco213')
-    call getmem2d(uco221,1,kzp1,1,npoints,'rad:uco221')
-    call getmem2d(uco222,1,kzp1,1,npoints,'rad:uco222')
-    call getmem2d(uco223,1,kzp1,1,npoints,'rad:uco223')
-    call getmem2d(uptype,1,kzp1,1,npoints,'rad:uptype')
-    call getmem2d(plol,1,kzp1,1,npoints,'rad:plol')
-    call getmem2d(plos,1,kzp1,1,npoints,'rad:plos')
-    call getmem2d(tplnka,1,kzp1,1,npoints,'rad:tplnka')
-    call getmem2d(tint,1,kzp1,1,npoints,'rad:tint')
-    call getmem2d(tint4,1,kzp1,1,npoints,'rad:tint4')
-    call getmem2d(tlayr,1,kzp1,1,npoints,'rad:tlayr')
-    call getmem2d(tlayr4,1,kzp1,1,npoints,'rad:tlayr4')
-    call getmem2d(wh2op,1,kzp1,1,npoints,'rad:w')
-    call getmem2d(s2c,1,kzp1,1,npoints,'rad:s2c')
-    call getmem2d(s2t,1,kzp1,1,npoints,'rad:s2t')
-    call getmem2d(fdl,1,kzp1,1,npoints,'rad:fdl')
-    call getmem2d(fsdl,1,kzp1,1,npoints,'rad:fsdl')
-    call getmem2d(ful,1,kzp1,1,npoints,'rad:ful')
-    call getmem2d(fsul,1,kzp1,1,npoints,'rad:fsul')
-    call getmem2d(fdl0,1,kzp1,1,npoints,'rad:fdl0')
-    call getmem2d(fsdl0,1,kzp1,1,npoints,'rad:fsdl0')
-    call getmem2d(ful0,1,kzp1,1,npoints,'rad:ful0')
-    call getmem2d(fsul0,1,kzp1,1,npoints,'rad:fsul0')
-    call getmem2d(rtclrsf,1,kzp1,1,npoints,'rad:rtclrsf')
-    call getmem2d(aermmb,1,kz,1,npoints,'rad:aermmb')
-
-    call getmem2d(fclb4,1,kz,1,npoints,'rad:fclb4')
-    call getmem2d(fclt4,1,kz,1,npoints,'rad:fclt4')
-
-    call getmem2d(emplnk,1,nlwspi,1,npoints,'rad:emplnk')
-
-    call getmem3d(abplnk1,1,nlwspi,1,kzp1,1,npoints,'rad:abplnk1')
-    call getmem3d(abplnk2,1,nlwspi,1,kzp1,1,npoints,'rad:abplnk2')
-
-    call getmem2d(exptdn,0,kzp1,1,npoints,'rad:exptdn')
-    call getmem2d(fluxdn,0,kzp1,1,npoints,'rad:fluxdn')
-    call getmem2d(fluxup,0,kzp1,1,npoints,'rad:fluxup')
-    call getmem2d(rdndif,0,kzp1,1,npoints,'rad:rdndif')
-    call getmem2d(rupdif,0,kzp1,1,npoints,'rad:rupdif')
-    call getmem2d(rupdir,0,kzp1,1,npoints,'rad:rupdir')
-    call getmem2d(tottrn,0,kzp1,1,npoints,'rad:tottrn')
-    call getmem2d(pflx,0,kzp1,1,npoints,'rad:pflx')
-    call getmem2d(fswup,0,kzp1,1,npoints,'rad:fswup')
-    call getmem2d(fswdn,0,kzp1,1,npoints,'rad:fswdn')
-    call getmem2d(plco2,1,kzp1,1,npoints,'rad:plco2')
-    call getmem2d(plh2o,1,kzp1,1,npoints,'rad:plh2o')
-    call getmem2d(tclrsf,1,kzp1,1,npoints,'rad:tclrsf')
-
-    call getmem2d(rdir,0,kz,1,npoints,'rad:rdir')
-    call getmem2d(rdif,0,kz,1,npoints,'rad:rdif')
-    call getmem2d(tdir,0,kz,1,npoints,'rad:tdir')
-    call getmem2d(tdif,0,kz,1,npoints,'rad:tdif')
-    call getmem2d(explay,0,kz,1,npoints,'rad:explay')
-    call getmem2d(flxdiv,0,kz,1,npoints,'rad:flxdiv')
-    call getmem2d(totfld,0,kz,1,npoints,'rad:totfld')
-    call getmem2d(wcl,0,kz,1,npoints,'rad:wcl')
-    call getmem2d(gcl,0,kz,1,npoints,'rad:gcl')
-    call getmem2d(fcl,0,kz,1,npoints,'rad:fcl')
-    call getmem2d(wci,0,kz,1,npoints,'rad:wci')
-    call getmem2d(gci,0,kz,1,npoints,'rad:gci')
-    call getmem2d(fci,0,kz,1,npoints,'rad:fci')
-    call getmem2d(uh2o,0,kz,1,npoints,'rad:uh2o')
-    call getmem2d(uo3,0,kz,1,npoints,'rad:uo3')
-    call getmem2d(uco2,0,kz,1,npoints,'rad:uco2')
-    call getmem2d(uo2,0,kz,1,npoints,'rad:uo2')
-
-    call getmem3d(fis,1,kzp1,1,kzp1,1,npoints,'rad:fis')
-    call getmem3d(fis0,1,kzp1,1,kzp1,1,npoints,'rad:fis0')
-
-    call getmem1d(solflx,1,npoints,'rad:solflx')
-    call getmem1d(utco2,1,npoints,'rad:utco2')
-    call getmem1d(uth2o,1,npoints,'rad:uth2o')
-    call getmem1d(uto2,1,npoints,'rad:uto2')
-    call getmem1d(uto3,1,npoints,'rad:uto3')
-    call getmem1d(toafsnsc,1,npoints,'rad:toafsnsc')
-    call getmem1d(toafsntc,1,npoints,'rad:toafsntc')
-    call getmem1d(fslwdcs,1,npoints,'rad:fslwdcs')
-
-    call getmem2d(cfc11,1,kz,1,npoints,'rad:cfc11')
-    call getmem2d(cfc12,1,kz,1,npoints,'rad:cfc12')
-    call getmem2d(ch4,1,kz,1,npoints,'rad:ch4')
-    call getmem2d(n2o,1,kz,1,npoints,'rad:n2o')
-    call getmem2d(pbr,1,kz,1,npoints,'rad:pbr')
-    call getmem2d(pnm,1,kzp1,1,npoints,'rad:pnm')
-    call getmem2d(o3mmr,1,kz,1,npoints,'rad:o3mmr')
-
-  end subroutine allocate_mod_rad_radiation
-  !
   !-----------------------------------------------------------------------
   !
   ! Initialize various constants for radiation scheme; note that
@@ -861,283 +539,173 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  ! Driver for radiation computation.
+  ! Computes the path length integrals to the model interfaces given the
+  ! ozone volume mixing ratio
   !
-  ! Radiation uses cgs units, so conversions must be done from
-  ! model fields to radiation fields.
-  !
-  ! Calling sequence:
-  !
-  !     radinp      Converts units of model fields and computes ozone
-  !                 mixing ratio for solar scheme
-  !
-  !     radcsw      Performs solar computation
-  !       radalb    Computes surface albedos
-  !       radded    Computes delta-Eddington solution
-  !       radclr    Computes diagnostic clear sky fluxes
-  !
-  !     radclw      Performs longwave computation
-  !
-  !       radtpl    Computes path quantities
-  !       radems    Computes emissivity
-  !       radabs    Computes absorptivity
+  ! Input
+  !   o3vmr - ozone volume mixing ratio
+  !   pnm  - Model interface pressures
+  ! Output
+  !   plol  - Ozone prs weighted path length (cm)
+  !   plos  - Ozone path length (cm)
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radctl(rt,iyear,imonth)
+  subroutine radoz2(n1,n2,o3vmr,pnm,plos,plol)
     implicit none
-    !
-    ! Input arguments
-    !
-    ! ts      - Surface (skin) temperature
-    ! pmid    - Model level pressures
-    ! pint    - Model interface pressures
-    ! pmln    - Natural log of pmid
-    ! rel     - liquid cloud particle effective radius
-    ! rei     - ice effective drop size (microns)
-    ! fice    - fractional ice content within cloud
-    ! piln    - Natural log of pint
-    ! t       - Model level temperatures
-    ! q       - Model level specific humidity
-    ! cld     - Fractional cloud cover
-    ! effcld  - Effective fractional cloud cover
-    ! clwp    - Cloud liquid water path
-    !
-    ! Output solar arguments
-    !
-    ! fsns    - Surface absorbed solar flux
-    ! sols    - Downward solar rad onto surface (sw direct)
-    ! soll    - Downward solar rad onto surface (lw direct)
-    ! solsd   - Downward solar rad onto surface (sw diffuse)
-    ! solld   - Downward solar rad onto surface (lw diffuse)
-    ! qrs     - Solar heating rate
-    !
-    ! qrl     - Longwave cooling rate
-    ! flwds   - Surface down longwave flux
-    ! solin    - Solar incident flux
-    ! solout   - Solar outgoing flux
-    ! fsnt     - Net column abs solar flux at model top
-    ! fsntc    - Clear sky total column abs solar flux
-    ! fsnsc    - Clear sky surface abs solar flux
-    ! fsnirt   - Near-IR flux absorbed at toa
-    ! fsnrtc   - Clear sky near-IR flux absorbed at toa
-    ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
-    ! fsds     - Flux Shortwave Downwelling Surface
-    ! flnt     - Net outgoing lw flux at model top
-    ! lwout    - outgoing lw flux at model top
-    ! lwin     - incoming lw flux at model top
-    ! flns     - Srf longwave cooling (up-down) flux
-    ! flntc    - Clear sky lw flux at model top
-    ! flnsc    - Clear sky lw flux at srf (up-down)
-    ! o3vmr    - Ozone volume mixing ratio
-    ! eccf     - Earth/sun distance factor
-    !
-    integer(ik4) , intent(in) :: iyear , imonth
-    type(radtype) , intent(inout) :: rt
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: plos , plol
     integer(ik4) :: n
     integer(ik4) :: k
-#ifndef RCEMIP
-    real(rkx) :: alat
-#endif
-    real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o , betafac
-
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radctl'
+    character(len=dbgslen) :: subroutine_name = 'radoz2'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
     !
-    ! Set latitude dependent radiation input: radini sets many
-    ! radiation parameters
+    ! Evaluate the ozone path length integrals to interfaces;
+    ! factors of 0.1 and 0.01 to convert pressures from cgs to mks:
     !
-    call radini(rt%n1,rt%n2,iyear,imonth,rt%dlat, &
-                co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
-    !
-    ! Compute on interface levels and put in vertical profiles
-    !
-    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
-                pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
-    !
-    ! Solar radiation computation
-    !
-    if ( dosw ) then
-      !
-      ! Specify aerosol mass mixing ratio
-      !
-      call aermix(rt%n1,rt%n2,rt%pint,aermmb)
-
-      call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
-
-      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,o3mmr,aermmb,rt%cld,   &
-                  rt%clwp,rt%rel,rt%rei,rt%fice,rt%czen,rt%czengt0,   &
-                  rt%adirsw,rt%adifsw,rt%adirlw,rt%adiflw,rt%asw,     &
-                  rt%alw,rt%solin,rt%solout,rt%qrs,rt%fsns,rt%fsnt,   &
-                  rt%fsds,rt%fsnsc,rt%fsntc,rt%sols,rt%soll,rt%solsd, &
-                  rt%solld,rt%fsnirt,rt%fsnrtc,rt%fsnirtsq,rt%abv,    &
-                  rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,rt%tauxci,  &
-                  rt%outtaucl,rt%outtauci)
-      !
-      ! Convert units of shortwave fields needed by rest of model
-      ! from CGS to MKS
-      !
 #ifdef STDPAR
-      do concurrent ( n = rt%n1:rt%n2 ) local(k,betafac)
+    do concurrent ( n = n1:n2 ) local(k)
 #else
-      do n = rt%n1 , rt%n2
+    do n = n1 , n2
 #endif
-        rt%solin(n) = rt%solin(n)*1.0e-3_rkx
-        rt%solout(n) = rt%solout(n)*1.0e-3_rkx
-        rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
-        rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
-        rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
-        rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
-        !
-        ! clear sky column partitioning for surface flux
-        ! note : should be generalised to the whole column to be
-        !        really in energy balance !
-        !
-        rt%totcf(n) = d_one
-        if ( luse_max_rnovl ) then
-          do k = 2 , kzp1
-            rt%totcf(n) = rt%totcf(n) * &
-                   (1.0001_rkx - max(rt%cld(k-1,n),rt%cld(k,n)))/ &
-                   (1.0001_rkx - rt%cld(k-1,n))
-          end do
-        else
-          do k = 1 , kzp1
-            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(k,n))
-          end do
-        end if
-        rt%totcf(n) = d_one - rt%totcf(n)
-        !
-        ! maximum cld cover considered
-        ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(:,n)) + &
-        !           rt%fsnsc(n) * (1-maxval(rt%cld(:,n)))
-        ! random overlap assumption is tocf(n)
-        ! Now average btw rand ov and maximum cloud cover as fil suggest
-        ! rt%totcf(n) =  d_half * ( rt%totcf(n) + maxval(rt%cld(:,n)) )
-        ! abv is proportional to fsns in radcsw : Calculate the factor
-        if ( rt%fsns(n) > d_zero ) then
-          betafac = rt%abv(n) / rt%fsns(n)
-        else
-          betafac = d_zero
-        end if
-        ! Fil suggestion of putting a max on column cloud fraction
-        ! TAO: implement a user-specified CF maximum (default of 1.0)
-        if ( lsrfhack ) then
-          if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
-          if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
-          rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
-                       rt%fsnsc(n) * (d_one-rt%totcf(n))
-        end if
-        ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
-        rt%abv(n) = betafac * rt%fsns(n)
-        rt%fsds(n) = rt%fsds(n)*1.0e-3_rkx
-        rt%fsnirt(n) = rt%fsnirt(n)*1.0e-3_rkx
-        rt%fsnrtc(n) = rt%fsnrtc(n)*1.0e-3_rkx
-        rt%fsnirtsq(n) = rt%fsnirtsq(n)*1.0e-3_rkx
-        !
-        ! Calculate/outfld albedo and clear sky albedo
-        !
-        if ( rt%solin(n) > d_zero ) then
-          rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
-          rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
-        else
-          rt%alb(n) = d_zero
-          rt%albc(n) = d_zero
-        end if
+      plos(1,n) = 0.1_rkx*cplos*o3vmr(1,n)*pnm(1,n)
+      plol(1,n) = 0.01_rkx*cplol*o3vmr(1,n)*pnm(1,n)*pnm(1,n)
+      do k = 2 , kzp1
+        plos(k,n) = plos(k-1,n) + &
+             0.1_rkx*cplos*o3vmr(k-1,n)*(pnm(k,n)-pnm(k-1,n))
+        plol(k,n) = plol(k-1,n) + 0.01_rkx*cplol*o3vmr(k-1,n) * &
+                    (pnm(k,n)*pnm(k,n)-pnm(k-1,n)*pnm(k-1,n))
       end do
-    end if
-    !
-    ! Longwave radiation computation
-    !
-    if ( dolw ) then
-      !
-      ! Specify trace gas mixing ratios
-      !
-#ifdef RCEMIP
-      xn2o = 0.3478_rkx
-      xch4 = 0.2353_rkx
-      xcfc11 = 0.7273_rkx
-      xcfc12 = 0.4000_rkx
-#endif
-#ifdef STDPAR
-      do concurrent ( n = rt%n1:rt%n2 ) local(k)
-#else
-      do n = rt%n1 , rt%n2
-#endif
-#ifndef RCEMIP
-        alat = abs(rt%dlat(n))
-        if ( alat <= 45.0_rkx ) then
-          xn2o = 0.3478_rkx + 0.00116_rkx*alat
-          xch4 = 0.2353_rkx
-          xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
-          xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
-        else
-          xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
-          xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
-          xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
-          xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
-        end if
-#endif
-        do k = 1 , kz
-          !  set stratospheric scale height factor for gases
-          if ( rt%pmid(k,n) >= rt%xptrop(n) ) then
-            ch4(k,n) = ch4mmr(n)
-            n2o(k,n) = n2ommr(n)
-            cfc11(k,n) = cfc11mmr(n)
-            cfc12(k,n) = cfc12mmr(n)
-          else
-            pratio = rt%pmid(k,n)/rt%xptrop(n)
-            ch4(k,n) = ch4mmr(n)*(pratio**xch4)
-            n2o(k,n) = n2ommr(n)*(pratio**xn2o)
-            cfc11(k,n) = cfc11mmr(n)*(pratio**xcfc11)
-            cfc12(k,n) = cfc12mmr(n)*(pratio**xcfc12)
-          end if
-        end do
-      end do
-      call radclw(rt%n1,rt%n2,rt%labsem,rt%ts,rt%emiss,rt%t,rt%q,   &
-                  rt%o3vmr,pbr,pnm,rt%pmln,rt%piln,n2o,ch4,cfc11,   &
-                  cfc12,rt%effcld,tclrsf,rt%flns,rt%flnt,rt%lwout,  &
-                  rt%lwin,rt%flnsc,rt%flntc,rt%flwds,fslwdcs,       &
-                  rt%aerlwfo,rt%aerlwfos,rt%absgasnxt,rt%absgastot, &
-                  rt%emsgastot,rt%qrl)
-      !
-      ! Convert units of longwave fields needed by rest of model from CGS to MKS
-      !
-      do concurrent ( n = rt%n1:rt%n2 )
-        rt%flnt(n) = rt%flnt(n)*1.0e-3_rkx
-        rt%lwout(n) = rt%lwout(n)*1.0e-3_rkx
-        rt%lwin(n) = rt%lwin(n)*1.0e-3_rkx
-        rt%flns(n) = rt%flns(n)*1.0e-3_rkx
-        rt%flntc(n) = rt%flntc(n)*1.0e-3_rkx
-        rt%flnsc(n) = rt%flnsc(n)*1.0e-3_rkx
-        rt%flwds(n) = rt%flwds(n)*1.0e-3_rkx
-        fslwdcs(n) = fslwdcs(n)*1.0e-3_rkx
-        !
-        ! essai clear sky column
-        !
-        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld((:,n))) + &
-        !            rt%flwds(n) * (1-maxval(rt%cld((:,n))))
-        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld(:,n)) + &
-        !            fslwdcs(n)*(d_one-maxval(rt%cld(:,n)))
-        ! rt%flns(n) = rt%flns(n) * maxval(rt%cld(:,n)) + &
-        !           rt%flnsc(n)*(d_one-maxval(rt%cld(:,n)))
-        !
-        ! rt%totcf(n) has been calculated for the SW, dolw is always true
-        !
-        if ( lsrfhack ) then
-          rt%flwds(n) = rt%flwds(n) * rt%totcf(n) + &
-                        fslwdcs(n) * (d_one - rt%totcf(n))
-          rt%flns(n)  = rt%flns(n) * rt%totcf(n)  + &
-                        rt%flnsc(n) * (d_one - rt%totcf(n))
-        end if
-      end do
-    end if
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
-  end subroutine radctl
+  end subroutine radoz2
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Compute temperatures and path lengths for longwave radiation
+  !
+  ! Input arguments
+  !   ts     - Surface radiative temperature
+  !   tnm    - Model level temperatures
+  !   pnm    - Pressure at model interfaces (dynes/cm2)
+  !   h2ommr - Model level mass mixing ratio
+  !   pmln   - Ln(pmidm1)
+  !   piln   - Ln(pintm1)
+  !   plh2o  - Pressure weighted h2o path
+  ! Output arguments
+  !   tint   - Layer interface temperature
+  !   tint4  - Tint to the 4th power
+  !   tlayr  - K-1 level temperature
+  !   tlayr4 - Tlayr to the 4th power
+  !   tplnka - Level temperature from interface temperatures
+  !   s2t    - H2o tmp and prs wghtd path lengt
+  !   s2c    - H2o continuum path length
+  !   w      - H2o path length
+  !   tplnke - Equal to tplnka
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine radtpl(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o, &
+                    tint,tint4,tlayr,tlayr4,tplnka,s2t,s2c,wh2op,tplnke)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: ts
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , h2ommr , pmln
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: piln , pnm , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tint , tint4 , tplnka
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tlayr , tlayr4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: s2t , s2c , wh2op
+    real(rkx) , dimension(n1:n2) , intent(out) :: tplnke
+    !
+    ! dy     - Thickness of layer for tmp interp
+    ! dpnm   - Pressure thickness of layer
+    ! dpnmsq - Prs squared difference across layer
+    ! rtnm   - Inverse level temperature
+    !
+    integer(ik4) :: n
+    integer(ik4) :: k
+    real(rkx) :: dpnm , dpnmsq , dy , rtnm
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radtpl'
+    integer(ik4) :: indx = 0
+    call time_begin(subroutine_name,indx)
+#endif
+    !
+    ! Set the top and bottom intermediate level temperatures,
+    ! top level planck temperature and top layer temp**4.
+    !
+    ! Tint is lower interface temperature
+    ! (not available for bottom layer, so use ground temperature)
+    !
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) local(k,dpnm,dpnmsq,dy,rtnm)
+#else
+    do n = n1 , n2
+#endif
+      tint(kzp1,n) = ts(n)
+      tint4(kzp1,n) = tint(kzp1,n)**4
+      tplnka(1,n) = tnm(1,n)
+      tint(1,n) = tplnka(1,n)
+      tlayr4(1,n) = tplnka(1,n)**4
+      tint4(1,n) = tlayr4(1,n)
+      !
+      ! Intermediate level temperatures are computed using temperature
+      ! at the full level below less dy*delta t,between the full level
+      !
+      do k = 2 , kz
+        dy = (piln(k,n)-pmln(k,n))/(pmln(k-1,n)-pmln(k,n))
+        tint(k,n) = tnm(k,n) - dy*(tnm(k,n)-tnm(k-1,n))
+        tint4(k,n) = tint(k,n)**4
+      end do
+      !
+      ! Now set the layer temp=full level temperatures and establish a
+      ! planck temperature for absorption (tplnka) which is the average
+      ! the intermediate level temperatures.  Note that tplnka is not
+      ! equal to the full level temperatures.
+      !
+      do k = 2 , kzp1
+        tlayr(k,n) = tnm(k-1,n)
+        tlayr4(k,n) = tlayr(k,n)**4
+        tplnka(k,n) = (tint(k,n)+tint(k-1,n))*d_half
+      end do
+      !
+      ! Calculate tplank for emissivity calculation.
+      ! Assume isothermal tplnke i.e. all levels=ttop.
+      !
+      tplnke(n) = tplnka(1,n)
+      tlayr(1,n) = tint(1,n)
+      !
+      ! Now compute h2o path fields:
+      !
+      s2t(1,n) = plh2o(1,n)*tnm(1,n)
+      ! ccm3.2
+      ! wh2op(1,n)   = (plh2o(1,n)*2.) / pnm(1,n)
+      ! s2c(1,n) = plh2o(1,n) * h2ommr(1,n) * repsil
+      ! ccm3.6.6
+      wh2op(1,n) = sslp*(plh2o(1,n)*d_two)/pnm(1,n)
+      rtnm = d_one/tnm(1,n)
+      s2c(1,n) = plh2o(1,n)*exp(1800.0_rkx*(rtnm-r296))*h2ommr(1,n)*repsil
+      do k = 1 , kz
+        dpnm = pnm(k+1,n) - pnm(k,n)
+        dpnmsq = pnm(k+1,n)**2 - pnm(k,n)**2
+        rtnm = d_one/tnm(k,n)
+        s2t(k+1,n) = s2t(k,n) + rgsslp*dpnmsq*h2ommr(k,n)*tnm(k,n)
+        wh2op(k+1,n) = wh2op(k,n) + regravgts*h2ommr(k,n)*dpnm
+        s2c(k+1,n) = s2c(k,n) + rgsslp*dpnmsq*h2ommr(k,n) * &
+                     exp(1800.0_rkx*(rtnm-r296))*h2ommr(k,n)*repsil
+      end do
+    end do
+#ifdef DEBUG
+    call time_end(subroutine_name,indx)
+#endif
+  end subroutine radtpl
   !
   !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
@@ -1203,16 +771,18 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,o3mmr,aermmb,cld,clwp,rel,rei,   &
-                    fice,czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
-                    solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll, &
-                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,abv,sol,aeradfo,    &
-                    aeradfos,tauxcl,tauxci,outtaucl,outtauci)
+  subroutine radcsw(n1,n2,eccf,pnm,h2ommr,co2mmr,o3mmr,aermmb,cld,clwp, &
+                    rel,rei,fice,czen,czengt0,adirsw,adifsw,adirlw,     &
+                    adiflw,asw,alw,solin,solout,qrs,fsns,fsnt,fsds,     &
+                    fsnsc,fsntc,sols,soll,solsd,solld,fsnirt,fsnrtc,    &
+                    fsnirtsq,abv,sol,aeradfo,aeradfos,tauxcl,tauxci,    &
+                    outtaucl,outtauci)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , intent(in) :: eccf
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3mmr , h2ommr , aermmb
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2mmr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: clwp , fice , rel , rei
     real(rkx) , dimension(n1:n2) , intent(in) :: czen
@@ -1316,6 +886,63 @@ module mod_rad_radiation
     ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
     !-----------------------------------------------------------------------
     !
+    ! diralb   - direct albedo in current interval
+    ! difalb   - diffuse albedo in current interval
+    real(rkx) , dimension(n1:n2) :: diralb , difalb
+    ! Aerosol optical properties
+    real(rkx) , dimension(n1:n2) :: tauaer , tauasc , gtota , ftota
+    ! solflx   - Solar flux in current interval
+    real(rkx) , dimension(n1:n2) :: solflx
+    ! uth2o    - Total column  absorber amount of h2o
+    ! uto3     - Total column  absorber amount of  o3
+    ! utco2    - Total column  absorber amount of co2
+    ! uto2     - Total column  absorber amount of  o2
+    real(rkx) , dimension(n1:n2) :: uth2o , uto3 , utco2 , uto2
+    ! ref net TOA flux
+    real(rkx) , dimension(n1:n2) :: toafsnsc , toafsntc
+    !!!!!!!!!!!!!!!!!!!!!!!
+    ! These arrays are defined for kz model layers; 0 refers to the
+    ! extra layer on top:
+    ! rdir     - Layer reflectivity to direct rad
+    ! rdif     - Layer reflectivity to diffuse rad
+    ! tdir     - Layer transmission to direct rad
+    ! tdif     - Layer transmission to diffuse rad
+    real(rkx) , dimension(0:kz,n1:n2) :: rdir , rdif , tdir , tdif
+    ! explay   - Solar beam exp transmission for layer
+    real(rkx) , dimension(0:kz,n1:n2) :: explay
+    ! flxdiv   - Flux divergence for layer
+    real(rkx) , dimension(0:kz,n1:n2) :: flxdiv
+    ! totfld   - Spectrally summed flux divergence
+    real(rkx) , dimension(0:kz,n1:n2) :: totfld
+    ! wcl      - liquid cloud single scattering albedo
+    ! gcl      - liquid cloud asymmetry parameter
+    ! fcl      - liquid cloud forward scattered fraction
+    ! wci      - ice cloud single scattering albedo
+    ! gci      - ice cloud asymmetry parameter
+    ! fci      - ice cloud forward scattered fraction
+    real(rkx) , dimension(0:kz,n1:n2) :: wcl , gcl , fcl
+    real(rkx) , dimension(0:kz,n1:n2) :: wci , gci , fci
+    ! uh2o     - Layer absorber amount of h2o
+    ! uo3      - Layer absorber amount of  o3
+    ! uco2     - Layer absorber amount of co2
+    ! uo2      - Layer absorber amount of  o2
+    real(rkx) , dimension(0:kz,n1:n2) :: uh2o  , uo3 , uco2 , uo2
+    ! rupdir   - Ref to dir rad for layers below
+    ! rupdif   - Ref to dif rad for layers below
+    ! rdndif   - Ref to dif rad for layers above
+    ! exptdn   - Solar beam exp down transm from top
+    ! tottrn   - Total transmission for layers above
+    ! fluxup   - Up   flux at model interface
+    ! fluxdn   - Down flux at model interface
+    ! pflx     - Interface press, including extra layer
+    ! fswup    - Spectrally summed up flux
+    ! fswdn    - Spectrally summed down flux
+    real(rkx) , dimension(0:kzp1,n1:n2) :: rupdir , rupdif , rdndif
+    real(rkx) , dimension(0:kzp1,n1:n2) :: exptdn , tottrn
+    real(rkx) , dimension(0:kzp1,n1:n2) :: fluxup , fluxdn
+    real(rkx) , dimension(0:kzp1,n1:n2) :: fswup , fswdn
+    real(rkx) , dimension(0:kzp1,n1:n2) :: pflx
+    !!!!!!!!!!!!!!!!!!!!!!!
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                  dbarii , dbarli , ebarii , ebarli , fbarii , fbarli , &
                  psf , trayoslp , wavmid , wgtint
@@ -1359,8 +986,8 @@ module mod_rad_radiation
     outtauci(:,:,:) = d_zero
     tauxcl(:,:,:) = d_zero
     tauxci(:,:,:) = d_zero
-    ww(:) = d_zero
     qrs(:,:) = d_zero
+    ww(:) = d_zero
     !
     ! Define solar incident radiation and interface pressures:
     !
@@ -1911,7 +1538,7 @@ module mod_rad_radiation
   ! Input arguments which are only passed to other routines
   !
   ! tnm     - Level temperature
-  ! qnm     - Level moisture field
+  ! h2ommr  - Level moisture field
   ! o3vmr   - ozone volume mixing ratio
   ! pbr     - Level pressure (dynes/cm*2)
   ! pnm     - Model interface pressure (dynes/cm*2)
@@ -1943,21 +1570,23 @@ module mod_rad_radiation
   !  cs is clearsky
   !  Aerosol longwave added
   !
-  subroutine radclw(n1,n2,labsem,ts,emiss,tnm,qnm,o3vmr,pbr,pnm,    &
-                    pmln,piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,       &
-                    flns,flnt,lwout,lwin,flnsc,flntc,flwds,fslwdcs, &
-                    aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,qrl)
+  subroutine radclw(n1,n2,labsem,ts,emiss,tnm,h2ommr,co2vmr,co2mmr,  &
+                    o3vmr,pbr,pnm,pmln,piln,n2o,ch4,cfc11,cfc12,cld, &
+                    plco2,plh2o,tclrsf,flns,flnt,lwout,lwin,flnsc,   &
+                    flntc,flwds,fslwdcs,aerlwfo,aerlwfos,absgasnxt,  &
+                    absgastot,emsgastot,qrl)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(rkx) , dimension(n1:n2) , intent(in) :: ts , emiss
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: qnm , tnm
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr , co2mmr
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: h2ommr , tnm
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln , o3vmr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: piln , pnm
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cfc11 , cfc12
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ch4 , n2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tclrsf
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: cld , plco2 , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(inout) :: tclrsf
     real(rkx) , dimension(n1:n2) , intent(out) :: flns , flnsc , flnt
     real(rkx) , dimension(n1:n2) , intent(out) :: flntc , flwds , fslwdcs
     real(rkx) , dimension(n1:n2) , intent(out) :: lwout , lwin
@@ -1966,6 +1595,87 @@ module mod_rad_radiation
     real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: emsgastot
     real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
     real(rkx) , dimension(kz,n1:n2) , intent(out) :: qrl
+    !
+    ! Local variables
+    !
+    ! bch4     - pressure factor for ch4
+    real(rkx) , dimension(kzp1,n1:n2) :: bch4
+    ! bn2o0    - pressure factor for n2o
+    ! bn2o1    - pressure factor for n2o
+    real(rkx) , dimension(kzp1,n1:n2) :: bn2o0 , bn2o1
+  !   emplnk  - emissivity Planck factor
+    real(rkx) , dimension(nlwspi,n1:n2) :: emplnk
+    real(rkx) , dimension(kzp1,n1:n2) :: emstot
+    real(rkx) , dimension(kzp1,kzp1,n1:n2) :: abstot
+    real(rkx) , dimension(kz,4,n1:n2) :: absnxt
+    real(rkx) , dimension(kz,4,n1:n2) :: xuinpl
+    ! co2em   - Layer co2 normalized planck funct. derivative
+    real(rkx) , dimension(kzp1,n1:n2) :: co2em
+    ! co2eml  - Interface co2 normalized planck funct. deriv.
+    real(rkx) , dimension(kzp1,n1:n2) :: co2eml
+    ! co2t    - Prs wghted temperature path
+    real(rkx) , dimension(kzp1,n1:n2) :: co2t
+    ! h2otr   - H2o trnmsn for o3 overlap
+    real(rkx) , dimension(kzp1,n1:n2) :: h2otr
+    ! ucfc11  - CFC11 path length
+    ! ucfc12  - CFC12 path length
+    real(rkx) , dimension(kzp1,n1:n2) :: ucfc11 , ucfc12
+    ! un2o0   - N2O path length
+    ! un2o1   - N2O path length (hot band)
+    real(rkx) , dimension(kzp1,n1:n2) :: un2o0 , un2o1
+    ! uch4    - CH4 path length
+    real(rkx) , dimension(kzp1,n1:n2) :: uch4
+    ! uco211  - CO2 9.4 micron band path length
+    ! uco212  - CO2 9.4 micron band path length
+    ! uco213  - CO2 9.4 micron band path length
+    ! uco221  - CO2 10.4 micron band path length
+    ! uco222  - CO2 10.4 micron band path length
+    ! uco223  - CO2 10.4 micron band path length
+    real(rkx) , dimension(kzp1,n1:n2) :: uco211 , uco212 ,  uco213
+    real(rkx) , dimension(kzp1,n1:n2) :: uco221 , uco222 ,  uco223
+    ! uptype   - continuum path length
+    real(rkx) , dimension(kzp1,n1:n2) :: uptype
+    ! plol     - Ozone prs wghted path length
+    ! plos     - Ozone path length
+    real(rkx) , dimension(kzp1,n1:n2) :: plol , plos
+    ! tplnka   - Planck fnctn level temperature
+    real(rkx) , dimension(kzp1,n1:n2) :: tplnka
+    ! tint    - Interface temperature
+    ! tint4   - Interface temperature**4
+    ! tlayr   - Level temperature
+    ! tlayr4  - Level temperature**4
+    real(rkx) , dimension(kzp1,n1:n2) :: tint , tint4 , tlayr , tlayr4
+    ! wh2op   - H2o path
+    real(rkx) , dimension(kzp1,n1:n2) :: wh2op
+    ! s2c     - H2o cont amount
+    ! s2t     - H2o cont temperature
+    real(rkx) , dimension(kzp1,n1:n2) :: s2c , s2t
+    ! ful     - Total upwards longwave flux
+    ! fsul    - Clear sky upwards longwave flux
+    ! fdl     - Total downwards longwave flux
+    ! fsdl    - Clear sky downwards longwv flux
+    real(rkx) , dimension(kzp1,n1:n2) :: ful , ful0
+    real(rkx) , dimension(kzp1,n1:n2) :: fdl , fdl0
+    real(rkx) , dimension(kzp1,n1:n2) :: fsul , fsul0
+    real(rkx) , dimension(kzp1,n1:n2) :: fsdl , fsdl0
+    ! fis     - Flx integral sum
+    real(rkx) , dimension(kzp1,kzp1,n1:n2) :: fis , fis0
+    ! rtclrsf - d_one/tclrsf(k,n)
+    real(rkx) , dimension(kzp1,n1:n2) :: rtclrsf
+    ! tplnke  - Planck fnctn temperature
+    real(rkx) , dimension(n1:n2) :: tplnke
+    ! fclb4   - Sig t**4 for cld bottom interfc
+    ! fclt4   - Sig t**4 for cloud top interfc
+    real(rkx) , dimension(kz,n1:n2) :: fclb4 , fclt4
+    ! abplnk1 - non-nearest layer Plack factor
+    ! abplnk2 - nearest layer factor
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) :: abplnk1 , abplnk2
+    ! klov    - Cloud lowest level index
+    ! khiv    - Cloud highest level index
+    ! khivm   - khiv(n) - 1
+    integer(ik4) , dimension(n1:n2) :: klov , khiv , khivm
+    ! Control logicals
+    logical , dimension(n1:n2) :: skip , done
     logical :: lstart
     integer(ik4) :: n , khighest , irad , nradaer
     integer(ik4) :: k , km , k1 , k2 , k3
@@ -1993,7 +1703,7 @@ module mod_rad_radiation
     ! Calculate some temperatures needed to derive absorptivity and
     ! emissivity, as well as some h2o path lengths
     !
-    call radtpl(n1,n2,ts,tnm,pnm,qnm,pmln,piln,plh2o, &
+    call radtpl(n1,n2,ts,tnm,pnm,h2ommr,pmln,piln,plh2o, &
                 tint,tint4,tlayr,tlayr4,tplnka,s2t,s2c,wh2op,tplnke)
     !
     ! do emissivity and absorptivity calculations
@@ -2007,9 +1717,9 @@ module mod_rad_radiation
       !
       ! Compute trace gas path lengths
       !
-      call trcpth(n1,n2,tnm,pnm,qnm,cfc11,cfc12,n2o,ch4,co2mmr,  &
-                  ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,  &
-                  uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,  &
+      call trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
+                  ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
+                  uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
                   uptype)
       !
       ! Calculate trace gas Planck functions
@@ -2018,18 +1728,19 @@ module mod_rad_radiation
       !
       ! Compute total emissivity:
       !
-      call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,plos,plol,    &
-                  plh2o,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,uch4,bch4, &
-                  uco211,uco212,uco213,uco221,uco222,uco223,uptype,      &
-                  wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,emsgastot)
+      call radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,&
+                  plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,    &
+                  bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,  &
+                  uco223,uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,&
+                  h2otr,emsgastot)
       !
       ! Compute total absorptivity:
       !
-      call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,   &
-                  tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,plol,  &
-                  plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1,    &
-                  bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
-                  uco222,uco223,uptype,absgasnxt,absgastot)
+      call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+                  co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                  plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
+                  bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
+                  uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
     end if
     !
     ! Find the lowest and highest level cloud for each grid point
@@ -2068,8 +1779,8 @@ module mod_rad_radiation
       ! Note: Vertical indexing here proceeds from bottom to top
       !
       do k = klov(n) , khiv(n)
-        fclt4(kzp1-k,n) = stebol*tint4(kzp2-k,n)
-        fclb4(kzp1-k,n) = stebol*tint4(kzp3-k,n)
+        fclt4(kzp1-k,n) = stebol*tint4(max(kzp2-k,kzp1),n)
+        fclb4(kzp1-k,n) = stebol*tint4(max(kzp3-k,kzp1),n)
       end do
     end do
     !
@@ -3045,17 +2756,18 @@ module mod_rad_radiation
   ! Non-adjacent layer absorptivites
   ! Total emissivity
   !
-  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,   &
-                    tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,plol,  &
-                    plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1,    &
-                    bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221, &
-                    uco222,uco223,uptype,absgasnxt,absgastot)
+  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+                    co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                    plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
+                    bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
+                    uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: co2em , co2eml
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tplnka
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: s2c , s2t , wh2op
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: h2otr , co2t
@@ -3072,7 +2784,8 @@ module mod_rad_radiation
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
     real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
-    real(rkx) , dimension(kz,nlwspi,n1:n2) , intent(out) :: absgasnxt
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: xuinpl
     !
     ! kn       - Nearest level index
     ! iband    - Band  index
@@ -3834,17 +3547,19 @@ module mod_rad_radiation
   !   emplnk  - emissivity Planck factor
   !   emstrc  - total trace gas emissivity
   !
-  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,plos,plol,    &
-                    plh2o,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,uch4,bch4, &
-                    uco211,uco212,uco213,uco221,uco222,uco223,uptype,      &
-                    wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,emsgastot)
+  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,  &
+                    plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,&
+                    uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,   &
+                    uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,   &
+                    emsgastot)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tint4
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tlayr , tlayr4
-    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos , plh2o
+    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke , co2vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
@@ -4239,176 +3954,6 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  ! Computes the path length integrals to the model interfaces given the
-  ! ozone volume mixing ratio
-  !
-  ! Input
-  !   o3vmr - ozone volume mixing ratio
-  !   pnm  - Model interface pressures
-  ! Output
-  !   plol  - Ozone prs weighted path length (cm)
-  !   plos  - Ozone path length (cm)
-  !
-  !-----------------------------------------------------------------------
-  !
-  subroutine radoz2(n1,n2,o3vmr,pnm,plos,plol)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: o3vmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: plos , plol
-    integer(ik4) :: n
-    integer(ik4) :: k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radoz2'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Evaluate the ozone path length integrals to interfaces;
-    ! factors of 0.1 and 0.01 to convert pressures from cgs to mks:
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
-      plos(1,n) = 0.1_rkx*cplos*o3vmr(1,n)*pnm(1,n)
-      plol(1,n) = 0.01_rkx*cplol*o3vmr(1,n)*pnm(1,n)*pnm(1,n)
-      do k = 2 , kzp1
-        plos(k,n) = plos(k-1,n) + &
-             0.1_rkx*cplos*o3vmr(k-1,n)*(pnm(k,n)-pnm(k-1,n))
-        plol(k,n) = plol(k-1,n) + 0.01_rkx*cplol*o3vmr(k-1,n) * &
-                    (pnm(k,n)*pnm(k,n)-pnm(k-1,n)*pnm(k-1,n))
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radoz2
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Compute temperatures and path lengths for longwave radiation
-  !
-  ! Input arguments
-  !   ts     - Surface radiative temperature
-  !   tnm    - Model level temperatures
-  !   pnm    - Pressure at model interfaces (dynes/cm2)
-  !   qnm    - Model level specific humidity
-  !   pmln   - Ln(pmidm1)
-  !   piln   - Ln(pintm1)
-  !   plh2o  - Pressure weighted h2o path
-  ! Output arguments
-  !   tint   - Layer interface temperature
-  !   tint4  - Tint to the 4th power
-  !   tlayr  - K-1 level temperature
-  !   tlayr4 - Tlayr to the 4th power
-  !   tplnka - Level temperature from interface temperatures
-  !   s2t    - H2o tmp and prs wghtd path lengt
-  !   s2c    - H2o continuum path length
-  !   w      - H2o path length
-  !   tplnke - Equal to tplnka
-  !
-  !-----------------------------------------------------------------------
-  !
-  subroutine radtpl(n1,n2,ts,tnm,pnm,qnm,pmln,piln,plh2o, &
-                    tint,tint4,tlayr,tlayr4,tplnka,s2t,s2c,wh2op,tplnke)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: ts
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , qnm , pmln
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: piln , pnm , plh2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tint , tint4 , tplnka
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: tlayr , tlayr4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: s2t , s2c , wh2op
-    real(rkx) , dimension(n1:n2) , intent(out) :: tplnke
-    !
-    ! dy     - Thickness of layer for tmp interp
-    ! dpnm   - Pressure thickness of layer
-    ! dpnmsq - Prs squared difference across layer
-    ! rtnm   - Inverse level temperature
-    !
-    integer(ik4) :: n
-    integer(ik4) :: k
-    real(rkx) :: dpnm , dpnmsq , dy , rtnm
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radtpl'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Set the top and bottom intermediate level temperatures,
-    ! top level planck temperature and top layer temp**4.
-    !
-    ! Tint is lower interface temperature
-    ! (not available for bottom layer, so use ground temperature)
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,dpnm,dpnmsq,dy,rtnm)
-#else
-    do n = n1 , n2
-#endif
-      tint(kzp1,n) = ts(n)
-      tint4(kzp1,n) = tint(kzp1,n)**4
-      tplnka(1,n) = tnm(1,n)
-      tint(1,n) = tplnka(1,n)
-      tlayr4(1,n) = tplnka(1,n)**4
-      tint4(1,n) = tlayr4(1,n)
-      !
-      ! Intermediate level temperatures are computed using temperature
-      ! at the full level below less dy*delta t,between the full level
-      !
-      do k = 2 , kz
-        dy = (piln(k,n)-pmln(k,n))/(pmln(k-1,n)-pmln(k,n))
-        tint(k,n) = tnm(k,n) - dy*(tnm(k,n)-tnm(k-1,n))
-        tint4(k,n) = tint(k,n)**4
-      end do
-      !
-      ! Now set the layer temp=full level temperatures and establish a
-      ! planck temperature for absorption (tplnka) which is the average
-      ! the intermediate level temperatures.  Note that tplnka is not
-      ! equal to the full level temperatures.
-      !
-      do k = 2 , kzp1
-        tlayr(k,n) = tnm(k-1,n)
-        tlayr4(k,n) = tlayr(k,n)**4
-        tplnka(k,n) = (tint(k,n)+tint(k-1,n))*d_half
-      end do
-      !
-      ! Calculate tplank for emissivity calculation.
-      ! Assume isothermal tplnke i.e. all levels=ttop.
-      !
-      tplnke(n) = tplnka(1,n)
-      tlayr(1,n) = tint(1,n)
-      !
-      ! Now compute h2o path fields:
-      !
-      s2t(1,n) = plh2o(1,n)*tnm(1,n)
-      ! ccm3.2
-      ! wh2op(1,n)   = (plh2o(1,n)*2.) / pnm(1,n)
-      ! s2c(1,n) = plh2o(1,n) * qnm(1,n) * repsil
-      ! ccm3.6.6
-      wh2op(1,n) = sslp*(plh2o(1,n)*d_two)/pnm(1,n)
-      rtnm = d_one/tnm(1,n)
-      s2c(1,n) = plh2o(1,n)*exp(1800.0_rkx*(rtnm-r296))*qnm(1,n)*repsil
-      do k = 1 , kz
-        dpnm = pnm(k+1,n) - pnm(k,n)
-        dpnmsq = pnm(k+1,n)**2 - pnm(k,n)**2
-        rtnm = d_one/tnm(k,n)
-        s2t(k+1,n) = s2t(k,n) + rgsslp*dpnmsq*qnm(k,n)*tnm(k,n)
-        wh2op(k+1,n) = wh2op(k,n) + regravgts*qnm(k,n)*dpnm
-        s2c(k+1,n) = s2c(k,n) + rgsslp*dpnmsq*qnm(k,n) * &
-                     exp(1800.0_rkx*(rtnm-r296))*qnm(k,n)*repsil
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radtpl
-  !
-  !-----------------------------------------------------------------------
-  !
   ! Set latitude and time dependent arrays for input to solar
   ! and longwave radiation.
   !
@@ -4420,10 +3965,11 @@ module mod_rad_radiation
   !
   ! RegCM - The Sun/Earth geometry is moved elsewhere
   !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr, &
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,co2vmr,cld,o3vmr, &
                     pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pint , cld
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: pmid , h2ommr , o3vmr
     real(rkx) , dimension(kz,n1:n2) , intent(out) :: pbr , o3mmr
@@ -4621,7 +4167,7 @@ module mod_rad_radiation
   pure integer(ik4) function intmax(imax)
 !$acc routine seq
     implicit none
-    integer(ik4) , pointer , dimension(:) , intent(in) :: imax
+    integer(ik4) , dimension(:) , intent(in) :: imax
     integer(ik4) :: i , n , is , ie , mx
     is = lbound(imax,1)
     ie = ubound(imax,1)
@@ -4677,14 +4223,14 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine trcpth(n1,n2,tnm,pnm,qnm,cfc11,cfc12,n2o,ch4,co2mmr, &
-                    ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
-                    uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4, &
+  subroutine trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
+                    ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
+                    uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
                     uptype)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , dimension(n1:n2) , intent(in) :: co2mmr
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , qnm
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , h2ommr
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: n2o , ch4
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: cfc11 , cfc12
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
@@ -4737,7 +4283,7 @@ module mod_rad_radiation
       bn2o1(1,n) = bn2o0(1,n)*exp(-847.36_rkx/tnm(1,n))*2.06646e5_rkx
       bch4(1,n) = diff*2.94449_rkx*ch4(1,n)*pnm(1,n)**2*regravgts * &
                 8.60957e4_rkx/(sslp*tnm(1,n))
-      uptype(1,n) = diff*qnm(1,n)*pnm(1,n)**2*exp(1800.0_rkx* &
+      uptype(1,n) = diff*h2ommr(1,n)*pnm(1,n)**2*exp(1800.0_rkx* &
                   (d_one/tnm(1,n)-r296))*regravgts/sslp
       do k = 1 , kz
         rt = d_one/tnm(k,n)
@@ -4770,8 +4316,8 @@ module mod_rad_radiation
                      2.06646e5_rkx*exp(-847.36_rkx/tnm(k,n))*n2o(k,n)*dpnm
         bch4(k+1,n) = bch4(k,n) + diff*2.94449_rkx*rt*pbar * &
                   8.60957e4_rkx*ch4(k,n)*dpnm
-        uptype(k+1,n) = uptype(k,n) + diff*qnm(k,n)*exp(1800.0_rkx*(d_one / &
-                      tnm(k,n)-r296))*pbar*dpnm
+        uptype(k+1,n) = uptype(k,n) + diff*h2ommr(k,n)* &
+                  exp(1800.0_rkx*(d_one/tnm(k,n)-r296))*pbar*dpnm
       end do
     end do
   end subroutine trcpth
@@ -4929,6 +4475,309 @@ module mod_rad_radiation
       end do
     end do
   end subroutine trcplk
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Driver for radiation computation.
+  !
+  ! Radiation uses cgs units, so conversions must be done from
+  ! model fields to radiation fields.
+  !
+  ! Calling sequence:
+  !
+  !     radinp      Converts units of model fields and computes ozone
+  !                 mixing ratio for solar scheme
+  !
+  !     radcsw      Performs solar computation
+  !       radalb    Computes surface albedos
+  !       radded    Computes delta-Eddington solution
+  !       radclr    Computes diagnostic clear sky fluxes
+  !
+  !     radclw      Performs longwave computation
+  !       radtpl    Computes path quantities
+  !       radems    Computes emissivity
+  !       radabs    Computes absorptivity
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine radctl(rt,iyear,imonth)
+    implicit none
+    !
+    ! Input arguments
+    !
+    ! ts      - Surface (skin) temperature
+    ! pmid    - Model level pressures
+    ! pint    - Model interface pressures
+    ! pmln    - Natural log of pmid
+    ! rel     - liquid cloud particle effective radius
+    ! rei     - ice effective drop size (microns)
+    ! fice    - fractional ice content within cloud
+    ! piln    - Natural log of pint
+    ! t       - Model level temperatures
+    ! q       - Model level specific humidity
+    ! cld     - Fractional cloud cover
+    ! effcld  - Effective fractional cloud cover
+    ! clwp    - Cloud liquid water path
+    !
+    ! Output solar arguments
+    !
+    ! fsns    - Surface absorbed solar flux
+    ! sols    - Downward solar rad onto surface (sw direct)
+    ! soll    - Downward solar rad onto surface (lw direct)
+    ! solsd   - Downward solar rad onto surface (sw diffuse)
+    ! solld   - Downward solar rad onto surface (lw diffuse)
+    ! qrs     - Solar heating rate
+    !
+    ! qrl     - Longwave cooling rate
+    ! flwds   - Surface down longwave flux
+    ! solin    - Solar incident flux
+    ! solout   - Solar outgoing flux
+    ! fsnt     - Net column abs solar flux at model top
+    ! fsntc    - Clear sky total column abs solar flux
+    ! fsnsc    - Clear sky surface abs solar flux
+    ! fsnirt   - Near-IR flux absorbed at toa
+    ! fsnrtc   - Clear sky near-IR flux absorbed at toa
+    ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
+    ! fsds     - Flux Shortwave Downwelling Surface
+    ! flnt     - Net outgoing lw flux at model top
+    ! lwout    - outgoing lw flux at model top
+    ! lwin     - incoming lw flux at model top
+    ! flns     - Srf longwave cooling (up-down) flux
+    ! flntc    - Clear sky lw flux at model top
+    ! flnsc    - Clear sky lw flux at srf (up-down)
+    ! o3vmr    - Ozone volume mixing ratio
+    ! eccf     - Earth/sun distance factor
+    !
+    integer(ik4) , intent(in) :: iyear , imonth
+    type(radtype) , intent(inout) :: rt
+    integer(ik4) :: n
+    integer(ik4) :: k
+    ! Mass mixing ratios
+    ! cfc1immr  - cfc11 mass mixing ratio
+    ! cfc12mmr  - cfc12 mass mixing ratio
+    ! ch4mmr    - methane mass mixing ratio
+    ! n2ommr    - nitrous oxide mass mixing ratio
+    real(rkx) , dimension(rt%n1:rt%n2) :: cfc11mmr , cfc12mmr
+    real(rkx) , dimension(rt%n1:rt%n2) :: ch4mmr , n2ommr
+    real(rkx) , dimension(rt%n1:rt%n2) :: co2mmr , co2vmr
+    real(rkx) , dimension(kz,rt%n1:rt%n2) :: cfc11 , cfc12 , ch4 , n2o
+    ! Background aerosol mass mixing ratio
+    real(rkx) , dimension(kz,rt%n1:rt%n2) :: aermmb
+    ! o3mmr    - Ozone mass mixing ratio
+    real(rkx) , dimension(kz,rt%n1:rt%n2) :: o3mmr
+    ! pbr      - Model mid-level pressures (dynes/cm2)
+    ! pnm      - Model interface pressures (dynes/cm2)
+    real(rkx) , dimension(kz,rt%n1:rt%n2) :: pbr
+    real(rkx) , dimension(kzp1,rt%n1:rt%n2) :: pnm
+    ! plco2    - Prs weighted CO2 path
+    ! plh2o    - Prs weighted H2O path
+    ! tclrsf   - Total clear sky fraction, level to space
+    real(rkx) , dimension(kzp1,rt%n1:rt%n2) :: plco2 , plh2o , tclrsf
+    ! fslwdcs  - Downward clear sky long wave flux at surface
+    real(rkx) , dimension(rt%n1:rt%n2) :: fslwdcs
+
+#ifndef RCEMIP
+    real(rkx) :: alat
+#endif
+    real(rkx) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o , betafac
+
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'radctl'
+    integer(ik4) :: indx = 0
+    call time_begin(subroutine_name,indx)
+#endif
+    !
+    ! Set latitude dependent radiation input: radini sets many
+    ! radiation parameters
+    !
+    call radini(rt%n1,rt%n2,iyear,imonth,rt%dlat, &
+                co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
+    !
+    ! Compute on interface levels and put in vertical profiles
+    !
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,co2vmr,rt%cld, &
+                rt%o3vmr,pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
+    !
+    ! Solar radiation computation
+    !
+    if ( dosw ) then
+      !
+      ! Specify aerosol mass mixing ratio
+      !
+      call aermix(rt%n1,rt%n2,rt%pint,aermmb)
+
+      call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
+
+      call radcsw(rt%n1,rt%n2,rt%eccf,pnm,rt%q,co2mmr,o3mmr,aermmb,   &
+                  rt%cld,rt%clwp,rt%rel,rt%rei,rt%fice,rt%czen,       &
+                  rt%czengt0,rt%adirsw,rt%adifsw,rt%adirlw,rt%adiflw, &
+                  rt%asw,rt%alw,rt%solin,rt%solout,rt%qrs,rt%fsns,    &
+                  rt%fsnt,rt%fsds,rt%fsnsc,rt%fsntc,rt%sols,rt%soll,  &
+                  rt%solsd,rt%solld,rt%fsnirt,rt%fsnrtc,rt%fsnirtsq,  &
+                  rt%abv,rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,     &
+                  rt%tauxci,rt%outtaucl,rt%outtauci)
+      !
+      ! Convert units of shortwave fields needed by rest of model
+      ! from CGS to MKS
+      !
+#ifdef STDPAR
+      do concurrent ( n = rt%n1:rt%n2 ) local(k,betafac)
+#else
+      do n = rt%n1 , rt%n2
+#endif
+        rt%solin(n) = rt%solin(n)*1.0e-3_rkx
+        rt%solout(n) = rt%solout(n)*1.0e-3_rkx
+        rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
+        rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
+        rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
+        rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
+        !
+        ! clear sky column partitioning for surface flux
+        ! note : should be generalised to the whole column to be
+        !        really in energy balance !
+        !
+        rt%totcf(n) = d_one
+        if ( luse_max_rnovl ) then
+          do k = 2 , kzp1
+            rt%totcf(n) = rt%totcf(n) * &
+                   (1.0001_rkx - max(rt%cld(k-1,n),rt%cld(k,n)))/ &
+                   (1.0001_rkx - rt%cld(k-1,n))
+          end do
+        else
+          do k = 1 , kzp1
+            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(k,n))
+          end do
+        end if
+        rt%totcf(n) = d_one - rt%totcf(n)
+        !
+        ! maximum cld cover considered
+        ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(:,n)) + &
+        !           rt%fsnsc(n) * (1-maxval(rt%cld(:,n)))
+        ! random overlap assumption is tocf(n)
+        ! Now average btw rand ov and maximum cloud cover as fil suggest
+        ! rt%totcf(n) =  d_half * ( rt%totcf(n) + maxval(rt%cld(:,n)) )
+        ! abv is proportional to fsns in radcsw : Calculate the factor
+        if ( rt%fsns(n) > d_zero ) then
+          betafac = rt%abv(n) / rt%fsns(n)
+        else
+          betafac = d_zero
+        end if
+        ! Fil suggestion of putting a max on column cloud fraction
+        ! TAO: implement a user-specified CF maximum (default of 1.0)
+        if ( lsrfhack ) then
+          if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
+          if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
+          rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
+                       rt%fsnsc(n) * (d_one-rt%totcf(n))
+        end if
+        ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
+        rt%abv(n) = betafac * rt%fsns(n)
+        rt%fsds(n) = rt%fsds(n)*1.0e-3_rkx
+        rt%fsnirt(n) = rt%fsnirt(n)*1.0e-3_rkx
+        rt%fsnrtc(n) = rt%fsnrtc(n)*1.0e-3_rkx
+        rt%fsnirtsq(n) = rt%fsnirtsq(n)*1.0e-3_rkx
+        !
+        ! Calculate/outfld albedo and clear sky albedo
+        !
+        if ( rt%solin(n) > d_zero ) then
+          rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
+          rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
+        else
+          rt%alb(n) = d_zero
+          rt%albc(n) = d_zero
+        end if
+      end do
+    end if
+    !
+    ! Longwave radiation computation
+    !
+    if ( dolw ) then
+      !
+      ! Specify trace gas mixing ratios
+      !
+#ifdef RCEMIP
+      xn2o = 0.3478_rkx
+      xch4 = 0.2353_rkx
+      xcfc11 = 0.7273_rkx
+      xcfc12 = 0.4000_rkx
+#endif
+#ifdef STDPAR
+      do concurrent ( n = rt%n1:rt%n2 ) local(k)
+#else
+      do n = rt%n1 , rt%n2
+#endif
+#ifndef RCEMIP
+        alat = abs(rt%dlat(n))
+        if ( alat <= 45.0_rkx ) then
+          xn2o = 0.3478_rkx + 0.00116_rkx*alat
+          xch4 = 0.2353_rkx
+          xcfc11 = 0.7273_rkx + 0.00606_rkx*alat
+          xcfc12 = 0.4000_rkx + 0.00222_rkx*alat
+        else
+          xn2o = 0.4000_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xch4 = 0.2353_rkx + 0.0225489_rkx*(alat-45.0_rkx)
+          xcfc11 = 1.00_rkx + 0.013333_rkx*(alat-45.0_rkx)
+          xcfc12 = 0.50_rkx + 0.024444_rkx*(alat-45.0_rkx)
+        end if
+#endif
+        do k = 1 , kz
+          !  set stratospheric scale height factor for gases
+          if ( rt%pmid(k,n) >= rt%xptrop(n) ) then
+            ch4(k,n) = ch4mmr(n)
+            n2o(k,n) = n2ommr(n)
+            cfc11(k,n) = cfc11mmr(n)
+            cfc12(k,n) = cfc12mmr(n)
+          else
+            pratio = rt%pmid(k,n)/rt%xptrop(n)
+            ch4(k,n) = ch4mmr(n)*(pratio**xch4)
+            n2o(k,n) = n2ommr(n)*(pratio**xn2o)
+            cfc11(k,n) = cfc11mmr(n)*(pratio**xcfc11)
+            cfc12(k,n) = cfc12mmr(n)*(pratio**xcfc12)
+          end if
+        end do
+      end do
+      call radclw(rt%n1,rt%n2,rt%labsem,rt%ts,rt%emiss,rt%t,rt%q,   &
+                  co2vmr,co2mmr,rt%o3vmr,pbr,pnm,rt%pmln,rt%piln,   &
+                  n2o,ch4,cfc11,cfc12,rt%effcld,plco2,plh2o,tclrsf, &
+                  rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,        &
+                  rt%flntc,rt%flwds,fslwdcs,rt%aerlwfo,rt%aerlwfos, &
+                  rt%absgasnxt,rt%absgastot,rt%emsgastot,rt%qrl)
+      !
+      ! Convert units of longwave fields needed by rest of model from CGS to MKS
+      !
+      do concurrent ( n = rt%n1:rt%n2 )
+        rt%flnt(n) = rt%flnt(n)*1.0e-3_rkx
+        rt%lwout(n) = rt%lwout(n)*1.0e-3_rkx
+        rt%lwin(n) = rt%lwin(n)*1.0e-3_rkx
+        rt%flns(n) = rt%flns(n)*1.0e-3_rkx
+        rt%flntc(n) = rt%flntc(n)*1.0e-3_rkx
+        rt%flnsc(n) = rt%flnsc(n)*1.0e-3_rkx
+        rt%flwds(n) = rt%flwds(n)*1.0e-3_rkx
+        fslwdcs(n) = fslwdcs(n)*1.0e-3_rkx
+        !
+        ! essai clear sky column
+        !
+        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld((:,n))) + &
+        !            rt%flwds(n) * (1-maxval(rt%cld((:,n))))
+        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld(:,n)) + &
+        !            fslwdcs(n)*(d_one-maxval(rt%cld(:,n)))
+        ! rt%flns(n) = rt%flns(n) * maxval(rt%cld(:,n)) + &
+        !           rt%flnsc(n)*(d_one-maxval(rt%cld(:,n)))
+        !
+        ! rt%totcf(n) has been calculated for the SW, dolw is always true
+        !
+        if ( lsrfhack ) then
+          rt%flwds(n) = rt%flwds(n) * rt%totcf(n) + &
+                        fslwdcs(n) * (d_one - rt%totcf(n))
+          rt%flns(n)  = rt%flns(n) * rt%totcf(n)  + &
+                        rt%flnsc(n) * (d_one - rt%totcf(n))
+        end if
+      end do
+    end if
+#ifdef DEBUG
+    call time_end(subroutine_name,indx)
+#endif
+  end subroutine radctl
 
 end module mod_rad_radiation
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
