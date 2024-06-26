@@ -1759,7 +1759,7 @@ module mod_rad_radiation
           klov(n) = k
         end if
       end do
-      if ( klov(n) > 0 ) then
+      if ( klov(n) > 1 ) then
         skip(n) = .false.
       else
         skip(n) = .true.
@@ -1779,8 +1779,8 @@ module mod_rad_radiation
       ! Note: Vertical indexing here proceeds from bottom to top
       !
       do k = klov(n) , khiv(n)
-        fclt4(kzp1-k,n) = stebol*tint4(min(kzp2-k,kzp1),n)
-        fclb4(kzp1-k,n) = stebol*tint4(min(kzp3-k,kzp1),n)
+        fclt4(kzp1-k,n) = stebol*tint4(kzp2-k,n)
+        fclb4(kzp1-k,n) = stebol*tint4(kzp3-k,n)
       end do
     end do
     !
