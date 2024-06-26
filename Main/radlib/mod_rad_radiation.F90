@@ -1779,8 +1779,8 @@ module mod_rad_radiation
       ! Note: Vertical indexing here proceeds from bottom to top
       !
       do k = klov(n) , khiv(n)
-        fclt4(kzp1-k,n) = stebol*tint4(max(kzp2-k,kzp1),n)
-        fclb4(kzp1-k,n) = stebol*tint4(max(kzp3-k,kzp1),n)
+        fclt4(kzp1-k,n) = stebol*tint4(min(kzp2-k,kzp1),n)
+        fclb4(kzp1-k,n) = stebol*tint4(min(kzp3-k,kzp1),n)
       end do
     end do
     !
