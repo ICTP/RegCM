@@ -3483,7 +3483,7 @@ module mod_rad_radiation
             abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
                            du01,du11,dbeta01,dbeta11,duco11,duco12, &
                            duco13,duco21,duco22,duco23,dw,pnew,     &
-                           to3co2,dplh2o,tco2,th2o,to3,abplnk1(:,k2,n))
+                           to3co2,ux,tco2,th2o,to3,abplnk1(:,k2,n))
             !
             ! Sum total absorptivity
             !

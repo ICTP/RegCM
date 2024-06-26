@@ -122,6 +122,12 @@ module mod_rad_outrad
         end do
       end do
     end if
+    if ( myid == 0 ) then
+      do k = 1 , kz
+        write(0,*) 'HEATRT ', k, maxval(r2m%heatrt(:,:,k)), &
+          minval(r2m%heatrt(:,:,k)
+      end do
+    end if
     !
     ! surface absorbed solar flux in watts/m2
     ! net up longwave flux at the surface
@@ -136,6 +142,13 @@ module mod_rad_outrad
         r2m%flwd(j,i)  = slwd(n)
       end do
     end do
+    if ( myid == 0 ) then
+      write(0,*) 'TOTCF  ', maxval(r2m%totcf), minval(r2m%totcf)
+      write(0,*) 'SOLIS  ', maxval(r2m%solis), minval(r2m%solis)
+      write(0,*) 'FSW    ', maxval(r2m%fsw), minval(r2m%fsw)
+      write(0,*) 'FLW    ', maxval(r2m%flw), minval(r2m%flw)
+      write(0,*) 'FLWD   ', maxval(r2m%flwd), minval(r2m%flwd)
+    end if
     !
     ! for coupling with bats
     !
@@ -155,6 +168,15 @@ module mod_rad_outrad
         r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
       end do
     end do
+    if ( myid == 0 ) then
+      write(0,*) 'SABVEG ', maxval(r2m%sabveg), minval(r2m%sabveg)
+      write(0,*) 'SOLVS  ', maxval(r2m%solvs), minval(r2m%solvs)
+      write(0,*) 'SOLVSD ', maxval(r2m%solvsd), minval(r2m%solvsd)
+      write(0,*) 'SOLVL  ', maxval(r2m%soll), minval(r2m%soll)
+      write(0,*) 'SOLVLD ', maxval(r2m%solld), minval(r2m%solld)
+      write(0,*) 'SINC   ', maxval(r2m%sinc), minval(r2m%sinc)
+      call fatal(__FILE__,__LINE__,'Killing myself')
+    end if
 
     if ( ifrad ) then
       rnrad_for_radfrq = rnrad_for_radfrq + 1.0_rkx
