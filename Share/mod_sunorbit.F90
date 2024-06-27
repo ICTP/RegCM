@@ -414,12 +414,12 @@ module mod_sunorbit
           fvelp = d_zero
         else if (sinsum < d_zero) then
           fvelp = 1.5_rk8*mathpi
-        else if (sinsum > d_zero) then
+        else
           fvelp = d_half*mathpi
         end if
       else if (cossum < d_zero) then
         fvelp = atan(sinsum/cossum) + mathpi
-      else if (cossum > d_zero) then
+      else
         if (sinsum < d_zero) then
           fvelp = atan(sinsum/cossum) + 2.0_rk8*mathpi
         else

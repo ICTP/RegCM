@@ -217,7 +217,7 @@ program terrain
   pjpara%rotparam = .false.
 
   if ( nsg > 1 ) then
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
     write (stdout,*) 'iy     = ' , iysg
     write (stdout,*) 'jx     = ' , jxsg
@@ -419,7 +419,7 @@ program terrain
   !
   ! set up the parameters and constants
   !
-  write (stdout,*) ''
+  write (stdout,*) ' '
   write (stdout,*) 'Doing Horizontal Grid with following parameters'
   write (stdout,*) 'iy     = ' , iy
   write (stdout,*) 'jx     = ' , jx
@@ -859,7 +859,7 @@ program terrain
   if ( idynamic == 1 ) then
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (T estimated)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
     write (stdout,*) '--------------------------------------------------'
@@ -883,7 +883,7 @@ program terrain
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
     write (stdout,*) '--------------------------------------------------'
@@ -903,7 +903,7 @@ program terrain
     end do
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'

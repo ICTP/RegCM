@@ -47,7 +47,6 @@ module mod_stdatm
   integer(ik4) , public , parameter :: n_prehlev  = 30
   integer(ik4) , public , parameter :: n_hreflev  = 31
   integer(ik4) , public , parameter :: n_hrehlev  = 30
-  integer(ik4) :: ip , il , iz
   real(rkx) , dimension(n_hrehlev) , parameter :: stdhlevh = &
   [    0.5_rkx ,  1.5_rkx ,  2.5_rkx ,  3.5_rkx ,  4.5_rkx ,  5.5_rkx , &
        6.5_rkx ,  7.5_rkx ,  8.5_rkx ,  9.5_rkx , 10.5_rkx , 11.5_rkx , &

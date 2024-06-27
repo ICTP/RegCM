@@ -175,6 +175,7 @@ module mod_nhinterp
           do j = j1 , j2
 #endif
             do k = 1 , kxs
+              l = 1
               do ll = 1 , kxs - 1
                 l = ll
                 if (z(j,i,l+1) < z0(j,i,k)) exit
@@ -297,9 +298,10 @@ module mod_nhinterp
           do j = j1 , j2
 #endif
             do k = 1 , kxs
+              l = 1
               do ll = 1 , kxs - 1
                 l = ll
-                if (z(j,i,l+1) < z0(j,i,k)) exit
+                if (z(j,i,ll+1) < z0(j,i,k)) exit
               end do
               zu = z(j,i,l)
               zl = z(j,i,l+1)

@@ -622,7 +622,19 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O0 -g -pg -fbacktrace \
+    if test -z "${osname##Linux}"; then
+      FCFLAGS="-O0 -g -pg -fbacktrace \
+            -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
+            -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
+            -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
+            -Wunused-parameter -Wno-align-commons $FCFLAGS \
+            -fno-range-check -fcheck=bounds -Wimplicit-interface \
+            -Wimplicit-procedure -Wintrinsic-shadow \
+            -fcheck=array-temps,bounds,do,mem,recursion,pointer"
+            # -ffpe-trap=zero,invalid,overflow,underflow
+    else
+      # Newver Macos versions have a missing library problem for -pg
+      FCFLAGS="-O0 -g -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
@@ -630,6 +642,7 @@ if eval "test x$DEBUG = x1"; then
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
             # -ffpe-trap=zero,invalid,overflow,underflow
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -696,8 +709,9 @@ else
     else
       # MacOSX may choke on using AVX extensions...
       FCFLAGS="-O3 -finline-functions $FCFLAGS"
+      # Newer versions of MacOS have problems with pg options
       if eval "test x"$USE_PROF" = x1"; then
-        FCFLAGS="-g -pg $FCFLAGS"
+        FCFLAGS="-g $FCFLAGS"
       fi
     fi
     AC_SUBST(FCFLAGS)

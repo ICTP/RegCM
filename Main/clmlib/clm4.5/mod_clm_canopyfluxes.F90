@@ -1508,6 +1508,9 @@ module mod_clm_canopyfluxes
       else if (phase == 'sha') then
         par_z       => clm3%g%l%c%p%pef%parsha_z
         alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
+      else
+        write(stderr,*) 'ERRORR! phase not in [sha,sun]'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
       do f = 1, fn
