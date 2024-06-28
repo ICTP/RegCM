@@ -702,7 +702,7 @@ else
     NOOPTFC="-O2 -finline-functions $FCFLAGS" # -fno-var-tracking-assignments
     if test -z "${osname##Linux}"; then
       FCFLAGS="-O3 -finline-functions -mtune=native -ftree-vectorize \
-               -march=native $FCFLAGS -ftree-parallelize-loops=2"
+               -march=native $FCFLAGS" # -ftree-parallelize-loops=2"
       if eval "test x"$USE_PROF" = x1"; then
         FCFLAGS="-g -pg $FCFLAGS"
       fi
