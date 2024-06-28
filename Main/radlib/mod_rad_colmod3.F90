@@ -20,8 +20,8 @@
 module mod_rad_colmod3
   use mod_intkinds , only : ik4
   use mod_realkinds , only : rkx
-  use mod_constants , only : amd , amdk , amo3 , mathpi
-  use mod_constants , only : rgasmol , rhoh2o , tzero
+  use mod_constants , only : amd , amo3 , mathpi
+  use mod_constants , only : rgas , rhoh2o , tzero
   use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , kz , kzp1
   use mod_dynparam , only : ntr , nspi , myid
   use mod_memutil , only : getmem1d , getmem2d , getmem3d
@@ -455,7 +455,7 @@ module mod_rad_colmod3
     !
     do n = rt%n1 , rt%n2
       do k = 1 , kz
-        rt%rho(k,n) = (rt%pmid(k,n)*amdk)/(rt%t(k,n)*rgasmol)
+        rt%rho(k,n) = (rt%pmid(k,n))/(rt%t(k,n)*rgas)
       end do
     end do
     if ( ipptls > 1 ) then

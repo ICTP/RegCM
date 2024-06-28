@@ -131,6 +131,24 @@ module mod_rad_radiation
   logical , save :: linteract = .false.
   logical , save :: lzero = .false.
 
+  ! GTS system constants
+  real(rkx) , parameter :: egravgts = egrav*d_100
+  real(rkx) , parameter :: regravgts = d_one/egravgts
+  real(rkx) , parameter :: cpdgts = cpd*1.0e4_rkx
+  real(rkx) , parameter :: gocp = egravgts/cpdgts
+  real(rkx) , parameter :: sslp = stdp*d_10 ! dynes/cm^2
+  real(rkx) , parameter :: rsslp = d_one/sslp
+  real(rkx) , parameter :: stebol = sigm*d_1000
+  real(rkx) , parameter :: rgsslp = d_half/(egravgts*sslp)
+  ! Effective molecular weight of dry air (kg/mol)
+  real(rkx) , parameter :: amdk = amd*d_r1000
+  ! Avogadro Constant in lit/cm3
+  real(rkx) , parameter :: avogadrl = navgdr*d_1000
+
+  ! Radiation constants
+  real(rkx) , parameter :: dpfco2 = 5.0e-3_rkx
+  real(rkx) , parameter :: dpfo3 = 2.5e-3_rkx
+
   real(rkx) , parameter :: verynearone = 0.999999_rkx
   ! r80257   - Conversion factor for h2o pathlength
   real(rkx) , parameter :: r80257 = d_one/8.0257e-4_rkx
@@ -507,6 +525,679 @@ module mod_rad_radiation
 #endif
 
   contains
+  !
+  !----------------------------------------------------------------------
+  ! Calculate absorptivity for non nearest layers for CH4, N2O, CFC11 and
+  ! CFC12.
+  !
+  !             Coded by J.T. Kiehl November 21, 1994
+  !-----------------------------------------------------------------------
+  !
+  !------------------------------Arguments--------------------------------
+  ! tpnm    - interface pressures total path
+  ! to3co2  - pressure weighted temperature
+  ! ds2c    - continuum path length
+  ! duptyp  - p-type path length
+  ! du1     - cfc11 path length
+  ! du2     - cfc12 path length
+  ! duch4   - ch4 path length
+  ! dbetac  - ch4 pressure factor
+  ! du01    - n2o path length
+  ! du11    - n2o path length
+  ! dbeta01 - n2o pressure factor
+  ! dbeta11 -        "
+  ! duco21  - co2 path length
+  ! duco22  -       "
+  ! duco23  -       "
+  ! duco11  - co2 path length
+  ! duco12  -       "
+  ! duco13  -       "
+  ! dw      - h2o path length
+  ! pnew    - pressure
+  ! dplh2o  - p squared h2o path length
+  ! abplnk1 - Planck factor
+  ! tco2    - co2 transmission factor
+  ! th2o    - h2o transmission factor
+  ! to3     - o3 transmission factor
+  !
+  !------------------------------Output Value-------------------------
+  !
+  ! abstrc  - total trace gas absorptivity
+  !
+  !-------------------------------------------------------------------
+  !
+  pure real(rkx) function trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
+      du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
+      duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: tpnm , ds2c , duptyp , du1 , du2
+    real(rkx) , intent(in) :: duch4 , dbetac , du01 , du11
+    real(rkx) , intent(in) :: dbeta01 , dbeta11
+    real(rkx) , intent(in) :: duco11 , duco12 , duco13
+    real(rkx) , intent(in) :: duco21 , duco22 , duco23
+    real(rkx) , intent(in) :: to3co2 , dw , pnew , dplh2o
+    real(rkx) , intent(in) :: tco2 , th2o , to3
+    real(rkx) , dimension(14) , intent(in) :: abplnk1
+    !
+    !-----------------------------------------------------------------------
+    !
+    ! sqti    - square root of mean temp
+    ! acfc1   - cfc11 absorptivity 798 cm-1
+    ! acfc2   - cfc11 absorptivity 846 cm-1
+    ! acfc3   - cfc11 absorptivity 933 cm-1
+    ! acfc4   - cfc11 absorptivity 1085 cm-1
+    ! acfc5   - cfc12 absorptivity 889 cm-1
+    ! acfc6   - cfc12 absorptivity 923 cm-1
+    ! acfc7   - cfc12 absorptivity 1102 cm-1
+    ! acfc8   - cfc12 absorptivity 1161 cm-1
+    ! an2o1   - absorptivity of 1285 cm-1 n2o band
+    ! du02    - n2o path length
+    ! dbeta02 - n2o pressure factor
+    ! an2o2   - absorptivity of 589 cm-1 n2o band
+    ! du03    - n2o path length
+    ! dbeta03 - n2o pressure factor
+    ! an2o3   - absorptivity of 1168 cm-1 n2o band
+    ! ach4    - absorptivity of 1306 cm-1 ch4 band
+    ! aco21   - absorptivity of 1064 cm-1 band
+    ! aco22   - absorptivity of 961 cm-1 band
+    ! dbetc1  - co2 pressure factor
+    ! dbetc2  - co2 pressure factor
+    ! tt      - temp. factor for h2o overlap factor
+    ! psi1    -                 "
+    ! phi1    -                 "
+    ! p1      - h2o overlap factor
+    ! w1      -        "
+    ! tw      - h2o transmission factor
+    ! g1      -         "
+    ! g2      -         "
+    ! g3      -         "
+    ! g4      -         "
+    ! ab      - h2o temp. factor
+    ! bb      -         "
+    ! abp     -         "
+    ! bbp     -         "
+    ! tcfc3   - transmission for cfc11 band
+    ! tcfc4   - transmission for cfc11 band
+    ! tcfc6   - transmission for cfc12 band
+    ! tcfc7   - transmission for cfc12 band
+    ! tcfc8   - transmission for cfc12 band
+    ! tlw     - h2o transmission
+    ! tch4    - ch4 transmission
+    !
+    !-----------------------------------------------------------------------
+    !
+    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 , &
+      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta02 ,   &
+      dbeta03 , dbetc1 , dbetc2 , du02 , du12 , du03 , p1 , phi1 , psi1 ,&
+      tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , w1 , sqti , tt
+    real(rkx) , dimension(6) :: tw
+    integer(ik4) :: l
+
+    sqti = sqrt(to3co2)
+    ! h2o transmission
+    tt = abs(to3co2-250.0_rkx)
+    do l = 1 , 6
+      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
+      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
+      p1 = pnew*(psi1/phi1)/sslp
+      w1 = dw*phi1
+      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
+                   d_one)-g3(l)*ds2c-g4(l)*duptyp)
+    end do
+    ! cfc transmissions
+    tcfc3 = exp(-175.005_rkx*du1)
+    tcfc4 = exp(-1202.18_rkx*du1)
+    tcfc6 = exp(-5786.73_rkx*du2)
+    tcfc7 = exp(-2873.51_rkx*du2)
+    tcfc8 = exp(-2085.59_rkx*du2)
+    ! Absorptivity for CFC11 bands
+    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*abplnk1(7)
+    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*abplnk1(8)
+    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*abplnk1(9)
+    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*abplnk1(10)
+    ! Absorptivity for CFC12 bands
+    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*abplnk1(11)
+    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*abplnk1(12)
+    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*abplnk1(13)
+    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*abplnk1(14)
+    ! Emissivity for CH4 band 1306 cm-1
+    tlw = exp(-d_one*sqrt(dplh2o))
+    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*abplnk1(3)
+    tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
+    ! Absorptivity for N2O bands
+    ! 1285 cm-1 band
+    an2o1 = 2.35558_rkx*sqti * log(d_one+func(du01,dbeta01) + &
+            func(du11,dbeta11)) * tlw*tch4*abplnk1(4)
+    du02 = 0.100090_rkx*du01
+    du12 = 0.0992746_rkx*du11
+    dbeta02 = 0.964282_rkx*dbeta01
+    ! 589 cm-1 band
+    an2o2 = 2.65581_rkx*sqti * log(d_one+func(du02,dbeta02) + &
+            func(du12,dbeta02))*th2o*tco2*abplnk1(5)
+    du03 = 0.0333767_rkx*du01
+    dbeta03 = 0.982143_rkx*dbeta01
+    ! 1168 cm-1 band
+    an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03)) * &
+            tw(6)*tcfc8*abplnk1(6)
+    ! Emissivity for 1064 cm-1 band of CO2
+    dbetc1 = 2.97558_rkx*tpnm/(d_two*sslp*sqti)
+    dbetc2 = d_two*dbetc1
+    aco21 = 3.7571_rkx*sqti * &
+            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
+            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*abplnk1(2)
+    ! Emissivity for 961 cm-1 band
+    aco22 = 3.8443_rkx*sqti * &
+            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
+            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*abplnk1(1)
+    ! total trace gas absorptivity
+    abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +  &
+             acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
+             aco21 + aco22
+  end function trcab
+  !
+  !----------------------------------------------------------------------
+  ! Calculate nearest layer absorptivity due to CH4, N2O, CFC11 and CFC12
+  !
+  !         Coded by J.T. Kiehl November 21, 1994
+  !-----------------------------------------------------------------------
+  !
+  !------------------------------Arguments--------------------------------
+  !
+  ! tbar    - pressure weighted temperature
+  ! dw      - h2o path length
+  ! pnew    - pressure factor
+  ! tco2    - co2 transmission
+  ! th2o    - h2o transmission
+  ! to3     - o3 transmission
+  ! up2     - p squared path length
+  ! pinpl   - pressure factor for subdivided layer
+  ! winpl   - fractional path length
+  ! ds2c    - h2o continuum factor
+  ! duptype - p-type path length
+  ! du1     - cfc11 path length
+  ! du2     - cfc12 path length
+  ! duch4   - ch4 path length
+  ! du01    - n2o path length
+  ! du11    - n2o path length
+  ! duco11  - co2 path length
+  ! duco12  -       "
+  ! duco13  -       "
+  ! duco21  - co2 path length
+  ! duco22  -       "
+  ! duco23  -       "
+  ! bplnk   - weighted Planck function for absorptivity
+  !
+  !------------------------------Output Value-------------------------
+  !
+  ! abstrc - total trace gas absorptivity
+  !
+  !-------------------------------------------------------------------
+  !
+  pure real(rkx) function trcabn(tbar,dw,pnew,tco2,th2o,to3,up2,     &
+      pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
+      duco13,duco21,duco22,duco23,bplnk) result(abstrc)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: tbar , dw , pnew , tco2 , th2o , to3 , up2
+    real(rkx) , intent(in) :: winpl , pinpl , ds2c , duptyp , du1 , du2
+    real(rkx) , intent(in) :: duch4 , du01 , du11 , duco11 , duco12
+    real(rkx) , intent(in) :: duco13 , duco21 , duco22 , duco23
+    real(rkx) , dimension(14) , intent(in) :: bplnk
+    !
+    ! sqti    - square root of mean temp
+    ! rsqti   - reciprocal of sqti
+    ! acfc1   - absorptivity of cfc11 798 cm-1 band
+    ! acfc2   - absorptivity of cfc11 846 cm-1 band
+    ! acfc3   - absorptivity of cfc11 933 cm-1 band
+    ! acfc4   - absorptivity of cfc11 1085 cm-1 band
+    ! acfc5   - absorptivity of cfc11 889 cm-1 band
+    ! acfc6   - absorptivity of cfc11 923 cm-1 band
+    ! acfc7   - absorptivity of cfc11 1102 cm-1 band
+    ! acfc8   - absorptivity of cfc11 1161 cm-1 band
+    ! dbeta01 - n2o pressure factors
+    ! dbeta11 -        "
+    ! an2o1   - absorptivity of the 1285 cm-1 n2o band
+    ! du02    - n2o path length
+    ! dbeta02 - n2o pressure factor
+    ! an2o2   - absorptivity of the 589 cm-1 n2o band
+    ! du03    - n2o path length
+    ! dbeta03 - n2o pressure factor
+    ! an2o3   - absorptivity of the 1168 cm-1 n2o band
+    ! dbetac  - ch4 pressure factor
+    ! ach4    - absorptivity of the 1306 cm-1 ch4 band
+    ! dbetc1 -  co2 pressure factor
+    ! dbetc2 -  co2 pressure factor
+    ! aco21  -  absorptivity of the 1064 cm-1 co2 band
+    ! aco22  -  absorptivity of the 961 cm-1 co2 band
+    ! tt     -  temp. factor for h2o overlap
+    ! psi1   -           "
+    ! phi1   -           "
+    ! p1     -  factor for h2o overlap
+    ! w1     -           "
+    ! ds2c   -  continuum path length
+    ! duptyp -  p-type path length
+    ! tw     -  h2o transmission overlap
+    ! g1     -  h2o overlap factor
+    ! g2     -          "
+    ! g3     -          "
+    ! g4     -          "
+    ! ab     -  h2o temp. factor
+    ! bb     -          "
+    ! abp    -          "
+    ! bbp    -          "
+    ! tcfc3  -  transmission of cfc11 band
+    ! tcfc4  -  transmission of cfc11 band
+    ! tcfc6  -  transmission of cfc12 band
+    ! tcfc7  -          "
+    ! tcfc8  -          "
+    ! tlw    -  h2o transmission
+    ! tch4   -  ch4 transmission
+    !
+    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
+      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta01 ,  &
+      dbeta02 , dbeta03 , dbeta11 , dbetac , dbetc1 , dbetc2 , du02 ,   &
+      du03 , p1 , phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , &
+      tch4 , tlw , w1 , rsqti , sqti , tt , du12
+    real(rkx) , dimension(6) :: tw
+    integer(ik4) :: l
+
+    sqti = sqrt(tbar)
+    rsqti = d_one/sqti
+    ! h2o transmission
+    tt = abs(tbar-250.0_rkx)
+    do l = 1 , 6
+      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
+      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
+      p1 = pnew*(psi1/phi1)/sslp
+      w1 = dw*winpl*phi1
+      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1))-d_one)-g3(l) * &
+                   ds2c-g4(l)*duptyp)
+    end do
+    ! cfc transmissions
+    tcfc3 = exp(-175.005_rkx*du1)
+    tcfc4 = exp(-1202.18_rkx*du1)
+    tcfc6 = exp(-5786.73_rkx*du2)
+    tcfc7 = exp(-2873.51_rkx*du2)
+    tcfc8 = exp(-2085.59_rkx*du2)
+    ! Absorptivity for CFC11 bands
+    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*bplnk(7)
+    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*bplnk(8)
+    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*bplnk(9)
+    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*bplnk(10)
+    ! Absorptivity for CFC12 bands
+    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*bplnk(11)
+    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*bplnk(12)
+    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*bplnk(13)
+    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*bplnk(14)
+    ! Emissivity for CH4 band 1306 cm-1
+    tlw = exp(-d_one*sqrt(up2))
+    dbetac = 2.94449_rkx*pinpl*rsqti/sslp
+    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*bplnk(3)
+    tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
+    ! Absorptivity for N2O bands
+    dbeta01 = 19.399_rkx*pinpl*rsqti/sslp
+    dbeta11 = dbeta01
+    ! 1285 cm-1 band
+    an2o1 = 2.35558_rkx*sqti * &
+            log(d_one+func(du01,dbeta01)+func(du11,dbeta11)) * &
+            tlw*tch4*bplnk(4)
+    du02 = 0.100090_rkx*du01
+    du12 = 0.0992746_rkx*du11
+    dbeta02 = 0.964282_rkx*dbeta01
+    ! 589 cm-1 band
+    an2o2 = 2.65581_rkx*sqti * &
+            log(d_one+func(du02,dbeta02)+func(du12,dbeta02)) * &
+            tco2*th2o*bplnk(5)
+    du03 = 0.0333767_rkx*du01
+    dbeta03 = 0.982143_rkx*dbeta01
+    ! 1168 cm-1 band
+    an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03))*tw(6) * &
+            tcfc8*bplnk(6)
+    ! Emissivity for 1064 cm-1 band of CO2
+    dbetc1 = 2.97558_rkx*pinpl*rsqti/sslp
+    dbetc2 = d_two*dbetc1
+    aco21 = 3.7571_rkx*sqti * &
+            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
+            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*bplnk(2)
+    ! Emissivity for 961 cm-1 band of co2
+    aco22 = 3.8443_rkx*sqti * &
+            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
+            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*bplnk(1)
+    ! total trace gas absorptivity
+    abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 + &
+             acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
+             aco21 + aco22
+  end function trcabn
+  !
+  !----------------------------------------------------------------------
+  !  Calculate emissivity for CH4, N2O, CFC11 and CFC12 bands.
+  !            Coded by J.T. Kiehl November 21, 1994
+  !-----------------------------------------------------------------------
+  !
+  !------------------------------Arguments--------------------------------
+  !
+  ! co2t   - pressure weighted temperature
+  ! pnm    - interface pressure
+  ! ucfc11 - CFC11 path length
+  ! ucfc12 - CFC12 path length
+  ! un2o0  - N2O path length
+  ! un2o1  - N2O path length (hot band)
+  ! bn2o0  - pressure factor for n2o
+  ! bn2o1  - pressure factor for n2o
+  ! uch4   - CH4 path length
+  ! bch4   - pressure factor for ch4
+  ! uco211 - CO2 9.4 micron band path length
+  ! uco212 - CO2 9.4 micron band path length
+  ! uco213 - CO2 9.4 micron band path length
+  ! uco221 - CO2 10.4 micron band path length
+  ! uco222 - CO2 10.4 micron band path length
+  ! uco223 - CO2 10.4 micron band path length
+  ! uptype - continuum path length
+  ! w      - h2o path length
+  ! s2c    - h2o continuum path length
+  ! up2    - pressure squared h2o path length
+  ! emplnk - emissivity Planck factor
+  ! th2o   - water vapor overlap factor
+  ! tco2   - co2 overlap factor
+  ! to3    - o3 overlap factor
+  !
+  !------------------------------Output Value-------------------------
+  !
+  ! emstrc - total trace gas emissivity
+  !
+  !-------------------------------------------------------------------
+  !
+  pure real(rkx) function trcems(co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
+     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &
+     uptype,w,s2c,up2,emplnk,th2o,tco2,to3) result(emstrc)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , intent(in) :: un2o0 , un2o1
+    real(rkx) , intent(in) :: bch4 , uch4 , co2t
+    real(rkx) , intent(in) :: pnm , s2c
+    real(rkx) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , intent(in) :: uco211 , uco212
+    real(rkx) , intent(in) :: uco213 , uco221
+    real(rkx) , intent(in) :: uco222 , uco223
+    real(rkx) , intent(in) :: tco2 , th2o , to3 , up2
+    real(rkx) , intent(in) :: uptype , w
+    real(rkx) , dimension(14) , intent(in) :: emplnk
+    !
+    ! sqti   - square root of mean temp
+    ! ecfc1  - emissivity of cfc11 798 cm-1 band
+    ! ecfc2  -     "      "    "   846 cm-1 band
+    ! ecfc3  -     "      "    "   933 cm-1 band
+    ! ecfc4  -     "      "    "   1085 cm-1 band
+    ! ecfc5  -     "      "  cfc12 889 cm-1 band
+    ! ecfc6  -     "      "    "   923 cm-1 band
+    ! ecfc7  -     "      "    "   1102 cm-1 band
+    ! ecfc8  -     "      "    "   1161 cm-1 band
+    ! u01    - n2o path length
+    ! u11    - n2o path length
+    ! beta01 - n2o pressure factor
+    ! beta11 - n2o pressure factor
+    ! en2o1  - emissivity of the 1285 cm-1 N2O band
+    ! u02    - n2o path length
+    ! u12    - n2o path length
+    ! beta02 - n2o pressure factor
+    ! en2o2  - emissivity of the 589 cm-1 N2O band
+    ! u03    - n2o path length
+    ! beta03 - n2o pressure factor
+    ! en2o3  - emissivity of the 1168 cm-1 N2O band
+    ! betac  - ch4 pressure factor
+    ! ech4   - emissivity of 1306 cm-1 CH4 band
+    ! betac1 - co2 pressure factor
+    ! betac2 - co2 pressure factor
+    ! eco21  - emissivity of 1064 cm-1 CO2 band
+    ! eco22  - emissivity of 961 cm-1 CO2 band
+    ! tt     - temp. factor for h2o overlap factor
+    ! psi1   - narrow band h2o temp. factor
+    ! phi1   -            "
+    ! p1     - h2o line overlap factor
+    ! w1     -          "
+    ! tw     - h2o transmission overlap
+    ! g1     - h2o overlap factor
+    ! g2     -          "
+    ! g3     -          "
+    ! g4     -          "
+    ! ab     -          "
+    ! bb     -          "
+    ! abp    -          "
+    ! bbp    -          "
+    ! tcfc3  - transmission for cfc11 band
+    ! tcfc4  -         "
+    ! tcfc6  - transmission for cfc12 band
+    ! tcfc7  -          "
+    ! tcfc8  -          "
+    ! tlw    - h2o overlap factor
+    ! tch4   - ch4 overlap factor
+    !
+    real(rkx) :: beta01 , beta02 , beta03 , beta11 , betac , sqti , tt , &
+                 betac1 , betac2 , ecfc1 , ecfc2 , ecfc3 , ecfc4 ,       &
+                 ecfc5 , ecfc6 , ecfc7 , ecfc8 , ech4 , eco21 , eco22 ,  &
+                 en2o1 , en2o2 , en2o3 , p1 , phi1 , psi1 , tcfc3 ,      &
+                 tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , u01 ,      &
+                 u02 , u03 , u11 , u12 , w1
+    real(rkx) , dimension(6) :: tw
+    integer(ik4) :: l
+
+    sqti = sqrt(co2t)
+    ! Transmission for h2o
+    tt = abs(co2t-250.0_rkx)
+    ! transmission due to cfc bands
+    do l = 1 , 6
+      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
+      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
+      p1 = pnm*(psi1/phi1)/sslp
+      w1 = w*phi1
+      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
+              d_one)-g3(l)*s2c-g4(l)*uptype)
+    end do
+    tcfc3 = exp(-175.005_rkx*ucfc11)
+    tcfc4 = exp(-1202.18_rkx*ucfc11)
+    tcfc6 = exp(-5786.73_rkx*ucfc12)
+    tcfc7 = exp(-2873.51_rkx*ucfc12)
+    tcfc8 = exp(-2085.59_rkx*ucfc12)
+    ! Emissivity for CFC11 bands
+    ecfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*ucfc11))*tw(1)*emplnk(7)
+    ecfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*ucfc11))*tw(2)*emplnk(8)
+    ecfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*emplnk(9)
+    ecfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*emplnk(10)
+    ! Emissivity for CFC12 bands
+    ecfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*ucfc12))*tw(3)*emplnk(11)
+    ecfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*emplnk(12)
+    ecfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*emplnk(13)
+    ecfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*emplnk(14)
+    ! Emissivity for CH4 band 1306 cm-1
+    tlw = exp(-d_one*sqrt(up2))
+    betac = bch4/uch4
+    ech4 = 6.00444_rkx*sqti*log(d_one+func(uch4,betac))*tlw*emplnk(3)
+    tch4 = d_one/(d_one+0.02_rkx*func(uch4,betac))
+    ! Emissivity for N2O bands
+    u01 = un2o0
+    u11 = un2o1
+    beta01 = bn2o0/un2o0
+    beta11 = bn2o1/un2o1
+    ! 1285 cm-1 band
+    en2o1 = 2.35558_rkx*sqti * &
+           log(d_one+func(u01,beta01)+func(u11,beta11))*tlw*tch4*emplnk(4)
+    u02 = 0.100090_rkx*u01
+    u12 = 0.0992746_rkx*u11
+    beta02 = 0.964282_rkx*beta01
+    ! 589 cm-1 band
+    en2o2 = 2.65581_rkx*sqti * &
+            log(d_one+func(u02,beta02)+func(u12,beta02))*tco2 * &
+            th2o*emplnk(5)
+    u03 = 0.0333767_rkx*u01
+    beta03 = 0.982143_rkx*beta01
+    ! 1168 cm-1 band
+    en2o3 = 2.54034_rkx*sqti*log(d_one+func(u03,beta03))*tw(6)*tcfc8*emplnk(6)
+    ! Emissivity for 1064 cm-1 band of CO2
+    betac1 = 2.97558_rkx*pnm/(sslp*sqti)
+    betac2 = d_two*betac1
+    eco21 = 3.7571_rkx*sqti * &
+            log(d_one+func(uco211,betac1) + func(uco212,betac2) + &
+                func(uco213,betac2))*to3*tw(5)*tcfc4*tcfc7*emplnk(2)
+    ! Emissivity for 961 cm-1 band
+    eco22 = 3.8443_rkx*sqti * &
+            log(d_one+func(uco221,betac1) + func(uco222,betac1) +  &
+                func(uco223,betac2))*tw(4)*tcfc3*tcfc6*emplnk(1)
+    ! total trace gas emissivity
+    emstrc = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
+             ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
+             eco21 + eco22
+  end function trcems
+
+  pure real(rkx) function func(u,b)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: u , b
+    func = u/sqrt(d_four+u*(d_one+d_one/b))
+  end function func
+
+  ! xalpha - Term in direct reflect and transmissivity
+  pure real(rkx) function xalpha(wi,uui,gi,ei)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , uui , gi , ei
+    real(rk8) :: w , uu , g , e
+    w = wi
+    uu = uui
+    g = gi
+    e = ei
+    xalpha = real(0.75_rk8*(w*uu)*((1.0_rk8+(g*(1.0_rk8-w))) / &
+                  (1.0_rk8-((e*e)*(uu*uu)))),rkx)
+  end function xalpha
+
+  ! xgamma - Term in direct reflect and transmissivity
+  pure real(rkx) function xgamma(wi,uui,gi,ei)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , uui , gi , ei
+    real(rk8) :: w , uu , g , e
+    w = wi
+    uu = uui
+    g = gi
+    e = ei
+    xgamma = real((w*0.5_rk8)*((3.0_rk8*g*(1.0_rk8-w)*(uu*uu)+1.0_rk8) / &
+                               (1.0_rk8-((e*e)*(uu*uu)))),rkx)
+  end function xgamma
+
+  ! el - Term in xalpha,xgamma,f_n,f_u
+  pure real(rkx) function el(wi,gi)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , gi
+    real(rk8) :: w , g
+    w = wi
+    g = gi
+    el = real(sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g)),rkx)
+  end function el
+
+  ! taus - Scaled extinction optical depth
+  pure real(rkx) function taus(wi,fi,ti)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , fi , ti
+    real(rk8) :: w , f , t
+    w = wi
+    f = fi
+    t = ti
+    taus = real((1.0_rk8-w*f)*t,rkx)
+  end function taus
+
+  ! omgs - Scaled single particle scattering albedo
+  pure real(rkx) function omgs(wi,fi)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , fi
+    real(rk8) :: w , f
+    w = wi
+    f = fi
+    omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
+  end function omgs
+
+  ! asys - Scaled asymmetry parameter
+  pure real(rkx) function asys(gi,fi)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: gi , fi
+    real(rk8) :: g , f
+    g = gi
+    f = fi
+    asys = real((g-f)/(1.0_rk8-f),rkx)
+  end function asys
+
+  ! f_u - Term in diffuse reflect and transmissivity
+  pure real(rkx) function f_u(wi,gi,ei)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: wi , gi , ei
+    real(rk8) :: w , g , e
+    w = wi
+    g = gi
+    e = ei
+    f_u = real(1.50_rk8*(1.0_rk8-w*g)/e,rkx)
+  end function f_u
+
+  ! f_n - Term in diffuse reflect and transmissivity
+  pure real(rkx) function f_n(uui,eti)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: uui , eti
+    real(rk8) :: uu , et
+    uu = uui
+    et = eti
+    f_n = real(((uu+1.0_rk8)*(uu+1.0_rk8)/et) - &
+               ((uu-1.0_rk8)*(uu-1.0_rk8)*et),rkx)
+  end function f_n
+
+  ! dbvt - Planck fnctn tmp derivative for o3
+  pure real(rkx) function dbvt(ti)
+!$acc routine seq
+    ! Derivative of planck function at 9.6 micro-meter wavelength
+    implicit none
+    real(rkx) , intent(in) :: ti
+    real(rk8) :: t
+    t = ti
+    dbvt = real((-2.8911366682e-4_rk8 + &
+           (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
+           (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t),rkx)
+  end function dbvt
+
+  pure real(rkx) function fo3(uxi,vxi)
+!$acc routine seq
+    ! an absorption function factor
+    implicit none
+    real(rkx) , intent(in) :: uxi , vxi
+    real(rk8) :: ux , vx
+    ux = uxi
+    vx = vxi
+    fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
+  end function fo3
+
+  pure integer(ik4) function intmax(imax)
+!$acc routine seq
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: imax
+    integer(ik4) :: i , n , is , ie , mx
+    is = lbound(imax,1)
+    ie = ubound(imax,1)
+    intmax = is
+    n = ie-is+1
+    if ( n > 1 ) then
+      mx = imax(is)
+      do i = is+1 , ie
+        if ( imax(i) > mx ) then
+          mx = imax(i)
+          intmax = i
+        end if
+      end do
+    end if
+  end function intmax
+  !
   !-----------------------------------------------------------------------
   !
   ! Initialize various constants for radiation scheme; note that
@@ -514,7 +1205,22 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  ! RegCM : Most constants moved in mod_constants, GHG gases from CMIP
+  ! RegCM : constants not here moved in mod_constants, GHG gases from CMIP
+  !
+  ! Input
+  !   lat      - Latitude
+  !   iyear    - year YYYY
+  !   imonth   - Month 1-12
+  !
+  ! Output
+  !   co2vmr   - Carbon dioxide volume mixing ratio
+  !   co2mmr   - Carbon dioxide mass mixing ratio
+  !   ch4mmr   - Methane mass mixing ratio
+  !   n2ommr   - nitrous oxide mass mixing ratio
+  !   cfc11mmr - CFC11 mass mixing ratio
+  !   cfc12mmr - CFC11 mass mixing ratio
+  !
+  !-----------------------------------------------------------------------
   !
   subroutine radini(n1,n2,iyear,imonth,lat, &
                     co2vmr,co2mmr,ch4mmr,n2ommr,cfc11mmr,cfc12mmr)
@@ -525,11 +1231,6 @@ module mod_rad_radiation
     real(rkx) , dimension(n1:n2) , intent(out) :: ch4mmr , n2ommr
     real(rkx) , dimension(n1:n2) , intent(out) :: cfc11mmr , cfc12mmr
     integer(ik4) :: n
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radini'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
     !
     ! Set general radiation consts; convert to cgs units where
     ! appropriate.
@@ -555,10 +1256,161 @@ module mod_rad_radiation
     if ( iclimaaer > 0 ) then
       lzero = .false.
     end if
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
   end subroutine radini
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! SUBROUTINE AERMIX
+  !
+  ! Set global mean tropospheric aerosol
+  !
+  ! Specify aerosol mixing ratio and compute relative humidity for later
+  ! adjustment of aerosol optical properties. Aerosol mass mixing ratio
+  ! is specified so that the column visible aerosol optical depth is a
+  ! specified global number (tauvis). This means that the actual mixing
+  ! ratio depends on pressure thickness of the lowest three atmospheric
+  ! layers near the surface.
+  !
+  ! Optical properties and relative humidity parameterization are from:
+  !
+  ! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
+  ! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
+  ! 16 April 1993
+  !
+  ! Visible (vis) here means 0.5-0.7 micro-meters
+  ! Forward scattering fraction is taken as asymmetry parameter squared
+  !
+  ! Input
+  !   pnm    - Radiation level interface pressures (dynes/cm2)
+  ! Output
+  !   aermmb - Aerosol background mass mixing ratio
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! RegCM : Removed the dependency on relative humidity
+  !
+  subroutine aermix(n1,n2,pnm,aermmb)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , intent(in) , dimension(kzp1,n1:n2) :: pnm
+    real(rkx) , intent(out) , dimension(kz,n1:n2) :: aermmb
+    !
+    !-----------------------------------------------------------------------
+    !
+    ! mxaerl - max nmbr aerosol levels counting up from surface
+    ! tauvis - visible optical depth
+    ! kaervs - visible extinction coefficiant of aerosol (m2/g)
+    ! omgvis - visible omega0
+    ! gvis   - visible forward scattering asymmetry parameter
+    !
+    !-----------------------------------------------------------------------
+    !
+    integer(ik4) , parameter :: mxaerl = 4
+    ! multiplication factor for kaer
+    real(rkx) , parameter :: kaervs = 5.3012_rkx
+    real(rkx) , parameter :: omgvis = 0.999999_rkx
+    real(rkx) , parameter :: gvis = 0.694889_rkx
+    ! added for efficiency
+    real(rkx) , parameter :: rhfac = 1.6718_rkx
+    !
+    ! real(rkx) , parameter :: a0 = -9.2906106183_rkx
+    ! real(rkx) , parameter :: a1 =  0.52570211505_rkx
+    ! real(rkx) , parameter :: a2 = -0.0089285760691_rkx
+    ! real(rkx) , parameter :: a4 =  5.0877212432e-05_rkx
+    !
+    integer(ik4) :: n , k
+    !fil  tauvis = 0.01_rkx
+    real(rkx) , parameter :: tauvis = 0.14_rkx
+    !
+    !-----------------------------------------------------------------------
+    !
+    ! Define background aerosol
+    ! Set relative humidity and factor; then aerosol amount:
+    !
+    ! if ( rh(i,k) > 0.9 ) then
+    !   rhfac = 2.8
+    ! else if (rh(i,k) < 0.6 ) then
+    !   rhfac = 1.0
+    ! else
+    !   rhpc  = 100.0 * rh(i,k)
+    !   rhfac = (a0 + a1*rhpc + a2*rhpc**2 + a3*rhpc**3)
+    ! end if
+    !
+    ! Find constant aerosol mass mixing ratio for specified levels
+    ! in the column, converting units where appropriate
+    ! for the moment no more used
+    !
+    do n = n1 , n2
+      do k = 1 , kz
+        if ( k >= kz + 1 - mxaerl ) then
+          aermmb(k,n) = egravgts * tauvis / &
+                  (1.0e4_rkx*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
+                  (pnm(kzp1,n)-pnm(kzp1-mxaerl,n)))
+        else
+          aermmb(k,n) = d_zero
+        end if
+      end do
+    end do
+  end subroutine aermix
+  !
+  !----------------------------------------------------------------------
+  !   Calculate Planck factors for absorptivity and emissivity of
+  !   CH4, N2O, CFC11 and CFC12
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Input arguments
+  !
+  ! tint    - interface temperatures
+  ! tlayr   - k-1 level temperatures
+  ! tplnke  - Top Layer temperature
+  !
+  ! output arguments
+  !
+  ! emplnk  - emissivity Planck factor
+  ! abplnk1 - non-nearest layer Plack factor
+  ! abplnk2 - nearest layer factor
+  !
+  subroutine trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
+    real(rkx) , dimension(nlwspi,n1:n2) , intent(out) :: emplnk
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(out) :: abplnk1 , abplnk2
+    !
+    ! wvl   - wavelength index
+    ! f1    - Planck function factor
+    ! f2    -       "
+    ! f3    -       "
+    !
+    integer(ik4) :: n , k , wvl
+    !
+    ! Calculate emissivity Planck factor
+    !
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) local(k,wvl)
+#else
+    do n = n1 , n2
+#endif
+      do wvl = 1 , nlwspi
+        emplnk(wvl,n) = f1(wvl)/(tplnke(n)**4*(exp(f3(wvl)/tplnke(n))-d_one))
+      end do
+      !
+      ! Calculate absorptivity Planck factor for tint and tlayr temperatures
+      !
+      do  k = 1 , kzp1
+        do wvl = 1 , nlwspi
+          ! non-nearlest layer function
+          abplnk1(wvl,k,n) = (f2(wvl)*exp(f3(wvl)/tint(k,n))) / &
+                           (tint(k,n)**5*(exp(f3(wvl)/tint(k,n))-d_one)**2)
+          ! nearest layer function
+          abplnk2(wvl,k,n) = (f2(wvl)*exp(f3(wvl)/tlayr(k,n))) / &
+                           (tlayr(k,n)**5*(exp(f3(wvl)/tlayr(k,n))-d_one)**2)
+        end do
+      end do
+    end do
+  end subroutine trcplk
   !
   !-----------------------------------------------------------------------
   !
@@ -567,7 +1419,8 @@ module mod_rad_radiation
   !
   ! Input
   !   o3vmr - ozone volume mixing ratio
-  !   pnm  - Model interface pressures
+  !   pnm   - Model interface pressures (dynes/cm2)
+  !
   ! Output
   !   plol  - Ozone prs weighted path length (cm)
   !   plos  - Ozone path length (cm)
@@ -582,11 +1435,6 @@ module mod_rad_radiation
     real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: plos , plol
     integer(ik4) :: n
     integer(ik4) :: k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radoz2'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
     !
     ! Evaluate the ozone path length integrals to interfaces;
     ! factors of 0.1 and 0.01 to convert pressures from cgs to mks:
@@ -605,9 +1453,6 @@ module mod_rad_radiation
                     (pnm(k,n)*pnm(k,n)-pnm(k-1,n)*pnm(k-1,n))
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
   end subroutine radoz2
   !
   !-----------------------------------------------------------------------
@@ -622,6 +1467,7 @@ module mod_rad_radiation
   !   pmln   - Ln(pmidm1)
   !   piln   - Ln(pintm1)
   !   plh2o  - Pressure weighted h2o path
+  !
   ! Output arguments
   !   tint   - Layer interface temperature
   !   tint4  - Tint to the 4th power
@@ -655,11 +1501,6 @@ module mod_rad_radiation
     integer(ik4) :: n
     integer(ik4) :: k
     real(rkx) :: dpnm , dpnmsq , dy , rtnm
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radtpl'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
     !
     ! Set the top and bottom intermediate level temperatures,
     ! top level planck temperature and top layer temp**4.
@@ -725,15 +1566,2036 @@ module mod_rad_radiation
                      exp(1800.0_rkx*(rtnm-r296))*h2ommr(k,n)*repsil
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
   end subroutine radtpl
   !
-  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
-  !qian            sulfate has been included
-  !qian            main changed codes: radcsw,
+  !-----------------------------------------------------------------------
+  !
+  ! Computes layer reflectivities and transmissivities, from the top down
+  ! to the surface using the delta-Eddington solutions for each layer;
+  ! adds layers from top down to surface as well.
+  !
+  ! If total transmission to the interface above a particular layer is
+  ! less than trmin, then no further delta-Eddington solutions are
+  ! evaluated for layers below
+  !
+  ! For more details , see Briegleb, Bruce P., 1992: Delta-Eddington
+  ! Approximation for Solar Radiation in the NCAR Community Climate Model,
+  ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
+  !
+  ! Input Arguments
+  !   trayoslp - Tray/sslp
+  !   czen     - Cosine zenith angle
+  !   czengt0  - Logical czen greater zero
+  !   pflx     - Interface pressure
+  !   abh2o    - Absorption coefficiant for h2o
+  !   abo3     - Absorption coefficiant for o3
+  !   abco2    - Absorption coefficiant for co2
+  !   abo2     - Absorption coefficiant for o2
+  !   uh2o     - Layer absorber amount of h2o
+  !   uo3      - Layer absorber amount of  o3
+  !   uco2     - Layer absorber amount of co2
+  !   uo2      - Layer absorber amount of  o2
+  !   tauxcl   - Cloud extinction optical depth (liquid)
+  !   tauxci   - Cloud extinction optical depth (ice)
+  !   tauaer   - Aerosol extinction optical depth
+  !   wcl      - Cloud single scattering albedo (liquid)
+  !   gcl      - Cloud asymmetry parameter (liquid)
+  !   fcl      - Cloud forward scattered fraction (liquid)
+  !   wci      - Cloud single scattering albedo (ice)
+  !   gci      - Cloud asymmetry parameter (ice)
+  !   fci      - Cloud forward scattered fraction (ice)
+  !   tauasc   - Aerosol single scattering albedo * extinction
+  !   gtota    - Aerosol asymmetry parameter * SSA * extinction
+  !   ftota    - Aerosol forward scattered fraction * SSA * extinction
+  !
+  ! Output Arguments
+  !   tottrn   - Total transmission for layers above
+  !   exptdn   - Solar beam exp down transm from top
+  !   rdndif   - Added dif ref for layers above
+  !   rdif     - Layer refflectivity to diffuse rad
+  !   tdif     - Layer transmission to diffuse rad
+  !   rdir     - Layer reflectivity to direct rad
+  !   tdir     - Layer transmission to direct rad
+  !   explay   - Solar beam exp transm for layer
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,pflx,abh2o,   &
+                    abo3,abco2,abo2,uh2o,uo3,uco2,uo2,tauxcl, &
+                    wcl,gcl,fcl,tauxci,wci,gci,fci,tauaer,    &
+                    tauasc,gtota,ftota,tottrn,exptdn,rdndif,  &
+                    rdif,tdif,rdir,tdir,explay)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: czen
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
+    real(rkx) , intent(in) :: abh2o , abo3 , abco2 , abo2
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uh2o , uo3
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uco2 , uo2
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauxcl , tauxci , tauaer
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wcl , gcl , fcl
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wci , gci , fci
+    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauasc , gtota , ftota
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn , rdndif
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdif , tdif
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , tdir
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
+    logical , dimension(n1:n2) , intent(in) :: czengt0
+    real(rkx) , intent(in) :: trayoslp
+    !
+    ! taugab   - Layer total gas absorption optical depth
+    ! tauray   - Layer rayleigh optical depth
+    ! taucsc   - Layer cloud scattering optical depth
+    ! tautot   - Total layer optical depth
+    ! wtot     - Total layer single scatter albedo
+    ! gtot     - Total layer asymmetry parameter
+    ! ftot     - Total layer forward scatter fraction
+    ! wtau     - rayleigh layer scattering optical depth
+    ! wt       - layer total single scattering albedo
+    ! ts       - layer scaled extinction optical depth
+    ! ws       - layer scaled single scattering albedo
+    ! gs       - layer scaled asymmetry parameter
+    ! rdenom   - mulitiple scattering term
+    ! rdirexp  - layer direct ref times exp transmission
+    ! tdnmexp  - total transmission minus exp transmission
+    !
+    ! Intermediate terms for delta-eddington solution
+    !
+    ! alp      - Temporary for xalpha
+    ! gam      - Temporary for xgamma
+    ! lm       - Temporary for el
+    ! ne       - Temporary for f_n
+    ! ue       - Temporary for f_u
+    ! arg      - Exponential argument
+    ! extins   - Extinction
+    ! amg      - Alp - gam
+    ! apg      - Alp + gam
+    !
+    integer(ik4) :: n
+    integer(ik4) :: k
+    real(rkx) :: tautot , taucsc , wtau , wt , wtot , gtot , ftot
+    real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue
+    real(rkx) :: apg , amg , extins , rdenom , rdirexp , tdnmexp
+    real(rkx) :: taugab , tauray
+    !
+    ! Compute total direct beam transmission, total transmission, and
+    ! reflectivity for diffuse radiation (from below) for all layers
+    ! above each interface by starting from the top and adding layers down:
+    ! For the extra layer above model top:
+    !
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) &
+      local(tautot,taucsc,wtau,wt,wtot,gtot,ftot,ws,gs,ts,lm,alp,gam, &
+            ne,ue,apg,amg,extins,rdenom,rdirexp,tdnmexp,tauray,taugab,k)
+#else
+    do n = n1 , n2
+#endif
+      !-----------------------------------------------------------------
+      !
+      ! Initialize all total transmission values to 0, so that nighttime
+      ! values from previous computations are not used:
+      !
+      do k = 1 , kzp1
+        tottrn(k,n) = d_zero
+      end do
+      if ( czengt0(n) ) then
+        tauray = trayoslp * (pflx(1,n)-pflx(0,n))
+        taugab = abh2o*uh2o(0,n) + abo3*uo3(0,n) + &
+                 abco2*uco2(0,n) + abo2*uo2(0,n)
+        if ( lzero ) then
+          tautot = tauray + taugab + tauxcl(0,n) + tauxci(0,n)
+          taucsc = tauxcl(0,n)*wcl(0,n) + &
+                   tauxci(0,n)*wci(0,n)
+          wtau = wray*tauray
+          wt = wtau + taucsc
+          wtot = wt/tautot
+          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n)+ &
+                              gci(0,n)*tauxci(0,n)*wci(0,n)) / wt
+          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              fci(0,n)*tauxci(0,n)*wci(0,n)) / wt
+        else
+          tautot = tauray + taugab + &
+                   tauxcl(0,n) + tauxci(0,n) + tauaer(0,n)
+          taucsc = tauxcl(0,n)*wcl(0,n) + &
+                   tauxci(0,n)*wci(0,n) + &
+                   tauasc(0,n)
+          wtau = wray*tauray
+          wt = wtau + taucsc
+          wtot = wt/tautot
+          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              gci(0,n)*tauxci(0,n)*wci(0,n) + &
+                              gtota(0,n)) / wt
+          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
+                              fci(0,n)*tauxci(0,n)*wci(0,n) + &
+                              ftota(0,n)) / wt
+        end if
+        ts = taus(wtot,ftot,tautot)
+        ws = omgs(wtot,ftot)
+        gs = asys(gtot,ftot)
+        lm = el(ws,gs)
+        alp = xalpha(ws,czen(n),gs,lm)
+        gam = xgamma(ws,czen(n),gs,lm)
+        ue = f_u(ws,gs,lm)
+        !
+        ! Limit argument of exponential, in case lm*ts very large:
+        !
+        extins = exp(-min(lm*ts,mxarg))
+        ne = f_n(ue,extins)
+        rdif(0,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+        tdif(0,n) = d_four*ue/ne
+        ! Limit argument of exponential, in case czen is very small:
+        explay(0,n) = exp(-min(ts/czen(n),mxarg))
+        apg = alp + gam
+        amg = alp - gam
+        rdir(0,n) = amg*(tdif(0,n)*explay(0,n)-d_one) + apg*rdif(0,n)
+        tdir(0,n) = apg*tdif(0,n) + (amg*rdif(0,n)-(apg-d_one))*explay(0,n)
+        !
+        ! Under rare conditions, reflectivies and transmissivities can
+        ! be negative; zero out any negative values
+        !
+        rdir(0,n) = max(rdir(0,n),d_zero)
+        tdir(0,n) = max(tdir(0,n),d_zero)
+        rdif(0,n) = max(rdif(0,n),d_zero)
+        tdif(0,n) = max(tdif(0,n),d_zero)
+        !
+        ! Initialize top interface of extra layer:
+        !
+        exptdn(0,n) = d_one
+        rdndif(0,n) = d_zero
+        tottrn(0,n) = d_one
+        rdndif(1,n) = rdif(0,n)
+        tottrn(1,n) = tdir(0,n)
+        !
+        ! Now, continue down one layer at a time; if the total transmission
+        ! to the interface just above a given layer is less than trmin,
+        ! then no delta-eddington computation for that layer is done:
+        !
+        do k = 1 , kz
+          !
+          ! Initialize current layer properties to zero; only if total
+          ! transmission to the top interface of the current layer exceeds
+          ! the minimum, will these values be computed below:
+          !
+          rdir(k,n) = d_zero
+          rdif(k,n) = d_zero
+          tdir(k,n) = d_zero
+          tdif(k,n) = d_zero
+          explay(k,n) = d_zero
+          !
+          ! Calculates the solar beam transmission, total transmission,
+          ! and reflectivity for diffuse radiation from below at the
+          ! top of the current layer:
+          !
+          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+          rdenom = d_one/(d_one - rdif(k-1,n)*rdndif(k-1,n))
+          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *     &
+                      (tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+          rdndif(k,n) = rdif(k-1,n) + (rdndif(k-1,n)*tdif(k-1,n)) *   &
+                      (tdif(k-1,n)*rdenom)
+          !
+          ! Compute next layer delta-eddington solution only if total
+          ! transmission of radiation to the interface just above the layer
+          ! exceeds trmin.
+          !
+          if ( tottrn(k,n) > trmin ) then
+            tauray = trayoslp*(pflx(k+1,n)-pflx(k,n))
+            taugab = abh2o*uh2o(k,n) + abo3*uo3(k,n) +  &
+                     abco2*uco2(k,n) + abo2*uo2(k,n)
+
+            if ( lzero ) then
+              tautot = tauray + taugab + tauxcl(k,n) + tauxci(k,n)
+              taucsc = tauxcl(k,n)*wcl(k,n) + tauxci(k,n)*wci(k,n)
+              wtau = wray*tauray
+              wt = wtau + taucsc
+              wtot = wt/tautot
+              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  gci(k,n)*wci(k,n)*tauxci(k,n))/wt
+              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  fci(k,n)*wci(k,n)*tauxci(k,n))/wt
+            else
+              tautot = tauray+taugab + tauxcl(k,n)+tauxci(k,n)+tauaer(k,n)
+              taucsc = tauxcl(k,n)*wcl(k,n) + &
+                       tauxci(k,n)*wci(k,n) + &
+                       tauasc(k,n)
+              wtau = wray*tauray
+              wt = wtau + taucsc
+              wtot = wt/tautot
+              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  gci(k,n)*wci(k,n)*tauxci(k,n) + &
+                                  gtota(k,n))/wt
+              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
+                                  fci(k,n)*wci(k,n)*tauxci(k,n) + &
+                                  ftota(k,n))/wt
+            end if
+            ts = taus(wtot,ftot,tautot)
+            ws = omgs(wtot,ftot)
+            gs = asys(gtot,ftot)
+            lm = el(ws,gs)
+            alp = xalpha(ws,czen(n),gs,lm)
+            gam = xgamma(ws,czen(n),gs,lm)
+            ue = f_u(ws,gs,lm)
+            !
+            ! Limit argument of exponential, in case lm very large:
+            !
+            extins = exp(-min(lm*ts,mxarg))
+            ne = f_n(ue,extins)
+            rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif(k,n) = d_four*ue/ne
+            ! Limit argument of exponential, in case czen is very small:
+            explay(k,n) = exp(-min(ts/czen(n),mxarg))
+            apg = alp + gam
+            amg = alp - gam
+            rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
+            tdir(k,n) = apg*tdif(k,n)+(amg*rdif(k,n)-(apg-d_one))*explay(k,n)
+            !
+            ! Under rare conditions, reflectivies and transmissivities
+            ! can be negative; zero out any negative values
+            !
+            rdir(k,n) = max(rdir(k,n),d_zero)
+            tdir(k,n) = max(tdir(k,n),d_zero)
+            rdif(k,n) = max(rdif(k,n),d_zero)
+            tdif(k,n) = max(tdif(k,n),d_zero)
+          end if
+        end do
+        !
+        ! Compute total direct beam transmission, total transmission, and
+        ! reflectivity for diffuse radiation (from below) for all layers
+        ! above the surface:
+        !
+        exptdn(kzp1,n) = exptdn(kz,n)*explay(kz,n)
+        rdenom = d_one/(d_one-rdif(kz,n)*rdndif(kz,n))
+        rdirexp = rdir(kz,n)*exptdn(kz,n)
+        tdnmexp = tottrn(kz,n) - exptdn(kz,n)
+        tottrn(kzp1,n) = exptdn(kz,n)*tdir(kz,n) + tdif(kz,n) *   &
+                    (tdnmexp+rdndif(kz,n)*rdirexp)*rdenom
+        rdndif(kzp1,n) = rdif(kz,n) + (rdndif(kz,n)*tdif(kz,n)) * &
+                    (tdif(kz,n)*rdenom)
+      end if
+    end do
+  end subroutine radded
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Delta-Eddington solution for special clear sky computation
+  !
+  ! Computes total reflectivities and transmissivities for two atmospheric
+  ! layers: an overlying purely ozone absorbing layer, and the rest of the
+  ! column below.
+  !
+  ! For more details , see Briegleb, Bruce P., 1992: Delta-Eddington
+  ! Approximation for Solar Radiation in the NCAR Community Climate Model,
+  ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
+  !
+  ! Input arguments
+  !
+  !   trayoslp  - Tray/sslp
+  !   czen      - Cosine zenith angle
+  !   czengt0   - logical cosine zenith angle greater than zero
+  !   lcls      - Add or remove aerosol effect
+  !   pflx      - Interface pressure
+  !   abh2o     - Absorption coefficiant for h2o
+  !   abo3      - Absorption coefficiant for o3
+  !   abco2     - Absorption coefficiant for co2
+  !   abo2      - Absorption coefficiant for o2
+  !   uth2o     - Total column absorber amount of h2o
+  !   uto3      - Total column absorber amount of  o3
+  !   utco2     - Total column absorber amount of co2
+  !   uto2      - Total column absorber amount of  o2
+  !   tauaer    - Total column aerosol extinction
+  !   tauasc    - Aerosol single scattering albedo * extinction
+  !   gtota     - Aerosol asymmetry parameter * SSA * EXT
+  !   ftota     - Aerosol *forward scattering fraction * SSA * EXT
+  !
+  ! Output
+  !
+  !   tottrn    - Total transmission for layers above
+  !   exptdn    - Solar beam exp down transmn from top
+  !   rdndif    - Added dif ref for layers above
+  !   rdif      - Layer refflectivity to diffuse rad
+  !   tdif      - Layer transmission to diffuse rad
+  !   rdir      - Layer reflectivity to direct rad
+  !   tdir      - Layer transmission to direct rad
+  !   explay    - Solar beam exp transmn for layer
+  !
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,lcls,pflx,  &
+                    abh2o,abco2,abo2,abo3,uth2o,uto3,utco2, &
+                    uto2,tauaer,tauasc,gtota,ftota,tottrn,  &
+                    exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    logical , intent(in) :: lcls
+    real(rkx) , intent(in) :: trayoslp
+    real(rkx) , dimension(n1:n2) , intent(in) :: czen
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
+    real(rkx) , intent(in) :: abh2o , abco2 , abo2 , abo3
+    real(rkx) , dimension(n1:n2) , intent(in) :: uth2o
+    real(rkx) , dimension(n1:n2) , intent(in) :: uto3
+    real(rkx) , dimension(n1:n2) , intent(in) :: utco2
+    real(rkx) , dimension(n1:n2) , intent(in) :: uto2
+    real(rkx) , dimension(n1:n2) , intent(in) :: tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: tauasc ! waer * tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: gtota  ! gaer * waer * tauaer
+    real(rkx) , dimension(n1:n2) , intent(in) :: ftota  ! faer * waer * tauaer
+    logical , dimension(n1:n2) , intent(in) :: czengt0
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn
+    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: rdndif
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , rdif
+    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: tdir , tdif
+    !
+    ! taugab   - Total column gas absorption optical depth
+    ! tauray   - Column rayleigh optical depth
+    ! tautot   - Total column optical depth
+    ! wtot     - Total column single scatter albedo
+    ! gtot     - Total column asymmetry parameter
+    ! ftot     - Total column forward scatter fraction
+    ! ts       - Column scaled extinction optical depth
+    ! ws       - Column scaled single scattering albedo
+    ! gs       - Column scaled asymmetry parameter
+    ! rdenom   - Mulitiple scattering term
+    ! rdirexp  - Layer direct ref times exp transmission
+    ! tdnmexp  - Total transmission minus exp transmission
+    !
+    integer(ik4) :: n
+    real(rkx) :: arg , rdenom , rdirexp , tdnmexp
+    real(rkx) :: tautot , wtot , gtot , ftot , extins
+    real(rkx) :: ts , ws , gs , lm , alp , gam , ue , ne
+    real(rkx) :: apg , amg , taugab , tauray
+    integer(ik4) :: k
+    !
+    ! Compute total direct beam transmission, total transmission, and
+    ! reflectivity for diffuse radiation (from below) for all layers
+    ! above each interface by starting from the top and adding layers down:
+    !
+    ! The top layer is assumed to be a purely absorbing ozone layer, and
+    ! that the mean diffusivity for diffuse mod_transmission is 1.66:
+    !
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) &
+      local(arg,rdenom,rdirexp,tdnmexp,tautot,wtot,gtot,ftot,extins, &
+            ts,ws,gs,lm,alp,gam,ue,ne,apg,amg,taugab,tauray,k)
+#else
+    do n = n1 , n2
+#endif
+      !-------------------------------------------------------------------
+      !
+      ! Initialize all total transmimission values to 0, so that nighttime
+      ! values from previous computations are not used:
+      !
+      do k = 1 , kzp1
+        tottrn(k,n) = d_zero
+      end do
+      if ( czengt0(n) ) then
+        taugab = abo3*uto3(n)
+        ! Limit argument of exponential, in case czen is very small:
+        arg = min(taugab/czen(n),mxarg)
+        explay(0,n) = exp(-arg)
+        tdir(0,n) = explay(0,n)
+        !
+        ! Same limit for diffuse mod_transmission:
+        !
+        arg = min(1.66_rkx*taugab,mxarg)
+        tdif(0,n) = exp(-arg)
+        rdir(0,n) = d_zero
+        rdif(0,n) = d_zero
+        !
+        ! Initialize top interface of extra layer:
+        !
+        exptdn(0,n) = d_one
+        rdndif(0,n) = d_zero
+        tottrn(0,n) = d_one
+        rdndif(1,n) = rdif(0,n)
+        tottrn(1,n) = tdir(0,n)
+        !
+        ! Now, complete the rest of the column; if the total transmission
+        ! through the top ozone layer is less than trmin, then no
+        ! delta-Eddington computation for the underlying column is done:
+        !
+        do k = 1 , 1
+          !
+          ! Initialize current layer properties to zero;only if total
+          ! transmission to the top interface of the current layer exceeds
+          ! the minimum, will these values be computed below:
+          !
+          rdir(k,n) = d_zero
+          rdif(k,n) = d_zero
+          tdir(k,n) = d_zero
+          tdif(k,n) = d_zero
+          explay(k,n) = d_zero
+          !
+          ! Calculates the solar beam transmission, total transmission,
+          ! and reflectivity for diffuse radiation from below at the
+          ! top of the current layer:
+          !
+          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+          rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
+          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
+                        tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+          rdndif(k,n) = rdif(k-1,n) + &
+                        (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
+          !
+          ! Compute next layer delta-Eddington solution only if total
+          ! transmission of radiation to the interface just above the layer
+          ! exceeds trmin.
+          !
+          if ( tottrn(k,n) > trmin ) then
+            !
+            ! Remember, no ozone absorption in this layer:
+            !
+            tauray = trayoslp*pflx(kzp1,n)
+            taugab = abh2o*uth2o(n) + abco2*utco2(n) + abo2*uto2(n)
+            if ( lcls ) then
+              tautot = tauray + taugab
+              wtot = (wray*tauray)/tautot
+              gtot = (gray*wray*tauray)/(wtot*tautot)
+              ftot = (fray*wray*tauray/(wtot*tautot))
+            else
+              tautot = tauray + taugab + tauaer(n)
+              wtot = (wray*tauray + tauasc(n))/tautot
+              gtot = (gray*wray*tauray + gtota(n))/(wtot*tautot)
+              ftot = (fray*wray*tauray + ftota(n))/(wtot*tautot)
+            end if
+            ts = taus(wtot,ftot,tautot)
+            ws = omgs(wtot,ftot)
+            gs = asys(gtot,ftot)
+            lm = el(ws,gs)
+            alp = xalpha(ws,czen(n),gs,lm)
+            gam = xgamma(ws,czen(n),gs,lm)
+            ue = f_u(ws,gs,lm)
+            !
+            ! Limit argument of exponential, in case lm very large:
+            !
+            arg = min(lm*ts,mxarg)
+            extins = exp(-arg)
+            ne = f_n(ue,extins)
+            rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+            tdif(k,n) = d_four*ue/ne
+            ! Limit argument of exponential, in case czen is very small:
+            arg = min(ts/czen(n),mxarg)
+            explay(k,n) = exp(-arg)
+            apg = alp + gam
+            amg = alp - gam
+            rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
+            tdir(k,n) = apg*tdif(k,n) + &
+                        (amg*rdif(k,n)-(apg-d_one))*explay(k,n)
+            !
+            ! Under rare conditions, reflectivies and transmissivities
+            ! can be negative; zero out any negative values
+            !
+            rdir(k,n) = max(rdir(k,n),d_zero)
+            tdir(k,n) = max(tdir(k,n),d_zero)
+            rdif(k,n) = max(rdif(k,n),d_zero)
+            tdif(k,n) = max(tdif(k,n),d_zero)
+          end if
+        end do
+        k = 2
+        exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
+        rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
+        rdirexp = rdir(k-1,n)*exptdn(k-1,n)
+        tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
+        tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
+                      tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
+        rdndif(k,n) = rdif(k-1,n) + &
+                      (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
+      end if
+    end do
+    !
+    ! Compute total direct beam transmission, total transmission, and
+    ! reflectivity for diffuse radiation (from below) for both layers
+    ! above the surface:
+    !
+  end subroutine radclr
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Compute absorptivities for h2o, co2, o3, ch4, n2o, cfc11 and cfc12
+  !
+  ! h2o  ....  Uses nonisothermal emissivity for water vapor from
+  !            Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
+  !            Emissivity and Absorptivity Formulation for Water Vapor
+  !            Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
+  !
+  ! co2  ....  Uses absorptance parameterization of the 15 micro-meter
+  !            (500 - 800 cm-1) band system of Carbon Dioxide, from
+  !            Kiehl, J.T. and B.P.Briegleb, 1991: A New Parameterization
+  !            of the Absorptance Due to the 15 micro-meter Band System
+  !            of Carbon Dioxide Jouranl of Geophysical Research,
+  !            vol. 96., D5, pp 9013-9019.
+  !            Parameterizations for the 9.4 and 10.4 mircon bands of CO2
+  !            are also included.
+  !
+  ! o3   ....  Uses absorptance parameterization of the 9.6 micro-meter
+  !            band system of ozone, from Ramanathan, V. and R.Dickinson,
+  !            1979: The Role of stratospheric ozone in the zonal and
+  !            seasonal radiative energy balance of the earth-troposphere
+  !            system. Journal of the Atmospheric Sciences, Vol. 36,
+  !            pp 1084-1104
+  !
+  ! ch4  ....  Uses a broad band model for the 7.7 micron band of methane.
+  !
+  ! n2o  ....  Uses a broad band model for the 7.8, 8.6 and 17.0 micron
+  !            bands of nitrous oxide
+  !
+  ! cfc11 ...  Uses a quasi-linear model for the 9.2, 10.7, 11.8 and 12.5
+  !            micron bands of CFC11
+  !
+  ! cfc12 ...  Uses a quasi-linear model for the 8.6, 9.1, 10.8 and 11.2
+  !            micron bands of CFC12
+  !
+  !
+  ! Computes individual absorptivities for non-adjacent layers, accounting
+  ! for band overlap, and sums to obtain the total; then, computes the
+  ! nearest layer contribution.
+  !
+  ! Input
+  !   pbr     - Prssr at mid-levels (dynes/cm2)
+  !   pnm     - Prssr at interfaces (dynes/cm2)
+  !   co2em   - Co2 emissivity function
+  !   co2eml  - Co2 emissivity function
+  !   tplnka  - Planck fnctn level temperature
+  !   s2c     - H2o continuum path length
+  !   s2t     - H2o tmp and prs wghted path
+  !   w       - H2o prs wghted path
+  !   h2otr   - H2o trnsmssn fnct for o3 overlap
+  !   plco2   - Co2 prs wghted path length
+  !   plh2o   - H2o prs wfhted path length
+  !   co2t    - Tmp and prs wghted path length
+  !   tint    - Interface temperatures
+  !   tlayr   - K-1 level temperatures
+  !   plol    - Ozone prs wghted path length
+  !   plos    - Ozone path length
+  !   pmln    - Ln(pmidm1)
+  !   piln    - Ln(pintm1)
+  !   ucfc11  - CFC11 path length
+  !   ucfc12  - CFC12 path length
+  !   un2o0   - N2O path length
+  !   un2o1   - N2O path length (hot band)
+  !   uch4    - CH4 path length
+  !   uco211  - CO2 9.4 micron band path length
+  !   uco212  - CO2 9.4 micron band path length
+  !   uco213  - CO2 9.4 micron band path length
+  !   uco221  - CO2 10.4 micron band path length
+  !   uco222  - CO2 10.4 micron band path length
+  !   uco223  - CO2 10.4 micron band path length
+  !   uptype  - continuum path length
+  !   bn2o0   - pressure factor for n2o
+  !   bn2o1   - pressure factor for n2o
+  !   bch4    - pressure factor for ch4
+  !   abplnk1 - non-nearest layer Planck factor
+  !   abplnk2 - nearest layer factor
+  !
+  ! Output
+  !   absgastot - Total absorptivity
+  !   absgasnxt - Total nearest layer absorptivity
+  !
+  ! Nearest layer absorptivities
+  ! Non-adjacent layer absorptivites
+  ! Total emissivity
+  !
+  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+                    co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
+                    plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
+                    bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
+                    uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: co2em , co2eml
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tplnka
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: s2c , s2t , wh2op
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: h2otr , co2t
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk1
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk2
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
+    real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: xuinpl
+    !
+    ! kn       - Nearest level index
+    ! iband    - Band  index
+    ! pnew     - Effective pressure for H2O vapor linewidth
+    ! trline   - Transmission due to H2O lines in window
+    ! ux       - Pressure weighted H2O path length
+    ! tbar     - Mean layer temperature
+    ! emm      - Mean co2 emissivity
+    ! o3emm    - Mean o3 emissivity
+    ! o3bndi   - Ozone band parameter
+    ! temh2o   - Mean layer temperature equivalent to tbar
+    ! k21      - Exponential coefficient used to calculate rotation band
+    !            transmissvty in the 650-800 cm-1 region (tr1)
+    ! k22      - Exponential coefficient used to calculate rotation band
+    !            transmissvty in the 500-650 cm-1 region (tr2)
+    ! uc1      - H2o continuum pathlength in 500-800 cm-1
+    ! to3h2o   - H2o trnsmsn for overlap with o3
+    ! pi       - For co2 absorptivity computation
+    ! sqti     - Used to store sqrt of mean temperature
+    ! et       - Co2 hot band factor
+    ! et2      - Co2 hot band factor squared
+    ! et4      - Co2 hot band factor to fourth power
+    ! omet     - Co2 stimulated emission term
+    ! f1co2    - Co2 central band factor
+    ! f2co2    - Co2 weak band factor
+    ! f3co2    - Co2 weak band factor
+    ! t1co2    - Overlap factr weak bands on strong band
+    ! sqwp     - Sqrt of co2 pathlength
+    ! f1sqwp   - Main co2 band factor
+    ! oneme    - Co2 stimulated emission term
+    ! alphat   - Part of the co2 stimulated emission term
+    ! wco2     - Constants used to define co2 pathlength
+    ! posqt    - Effective pressure for co2 line width
+    ! u7       - Co2 hot band path length
+    ! u8       - Co2 hot band path length
+    ! u9       - Co2 hot band path length
+    ! u13      - Co2 hot band path length
+    ! rbeta7   - Inverse of co2 hot band line width par
+    ! rbeta8   - Inverse of co2 hot band line width par
+    ! rbeta9   - Inverse of co2 hot band line width par
+    ! rbeta13  - Inverse of co2 hot band line width par
+    ! tpatha   - For absorptivity computation
+    ! a        - Eq(2) in table A3a of R&D
+    ! abso     - Absorptivity for various gases/bands
+    ! dtp      - Path temp minus 300 K used in h2o rotation band absorptivity
+    ! dtx      - Planck temperature minus 250 K
+    ! dty      - Path temperature minus 250 K
+    ! dtz      - Planck temperature minus 300 K
+    ! term1    - Equation(5) in table A3a of R&D(1986)
+    ! term2    - Delta a(Te) in table A3a of R&D(1986)
+    ! term3    - DB/dT function for rotation and
+    ! term4    - Equation(6) in table A3a of R&D(1986)
+    ! term5    - Delta a(Tp) in table A3a of R&D(1986)
+    ! term6    - DB/dT function for window region
+    ! term7    - Kl_inf(i) in eq(8) of table A3a of R&D
+    ! term8    - Delta kl_inf(i) in eq(8)
+    ! term9    - DB/dT function for 500-800 cm-1 region
+    ! tr1      - Eqn(6) in table A2 of R&D for 650-800
+    ! tr10     - Eqn(6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
+    ! tr2      - Eqn(6) in table A2 of R&D for 500-650
+    ! tr5      - Eqn(4) in table A2 of R&D for 650-800
+    ! tr6      - Eqn(4) in table A2 of R&D for 500-650
+    ! tr9      - Equ(6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
+    ! uc       - Y + 0.002U in eq(8) of table A2 of R&D
+    ! sqrtu    - Sqrt of pressure weighted h20 pathlength
+    ! fwk      - Equation(33) in R&D far wing correction
+    ! fwku     - GU term in eqs(1) and (6) in table A2
+    ! r2st     - 1/(2*beta) in eq(10) in table A2
+    ! dtyp15   - DeltaTp in eqs(11) & (12) in table A3a
+    ! dtyp15sq - (DeltaTp)^2 in eqs(11) & (12) table A3a
+    ! to3co2   - P weighted temp in ozone band model
+    ! dpnm     - Pressure difference between two levels
+    ! pnmsq    - Pressure squared
+    ! dw       - Amount of h2o between two levels
+    ! uinpl    - Nearest layer subdivision factor
+    ! winpl    - Nearest layer subdivision factor
+    ! zinpl    - Nearest layer subdivision factor
+    ! pinpl    - Nearest layer subdivision factor
+    ! dplh2o   - Difference in press weighted h2o amount
+    ! ds2c     - Y in eq(7) in table A2 of R&D
+    ! a11      - A1 in table A3b for rotation band absorptivity
+    ! a31      - A3 in table A3b for rotation band absorptivity
+    ! a21      - First part in numerator of A2 in table A3b
+    ! a22      - Second part in numerator of A2 in table A3b
+    ! a23      - Denominator of A2 in table A3b (rotation band)
+    ! t1t4     - Eq(3) in table A3a of R&D
+    ! t2t5     - Eq(4) in table A3a of R&D
+    ! rsum     - Eq(1) in table A2 of R&D
+    ! a41      - Numerator in A2 in Vib-rot abstivity(table A3b)
+    ! a51      - Denominator in A2 in Vib-rot (table A3b)
+    ! a61      - A3 factor for Vib-rot band in table A3b
+    ! phi      - Eq(11) in table A3a of R&D
+    ! psi      - Eq(12) in table A3a of R&D
+    ! cf812    - Eq(11) in table A2 of R&D
+    ! ubar     - H2o scaled path see comment for eq(10) table A2
+    ! pbar     - H2o scaled pres see comment for eq(10) table A2
+    ! g4       - Arguement in exp() in eq(10) table A2
+    ! dplos    - Ozone pathlength eq(A2) in R&Di
+    ! dplol    - Presure weighted ozone pathlength
+    ! beta     - Local interface temperature
+    !            (includes Voigt line correction factor)
+    ! rphat    - Effective pressure for ozone beta
+    ! tcrfac   - Ozone temperature factor table 1 R&Di
+    ! tmp1     - Ozone band factor see eq(A1) in R&Di
+    ! u1       - Effective ozone pathlength eq(A2) in R&Di
+    ! realnu   - 1/beta factor in ozone band model eq(A1)
+    ! tmp2     - Ozone band factor see eq(A1) in R&Di
+    ! u2       - Effective ozone pathlength eq(A2) in R&Di
+    ! rsqti    - Reciprocal of sqrt of path temperature
+    ! tpath    - Path temperature used in co2 band model
+    ! tmp3     - Weak band factor see K&B
+    ! rdpnmsq  - Reciprocal of difference in press^2
+    ! rdpnm    - Reciprocal of difference in press
+    ! p1       - Mean pressure factor
+    ! p2       - Mean pressure factor
+    ! dtym10   - T - 260 used in eq(9) and (10) table A3a
+    ! dplco2   - Co2 pathlength
+    ! corfac   - Correction factors in table A3b
+    ! g2       - Part of arguement in eq(10) in table A2
+    ! te       - A_0 T factor in ozone model table 1 of R&Di
+    ! denom    - Denominator in eq(8) of table A3a of R&D
+    ! trab2    - Transmission terms for H2o  500 -  800 cm-1
+    ! trab4    - Transmission terms for H2o  800 - 1000 cm-1
+    ! trab6    - Transmission terms for H2o 1000 - 1200 cm-1
+    ! absbnd   - Proportional to co2 band absorptance
+    ! dbvtit   - Intrfc drvtv plnck fnctn for o3
+    ! dbvtly   - Level drvtv plnck fnctn for o3
+    !
+    integer(ik4) :: n
+    real(rkx) , dimension(2) :: r2st
+
+    integer(ik4) :: k , k1 , k2 , iband , kn , wvl
+    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,   &
+      absbnd , alphat , beta , cf812 , corfac , denom , dplco2 ,       &
+      dplol , dplos , ds2c , dtym10 , et , et2 , et4 , f1co2 , g2 ,    &
+      g4 , k21 , k22 , o3bndi , omet , oneme , p1 , p2 , pbar , phi ,  &
+      pi , posqt , psi , rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , &
+      realnu , rphat , rsqti , rsum , sqwp , t1t4 , t2t5 , tcrfac ,    &
+      te , tlocal , tmp1 , tmp2 , tmp3 , tpath , tr1 , tr2 , tr5 ,     &
+      tr6 , tr9 , tr10 , u1 , u13 , u2 , u8 , u9 , ubar , wco2 ,       &
+      dplh2o , dtp , dtz , sqti , dpnm , dtyp15 , dtyp15sq , f1sqwp ,  &
+      f2co2 , f3co2 , fwk , fwku , rbeta7 , sqrtu , t1co2 , to3h2o ,   &
+      tpatha , trab2 , trab4 , trab6 , u7 , uc1 , uc , ux , tco2 ,     &
+      to3 , dw , abstrc , th2o , pnew , dtx , dty , to3co2
+    real(rkx) :: duptyp , du1 , du2 , duch4 , dbetac , du01 , du11 ,   &
+      dbeta01 , dbeta11 , duco11 , duco12 , duco13 , duco21 , duco22 , &
+      duco23 , tpnm
+    real(rkx) , dimension(6) :: abso
+    real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
+                      term3 , term4 , term5 , zinpl , temh2o
+    real(rkx) , dimension(2) :: term7 , term8 , trline
+    real(rkx) , dimension(kzp1) :: dbvtit
+    real(rkx) , dimension(kzp1) :: term6
+    real(rkx) , dimension(kzp1) :: term9
+    real(rkx) , dimension(kzp1) :: pnmsq
+    real(rkx) , dimension(kz) :: dbvtly
+    real(rkx) , dimension(4) :: tbar , pinpl , uinpl , winpl
+    real(rkx) , dimension(nlwspi,4) :: bplnk
+    !
+    ! Initialize
+    !
+    r2st(1) = d_one/(d_two*st(1))
+    r2st(2) = d_one/(d_two*st(2))
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) local( &
+      k,k1,k2,iband,kn,wvl,a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat, &
+      beta,cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,et2,et4,    &
+      f1co2,g2,g4,k21,k22,o3bndi,omet,oneme,p1,p2,pbar,phi,pi,posqt,psi,    &
+      rbeta13,rbeta8,rbeta9,rdpnm,rdpnmsq,realnu,rphat,rsqti,rsum,sqwp,     &
+      t1t4,t2t5,tcrfac,te,tlocal,tmp1,tmp2,tmp3,tpath,tr1,tr2,tr5,tr6,tr9,  &
+      tr10,u1,u13,u2,u8,u9,ubar,wco2,dplh2o,dtp,dtz,sqti,dpnm,dtyp15,       &
+      dtyp15sq,f1sqwp,f2co2,f3co2,fwk,fwku,rbeta7,sqrtu,t1co2,to3h2o,tpatha,&
+      trab2,trab4,trab6,u7,uc1,uc,ux,tco2,to3,dw,abstrc,th2o,pnew,dtx,dty,  &
+      to3co2,duptyp,du1,du2,duch4,dbetac,du01,du11,dbeta01,dbeta11,duco11,  &
+      duco12,duco13,duco21,duco22,duco23,tpnm,abso,emm,o3emm,term1,term2,   &
+      term3,term4,term5,term7,term8,trline,zinpl,temh2o,dbvtit,term6,pnmsq, &
+      dbvtly,tbar,pinpl,uinpl,winpl,bplnk)
+#else
+    do n = n1 , n2
+#endif
+      dbvtit(kzp1) = dbvt(tint(kzp1,n))
+      do k = 1 , kz
+        dbvtly(k) = dbvt(tlayr(k+1,n))
+        dbvtit(k) = dbvt(tint(k,n))
+      end do
+      !
+      ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
+      !
+      ! Non-adjacent layer absorptivity:
+      !
+      ! abso(1)     0 -  800 cm-1   h2o rotation band
+      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+      ! abso(3)   800 - 1200 cm-1   h2o window
+      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+      ! abso(6)   co2 15  micrometer band system
+      !
+      do k = 1 , kzp1
+        pnmsq(k) = pnm(k,n)**2
+        dtx = tplnka(k,n) - 250.0_rkx
+        term6(k) = coeff(1,2) + coeff(2,2)*dtx *    &
+                   (d_one+c9*dtx*(d_one+c11*dtx *   &
+                   (d_one+c13*dtx*(d_one+c15*dtx))))
+        term9(k) = coefi(1,2) + coefi(2,2)*dtx *       &
+                    (d_one+c19*dtx*(d_one+c21*dtx *    &
+                    (d_one+c23*dtx*(d_one+c25*dtx))))
+      end do
+      !
+      ! Non-nearest layer level loops
+      !
+      do k1 = kzp1 , 1 , -1
+        do k2 = kzp1 , 1 , -1
+          if ( k1 /= k2 ) then
+            dplh2o = plh2o(k1,n) - plh2o(k2,n)
+            ux = abs(dplh2o)
+            sqrtu = sqrt(ux)
+            ds2c = abs(s2c(k1,n)-s2c(k2,n))
+            dw = abs(wh2op(k1,n)-wh2op(k2,n))
+            uc1 = (ds2c+1.7e-3_rkx*ux) * &
+                 (d_one+d_two*ds2c)/(d_one+15.0_rkx*ds2c)
+            uc = ds2c + 2.0e-3_rkx*ux
+            pnew = ux/dw
+            tpatha = (s2t(k1,n)-s2t(k2,n))/dplh2o
+            dtx = tplnka(k2,n) - 250.0_rkx
+            dty = tpatha - 250.0_rkx
+            dtyp15 = dty + 15.0_rkx
+            dtyp15sq = dtyp15**2
+            dtz = dtx - 50.0_rkx
+            dtp = dty - 50.0_rkx
+            do iband = 2 , 4 , 2
+              term1(iband) = coefe(1,iband) + &
+                         coefe(2,iband)*dtx*(d_one+c1(iband)*dtx)
+              term2(iband) = coefb(1,iband) + &
+                         coefb(2,iband)*dtx*(d_one+c2(iband)*dtx * &
+                         (d_one+c3(iband)*dtx))
+              term3(iband) = coefd(1,iband) + &
+                         coefd(2,iband)*dtx*(d_one+c4(iband)*dtx * &
+                         (d_one+c5(iband)*dtx))
+              term4(iband) = coefa(1,iband) + &
+                         coefa(2,iband)*dty*(d_one+c6(iband)*dty)
+              term5(iband) = coefc(1,iband) + &
+                         coefc(2,iband)*dty*(d_one+c7(iband)*dty)
+            end do
+            !
+            ! abso(1)     0 -  800 cm-1   h2o rotation band
+            !
+            a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
+            a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
+            a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
+            a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
+            a23 = 1.00_rkx + 3.600_rkx*sqrtu
+            corfac = a31*(a11+((d_two*a21*a22)/a23))
+            t1t4 = term1(2)*term4(2)
+            t2t5 = term2(2)*term5(2)
+            a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+            fwk = fwcoef + fwc1/(d_one+fwc2*ux)
+            fwku = fwk*ux
+            rsum = exp(-a*(sqrtu+fwku))
+            abso(1) = (d_one-rsum)*term3(2)
+            ! trab1(n)  = rsum
+            !
+            ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+            !
+            a41 = 1.75_rkx - 3.960e-3_rkx*dtz
+            a51 = 1.00_rkx + 1.3_rkx*sqrtu
+            a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
+            corfac = 0.29_rkx*(d_one+a41/a51)*a61
+            t1t4 = term1(4)*term4(4)
+            t2t5 = term2(4)*term5(4)
+            a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+            rsum = exp(-a*(sqrtu+fwku))
+            abso(2) = (d_one-rsum)*term3(4)
+            ! trab7(n)  = rsum
+            !
+            ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+            !
+            do k = 1 , 2
+              phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
+              psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
+              ubar = dw*phi*1.66_rkx*r80257
+              pbar = pnew*(psi/phi)
+              cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
+              g2 = d_one + ubar*d_four*st(k)*cf812/pbar
+              g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
+              trline(k) = exp(-g4)
+            end do
+            term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
+            term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
+            term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
+            term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
+            !
+            ! abso(3)   800 - 1200 cm-1   h2o window
+            ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+            k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty-d_10)* &
+                  (dty-d_10))*sqrtu)
+            k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty-d_10))*sqrtu)
+            tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
+            tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
+            tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
+            tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
+            tr9 = tr1*tr5
+            tr10 = tr2*tr6
+            th2o = tr10
+            trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
+            trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
+            trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
+            abso(3) = term6(k2)*(d_one-trab4*d_half*trline(2)- &
+                      trab6*d_half*trline(1))
+            abso(4) = term9(k2)*d_half*(tr1-tr9+tr2-tr10)
+            if ( k2 < k1 ) then
+              to3h2o = h2otr(k1,n)/h2otr(k2,n)
+            else
+              to3h2o = h2otr(k2,n)/h2otr(k1,n)
+            end if
+            !
+            ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+            !
+            dpnm = pnm(k1,n) - pnm(k2,n)
+            to3co2 = (pnm(k1,n)*co2t(k1,n)-pnm(k2,n)*co2t(k2,n))/dpnm
+            te = (to3co2*r293)**0.7_rkx
+            dplos = plos(k1,n) - plos(k2,n)
+            dplol = plol(k1,n) - plol(k2,n)
+            u1 = 18.29_rkx*abs(dplos)/te
+            u2 = 0.5649_rkx*abs(dplos)/te
+            rphat = dplol/dplos
+            tlocal = tint(k2,n)
+            tcrfac = sqrt(tlocal*r250)*te
+            beta = r3205*(rphat+dpfo3*tcrfac)
+            realnu = te/beta
+            tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
+            tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
+            o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
+            abso(5) = o3bndi*to3h2o*dbvtit(k2)
+            to3 = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
+            ! trab5(n)  = d_one-(o3bndi/(1060-980.))
+            !
+            ! abso(6)      co2 15  micrometer band system
+            !
+            sqwp = sqrt(abs(plco2(k1,n)-plco2(k2,n)))
+            et = exp(-480.0_rkx/to3co2)
+            sqti = sqrt(to3co2)
+            rsqti = d_one/sqti
+            et2 = et*et
+            et4 = et2*et2
+            omet = d_one - 1.5_rkx*et2
+            f1co2 = 899.70_rkx*omet*rsqti* &
+              (d_one+1.94774_rkx*et+4.73486_rkx*et2)
+            f1sqwp = f1co2*sqwp
+            t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
+            oneme = d_one - et2
+            alphat = oneme**3*rsqti
+            pi = abs(dpnm)
+            wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
+            u7 = 4.9411e4_rkx*alphat*et2*wco2
+            u8 = 3.9744e4_rkx*alphat*et4*wco2
+            u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
+            u13 = 2.8388e3_rkx*alphat*et4*wco2
+            tpath = to3co2
+            tlocal = tint(k2,n)
+            tcrfac = sqrt(tlocal*r250*tpath*r300)
+            posqt = ((pnm(k2,n)+pnm(k1,n))*r2sslp+dpfco2*tcrfac)*rsqti
+            rbeta7 = d_one/(5.3228_rkx*posqt)
+            rbeta8 = d_one/(10.6576_rkx*posqt)
+            rbeta9 = rbeta7
+            rbeta13 = rbeta9
+            f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
+                    (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
+                    (u9/sqrt(d_four+u9*(d_one+rbeta9)))
+            f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
+            if ( k2 >= k1 ) then
+              sqti = sqrt(tlayr(k2,n))
+            end if
+
+            tmp1 = log(d_one+f1sqwp)
+            tmp2 = log(d_one+f2co2)
+            tmp3 = log(d_one+f3co2)
+            absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
+            abso(6) = trab2*co2em(k2,n)*absbnd
+            tco2 = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
+            ! trab3(n)  = 1. - bndfct*absbnd
+            !
+            ! Calculate absorptivity due to trace gases
+            !
+            tpnm    = abs(pnm(k1,n)+pnm(k2,n))
+            duptyp  = abs(uptype(k1,n)-uptype(k2,n))
+            du1     = abs(ucfc11(k1,n)-ucfc11(k2,n))
+            du2     = abs(ucfc12(k1,n)-ucfc12(k2,n))
+            duch4   = abs(uch4(k1,n)-uch4(k2,n))
+            dbetac  = abs(bch4(k1,n)-bch4(k2,n))/duch4
+            du01    = abs(un2o0(k1,n)-un2o0(k2,n))
+            du11    = abs(un2o1(k1,n)-un2o1(k2,n))
+            dbeta01 = abs(bn2o0(k1,n)-bn2o0(k2,n))/du01
+            dbeta11 = abs(bn2o1(k1,n)-bn2o1(k2,n))/du11
+            duco11  = abs(uco211(k1,n)-uco211(k2,n))
+            duco12  = abs(uco212(k1,n)-uco212(k2,n))
+            duco13  = abs(uco213(k1,n)-uco213(k2,n))
+            duco21  = abs(uco221(k1,n)-uco221(k2,n))
+            duco22  = abs(uco222(k1,n)-uco222(k2,n))
+            duco23  = abs(uco223(k1,n)-uco223(k2,n))
+            abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
+                           du01,du11,dbeta01,dbeta11,duco11,duco12, &
+                           duco13,duco21,duco22,duco23,dw,pnew,     &
+                           to3co2,ux,tco2,th2o,to3,abplnk1(:,k2,n))
+            !
+            ! Sum total absorptivity
+            !
+            absgastot(k1,k2,n) = abso(1) + abso(2) + abso(3) + &
+                                 abso(4) + abso(5) + abso(6) + abstrc
+          end if
+        end do
+      end do  ! End of non-nearest layer level loops
+      !
+      ! Non-adjacent layer absorptivity:
+      !
+      ! abso(1)     0 -  800 cm-1   h2o rotation band
+      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+      ! abso(3)   800 - 1200 cm-1   h2o window
+      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+      ! abso(6)   co2 15  micrometer band system
+      !
+      ! Nearest layer level loop
+      !
+      do k2 = kz , 1 , -1
+        tbar(1) = (tint(k2+1,n)+tlayr(k2+1,n))*d_half
+        tbar(2) = (tlayr(k2+1,n)+tint(k2,n))*d_half
+        tbar(3) = (tbar(2)+tbar(1))*d_half
+        tbar(4) = tbar(3)
+        emm(1) = (co2em(k2+1,n)+co2eml(k2,n))*d_half
+        emm(2) = (co2em(k2,n)+co2eml(k2,n))*d_half
+        emm(3) = emm(1)
+        emm(4) = emm(2)
+        o3emm(1) = (dbvtit(k2+1)+dbvtly(k2))*d_half
+        o3emm(2) = (dbvtit(k2)+dbvtly(k2))*d_half
+        o3emm(3) = o3emm(1)
+        o3emm(4) = o3emm(2)
+        temh2o(1) = tbar(1)
+        temh2o(2) = tbar(2)
+        temh2o(3) = tbar(1)
+        temh2o(4) = tbar(2)
+        dpnm = pnm(k2+1,n) - pnm(k2,n)
+        !
+        ! Weighted Planck functions for trace gases
+        !
+        do wvl = 1 , nlwspi
+          bplnk(wvl,1) = (abplnk1(wvl,k2+1,n)+abplnk2(wvl,k2,n))*d_half
+          bplnk(wvl,2) = (abplnk1(wvl,k2,  n)+abplnk2(wvl,k2,n))*d_half
+          bplnk(wvl,3) = bplnk(wvl,1)
+          bplnk(wvl,4) = bplnk(wvl,2)
+        end do
+        rdpnmsq = d_one/(pnmsq(k2+1)-pnmsq(k2))
+        rdpnm = d_one/dpnm
+        p1 = (pbr(k2,n)+pnm(k2+1,n))*d_half
+        p2 = (pbr(k2,n)+pnm(k2,n))*d_half
+        uinpl(1) = (pnmsq(k2+1)-p1**2)*rdpnmsq
+        uinpl(2) = -(pnmsq(k2)-p2**2)*rdpnmsq
+        uinpl(3) = -(pnmsq(k2)-p1**2)*rdpnmsq
+        uinpl(4) = (pnmsq(k2+1)-p2**2)*rdpnmsq
+        winpl(1) = ((pnm(k2+1,n)-pbr(k2,n))*d_half)*rdpnm
+        winpl(2) = ((-pnm(k2,n)+pbr(k2,n))*d_half)*rdpnm
+        winpl(3) = ((pnm(k2+1,n)+pbr(k2,n))*d_half-pnm(k2,n))*rdpnm
+        winpl(4) = ((-pnm(k2,n)-pbr(k2,n))*d_half+pnm(k2+1,n))*rdpnm
+        tmp1 = d_one/(piln(k2+1,n)-piln(k2,n))
+        tmp2 = piln(k2+1,n) - pmln(k2,n)
+        tmp3 = piln(k2,n)   - pmln(k2,n)
+        zinpl(1) = (tmp2*d_half)*tmp1
+        zinpl(2) = (-tmp3*d_half)*tmp1
+        zinpl(3) = (tmp2*d_half-tmp3)*tmp1
+        zinpl(4) = (tmp2-tmp3*d_half)*tmp1
+        pinpl(1) = (p1+pnm(k2+1,n))*d_half
+        pinpl(2) = (p2+pnm(k2,n))*d_half
+        pinpl(3) = (p1+pnm(k2,n))*d_half
+        pinpl(4) = (p2+pnm(k2+1,n))*d_half
+        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
+        if ( linteract  ) then
+          do kn = 1 , 4
+            xuinpl(k2,kn,n) = uinpl(kn)
+          end do
+        end if
+        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
+        do kn = 1 , 4
+          ux = abs(uinpl(kn)*(plh2o(k2,n)-plh2o(k2+1,n)))
+          sqrtu = sqrt(ux)
+          dw = abs(wh2op(k2,n)-wh2op(k2+1,n))
+          pnew = ux/(winpl(kn)*dw)
+          ds2c = abs(s2c(k2,n)-s2c(k2+1,n))
+          uc1 = uinpl(kn)*ds2c
+          uc1 = (uc1+1.7e-3_rkx*ux)*(d_one+d_two*uc1)/&
+                (d_one+15.0_rkx*uc1)
+          uc = uinpl(kn)*ds2c + 2.0e-3_rkx*ux
+          dtx = temh2o(kn) - 250.0_rkx
+          dty = tbar(kn) - 250.0_rkx
+          dtyp15 = dty + 15.0_rkx
+          dtyp15sq = dtyp15**2
+          dtz = dtx - 50.0_rkx
+          dtp = dty - 50.0_rkx
+          do iband = 2 , 4 , 2
+            term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx * &
+                           (d_one+c1(iband)*dtx)
+            term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx * &
+                           (d_one+c2(iband)*dtx                * &
+                           (d_one+c3(iband)*dtx))
+            term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx * &
+                           (d_one+c4(iband)*dtx                * &
+                           (d_one+c5(iband)*dtx))
+            term4(iband) = coefa(1,iband) + coefa(2,iband)*dty * &
+                           (d_one+c6(iband)*dty)
+            term5(iband) = coefc(1,iband) + coefc(2,iband)*dty * &
+                           (d_one+c7(iband)*dty)
+          end do
+          !
+          ! abso(1)     0 -  800 cm-1   h2o rotation band
+          !
+          a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
+          a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
+          a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
+          a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
+          a23 = 1.00_rkx + 3.600_rkx*sqrtu
+          corfac = a31*(a11+((d_two*a21*a22)/a23))
+          t1t4 = term1(2)*term4(2)
+          t2t5 = term2(2)*term5(2)
+          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+          fwk = fwcoef + fwc1/(d_one+fwc2*ux)
+          fwku = fwk*ux
+          rsum = exp(-a*(sqrtu+fwku))
+          abso(1) = (d_one-rsum)*term3(2)
+          ! trab1(n) = rsum
+          !
+          ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+          !
+          a41 = 1.75_rkx - 3.960e-3_rkx*dtz
+          a51 = 1.00_rkx + 1.3_rkx*sqrtu
+          a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
+          corfac = 0.29_rkx*(d_one+a41/a51)*a61
+          t1t4 = term1(4)*term4(4)
+          t2t5 = term2(4)*term5(4)
+          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
+          rsum = exp(-a*(sqrtu+fwku))
+          abso(2) = (d_one-rsum)*term3(4)
+          ! trab7(n) = rsum
+          !
+          ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+          !
+          do k = 1 , 2
+            phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
+            psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
+            ubar = dw*phi*winpl(kn)*1.66_rkx*r80257
+            pbar = pnew*(psi/phi)
+            cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
+            g2 = d_one + ubar*d_four*st(k)*cf812/pbar
+            g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
+            trline(k) = exp(-g4)
+          end do
+          term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
+          term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
+          term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
+          term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
+          !
+          ! abso(3)   800 - 1200 cm-1   h2o window
+          ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+          !
+          dtym10 = dty - d_10
+          denom = d_one + (c30+c31*dtym10*dtym10)*sqrtu
+          k21 = term7(1) + term8(1)/denom
+          denom = d_one + (c28+c29*dtym10)*sqrtu
+          k22 = term7(2) + term8(2)/denom
+          term9(2) = coefi(1,2) + coefi(2,2)*dtx *     &
+                     (d_one+c19*dtx*(d_one+c21*dtx *   &
+                     (d_one+c23*dtx*(d_one+c25*dtx))))
+          tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
+          tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
+          tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
+          tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
+          tr9 = tr1*tr5
+          tr10 = tr2*tr6
+          trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
+          th2o = tr10
+          trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
+          trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
+          term6(2) = coeff(1,2) + coeff(2,2)*dtx *  &
+                       (d_one+c9*dtx*(d_one+c11*dtx * &
+                       (d_one+c13*dtx*(d_one+c15*dtx))))
+          abso(3) = term6(2)*(d_one-trab4*d_half*trline(2) - &
+                                    trab6*d_half*trline(1))
+          abso(4) = term9(2)*d_half*(tr1-tr9+tr2-tr10)
+          !
+          ! abso(5)  o3  9.6 micrometer (nu3 and nu1 bands)
+          !
+          te = (tbar(kn)*r293)**0.7_rkx
+          dplos = abs(plos(k2+1,n)-plos(k2,n))
+          u1 = zinpl(kn)*18.29_rkx*dplos/te
+          u2 = zinpl(kn)*0.5649_rkx*dplos/te
+          tlocal = tbar(kn)
+          tcrfac = sqrt(tlocal*r250)*te
+          beta = r3205*(pinpl(kn)*rsslp+dpfo3*tcrfac)
+          realnu = te/beta
+          tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
+          tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
+          o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
+          abso(5) = o3bndi*o3emm(kn)*(h2otr(k2+1,n)/h2otr(k2,n))
+          to3 = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
+          ! trab5(n) = d_one-(o3bndi/(1060-980.))
+          !
+          ! abso(6)   co2 15  micrometer band system
+          !
+          dplco2 = plco2(k2+1,n) - plco2(k2,n)
+          sqwp = sqrt(uinpl(kn)*dplco2)
+          et = exp(-480.0_rkx/tbar(kn))
+          sqti = sqrt(tbar(kn))
+          rsqti = d_one/sqti
+          et2 = et*et
+          et4 = et2*et2
+          omet = (d_one-1.5_rkx*et2)
+          f1co2 = 899.70_rkx*omet*rsqti*(d_one+1.94774_rkx*et+4.73486_rkx*et2)
+          f1sqwp = f1co2*sqwp
+          t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
+          oneme = d_one - et2
+          alphat = oneme**3*rsqti
+          pi = abs(dpnm)*winpl(kn)
+          wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
+          u7 = 4.9411e4_rkx*alphat*et2*wco2
+          u8 = 3.9744e4_rkx*alphat*et4*wco2
+          u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
+          u13 = 2.8388e3_rkx*alphat*et4*wco2
+          tpath = tbar(kn)
+          tlocal = tbar(kn)
+          tcrfac = sqrt((tlocal*r250)*(tpath*r300))
+          posqt = (pinpl(kn)*rsslp+dpfco2*tcrfac)*rsqti
+          rbeta7 = d_one/(5.3228_rkx*posqt)
+          rbeta8 = d_one/(10.6576_rkx*posqt)
+          rbeta9 = rbeta7
+          rbeta13 = rbeta9
+          f2co2 = u7/sqrt(d_four+u7*(d_one+rbeta7)) + &
+                  u8/sqrt(d_four+u8*(d_one+rbeta8)) + &
+                  u9/sqrt(d_four+u9*(d_one+rbeta9))
+          f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
+          tmp1 = log(d_one+f1sqwp)
+          tmp2 = log(d_one+f2co2)
+          tmp3 = log(d_one+f3co2)
+          absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
+          abso(6) = trab2*emm(kn)*absbnd
+          tco2 = d_one/(d_one+d_10*u7/sqrt(d_four+u7*(d_one+rbeta7)))
+          ! trab3(n) = 1. - bndfct*absbnd
+          !
+          ! Calculate trace gas absorptivity for nearest layer
+          !
+          ds2c   = abs(s2c(k2+1,n)-s2c(k2,n))*uinpl(kn)
+          duptyp = abs(uptype(k2+1,n)-uptype(k2,n))*uinpl(kn)
+          du1    = abs(ucfc11(k2+1,n)-ucfc11(k2,n))*winpl(kn)
+          du2    = abs(ucfc12(k2+1,n)-ucfc12(k2,n))*winpl(kn)
+          duch4  = abs(uch4(k2+1,n)-uch4(k2,n))*winpl(kn)
+          du01   = abs(un2o0(k2+1,n)-un2o0(k2,n))*winpl(kn)
+          du11   = abs(un2o1(k2+1,n)-un2o1(k2,n))*winpl(kn)
+          duco11 = abs(uco211(k2+1,n)-uco211(k2,n))*winpl(kn)
+          duco12 = abs(uco212(k2+1,n)-uco212(k2,n))*winpl(kn)
+          duco13 = abs(uco213(k2+1,n)-uco213(k2,n))*winpl(kn)
+          duco21 = abs(uco221(k2+1,n)-uco221(k2,n))*winpl(kn)
+          duco22 = abs(uco222(k2+1,n)-uco222(k2,n))*winpl(kn)
+          duco23 = abs(uco223(k2+1,n)-uco223(k2,n))*winpl(kn)
+          abstrc = trcabn(tbar(kn),dw,pnew,tco2,th2o,to3,ux,pinpl(kn),   &
+                          winpl(kn),ds2c,duptyp,du1,du2,duch4,du01,du11, &
+                          duco11,duco12,duco13,duco21,duco22,duco23,     &
+                          bplnk(:,kn))
+          !
+          ! Total next layer absorptivity:
+          !
+          absgasnxt(k2,kn,n) = abso(1) + abso(2) + abso(3) + &
+                               abso(4) + abso(5) + abso(6) + abstrc
+        end do
+      end do  !  end of nearest layer level loop
+    end do
+  end subroutine radabs
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Compute emissivity for H2O, CO2, O3, CH4, N2O, CFC11 and CFC12
+  !
+  ! H2O  ....  Uses nonisothermal emissivity for water vapor from
+  !            Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
+  !            Emissivity and Absorptivity Formulation for Water Vapor
+  !            Jouranl of Geophysical Research, vol. 91., D8, pp 8649-8666
+  !
+  !
+  ! CO2  ....  Uses absorptance parameterization of the 15 micro-meter
+  !            (500 - 800 cm-1) band system of Carbon Dioxide, from
+  !            Kiehl, J.T. and B.P.Briegleb, 1991: A New Parameterization
+  !            of the Absorptance Due to the 15 micro-meter Band System
+  !            of Carbon Dioxide Jouranl of Geophysical Research,
+  !            vol. 96., D5, pp 9013-9019
+  !
+  ! O3   ....  Uses absorptance parameterization of the 9.6 micro-meter
+  !            band system of ozone, from Ramanathan, V. and R. Dickinson,
+  !            1979: The Role of stratospheric ozone in the zonal and
+  !            seasonal radiative energy balance of the earth-troposphere
+  !            system. Journal of the Atmospheric Sciences, Vol. 36,
+  !            pp 1084-1104
+  !
+  ! CH4  ....  Uses a broad band model for the 7.7 micron band of methane.
+  !
+  ! N20  ....  Uses a broad band model for the 7.8, 8.6 and 17.0 micron
+  !            bands of nitrous oxide
+  !
+  ! CFC11 ...  Uses a quasi-linear model for the 9.2, 10.7, 11.8 and 12.5
+  !            micron bands of CFC11
+  !
+  ! CFC12 ...  Uses a quasi-linear model for the 8.6, 9.1, 10.8 and 11.2
+  !            micron bands of CFC12
+  !
+  ! Computes individual emissivities, accounting for band overlap, and
+  ! sums to obtain the total.
+  !
+  ! Input arguments
+  !
+  !   s2c     - H2o continuum path length
+  !   s2t     - Tmp and prs wghted h2o path length
+  !   w       - H2o path length
+  !   tplnke  - Layer planck temperature
+  !   plh2o   - H2o prs wghted path length
+  !   pnm     - Model interface pressure (dynes/cm*2)
+  !   plco2   - Prs wghted path of co2
+  !   tint    - Model interface temperatures
+  !   tint4   - Tint to the 4th power
+  !   tlayr   - K-1 model layer temperature
+  !   tlayr4  - Tlayr to the 4th power
+  !   plol    - Pressure wghtd ozone path
+  !   plos    - Ozone path
+  !   ucfc11  - CFC11 path length
+  !   ucfc12  - CFC12 path length
+  !   un2o0   - N2O path length
+  !   un2o1   - N2O path length (hot band)
+  !   uch4    - CH4 path length
+  !   uco211  - CO2 9.4 micron band path length
+  !   uco212  - CO2 9.4 micron band path length
+  !   uco213  - CO2 9.4 micron band path length
+  !   uco221  - CO2 10.4 micron band path length
+  !   uco222  - CO2 10.4 micron band path length
+  !   uco223  - CO2 10.4 micron band path length
+  !   bn2o0   - pressure factor for n2o
+  !   bn2o1   - pressure factor for n2o
+  !   bch4    - pressure factor for ch4
+  !   uptype  - p-type continuum path length
+  !
+  ! Output arguments
+  !
+  !   co2em   - Layer co2 normalzd plnck funct drvtv
+  !   co2eml  - Intrfc co2 normalzd plnck func drvtv
+  !   co2t    - Tmp and prs weighted path length
+  !   h2otr   - H2o transmission over o3 band
+  !   emplnk  - emissivity Planck factor
+  !   emstrc  - total trace gas emissivity
+  !
+  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,  &
+                    plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,&
+                    uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,   &
+                    uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,   &
+                    emsgastot)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tint4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tlayr , tlayr4
+    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke , co2vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: wh2op , s2c , s2t
+    real(rkx) , dimension(nlwspi,n1:n2) , intent(in) :: emplnk
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: co2t , co2em , co2eml
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: h2otr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: emsgastot
+    !
+    ! iband   - H2o band index
+    !
+    ! Local variables for H2O:
+    !
+    ! h2oems  - H2o emissivity
+    ! tpathe  - Used to compute h2o emissivity
+    ! a       - Eq(2) in table A3a of R&D
+    ! corfac  - Correction factors in table A3b rotation band absorptivity
+    ! dtp     - Path temperature minus 300 K used in
+    ! dtx     - Planck temperature minus 250 K
+    ! dty     - Path temperature minus 250 K
+    ! dtz     - Planck temperature minus 300 K
+    ! emis    - Total emissivity (h2o+co2+o3)
+    ! rsum    - Eq(1) in table A2 of R&D
+    ! term1   - Equation(5) in table A3a of R&D(1986)
+    ! term2   - Delta a(Te) in table A3a of R&D(1986)
+    ! term3   - B(T) function for rotation and vibration-rotation band emiss.
+    ! term4   - Equation(6) in table A3a of R&D(1986)
+    ! term5   - Delta a(Tp) in table A3a of R&D(1986)
+    ! term6   - B(T) function for window region
+    ! term7   - Kl_inf(i) in eq(8) of table A3a of R&D
+    ! term8   - Delta kl_inf(i) in eq(8)
+    ! term9   - B(T) function for 500-800 cm-1 region
+    ! tr1     - Equation(6) in table A2 for 650-800
+    ! tr2     - Equation(6) in table A2 for 500-650
+    ! tr3     - Equation(4) in table A2 for 650-800
+    ! tr4     - Equation(4),table A2 of R&D for 500-650
+    ! tr7     - Equ. (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
+    ! tr8     - Equ. (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
+    ! uc      - Y + 0.002U in eq(8) of table A2 of R&D
+    ! pnew    - Effective pressure for h2o linewidth
+    ! trline  - Transmission due to H2O lines in window
+    ! k21     - Exponential coefficient used to calc rot band transmissivity
+    !           in the 650-800 cm-1 region (tr1)
+    ! k22     - Exponential coefficient used to calc rot band transmissivity
+    !           in the 500-650 cm-1 region (tr2)
+    ! u       - Pressure weighted H2O path length
+    ! uc1     - H2o continuum pathlength 500-800 cm-1
+    ! a11     - A1 in table A3b for rotation band emiss
+    ! a31     - A3 in table A3b for rotation band emiss
+    ! a21     - First part in numerator of A2 table A3b
+    ! a22     - Second part in numertor of A2 table A3b
+    ! a23     - Denominator of A2 table A3b (rot band)
+    ! t1t4    - Eq(3) in table A3a of R&D
+    ! t2t5    - Eq(4) in table A3a of R&D
+    ! fwk     - Equation(33) in R&D far wing correction
+    ! a41     - Numerator in A2 in Vib-rot (table A3b)
+    ! a51     - Denominator in A2 in Vib-rot(table A3b)
+    ! a61     - A3 factor for Vib-rot band in table A3b
+    ! phi     - Eq(11) in table A3a of R&D
+    ! psi     - Eq(12) in table A3a of R&D
+    ! ubar    - H2o scaled path comment eq(10) table A2
+    ! g1      - Part of eq(10) table A2
+    ! pbar    - H2o scaled pres comment eq(10) table A2
+    ! g3      - Part of eq(10) table A2
+    ! g2      - Part of arguement in eq(10) in table A2
+    ! g4      - Arguement in exp() in eq(10) table A2
+    ! cf812   - Eq(11) in table A2 of R&D
+    ! troco2  - H2o overlap factor for co2 absorption
+    !
+    ! Local variables for CO2:
+    !
+    ! co2ems  - Co2 emissivity
+    ! co2plk  - Used to compute co2 emissivity
+    ! xsum    - Used to calculate path temperature
+    ! t1i     - Co2 hot band temperature factor
+    ! sqti    - Sqrt of temperature
+    ! pi      - Pressure used in co2 mean line width
+    ! et      - Co2 hot band factor
+    ! et2     - Co2 hot band factor
+    ! et4     - Co2 hot band factor
+    ! omet    - Co2 stimulated emission term
+    ! ex      - Part of co2 planck function
+    ! f1co2   - Co2 weak band factor
+    ! f2co2   - Co2 weak band factor
+    ! f3co2   - Co2 weak band factor
+    ! t1co2   - Overlap factor weak bands strong band
+    ! sqwp    - Sqrt of co2 pathlength
+    ! f1sqwp  - Main co2 band factor
+    ! oneme   - Co2 stimulated emission term
+    ! alphat  - Part of the co2 stimulated emiss term
+    ! wco2    - Consts used to define co2 pathlength
+    ! posqt   - Effective pressure for co2 line width
+    ! rbeta7  - Inverse of co2 hot band line width par
+    ! rbeta8  - Inverse of co2 hot band line width par
+    ! rbeta9  - Inverse of co2 hot band line width par
+    ! rbeta13 - Inverse of co2 hot band line width par
+    ! tpath   - Path temp used in co2 band model
+    ! tmp1    - Co2 band factor
+    ! tmp2    - Co2 band factor
+    ! tmp3    - Co2 band factor
+    ! tlayr5  - Temperature factor in co2 Planck func
+    ! rsqti   - Reciprocal of sqrt of temperature
+    ! exm1sq  - Part of co2 Planck function
+    ! u7      - Absorber amount for various co2 band systems
+    ! u8      - Absorber amount for various co2 band systems
+    ! u9      - Absorber amount for various co2 band systems
+    ! u13     - Absorber amount for various co2 band systems
+    !
+    ! Local variables for O3:
+    !
+    ! o3ems   - Ozone emissivity
+    ! dbvtt   - Tmp drvtv of planck fctn for tplnke
+    ! te      - Temperature factor
+    ! u1      - Path length factor
+    ! u2      - Path length factor
+    ! phat    - Effecitive path length pressure
+    ! tlocal  - Local planck function temperature
+    ! tcrfac  - Scaled temperature factor
+    ! beta    - Absorption funct factor voigt effect
+    ! realnu  - Absorption function factor
+    ! o3bndi  - Band absorption factor
+    !
+    ! Transmission terms for various spectral intervals:
+    !
+    ! trem4   - H2o   800 - 1000 cm-1
+    ! trem6   - H2o  1000 - 1200 cm-1
+    ! absbnd  - Proportional to co2 band absorptance
+    ! tco2    - co2 overlap factor
+    ! th2o    - h2o overlap factor
+    ! to3     - o3 overlap factor
+    !
+    integer(ik4) :: n
+    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,  &
+                 absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
+                 exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
+                 g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
+                 phi , pi , posqt , psi , k21 , k22 , trem4 , trem6 ,   &
+                 rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
+                 sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 , tpathe ,     &
+                 tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
+                 tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
+                 tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
+                 dtp , dtz , pnew , rsum , uc , uc1 , ux , troco2 ,     &
+                 tco2 , to3 , th2o , emstrc , h2oems , co2ems , o3ems , &
+                 xsum , dtx , dty , co2plk
+    real(rkx) , dimension(4) :: term1 , term2 , term3 , term4 , term5
+    real(rkx) , dimension(4) :: emis
+    real(rkx) :: term6 , term9
+    real(rkx) , dimension(2) :: term7 , term8 , trline
+    integer(ik4) :: k , kk , iband , l
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) local(k,kk,iband,l,term6,term9,emis,   &
+      a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat,beta,cf812,et,   &
+      et2,et4,ex,exm1sq,f1co2,f1sqwp,f2co2,f3co2,fwk,g1,g2,g3,g4,omet, &
+      o3bndi,oneme,pbar,phat,phi,pi,posqt,psi,k21,k22,trem4,trem6,     &
+      rbeta13,rbeta7,rbeta8,rbeta9,realnu,rsqti,sqti,sqwp,t1co2,t1i,   &
+      t1t4,t2t5,tpathe,tcrfac,te,tlayr5,tlocal,tmp1,tmp2,tmp3,tpath,   &
+      u1,u13,u2,u7,u8,u9,ubar,wco2,tr1,tr2,tr3,tr4,tr7,tr8,corfac,     &
+      dbvtt,dtp,dtz,pnew,rsum,uc,uc1,troco2,term1,term2,term3,term4,   &
+      term5,term7,term8,trline,ux,tco2,th2o,to3,emstrc,h2oems,co2ems,  &
+      o3ems,xsum,dtx,dty,co2plk)
+#else
+    do n = n1 , n2
+#endif
+
+      ex = exp(960.0_rkx/tplnke(n))
+      co2plk = 5.0e8_rkx/((tplnke(n)**4)*(ex-d_one))
+      co2t(1,n) = tplnke(n)
+      xsum = co2t(1,n)*pnm(1,n)
+      kk = 1
+      do k = kzp1 , 2 , -1
+        kk = kk + 1
+        xsum = xsum + tlayr(kk,n)*(pnm(kk,n)-pnm(kk-1,n))
+        ex = exp(960.0_rkx/tlayr(kk,n))
+        tlayr5 = tlayr(kk,n)*tlayr4(kk,n)
+        co2eml(kk-1,n) = 1.2e11_rkx*ex/(tlayr5*(ex-d_one)**2)
+        co2t(kk,n) = xsum/pnm(kk,n)
+      end do
+      !
+      ! bndfct = 2.d0*22.18/(sqrt(196.d0)*300.)
+      ! Interface loop
+      !
+      do k = 1 , kzp1
+        !
+        ! H2O emissivity
+        !
+        ! emis(1)     0 -  800 cm-1   rotation band
+        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+        ! emis(3)   800 - 1200 cm-1   window
+        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
+        !
+        ! For the p type continuum
+        !
+        ux = plh2o(k,n)
+        uc = s2c(k,n) + 2.0e-3_rkx*ux
+        pnew = ux/wh2op(k,n)
+        !
+        ! Apply scaling factor for 500-800 continuum
+        !
+        uc1 = (s2c(k,n)+1.7e-3_rkx*plh2o(k,n)) * &
+              (d_one+d_two*s2c(k,n))/(d_one+15.0_rkx*s2c(k,n))
+        tpathe = s2t(k,n)/plh2o(k,n)
+        dtx = tplnke(n) - 250.0_rkx
+        dty = tpathe - 250.0_rkx
+        dtz = dtx - 50.0_rkx
+        dtp = dty - 50.0_rkx
+        !
+        ! emis(1)     0 -  800 cm-1   rotation band
+        !
+        do iband = 1 , 3 , 2
+          term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx *   &
+                         (d_one+c1(iband)*dtx)
+          term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx *   &
+                         (d_one+c2(iband)*dtx*(d_one+c3(iband)*dtx))
+          term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx *   &
+                         (d_one+c4(iband)*dtx*(d_one+c5(iband)*dtx))
+          term4(iband) = coefa(1,iband) + coefa(2,iband)*dty *   &
+                         (d_one+c6(iband)*dty)
+          term5(iband) = coefc(1,iband) + coefc(2,iband)*dty *   &
+                         (d_one+c7(iband)*dty)
+        end do
+        a11 = 0.37_rkx - 3.33e-5_rkx*dtz + 3.33e-6_rkx*dtz*dtz
+        a31 = 1.07_rkx - 1.00e-3_rkx*dtp + 1.475e-5_rkx*dtp*dtp
+        a21 = 1.3870_rkx + 3.80e-3_rkx*dtz - 7.8e-6_rkx*dtz*dtz
+        a22 = d_one - 1.21e-3_rkx*dtp - 5.33e-6_rkx*dtp*dtp
+        a23 = 0.9_rkx + 2.62_rkx*sqrt(ux)
+        corfac = a31*(a11+((a21*a22)/a23))
+        t1t4 = term1(1)*term4(1)
+        t2t5 = term2(1)*term5(1)
+        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux)*corfac)
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
+        rsum = exp(-a*(sqrt(ux)+fwk*ux))
+        emis(1) = (d_one-rsum)*term3(1)
+        ! trem1  = rsum
+        !
+        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+        !
+        a41 = 1.75_rkx - 3.96e-3_rkx*dtz
+        a51 = 1.00_rkx + 1.3_rkx*sqrt(ux)
+        a61 = 1.00_rkx + 1.25e-3_rkx*dtp + 6.25e-5_rkx*dtp*dtp
+        corfac = 0.3_rkx*(d_one+(a41)/(a51))*a61
+        t1t4 = term1(3)*term4(3)
+        t2t5 = term2(3)*term5(3)
+        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux)*corfac)
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
+        rsum = exp(-a*(sqrt(ux)+fwk*ux))
+        emis(2) = (d_one-rsum)*term3(3)
+        ! trem7 = rsum
+        !
+        ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
+        !
+        ! emis(3)   800 - 1200 cm-1   window
+        !
+        do l = 1 , 2
+          phi = a1(l)*(dty+15.0_rkx)+a2(l)*(dty+15.0_rkx)**2
+          psi = b1(l)*(dty+15.0_rkx)+b2(l)*(dty+15.0_rkx)**2
+          phi = exp(phi)
+          psi = exp(psi)
+          ubar = wh2op(k,n)*phi
+          ubar = (ubar*1.66_rkx)*r80257
+          pbar = pnew*(psi/phi)
+          cf812 = cfa1 + ((d_one-cfa1)/(d_one+ubar*pbar*d_10))
+          g1 = (realk(l)*pbar)/(d_two*st(l))
+          g2 = d_one + (ubar*d_four*st(l)*cf812)/pbar
+          g3 = sqrt(g2) - d_one
+          g4 = g1*g3
+          trline(l) = exp(-g4)
+        end do
+        term6 = coeff(1,1) + coeff(2,1)*dtx *     &
+                (d_one+c8*dtx*(d_one+c10*dtx *    &
+                (d_one+c12*dtx*(d_one+c14*dtx))))
+        term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
+        term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
+        term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
+        term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
+        trem4 = exp(-(coefg(1,1)+coefg(2,1)*dtx)*uc)*trline(2)
+        trem6 = exp(-(coefg(1,2)+coefg(2,2)*dtx)*uc)*trline(1)
+        emis(3) = term6*(d_one-trem4*d_half-trem6*d_half)
+        !
+        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
+        !
+        k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty-d_10) * &
+                 (dty-d_10))*sqrt(ux))
+        k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty-d_10))*sqrt(ux))
+        term9 = coefi(1,1) + coefi(2,1)*dtx *  &
+                (d_one+c18*dtx*(d_one+c20*dtx * &
+                (d_one+c22*dtx*(d_one+c24*dtx))))
+        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
+        tr1 = exp(-(k21*(sqrt(ux)+fc1*fwk*ux)))
+        tr2 = exp(-(k22*(sqrt(ux)+fc1*fwk*ux)))
+        tr3 = exp(-((coefh(1,1)+coefh(2,1)*dtx)*uc1))
+        tr4 = exp(-((coefh(1,2)+coefh(2,2)*dtx)*uc1))
+        tr7 = tr1*tr3
+        tr8 = tr2*tr4
+        emis(4) = term9*d_half*(tr1-tr7+tr2-tr8)
+        h2oems = emis(1) + emis(2) + emis(3) + emis(4)
+        troco2 = 0.65_rkx*tr7 + 0.35_rkx*tr8
+        th2o = tr8
+        ! trem2(n) = troco2
+        !
+        ! CO2 emissivity for 15 micron band system
+        !
+        t1i = exp(-480.0_rkx/co2t(k,n))
+        sqti = sqrt(co2t(k,n))
+        rsqti = d_one/sqti
+        et = t1i
+        et2 = et*et
+        et4 = et2*et2
+        omet = d_one - 1.5_rkx*et2
+        f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
+        sqwp = sqrt(plco2(k,n))
+        f1sqwp = f1co2*sqwp
+        t1co2 = d_one/(d_one+245.18_rkx*omet*sqwp*rsqti)
+        oneme = d_one - et2
+        alphat = oneme**3*rsqti
+        wco2 = 2.5221_rkx*co2vmr(n)*pnm(k,n)*regravgts
+        u7 = 4.9411e4_rkx*alphat*et2*wco2
+        u8 = 3.9744e4_rkx*alphat*et4*wco2
+        u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
+        u13 = 2.8388e3_rkx*alphat*et4*wco2
+
+        tpath = co2t(k,n)
+        tlocal = tplnke(n)
+        tcrfac = sqrt((tlocal*r250)*(tpath*r300))
+        pi = pnm(k,n)*rsslp + d_two*dpfco2*tcrfac
+        posqt = pi/(d_two*sqti)
+        rbeta7 = d_one/(5.3288_rkx*posqt)
+        rbeta8 = d_one/(10.6576_rkx*posqt)
+        rbeta9 = rbeta7
+        rbeta13 = rbeta9
+        f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
+                (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
+                (u9/sqrt(d_four+u9*(d_one+rbeta9)))
+        f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
+        tmp1 = log(d_one+f1sqwp)
+        tmp2 = log(d_one+f2co2)
+        tmp3 = log(d_one+f3co2)
+        absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
+        tco2 = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
+        co2ems = troco2*absbnd*co2plk
+        ex = exp(960.0_rkx/tint(k,n))
+        exm1sq = (ex-d_one)**2
+        co2em(k,n) = 1.2e11_rkx*ex/(tint(k,n)*tint4(k,n)*exm1sq)
+        ! trem3(n) = 1. - bndfct*absbnd
+        !
+        ! O3 emissivity
+        !
+        h2otr(k,n) = exp(-12.0_rkx*s2c(k,n))
+        te = (co2t(k,n)/293.0_rkx)**0.7_rkx
+        u1 = 18.29_rkx*plos(k,n)/te
+        u2 = 0.5649_rkx*plos(k,n)/te
+        phat = plos(k,n)/plol(k,n)
+        tlocal = tplnke(n)
+        tcrfac = sqrt(tlocal*r250)*te
+        beta = (d_one/0.3205_rkx)*((d_one/phat)+(dpfo3*tcrfac))
+        realnu = (d_one/beta)*te
+        o3bndi = 74.0_rkx*te*(tplnke(n)/375.0_rkx)* &
+                 log(d_one+fo3(u1,realnu)+fo3(u2,realnu))
+        dbvtt = dbvt(tplnke(n))
+        o3ems = dbvtt*h2otr(k,n)*o3bndi
+        to3 = d_one/(d_one+0.1_rkx*fo3(u1,realnu)+0.1_rkx*fo3(u2,realnu))
+        ! trem5(n)    = d_one-(o3bndi/(1060-980.))
+        !
+        ! Calculate trace gas emissivities
+        !
+        emstrc = trcems(co2t(k,n),pnm(k,n),ucfc11(k,n),ucfc12(k,n),  &
+                        un2o0(k,n),un2o1(k,n),bn2o0(k,n),bn2o1(k,n), &
+                        uch4(k,n),bch4(k,n),uco211(k,n),uco212(k,n), &
+                        uco213(k,n),uco221(k,n),uco222(k,n),         &
+                        uco223(k,n),uptype(k,n),wh2op(k,n),s2c(k,n), &
+                        ux,emplnk(:,n),th2o,tco2,to3)
+        !
+        ! Total emissivity:
+        !
+        emsgastot(k,n) = h2oems + co2ems + o3ems + emstrc
+      end do  ! End of interface loop
+    end do
+  end subroutine radems
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Set latitude and time dependent arrays for input to solar
+  ! and longwave radiation.
+  !
+  ! Convert model pressures to cgs, compute path length arrays needed for the
+  ! longwave radiation, and compute ozone mixing ratio, needed for the solar
+  ! radiation.
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! RegCM - The Sun/Earth geometry is moved elsewhere
+  !
+  subroutine radinp(n1,n2,pmid,pint,h2ommr,co2vmr,cld,o3vmr, &
+                    pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pint , cld
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pmid , h2ommr , o3vmr
+    real(rkx) , dimension(kz,n1:n2) , intent(out) :: pbr , o3mmr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: plco2 , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: pnm , tclrsf
+    !
+    ! vmmr - Ozone volume mixing ratio
+    !
+    real(rkx) , parameter :: vmmr = amo3/amd
+    real(rkx) , parameter :: cpwpl = d_half*(amco2/amd)/(egravgts*sslp)
+    integer(ik4) :: n , k
+    !
+    !------------------------------Arguments--------------------------------
+    !
+    ! Input arguments
+    !
+    ! pmid    - Pressure at model mid-levels (pascals)
+    ! pint    - Pressure at model interfaces (pascals)
+    ! h2ommr  - H2o mass mixing ratio
+    ! cld     - Fractional cloud cover
+    ! o3vmr   - ozone volume mixing ratio
+    !
+    ! Output arguments
+    !
+    ! pbr     - Pressure at interfaces (dynes/cm*2)
+    ! pnm     - Pressure at mid-levels (dynes/cm*2)
+    ! plco2   - Vert. pth lngth of co2 (prs-weighted)
+    ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
+    ! o3mmr   - Ozone mass mixing ratio
+    ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
+    !
+    ! Convert pressure from pascals to dynes/cm2
+    !
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) local(k)
+#else
+    do n = n1 , n2
+#endif
+      do k = 1 , kz
+        pbr(k,n) = pmid(k,n)*d_10
+        pnm(k,n) = pint(k,n)*d_10
+      end do
+      pnm(kzp1,n) = pint(kzp1,n)*d_10
+      !
+      ! Compute path quantities used in the longwave radiation:
+      !
+      plh2o(1,n) = rgsslp*h2ommr(1,n)*pnm(1,n)*pnm(1,n)
+      plco2(1,n) = co2vmr(n)*cpwpl*pnm(1,n)*pnm(1,n)
+      tclrsf(1,n) = d_one
+      do k = 1 , kz
+        plh2o(k+1,n) = plh2o(k,n) + rgsslp*(pnm(k+1,n)**2 - &
+                       pnm(k,n)**2) * h2ommr(k,n)
+        plco2(k+1,n) = co2vmr(n)*cpwpl*pnm(k+1,n)**2
+        tclrsf(k+1,n) = tclrsf(k,n)*(d_one-cld(k+1,n))
+      end do
+      !
+      ! Convert ozone volume mixing ratio to mass mixing ratio:
+      !
+      do k = 1 , kz
+        o3mmr(k,n) = vmmr*o3vmr(k,n)
+      end do
+    end do
+  end subroutine radinp
+  !
+  !----------------------------------------------------------------------
+  ! Calculate path lengths and pressure factors for CH4, N2O, CFC11
+  ! and CFC12.
+  !           Coded by J.T. Kiehl, November 21, 1994.
+  !
+  !-----------------------------------------------------------------------
+  !
+  !------------------------------Arguments--------------------------------
+  !
+  ! Input arguments
+  !
+  ! tnm    - Model level temperatures
+  ! pnm    - Pressure at model interfaces (dynes/cm2)
+  ! qmn    - h2o specific humidity
+  ! cfc11  - CFC11 mass mixing ratio
+  ! cfc12  - CFC12 mass mixing ratio
+  ! n2o    - N2O mass mixing ratio
+  ! ch4    - CH4 mass mixing ratio
+  !
+  ! Output arguments
+  !
+  ! ucfc11 - CFC11 path length
+  ! ucfc12 - CFC12 path length
+  ! un2o0  - N2O path length
+  ! un2o1  - N2O path length (hot band)
+  ! uch4   - CH4 path length
+  ! uco211 - CO2 9.4 micron band path length
+  ! uco212 - CO2 9.4 micron band path length
+  ! uco213 - CO2 9.4 micron band path length
+  ! uco221 - CO2 10.4 micron band path length
+  ! uco222 - CO2 10.4 micron band path length
+  ! uco223 - CO2 10.4 micron band path length
+  ! bn2o0  - pressure factor for n2o
+  ! bn2o1  - pressure factor for n2o
+  ! bch4   - pressure factor for ch4
+  ! uptype - p-type continuum path length
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
+                    ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
+                    uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
+                    uptype)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(n1:n2) , intent(in) :: co2mmr
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , h2ommr
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: n2o , ch4
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: cfc11 , cfc12
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bch4 , uch4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bn2o0 , un2o0
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bn2o1 , un2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: ucfc11 , ucfc12
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco211 , uco212
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco213 , uco221
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco222 , uco223
+    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uptype
+    !
+    !   co2fac - co2 factor
+    !   alpha1 - stimulated emission term
+    !   alpha2 - stimulated emission term
+    !   rt     - reciprocal of local temperature
+    !   rsqrt  - reciprocal of sqrt of temp
+    !   pbar   - mean pressure
+    !   dpnm   - difference in pressure
+    !
+    real(rkx) , parameter :: diff = 1.66_rkx ! diffusivity factor
+    real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
+    integer(ik4) :: n , k
+
+#ifdef STDPAR
+    do concurrent ( n = n1:n2 ) &
+      local(k,alpha1,alpha2,dpnm,pbar,rsqrt,rt,co2fac)
+#else
+    do n = n1 , n2
+#endif
+      !-----------------------------------------------------------------------
+      !   Calculate path lengths for the trace gases
+      !-----------------------------------------------------------------------
+      ucfc11(1,n) = 1.8_rkx*cfc11(1,n)*pnm(1,n)*regravgts
+      ucfc12(1,n) = 1.8_rkx*cfc12(1,n)*pnm(1,n)*regravgts
+      un2o0(1,n) = diff*1.02346e5_rkx*n2o(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
+      un2o1(1,n) = diff*2.01909_rkx*un2o0(1,n)*exp(-847.36_rkx/tnm(1,n))
+      uch4(1,n) = diff*8.60957e4_rkx*ch4(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
+      co2fac = diff*co2mmr(n)*pnm(1,n)*regravgts
+      alpha1 = (d_one-exp(-1540.0_rkx/tnm(1,n)))**3/sqrt(tnm(1,n))
+      alpha2 = (d_one-exp(-1360.0_rkx/tnm(1,n)))**3/sqrt(tnm(1,n))
+      uco211(1,n) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(1,n))
+      uco212(1,n) = 6.02454e3_rkx*co2fac*alpha1*exp(-2782.1_rkx/tnm(1,n))
+      uco213(1,n) = 5.53143e3_rkx*co2fac*alpha1*exp(-3723.2_rkx/tnm(1,n))
+      uco221(1,n) = 3.88984e3_rkx*co2fac*alpha2*exp(-1997.6_rkx/tnm(1,n))
+      uco222(1,n) = 3.67108e3_rkx*co2fac*alpha2*exp(-3843.8_rkx/tnm(1,n))
+      uco223(1,n) = 6.50642e3_rkx*co2fac*alpha2*exp(-2989.7_rkx/tnm(1,n))
+      bn2o0(1,n) = diff*19.399_rkx*pnm(1,n)**2*n2o(1,n) * &
+                 1.02346e5_rkx*regravgts/(sslp*tnm(1,n))
+      bn2o1(1,n) = bn2o0(1,n)*exp(-847.36_rkx/tnm(1,n))*2.06646e5_rkx
+      bch4(1,n) = diff*2.94449_rkx*ch4(1,n)*pnm(1,n)**2*regravgts * &
+                8.60957e4_rkx/(sslp*tnm(1,n))
+      uptype(1,n) = diff*h2ommr(1,n)*pnm(1,n)**2*exp(1800.0_rkx* &
+                  (d_one/tnm(1,n)-r296))*regravgts/sslp
+      do k = 1 , kz
+        rt = d_one/tnm(k,n)
+        rsqrt = sqrt(rt)
+        pbar = ((pnm(k+1,n)+pnm(k,n))*d_half)/sslp
+        dpnm = (pnm(k+1,n)-pnm(k,n))*regravgts
+        alpha1 = diff*rsqrt*(d_one-exp(-1540.0_rkx/tnm(k,n)))**3
+        alpha2 = diff*rsqrt*(d_one-exp(-1360.0_rkx/tnm(k,n)))**3
+        ucfc11(k+1,n) = ucfc11(k,n) + 1.8_rkx*cfc11(k,n)*dpnm
+        ucfc12(k+1,n) = ucfc12(k,n) + 1.8_rkx*cfc12(k,n)*dpnm
+        un2o0(k+1,n) = un2o0(k,n) + diff*1.02346e5_rkx*n2o(k,n)*rsqrt*dpnm
+        un2o1(k+1,n) = un2o1(k,n) + diff*2.06646e5_rkx*n2o(k,n) * &
+                     rsqrt*exp(-847.36_rkx/tnm(k,n))*dpnm
+        uch4(k+1,n) = uch4(k,n) + diff*8.60957e4_rkx*ch4(k,n)*rsqrt*dpnm
+        uco211(k+1,n) = uco211(k,n) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
+                      co2mmr(n)*exp(-1849.7_rkx/tnm(k,n))*dpnm
+        uco212(k+1,n) = uco212(k,n) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
+                      co2mmr(n)*exp(-2782.1_rkx/tnm(k,n))*dpnm
+        uco213(k+1,n) = uco213(k,n) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
+                      co2mmr(n)*exp(-3723.2_rkx/tnm(k,n))*dpnm
+        uco221(k+1,n) = uco221(k,n) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
+                      co2mmr(n)*exp(-1997.6_rkx/tnm(k,n))*dpnm
+        uco222(k+1,n) = uco222(k,n) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
+                      co2mmr(n)*exp(-3843.8_rkx/tnm(k,n))*dpnm
+        uco223(k+1,n) = uco223(k,n) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
+                      co2mmr(n)*exp(-2989.7_rkx/tnm(k,n))*dpnm
+        bn2o0(k+1,n) = bn2o0(k,n) + diff*19.399_rkx*pbar*rt * &
+                     1.02346e5_rkx*n2o(k,n)*dpnm
+        bn2o1(k+1,n) = bn2o1(k,n) + diff*19.399_rkx*pbar*rt * &
+                     2.06646e5_rkx*exp(-847.36_rkx/tnm(k,n))*n2o(k,n)*dpnm
+        bch4(k+1,n) = bch4(k,n) + diff*2.94449_rkx*rt*pbar * &
+                  8.60957e4_rkx*ch4(k,n)*dpnm
+        uptype(k+1,n) = uptype(k,n) + diff*h2ommr(k,n)* &
+                  exp(1800.0_rkx*(d_one/tnm(k,n)-r296))*pbar*dpnm
+      end do
+    end do
+  end subroutine trcpth
+  !
   !-----------------------------------------------------------------------
   !
   ! Solar radiation code
@@ -1709,6 +4571,7 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
+
 #ifdef STDPAR
     do concurrent ( n = n1:n2 ) local(k)
 #else
@@ -2134,2371 +4997,6 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  ! Delta-Eddington solution for special clear sky computation
-  !
-  ! Computes total reflectivities and transmissivities for two atmospheric
-  ! layers: an overlying purely ozone absorbing layer, and the rest of the
-  ! column below.
-  !
-  ! For more details , see Briegleb, Bruce P., 1992: Delta-Eddington
-  ! Approximation for Solar Radiation in the NCAR Community Climate Model,
-  ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
-  !
-  ! Input arguments
-  !
-  !   trayoslp  - Tray/sslp
-  !   czen      - Cosine zenith angle
-  !   czengt0   - logical cosine zenith angle greater than zero
-  !   lcls      - Add or remove aerosol effect
-  !   pflx      - Interface pressure
-  !   abh2o     - Absorption coefficiant for h2o
-  !   abo3      - Absorption coefficiant for o3
-  !   abco2     - Absorption coefficiant for co2
-  !   abo2      - Absorption coefficiant for o2
-  !   uth2o     - Total column absorber amount of h2o
-  !   uto3      - Total column absorber amount of  o3
-  !   utco2     - Total column absorber amount of co2
-  !   uto2      - Total column absorber amount of  o2
-  !   tauaer    - Total column aerosol extinction
-  !   tauasc    - Aerosol single scattering albedo * extinction
-  !   gtota     - Aerosol asymmetry parameter * SSA * EXT
-  !   ftota     - Aerosol *forward scattering fraction * SSA * EXT
-  !
-  ! Output
-  !
-  !   tottrn    - Total transmission for layers above
-  !   exptdn    - Solar beam exp down transmn from top
-  !   rdndif    - Added dif ref for layers above
-  !   rdif      - Layer refflectivity to diffuse rad
-  !   tdif      - Layer transmission to diffuse rad
-  !   rdir      - Layer reflectivity to direct rad
-  !   tdir      - Layer transmission to direct rad
-  !   explay    - Solar beam exp transmn for layer
-  !
-  subroutine radclr(n1,n2,trayoslp,czen,czengt0,lcls,pflx,  &
-                    abh2o,abco2,abo2,abo3,uth2o,uto3,utco2, &
-                    uto2,tauaer,tauasc,gtota,ftota,tottrn,  &
-                    exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    logical , intent(in) :: lcls
-    real(rkx) , intent(in) :: trayoslp
-    real(rkx) , dimension(n1:n2) , intent(in) :: czen
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
-    real(rkx) , intent(in) :: abh2o , abco2 , abo2 , abo3
-    real(rkx) , dimension(n1:n2) , intent(in) :: uth2o
-    real(rkx) , dimension(n1:n2) , intent(in) :: uto3
-    real(rkx) , dimension(n1:n2) , intent(in) :: utco2
-    real(rkx) , dimension(n1:n2) , intent(in) :: uto2
-    real(rkx) , dimension(n1:n2) , intent(in) :: tauaer
-    real(rkx) , dimension(n1:n2) , intent(in) :: tauasc ! waer * tauaer
-    real(rkx) , dimension(n1:n2) , intent(in) :: gtota  ! gaer * waer * tauaer
-    real(rkx) , dimension(n1:n2) , intent(in) :: ftota  ! faer * waer * tauaer
-    logical , dimension(n1:n2) , intent(in) :: czengt0
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: rdndif
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , rdif
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: tdir , tdif
-    !
-    ! taugab   - Total column gas absorption optical depth
-    ! tauray   - Column rayleigh optical depth
-    ! tautot   - Total column optical depth
-    ! wtot     - Total column single scatter albedo
-    ! gtot     - Total column asymmetry parameter
-    ! ftot     - Total column forward scatter fraction
-    ! ts       - Column scaled extinction optical depth
-    ! ws       - Column scaled single scattering albedo
-    ! gs       - Column scaled asymmetry parameter
-    ! rdenom   - Mulitiple scattering term
-    ! rdirexp  - Layer direct ref times exp transmission
-    ! tdnmexp  - Total transmission minus exp transmission
-    !
-    integer(ik4) :: n
-    real(rkx) :: arg , rdenom , rdirexp , tdnmexp
-    real(rkx) :: tautot , wtot , gtot , ftot , extins
-    real(rkx) :: ts , ws , gs , lm , alp , gam , ue , ne
-    real(rkx) :: apg , amg , taugab , tauray
-    integer(ik4) :: k
-
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radclr'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Compute total direct beam transmission, total transmission, and
-    ! reflectivity for diffuse radiation (from below) for all layers
-    ! above each interface by starting from the top and adding layers down:
-    !
-    ! The top layer is assumed to be a purely absorbing ozone layer, and
-    ! that the mean diffusivity for diffuse mod_transmission is 1.66:
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(arg,rdenom,rdirexp,tdnmexp,tautot,wtot,gtot,ftot,extins, &
-            ts,ws,gs,lm,alp,gam,ue,ne,apg,amg,taugab,tauray,k)
-#else
-    do n = n1 , n2
-#endif
-      !-------------------------------------------------------------------
-      !
-      ! Initialize all total transmimission values to 0, so that nighttime
-      ! values from previous computations are not used:
-      !
-      do k = 1 , kzp1
-        tottrn(k,n) = d_zero
-      end do
-      if ( czengt0(n) ) then
-        taugab = abo3*uto3(n)
-        ! Limit argument of exponential, in case czen is very small:
-        arg = min(taugab/czen(n),mxarg)
-        explay(0,n) = exp(-arg)
-        tdir(0,n) = explay(0,n)
-        !
-        ! Same limit for diffuse mod_transmission:
-        !
-        arg = min(1.66_rkx*taugab,mxarg)
-        tdif(0,n) = exp(-arg)
-        rdir(0,n) = d_zero
-        rdif(0,n) = d_zero
-        !
-        ! Initialize top interface of extra layer:
-        !
-        exptdn(0,n) = d_one
-        rdndif(0,n) = d_zero
-        tottrn(0,n) = d_one
-        rdndif(1,n) = rdif(0,n)
-        tottrn(1,n) = tdir(0,n)
-        !
-        ! Now, complete the rest of the column; if the total transmission
-        ! through the top ozone layer is less than trmin, then no
-        ! delta-Eddington computation for the underlying column is done:
-        !
-        do k = 1 , 1
-          !
-          ! Initialize current layer properties to zero;only if total
-          ! transmission to the top interface of the current layer exceeds
-          ! the minimum, will these values be computed below:
-          !
-          rdir(k,n) = d_zero
-          rdif(k,n) = d_zero
-          tdir(k,n) = d_zero
-          tdif(k,n) = d_zero
-          explay(k,n) = d_zero
-          !
-          ! Calculates the solar beam transmission, total transmission,
-          ! and reflectivity for diffuse radiation from below at the
-          ! top of the current layer:
-          !
-          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-          rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
-          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
-                        tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-          rdndif(k,n) = rdif(k-1,n) + &
-                        (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
-          !
-          ! Compute next layer delta-Eddington solution only if total
-          ! transmission of radiation to the interface just above the layer
-          ! exceeds trmin.
-          !
-          if ( tottrn(k,n) > trmin ) then
-            !
-            ! Remember, no ozone absorption in this layer:
-            !
-            tauray = trayoslp*pflx(kzp1,n)
-            taugab = abh2o*uth2o(n) + abco2*utco2(n) + abo2*uto2(n)
-            if ( lcls ) then
-              tautot = tauray + taugab
-              wtot = (wray*tauray)/tautot
-              gtot = (gray*wray*tauray)/(wtot*tautot)
-              ftot = (fray*wray*tauray/(wtot*tautot))
-            else
-              tautot = tauray + taugab + tauaer(n)
-              wtot = (wray*tauray + tauasc(n))/tautot
-              gtot = (gray*wray*tauray + gtota(n))/(wtot*tautot)
-              ftot = (fray*wray*tauray + ftota(n))/(wtot*tautot)
-            end if
-            ts = taus(wtot,ftot,tautot)
-            ws = omgs(wtot,ftot)
-            gs = asys(gtot,ftot)
-            lm = el(ws,gs)
-            alp = xalpha(ws,czen(n),gs,lm)
-            gam = xgamma(ws,czen(n),gs,lm)
-            ue = f_u(ws,gs,lm)
-            !
-            ! Limit argument of exponential, in case lm very large:
-            !
-            arg = min(lm*ts,mxarg)
-            extins = exp(-arg)
-            ne = f_n(ue,extins)
-            rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(k,n) = d_four*ue/ne
-            ! Limit argument of exponential, in case czen is very small:
-            arg = min(ts/czen(n),mxarg)
-            explay(k,n) = exp(-arg)
-            apg = alp + gam
-            amg = alp - gam
-            rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
-            tdir(k,n) = apg*tdif(k,n) + &
-                        (amg*rdif(k,n)-(apg-d_one))*explay(k,n)
-            !
-            ! Under rare conditions, reflectivies and transmissivities
-            ! can be negative; zero out any negative values
-            !
-            rdir(k,n) = max(rdir(k,n),d_zero)
-            tdir(k,n) = max(tdir(k,n),d_zero)
-            rdif(k,n) = max(rdif(k,n),d_zero)
-            tdif(k,n) = max(tdif(k,n),d_zero)
-          end if
-        end do
-        k = 2
-        exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-        rdenom = d_one/(d_one-rdif(k-1,n)*rdndif(k-1,n))
-        rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-        tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-        tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + &
-                      tdif(k-1,n)*(tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-        rdndif(k,n) = rdif(k-1,n) + &
-                      (rdndif(k-1,n)*tdif(k-1,n))*(tdif(k-1,n)*rdenom)
-      end if
-    end do
-    !
-    ! Compute total direct beam transmission, total transmission, and
-    ! reflectivity for diffuse radiation (from below) for both layers
-    ! above the surface:
-    !
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radclr
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Computes layer reflectivities and transmissivities, from the top down
-  ! to the surface using the delta-Eddington solutions for each layer;
-  ! adds layers from top down to surface as well.
-  !
-  ! If total transmission to the interface above a particular layer is
-  ! less than trmin, then no further delta-Eddington solutions are
-  ! evaluated for layers below
-  !
-  ! For more details , see Briegleb, Bruce P., 1992: Delta-Eddington
-  ! Approximation for Solar Radiation in the NCAR Community Climate Model,
-  ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
-  !
-  ! Input Arguments
-  !   trayoslp - Tray/sslp
-  !   czen     - Cosine zenith angle
-  !   czengt0  - Logical czen greater zero
-  !   pflx     - Interface pressure
-  !   abh2o    - Absorption coefficiant for h2o
-  !   abo3     - Absorption coefficiant for o3
-  !   abco2    - Absorption coefficiant for co2
-  !   abo2     - Absorption coefficiant for o2
-  !   uh2o     - Layer absorber amount of h2o
-  !   uo3      - Layer absorber amount of  o3
-  !   uco2     - Layer absorber amount of co2
-  !   uo2      - Layer absorber amount of  o2
-  !   tauxcl   - Cloud extinction optical depth (liquid)
-  !   tauxci   - Cloud extinction optical depth (ice)
-  !   tauaer   - Aerosol extinction optical depth
-  !   wcl      - Cloud single scattering albedo (liquid)
-  !   gcl      - Cloud asymmetry parameter (liquid)
-  !   fcl      - Cloud forward scattered fraction (liquid)
-  !   wci      - Cloud single scattering albedo (ice)
-  !   gci      - Cloud asymmetry parameter (ice)
-  !   fci      - Cloud forward scattered fraction (ice)
-  !   tauasc   - Aerosol single scattering albedo * extinction
-  !   gtota    - Aerosol asymmetry parameter * SSA * extinction
-  !   ftota    - Aerosol forward scattered fraction * SSA * extinction
-  !
-  ! Output Arguments
-  !   tottrn   - Total transmission for layers above
-  !   exptdn   - Solar beam exp down transm from top
-  !   rdndif   - Added dif ref for layers above
-  !   rdif     - Layer refflectivity to diffuse rad
-  !   tdif     - Layer transmission to diffuse rad
-  !   rdir     - Layer reflectivity to direct rad
-  !   tdir     - Layer transmission to direct rad
-  !   explay   - Solar beam exp transm for layer
-  !
-  !-----------------------------------------------------------------------
-  !
-  subroutine radded(n1,n2,trayoslp,czen,czengt0,pflx, &
-      abh2o,abo3,abco2,abo2,uh2o,uo3,uco2,uo2,        &
-      tauxcl,wcl,gcl,fcl,tauxci,wci,gci,fci,          &
-      tauaer,tauasc,gtota,ftota,                      &
-      tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: czen
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(in) :: pflx
-    real(rkx) , intent(in) :: abh2o , abo3 , abco2 , abo2
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uh2o , uo3
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: uco2 , uo2
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauxcl , tauxci , tauaer
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wcl , gcl , fcl
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: wci , gci , fci
-    real(rkx) , dimension(0:kz,n1:n2) , intent(in) :: tauasc , gtota , ftota
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: tottrn
-    real(rkx) , dimension(0:kzp1,n1:n2) , intent(out) :: exptdn , rdndif
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdif , tdif
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: rdir , tdir
-    real(rkx) , dimension(0:kz,n1:n2) , intent(out) :: explay
-    logical , dimension(n1:n2) , intent(in) :: czengt0
-    real(rkx) , intent(in) :: trayoslp
-    !
-    ! taugab   - Layer total gas absorption optical depth
-    ! tauray   - Layer rayleigh optical depth
-    ! taucsc   - Layer cloud scattering optical depth
-    ! tautot   - Total layer optical depth
-    ! wtot     - Total layer single scatter albedo
-    ! gtot     - Total layer asymmetry parameter
-    ! ftot     - Total layer forward scatter fraction
-    ! wtau     - rayleigh layer scattering optical depth
-    ! wt       - layer total single scattering albedo
-    ! ts       - layer scaled extinction optical depth
-    ! ws       - layer scaled single scattering albedo
-    ! gs       - layer scaled asymmetry parameter
-    ! rdenom   - mulitiple scattering term
-    ! rdirexp  - layer direct ref times exp transmission
-    ! tdnmexp  - total transmission minus exp transmission
-    !
-    ! Intermediate terms for delta-eddington solution
-    !
-    ! alp      - Temporary for xalpha
-    ! gam      - Temporary for xgamma
-    ! lm       - Temporary for el
-    ! ne       - Temporary for f_n
-    ! ue       - Temporary for f_u
-    ! arg      - Exponential argument
-    ! extins   - Extinction
-    ! amg      - Alp - gam
-    ! apg      - Alp + gam
-    !
-    integer(ik4) :: n
-    integer(ik4) :: k
-    real(rkx) :: tautot , taucsc , wtau , wt , wtot , gtot , ftot
-    real(rkx) :: ws , gs , ts , lm , alp , gam , ne , ue
-    real(rkx) :: apg , amg , extins , rdenom , rdirexp , tdnmexp
-    real(rkx) :: taugab , tauray
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radded'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Compute total direct beam transmission, total transmission, and
-    ! reflectivity for diffuse radiation (from below) for all layers
-    ! above each interface by starting from the top and adding layers down:
-    ! For the extra layer above model top:
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(tautot,taucsc,wtau,wt,wtot,gtot,ftot,ws,gs,ts,lm,alp,gam, &
-            ne,ue,apg,amg,extins,rdenom,rdirexp,tdnmexp,tauray,taugab,k)
-#else
-    do n = n1 , n2
-#endif
-      !-----------------------------------------------------------------
-      !
-      ! Initialize all total transmission values to 0, so that nighttime
-      ! values from previous computations are not used:
-      !
-      do k = 1 , kzp1
-        tottrn(k,n) = d_zero
-      end do
-      if ( czengt0(n) ) then
-        tauray = trayoslp * (pflx(1,n)-pflx(0,n))
-        taugab = abh2o*uh2o(0,n) + abo3*uo3(0,n) + &
-                 abco2*uco2(0,n) + abo2*uo2(0,n)
-        if ( lzero ) then
-          tautot = tauray + taugab + tauxcl(0,n) + tauxci(0,n)
-          taucsc = tauxcl(0,n)*wcl(0,n) + &
-                   tauxci(0,n)*wci(0,n)
-          wtau = wray*tauray
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n)+ &
-                              gci(0,n)*tauxci(0,n)*wci(0,n)) / wt
-          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
-                              fci(0,n)*tauxci(0,n)*wci(0,n)) / wt
-        else
-          tautot = tauray + taugab + &
-                   tauxcl(0,n) + tauxci(0,n) + tauaer(0,n)
-          taucsc = tauxcl(0,n)*wcl(0,n) + &
-                   tauxci(0,n)*wci(0,n) + &
-                   tauasc(0,n)
-          wtau = wray*tauray
-          wt = wtau + taucsc
-          wtot = wt/tautot
-          gtot = (wtau*gray + gcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
-                              gci(0,n)*tauxci(0,n)*wci(0,n) + &
-                              gtota(0,n)) / wt
-          ftot = (wtau*fray + fcl(0,n)*tauxcl(0,n)*wcl(0,n) + &
-                              fci(0,n)*tauxci(0,n)*wci(0,n) + &
-                              ftota(0,n)) / wt
-        end if
-        ts = taus(wtot,ftot,tautot)
-        ws = omgs(wtot,ftot)
-        gs = asys(gtot,ftot)
-        lm = el(ws,gs)
-        alp = xalpha(ws,czen(n),gs,lm)
-        gam = xgamma(ws,czen(n),gs,lm)
-        ue = f_u(ws,gs,lm)
-        !
-        ! Limit argument of exponential, in case lm*ts very large:
-        !
-        extins = exp(-min(lm*ts,mxarg))
-        ne = f_n(ue,extins)
-        rdif(0,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-        tdif(0,n) = d_four*ue/ne
-        ! Limit argument of exponential, in case czen is very small:
-        explay(0,n) = exp(-min(ts/czen(n),mxarg))
-        apg = alp + gam
-        amg = alp - gam
-        rdir(0,n) = amg*(tdif(0,n)*explay(0,n)-d_one) + apg*rdif(0,n)
-        tdir(0,n) = apg*tdif(0,n) + (amg*rdif(0,n)-(apg-d_one))*explay(0,n)
-        !
-        ! Under rare conditions, reflectivies and transmissivities can
-        ! be negative; zero out any negative values
-        !
-        rdir(0,n) = max(rdir(0,n),d_zero)
-        tdir(0,n) = max(tdir(0,n),d_zero)
-        rdif(0,n) = max(rdif(0,n),d_zero)
-        tdif(0,n) = max(tdif(0,n),d_zero)
-        !
-        ! Initialize top interface of extra layer:
-        !
-        exptdn(0,n) = d_one
-        rdndif(0,n) = d_zero
-        tottrn(0,n) = d_one
-        rdndif(1,n) = rdif(0,n)
-        tottrn(1,n) = tdir(0,n)
-        !
-        ! Now, continue down one layer at a time; if the total transmission
-        ! to the interface just above a given layer is less than trmin,
-        ! then no delta-eddington computation for that layer is done:
-        !
-        do k = 1 , kz
-          !
-          ! Initialize current layer properties to zero; only if total
-          ! transmission to the top interface of the current layer exceeds
-          ! the minimum, will these values be computed below:
-          !
-          rdir(k,n) = d_zero
-          rdif(k,n) = d_zero
-          tdir(k,n) = d_zero
-          tdif(k,n) = d_zero
-          explay(k,n) = d_zero
-          !
-          ! Calculates the solar beam transmission, total transmission,
-          ! and reflectivity for diffuse radiation from below at the
-          ! top of the current layer:
-          !
-          exptdn(k,n) = exptdn(k-1,n)*explay(k-1,n)
-          rdenom = d_one/(d_one - rdif(k-1,n)*rdndif(k-1,n))
-          rdirexp = rdir(k-1,n)*exptdn(k-1,n)
-          tdnmexp = tottrn(k-1,n) - exptdn(k-1,n)
-          tottrn(k,n) = exptdn(k-1,n)*tdir(k-1,n) + tdif(k-1,n) *     &
-                      (tdnmexp+rdndif(k-1,n)*rdirexp)*rdenom
-          rdndif(k,n) = rdif(k-1,n) + (rdndif(k-1,n)*tdif(k-1,n)) *   &
-                      (tdif(k-1,n)*rdenom)
-          !
-          ! Compute next layer delta-eddington solution only if total
-          ! transmission of radiation to the interface just above the layer
-          ! exceeds trmin.
-          !
-          if ( tottrn(k,n) > trmin ) then
-            tauray = trayoslp*(pflx(k+1,n)-pflx(k,n))
-            taugab = abh2o*uh2o(k,n) + abo3*uo3(k,n) +  &
-                     abco2*uco2(k,n) + abo2*uo2(k,n)
-
-            if ( lzero ) then
-              tautot = tauray + taugab + tauxcl(k,n) + tauxci(k,n)
-              taucsc = tauxcl(k,n)*wcl(k,n) + tauxci(k,n)*wci(k,n)
-              wtau = wray*tauray
-              wt = wtau + taucsc
-              wtot = wt/tautot
-              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
-                                  gci(k,n)*wci(k,n)*tauxci(k,n))/wt
-              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
-                                  fci(k,n)*wci(k,n)*tauxci(k,n))/wt
-            else
-              tautot = tauray+taugab + tauxcl(k,n)+tauxci(k,n)+tauaer(k,n)
-              taucsc = tauxcl(k,n)*wcl(k,n) + &
-                       tauxci(k,n)*wci(k,n) + &
-                       tauasc(k,n)
-              wtau = wray*tauray
-              wt = wtau + taucsc
-              wtot = wt/tautot
-              gtot = (wtau*gray + gcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
-                                  gci(k,n)*wci(k,n)*tauxci(k,n) + &
-                                  gtota(k,n))/wt
-              ftot = (wtau*fray + fcl(k,n)*wcl(k,n)*tauxcl(k,n) + &
-                                  fci(k,n)*wci(k,n)*tauxci(k,n) + &
-                                  ftota(k,n))/wt
-            end if
-            ts = taus(wtot,ftot,tautot)
-            ws = omgs(wtot,ftot)
-            gs = asys(gtot,ftot)
-            lm = el(ws,gs)
-            alp = xalpha(ws,czen(n),gs,lm)
-            gam = xgamma(ws,czen(n),gs,lm)
-            ue = f_u(ws,gs,lm)
-            !
-            ! Limit argument of exponential, in case lm very large:
-            !
-            extins = exp(-min(lm*ts,mxarg))
-            ne = f_n(ue,extins)
-            rdif(k,n) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(k,n) = d_four*ue/ne
-            ! Limit argument of exponential, in case czen is very small:
-            explay(k,n) = exp(-min(ts/czen(n),mxarg))
-            apg = alp + gam
-            amg = alp - gam
-            rdir(k,n) = amg*(tdif(k,n)*explay(k,n)-d_one)+apg*rdif(k,n)
-            tdir(k,n) = apg*tdif(k,n)+(amg*rdif(k,n)-(apg-d_one))*explay(k,n)
-            !
-            ! Under rare conditions, reflectivies and transmissivities
-            ! can be negative; zero out any negative values
-            !
-            rdir(k,n) = max(rdir(k,n),d_zero)
-            tdir(k,n) = max(tdir(k,n),d_zero)
-            rdif(k,n) = max(rdif(k,n),d_zero)
-            tdif(k,n) = max(tdif(k,n),d_zero)
-          end if
-        end do
-        !
-        ! Compute total direct beam transmission, total transmission, and
-        ! reflectivity for diffuse radiation (from below) for all layers
-        ! above the surface:
-        !
-        exptdn(kzp1,n) = exptdn(kz,n)*explay(kz,n)
-        rdenom = d_one/(d_one-rdif(kz,n)*rdndif(kz,n))
-        rdirexp = rdir(kz,n)*exptdn(kz,n)
-        tdnmexp = tottrn(kz,n) - exptdn(kz,n)
-        tottrn(kzp1,n) = exptdn(kz,n)*tdir(kz,n) + tdif(kz,n) *   &
-                    (tdnmexp+rdndif(kz,n)*rdirexp)*rdenom
-        rdndif(kzp1,n) = rdif(kz,n) + (rdndif(kz,n)*tdif(kz,n)) * &
-                    (tdif(kz,n)*rdenom)
-      end if
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radded
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Compute absorptivities for h2o, co2, o3, ch4, n2o, cfc11 and cfc12
-  !
-  ! h2o  ....  Uses nonisothermal emissivity for water vapor from
-  !            Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
-  !            Emissivity and Absorptivity Formulation for Water Vapor
-  !            Journal of Geophysical Research, vol. 91., D8, pp 8649-8666
-  !
-  ! co2  ....  Uses absorptance parameterization of the 15 micro-meter
-  !            (500 - 800 cm-1) band system of Carbon Dioxide, from
-  !            Kiehl, J.T. and B.P.Briegleb, 1991: A New Parameterization
-  !            of the Absorptance Due to the 15 micro-meter Band System
-  !            of Carbon Dioxide Jouranl of Geophysical Research,
-  !            vol. 96., D5, pp 9013-9019.
-  !            Parameterizations for the 9.4 and 10.4 mircon bands of CO2
-  !            are also included.
-  !
-  ! o3   ....  Uses absorptance parameterization of the 9.6 micro-meter
-  !            band system of ozone, from Ramanathan, V. and R.Dickinson,
-  !            1979: The Role of stratospheric ozone in the zonal and
-  !            seasonal radiative energy balance of the earth-troposphere
-  !            system. Journal of the Atmospheric Sciences, Vol. 36,
-  !            pp 1084-1104
-  !
-  ! ch4  ....  Uses a broad band model for the 7.7 micron band of methane.
-  !
-  ! n2o  ....  Uses a broad band model for the 7.8, 8.6 and 17.0 micron
-  !            bands of nitrous oxide
-  !
-  ! cfc11 ...  Uses a quasi-linear model for the 9.2, 10.7, 11.8 and 12.5
-  !            micron bands of CFC11
-  !
-  ! cfc12 ...  Uses a quasi-linear model for the 8.6, 9.1, 10.8 and 11.2
-  !            micron bands of CFC12
-  !
-  !
-  ! Computes individual absorptivities for non-adjacent layers, accounting
-  ! for band overlap, and sums to obtain the total; then, computes the
-  ! nearest layer contribution.
-  !
-  ! Input
-  !   pbr     - Prssr at mid-levels (dynes/cm2)
-  !   pnm     - Prssr at interfaces (dynes/cm2)
-  !   co2em   - Co2 emissivity function
-  !   co2eml  - Co2 emissivity function
-  !   tplnka  - Planck fnctn level temperature
-  !   s2c     - H2o continuum path length
-  !   s2t     - H2o tmp and prs wghted path
-  !   w       - H2o prs wghted path
-  !   h2otr   - H2o trnsmssn fnct for o3 overlap
-  !   plco2   - Co2 prs wghted path length
-  !   plh2o   - H2o prs wfhted path length
-  !   co2t    - Tmp and prs wghted path length
-  !   tint    - Interface temperatures
-  !   tlayr   - K-1 level temperatures
-  !   plol    - Ozone prs wghted path length
-  !   plos    - Ozone path length
-  !   pmln    - Ln(pmidm1)
-  !   piln    - Ln(pintm1)
-  !   ucfc11  - CFC11 path length
-  !   ucfc12  - CFC12 path length
-  !   un2o0   - N2O path length
-  !   un2o1   - N2O path length (hot band)
-  !   uch4    - CH4 path length
-  !   uco211  - CO2 9.4 micron band path length
-  !   uco212  - CO2 9.4 micron band path length
-  !   uco213  - CO2 9.4 micron band path length
-  !   uco221  - CO2 10.4 micron band path length
-  !   uco222  - CO2 10.4 micron band path length
-  !   uco223  - CO2 10.4 micron band path length
-  !   uptype  - continuum path length
-  !   bn2o0   - pressure factor for n2o
-  !   bn2o1   - pressure factor for n2o
-  !   bch4    - pressure factor for ch4
-  !   abplnk1 - non-nearest layer Planck factor
-  !   abplnk2 - nearest layer factor
-  !
-  ! Output
-  !   absgastot - Total absorptivity
-  !   absgasnxt - Total nearest layer absorptivity
-  !
-  ! Nearest layer absorptivities
-  ! Non-adjacent layer absorptivites
-  ! Total emissivity
-  !
-  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
-                    co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
-                    plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
-                    bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
-                    uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: co2em , co2eml
-    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tplnka
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: s2c , s2t , wh2op
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: h2otr , co2t
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
-    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk1
-    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk2
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
-    real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
-    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
-    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: xuinpl
-    !
-    ! kn       - Nearest level index
-    ! iband    - Band  index
-    ! pnew     - Effective pressure for H2O vapor linewidth
-    ! trline   - Transmission due to H2O lines in window
-    ! ux       - Pressure weighted H2O path length
-    ! tbar     - Mean layer temperature
-    ! emm      - Mean co2 emissivity
-    ! o3emm    - Mean o3 emissivity
-    ! o3bndi   - Ozone band parameter
-    ! temh2o   - Mean layer temperature equivalent to tbar
-    ! k21      - Exponential coefficient used to calculate rotation band
-    !            transmissvty in the 650-800 cm-1 region (tr1)
-    ! k22      - Exponential coefficient used to calculate rotation band
-    !            transmissvty in the 500-650 cm-1 region (tr2)
-    ! uc1      - H2o continuum pathlength in 500-800 cm-1
-    ! to3h2o   - H2o trnsmsn for overlap with o3
-    ! pi       - For co2 absorptivity computation
-    ! sqti     - Used to store sqrt of mean temperature
-    ! et       - Co2 hot band factor
-    ! et2      - Co2 hot band factor squared
-    ! et4      - Co2 hot band factor to fourth power
-    ! omet     - Co2 stimulated emission term
-    ! f1co2    - Co2 central band factor
-    ! f2co2    - Co2 weak band factor
-    ! f3co2    - Co2 weak band factor
-    ! t1co2    - Overlap factr weak bands on strong band
-    ! sqwp     - Sqrt of co2 pathlength
-    ! f1sqwp   - Main co2 band factor
-    ! oneme    - Co2 stimulated emission term
-    ! alphat   - Part of the co2 stimulated emission term
-    ! wco2     - Constants used to define co2 pathlength
-    ! posqt    - Effective pressure for co2 line width
-    ! u7       - Co2 hot band path length
-    ! u8       - Co2 hot band path length
-    ! u9       - Co2 hot band path length
-    ! u13      - Co2 hot band path length
-    ! rbeta7   - Inverse of co2 hot band line width par
-    ! rbeta8   - Inverse of co2 hot band line width par
-    ! rbeta9   - Inverse of co2 hot band line width par
-    ! rbeta13  - Inverse of co2 hot band line width par
-    ! tpatha   - For absorptivity computation
-    ! a        - Eq(2) in table A3a of R&D
-    ! abso     - Absorptivity for various gases/bands
-    ! dtp      - Path temp minus 300 K used in h2o rotation band absorptivity
-    ! dtx      - Planck temperature minus 250 K
-    ! dty      - Path temperature minus 250 K
-    ! dtz      - Planck temperature minus 300 K
-    ! term1    - Equation(5) in table A3a of R&D(1986)
-    ! term2    - Delta a(Te) in table A3a of R&D(1986)
-    ! term3    - DB/dT function for rotation and
-    ! term4    - Equation(6) in table A3a of R&D(1986)
-    ! term5    - Delta a(Tp) in table A3a of R&D(1986)
-    ! term6    - DB/dT function for window region
-    ! term7    - Kl_inf(i) in eq(8) of table A3a of R&D
-    ! term8    - Delta kl_inf(i) in eq(8)
-    ! term9    - DB/dT function for 500-800 cm-1 region
-    ! tr1      - Eqn(6) in table A2 of R&D for 650-800
-    ! tr10     - Eqn(6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
-    ! tr2      - Eqn(6) in table A2 of R&D for 500-650
-    ! tr5      - Eqn(4) in table A2 of R&D for 650-800
-    ! tr6      - Eqn(4) in table A2 of R&D for 500-650
-    ! tr9      - Equ(6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
-    ! uc       - Y + 0.002U in eq(8) of table A2 of R&D
-    ! sqrtu    - Sqrt of pressure weighted h20 pathlength
-    ! fwk      - Equation(33) in R&D far wing correction
-    ! fwku     - GU term in eqs(1) and (6) in table A2
-    ! r2st     - 1/(2*beta) in eq(10) in table A2
-    ! dtyp15   - DeltaTp in eqs(11) & (12) in table A3a
-    ! dtyp15sq - (DeltaTp)^2 in eqs(11) & (12) table A3a
-    ! to3co2   - P weighted temp in ozone band model
-    ! dpnm     - Pressure difference between two levels
-    ! pnmsq    - Pressure squared
-    ! dw       - Amount of h2o between two levels
-    ! uinpl    - Nearest layer subdivision factor
-    ! winpl    - Nearest layer subdivision factor
-    ! zinpl    - Nearest layer subdivision factor
-    ! pinpl    - Nearest layer subdivision factor
-    ! dplh2o   - Difference in press weighted h2o amount
-    ! ds2c     - Y in eq(7) in table A2 of R&D
-    ! a11      - A1 in table A3b for rotation band absorptivity
-    ! a31      - A3 in table A3b for rotation band absorptivity
-    ! a21      - First part in numerator of A2 in table A3b
-    ! a22      - Second part in numerator of A2 in table A3b
-    ! a23      - Denominator of A2 in table A3b (rotation band)
-    ! t1t4     - Eq(3) in table A3a of R&D
-    ! t2t5     - Eq(4) in table A3a of R&D
-    ! rsum     - Eq(1) in table A2 of R&D
-    ! a41      - Numerator in A2 in Vib-rot abstivity(table A3b)
-    ! a51      - Denominator in A2 in Vib-rot (table A3b)
-    ! a61      - A3 factor for Vib-rot band in table A3b
-    ! phi      - Eq(11) in table A3a of R&D
-    ! psi      - Eq(12) in table A3a of R&D
-    ! cf812    - Eq(11) in table A2 of R&D
-    ! ubar     - H2o scaled path see comment for eq(10) table A2
-    ! pbar     - H2o scaled pres see comment for eq(10) table A2
-    ! g4       - Arguement in exp() in eq(10) table A2
-    ! dplos    - Ozone pathlength eq(A2) in R&Di
-    ! dplol    - Presure weighted ozone pathlength
-    ! beta     - Local interface temperature
-    !            (includes Voigt line correction factor)
-    ! rphat    - Effective pressure for ozone beta
-    ! tcrfac   - Ozone temperature factor table 1 R&Di
-    ! tmp1     - Ozone band factor see eq(A1) in R&Di
-    ! u1       - Effective ozone pathlength eq(A2) in R&Di
-    ! realnu   - 1/beta factor in ozone band model eq(A1)
-    ! tmp2     - Ozone band factor see eq(A1) in R&Di
-    ! u2       - Effective ozone pathlength eq(A2) in R&Di
-    ! rsqti    - Reciprocal of sqrt of path temperature
-    ! tpath    - Path temperature used in co2 band model
-    ! tmp3     - Weak band factor see K&B
-    ! rdpnmsq  - Reciprocal of difference in press^2
-    ! rdpnm    - Reciprocal of difference in press
-    ! p1       - Mean pressure factor
-    ! p2       - Mean pressure factor
-    ! dtym10   - T - 260 used in eq(9) and (10) table A3a
-    ! dplco2   - Co2 pathlength
-    ! corfac   - Correction factors in table A3b
-    ! g2       - Part of arguement in eq(10) in table A2
-    ! te       - A_0 T factor in ozone model table 1 of R&Di
-    ! denom    - Denominator in eq(8) of table A3a of R&D
-    ! trab2    - Transmission terms for H2o  500 -  800 cm-1
-    ! trab4    - Transmission terms for H2o  800 - 1000 cm-1
-    ! trab6    - Transmission terms for H2o 1000 - 1200 cm-1
-    ! absbnd   - Proportional to co2 band absorptance
-    ! dbvtit   - Intrfc drvtv plnck fnctn for o3
-    ! dbvtly   - Level drvtv plnck fnctn for o3
-    !
-    integer(ik4) :: n
-    real(rkx) , dimension(2) :: r2st
-
-    integer(ik4) :: k , k1 , k2 , iband , kn , wvl
-    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,   &
-      absbnd , alphat , beta , cf812 , corfac , denom , dplco2 ,       &
-      dplol , dplos , ds2c , dtym10 , et , et2 , et4 , f1co2 , g2 ,    &
-      g4 , k21 , k22 , o3bndi , omet , oneme , p1 , p2 , pbar , phi ,  &
-      pi , posqt , psi , rbeta13 , rbeta8 , rbeta9 , rdpnm , rdpnmsq , &
-      realnu , rphat , rsqti , rsum , sqwp , t1t4 , t2t5 , tcrfac ,    &
-      te , tlocal , tmp1 , tmp2 , tmp3 , tpath , tr1 , tr2 , tr5 ,     &
-      tr6 , tr9 , tr10 , u1 , u13 , u2 , u8 , u9 , ubar , wco2 ,       &
-      dplh2o , dtp , dtz , sqti , dpnm , dtyp15 , dtyp15sq , f1sqwp ,  &
-      f2co2 , f3co2 , fwk , fwku , rbeta7 , sqrtu , t1co2 , to3h2o ,   &
-      tpatha , trab2 , trab4 , trab6 , u7 , uc1 , uc , ux , tco2 ,     &
-      to3 , dw , abstrc , th2o , pnew , dtx , dty , to3co2
-    real(rkx) :: duptyp , du1 , du2 , duch4 , dbetac , du01 , du11 ,   &
-      dbeta01 , dbeta11 , duco11 , duco12 , duco13 , duco21 , duco22 , &
-      duco23 , tpnm
-    real(rkx) , dimension(6) :: abso
-    real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
-                      term3 , term4 , term5 , zinpl , temh2o
-    real(rkx) , dimension(2) :: term7 , term8 , trline
-    real(rkx) , dimension(kzp1) :: dbvtit
-    real(rkx) , dimension(kzp1) :: term6
-    real(rkx) , dimension(kzp1) :: term9
-    real(rkx) , dimension(kzp1) :: pnmsq
-    real(rkx) , dimension(kz) :: dbvtly
-    real(rkx) , dimension(4) :: tbar , pinpl , uinpl , winpl
-    real(rkx) , dimension(nlwspi,4) :: bplnk
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radabs'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Initialize
-    !
-    r2st(1) = d_one/(d_two*st(1))
-    r2st(2) = d_one/(d_two*st(2))
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local( &
-      k,k1,k2,iband,kn,wvl,a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat, &
-      beta,cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,et2,et4,    &
-      f1co2,g2,g4,k21,k22,o3bndi,omet,oneme,p1,p2,pbar,phi,pi,posqt,psi,    &
-      rbeta13,rbeta8,rbeta9,rdpnm,rdpnmsq,realnu,rphat,rsqti,rsum,sqwp,     &
-      t1t4,t2t5,tcrfac,te,tlocal,tmp1,tmp2,tmp3,tpath,tr1,tr2,tr5,tr6,tr9,  &
-      tr10,u1,u13,u2,u8,u9,ubar,wco2,dplh2o,dtp,dtz,sqti,dpnm,dtyp15,       &
-      dtyp15sq,f1sqwp,f2co2,f3co2,fwk,fwku,rbeta7,sqrtu,t1co2,to3h2o,tpatha,&
-      trab2,trab4,trab6,u7,uc1,uc,ux,tco2,to3,dw,abstrc,th2o,pnew,dtx,dty,  &
-      to3co2,duptyp,du1,du2,duch4,dbetac,du01,du11,dbeta01,dbeta11,duco11,  &
-      duco12,duco13,duco21,duco22,duco23,tpnm,abso,emm,o3emm,term1,term2,   &
-      term3,term4,term5,term7,term8,trline,zinpl,temh2o,dbvtit,term6,pnmsq, &
-      dbvtly,tbar,pinpl,uinpl,winpl,bplnk)
-#else
-    do n = n1 , n2
-#endif
-      dbvtit(kzp1) = dbvt(tint(kzp1,n))
-      do k = 1 , kz
-        dbvtly(k) = dbvt(tlayr(k+1,n))
-        dbvtit(k) = dbvt(tint(k,n))
-      end do
-      !
-      ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
-      !
-      ! Non-adjacent layer absorptivity:
-      !
-      ! abso(1)     0 -  800 cm-1   h2o rotation band
-      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-      ! abso(3)   800 - 1200 cm-1   h2o window
-      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-      ! abso(6)   co2 15  micrometer band system
-      !
-      do k = 1 , kzp1
-        pnmsq(k) = pnm(k,n)**2
-        dtx = tplnka(k,n) - 250.0_rkx
-        term6(k) = coeff(1,2) + coeff(2,2)*dtx *    &
-                   (d_one+c9*dtx*(d_one+c11*dtx *   &
-                   (d_one+c13*dtx*(d_one+c15*dtx))))
-        term9(k) = coefi(1,2) + coefi(2,2)*dtx *       &
-                    (d_one+c19*dtx*(d_one+c21*dtx *    &
-                    (d_one+c23*dtx*(d_one+c25*dtx))))
-      end do
-      !
-      ! Non-nearest layer level loops
-      !
-      do k1 = kzp1 , 1 , -1
-        do k2 = kzp1 , 1 , -1
-          if ( k1 /= k2 ) then
-            dplh2o = plh2o(k1,n) - plh2o(k2,n)
-            ux = abs(dplh2o)
-            sqrtu = sqrt(ux)
-            ds2c = abs(s2c(k1,n)-s2c(k2,n))
-            dw = abs(wh2op(k1,n)-wh2op(k2,n))
-            uc1 = (ds2c+1.7e-3_rkx*ux) * &
-                 (d_one+d_two*ds2c)/(d_one+15.0_rkx*ds2c)
-            uc = ds2c + 2.0e-3_rkx*ux
-            pnew = ux/dw
-            tpatha = (s2t(k1,n)-s2t(k2,n))/dplh2o
-            dtx = tplnka(k2,n) - 250.0_rkx
-            dty = tpatha - 250.0_rkx
-            dtyp15 = dty + 15.0_rkx
-            dtyp15sq = dtyp15**2
-            dtz = dtx - 50.0_rkx
-            dtp = dty - 50.0_rkx
-            do iband = 2 , 4 , 2
-              term1(iband) = coefe(1,iband) + &
-                         coefe(2,iband)*dtx*(d_one+c1(iband)*dtx)
-              term2(iband) = coefb(1,iband) + &
-                         coefb(2,iband)*dtx*(d_one+c2(iband)*dtx * &
-                         (d_one+c3(iband)*dtx))
-              term3(iband) = coefd(1,iband) + &
-                         coefd(2,iband)*dtx*(d_one+c4(iband)*dtx * &
-                         (d_one+c5(iband)*dtx))
-              term4(iband) = coefa(1,iband) + &
-                         coefa(2,iband)*dty*(d_one+c6(iband)*dty)
-              term5(iband) = coefc(1,iband) + &
-                         coefc(2,iband)*dty*(d_one+c7(iband)*dty)
-            end do
-            !
-            ! abso(1)     0 -  800 cm-1   h2o rotation band
-            !
-            a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
-            a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
-            a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
-            a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
-            a23 = 1.00_rkx + 3.600_rkx*sqrtu
-            corfac = a31*(a11+((d_two*a21*a22)/a23))
-            t1t4 = term1(2)*term4(2)
-            t2t5 = term2(2)*term5(2)
-            a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-            fwk = fwcoef + fwc1/(d_one+fwc2*ux)
-            fwku = fwk*ux
-            rsum = exp(-a*(sqrtu+fwku))
-            abso(1) = (d_one-rsum)*term3(2)
-            ! trab1(n)  = rsum
-            !
-            ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-            !
-            a41 = 1.75_rkx - 3.960e-3_rkx*dtz
-            a51 = 1.00_rkx + 1.3_rkx*sqrtu
-            a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
-            corfac = 0.29_rkx*(d_one+a41/a51)*a61
-            t1t4 = term1(4)*term4(4)
-            t2t5 = term2(4)*term5(4)
-            a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-            rsum = exp(-a*(sqrtu+fwku))
-            abso(2) = (d_one-rsum)*term3(4)
-            ! trab7(n)  = rsum
-            !
-            ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-            !
-            do k = 1 , 2
-              phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
-              psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
-              ubar = dw*phi*1.66_rkx*r80257
-              pbar = pnew*(psi/phi)
-              cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
-              g2 = d_one + ubar*d_four*st(k)*cf812/pbar
-              g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
-              trline(k) = exp(-g4)
-            end do
-            term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
-            term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
-            term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
-            term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
-            !
-            ! abso(3)   800 - 1200 cm-1   h2o window
-            ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-            k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty-d_10)* &
-                  (dty-d_10))*sqrtu)
-            k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty-d_10))*sqrtu)
-            tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
-            tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
-            tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
-            tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
-            tr9 = tr1*tr5
-            tr10 = tr2*tr6
-            th2o = tr10
-            trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
-            trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
-            trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
-            abso(3) = term6(k2)*(d_one-trab4*d_half*trline(2)- &
-                      trab6*d_half*trline(1))
-            abso(4) = term9(k2)*d_half*(tr1-tr9+tr2-tr10)
-            if ( k2 < k1 ) then
-              to3h2o = h2otr(k1,n)/h2otr(k2,n)
-            else
-              to3h2o = h2otr(k2,n)/h2otr(k1,n)
-            end if
-            !
-            ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-            !
-            dpnm = pnm(k1,n) - pnm(k2,n)
-            to3co2 = (pnm(k1,n)*co2t(k1,n)-pnm(k2,n)*co2t(k2,n))/dpnm
-            te = (to3co2*r293)**0.7_rkx
-            dplos = plos(k1,n) - plos(k2,n)
-            dplol = plol(k1,n) - plol(k2,n)
-            u1 = 18.29_rkx*abs(dplos)/te
-            u2 = 0.5649_rkx*abs(dplos)/te
-            rphat = dplol/dplos
-            tlocal = tint(k2,n)
-            tcrfac = sqrt(tlocal*r250)*te
-            beta = r3205*(rphat+dpfo3*tcrfac)
-            realnu = te/beta
-            tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
-            tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
-            o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
-            abso(5) = o3bndi*to3h2o*dbvtit(k2)
-            to3 = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
-            ! trab5(n)  = d_one-(o3bndi/(1060-980.))
-            !
-            ! abso(6)      co2 15  micrometer band system
-            !
-            sqwp = sqrt(abs(plco2(k1,n)-plco2(k2,n)))
-            et = exp(-480.0_rkx/to3co2)
-            sqti = sqrt(to3co2)
-            rsqti = d_one/sqti
-            et2 = et*et
-            et4 = et2*et2
-            omet = d_one - 1.5_rkx*et2
-            f1co2 = 899.70_rkx*omet*rsqti* &
-              (d_one+1.94774_rkx*et+4.73486_rkx*et2)
-            f1sqwp = f1co2*sqwp
-            t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
-            oneme = d_one - et2
-            alphat = oneme**3*rsqti
-            pi = abs(dpnm)
-            wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
-            u7 = 4.9411e4_rkx*alphat*et2*wco2
-            u8 = 3.9744e4_rkx*alphat*et4*wco2
-            u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
-            u13 = 2.8388e3_rkx*alphat*et4*wco2
-            tpath = to3co2
-            tlocal = tint(k2,n)
-            tcrfac = sqrt(tlocal*r250*tpath*r300)
-            posqt = ((pnm(k2,n)+pnm(k1,n))*r2sslp+dpfco2*tcrfac)*rsqti
-            rbeta7 = d_one/(5.3228_rkx*posqt)
-            rbeta8 = d_one/(10.6576_rkx*posqt)
-            rbeta9 = rbeta7
-            rbeta13 = rbeta9
-            f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
-                    (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
-                    (u9/sqrt(d_four+u9*(d_one+rbeta9)))
-            f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-            if ( k2 >= k1 ) then
-              sqti = sqrt(tlayr(k2,n))
-            end if
-
-            tmp1 = log(d_one+f1sqwp)
-            tmp2 = log(d_one+f2co2)
-            tmp3 = log(d_one+f3co2)
-            absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-            abso(6) = trab2*co2em(k2,n)*absbnd
-            tco2 = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
-            ! trab3(n)  = 1. - bndfct*absbnd
-            !
-            ! Calculate absorptivity due to trace gases
-            !
-            tpnm    = abs(pnm(k1,n)+pnm(k2,n))
-            duptyp  = abs(uptype(k1,n)-uptype(k2,n))
-            du1     = abs(ucfc11(k1,n)-ucfc11(k2,n))
-            du2     = abs(ucfc12(k1,n)-ucfc12(k2,n))
-            duch4   = abs(uch4(k1,n)-uch4(k2,n))
-            dbetac  = abs(bch4(k1,n)-bch4(k2,n))/duch4
-            du01    = abs(un2o0(k1,n)-un2o0(k2,n))
-            du11    = abs(un2o1(k1,n)-un2o1(k2,n))
-            dbeta01 = abs(bn2o0(k1,n)-bn2o0(k2,n))/du01
-            dbeta11 = abs(bn2o1(k1,n)-bn2o1(k2,n))/du11
-            duco11  = abs(uco211(k1,n)-uco211(k2,n))
-            duco12  = abs(uco212(k1,n)-uco212(k2,n))
-            duco13  = abs(uco213(k1,n)-uco213(k2,n))
-            duco21  = abs(uco221(k1,n)-uco221(k2,n))
-            duco22  = abs(uco222(k1,n)-uco222(k2,n))
-            duco23  = abs(uco223(k1,n)-uco223(k2,n))
-            abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
-                           du01,du11,dbeta01,dbeta11,duco11,duco12, &
-                           duco13,duco21,duco22,duco23,dw,pnew,     &
-                           to3co2,ux,tco2,th2o,to3,abplnk1(:,k2,n))
-            !
-            ! Sum total absorptivity
-            !
-            absgastot(k1,k2,n) = abso(1) + abso(2) + abso(3) + &
-                                 abso(4) + abso(5) + abso(6) + abstrc
-          end if
-        end do
-      end do  ! End of non-nearest layer level loops
-      !
-      ! Non-adjacent layer absorptivity:
-      !
-      ! abso(1)     0 -  800 cm-1   h2o rotation band
-      ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-      ! abso(3)   800 - 1200 cm-1   h2o window
-      ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-      ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-      ! abso(6)   co2 15  micrometer band system
-      !
-      ! Nearest layer level loop
-      !
-      do k2 = kz , 1 , -1
-        tbar(1) = (tint(k2+1,n)+tlayr(k2+1,n))*d_half
-        tbar(2) = (tlayr(k2+1,n)+tint(k2,n))*d_half
-        tbar(3) = (tbar(2)+tbar(1))*d_half
-        tbar(4) = tbar(3)
-        emm(1) = (co2em(k2+1,n)+co2eml(k2,n))*d_half
-        emm(2) = (co2em(k2,n)+co2eml(k2,n))*d_half
-        emm(3) = emm(1)
-        emm(4) = emm(2)
-        o3emm(1) = (dbvtit(k2+1)+dbvtly(k2))*d_half
-        o3emm(2) = (dbvtit(k2)+dbvtly(k2))*d_half
-        o3emm(3) = o3emm(1)
-        o3emm(4) = o3emm(2)
-        temh2o(1) = tbar(1)
-        temh2o(2) = tbar(2)
-        temh2o(3) = tbar(1)
-        temh2o(4) = tbar(2)
-        dpnm = pnm(k2+1,n) - pnm(k2,n)
-        !
-        ! Weighted Planck functions for trace gases
-        !
-        do wvl = 1 , nlwspi
-          bplnk(wvl,1) = (abplnk1(wvl,k2+1,n)+abplnk2(wvl,k2,n))*d_half
-          bplnk(wvl,2) = (abplnk1(wvl,k2,  n)+abplnk2(wvl,k2,n))*d_half
-          bplnk(wvl,3) = bplnk(wvl,1)
-          bplnk(wvl,4) = bplnk(wvl,2)
-        end do
-        rdpnmsq = d_one/(pnmsq(k2+1)-pnmsq(k2))
-        rdpnm = d_one/dpnm
-        p1 = (pbr(k2,n)+pnm(k2+1,n))*d_half
-        p2 = (pbr(k2,n)+pnm(k2,n))*d_half
-        uinpl(1) = (pnmsq(k2+1)-p1**2)*rdpnmsq
-        uinpl(2) = -(pnmsq(k2)-p2**2)*rdpnmsq
-        uinpl(3) = -(pnmsq(k2)-p1**2)*rdpnmsq
-        uinpl(4) = (pnmsq(k2+1)-p2**2)*rdpnmsq
-        winpl(1) = ((pnm(k2+1,n)-pbr(k2,n))*d_half)*rdpnm
-        winpl(2) = ((-pnm(k2,n)+pbr(k2,n))*d_half)*rdpnm
-        winpl(3) = ((pnm(k2+1,n)+pbr(k2,n))*d_half-pnm(k2,n))*rdpnm
-        winpl(4) = ((-pnm(k2,n)-pbr(k2,n))*d_half+pnm(k2+1,n))*rdpnm
-        tmp1 = d_one/(piln(k2+1,n)-piln(k2,n))
-        tmp2 = piln(k2+1,n) - pmln(k2,n)
-        tmp3 = piln(k2,n)   - pmln(k2,n)
-        zinpl(1) = (tmp2*d_half)*tmp1
-        zinpl(2) = (-tmp3*d_half)*tmp1
-        zinpl(3) = (tmp2*d_half-tmp3)*tmp1
-        zinpl(4) = (tmp2-tmp3*d_half)*tmp1
-        pinpl(1) = (p1+pnm(k2+1,n))*d_half
-        pinpl(2) = (p2+pnm(k2,n))*d_half
-        pinpl(3) = (p1+pnm(k2,n))*d_half
-        pinpl(4) = (p2+pnm(k2+1,n))*d_half
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( linteract  ) then
-          do kn = 1 , 4
-            xuinpl(k2,kn,n) = uinpl(kn)
-          end do
-        end if
-        ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        do kn = 1 , 4
-          ux = abs(uinpl(kn)*(plh2o(k2,n)-plh2o(k2+1,n)))
-          sqrtu = sqrt(ux)
-          dw = abs(wh2op(k2,n)-wh2op(k2+1,n))
-          pnew = ux/(winpl(kn)*dw)
-          ds2c = abs(s2c(k2,n)-s2c(k2+1,n))
-          uc1 = uinpl(kn)*ds2c
-          uc1 = (uc1+1.7e-3_rkx*ux)*(d_one+d_two*uc1)/&
-                (d_one+15.0_rkx*uc1)
-          uc = uinpl(kn)*ds2c + 2.0e-3_rkx*ux
-          dtx = temh2o(kn) - 250.0_rkx
-          dty = tbar(kn) - 250.0_rkx
-          dtyp15 = dty + 15.0_rkx
-          dtyp15sq = dtyp15**2
-          dtz = dtx - 50.0_rkx
-          dtp = dty - 50.0_rkx
-          do iband = 2 , 4 , 2
-            term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx * &
-                           (d_one+c1(iband)*dtx)
-            term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx * &
-                           (d_one+c2(iband)*dtx                * &
-                           (d_one+c3(iband)*dtx))
-            term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx * &
-                           (d_one+c4(iband)*dtx                * &
-                           (d_one+c5(iband)*dtx))
-            term4(iband) = coefa(1,iband) + coefa(2,iband)*dty * &
-                           (d_one+c6(iband)*dty)
-            term5(iband) = coefc(1,iband) + coefc(2,iband)*dty * &
-                           (d_one+c7(iband)*dty)
-          end do
-          !
-          ! abso(1)     0 -  800 cm-1   h2o rotation band
-          !
-          a11 = 0.44_rkx + 3.380e-4_rkx*dtz - 1.520e-6_rkx*dtz*dtz
-          a31 = 1.05_rkx - 6.000e-3_rkx*dtp + 3.000e-6_rkx*dtp*dtp
-          a21 = 1.00_rkx + 1.717e-3_rkx*dtz - 1.133e-5_rkx*dtz*dtz
-          a22 = 1.00_rkx + 4.443e-3_rkx*dtp + 2.750e-5_rkx*dtp*dtp
-          a23 = 1.00_rkx + 3.600_rkx*sqrtu
-          corfac = a31*(a11+((d_two*a21*a22)/a23))
-          t1t4 = term1(2)*term4(2)
-          t2t5 = term2(2)*term5(2)
-          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-          fwk = fwcoef + fwc1/(d_one+fwc2*ux)
-          fwku = fwk*ux
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(1) = (d_one-rsum)*term3(2)
-          ! trab1(n) = rsum
-          !
-          ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-          !
-          a41 = 1.75_rkx - 3.960e-3_rkx*dtz
-          a51 = 1.00_rkx + 1.3_rkx*sqrtu
-          a61 = 1.00_rkx + 1.250e-3_rkx*dtp + 6.250e-5_rkx*dtp*dtp
-          corfac = 0.29_rkx*(d_one+a41/a51)*a61
-          t1t4 = term1(4)*term4(4)
-          t2t5 = term2(4)*term5(4)
-          a = t1t4 + t2t5/(d_one+t2t5*sqrtu*corfac)
-          rsum = exp(-a*(sqrtu+fwku))
-          abso(2) = (d_one-rsum)*term3(4)
-          ! trab7(n) = rsum
-          !
-          ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-          !
-          do k = 1 , 2
-            phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
-            psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
-            ubar = dw*phi*winpl(kn)*1.66_rkx*r80257
-            pbar = pnew*(psi/phi)
-            cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
-            g2 = d_one + ubar*d_four*st(k)*cf812/pbar
-            g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
-            trline(k) = exp(-g4)
-          end do
-          term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
-          term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
-          term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
-          term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
-          !
-          ! abso(3)   800 - 1200 cm-1   h2o window
-          ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-          !
-          dtym10 = dty - d_10
-          denom = d_one + (c30+c31*dtym10*dtym10)*sqrtu
-          k21 = term7(1) + term8(1)/denom
-          denom = d_one + (c28+c29*dtym10)*sqrtu
-          k22 = term7(2) + term8(2)/denom
-          term9(2) = coefi(1,2) + coefi(2,2)*dtx *     &
-                     (d_one+c19*dtx*(d_one+c21*dtx *   &
-                     (d_one+c23*dtx*(d_one+c25*dtx))))
-          tr1 = exp(-(k21*(sqrtu+fc1*fwku)))
-          tr2 = exp(-(k22*(sqrtu+fc1*fwku)))
-          tr5 = exp(-((coefh(1,3)+coefh(2,3)*dtx)*uc1))
-          tr6 = exp(-((coefh(1,4)+coefh(2,4)*dtx)*uc1))
-          tr9 = tr1*tr5
-          tr10 = tr2*tr6
-          trab2 = 0.65_rkx*tr9 + 0.35_rkx*tr10
-          th2o = tr10
-          trab4 = exp(-(coefg(1,3)+coefg(2,3)*dtx)*uc)
-          trab6 = exp(-(coefg(1,4)+coefg(2,4)*dtx)*uc)
-          term6(2) = coeff(1,2) + coeff(2,2)*dtx *  &
-                       (d_one+c9*dtx*(d_one+c11*dtx * &
-                       (d_one+c13*dtx*(d_one+c15*dtx))))
-          abso(3) = term6(2)*(d_one-trab4*d_half*trline(2) - &
-                                    trab6*d_half*trline(1))
-          abso(4) = term9(2)*d_half*(tr1-tr9+tr2-tr10)
-          !
-          ! abso(5)  o3  9.6 micrometer (nu3 and nu1 bands)
-          !
-          te = (tbar(kn)*r293)**0.7_rkx
-          dplos = abs(plos(k2+1,n)-plos(k2,n))
-          u1 = zinpl(kn)*18.29_rkx*dplos/te
-          u2 = zinpl(kn)*0.5649_rkx*dplos/te
-          tlocal = tbar(kn)
-          tcrfac = sqrt(tlocal*r250)*te
-          beta = r3205*(pinpl(kn)*rsslp+dpfo3*tcrfac)
-          realnu = te/beta
-          tmp1 = u1/sqrt(d_four+u1*(d_one+realnu))
-          tmp2 = u2/sqrt(d_four+u2*(d_one+realnu))
-          o3bndi = 74.0_rkx*te*log(d_one+tmp1+tmp2)
-          abso(5) = o3bndi*o3emm(kn)*(h2otr(k2+1,n)/h2otr(k2,n))
-          to3 = d_one/(d_one+0.1_rkx*tmp1+0.1_rkx*tmp2)
-          ! trab5(n) = d_one-(o3bndi/(1060-980.))
-          !
-          ! abso(6)   co2 15  micrometer band system
-          !
-          dplco2 = plco2(k2+1,n) - plco2(k2,n)
-          sqwp = sqrt(uinpl(kn)*dplco2)
-          et = exp(-480.0_rkx/tbar(kn))
-          sqti = sqrt(tbar(kn))
-          rsqti = d_one/sqti
-          et2 = et*et
-          et4 = et2*et2
-          omet = (d_one-1.5_rkx*et2)
-          f1co2 = 899.70_rkx*omet*rsqti*(d_one+1.94774_rkx*et+4.73486_rkx*et2)
-          f1sqwp = f1co2*sqwp
-          t1co2 = d_one/(d_one+(245.18_rkx*omet*sqwp*rsqti))
-          oneme = d_one - et2
-          alphat = oneme**3*rsqti
-          pi = abs(dpnm)*winpl(kn)
-          wco2 = 2.5221_rkx*co2vmr(n)*pi*regravgts
-          u7 = 4.9411e4_rkx*alphat*et2*wco2
-          u8 = 3.9744e4_rkx*alphat*et4*wco2
-          u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
-          u13 = 2.8388e3_rkx*alphat*et4*wco2
-          tpath = tbar(kn)
-          tlocal = tbar(kn)
-          tcrfac = sqrt((tlocal*r250)*(tpath*r300))
-          posqt = (pinpl(kn)*rsslp+dpfco2*tcrfac)*rsqti
-          rbeta7 = d_one/(5.3228_rkx*posqt)
-          rbeta8 = d_one/(10.6576_rkx*posqt)
-          rbeta9 = rbeta7
-          rbeta13 = rbeta9
-          f2co2 = u7/sqrt(d_four+u7*(d_one+rbeta7)) + &
-                  u8/sqrt(d_four+u8*(d_one+rbeta8)) + &
-                  u9/sqrt(d_four+u9*(d_one+rbeta9))
-          f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-          tmp1 = log(d_one+f1sqwp)
-          tmp2 = log(d_one+f2co2)
-          tmp3 = log(d_one+f3co2)
-          absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-          abso(6) = trab2*emm(kn)*absbnd
-          tco2 = d_one/(d_one+d_10*u7/sqrt(d_four+u7*(d_one+rbeta7)))
-          ! trab3(n) = 1. - bndfct*absbnd
-          !
-          ! Calculate trace gas absorptivity for nearest layer
-          !
-          ds2c   = abs(s2c(k2+1,n)-s2c(k2,n))*uinpl(kn)
-          duptyp = abs(uptype(k2+1,n)-uptype(k2,n))*uinpl(kn)
-          du1    = abs(ucfc11(k2+1,n)-ucfc11(k2,n))*winpl(kn)
-          du2    = abs(ucfc12(k2+1,n)-ucfc12(k2,n))*winpl(kn)
-          duch4  = abs(uch4(k2+1,n)-uch4(k2,n))*winpl(kn)
-          du01   = abs(un2o0(k2+1,n)-un2o0(k2,n))*winpl(kn)
-          du11   = abs(un2o1(k2+1,n)-un2o1(k2,n))*winpl(kn)
-          duco11 = abs(uco211(k2+1,n)-uco211(k2,n))*winpl(kn)
-          duco12 = abs(uco212(k2+1,n)-uco212(k2,n))*winpl(kn)
-          duco13 = abs(uco213(k2+1,n)-uco213(k2,n))*winpl(kn)
-          duco21 = abs(uco221(k2+1,n)-uco221(k2,n))*winpl(kn)
-          duco22 = abs(uco222(k2+1,n)-uco222(k2,n))*winpl(kn)
-          duco23 = abs(uco223(k2+1,n)-uco223(k2,n))*winpl(kn)
-          abstrc = trcabn(tbar(kn),dw,pnew,tco2,th2o,to3,ux,pinpl(kn),   &
-                          winpl(kn),ds2c,duptyp,du1,du2,duch4,du01,du11, &
-                          duco11,duco12,duco13,duco21,duco22,duco23,     &
-                          bplnk(:,kn))
-          !
-          ! Total next layer absorptivity:
-          !
-          absgasnxt(k2,kn,n) = abso(1) + abso(2) + abso(3) + &
-                               abso(4) + abso(5) + abso(6) + abstrc
-        end do
-      end do  !  end of nearest layer level loop
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radabs
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Compute emissivity for H2O, CO2, O3, CH4, N2O, CFC11 and CFC12
-  !
-  ! H2O  ....  Uses nonisothermal emissivity for water vapor from
-  !            Ramanathan, V. and  P.Downey, 1986: A Nonisothermal
-  !            Emissivity and Absorptivity Formulation for Water Vapor
-  !            Jouranl of Geophysical Research, vol. 91., D8, pp 8649-8666
-  !
-  !
-  ! CO2  ....  Uses absorptance parameterization of the 15 micro-meter
-  !            (500 - 800 cm-1) band system of Carbon Dioxide, from
-  !            Kiehl, J.T. and B.P.Briegleb, 1991: A New Parameterization
-  !            of the Absorptance Due to the 15 micro-meter Band System
-  !            of Carbon Dioxide Jouranl of Geophysical Research,
-  !            vol. 96., D5, pp 9013-9019
-  !
-  ! O3   ....  Uses absorptance parameterization of the 9.6 micro-meter
-  !            band system of ozone, from Ramanathan, V. and R. Dickinson,
-  !            1979: The Role of stratospheric ozone in the zonal and
-  !            seasonal radiative energy balance of the earth-troposphere
-  !            system. Journal of the Atmospheric Sciences, Vol. 36,
-  !            pp 1084-1104
-  !
-  ! CH4  ....  Uses a broad band model for the 7.7 micron band of methane.
-  !
-  ! N20  ....  Uses a broad band model for the 7.8, 8.6 and 17.0 micron
-  !            bands of nitrous oxide
-  !
-  ! CFC11 ...  Uses a quasi-linear model for the 9.2, 10.7, 11.8 and 12.5
-  !            micron bands of CFC11
-  !
-  ! CFC12 ...  Uses a quasi-linear model for the 8.6, 9.1, 10.8 and 11.2
-  !            micron bands of CFC12
-  !
-  ! Computes individual emissivities, accounting for band overlap, and
-  ! sums to obtain the total.
-  !
-  ! Input arguments
-  !
-  !   s2c     - H2o continuum path length
-  !   s2t     - Tmp and prs wghted h2o path length
-  !   w       - H2o path length
-  !   tplnke  - Layer planck temperature
-  !   plh2o   - H2o prs wghted path length
-  !   pnm     - Model interface pressure (dynes/cm*2)
-  !   plco2   - Prs wghted path of co2
-  !   tint    - Model interface temperatures
-  !   tint4   - Tint to the 4th power
-  !   tlayr   - K-1 model layer temperature
-  !   tlayr4  - Tlayr to the 4th power
-  !   plol    - Pressure wghtd ozone path
-  !   plos    - Ozone path
-  !   ucfc11  - CFC11 path length
-  !   ucfc12  - CFC12 path length
-  !   un2o0   - N2O path length
-  !   un2o1   - N2O path length (hot band)
-  !   uch4    - CH4 path length
-  !   uco211  - CO2 9.4 micron band path length
-  !   uco212  - CO2 9.4 micron band path length
-  !   uco213  - CO2 9.4 micron band path length
-  !   uco221  - CO2 10.4 micron band path length
-  !   uco222  - CO2 10.4 micron band path length
-  !   uco223  - CO2 10.4 micron band path length
-  !   bn2o0   - pressure factor for n2o
-  !   bn2o1   - pressure factor for n2o
-  !   bch4    - pressure factor for ch4
-  !   uptype  - p-type continuum path length
-  !
-  ! Output arguments
-  !
-  !   co2em   - Layer co2 normalzd plnck funct drvtv
-  !   co2eml  - Intrfc co2 normalzd plnck func drvtv
-  !   co2t    - Tmp and prs weighted path length
-  !   h2otr   - H2o transmission over o3 band
-  !   emplnk  - emissivity Planck factor
-  !   emstrc  - total trace gas emissivity
-  !
-  subroutine radems(n1,n2,pnm,tint,tint4,tlayr,tlayr4,tplnke,co2vmr,plos,  &
-                    plol,plh2o,plco2,ucfc11,ucfc12,un2o0,un2o1,bn2o0,bn2o1,&
-                    uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223,   &
-                    uptype,wh2op,s2c,s2t,emplnk,co2t,co2em,co2eml,h2otr,   &
-                    emsgastot)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tint4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tlayr , tlayr4
-    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke , co2vmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: wh2op , s2c , s2t
-    real(rkx) , dimension(nlwspi,n1:n2) , intent(in) :: emplnk
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: co2t , co2em , co2eml
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: h2otr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: emsgastot
-    !
-    ! iband   - H2o band index
-    !
-    ! Local variables for H2O:
-    !
-    ! h2oems  - H2o emissivity
-    ! tpathe  - Used to compute h2o emissivity
-    ! a       - Eq(2) in table A3a of R&D
-    ! corfac  - Correction factors in table A3b rotation band absorptivity
-    ! dtp     - Path temperature minus 300 K used in
-    ! dtx     - Planck temperature minus 250 K
-    ! dty     - Path temperature minus 250 K
-    ! dtz     - Planck temperature minus 300 K
-    ! emis    - Total emissivity (h2o+co2+o3)
-    ! rsum    - Eq(1) in table A2 of R&D
-    ! term1   - Equation(5) in table A3a of R&D(1986)
-    ! term2   - Delta a(Te) in table A3a of R&D(1986)
-    ! term3   - B(T) function for rotation and vibration-rotation band emiss.
-    ! term4   - Equation(6) in table A3a of R&D(1986)
-    ! term5   - Delta a(Tp) in table A3a of R&D(1986)
-    ! term6   - B(T) function for window region
-    ! term7   - Kl_inf(i) in eq(8) of table A3a of R&D
-    ! term8   - Delta kl_inf(i) in eq(8)
-    ! term9   - B(T) function for 500-800 cm-1 region
-    ! tr1     - Equation(6) in table A2 for 650-800
-    ! tr2     - Equation(6) in table A2 for 500-650
-    ! tr3     - Equation(4) in table A2 for 650-800
-    ! tr4     - Equation(4),table A2 of R&D for 500-650
-    ! tr7     - Equ. (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
-    ! tr8     - Equ. (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
-    ! uc      - Y + 0.002U in eq(8) of table A2 of R&D
-    ! pnew    - Effective pressure for h2o linewidth
-    ! trline  - Transmission due to H2O lines in window
-    ! k21     - Exponential coefficient used to calc rot band transmissivity
-    !           in the 650-800 cm-1 region (tr1)
-    ! k22     - Exponential coefficient used to calc rot band transmissivity
-    !           in the 500-650 cm-1 region (tr2)
-    ! u       - Pressure weighted H2O path length
-    ! uc1     - H2o continuum pathlength 500-800 cm-1
-    ! a11     - A1 in table A3b for rotation band emiss
-    ! a31     - A3 in table A3b for rotation band emiss
-    ! a21     - First part in numerator of A2 table A3b
-    ! a22     - Second part in numertor of A2 table A3b
-    ! a23     - Denominator of A2 table A3b (rot band)
-    ! t1t4    - Eq(3) in table A3a of R&D
-    ! t2t5    - Eq(4) in table A3a of R&D
-    ! fwk     - Equation(33) in R&D far wing correction
-    ! a41     - Numerator in A2 in Vib-rot (table A3b)
-    ! a51     - Denominator in A2 in Vib-rot(table A3b)
-    ! a61     - A3 factor for Vib-rot band in table A3b
-    ! phi     - Eq(11) in table A3a of R&D
-    ! psi     - Eq(12) in table A3a of R&D
-    ! ubar    - H2o scaled path comment eq(10) table A2
-    ! g1      - Part of eq(10) table A2
-    ! pbar    - H2o scaled pres comment eq(10) table A2
-    ! g3      - Part of eq(10) table A2
-    ! g2      - Part of arguement in eq(10) in table A2
-    ! g4      - Arguement in exp() in eq(10) table A2
-    ! cf812   - Eq(11) in table A2 of R&D
-    ! troco2  - H2o overlap factor for co2 absorption
-    !
-    ! Local variables for CO2:
-    !
-    ! co2ems  - Co2 emissivity
-    ! co2plk  - Used to compute co2 emissivity
-    ! xsum    - Used to calculate path temperature
-    ! t1i     - Co2 hot band temperature factor
-    ! sqti    - Sqrt of temperature
-    ! pi      - Pressure used in co2 mean line width
-    ! et      - Co2 hot band factor
-    ! et2     - Co2 hot band factor
-    ! et4     - Co2 hot band factor
-    ! omet    - Co2 stimulated emission term
-    ! ex      - Part of co2 planck function
-    ! f1co2   - Co2 weak band factor
-    ! f2co2   - Co2 weak band factor
-    ! f3co2   - Co2 weak band factor
-    ! t1co2   - Overlap factor weak bands strong band
-    ! sqwp    - Sqrt of co2 pathlength
-    ! f1sqwp  - Main co2 band factor
-    ! oneme   - Co2 stimulated emission term
-    ! alphat  - Part of the co2 stimulated emiss term
-    ! wco2    - Consts used to define co2 pathlength
-    ! posqt   - Effective pressure for co2 line width
-    ! rbeta7  - Inverse of co2 hot band line width par
-    ! rbeta8  - Inverse of co2 hot band line width par
-    ! rbeta9  - Inverse of co2 hot band line width par
-    ! rbeta13 - Inverse of co2 hot band line width par
-    ! tpath   - Path temp used in co2 band model
-    ! tmp1    - Co2 band factor
-    ! tmp2    - Co2 band factor
-    ! tmp3    - Co2 band factor
-    ! tlayr5  - Temperature factor in co2 Planck func
-    ! rsqti   - Reciprocal of sqrt of temperature
-    ! exm1sq  - Part of co2 Planck function
-    ! u7      - Absorber amount for various co2 band systems
-    ! u8      - Absorber amount for various co2 band systems
-    ! u9      - Absorber amount for various co2 band systems
-    ! u13     - Absorber amount for various co2 band systems
-    !
-    ! Local variables for O3:
-    !
-    ! o3ems   - Ozone emissivity
-    ! dbvtt   - Tmp drvtv of planck fctn for tplnke
-    ! te      - Temperature factor
-    ! u1      - Path length factor
-    ! u2      - Path length factor
-    ! phat    - Effecitive path length pressure
-    ! tlocal  - Local planck function temperature
-    ! tcrfac  - Scaled temperature factor
-    ! beta    - Absorption funct factor voigt effect
-    ! realnu  - Absorption function factor
-    ! o3bndi  - Band absorption factor
-    !
-    ! Transmission terms for various spectral intervals:
-    !
-    ! trem4   - H2o   800 - 1000 cm-1
-    ! trem6   - H2o  1000 - 1200 cm-1
-    ! absbnd  - Proportional to co2 band absorptance
-    ! tco2    - co2 overlap factor
-    ! th2o    - h2o overlap factor
-    ! to3     - o3 overlap factor
-    !
-    integer(ik4) :: n
-    real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,  &
-                 absbnd , alphat , beta , cf812 , et , et2 , et4 , ex , &
-                 exm1sq , f1co2 , f1sqwp , f2co2 , f3co2 , fwk , g1 ,   &
-                 g2 , g3 , g4 , o3bndi , omet , oneme , pbar , phat ,   &
-                 phi , pi , posqt , psi , k21 , k22 , trem4 , trem6 ,   &
-                 rbeta13 , rbeta7 , rbeta8 , rbeta9 , realnu , rsqti ,  &
-                 sqti , sqwp , t1co2 , t1i , t1t4 , t2t5 , tpathe ,     &
-                 tcrfac , te , tlayr5 , tlocal , tmp1 , tmp2 , tmp3 ,   &
-                 tpath , u1 , u13 , u2 , u7 , u8 , u9 , ubar , wco2 ,   &
-                 tr1 , tr2 , tr3 , tr4 , tr7 , tr8 , corfac , dbvtt ,   &
-                 dtp , dtz , pnew , rsum , uc , uc1 , ux , troco2 ,     &
-                 tco2 , to3 , th2o , emstrc , h2oems , co2ems , o3ems , &
-                 xsum , dtx , dty , co2plk
-    real(rkx) , dimension(4) :: term1 , term2 , term3 , term4 , term5
-    real(rkx) , dimension(4) :: emis
-    real(rkx) :: term6 , term9
-    real(rkx) , dimension(2) :: term7 , term8 , trline
-    integer(ik4) :: k , kk , iband , l
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radems'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,kk,iband,l,term6,term9,emis,   &
-      a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat,beta,cf812,et,   &
-      et2,et4,ex,exm1sq,f1co2,f1sqwp,f2co2,f3co2,fwk,g1,g2,g3,g4,omet, &
-      o3bndi,oneme,pbar,phat,phi,pi,posqt,psi,k21,k22,trem4,trem6,     &
-      rbeta13,rbeta7,rbeta8,rbeta9,realnu,rsqti,sqti,sqwp,t1co2,t1i,   &
-      t1t4,t2t5,tpathe,tcrfac,te,tlayr5,tlocal,tmp1,tmp2,tmp3,tpath,   &
-      u1,u13,u2,u7,u8,u9,ubar,wco2,tr1,tr2,tr3,tr4,tr7,tr8,corfac,     &
-      dbvtt,dtp,dtz,pnew,rsum,uc,uc1,troco2,term1,term2,term3,term4,   &
-      term5,term7,term8,trline,ux,tco2,th2o,to3,emstrc,h2oems,co2ems,  &
-      o3ems,xsum,dtx,dty,co2plk)
-#else
-    do n = n1 , n2
-#endif
-
-      ex = exp(960.0_rkx/tplnke(n))
-      co2plk = 5.0e8_rkx/((tplnke(n)**4)*(ex-d_one))
-      co2t(1,n) = tplnke(n)
-      xsum = co2t(1,n)*pnm(1,n)
-      kk = 1
-      do k = kzp1 , 2 , -1
-        kk = kk + 1
-        xsum = xsum + tlayr(kk,n)*(pnm(kk,n)-pnm(kk-1,n))
-        ex = exp(960.0_rkx/tlayr(kk,n))
-        tlayr5 = tlayr(kk,n)*tlayr4(kk,n)
-        co2eml(kk-1,n) = 1.2e11_rkx*ex/(tlayr5*(ex-d_one)**2)
-        co2t(kk,n) = xsum/pnm(kk,n)
-      end do
-      !
-      ! bndfct = 2.d0*22.18/(sqrt(196.d0)*300.)
-      ! Interface loop
-      !
-      do k = 1 , kzp1
-        !
-        ! H2O emissivity
-        !
-        ! emis(1)     0 -  800 cm-1   rotation band
-        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
-        ! emis(3)   800 - 1200 cm-1   window
-        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
-        !
-        ! For the p type continuum
-        !
-        ux = plh2o(k,n)
-        uc = s2c(k,n) + 2.0e-3_rkx*ux
-        pnew = ux/wh2op(k,n)
-        !
-        ! Apply scaling factor for 500-800 continuum
-        !
-        uc1 = (s2c(k,n)+1.7e-3_rkx*plh2o(k,n)) * &
-              (d_one+d_two*s2c(k,n))/(d_one+15.0_rkx*s2c(k,n))
-        tpathe = s2t(k,n)/plh2o(k,n)
-        dtx = tplnke(n) - 250.0_rkx
-        dty = tpathe - 250.0_rkx
-        dtz = dtx - 50.0_rkx
-        dtp = dty - 50.0_rkx
-        !
-        ! emis(1)     0 -  800 cm-1   rotation band
-        !
-        do iband = 1 , 3 , 2
-          term1(iband) = coefe(1,iband) + coefe(2,iband)*dtx *   &
-                         (d_one+c1(iband)*dtx)
-          term2(iband) = coefb(1,iband) + coefb(2,iband)*dtx *   &
-                         (d_one+c2(iband)*dtx*(d_one+c3(iband)*dtx))
-          term3(iband) = coefd(1,iband) + coefd(2,iband)*dtx *   &
-                         (d_one+c4(iband)*dtx*(d_one+c5(iband)*dtx))
-          term4(iband) = coefa(1,iband) + coefa(2,iband)*dty *   &
-                         (d_one+c6(iband)*dty)
-          term5(iband) = coefc(1,iband) + coefc(2,iband)*dty *   &
-                         (d_one+c7(iband)*dty)
-        end do
-        a11 = 0.37_rkx - 3.33e-5_rkx*dtz + 3.33e-6_rkx*dtz*dtz
-        a31 = 1.07_rkx - 1.00e-3_rkx*dtp + 1.475e-5_rkx*dtp*dtp
-        a21 = 1.3870_rkx + 3.80e-3_rkx*dtz - 7.8e-6_rkx*dtz*dtz
-        a22 = d_one - 1.21e-3_rkx*dtp - 5.33e-6_rkx*dtp*dtp
-        a23 = 0.9_rkx + 2.62_rkx*sqrt(ux)
-        corfac = a31*(a11+((a21*a22)/a23))
-        t1t4 = term1(1)*term4(1)
-        t2t5 = term2(1)*term5(1)
-        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux)*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
-        rsum = exp(-a*(sqrt(ux)+fwk*ux))
-        emis(1) = (d_one-rsum)*term3(1)
-        ! trem1  = rsum
-        !
-        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
-        !
-        a41 = 1.75_rkx - 3.96e-3_rkx*dtz
-        a51 = 1.00_rkx + 1.3_rkx*sqrt(ux)
-        a61 = 1.00_rkx + 1.25e-3_rkx*dtp + 6.25e-5_rkx*dtp*dtp
-        corfac = 0.3_rkx*(d_one+(a41)/(a51))*a61
-        t1t4 = term1(3)*term4(3)
-        t2t5 = term2(3)*term5(3)
-        a = t1t4 + t2t5/(d_one+t2t5*sqrt(ux)*corfac)
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
-        rsum = exp(-a*(sqrt(ux)+fwk*ux))
-        emis(2) = (d_one-rsum)*term3(3)
-        ! trem7 = rsum
-        !
-        ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
-        !
-        ! emis(3)   800 - 1200 cm-1   window
-        !
-        do l = 1 , 2
-          phi = a1(l)*(dty+15.0_rkx)+a2(l)*(dty+15.0_rkx)**2
-          psi = b1(l)*(dty+15.0_rkx)+b2(l)*(dty+15.0_rkx)**2
-          phi = exp(phi)
-          psi = exp(psi)
-          ubar = wh2op(k,n)*phi
-          ubar = (ubar*1.66_rkx)*r80257
-          pbar = pnew*(psi/phi)
-          cf812 = cfa1 + ((d_one-cfa1)/(d_one+ubar*pbar*d_10))
-          g1 = (realk(l)*pbar)/(d_two*st(l))
-          g2 = d_one + (ubar*d_four*st(l)*cf812)/pbar
-          g3 = sqrt(g2) - d_one
-          g4 = g1*g3
-          trline(l) = exp(-g4)
-        end do
-        term6 = coeff(1,1) + coeff(2,1)*dtx *     &
-                (d_one+c8*dtx*(d_one+c10*dtx *    &
-                (d_one+c12*dtx*(d_one+c14*dtx))))
-        term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
-        term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
-        term7(2) = coefj(1,2)+coefj(2,2)*dty*(d_one+c26*dty)
-        term8(2) = coefk(1,2)+coefk(2,2)*dty*(d_one+c27*dty)
-        trem4 = exp(-(coefg(1,1)+coefg(2,1)*dtx)*uc)*trline(2)
-        trem6 = exp(-(coefg(1,2)+coefg(2,2)*dtx)*uc)*trline(1)
-        emis(3) = term6*(d_one-trem4*d_half-trem6*d_half)
-        !
-        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
-        !
-        k21 = term7(1) + term8(1)/(d_one+(c30+c31*(dty-d_10) * &
-                 (dty-d_10))*sqrt(ux))
-        k22 = term7(2) + term8(2)/(d_one+(c28+c29*(dty-d_10))*sqrt(ux))
-        term9 = coefi(1,1) + coefi(2,1)*dtx *  &
-                (d_one+c18*dtx*(d_one+c20*dtx * &
-                (d_one+c22*dtx*(d_one+c24*dtx))))
-        fwk = fwcoef + fwc1/(d_one+fwc2*ux)
-        tr1 = exp(-(k21*(sqrt(ux)+fc1*fwk*ux)))
-        tr2 = exp(-(k22*(sqrt(ux)+fc1*fwk*ux)))
-        tr3 = exp(-((coefh(1,1)+coefh(2,1)*dtx)*uc1))
-        tr4 = exp(-((coefh(1,2)+coefh(2,2)*dtx)*uc1))
-        tr7 = tr1*tr3
-        tr8 = tr2*tr4
-        emis(4) = term9*d_half*(tr1-tr7+tr2-tr8)
-        h2oems = emis(1) + emis(2) + emis(3) + emis(4)
-        troco2 = 0.65_rkx*tr7 + 0.35_rkx*tr8
-        th2o = tr8
-        ! trem2(n) = troco2
-        !
-        ! CO2 emissivity for 15 micron band system
-        !
-        t1i = exp(-480.0_rkx/co2t(k,n))
-        sqti = sqrt(co2t(k,n))
-        rsqti = d_one/sqti
-        et = t1i
-        et2 = et*et
-        et4 = et2*et2
-        omet = d_one - 1.5_rkx*et2
-        f1co2 = 899.70_rkx*omet*(d_one+1.94774_rkx*et+4.73486_rkx*et2)*rsqti
-        sqwp = sqrt(plco2(k,n))
-        f1sqwp = f1co2*sqwp
-        t1co2 = d_one/(d_one+245.18_rkx*omet*sqwp*rsqti)
-        oneme = d_one - et2
-        alphat = oneme**3*rsqti
-        wco2 = 2.5221_rkx*co2vmr(n)*pnm(k,n)*regravgts
-        u7 = 4.9411e4_rkx*alphat*et2*wco2
-        u8 = 3.9744e4_rkx*alphat*et4*wco2
-        u9 = 1.0447e5_rkx*alphat*et4*et2*wco2
-        u13 = 2.8388e3_rkx*alphat*et4*wco2
-
-        tpath = co2t(k,n)
-        tlocal = tplnke(n)
-        tcrfac = sqrt((tlocal*r250)*(tpath*r300))
-        pi = pnm(k,n)*rsslp + d_two*dpfco2*tcrfac
-        posqt = pi/(d_two*sqti)
-        rbeta7 = d_one/(5.3288_rkx*posqt)
-        rbeta8 = d_one/(10.6576_rkx*posqt)
-        rbeta9 = rbeta7
-        rbeta13 = rbeta9
-        f2co2 = (u7/sqrt(d_four+u7*(d_one+rbeta7))) + &
-                (u8/sqrt(d_four+u8*(d_one+rbeta8))) + &
-                (u9/sqrt(d_four+u9*(d_one+rbeta9)))
-        f3co2 = u13/sqrt(d_four+u13*(d_one+rbeta13))
-        tmp1 = log(d_one+f1sqwp)
-        tmp2 = log(d_one+f2co2)
-        tmp3 = log(d_one+f3co2)
-        absbnd = (tmp1+d_two*t1co2*tmp2+d_two*tmp3)*sqti
-        tco2 = d_one/(d_one+d_10*(u7/sqrt(d_four+u7*(d_one+rbeta7))))
-        co2ems = troco2*absbnd*co2plk
-        ex = exp(960.0_rkx/tint(k,n))
-        exm1sq = (ex-d_one)**2
-        co2em(k,n) = 1.2e11_rkx*ex/(tint(k,n)*tint4(k,n)*exm1sq)
-        ! trem3(n) = 1. - bndfct*absbnd
-        !
-        ! O3 emissivity
-        !
-        h2otr(k,n) = exp(-12.0_rkx*s2c(k,n))
-        te = (co2t(k,n)/293.0_rkx)**0.7_rkx
-        u1 = 18.29_rkx*plos(k,n)/te
-        u2 = 0.5649_rkx*plos(k,n)/te
-        phat = plos(k,n)/plol(k,n)
-        tlocal = tplnke(n)
-        tcrfac = sqrt(tlocal*r250)*te
-        beta = (d_one/0.3205_rkx)*((d_one/phat)+(dpfo3*tcrfac))
-        realnu = (d_one/beta)*te
-        o3bndi = 74.0_rkx*te*(tplnke(n)/375.0_rkx)* &
-                 log(d_one+fo3(u1,realnu)+fo3(u2,realnu))
-        dbvtt = dbvt(tplnke(n))
-        o3ems = dbvtt*h2otr(k,n)*o3bndi
-        to3 = d_one/(d_one+0.1_rkx*fo3(u1,realnu)+0.1_rkx*fo3(u2,realnu))
-        ! trem5(n)    = d_one-(o3bndi/(1060-980.))
-        !
-        ! Calculate trace gas emissivities
-        !
-        emstrc = trcems(co2t(k,n),pnm(k,n),ucfc11(k,n),ucfc12(k,n),  &
-                        un2o0(k,n),un2o1(k,n),bn2o0(k,n),bn2o1(k,n), &
-                        uch4(k,n),bch4(k,n),uco211(k,n),uco212(k,n), &
-                        uco213(k,n),uco221(k,n),uco222(k,n),         &
-                        uco223(k,n),uptype(k,n),wh2op(k,n),s2c(k,n), &
-                        ux,emplnk(:,n),th2o,tco2,to3)
-        !
-        ! Total emissivity:
-        !
-        emsgastot(k,n) = h2oems + co2ems + o3ems + emstrc
-      end do  ! End of interface loop
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radems
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Set latitude and time dependent arrays for input to solar
-  ! and longwave radiation.
-  !
-  ! Convert model pressures to cgs, compute path length arrays needed for the
-  ! longwave radiation, and compute ozone mixing ratio, needed for the solar
-  ! radiation.
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! RegCM - The Sun/Earth geometry is moved elsewhere
-  !
-  subroutine radinp(n1,n2,pmid,pint,h2ommr,co2vmr,cld,o3vmr, &
-                    pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pint , cld
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pmid , h2ommr , o3vmr
-    real(rkx) , dimension(kz,n1:n2) , intent(out) :: pbr , o3mmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: plco2 , plh2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: pnm , tclrsf
-    !
-    ! vmmr - Ozone volume mixing ratio
-    !
-    real(rkx) , parameter :: vmmr = amo3/amd
-    real(rkx) , parameter :: cpwpl = d_half*(amco2/amd)/(egravgts*sslp)
-    integer(ik4) :: n , k
-    !
-    !------------------------------Arguments--------------------------------
-    !
-    ! Input arguments
-    !
-    ! pmid    - Pressure at model mid-levels (pascals)
-    ! pint    - Pressure at model interfaces (pascals)
-    ! h2ommr  - H2o mass mixing ratio
-    ! cld     - Fractional cloud cover
-    ! o3vmr   - ozone volume mixing ratio
-    !
-    ! Output arguments
-    !
-    ! pbr     - Pressure at interfaces (dynes/cm*2)
-    ! pnm     - Pressure at mid-levels (dynes/cm*2)
-    ! plco2   - Vert. pth lngth of co2 (prs-weighted)
-    ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
-    ! o3mmr   - Ozone mass mixing ratio
-    ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
-    !
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radinp'
-    integer(ik4) :: indx = 0
-    call time_begin(subroutine_name,indx)
-#endif
-    !
-    ! Convert pressure from pascals to dynes/cm2
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
-      do k = 1 , kz
-        pbr(k,n) = pmid(k,n)*d_10
-        pnm(k,n) = pint(k,n)*d_10
-      end do
-      pnm(kzp1,n) = pint(kzp1,n)*d_10
-      !
-      ! Compute path quantities used in the longwave radiation:
-      !
-      plh2o(1,n) = rgsslp*h2ommr(1,n)*pnm(1,n)*pnm(1,n)
-      plco2(1,n) = co2vmr(n)*cpwpl*pnm(1,n)*pnm(1,n)
-      tclrsf(1,n) = d_one
-      do k = 1 , kz
-        plh2o(k+1,n) = plh2o(k,n) + rgsslp*(pnm(k+1,n)**2 - &
-                       pnm(k,n)**2) * h2ommr(k,n)
-        plco2(k+1,n) = co2vmr(n)*cpwpl*pnm(k+1,n)**2
-        tclrsf(k+1,n) = tclrsf(k,n)*(d_one-cld(k+1,n))
-      end do
-      !
-      ! Convert ozone volume mixing ratio to mass mixing ratio:
-      !
-      do k = 1 , kz
-        o3mmr(k,n) = vmmr*o3vmr(k,n)
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,indx)
-#endif
-  end subroutine radinp
-
-  ! xalpha - Term in direct reflect and transmissivity
-  pure real(rkx) function xalpha(wi,uui,gi,ei)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , uui , gi , ei
-    real(rk8) :: w , uu , g , e
-    w = wi
-    uu = uui
-    g = gi
-    e = ei
-    xalpha = real(0.75_rk8*(w*uu)*((1.0_rk8+(g*(1.0_rk8-w))) / &
-                  (1.0_rk8-((e*e)*(uu*uu)))),rkx)
-  end function xalpha
-
-  ! xgamma - Term in direct reflect and transmissivity
-  pure real(rkx) function xgamma(wi,uui,gi,ei)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , uui , gi , ei
-    real(rk8) :: w , uu , g , e
-    w = wi
-    uu = uui
-    g = gi
-    e = ei
-    xgamma = real((w*0.5_rk8)*((3.0_rk8*g*(1.0_rk8-w)*(uu*uu)+1.0_rk8) / &
-                               (1.0_rk8-((e*e)*(uu*uu)))),rkx)
-  end function xgamma
-
-  ! el - Term in xalpha,xgamma,f_n,f_u
-  pure real(rkx) function el(wi,gi)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , gi
-    real(rk8) :: w , g
-    w = wi
-    g = gi
-    el = real(sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g)),rkx)
-  end function el
-
-  ! taus - Scaled extinction optical depth
-  pure real(rkx) function taus(wi,fi,ti)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , fi , ti
-    real(rk8) :: w , f , t
-    w = wi
-    f = fi
-    t = ti
-    taus = real((1.0_rk8-w*f)*t,rkx)
-  end function taus
-
-  ! omgs - Scaled single particle scattering albedo
-  pure real(rkx) function omgs(wi,fi)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , fi
-    real(rk8) :: w , f
-    w = wi
-    f = fi
-    omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
-  end function omgs
-
-  ! asys - Scaled asymmetry parameter
-  pure real(rkx) function asys(gi,fi)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: gi , fi
-    real(rk8) :: g , f
-    g = gi
-    f = fi
-    asys = real((g-f)/(1.0_rk8-f),rkx)
-  end function asys
-
-  ! f_u - Term in diffuse reflect and transmissivity
-  pure real(rkx) function f_u(wi,gi,ei)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: wi , gi , ei
-    real(rk8) :: w , g , e
-    w = wi
-    g = gi
-    e = ei
-    f_u = real(1.50_rk8*(1.0_rk8-w*g)/e,rkx)
-  end function f_u
-
-  ! f_n - Term in diffuse reflect and transmissivity
-  pure real(rkx) function f_n(uui,eti)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: uui , eti
-    real(rk8) :: uu , et
-    uu = uui
-    et = eti
-    f_n = real(((uu+1.0_rk8)*(uu+1.0_rk8)/et) - &
-               ((uu-1.0_rk8)*(uu-1.0_rk8)*et),rkx)
-  end function f_n
-
-  ! dbvt - Planck fnctn tmp derivative for o3
-  pure real(rkx) function dbvt(ti)
-!$acc routine seq
-    ! Derivative of planck function at 9.6 micro-meter wavelength
-    implicit none
-    real(rkx) , intent(in) :: ti
-    real(rk8) :: t
-    t = ti
-    dbvt = real((-2.8911366682e-4_rk8 + &
-           (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
-           (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t),rkx)
-  end function dbvt
-
-  pure real(rkx) function fo3(uxi,vxi)
-!$acc routine seq
-    ! an absorption function factor
-    implicit none
-    real(rkx) , intent(in) :: uxi , vxi
-    real(rk8) :: ux , vx
-    ux = uxi
-    vx = vxi
-    fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
-  end function fo3
-
-  pure integer(ik4) function intmax(imax)
-!$acc routine seq
-    implicit none
-    integer(ik4) , dimension(:) , intent(in) :: imax
-    integer(ik4) :: i , n , is , ie , mx
-    is = lbound(imax,1)
-    ie = ubound(imax,1)
-    intmax = is
-    n = ie-is+1
-    if ( n > 1 ) then
-      mx = imax(is)
-      do i = is+1 , ie
-        if ( imax(i) > mx ) then
-          mx = imax(i)
-          intmax = i
-        end if
-      end do
-    end if
-  end function intmax
-  !
-  !----------------------------------------------------------------------
-  ! Calculate path lengths and pressure factors for CH4, N2O, CFC11
-  ! and CFC12.
-  !           Coded by J.T. Kiehl, November 21, 1994.
-  !
-  !-----------------------------------------------------------------------
-  !
-  !------------------------------Arguments--------------------------------
-  !
-  ! Input arguments
-  !
-  ! tnm    - Model level temperatures
-  ! pnm    - Pressure at model interfaces (dynes/cm2)
-  ! qmn    - h2o specific humidity
-  ! cfc11  - CFC11 mass mixing ratio
-  ! cfc12  - CFC12 mass mixing ratio
-  ! n2o    - N2O mass mixing ratio
-  ! ch4    - CH4 mass mixing ratio
-  !
-  ! Output arguments
-  !
-  ! ucfc11 - CFC11 path length
-  ! ucfc12 - CFC12 path length
-  ! un2o0  - N2O path length
-  ! un2o1  - N2O path length (hot band)
-  ! uch4   - CH4 path length
-  ! uco211 - CO2 9.4 micron band path length
-  ! uco212 - CO2 9.4 micron band path length
-  ! uco213 - CO2 9.4 micron band path length
-  ! uco221 - CO2 10.4 micron band path length
-  ! uco222 - CO2 10.4 micron band path length
-  ! uco223 - CO2 10.4 micron band path length
-  ! bn2o0  - pressure factor for n2o
-  ! bn2o1  - pressure factor for n2o
-  ! bch4   - pressure factor for ch4
-  ! uptype - p-type continuum path length
-  !
-  !-----------------------------------------------------------------------
-  !
-  subroutine trcpth(n1,n2,tnm,pnm,h2ommr,cfc11,cfc12,n2o,ch4,co2mmr, &
-                    ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212,    &
-                    uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,    &
-                    uptype)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: co2mmr
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: tnm , h2ommr
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: n2o , ch4
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: cfc11 , cfc12
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bch4 , uch4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bn2o0 , un2o0
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: bn2o1 , un2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: ucfc11 , ucfc12
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco211 , uco212
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco213 , uco221
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uco222 , uco223
-    real(rkx) , dimension(kzp1,n1:n2) , intent(out) :: uptype
-    !
-    !   co2fac - co2 factor
-    !   alpha1 - stimulated emission term
-    !   alpha2 - stimulated emission term
-    !   rt     - reciprocal of local temperature
-    !   rsqrt  - reciprocal of sqrt of temp
-    !   pbar   - mean pressure
-    !   dpnm   - difference in pressure
-    !
-    real(rkx) , parameter :: diff = 1.66_rkx ! diffusivity factor
-    real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
-    integer(ik4) :: n , k
-
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(k,alpha1,alpha2,dpnm,pbar,rsqrt,rt,co2fac)
-#else
-    do n = n1 , n2
-#endif
-      !-----------------------------------------------------------------------
-      !   Calculate path lengths for the trace gases
-      !-----------------------------------------------------------------------
-      ucfc11(1,n) = 1.8_rkx*cfc11(1,n)*pnm(1,n)*regravgts
-      ucfc12(1,n) = 1.8_rkx*cfc12(1,n)*pnm(1,n)*regravgts
-      un2o0(1,n) = diff*1.02346e5_rkx*n2o(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
-      un2o1(1,n) = diff*2.01909_rkx*un2o0(1,n)*exp(-847.36_rkx/tnm(1,n))
-      uch4(1,n) = diff*8.60957e4_rkx*ch4(1,n)*pnm(1,n)*regravgts/sqrt(tnm(1,n))
-      co2fac = diff*co2mmr(n)*pnm(1,n)*regravgts
-      alpha1 = (d_one-exp(-1540.0_rkx/tnm(1,n)))**3/sqrt(tnm(1,n))
-      alpha2 = (d_one-exp(-1360.0_rkx/tnm(1,n)))**3/sqrt(tnm(1,n))
-      uco211(1,n) = 3.42217e3_rkx*co2fac*alpha1*exp(-1849.7_rkx/tnm(1,n))
-      uco212(1,n) = 6.02454e3_rkx*co2fac*alpha1*exp(-2782.1_rkx/tnm(1,n))
-      uco213(1,n) = 5.53143e3_rkx*co2fac*alpha1*exp(-3723.2_rkx/tnm(1,n))
-      uco221(1,n) = 3.88984e3_rkx*co2fac*alpha2*exp(-1997.6_rkx/tnm(1,n))
-      uco222(1,n) = 3.67108e3_rkx*co2fac*alpha2*exp(-3843.8_rkx/tnm(1,n))
-      uco223(1,n) = 6.50642e3_rkx*co2fac*alpha2*exp(-2989.7_rkx/tnm(1,n))
-      bn2o0(1,n) = diff*19.399_rkx*pnm(1,n)**2*n2o(1,n) * &
-                 1.02346e5_rkx*regravgts/(sslp*tnm(1,n))
-      bn2o1(1,n) = bn2o0(1,n)*exp(-847.36_rkx/tnm(1,n))*2.06646e5_rkx
-      bch4(1,n) = diff*2.94449_rkx*ch4(1,n)*pnm(1,n)**2*regravgts * &
-                8.60957e4_rkx/(sslp*tnm(1,n))
-      uptype(1,n) = diff*h2ommr(1,n)*pnm(1,n)**2*exp(1800.0_rkx* &
-                  (d_one/tnm(1,n)-r296))*regravgts/sslp
-      do k = 1 , kz
-        rt = d_one/tnm(k,n)
-        rsqrt = sqrt(rt)
-        pbar = ((pnm(k+1,n)+pnm(k,n))*d_half)/sslp
-        dpnm = (pnm(k+1,n)-pnm(k,n))*regravgts
-        alpha1 = diff*rsqrt*(d_one-exp(-1540.0_rkx/tnm(k,n)))**3
-        alpha2 = diff*rsqrt*(d_one-exp(-1360.0_rkx/tnm(k,n)))**3
-        ucfc11(k+1,n) = ucfc11(k,n) + 1.8_rkx*cfc11(k,n)*dpnm
-        ucfc12(k+1,n) = ucfc12(k,n) + 1.8_rkx*cfc12(k,n)*dpnm
-        un2o0(k+1,n) = un2o0(k,n) + diff*1.02346e5_rkx*n2o(k,n)*rsqrt*dpnm
-        un2o1(k+1,n) = un2o1(k,n) + diff*2.06646e5_rkx*n2o(k,n) * &
-                     rsqrt*exp(-847.36_rkx/tnm(k,n))*dpnm
-        uch4(k+1,n) = uch4(k,n) + diff*8.60957e4_rkx*ch4(k,n)*rsqrt*dpnm
-        uco211(k+1,n) = uco211(k,n) + 1.15_rkx*3.42217e3_rkx*alpha1 * &
-                      co2mmr(n)*exp(-1849.7_rkx/tnm(k,n))*dpnm
-        uco212(k+1,n) = uco212(k,n) + 1.15_rkx*6.02454e3_rkx*alpha1 * &
-                      co2mmr(n)*exp(-2782.1_rkx/tnm(k,n))*dpnm
-        uco213(k+1,n) = uco213(k,n) + 1.15_rkx*5.53143e3_rkx*alpha1 * &
-                      co2mmr(n)*exp(-3723.2_rkx/tnm(k,n))*dpnm
-        uco221(k+1,n) = uco221(k,n) + 1.15_rkx*3.88984e3_rkx*alpha2 * &
-                      co2mmr(n)*exp(-1997.6_rkx/tnm(k,n))*dpnm
-        uco222(k+1,n) = uco222(k,n) + 1.15_rkx*3.67108e3_rkx*alpha2 * &
-                      co2mmr(n)*exp(-3843.8_rkx/tnm(k,n))*dpnm
-        uco223(k+1,n) = uco223(k,n) + 1.15_rkx*6.50642e3_rkx*alpha2 * &
-                      co2mmr(n)*exp(-2989.7_rkx/tnm(k,n))*dpnm
-        bn2o0(k+1,n) = bn2o0(k,n) + diff*19.399_rkx*pbar*rt * &
-                     1.02346e5_rkx*n2o(k,n)*dpnm
-        bn2o1(k+1,n) = bn2o1(k,n) + diff*19.399_rkx*pbar*rt * &
-                     2.06646e5_rkx*exp(-847.36_rkx/tnm(k,n))*n2o(k,n)*dpnm
-        bch4(k+1,n) = bch4(k,n) + diff*2.94449_rkx*rt*pbar * &
-                  8.60957e4_rkx*ch4(k,n)*dpnm
-        uptype(k+1,n) = uptype(k,n) + diff*h2ommr(k,n)* &
-                  exp(1800.0_rkx*(d_one/tnm(k,n)-r296))*pbar*dpnm
-      end do
-    end do
-  end subroutine trcpth
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! SUBROUTINE AERMIX
-  !
-  ! Set global mean tropospheric aerosol
-  !
-  ! Specify aerosol mixing ratio and compute relative humidity for later
-  ! adjustment of aerosol optical properties. Aerosol mass mixing ratio
-  ! is specified so that the column visible aerosol optical depth is a
-  ! specified global number (tauvis). This means that the actual mixing
-  ! ratio depends on pressure thickness of the lowest three atmospheric
-  ! layers near the surface.
-  !
-  ! Optical properties and relative humidity parameterization are from:
-  !
-  ! J.T. Kiehl and B.P. Briegleb  "The Relative Roles of Sulfate Aerosols
-  ! and Greenhouse Gases in Climate Forcing"  Science  260  pp311-314
-  ! 16 April 1993
-  !
-  ! Visible (vis) here means 0.5-0.7 micro-meters
-  ! Forward scattering fraction is taken as asymmetry parameter squared
-  !
-  ! Input
-  !   pnm    - Radiation level interface pressures (dynes/cm2)
-  ! Output
-  !   aermmb - Aerosol background mass mixing ratio
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! RegCM : Removed the dependency on relative humidity
-  !
-  subroutine aermix(n1,n2,pnm,aermmb)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , intent(in) , dimension(kzp1,n1:n2) :: pnm
-    real(rkx) , intent(out) , dimension(kz,n1:n2) :: aermmb
-    !
-    !-----------------------------------------------------------------------
-    !
-    ! mxaerl - max nmbr aerosol levels counting up from surface
-    ! tauvis - visible optical depth
-    ! kaervs - visible extinction coefficiant of aerosol (m2/g)
-    ! omgvis - visible omega0
-    ! gvis   - visible forward scattering asymmetry parameter
-    !
-    !-----------------------------------------------------------------------
-    !
-    integer(ik4) , parameter :: mxaerl = 4
-    ! multiplication factor for kaer
-    real(rkx) , parameter :: kaervs = 5.3012_rkx
-    real(rkx) , parameter :: omgvis = 0.999999_rkx
-    real(rkx) , parameter :: gvis = 0.694889_rkx
-    ! added for efficiency
-    real(rkx) , parameter :: rhfac = 1.6718_rkx
-    !
-    ! real(rkx) , parameter :: a0 = -9.2906106183_rkx
-    ! real(rkx) , parameter :: a1 =  0.52570211505_rkx
-    ! real(rkx) , parameter :: a2 = -0.0089285760691_rkx
-    ! real(rkx) , parameter :: a4 =  5.0877212432e-05_rkx
-    !
-    integer(ik4) :: n , k
-    !fil  tauvis = 0.01_rkx
-    real(rkx) , parameter :: tauvis = 0.14_rkx
-    !
-    !-----------------------------------------------------------------------
-    !
-    ! Define background aerosol
-    ! Set relative humidity and factor; then aerosol amount:
-    !
-    ! if ( rh(i,k) > 0.9 ) then
-    !   rhfac = 2.8
-    ! else if (rh(i,k) < 0.6 ) then
-    !   rhfac = 1.0
-    ! else
-    !   rhpc  = 100.0 * rh(i,k)
-    !   rhfac = (a0 + a1*rhpc + a2*rhpc**2 + a3*rhpc**3)
-    ! end if
-    !
-    ! Find constant aerosol mass mixing ratio for specified levels
-    ! in the column, converting units where appropriate
-    ! for the moment no more used
-    !
-    do n = n1 , n2
-      do k = 1 , kz
-        if ( k >= kz + 1 - mxaerl ) then
-          aermmb(k,n) = egravgts * tauvis / &
-                  (1.0e4_rkx*kaervs*rhfac*(d_one-omgvis*gvis*gvis) * &
-                  (pnm(kzp1,n)-pnm(kzp1-mxaerl,n)))
-        else
-          aermmb(k,n) = d_zero
-        end if
-      end do
-    end do
-  end subroutine aermix
-  !
-  !----------------------------------------------------------------------
-  !   Calculate Planck factors for absorptivity and emissivity of
-  !   CH4, N2O, CFC11 and CFC12
-  !
-  !-----------------------------------------------------------------------
-  !
-  ! Input arguments
-  !
-  ! tint    - interface temperatures
-  ! tlayr   - k-1 level temperatures
-  ! tplnke  - Top Layer temperature
-  !
-  ! output arguments
-  !
-  ! emplnk  - emissivity Planck factor
-  ! abplnk1 - non-nearest layer Plack factor
-  ! abplnk2 - nearest layer factor
-  !
-  subroutine trcplk(n1,n2,tint,tlayr,tplnke,emplnk,abplnk1,abplnk2)
-    implicit none
-    integer(ik4) , intent(in) :: n1 , n2
-    real(rkx) , dimension(n1:n2) , intent(in) :: tplnke
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
-    real(rkx) , dimension(nlwspi,n1:n2) , intent(out) :: emplnk
-    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(out) :: abplnk1 , abplnk2
-    !
-    ! wvl   - wavelength index
-    ! f1    - Planck function factor
-    ! f2    -       "
-    ! f3    -       "
-    !
-    integer(ik4) :: n , k , wvl
-    !
-    ! Calculate emissivity Planck factor
-    !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,wvl)
-#else
-    do n = n1 , n2
-#endif
-      do wvl = 1 , nlwspi
-        emplnk(wvl,n) = f1(wvl)/(tplnke(n)**4*(exp(f3(wvl)/tplnke(n))-d_one))
-      end do
-      !
-      ! Calculate absorptivity Planck factor for tint and tlayr temperatures
-      !
-      do  k = 1 , kzp1
-        do wvl = 1 , nlwspi
-          ! non-nearlest layer function
-          abplnk1(wvl,k,n) = (f2(wvl)*exp(f3(wvl)/tint(k,n))) / &
-                           (tint(k,n)**5*(exp(f3(wvl)/tint(k,n))-d_one)**2)
-          ! nearest layer function
-          abplnk2(wvl,k,n) = (f2(wvl)*exp(f3(wvl)/tlayr(k,n))) / &
-                           (tlayr(k,n)**5*(exp(f3(wvl)/tlayr(k,n))-d_one)**2)
-        end do
-      end do
-    end do
-  end subroutine trcplk
-  !
-  !-----------------------------------------------------------------------
-  !
   ! Driver for radiation computation.
   !
   ! Radiation uses cgs units, so conversions must be done from
@@ -4506,16 +5004,22 @@ module mod_rad_radiation
   !
   ! Calling sequence:
   !
+  !     radini      GHG gases concentration at year, month, pressure
+  !
   !     radinp      Converts units of model fields and computes ozone
   !                 mixing ratio for solar scheme
   !
-  !     radcsw      Performs solar computation
-  !       radalb    Computes surface albedos
+  !     aermix      Aerosol mixing ratios at pressure (if no external)
+  !
+  !     radcsw      Performs solar computation (if cosine zenith > 0)
   !       radded    Computes delta-Eddington solution
   !       radclr    Computes diagnostic clear sky fluxes
   !
   !     radclw      Performs longwave computation
   !       radtpl    Computes path quantities
+  !       radoz2    Computes the path length for O3
+  !       trcpth    Compute trace gas path lengths
+  !       trcplk    Calculate trace gas Planck functions
   !       radems    Computes emissivity
   !       radabs    Computes absorptivity
   !
@@ -4638,38 +5142,56 @@ module mod_rad_radiation
                   rt%abv,rt%sol,rt%aeradfo,rt%aeradfos,rt%tauxcl,     &
                   rt%tauxci,rt%outtaucl,rt%outtauci)
       !
-      ! Convert units of shortwave fields needed by rest of model
-      ! from CGS to MKS
+      ! Compute Total Cloud fraction
       !
+      if ( luse_max_rnovl ) then
+#ifdef STDPAR
+        do concurrent ( n = rt%n1:rt%n2 ) local(k)
+#else
+        do n = rt%n1 , rt%n2
+#endif
+          rt%totcf(n) = d_one
+          do k = 2 , kzp1
+            rt%totcf(n) = rt%totcf(n) * &
+                   (1.0001_rkx - max(rt%cld(k-1,n),rt%cld(k,n)))/ &
+                   (1.0001_rkx - rt%cld(k-1,n))
+          end do
+        end do
+      else
+#ifdef STDPAR
+        do concurrent ( n = rt%n1:rt%n2 ) local(k)
+#else
+        do n = rt%n1 , rt%n2
+#endif
+          rt%totcf(n) = d_one
+          do k = 2 , kzp1
+            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(k,n))
+          end do
+        end do
+      end if
+
 #ifdef STDPAR
       do concurrent ( n = rt%n1:rt%n2 ) local(k,betafac)
 #else
       do n = rt%n1 , rt%n2
 #endif
+        !
+        ! Convert units of shortwave fields needed by rest of model
+        ! from CGS to MKS
+        !
         rt%solin(n) = rt%solin(n)*1.0e-3_rkx
         rt%solout(n) = rt%solout(n)*1.0e-3_rkx
         rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
         rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
         rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
         rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
+        rt%totcf(n) = d_one - rt%totcf(n)
+        if ( rt%totcf(n) > d_one ) rt%totcf(n) = d_one
+        if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
         !
         ! clear sky column partitioning for surface flux
         ! note : should be generalised to the whole column to be
         !        really in energy balance !
-        !
-        rt%totcf(n) = d_one
-        if ( luse_max_rnovl ) then
-          do k = 2 , kzp1
-            rt%totcf(n) = rt%totcf(n) * &
-                   (1.0001_rkx - max(rt%cld(k-1,n),rt%cld(k,n)))/ &
-                   (1.0001_rkx - rt%cld(k-1,n))
-          end do
-        else
-          do k = 1 , kzp1
-            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(k,n))
-          end do
-        end if
-        rt%totcf(n) = d_one - rt%totcf(n)
         !
         ! maximum cld cover considered
         ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(:,n)) + &
@@ -4686,8 +5208,6 @@ module mod_rad_radiation
         ! Fil suggestion of putting a max on column cloud fraction
         ! TAO: implement a user-specified CF maximum (default of 1.0)
         if ( lsrfhack ) then
-          if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
-          if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
           rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
                        rt%fsnsc(n) * (d_one-rt%totcf(n))
         end if
@@ -4799,537 +5319,6 @@ module mod_rad_radiation
     call time_end(subroutine_name,indx)
 #endif
   end subroutine radctl
-  !
-  !----------------------------------------------------------------------
-  ! Calculate absorptivity for non nearest layers for CH4, N2O, CFC11 and
-  ! CFC12.
-  !
-  !             Coded by J.T. Kiehl November 21, 1994
-  !-----------------------------------------------------------------------
-  !
-  !------------------------------Arguments--------------------------------
-  ! tpnm    - interface pressures total path
-  ! to3co2  - pressure weighted temperature
-  ! ds2c    - continuum path length
-  ! duptyp  - p-type path length
-  ! du1     - cfc11 path length
-  ! du2     - cfc12 path length
-  ! duch4   - ch4 path length
-  ! dbetac  - ch4 pressure factor
-  ! du01    - n2o path length
-  ! du11    - n2o path length
-  ! dbeta01 - n2o pressure factor
-  ! dbeta11 -        "
-  ! duco21  - co2 path length
-  ! duco22  -       "
-  ! duco23  -       "
-  ! duco11  - co2 path length
-  ! duco12  -       "
-  ! duco13  -       "
-  ! dw      - h2o path length
-  ! pnew    - pressure
-  ! dplh2o  - p squared h2o path length
-  ! abplnk1 - Planck factor
-  ! tco2    - co2 transmission factor
-  ! th2o    - h2o transmission factor
-  ! to3     - o3 transmission factor
-  !
-  !------------------------------Output Value-------------------------
-  !
-  ! abstrc  - total trace gas absorptivity
-  !
-  !-------------------------------------------------------------------
-  !
-  pure real(rkx) function trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
-      du01,du11,dbeta01,dbeta11,duco11,duco12,duco13,duco21,duco22,     &
-      duco23,dw,pnew,to3co2,dplh2o,tco2,th2o,to3,abplnk1) result(abstrc)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: tpnm , ds2c , duptyp , du1 , du2
-    real(rkx) , intent(in) :: duch4 , dbetac , du01 , du11
-    real(rkx) , intent(in) :: dbeta01 , dbeta11
-    real(rkx) , intent(in) :: duco11 , duco12 , duco13
-    real(rkx) , intent(in) :: duco21 , duco22 , duco23
-    real(rkx) , intent(in) :: to3co2 , dw , pnew , dplh2o
-    real(rkx) , intent(in) :: tco2 , th2o , to3
-    real(rkx) , dimension(14) , intent(in) :: abplnk1
-    !
-    !-----------------------------------------------------------------------
-    !
-    ! sqti    - square root of mean temp
-    ! acfc1   - cfc11 absorptivity 798 cm-1
-    ! acfc2   - cfc11 absorptivity 846 cm-1
-    ! acfc3   - cfc11 absorptivity 933 cm-1
-    ! acfc4   - cfc11 absorptivity 1085 cm-1
-    ! acfc5   - cfc12 absorptivity 889 cm-1
-    ! acfc6   - cfc12 absorptivity 923 cm-1
-    ! acfc7   - cfc12 absorptivity 1102 cm-1
-    ! acfc8   - cfc12 absorptivity 1161 cm-1
-    ! an2o1   - absorptivity of 1285 cm-1 n2o band
-    ! du02    - n2o path length
-    ! dbeta02 - n2o pressure factor
-    ! an2o2   - absorptivity of 589 cm-1 n2o band
-    ! du03    - n2o path length
-    ! dbeta03 - n2o pressure factor
-    ! an2o3   - absorptivity of 1168 cm-1 n2o band
-    ! ach4    - absorptivity of 1306 cm-1 ch4 band
-    ! aco21   - absorptivity of 1064 cm-1 band
-    ! aco22   - absorptivity of 961 cm-1 band
-    ! dbetc1  - co2 pressure factor
-    ! dbetc2  - co2 pressure factor
-    ! tt      - temp. factor for h2o overlap factor
-    ! psi1    -                 "
-    ! phi1    -                 "
-    ! p1      - h2o overlap factor
-    ! w1      -        "
-    ! tw      - h2o transmission factor
-    ! g1      -         "
-    ! g2      -         "
-    ! g3      -         "
-    ! g4      -         "
-    ! ab      - h2o temp. factor
-    ! bb      -         "
-    ! abp     -         "
-    ! bbp     -         "
-    ! tcfc3   - transmission for cfc11 band
-    ! tcfc4   - transmission for cfc11 band
-    ! tcfc6   - transmission for cfc12 band
-    ! tcfc7   - transmission for cfc12 band
-    ! tcfc8   - transmission for cfc12 band
-    ! tlw     - h2o transmission
-    ! tch4    - ch4 transmission
-    !
-    !-----------------------------------------------------------------------
-    !
-    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 , &
-      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta02 ,   &
-      dbeta03 , dbetc1 , dbetc2 , du02 , du12 , du03 , p1 , phi1 , psi1 ,&
-      tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , w1 , sqti , tt
-    real(rkx) , dimension(6) :: tw
-    integer(ik4) :: l
-
-    sqti = sqrt(to3co2)
-    ! h2o transmission
-    tt = abs(to3co2-250.0_rkx)
-    do l = 1 , 6
-      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
-      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
-      p1 = pnew*(psi1/phi1)/sslp
-      w1 = dw*phi1
-      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
-                   d_one)-g3(l)*ds2c-g4(l)*duptyp)
-    end do
-    ! cfc transmissions
-    tcfc3 = exp(-175.005_rkx*du1)
-    tcfc4 = exp(-1202.18_rkx*du1)
-    tcfc6 = exp(-5786.73_rkx*du2)
-    tcfc7 = exp(-2873.51_rkx*du2)
-    tcfc8 = exp(-2085.59_rkx*du2)
-    ! Absorptivity for CFC11 bands
-    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*abplnk1(7)
-    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*abplnk1(8)
-    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*abplnk1(9)
-    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*abplnk1(10)
-    ! Absorptivity for CFC12 bands
-    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*abplnk1(11)
-    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*abplnk1(12)
-    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*abplnk1(13)
-    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*abplnk1(14)
-    ! Emissivity for CH4 band 1306 cm-1
-    tlw = exp(-d_one*sqrt(dplh2o))
-    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*abplnk1(3)
-    tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
-    ! Absorptivity for N2O bands
-    ! 1285 cm-1 band
-    an2o1 = 2.35558_rkx*sqti * log(d_one+func(du01,dbeta01) + &
-            func(du11,dbeta11)) * tlw*tch4*abplnk1(4)
-    du02 = 0.100090_rkx*du01
-    du12 = 0.0992746_rkx*du11
-    dbeta02 = 0.964282_rkx*dbeta01
-    ! 589 cm-1 band
-    an2o2 = 2.65581_rkx*sqti * log(d_one+func(du02,dbeta02) + &
-            func(du12,dbeta02))*th2o*tco2*abplnk1(5)
-    du03 = 0.0333767_rkx*du01
-    dbeta03 = 0.982143_rkx*dbeta01
-    ! 1168 cm-1 band
-    an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03)) * &
-            tw(6)*tcfc8*abplnk1(6)
-    ! Emissivity for 1064 cm-1 band of CO2
-    dbetc1 = 2.97558_rkx*tpnm/(d_two*sslp*sqti)
-    dbetc2 = d_two*dbetc1
-    aco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
-            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*abplnk1(2)
-    ! Emissivity for 961 cm-1 band
-    aco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
-            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*abplnk1(1)
-    ! total trace gas absorptivity
-    abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 +  &
-             acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
-             aco21 + aco22
-  end function trcab
-  !
-  !----------------------------------------------------------------------
-  ! Calculate nearest layer absorptivity due to CH4, N2O, CFC11 and CFC12
-  !
-  !         Coded by J.T. Kiehl November 21, 1994
-  !-----------------------------------------------------------------------
-  !
-  !------------------------------Arguments--------------------------------
-  !
-  ! tbar    - pressure weighted temperature
-  ! dw      - h2o path length
-  ! pnew    - pressure factor
-  ! tco2    - co2 transmission
-  ! th2o    - h2o transmission
-  ! to3     - o3 transmission
-  ! up2     - p squared path length
-  ! pinpl   - pressure factor for subdivided layer
-  ! winpl   - fractional path length
-  ! ds2c    - h2o continuum factor
-  ! duptype - p-type path length
-  ! du1     - cfc11 path length
-  ! du2     - cfc12 path length
-  ! duch4   - ch4 path length
-  ! du01    - n2o path length
-  ! du11    - n2o path length
-  ! duco11  - co2 path length
-  ! duco12  -       "
-  ! duco13  -       "
-  ! duco21  - co2 path length
-  ! duco22  -       "
-  ! duco23  -       "
-  ! bplnk   - weighted Planck function for absorptivity
-  !
-  !------------------------------Output Value-------------------------
-  !
-  ! abstrc - total trace gas absorptivity
-  !
-  !-------------------------------------------------------------------
-  !
-  pure real(rkx) function trcabn(tbar,dw,pnew,tco2,th2o,to3,up2,     &
-      pinpl,winpl,ds2c,duptyp,du1,du2,duch4,du01,du11,duco11,duco12, &
-      duco13,duco21,duco22,duco23,bplnk) result(abstrc)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: tbar , dw , pnew , tco2 , th2o , to3 , up2
-    real(rkx) , intent(in) :: winpl , pinpl , ds2c , duptyp , du1 , du2
-    real(rkx) , intent(in) :: duch4 , du01 , du11 , duco11 , duco12
-    real(rkx) , intent(in) :: duco13 , duco21 , duco22 , duco23
-    real(rkx) , dimension(14) , intent(in) :: bplnk
-    !
-    ! sqti    - square root of mean temp
-    ! rsqti   - reciprocal of sqti
-    ! acfc1   - absorptivity of cfc11 798 cm-1 band
-    ! acfc2   - absorptivity of cfc11 846 cm-1 band
-    ! acfc3   - absorptivity of cfc11 933 cm-1 band
-    ! acfc4   - absorptivity of cfc11 1085 cm-1 band
-    ! acfc5   - absorptivity of cfc11 889 cm-1 band
-    ! acfc6   - absorptivity of cfc11 923 cm-1 band
-    ! acfc7   - absorptivity of cfc11 1102 cm-1 band
-    ! acfc8   - absorptivity of cfc11 1161 cm-1 band
-    ! dbeta01 - n2o pressure factors
-    ! dbeta11 -        "
-    ! an2o1   - absorptivity of the 1285 cm-1 n2o band
-    ! du02    - n2o path length
-    ! dbeta02 - n2o pressure factor
-    ! an2o2   - absorptivity of the 589 cm-1 n2o band
-    ! du03    - n2o path length
-    ! dbeta03 - n2o pressure factor
-    ! an2o3   - absorptivity of the 1168 cm-1 n2o band
-    ! dbetac  - ch4 pressure factor
-    ! ach4    - absorptivity of the 1306 cm-1 ch4 band
-    ! dbetc1 -  co2 pressure factor
-    ! dbetc2 -  co2 pressure factor
-    ! aco21  -  absorptivity of the 1064 cm-1 co2 band
-    ! aco22  -  absorptivity of the 961 cm-1 co2 band
-    ! tt     -  temp. factor for h2o overlap
-    ! psi1   -           "
-    ! phi1   -           "
-    ! p1     -  factor for h2o overlap
-    ! w1     -           "
-    ! ds2c   -  continuum path length
-    ! duptyp -  p-type path length
-    ! tw     -  h2o transmission overlap
-    ! g1     -  h2o overlap factor
-    ! g2     -          "
-    ! g3     -          "
-    ! g4     -          "
-    ! ab     -  h2o temp. factor
-    ! bb     -          "
-    ! abp    -          "
-    ! bbp    -          "
-    ! tcfc3  -  transmission of cfc11 band
-    ! tcfc4  -  transmission of cfc11 band
-    ! tcfc6  -  transmission of cfc12 band
-    ! tcfc7  -          "
-    ! tcfc8  -          "
-    ! tlw    -  h2o transmission
-    ! tch4   -  ch4 transmission
-    !
-    real(rkx) :: acfc1 , acfc2 , acfc3 , acfc4 , acfc5 , acfc6 , acfc7 ,&
-      acfc8 , ach4 , aco21 , aco22 , an2o1 , an2o2 , an2o3 , dbeta01 ,  &
-      dbeta02 , dbeta03 , dbeta11 , dbetac , dbetc1 , dbetc2 , du02 ,   &
-      du03 , p1 , phi1 , psi1 , tcfc3 , tcfc4 , tcfc6 , tcfc7 , tcfc8 , &
-      tch4 , tlw , w1 , rsqti , sqti , tt , du12
-    real(rkx) , dimension(6) :: tw
-    integer(ik4) :: l
-
-    sqti = sqrt(tbar)
-    rsqti = d_one/sqti
-    ! h2o transmission
-    tt = abs(tbar-250.0_rkx)
-    do l = 1 , 6
-      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
-      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
-      p1 = pnew*(psi1/phi1)/sslp
-      w1 = dw*winpl*phi1
-      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1))-d_one)-g3(l) * &
-                   ds2c-g4(l)*duptyp)
-    end do
-    ! cfc transmissions
-    tcfc3 = exp(-175.005_rkx*du1)
-    tcfc4 = exp(-1202.18_rkx*du1)
-    tcfc6 = exp(-5786.73_rkx*du2)
-    tcfc7 = exp(-2873.51_rkx*du2)
-    tcfc8 = exp(-2085.59_rkx*du2)
-    ! Absorptivity for CFC11 bands
-    acfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*du1))*tw(1)*bplnk(7)
-    acfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*du1))*tw(2)*bplnk(8)
-    acfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*bplnk(9)
-    acfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*bplnk(10)
-    ! Absorptivity for CFC12 bands
-    acfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*du2))*tw(3)*bplnk(11)
-    acfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*bplnk(12)
-    acfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*bplnk(13)
-    acfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*bplnk(14)
-    ! Emissivity for CH4 band 1306 cm-1
-    tlw = exp(-d_one*sqrt(up2))
-    dbetac = 2.94449_rkx*pinpl*rsqti/sslp
-    ach4 = 6.00444_rkx*sqti*log(d_one+func(duch4,dbetac))*tlw*bplnk(3)
-    tch4 = d_one/(d_one+0.02_rkx*func(duch4,dbetac))
-    ! Absorptivity for N2O bands
-    dbeta01 = 19.399_rkx*pinpl*rsqti/sslp
-    dbeta11 = dbeta01
-    ! 1285 cm-1 band
-    an2o1 = 2.35558_rkx*sqti * &
-            log(d_one+func(du01,dbeta01)+func(du11,dbeta11)) * &
-            tlw*tch4*bplnk(4)
-    du02 = 0.100090_rkx*du01
-    du12 = 0.0992746_rkx*du11
-    dbeta02 = 0.964282_rkx*dbeta01
-    ! 589 cm-1 band
-    an2o2 = 2.65581_rkx*sqti * &
-            log(d_one+func(du02,dbeta02)+func(du12,dbeta02)) * &
-            tco2*th2o*bplnk(5)
-    du03 = 0.0333767_rkx*du01
-    dbeta03 = 0.982143_rkx*dbeta01
-    ! 1168 cm-1 band
-    an2o3 = 2.54034_rkx*sqti*log(d_one+func(du03,dbeta03))*tw(6) * &
-            tcfc8*bplnk(6)
-    ! Emissivity for 1064 cm-1 band of CO2
-    dbetc1 = 2.97558_rkx*pinpl*rsqti/sslp
-    dbetc2 = d_two*dbetc1
-    aco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(duco11,dbetc1)+func(duco12,dbetc2) + &
-            func(duco13,dbetc2))*to3*tw(5)*tcfc4*tcfc7*bplnk(2)
-    ! Emissivity for 961 cm-1 band of co2
-    aco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(duco21,dbetc1)+func(duco22,dbetc1) + &
-            func(duco23,dbetc2))*tw(4)*tcfc3*tcfc6*bplnk(1)
-    ! total trace gas absorptivity
-    abstrc = acfc1 + acfc2 + acfc3 + acfc4 + acfc5 + acfc6 + &
-             acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
-             aco21 + aco22
-  end function trcabn
-  !
-  !----------------------------------------------------------------------
-  !  Calculate emissivity for CH4, N2O, CFC11 and CFC12 bands.
-  !            Coded by J.T. Kiehl November 21, 1994
-  !-----------------------------------------------------------------------
-  !
-  !------------------------------Arguments--------------------------------
-  !
-  ! co2t   - pressure weighted temperature
-  ! pnm    - interface pressure
-  ! ucfc11 - CFC11 path length
-  ! ucfc12 - CFC12 path length
-  ! un2o0  - N2O path length
-  ! un2o1  - N2O path length (hot band)
-  ! bn2o0  - pressure factor for n2o
-  ! bn2o1  - pressure factor for n2o
-  ! uch4   - CH4 path length
-  ! bch4   - pressure factor for ch4
-  ! uco211 - CO2 9.4 micron band path length
-  ! uco212 - CO2 9.4 micron band path length
-  ! uco213 - CO2 9.4 micron band path length
-  ! uco221 - CO2 10.4 micron band path length
-  ! uco222 - CO2 10.4 micron band path length
-  ! uco223 - CO2 10.4 micron band path length
-  ! uptype - continuum path length
-  ! w      - h2o path length
-  ! s2c    - h2o continuum path length
-  ! up2    - pressure squared h2o path length
-  ! emplnk - emissivity Planck factor
-  ! th2o   - water vapor overlap factor
-  ! tco2   - co2 overlap factor
-  ! to3    - o3 overlap factor
-  !
-  !------------------------------Output Value-------------------------
-  !
-  ! emstrc - total trace gas emissivity
-  !
-  !-------------------------------------------------------------------
-  !
-  pure real(rkx) function trcems(co2t,pnm,ucfc11,ucfc12,un2o0,un2o1,  &
-     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,uco222,uco223, &
-     uptype,w,s2c,up2,emplnk,th2o,tco2,to3) result(emstrc)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , intent(in) :: un2o0 , un2o1
-    real(rkx) , intent(in) :: bch4 , uch4 , co2t
-    real(rkx) , intent(in) :: pnm , s2c
-    real(rkx) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , intent(in) :: uco211 , uco212
-    real(rkx) , intent(in) :: uco213 , uco221
-    real(rkx) , intent(in) :: uco222 , uco223
-    real(rkx) , intent(in) :: tco2 , th2o , to3 , up2
-    real(rkx) , intent(in) :: uptype , w
-    real(rkx) , dimension(14) , intent(in) :: emplnk
-    !
-    ! sqti   - square root of mean temp
-    ! ecfc1  - emissivity of cfc11 798 cm-1 band
-    ! ecfc2  -     "      "    "   846 cm-1 band
-    ! ecfc3  -     "      "    "   933 cm-1 band
-    ! ecfc4  -     "      "    "   1085 cm-1 band
-    ! ecfc5  -     "      "  cfc12 889 cm-1 band
-    ! ecfc6  -     "      "    "   923 cm-1 band
-    ! ecfc7  -     "      "    "   1102 cm-1 band
-    ! ecfc8  -     "      "    "   1161 cm-1 band
-    ! u01    - n2o path length
-    ! u11    - n2o path length
-    ! beta01 - n2o pressure factor
-    ! beta11 - n2o pressure factor
-    ! en2o1  - emissivity of the 1285 cm-1 N2O band
-    ! u02    - n2o path length
-    ! u12    - n2o path length
-    ! beta02 - n2o pressure factor
-    ! en2o2  - emissivity of the 589 cm-1 N2O band
-    ! u03    - n2o path length
-    ! beta03 - n2o pressure factor
-    ! en2o3  - emissivity of the 1168 cm-1 N2O band
-    ! betac  - ch4 pressure factor
-    ! ech4   - emissivity of 1306 cm-1 CH4 band
-    ! betac1 - co2 pressure factor
-    ! betac2 - co2 pressure factor
-    ! eco21  - emissivity of 1064 cm-1 CO2 band
-    ! eco22  - emissivity of 961 cm-1 CO2 band
-    ! tt     - temp. factor for h2o overlap factor
-    ! psi1   - narrow band h2o temp. factor
-    ! phi1   -            "
-    ! p1     - h2o line overlap factor
-    ! w1     -          "
-    ! tw     - h2o transmission overlap
-    ! g1     - h2o overlap factor
-    ! g2     -          "
-    ! g3     -          "
-    ! g4     -          "
-    ! ab     -          "
-    ! bb     -          "
-    ! abp    -          "
-    ! bbp    -          "
-    ! tcfc3  - transmission for cfc11 band
-    ! tcfc4  -         "
-    ! tcfc6  - transmission for cfc12 band
-    ! tcfc7  -          "
-    ! tcfc8  -          "
-    ! tlw    - h2o overlap factor
-    ! tch4   - ch4 overlap factor
-    !
-    real(rkx) :: beta01 , beta02 , beta03 , beta11 , betac , sqti , tt , &
-                 betac1 , betac2 , ecfc1 , ecfc2 , ecfc3 , ecfc4 ,       &
-                 ecfc5 , ecfc6 , ecfc7 , ecfc8 , ech4 , eco21 , eco22 ,  &
-                 en2o1 , en2o2 , en2o3 , p1 , phi1 , psi1 , tcfc3 ,      &
-                 tcfc4 , tcfc6 , tcfc7 , tcfc8 , tch4 , tlw , u01 ,      &
-                 u02 , u03 , u11 , u12 , w1
-    real(rkx) , dimension(6) :: tw
-    integer(ik4) :: l
-
-    sqti = sqrt(co2t)
-    ! Transmission for h2o
-    tt = abs(co2t-250.0_rkx)
-    ! transmission due to cfc bands
-    do l = 1 , 6
-      psi1 = exp(abp(l)*tt+bbp(l)*tt*tt)
-      phi1 = exp(ab(l)*tt+bb(l)*tt*tt)
-      p1 = pnm*(psi1/phi1)/sslp
-      w1 = w*phi1
-      tw(l) = exp(-g1(l)*p1*(sqrt(d_one+g2(l)*(w1/p1)) - &
-              d_one)-g3(l)*s2c-g4(l)*uptype)
-    end do
-    tcfc3 = exp(-175.005_rkx*ucfc11)
-    tcfc4 = exp(-1202.18_rkx*ucfc11)
-    tcfc6 = exp(-5786.73_rkx*ucfc12)
-    tcfc7 = exp(-2873.51_rkx*ucfc12)
-    tcfc8 = exp(-2085.59_rkx*ucfc12)
-    ! Emissivity for CFC11 bands
-    ecfc1 = 50.0_rkx*(d_one-exp(-54.09_rkx*ucfc11))*tw(1)*emplnk(7)
-    ecfc2 = 60.0_rkx*(d_one-exp(-5130.03_rkx*ucfc11))*tw(2)*emplnk(8)
-    ecfc3 = 60.0_rkx*(d_one-tcfc3)*tw(4)*tcfc6*emplnk(9)
-    ecfc4 = 100.0_rkx*(d_one-tcfc4)*tw(5)*emplnk(10)
-    ! Emissivity for CFC12 bands
-    ecfc5 = 45.0_rkx*(d_one-exp(-1272.35_rkx*ucfc12))*tw(3)*emplnk(11)
-    ecfc6 = 50.0_rkx*(d_one-tcfc6)*tw(4)*emplnk(12)
-    ecfc7 = 80.0_rkx*(d_one-tcfc7)*tw(5)*tcfc4*emplnk(13)
-    ecfc8 = 70.0_rkx*(d_one-tcfc8)*tw(6)*emplnk(14)
-    ! Emissivity for CH4 band 1306 cm-1
-    tlw = exp(-d_one*sqrt(up2))
-    betac = bch4/uch4
-    ech4 = 6.00444_rkx*sqti*log(d_one+func(uch4,betac))*tlw*emplnk(3)
-    tch4 = d_one/(d_one+0.02_rkx*func(uch4,betac))
-    ! Emissivity for N2O bands
-    u01 = un2o0
-    u11 = un2o1
-    beta01 = bn2o0/un2o0
-    beta11 = bn2o1/un2o1
-    ! 1285 cm-1 band
-    en2o1 = 2.35558_rkx*sqti * &
-           log(d_one+func(u01,beta01)+func(u11,beta11))*tlw*tch4*emplnk(4)
-    u02 = 0.100090_rkx*u01
-    u12 = 0.0992746_rkx*u11
-    beta02 = 0.964282_rkx*beta01
-    ! 589 cm-1 band
-    en2o2 = 2.65581_rkx*sqti * &
-            log(d_one+func(u02,beta02)+func(u12,beta02))*tco2 * &
-            th2o*emplnk(5)
-    u03 = 0.0333767_rkx*u01
-    beta03 = 0.982143_rkx*beta01
-    ! 1168 cm-1 band
-    en2o3 = 2.54034_rkx*sqti*log(d_one+func(u03,beta03))*tw(6)*tcfc8*emplnk(6)
-    ! Emissivity for 1064 cm-1 band of CO2
-    betac1 = 2.97558_rkx*pnm/(sslp*sqti)
-    betac2 = d_two*betac1
-    eco21 = 3.7571_rkx*sqti * &
-            log(d_one+func(uco211,betac1) + func(uco212,betac2) + &
-                func(uco213,betac2))*to3*tw(5)*tcfc4*tcfc7*emplnk(2)
-    ! Emissivity for 961 cm-1 band
-    eco22 = 3.8443_rkx*sqti * &
-            log(d_one+func(uco221,betac1) + func(uco222,betac1) +  &
-                func(uco223,betac2))*tw(4)*tcfc3*tcfc6*emplnk(1)
-    ! total trace gas emissivity
-    emstrc = ecfc1 + ecfc2 + ecfc3 + ecfc4 + ecfc5 + ecfc6 +  &
-             ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
-             eco21 + eco22
-  end function trcems
-
-  pure real(rkx) function func(u,b)
-!$acc routine seq
-    implicit none
-    real(rkx) , intent(in) :: u , b
-    func = u/sqrt(d_four+u*(d_one+d_one/b))
-  end function func
 
 end module mod_rad_radiation
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

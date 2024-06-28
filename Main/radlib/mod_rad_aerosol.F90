@@ -1144,6 +1144,9 @@ module mod_rad_aerosol
     0.160022E-01_rkx, 0.158424E-01_rkx, 0.157455E-01_rkx, 0.157207E-01_rkx ],&
     [nbndlw,12])
 
+  real(rkx) , parameter :: egravgts = egrav*d_100
+  real(rkx) , parameter :: regravgts = d_one/egravgts
+
   data ncaec / -1 /
 
   contains
