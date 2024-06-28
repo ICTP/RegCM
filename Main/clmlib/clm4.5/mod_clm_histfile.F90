@@ -2883,10 +2883,12 @@ module mod_clm_histfile
       call get_proc_global(numg,numl,numc,nump)
 
       if ( rcmtimer%integrating( ) ) then
-        call clm_openfile(locrest(1),ncid_hist(1))
-        call clm_inqdim(ncid_hist(t),'max_nflds',max_nflds)
-        allocate(itemp2d(max_nflds,ntapes))
-        call clm_closefile(ncid_hist(1))
+        if ( ntapes > 0 ) then
+          call clm_openfile(locrest(1),ncid_hist(1))
+          call clm_inqdim(ncid_hist(1),'max_nflds',max_nflds)
+          allocate(itemp2d(max_nflds,ntapes))
+          call clm_closefile(ncid_hist(1))
+        end if
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
           call clm_readvar(ncid_hist(t),'fincl',fincl(:,t))
