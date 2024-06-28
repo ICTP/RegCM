@@ -36,6 +36,9 @@ module mod_che_sox
   real(rkx) , parameter :: solso4 = 1.0_rkx
   real(rkx) , parameter :: solso2 = 0.6_rkx
 
+  ! Effective molecular weight of dry air (kg/mol)
+  real(rkx) , parameter :: amdk = amd*d_r1000
+
   ! integer , parameter :: rk_com_max = 17
 
   public :: chemsox , solso4 , solso2
