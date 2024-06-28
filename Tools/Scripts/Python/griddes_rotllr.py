@@ -2,6 +2,13 @@
 
 import sys
 
+def scoords(lon,lat):
+    x = lon
+    y = lat
+    if ( lon < 0.0 ):
+        x = 360+x
+    return('('+"{0:0.2f}".format(x)+', '+"{0:0.2f}".format(y)+')')
+
 if len(sys.argv) < 2:
     print('Need netcdf filename.')
     sys.exit(-1)
@@ -16,21 +23,35 @@ try:
 except:
     res = 0.5
 
-lat = ds.variables['xlat'][:]
-lon = ds.variables['xlon'][:]
+try:
+    lat = ds.variables['xlat'][:]
+    lon = ds.variables['xlon'][:]
+except:
+    try:
+        lat = ds.variables['lat'][:]
+        lon = ds.variables['lon'][:]
+    except:
+        print('No coordinates...')
+        sys.exit(-1)
 
-nx,ny = np.shape(lat)
+ny, nx = np.shape(lat)
+hny, hnx = ny//2 , nx//2
 
 print('Nx             = ', nx)
 print('Ny             = ', ny)
-print('Lon 1,1        = ',lon[0,0])
-print('Lon 1,ny       = ',lon[-1,0])
-print('Lon nx,ny      = ',lon[-1,-1])
-print('Lon nx,1       = ',lon[0,-1])
-print('Lat 1,1        = ',lat[0,0])
-print('Lat 1,ny       = ',lat[-1,0])
-print('Lat nx,ny      = ',lat[-1,-1])
-print('Lat nx,1       = ',lat[0,-1])
+print('------------------------------------------------------------')
+print('Coordinates in actual coordinates of corners:')
+print('------------------------------------------------------------')
+print('TLC            = ',scoords(lon[-1,0],lat[-1,0]))
+print('CNB            = ',scoords(lon[-1,hnx],lat[-1,hnx]))
+print('TRC            = ',scoords(lon[-1,-1],lat[-1,-1]))
+print('CWD            = ',scoords(lon[hny,0],lat[hny,0]))
+print('CPD            = ',scoords(lon[hny,hnx],lat[hny,hnx]))
+print('CED            = ',scoords(lon[hny,-1],lat[hny,-1]))
+print('BLC            = ',scoords(lon[0,0],lat[0,0]))
+print('CSB            = ',scoords(lon[0,hnx],lat[0,hnx]))
+print('BRC            = ',scoords(lon[0,-1],lat[0,-1]))
+print('------------------------------------------------------------')
 print('Pole Lat,Lon   = (',
         ds.grid_north_pole_latitude,', ',
         ds.grid_north_pole_longitude,')')
