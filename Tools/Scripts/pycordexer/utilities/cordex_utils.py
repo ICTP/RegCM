@@ -123,7 +123,7 @@ def get_first_and_last_date_str(dates, frequency):
         dd1 = '{:04d}{:02d}{:02d}'.format(
             dates[0].year,
             dates[0].month,
-            dates[0].day
+            dates[0].day-1
         )
         try:
             dd2 = '{:04d}{:02d}{:02d}'.format(
