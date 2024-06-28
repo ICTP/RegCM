@@ -8,6 +8,7 @@ from numpy.ma import is_masked
 from netCDF4 import Dataset, num2date
 from copy import copy
 from traceback import format_exc
+from datetime import timedelta
 
 from utilities.globals import *
 from utilities.variables import Variable, NetCDFData, get_var_with_name
@@ -120,10 +121,11 @@ def get_first_and_last_date_str(dates, frequency):
         )
     elif frequency == 'day':
         # Notice the trailing '12'.
+        ddx = dates[0]-timedelta(hours=12)
         dd1 = '{:04d}{:02d}{:02d}'.format(
-            dates[0].year,
-            dates[0].month,
-            dates[0].day-1
+            ddx.year,
+            ddx.month,
+            ddx.day
         )
         try:
             dd2 = '{:04d}{:02d}{:02d}'.format(
