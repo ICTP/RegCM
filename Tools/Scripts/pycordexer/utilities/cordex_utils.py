@@ -324,13 +324,14 @@ class RegcmOutputFile(object):
                     rev_numbers = [int(i) for i in cleaned_rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
                     self._revision = '-'.join(rev_numbers_str)
-                    self._rev_version = '{}'.format(rev_numbers[-1])
+                    self._rev_version = '{}'.format(rev_numbers[-1]+1)+'-r1'
                 else:
-                    LOGGER.debug('Found an untagged version of RegCM')
                     if rev_temp.lower().startswith('rev'):
                         rev_temp = rev_temp[3:]
-                    self._revision = '5-' + rev_temp[2]
-                    self._rev_version = 'v0'
+                    rev_numbers = [int(i) for i in rev_temp.split('.')]
+                    rev_numbers_str = [str(i) for i in rev_numbers]
+                    self._revision = '-'.join(rev_numbers_str[0:2])
+                    self._rev_version = ICTP_Model_Version_fallback
                 LOGGER.debug(
                     'The model revision is %s; the version is %s',
                     self._revision,
@@ -636,7 +637,7 @@ class CordexDataset(Dataset):
         )
 
         if regcm_file.revision is not None:
-            ICTP_Model = 'RegCM{}'.format(regcm_file.revision)
+            ICTP_Model = 'RegCM' + str(regcm_file.revision)
             ICTP_Model_Version = regcm_file.revision_version
         else:
             LOGGER.warning('Using fallback values for RegCM version...')
@@ -644,15 +645,20 @@ class CordexDataset(Dataset):
             ICTP_Model_Version = ICTP_Model_Version_fallback
 
         scenario = simulation.experiment.upper().replace('.', '')
+        xdomain = 'Unspecified'
+        try:
+            xdomain = DOMAIN_DEF['domain_id'][simulation.domain]['domain']
+        except:
+            pass
         newattr = {
             'activity_id': 'DD',      #only option allowed
             'comment': 'RegCM CORDEX {} run'.format(regcm_file.domain),
-            'note': 'The domain ' + simulation.domain + ' is smaller than the EUR-11 domain', #This will be different for every simulation
+            'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,
             'Conventions': 'CF-1.11',  #only option allowed in CMIP6
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                            time.localtime(time.time())),
-            'domain': 'Europe',        #should be linked to the domain_id
+            'domain': xdomain,
             'domain_id': simulation.domain,
             'driving_experiment':'evaluation run with reanalysis forcing',  #should be linked to driving_experiment_id
             'driving_experiment_id': simulation.experiment.replace('.', ''),
@@ -1321,7 +1327,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         simul.global_model,
         simul.experiment.translate({None: '.'}),
         simul.ensemble,
-        'RegCM5',
+        ICTP_Model,
         ICTP_Model_Version,
         var_freq,
         var_name
@@ -1355,7 +1361,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         simul.experiment.translate({None: '.'}),
         simul.ensemble,
         'ICTP',
-        'RegCM5',
+        ICTP_Model,
         ICTP_Model_Version,
         var_freq,
         dd1 + '-' + dd2 + '.nc',

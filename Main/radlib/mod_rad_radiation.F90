@@ -1945,7 +1945,7 @@ module mod_rad_radiation
         end if
       end do
     end do
-    where ( klov > 0 )
+    where ( klov > 1 )
       skip = .false.
     elsewhere
       skip = .true.
