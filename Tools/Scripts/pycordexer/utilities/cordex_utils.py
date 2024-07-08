@@ -286,26 +286,22 @@ class RegcmOutputFile(object):
         LOGGER.debug('The domain is %s', self._domain)
         LOGGER.debug('The product is %s', self._product)
 
-        LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
-        try:
-            rev_temp = getattr(ncf, 'model_revision')
-            LOGGER.debug('The model revision is %s', rev_temp)
-        except:
-            LOGGER.warning(
-                'No attribute "model_revision" found%s. "0000" will be used as '
-                'placeholder!', in_file
-            )
-            rev_temp = 'rev0000'
+        self._revision = None
+        self._rev_version = None
+        self._nest_tag = None
 
         if regcm_version is not None:
-            self._revision = regcm_version
-            if regcm_version_id is not None:
-                self._rev_version = str(regcm_version_id)
-                self._nest_tag = None
-            elif regcm_nest_tag is not None:
-                self._rev_version = regcm_nest_tag
-                self._nest_tag = regcm_nest_tag
+            rev_numbers = [int(i) for i in regcm_version.split('.')]
+            rev_numbers_str = [str(i) for i in rev_numbers]
+            self._revision = '-'.join(rev_numbers_str[0:2])
         else:
+            LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
+            try:
+                rev_temp = getattr(ncf, 'model_revision')
+                LOGGER.debug('The model revision is %s', rev_temp)
+            except:
+                LOGGER.warning('No attribute "model_revision" found')
+                rev_temp = 'rev0000'
             try:
                 if rev_temp.lower().startswith('tag'):
                     LOGGER.debug('Found a tagged version of RegCM')
@@ -313,31 +309,15 @@ class RegcmOutputFile(object):
                         cleaned_rev_temp = rev_temp[4:]
                     else:
                         cleaned_rev_temp = rev_temp[3:]
-                    LOGGER.debug(
-                        'Removed the initial "tag" from the name, now the '
-                        'string is %s', cleaned_rev_temp
-                    )
-                    LOGGER.debug(
-                        'Splitting string by points and read the result as a '
-                        'list of integers'
-                    )
                     rev_numbers = [int(i) for i in cleaned_rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
-                    self._revision = '-'.join(rev_numbers_str)
-                    self._rev_version = '{}'.format(rev_numbers[-1]+1)+'-r1'
+                    self._revision = '-'.join(rev_numbers_str[0:2])
                 else:
                     if rev_temp.lower().startswith('rev'):
                         rev_temp = rev_temp[3:]
                     rev_numbers = [int(i) for i in rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
                     self._revision = '-'.join(rev_numbers_str[0:2])
-                    self._rev_version = ICTP_Model_Version_fallback
-                LOGGER.debug(
-                    'The model revision is %s; the version is %s',
-                    self._revision,
-                    self._rev_version
-                )
-                self._nest_tag = None
             except Exception:
                 LOGGER.warning(
                     'Unable to understand the revision "%s"%s for the following '
@@ -345,8 +325,18 @@ class RegcmOutputFile(object):
                     rev_temp,
                     of_file
                 )
-                self._revision = None
-                self._rev_version = None
+
+        if regcm_version_id is not None:
+            self._rev_version = str(regcm_version_id)
+        else:
+            self._rev_version = ICTP_Model_Version_fallback
+        if regcm_nest_tag is not None:
+            self._nest_tag = regcm_nest_tag
+
+        LOGGER.debug(
+            'The model revision is %s; the version is %s; the nest tag is %s',
+            self._revision, self._rev_version, self._nest_tag
+        )
 
         self.__ncf = None
 
