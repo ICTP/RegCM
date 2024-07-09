@@ -107,21 +107,25 @@ def read_rcm_map(netcdf_file_pointer):
     return rcm_map, orcmap
 
 
-def get_first_and_last_date_str(dates, frequency):
+def get_first_and_last_date_str(dates, frequency, ispoint=True):
+    # Precision here must be month.
     if frequency == 'month':
-        dd1 = '{:04d}{:02d}{:02d}'.format(
+        dd1 = '{:04d}{:02d}'.format(
             dates[0].year,
-            dates[0].month,
-            dates[0].day
+            dates[0].month
         )
-        dd2 = '{:04d}{:02d}{:02d}'.format(
+        dd2 = '{:04d}{:02d}'.format(
             dates[-2].year,
-            dates[-2].month,
-            dates[-2].day
+            dates[-2].month
         )
+    # Precision for daily data must not have hour."yyyyMMdd"
     elif frequency == 'day':
-        # Notice the trailing '12'.
-        ddx = dates[0]-timedelta(hours=12)
+        # We may already have STS data here, and a shift must be used
+        if ispoint:
+            ddx = dates[0]
+        else:
+            # Notice the trailing '12'.
+            ddx = dates[0]-timedelta(hours=12)
         dd1 = '{:04d}{:02d}{:02d}'.format(
             ddx.year,
             ddx.month,
@@ -135,16 +139,21 @@ def get_first_and_last_date_str(dates, frequency):
             )
         except:
             dd2 = dd1
+    # sub daily frequency. According to CMIP6 (CORDEX should comply),
+    # precision of time label in this case must include minute:
+    # "yyyyMMddhhmm" (Table 2 CMIP6_global_attributes_filenames_CVs_v6.2.7.pdf)
     else:
-        dd1 = '{:04d}{:02d}{:02d}00'.format(
+        dd1 = '{:04d}{:02d}{:02d}{:02d}00'.format(
             dates[0].year,
             dates[0].month,
-            dates[0].day
+            dates[0].day,
+            dates[0].hour
         )
-        dd2 = '{:04d}{:02d}{:02d}00'.format(
+        dd2 = '{:04d}{:02d}{:02d}{:02d}00'.format(
             dates[-1].year,
             dates[-1].month,
-            dates[-1].day
+            dates[-1].day,
+            dates[-1].hour
         )
     return dd1, dd2
 
@@ -315,6 +324,7 @@ class RegcmOutputFile(object):
                 else:
                     if rev_temp.lower().startswith('rev'):
                         rev_temp = rev_temp[3:]
+                    rev_temp = rev_temp.split('-')[0]
                     rev_numbers = [int(i) for i in rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
                     self._revision = '-'.join(rev_numbers_str[0:2])
@@ -1340,7 +1350,8 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         LOGGER.debug('Path created!')
 
     LOGGER.debug('Preparing strings for the first and last date of the var')
-    dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq)
+    dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq,
+                       ('STS' != regcm_file.ftype))
     LOGGER.debug('First date: %s    Last date: %s', dd1, dd2)
 
     LOGGER.debug('Creating netCDF file basename')
