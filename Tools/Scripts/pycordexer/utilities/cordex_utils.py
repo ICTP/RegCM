@@ -1310,7 +1310,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     """
 
     if regcm_file.revision is not None:
-        ICTP_Model = 'ICTP-RegCM{}'.format(regcm_file.revision)
+        ICTP_Model = 'RegCM{}'.format(regcm_file.revision)
         ICTP_Model_Version = regcm_file.revision_version
     else:
         LOGGER.warning('Using fallback values for RegCM version...')
