@@ -13,7 +13,7 @@ This small program is computing time means of netcdf file variables
 of the RegCM output file and writing a netcdf file with the monthly means.
 """
 
-def compute_mean(inpath,outpath):
+def compute_mean(inpath,outpath,year=None):
     """
 Make the mean of an input regcm data output file.
 Output file will be created in the current directory, and its name 
@@ -26,7 +26,11 @@ compressed in disk.
         print('making directory : ',outpath)
         os.mkdir(outpath)
 
-    datafiles = glob.glob(inpath+'/**/*.nc')
+    if year:
+        datafiles = glob.glob(inpath+'/**/*nc')
+    else:
+        datafiles = glob.glob(inpath+'/**/*'+str(year)+'*.nc')
+
     for datafile in datafiles:
         opth = os.path.dirname(datafile.replace(inpath,''))[1:]
         opth = os.path.join(outpath,opth)
@@ -181,6 +185,6 @@ if ( __name__ == '__main__' ):
     if len(sys.argv) < 3:
         print('Need input and output paths')
         sys.exit(-1)
-    compute_mean(sys.argv[1], sys.argv[2])
+    compute_mean(*sys.argv[1:])
 
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
