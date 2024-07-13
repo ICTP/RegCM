@@ -1,4 +1,5 @@
 import os
+import glob
 import json
 import re
 import numpy as np
@@ -87,14 +88,17 @@ with open(REGCM_VAR_FILE, 'r') as f:
         print('Error reading '+REGCM_VAR_FILE)
         raise(SyntaxError)
 
-DOMAIN_DEF_FILE = os.path.join(MAIN_DIR, 
-                           'variables/CORDEX-CMIP6_domain_id.json')
-with open(DOMAIN_DEF_FILE, 'r') as f:
-    try:
-        DOMAIN_DEF = json.load(f)
-    except:
-        print('Error reading '+DOMAIN_DEF_FILE)
-        raise(SyntaxError)
+CORDEX_CMIP6_DEFINITIONS = { }
+jsonfiles = glob.glob(os.path.join('variables','CORDEX-CMIP6*json'))
+for jf in jsonfiles:
+    with open(jf, 'r') as f:
+        try:
+            elements = json.load(f)
+        except:
+            print('Error reading ' + jf)
+            raise(SyntaxError)
+        for k in elements.keys( ):
+            CORDEX_CMIP6_DEFINITIONS[k] = elements[k]
 
 # Default fill values for NETCDF. These are the same values that you can find
 # from the netCDF4._default_fillvals dictionary

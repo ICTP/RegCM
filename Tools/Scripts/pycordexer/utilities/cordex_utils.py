@@ -647,7 +647,7 @@ class CordexDataset(Dataset):
         scenario = simulation.experiment.upper().replace('.', '')
         xdomain = 'Unspecified'
         try:
-            xdomain = DOMAIN_DEF['domain_id'][simulation.domain]['domain']
+            xdomain = CORDEX_CMIP6_DEFINITIONS['domain_id'][simulation.domain]['domain']
         except:
             pass
         newattr = {
@@ -672,7 +672,7 @@ class CordexDataset(Dataset):
             'mip_era': 'CMIP6',      #only option allowed
             'product': 'model-output',    #only option allowed
             'project_id': 'CORDEX',            #only option allowed
-            'source': 'ICTP Regional Climatic model V5',
+            'source': 'ICTP Regional Climate model V5',
             'source_id': ICTP_Model,
             'source_type': 'ARCM',             #should be added as input parameter to pycordex (4 options: ARCM AORCM AGCM AOGCM)
             'tracking_id': str(uuid.uuid1()),
