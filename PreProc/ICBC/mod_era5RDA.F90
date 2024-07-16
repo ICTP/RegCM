@@ -337,7 +337,7 @@ module mod_era5rda
     real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour
-    integer(ik4) , save :: lastmonth
+    integer(ik4) , save :: lastday
     type(rcm_time_interval) :: tdif
     character(len=21) :: subdir_plev = 'ds633.0' // pthsep // 'e5.oper.an.pl'
     character(len=6) :: yyyymm
@@ -369,8 +369,9 @@ module mod_era5rda
     ! store the year and month in a string of format YYYYMM
     write(yyyymm,'(i4.4,i2.2)') year, month
 
-    if ( idate == idate0 .or. month /= lastmonth ) then
-      lastmonth = month
+    ! determine whether this is a new day; open the next file if so
+    if ( idate == idate0 .or. day /= lastday ) then
+      lastday = day
       if ( idate /= idate0 ) then
         do kkrec = 1 , 5
           istatus = nf90_close(inet5(kkrec))
