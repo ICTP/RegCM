@@ -373,8 +373,6 @@ AC_SUBST(NC_LIBS)
 if eval "test x$PNETCDF = x1"; then
   AX_PROG_PNETCDF_CONFIG([NCP_PREFIX=`pnetcdf-config --prefix`; NCPAUTO="yes"],
                          [NCP_PREFIX="${NETCDF}"; NCPAUTO="no"])
-  echo $NCPAUTO
-
   if eval "test x$NCPAUTO = xyes"; then
     CC=`pnetcdf-config --cc`
     AC_SUBST(CC)

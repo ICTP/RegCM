@@ -398,7 +398,7 @@ AC_DEFUN([AX_PROG_PNETCDF_CONFIG], [
   AC_REQUIRE([AC_PROG_EGREP])
 
   AC_CACHE_CHECK([if pnetcdf-config program is present],[ax_cv_prog_pnetcdf_config],[
-  AS_IF([pnetcdf-config --version 2>/dev/null | egrep -q '^PnetCDF '],
+  AS_IF([pnetcdf-config --version 2>/dev/null | egrep -q '(PnetCDF|parallel-netcdf) '],
         [ax_cv_prog_pnetcdf_config=yes], [ax_cv_prog_pnetcdf_config=no])
       ])
   AS_IF([test "$ax_cv_prog_pnetcdf_config" = "yes"], [[$1]], [[$2]])
