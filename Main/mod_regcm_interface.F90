@@ -40,8 +40,12 @@ module mod_regcm_interface
   use mod_tendency
   use mod_service
   use mod_moloch
+  use mod_ensemble
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
+#endif
+#ifdef OASIS
+  use mod_oasis_interface
 #endif
   use mpi
   implicit none
@@ -65,7 +69,9 @@ module mod_regcm_interface
   subroutine RCM_initialize(mpiCommunicator)
     implicit none
     integer, intent(in), optional :: mpiCommunicator
-    integer(ik4) :: ierr
+    real(rkx) , allocatable , dimension(:,:) :: rcemip_noise
+    integer(ik4) :: ierr , k
+    real(rkx) :: rnl
     !
     ! MPI Initialization
     !
@@ -116,6 +122,7 @@ module mod_regcm_interface
         write ( 6, * ) '          ', trim(prgname), ' regcm.in'
         write ( 6, * ) ' '
         write ( 6, * ) 'Check argument and namelist syntax'
+        write ( 6, * ) 'ERROR : ', ierr
         stop
       end if
     end if
@@ -125,6 +132,9 @@ module mod_regcm_interface
     call memory_init
 
     call header(myid,nproc)
+#ifdef OASIS
+    call oasisxregcm_header
+#endif
     call set_nproc
     call setup_model_indexes
 
@@ -135,6 +145,21 @@ module mod_regcm_interface
     ! Parameter Setup
     !
     call param
+    !
+    ! OASIS Setup
+    !
+#ifdef OASIS
+    if ( ioasiscpl == 1 ) then
+      !
+      ! OASIS Variables Setup
+      !
+      call oasisxregcm_params
+      !
+      ! OASIS Definition Phase (grids, partitions, fields)
+      !
+      call oasisxregcm_def
+    end if
+#endif
     !
     ! Read IC and BC data.
     !
@@ -155,11 +180,37 @@ module mod_regcm_interface
     ! Setup the output files
     !
     call init_output_streams(do_parallel_netcdf_out)
-    call output
     !
     ! Setup valid BC's
     !
-    if ( irceideal /= 1 ) call bdyval
+    if ( irceideal == 1 ) then
+      if ( lrcemip_perturb ) then
+        allocate(rcemip_noise(njcross,nicross))
+        if ( idynamic == 3 ) then
+          do k = kz , kz - 5, -1
+            rnl = mo_atm%t(jci1,ici1,k)
+            rcemip_noise(:,:) = rnl
+            rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
+            call randify(rcemip_noise,rnl,nicross,njcross)
+            mo_atm%t(jce1:jce2,ice1:ice2,k) = rcemip_noise(jce1:jce2,ice1:ice2)
+          end do
+        else
+          do k = kz , kz - 5, -1
+            rnl = atm1%t(jci1,ici1,k)/sfs%psb(jci1,ici1)
+            rcemip_noise(:,:) = rnl
+            rnl =  lrcemip_noise_level * (1.0 - (kz-k)/6.0_rkx)
+            call randify(rcemip_noise,rnl,nicross,njcross)
+            atm1%t(jce1:jce2,ice1:ice2,k) = &
+              rcemip_noise(jce1:jce2,ice1:ice2)*sfs%psb(jce1:jce2,ice1:ice2)
+          end do
+        end if
+        deallocate(rcemip_noise)
+      end if
+      call output
+    else
+      call output
+      call bdyval
+    end if
     !
     ! Clean up and logging
     !
@@ -193,6 +244,17 @@ module mod_regcm_interface
       end if
 #endif
       !
+      ! Receive OASIS fields
+      !
+#ifdef OASIS
+      if ( ioasiscpl == 1 ) then
+        if ( oasis_sync_lag > 0 .and. int(extime,ik4) == 0 ) then
+          call oasisxregcm_sync_wait(int(extime,ik4))
+        end if
+        call oasisxregcm_rcv_all(int(extime,ik4)+oasis_lag)
+      end if
+#endif
+      !
       ! Compute tendencies
       !
       if ( idynamic == 3 ) then
@@ -200,6 +262,17 @@ module mod_regcm_interface
       else
         call tend
       end if
+      !
+      ! Send OASIS fields
+      !
+#ifdef OASIS
+      if ( ioasiscpl == 1 ) then
+        call oasisxregcm_snd_all(int(extime,ik4)+oasis_lag)
+        if ( oasis_sync_lag < 0 .and. rcmtimer%reached_endtime) then
+          call oasisxregcm_sync_wait(int(extime,ik4))
+        end if
+      end if
+#endif
       !
       ! Write output for this timestep if requested
       !
@@ -217,7 +290,9 @@ module mod_regcm_interface
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
-        if ( irceideal /= 1 ) call bdyval
+        if ( irceideal /= 1 ) then
+          call bdyval
+        end if
       end if
       !
       ! Send information to the driver
@@ -275,6 +350,15 @@ module mod_regcm_interface
     call rcmtimer%dismiss( )
     call memory_destroy
     call finaltime(myid)
+
+#ifdef OASIS
+    if ( ioasiscpl == 1 ) then
+      !
+      ! OASIS Variables Release
+      !
+      call oasisxregcm_release
+    end if
+#endif
 
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V5 simulation successfully reached end'

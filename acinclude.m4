@@ -311,7 +311,7 @@ AC_LANG_CASE([C], [
 [Fortran], [
 	AC_REQUIRE([AC_PROG_FC])
 	AC_ARG_VAR(MPIFC,[MPI Fortran compiler command])
-	AC_CHECK_PROGS(MPIFC, mpifort mpiifort mpixfl2003 mpixlf2008 mpf90 cmpifc cmpif90c hf90 mpif90, $FC)
+	AC_CHECK_PROGS(MPIFC, mpifort mpiifort mpiifx mpixfl2003 mpixlf2008 mpf90 cmpifc cmpif90c hf90 mpif90, $FC)
 	acx_mpi_save_FC="$FC"
 	FC="$MPIFC"
 	AC_SUBST(MPIFC)
@@ -398,7 +398,7 @@ AC_DEFUN([AX_PROG_PNETCDF_CONFIG], [
   AC_REQUIRE([AC_PROG_EGREP])
 
   AC_CACHE_CHECK([if pnetcdf-config program is present],[ax_cv_prog_pnetcdf_config],[
-  AS_IF([pnetcdf-config --version 2>/dev/null | egrep -q '^PnetCDF '],
+  AS_IF([pnetcdf-config --version 2>/dev/null | egrep -q '(PnetCDF|parallel-netcdf) '],
         [ax_cv_prog_pnetcdf_config=yes], [ax_cv_prog_pnetcdf_config=no])
       ])
   AS_IF([test "$ax_cv_prog_pnetcdf_config" = "yes"], [[$1]], [[$2]])
