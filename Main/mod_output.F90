@@ -1835,7 +1835,7 @@ module mod_output
       if ( lnewf ) then
         call newoutfiles(rcmtimer%idate)
         call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
-                       trim(domname)//'.'//tochar10(lastout))
+                       trim(domname)//'.'//tochar10(lastout),'period')
         lastout = rcmtimer%idate
       end if
     else
@@ -1843,7 +1843,7 @@ module mod_output
         if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
           call newoutfiles(rcmtimer%idate)
           call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
-                         trim(domname)//'.'//tochar10(lastout))
+                         trim(domname)//'.'//tochar10(lastout),'month')
           lastout = rcmtimer%idate
         end if
       end if

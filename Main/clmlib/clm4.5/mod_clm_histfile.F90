@@ -2463,7 +2463,7 @@ module mod_clm_histfile
             write(stdout,*)  'Closing local history file ',trim(locfnh(t))
           end if
           call clm_closefile(nfid(t))
-          if ( .not. if_stop .and. nlomon ) then
+          if ( .not. if_stop ) then
             call clm_openfile(trim(locfnh(t)), nfid(t), clm_readwrite)
           end if
         else
