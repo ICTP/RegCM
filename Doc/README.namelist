@@ -327,6 +327,8 @@
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
+                        !   3 => GFS 2011
+                        !   4 => MYJ
  idiffu   =          1, ! Diffusion scheme
                         !   0 => No diffusion
                         !   1 => MM5 4th order interior/ 2nd order boundary
@@ -336,6 +338,7 @@
  icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo
                         !   2 => Grell
+                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
