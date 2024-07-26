@@ -35,6 +35,11 @@ module mod_micro_interface
   use mod_micro_wdm7
   use mod_cloud_subex
   use mod_cloud_xuran
+  use mod_cloud_thomp
+  use mod_cloud_guli2007
+  use mod_cloud_texeira
+  use mod_cloud_tompkins
+  use mod_cloud_echam5
 
   implicit none
 
@@ -57,8 +62,8 @@ module mod_micro_interface
   real(rkx) , dimension(0:nchi-1) :: chis
 
   logical , parameter :: do_cfscaling = .true.
-  real(rkx) , parameter :: qccrit_lnd = 1.0e-6_rkx
-  real(rkx) , parameter :: qccrit_oce = 5.0e-6_rkx
+  real(rkx) , parameter :: qccrit_lnd = 1.0e-9_rkx
+  real(rkx) , parameter :: qccrit_oce = 5.0e-9_rkx
 
   public :: qck1 , cgul , rh0 , cevap , xcevap , caccr
 
@@ -234,14 +239,22 @@ module mod_micro_interface
   subroutine cldfrac(cldlwc,cldfra)
     use mod_atm_interface , only : atms
     implicit none
-    real(rkx) :: exlwc , conv_exlwc , ls_exlwc
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
-    integer(ik4) :: i , j , k , ichi
+    integer(ik4) :: i , j , k
+    real(rkx) :: ls_exlwc , conv_exlwc , exlwc
+    integer(ik4) :: ichi
 
     if ( ipptls > 1 ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
-      end do
+      if ( icldfrac == 3 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
+                        mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+        end do
+      else
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+        end do
+      end if
     else
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         totc(j,i,k) = mo2mc%qcn(j,i,k)
@@ -264,10 +277,28 @@ module mod_micro_interface
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qs,mo2mc%rh, &
                            qtcrit,mc2mo%fcc)
       case (2)
-        mc2mo%fcc = d_zero
-        where ( totc * mo2mc%delz > 1.0e-2_rkx )
-          mc2mo%fcc = 1.0_rkx
-        end where
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn, &
+                           totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
+                           ds,mc2mo%fcc)
+      case (3)
+        call gulisa_cldfrac(totc,mo2mc%z,mc2mo%fcc)
+      case (4)
+        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,rh0, &
+                             qtcrit,mc2mo%fcc)
+      case (5)
+        call tompkins_cldfrac(mo2mc%rh,totc,mo2mc%phs,mo2mc%ps2, &
+                              qtcrit,mc2mo%fcc)
+      case (6)
+        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2, &
+                            qtcrit,mc2mo%fcc)
+      case (7)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( totc(j,i,k) * mo2mc%delz(j,i,k) > 1.0e-2_rkx ) then
+            mc2mo%fcc(j,i,k) = 1.0_rkx
+          else
+            mc2mo%fcc(j,i,k) = 0.0_rkx
+          end if
+        end do
       case default
         mc2mo%fcc = d_zero
         if ( myid == italk ) then
@@ -276,7 +307,10 @@ module mod_micro_interface
     end select
 
     if ( ipptls == 1 ) then
-      rh0adj = d_one - (d_one-mo2mc%rh)/max((d_one-mc2mo%fcc),1.0e-5_rkx)**2
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        rh0adj(j,i,k) = d_one - (d_one-mo2mc%rh(j,i,k)) / &
+                        max((d_one-mc2mo%fcc(j,i,k)),1.0e-5_rkx)**2
+      end do
     end if
 
     !------------------------------------------
@@ -324,9 +358,14 @@ module mod_micro_interface
       end do
     else
       if ( any(icup > 1) ) then
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(ls_exlwc,conv_exlwc,exlwc,ichi)
+#else
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
@@ -351,13 +390,20 @@ module mod_micro_interface
                 cldfra(j,i,k) = d_zero
                 cldlwc(j,i,k) = d_zero
               end if
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       else
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(exlwc,ichi)
+#else
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
               cldfra(j,i,k) = min(max(mc2mo%fcc(j,i,k),d_zero),d_one)
@@ -376,8 +422,10 @@ module mod_micro_interface
                 cldfra(j,i,k) = d_zero
                 cldlwc(j,i,k) = d_zero
               end if
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       end if
     end if
@@ -409,27 +457,30 @@ module mod_micro_interface
   subroutine condtq
     use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
     implicit none
-    !
-    ! rhc    - Relative humidity at ktau+1
-    !
+    integer(ik4) :: i , j , k
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rhc , rlv , cpm
-    integer(ik4) :: i , j , k
+                 r1 , rhc , rlv , cpm
 
     !---------------------------------------------------------------------
     !     1.  Compute t, qv, and qc at tau+1 without condensational term
     !---------------------------------------------------------------------
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(qccs,qvcs,tmp1,tmp2,tmp3,dqv,exces,pres,qvc_cld,qvs, &
+            fccc,r1,rhc,rlv,cpm)
+#else
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+#endif
           if ( idynamic == 3 ) then
             tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
             qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
             qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
             pres = mo_atm%p(j,i,k)
             qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)),minqq)
+                      dt * mc2mo%qxten(j,i,k,iqv)),minqq)
           else
             tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
             qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
@@ -508,8 +559,10 @@ module mod_micro_interface
                   aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*rlv/cpm
             end if
           end if
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
     contains

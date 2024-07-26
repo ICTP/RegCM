@@ -101,7 +101,7 @@ module mod_ch_icbc_clim
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'mz4_19990401.nc'
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
-       'Error open file chemical '//trim(chfilename))
+       'Error open file '//trim(chfilename))
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find dim lon')
@@ -321,7 +321,7 @@ module mod_ch_icbc_clim
       end if
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open file chemical')
+                      'Error open file '//trim(chfilename))
       write(stdout, *) 'Opening ', trim(chfilename)
       istatus = nf90_inq_varid(ncid,'PS',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -386,7 +386,7 @@ module mod_ch_icbc_clim
       end if
       istatus = nf90_open(chfilename,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open file chemical')
+                      'Error open file '//trim(chfilename))
       write(stdout, *) 'Opening ', trim(chfilename)
       istatus = nf90_inq_varid(ncid,'PS',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &

@@ -94,8 +94,8 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
   real(rkx) , pointer , dimension(:,:,:) :: tkeps
 
-  integer :: idgq
-  integer :: ithadv = 1
+  integer(ik4) :: idgq
+  integer(ik4) :: ithadv = 1
   integer(ik4) :: iqxvadv , itrvadv
 
   real(rkx) :: rptn ! Total number of internal points
@@ -213,8 +213,7 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rkx) :: pt2bar , pt2tot , ptnbar , maxv , ptntot , &
-                 rovcpm , cpm , rofac , uaq , vaq , scr1
+    real(rkx) :: pt2bar , pt2tot , ptnbar , maxv , ptntot
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
 #ifdef DEBUG
@@ -301,19 +300,11 @@ module mod_tendency
       ! Sum up all tendencies for vertical wind and pressure perturbation
       ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
       !
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            wten(j,i,k) = wten(j,i,k) + wdyn(j,i,k) + wphy(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+        wten(j,i,k) = wten(j,i,k) + wdyn(j,i,k) + wphy(j,i,k)
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ppten(j,i,k) = ppten(j,i,k) + ppdyn(j,i,k) + ppphy(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        ppten(j,i,k) = ppten(j,i,k) + ppdyn(j,i,k) + ppphy(j,i,k)
       end do
     end if
 
@@ -369,31 +360,14 @@ module mod_tendency
     !
     ! forecast t, qv, and qc at tau+1:
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%t(j,i,k) = atm2%t(j,i,k) + dt * tten(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      atmc%t(j,i,k) = atm2%t(j,i,k) + dt * tten(j,i,k)
     end do
     do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:nqx )
       atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n)
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
-      atmc%qx(j,i,k,n) = atmc%qx(j,i,k,n) + dt * qxten(j,i,k,n)
-    end do
-    call exchange(atmc%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( atmc%qx(j,i,k,n) < d_zero ) then
-              atmc%qx(j,i,k,n) = 0.01_rkx * &
-                  sum(abs(atmc%qx(j-1:j+1,i-1:i+1,k,n)))/9.0_rkx
-            end if
-          end do
-        end do
-      end do
+      atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n) + dt * qxten(j,i,k,n),d_zero)
     end do
     !
     ! Pressure Gradient Force for Hydrostatic core
@@ -405,13 +379,9 @@ module mod_tendency
     ! Last RHS terms in Eq. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3,
     ! 2.3.4
     !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          uten(j,i,k) = uten(j,i,k) + udyn(j,i,k) + uphy(j,i,k)
-          vten(j,i,k) = vten(j,i,k) + vdyn(j,i,k) + vphy(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+      uten(j,i,k) = uten(j,i,k) + udyn(j,i,k) + uphy(j,i,k)
+      vten(j,i,k) = vten(j,i,k) + vdyn(j,i,k) + vphy(j,i,k)
     end do
     !
     ! Check mass
@@ -438,30 +408,20 @@ module mod_tendency
       !
       ! forecast p*u and p*v at tau+1:
       !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            atmc%u(j,i,k) = atm2%u(j,i,k) + dt * uten(j,i,k)
-            atmc%v(j,i,k) = atm2%v(j,i,k) + dt * vten(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+        atmc%u(j,i,k) = atm2%u(j,i,k) + dt * uten(j,i,k)
+        atmc%v(j,i,k) = atm2%v(j,i,k) + dt * vten(j,i,k)
       end do
       !
       ! perform time smoothing operations.
       !
       call timefilter_apply(atm1%u,atm2%u,atmc%u, &
                             atm1%v,atm2%v,atmc%v,gnu1)
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          rpsb(j,i) = d_one/sfs%psb(j,i)
-        end do
+      do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+        rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-          end do
-        end do
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
       end do
       !
       ! Hydrostatic split explicit scheme
@@ -482,27 +442,15 @@ module mod_tendency
         end if
         call raydamp(atm0%zf,atm2%w,wten,d_zero)
       end if
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            uten(j,i,k) = uten(j,i,k) * rpsda(j,i)
-            vten(j,i,k) = vten(j,i,k) * rpsda(j,i)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz )
+        uten(j,i,k) = uten(j,i,k) * rpsda(j,i)
+        vten(j,i,k) = vten(j,i,k) * rpsda(j,i)
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ppten(j,i,k) = ppten(j,i,k) * rpsa(j,i)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        ppten(j,i,k) = ppten(j,i,k) * rpsa(j,i)
       end do
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            wten(j,i,k) = wten(j,i,k) * rpsa(j,i)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+        wten(j,i,k) = wten(j,i,k) * rpsa(j,i)
       end do
       !
       ! Compute u,v,w,pp at next timestep
@@ -511,12 +459,8 @@ module mod_tendency
       !
       ! Recompute new pressure
       !
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
-          end do
-        end do
+      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
       end do
     end if
     !
@@ -531,21 +475,13 @@ module mod_tendency
       ! thought it would be clever to combine loops--TAO)
       ! Add the advective tendency to the TKE tendency calculated
       ! by the UW TKE routine
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tketen(j,i,k) = tketen(j,i,k) +  &
-                         tkedyn(j,i,k) * rpsa(j,i) + tkephy(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+        tketen(j,i,k) = tketen(j,i,k) +  &
+                        tkedyn(j,i,k) * rpsa(j,i) + tkephy(j,i,k)
       end do
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-             atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+        atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
                                dt * tketen(j,i,k))
-          end do
-        end do
       end do
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu2)
     end if ! TKE tendency update
@@ -553,39 +489,19 @@ module mod_tendency
     ! forecast tracer chi at at tau+1:
     !
     if ( ichem == 1 ) then
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! FAB: if grid point storm detected chiten = 0 after tractend2
-              ! update total tendency only if chiten ne zero
-              ! if( chiten(j,i,k,itr) .ne. d_zero ) then
-              chiten(j,i,k,itr) = &
-                  chiten(j,i,k,itr) + chidyn(j,i,k,itr) + &
-                                      chiphy(j,i,k,itr)
-              ! end if
-            end do
-          end do
-        end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, itr = 1:ntr )
+        ! FAB: if grid point storm detected chiten = 0 after tractend2
+        ! update total tendency only if chiten ne zero
+        ! if( chiten(j,i,k,itr) .ne. d_zero ) then
+        chiten(j,i,k,itr) = chiten(j,i,k,itr) + chidyn(j,i,k,itr) + &
+                                                chiphy(j,i,k,itr)
+        ! end if
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:ntr )
         atmc%chi(j,i,k,n) = atm2%chi(j,i,k,n)
       end do
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
-        atmc%chi(j,i,k,n) = atmc%chi(j,i,k,n) + dt * chiten(j,i,k,n)
-      end do
-      call exchange(atmc%chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( atmc%chi(j,i,k,n) < d_zero ) then
-                atmc%chi(j,i,k,n) = 0.1_rkx * &
-                        sum(abs(atmc%chi(j-1:j+1,i-1:i+1,k,n)))/9.0_rkx
-              end if
-            end do
-          end do
-        end do
+        atmc%chi(j,i,k,n) = max(atmc%chi(j,i,k,n) + dt * chiten(j,i,k,n),d_zero)
       end do
       !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
       !                      1,ntr,mintr)
@@ -900,102 +816,78 @@ module mod_tendency
       ! Boundary U,V points
       !
       if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atmx%ud(jdi1,i,k) = wui(i,k)*rpsda(jdi1,i)
-            atmx%vd(jdi1,i,k) = wvi(i,k)*rpsda(jdi1,i)
-          end do
+        do concurrent ( i = idi1:idi2, k = 1:kz )
+          atmx%ud(jdi1,i,k) = wui(i,k)*rpsda(jdi1,i)
+          atmx%vd(jdi1,i,k) = wvi(i,k)*rpsda(jdi1,i)
         end do
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atmx%ud(jde1,i,k) = wue(i,k)*rpsda(jde1,i)
-            atmx%vd(jde1,i,k) = wve(i,k)*rpsda(jde1,i)
-          end do
+        do concurrent ( i = idi1:idi2, k = 1:kz )
+          atmx%ud(jde1,i,k) = wue(i,k)*rpsda(jde1,i)
+          atmx%vd(jde1,i,k) = wve(i,k)*rpsda(jde1,i)
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
-          do k = 1 , kz
-            do i = idi1 , idi2
-              if ( atm1%u(jde1,i,k) <= d_zero ) then
-                atmx%ud(jde1,i,k) = atmx%ud(jdi1,i,k)
-                atmx%vd(jde1,i,k) = atmx%vd(jdi1,i,k)
-              end if
-            end do
+          do concurrent ( i = idi1:idi2, k = 1:kz )
+            if ( atm1%u(jde1,i,k) <= d_zero ) then
+              atmx%ud(jde1,i,k) = atmx%ud(jdi1,i,k)
+              atmx%vd(jde1,i,k) = atmx%vd(jdi1,i,k)
+            end if
           end do
         end if
       end if
       if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atmx%ud(jdi2,i,k) = eui(i,k)*rpsda(jdi2,i)
-            atmx%vd(jdi2,i,k) = evi(i,k)*rpsda(jdi2,i)
-          end do
+        do concurrent ( i = idi1:idi2, k = 1:kz )
+          atmx%ud(jdi2,i,k) = eui(i,k)*rpsda(jdi2,i)
+          atmx%vd(jdi2,i,k) = evi(i,k)*rpsda(jdi2,i)
         end do
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atmx%ud(jde2,i,k) = eue(i,k)*rpsda(jde2,i)
-            atmx%vd(jde2,i,k) = eve(i,k)*rpsda(jde2,i)
-          end do
+        do concurrent ( i = idi1:idi2, k = 1:kz )
+          atmx%ud(jde2,i,k) = eue(i,k)*rpsda(jde2,i)
+          atmx%vd(jde2,i,k) = eve(i,k)*rpsda(jde2,i)
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
-          do k = 1 , kz
-            do i = idi1 , idi2
-              if ( atm1%u(jde2,i,k) >= d_zero ) then
-                atmx%ud(jde2,i,k) = atmx%ud(jdi2,i,k)
-                atmx%vd(jde2,i,k) = atmx%vd(jdi2,i,k)
-              end if
-            end do
+          do concurrent ( i = idi1:idi2, k = 1:kz )
+            if ( atm1%u(jde2,i,k) >= d_zero ) then
+              atmx%ud(jde2,i,k) = atmx%ud(jdi2,i,k)
+              atmx%vd(jde2,i,k) = atmx%vd(jdi2,i,k)
+            end if
           end do
         end if
       end if
       if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jdi1 , jdi2
-            atmx%ud(j,idi1,k) = sui(j,k)*rpsda(j,idi1)
-            atmx%vd(j,idi1,k) = svi(j,k)*rpsda(j,idi1)
-          end do
+        do concurrent ( j = jdi1:jdi2, k = 1:kz )
+          atmx%ud(j,idi1,k) = sui(j,k)*rpsda(j,idi1)
+          atmx%vd(j,idi1,k) = svi(j,k)*rpsda(j,idi1)
         end do
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atmx%ud(j,ide1,k) = sue(j,k)*rpsda(j,ide1)
-            atmx%vd(j,ide1,k) = sve(j,k)*rpsda(j,ide1)
-          end do
+        do concurrent ( j = jde1:jde2, k = 1:kz )
+          atmx%ud(j,ide1,k) = sue(j,k)*rpsda(j,ide1)
+          atmx%vd(j,ide1,k) = sve(j,k)*rpsda(j,ide1)
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
-          do k = 1 , kz
-            do j = jde1 , jde2
-              if ( atm1%v(j,ide1,k) >= d_zero ) then
-                atmx%ud(j,ide1,k) = atmx%ud(j,idi1,k)
-                atmx%vd(j,ide1,k) = atmx%vd(j,idi1,k)
-              end if
-            end do
+          do concurrent ( j = jde1:jde2, k = 1:kz )
+            if ( atm1%v(j,ide1,k) >= d_zero ) then
+              atmx%ud(j,ide1,k) = atmx%ud(j,idi1,k)
+              atmx%vd(j,ide1,k) = atmx%vd(j,idi1,k)
+            end if
           end do
         end if
       end if
       if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jdi1 , jdi2
-            atmx%ud(j,idi2,k) = nui(j,k)*rpsda(j,idi2)
-            atmx%vd(j,idi2,k) = nvi(j,k)*rpsda(j,idi2)
-          end do
+        do concurrent ( j = jdi1:jdi2, k = 1:kz )
+          atmx%ud(j,idi2,k) = nui(j,k)*rpsda(j,idi2)
+          atmx%vd(j,idi2,k) = nvi(j,k)*rpsda(j,idi2)
         end do
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atmx%ud(j,ide2,k) = nue(j,k)*rpsda(j,ide2)
-            atmx%vd(j,ide2,k) = nve(j,k)*rpsda(j,ide2)
-          end do
+        do concurrent ( j = jde1:jde2, k = 1:kz )
+          atmx%ud(j,ide2,k) = nue(j,k)*rpsda(j,ide2)
+          atmx%vd(j,ide2,k) = nve(j,k)*rpsda(j,ide2)
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
-          do k = 1 , kz
-            do j = jde1 , jde2
-              if ( atm1%v(j,ide2,k) <= d_zero ) then
-                atmx%ud(j,ide2,k) = atmx%ud(j,idi2,k)
-                atmx%vd(j,ide2,k) = atmx%vd(j,idi2,k)
-              end if
-            end do
+          do concurrent ( j = jde1:jde2, k = 1:kz )
+            if ( atm1%v(j,ide2,k) <= d_zero ) then
+              atmx%ud(j,ide2,k) = atmx%ud(j,idi2,k)
+              atmx%vd(j,ide2,k) = atmx%vd(j,idi2,k)
+            end if
           end do
         end if
       end if
@@ -1058,13 +950,9 @@ module mod_tendency
         do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kzp1 )
           atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
         end do
-        do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
-              atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
-              atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
-            end do
-          end do
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+          atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
+          atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
         end do
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
           atmx%pr(j,i,k) = (atmx%tv(j,i,k) - atm0%t(j,i,k) - &
@@ -1147,10 +1035,8 @@ module mod_tendency
                             atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k)))*dummy(j,i)
         end do
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
-            end do
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 )
+            pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
           end do
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
@@ -1565,6 +1451,9 @@ module mod_tendency
 
     subroutine adiabatic
       implicit none
+      real(rkx) :: rovcpm
+      real(rkx) :: cpm , scr1
+      real(rkx) :: rofac , uaq , vaq
       if ( idiag > 0 ) then
         ten0 = tdyn
         qen0 = qxdyn(:,:,:,iqv)
@@ -1574,15 +1463,21 @@ module mod_tendency
         ! Adiabatic term in the temperature tendency equation in the
         ! hydrostatic model:    3rd RHS term in Eq. 2.1.3
         !
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) local(rovcpm)
+#else
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               rovcpm = rgas/cpmf(qvd(j,i,k))
               tdyn(j,i,k) = tdyn(j,i,k) +  &
                      (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
                      (ptop*rpsa(j,i)+hsigma(k))
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       else if ( idynamic == 2 ) then
         !
@@ -1590,17 +1485,24 @@ module mod_tendency
         ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
         !
         if ( ithadv == 0 ) then
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(cpm,scr1)
+#else
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 cpm = cpmf(qvd(j,i,k))
                 scr1 = d_half*egrav*atm0%rho(j,i,k) * &
                              (atm1%w(j,i,k)+atm1%w(j,i,k+1))
                 tdyn(j,i,k) = tdyn(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                           (scr1 + ppdyn(j,i,k) + ppten(j,i,k) +   &
-                           atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
+                         (scr1 + ppdyn(j,i,k) + ppten(j,i,k) +   &
+                         atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
         else
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -1647,28 +1549,35 @@ module mod_tendency
           vcc(j,i,k) = (atmx%vc(j,i,k)  + atmx%vc(j,i+1,k) + &
                         atmx%vc(j+1,i,k)+ atmx%vc(j+1,i+1,k))
         end do
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz ) &
+          local(rofac,uaq,vaq)
+#else
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
-                      dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
-                    ( dsigma(k-1) * atm1%rho(j,i,k) +      &
-                      dsigma(k)   * atm1%rho(j,i,k-1) )
-            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
-                             twt(k,2) * ucc(j,i,k-1))
-            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
-                             twt(k,2) * vcc(j,i,k-1))
-            wdyn(j,i,k) = wdyn(j,i,k) + &
-                    (twt(k,2)*atmx%pr(j,i,k-1) +             &
-                     twt(k,1)*atmx%pr(j,i,k)) *              &
-                     rofac * egrav * sfs%psa(j,i) +          &
-                     mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
-                                    vaq*mddom%cry(j,i)) +    &
-                     (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
-                     atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
-                                    twt(k,2)*mdv%cr(j,i,k-1))
+#endif
+              rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
+                        dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
+                      ( dsigma(k-1) * atm1%rho(j,i,k) +      &
+                        dsigma(k)   * atm1%rho(j,i,k-1) )
+              uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
+                               twt(k,2) * ucc(j,i,k-1))
+              vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
+                               twt(k,2) * vcc(j,i,k-1))
+              wdyn(j,i,k) = wdyn(j,i,k) + &
+                      (twt(k,2)*atmx%pr(j,i,k-1) +             &
+                       twt(k,1)*atmx%pr(j,i,k)) *              &
+                       rofac * egrav * sfs%psa(j,i) +          &
+                       mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
+                                      vaq*mddom%cry(j,i)) +    &
+                       (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
+                       atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
+                                      twt(k,2)*mdv%cr(j,i,k-1))
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
         if ( ipptls > 0 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
@@ -1849,9 +1758,14 @@ module mod_tendency
           vdyn(j,i,k) = vdyn(j,i,k) - mddom%coriol(j,i)*atmx%uc(j,i,k)
         end do
       else if ( idynamic == 2 ) then
+#ifdef STDPAR
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
+          local(wadot,wadotp1,wabar,amfac,duv)
+#else
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
+#endif
               !
               ! Nonhydrostatic model:
               ! (1) part of the horizontal component of the Coriolis force
@@ -1886,8 +1800,10 @@ module mod_tendency
                             mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
                             atmx%umd(j,i,k)*duv -                & ! H curv
                             atmx%vc(j,i,k)*amfac                   ! V curv
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       end if
 #ifdef DEBUG
@@ -1898,22 +1814,32 @@ module mod_tendency
     subroutine pressure_gradient_force
       implicit none
       integer(ik4) :: i , j , k
-      real(rkx) :: tva , tvb , tvc , rtbar , tv , tvavg
+      real(rkx) :: tva , tvb , tvc
+      real(rkx) :: rtbar
+      real(rkx) :: tv
+      real(rkx) :: tvavg
       !
       ! compute weighted p*t (td) for use in ssi:
       !
       if ( ipgf == 1 ) then
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(tva,tvb,tvc)
+#else
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
               tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
               tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
               td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
               ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
-                        t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+                          t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2 , k = 1:kz )
@@ -1943,12 +1869,16 @@ module mod_tendency
                        t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
           end do
         end if
+#ifdef STDPAR
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(rtbar)
+#else
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
+#endif
               rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
                                  atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
-                  t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
+                    t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
               rtbar = rgas*rtbar*sfs%psdota(j,i)
               !
               ! Hydrostatic model. The first part of the pressure gradient term:
@@ -1962,28 +1892,37 @@ module mod_tendency
               !      This second form is discretized here.
               !
               udyn(j,i,k) = udyn(j,i,k) - rtbar * &
-                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                          hsigma(k)+ptop) -                         &
-                     log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                            hsigma(k)+ptop) -                         &
+                       log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                            hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
               vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
-                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                          hsigma(k)+ptop) -                         &
-                     log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                            hsigma(k)+ptop) -                         &
+                       log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                            hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       else if ( ipgf == 0 ) then
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(tva,tvb,tvc)
+#else
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
               tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
               tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
               td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2 , k = 1:kz )
@@ -2005,9 +1944,13 @@ module mod_tendency
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
           end do
         end if
+#ifdef STDPAR
+        do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) local(rtbar)
+#else
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
+#endif
               rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
                                  atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
               rtbar = rgas*rtbar*sfs%psdota(j,i)
@@ -2023,17 +1966,19 @@ module mod_tendency
               !      This second form is discretized here.
               !
               udyn(j,i,k) = udyn(j,i,k) - rtbar * &
-                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                           hsigma(k)+ptop) -                         &
-                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+                       (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                             hsigma(k)+ptop) -                         &
+                        log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                             hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
               vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
-                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                           hsigma(k)+ptop) -                         &
-                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+                       (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                             hsigma(k)+ptop) -                         &
+                        log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                             hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
       end if
 #ifdef DEBUG
@@ -2049,8 +1994,12 @@ module mod_tendency
         tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
       end do
       if ( ipgf == 1 ) then
+#ifdef STDPAR
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(tv)
+#else
         do i = ice1 , ice2
           do j = jce1 , jce2
+#endif
             !
             ! Hydrostatic model: the 1st part of the Eq.2.4.5
             !
@@ -2059,12 +2008,18 @@ module mod_tendency
                      rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
             phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
                     log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+#ifndef STDPAR
           end do
+#endif
         end do
         do k = 1 , kzm1
           lev = kz - k
+#ifdef STDPAR
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(tvavg)
+#else
           do i = ice1 , ice2
             do j = jce1 , jce2
+#endif
               !
               ! Hydrostatic model: the 1st part of the Eq.2.4.5
               !    (also, cf. Eq.2.1.9)
@@ -2075,12 +2030,18 @@ module mod_tendency
               phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
                    tvavg*log((hsigma(lev) + ptop*rpsa(j,i)) /      &
                              (hsigma(lev+1) + ptop*rpsa(j,i)))
+#ifndef STDPAR
             end do
+#endif
           end do
         end do
       else if ( ipgf == 0 ) then
+#ifdef STDPAR
+        do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(tv)
+#else
         do i = ice1 , ice2
           do j = jce1 , jce2
+#endif
             !
             ! Hydrostatic model: the 1st part of the Eq.2.4.5
             !         (also, cf. Eq.2.1.9)
@@ -2088,12 +2049,18 @@ module mod_tendency
             tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
             phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
                  log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+#ifndef STDPAR
           end do
+#endif
         end do
         do k = 1 , kzm1
           lev = kz - k
+#ifdef STDPAR
+          do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(tvavg)
+#else
           do i = ice1 , ice2
             do j = jce1 , jce2
+#endif
               !
               ! Hydrostatic model: the 1st part of the Eq.2.4.5
               !        (also, cf. Eq.2.1.9)
@@ -2104,7 +2071,9 @@ module mod_tendency
               phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
                    tvavg*log((hsigma(lev)+ptop*rpsa(j,i)) /        &
                              (hsigma(lev+1)+ptop*rpsa(j,i)))
+#ifndef STDPAR
             end do
+#endif
           end do
         end do
       end if
@@ -2138,24 +2107,16 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:) :: ten0
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     if ( present(ten0) ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            store(j,i,k) = store(j,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        store(j,i,k) = store(j,i,k) + &
               (ten(j,i,k,indx)-ten0(j,i,k)) * alarm_out_atm%rw
-          end do
-        end do
       end do
       return
     end if
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k) + ten(j,i,k,indx) * alarm_out_atm%rw
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      store(j,i,k) = store(j,i,k) + ten(j,i,k,indx) * alarm_out_atm%rw
     end do
   end subroutine extracttent
 
@@ -2165,24 +2126,16 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:) :: qen0
-    integer :: i , j , k
+    integer(ik4) :: i , j , k
     if ( present(qen0) ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            store(j,i,k) = store(j,i,k) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        store(j,i,k) = store(j,i,k) + &
                     (qen(j,i,k,idgq,indx)-qen0(j,i,k)) * alarm_out_atm%rw
-          end do
-        end do
       end do
       return
     end if
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k) + qen(j,i,k,idgq,indx) * alarm_out_atm%rw
-        end do
-      end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      store(j,i,k) = store(j,i,k) + qen(j,i,k,idgq,indx) * alarm_out_atm%rw
     end do
   end subroutine extracttenqv
 
@@ -2192,29 +2145,17 @@ module mod_tendency
     real(rkx) , pointer , dimension(:,:,:,:) :: store
     integer(ik4) , intent(in) :: indx
     real(rkx) , optional , pointer , dimension(:,:,:,:) :: chiten0
-    integer :: i , j , k , n
+    integer(ik4) :: i , j , k , n
     if ( present(chiten0) ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              store(j,i,k,n) = store(j,i,k,n) + &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+        store(j,i,k,n) = store(j,i,k,n) + &
                   (chiten(j,i,k,n,indx)-chiten0(j,i,k,n)) * alarm_out_atm%rw
-            end do
-          end do
-        end do
       end do
       return
     end if
-    do n = 1 , ntr
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            store(j,i,k,n) = store(j,i,k,n) + &
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+      store(j,i,k,n) = store(j,i,k,n) + &
                       chiten(j,i,k,n,indx) * alarm_out_atm%rw
-          end do
-        end do
-      end do
     end do
   end subroutine extracttenchi
 

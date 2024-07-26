@@ -231,8 +231,8 @@ module mod_init
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-          mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
-                      (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
+          mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * mo_atm%rho(j,i,1) * &
+                      (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2))
         end do
 
         call exchange_lr(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)
@@ -287,6 +287,13 @@ module mod_init
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         sfs%tgbb(j,i) = sfs%tg(j,i)
       end do
+      do concurrent ( n = 1:nnsg, j = jci1:jci2 , i = ici1:ici2 )
+        if ( mdsub%ldmsk(n,j,i) > 0 ) then
+          lms%emisv(n,j,i) = lnd_sfcemiss
+        else
+          lms%emisv(n,j,i) = ocn_sfcemiss
+        end if
+      end do
       !
       ! Initialize surface parameters for aerosol scheme
       !
@@ -300,11 +307,23 @@ module mod_init
       if ( idynamic == 3 ) then
         if ( ibltyp == 2 ) then
           mo_atm%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl(:,:,:) = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
         end if
       else
         if ( ibltyp == 2 ) then
           atm1%tke(:,:,:) = tkemin
           atm2%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
         end if
       end if
       !
@@ -313,10 +332,10 @@ module mod_init
       if ( idcsst == 1 ) then
         do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
           lms%sst(n,j,i) = xtsb%b0(j,i)
+          lms%tskin(n,j,i) = lms%sst(n,j,i)
+          lms%deltas(n,j,i) = 0.001_rkx
+          lms%tdeltas(n,j,i) = lms%sst(n,j,i) - lms%deltas(n,j,i)
         end do
-        lms%tskin(:,:,:) = lms%sst
-        lms%deltas(:,:,:) = 0.001_rkx
-        lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
       do concurrent ( n = 1:nnsg , j = jci1:jci2 , i = ici1:ici2 )
         lms%um10(n,j,i) = 1.0_rkx
@@ -421,6 +440,14 @@ module mod_init
         if ( ibltyp == 2 ) then
           kpbl = kpbl_io
         end if
+        if ( ibltyp == 4 ) then
+          atms%tkepbl = tke_pbl_io
+          kpbl = kpbl_io
+          sfs%uz0 = myjsf_uz0_io
+          sfs%vz0 = myjsf_vz0_io
+          sfs%thz0 = myjsf_thz0_io
+          sfs%qz0 = myjsf_qz0_io
+        end if
         if ( idynamic == 2 ) then
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
             atm1%pp(j,i,k) = atm1_pp_io(j,i,k)
@@ -456,6 +483,9 @@ module mod_init
         o3prof = o3prof_io
         if ( iocnflx == 2 ) then
           zpbl = zpbl_io
+        end if
+        if ( any(icup == 3) ) then
+          cldefi = cldefi_io
         end if
         if ( any(icup == 4) ) then
           cbmf2d = cbmf2d_io
@@ -603,6 +633,15 @@ module mod_init
         if ( ibltyp == 2 ) then
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
         end if
+        if ( ibltyp == 4 ) then
+          call grid_distribute(tke_pbl_io,atms%tkepbl, &
+                               jci1,jci2,ici1,ici2,1,kz)
+          call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
+        end if
         if ( idynamic == 2 ) then
           call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
@@ -632,6 +671,12 @@ module mod_init
         call grid_distribute(cldfra_io,cu_cldfrc,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+        if ( iocnflx == 2 .or. ibltyp == 3 ) then
+          call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 3) ) then
+          call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
+        end if
         if ( any(icup == 4) ) then
           call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
         end if
@@ -879,8 +924,8 @@ module mod_init
       end do
       ! Top pressure
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-        mo_atm%pf(j,i,1) = mo_atm%pf(j,i,2) - egrav * mo_atm%rho(j,i,1) * &
-                      (mo_atm%zetaf(j,i,1)-mo_atm%zetaf(j,i,2))
+        mo_atm%pf(j,i,1) = mo_atm%p(j,i,1) - egrav * mo_atm%rho(j,i,1) * &
+                      (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
       end do
     end if
     !

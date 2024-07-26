@@ -97,6 +97,10 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:) :: emis_surf
   real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
   real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
+
+  real(rkx) , pointer , dimension(:) :: cfc110 , cfc120 , ch40
+  real(rkx) , pointer , dimension(:) :: co2mmr , co2vmr , n2o0
+
   integer(ik4) :: npr , npj
 
   integer(ik4) :: permuteseed = 37_ik4
@@ -155,6 +159,12 @@ module mod_rrtmg_driver
     call getmem1d(totwv,1,npr,'rrtmg:totwv')
     call getmem1d(totcl,1,npr,'rrtmg:totlf')
     call getmem1d(totci,1,npr,'rrtmg:totif')
+    call getmem1d(co2mmr,1,npr,'rrtmg:co2mmr')
+    call getmem1d(co2vmr,1,npr,'rrtmg:co2vmr')
+    call getmem1d(n2o0,1,npr,'rrtmg:n2o0')
+    call getmem1d(ch40,1,npr,'rrtmg:ch40')
+    call getmem1d(cfc110,1,npr,'rrtmg:cfc110')
+    call getmem1d(cfc120,1,npr,'rrtmg:cfc120')
 
     if ( ichem == 1 .or. iclimaaer > 0 ) then
       call getmem2d(pint,1,npr,1,kzp1,'rrtmg:pint')
@@ -246,7 +256,6 @@ module mod_rrtmg_driver
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
     call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
-    call allocate_tracers(1,npr)
   end subroutine allocate_mod_rad_rrtmg
 
   subroutine rrtmg_driver(iyear,imonth,iday,lout,m2r,r2m)
@@ -661,11 +670,11 @@ module mod_rrtmg_driver
         do j = jci1 , jci2
           n = (j-jci1+1)+(i-ici1)*npj
 #ifdef RCEMIP
-          tlay(n,k) = max(stdatm_val(calday,d_zero,play(n,k),istdatm_tempk), &
-            tlay(n,kz))
+          tlay(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
+            play(n,k),istdatm_tempk),tlay(n,kz))
 #else
-          tlay(n,k) = max(stdatm_val(calday,dlat(n),play(n,k),istdatm_tempk), &
-            tlay(n,kz))
+          tlay(n,k) = max(stdatm_val(calday,dayspy,dlat(n), &
+            play(n,k),istdatm_tempk),tlay(n,kz))
 #endif
         end do
       end do
@@ -718,11 +727,11 @@ module mod_rrtmg_driver
     do k = kzp1 , ktf
       do n = 1 , npr
 #ifdef RCEMIP
-        tlev(n,k) = max(stdatm_val(calday,d_zero,plev(n,k),istdatm_tempk), &
-          tlev(n,kz))
+        tlev(n,k) = max(stdatm_val(calday,dayspy,d_zero, &
+          plev(n,k),istdatm_tempk),tlev(n,kz))
 #else
-        tlev(n,k) = max(stdatm_val(calday,dlat(n),plev(n,k),istdatm_tempk), &
-          tlev(n,kz))
+        tlev(n,k) = max(stdatm_val(calday,dayspy,dlat(n), &
+          plev(n,k),istdatm_tempk),tlev(n,kz))
 #endif
       end do
     end do
@@ -764,8 +773,8 @@ module mod_rrtmg_driver
         h2ommr(n,k) = 1.0e-14_rkx
 #else
         h2ommr(n,k) = &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_qdens) / &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amw
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_qdens) / &
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_airdn) * amd/amw
 #endif
         h2ovmr(n,k) = h2ommr(n,k) * rep2
       end do
@@ -786,19 +795,17 @@ module mod_rrtmg_driver
       do n = 1 , npr
 #ifdef RCEMIP
         o3vmr(n,k) = &
-          stdatm_val(calday,d_zero,play(n,k),istdatm_ozone) / &
-          stdatm_val(calday,d_zero,play(n,k),istdatm_airdn) * amd/amo3
+          stdatm_val(calday,dayspy,d_zero,play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dayspy,d_zero,play(n,k),istdatm_airdn) * amd/amo3
 #else
         o3vmr(n,k) = &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_ozone) / &
-          stdatm_val(calday,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_ozone) / &
+          stdatm_val(calday,dayspy,dlat(n),play(n,k),istdatm_airdn) * amd/amo3
 #endif
       end do
     end do
     !
-    ! cgas is in ppm , ppb , ppt
-    !
-    ! Transform in mass mixing ratios (g/g) for trcmix
+    ! Transform in mass mixing ratios (g/g)
     !
 #ifdef RCEMIP
     do n = 1 , npr
@@ -820,13 +827,14 @@ module mod_rrtmg_driver
     end do
 #endif
 
-    do k = 1 , kz
+    do k = 1 , kth
       do n = 1 , npr
         co2vmrk(n,k) = co2vmr(n)
       end do
     end do
 
-    call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
+    call trcmix(1,npr,dlat,xptrop,play,n2o0,ch40,cfc110,cfc120, &
+                n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kth
       do n = 1 , npr

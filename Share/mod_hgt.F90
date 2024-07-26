@@ -98,8 +98,12 @@ module mod_hgt
     ! SET BOUNDARY VALUES TO ZERO AT ALL LEVELS SINCE THE HEIGHT IS
     ! DEFINED AT CROSS POINTS AND AT HALF LEVELS.
     !
+#ifdef STDPAR
+    do concurrent ( j = 1:nj, i = 1:ni ) local(pf,tbar,k)
+#else
     do i = 1 , ni
       do j = 1 , nj
+#endif
         pf = ptop/ps(i,j)
         h(i,j,nk) = topo(i,j) + rovg*t(i,j,nk)*log((d_one+pf)/(sigmah(nk)+pf))
         do k = nk - 1 , 1 , -1
@@ -107,7 +111,9 @@ module mod_hgt
             t(i,j,k+1)*dsigma(k+1))/(dsigma(k)+dsigma(k+1))
           h(i,j,k) = h(i,j,k+1)+rovg*tbar*log((sigmah(k+1)+pf)/(sigmah(k)+pf))
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine hydrost
 
@@ -124,17 +130,21 @@ module mod_hgt
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
     !
-    do j = 1 , nj
-      do i = 1 , ni
-        h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj )
+      h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
     end do
     do k = nk-1 , 1 , -1
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(tbar)
+#else
       do j = 1 , nj
         do i = 1 , ni
+#endif
           tbar = d_half*(t0(i,j,k)+t0(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + rovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine nonhydrost_double
@@ -152,17 +162,21 @@ module mod_hgt
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
     !
-    do j = 1 , nj
-      do i = 1 , ni
-        h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
-      end do
+    do concurrent ( i = 1:ni, j = 1:nj )
+      h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
     end do
     do k = nk-1 , 1 , -1
+#ifdef STDPAR
+      do concurrent ( i = 1:ni, j = 1:nj ) local(tbar)
+#else
       do j = 1 , nj
         do i = 1 , ni
+#endif
           tbar = 0.5*(t0(i,j,k)+t0(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + srovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine nonhydrost_single
@@ -180,17 +194,21 @@ module mod_hgt
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
     !
-    do j = j1 , j2
-      do i = i1 , i2
-        h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
-      end do
+    do concurrent ( i = i1:i2, j = j1:j2 )
+      h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
     end do
     do k = nk-1 , 1 , -1
+#ifdef STDPAR
+      do concurrent ( i = i1:i2, j = j1:j2 ) local(tbar)
+#else
       do j = j1 , j2
         do i = i1 , i2
+#endif
           tbar = d_half*(t0(i,j,k)+t0(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + srovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine nonhydrost_single_2
@@ -235,8 +253,13 @@ module mod_hgt
       ipb = 1
       ipi = -1
     end if
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) &
+      local(psfc,temp,wb,wt,pt,pb,psig,k,kb,kt,n)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         psfc = ps(i,j)
         if ( psfc > -9995.0_rkx ) then
           do k = 1 , km
@@ -274,7 +297,9 @@ module mod_hgt
             hp(i,j,n) = -9999.0_rkx
           end do
         end if
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine height
 !
@@ -312,8 +337,13 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) &
+      local(psfc,temp,wb,wt,psig,k,kb,kt,n)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         do k = 1 , km
           psig(k) = sig(k)*(ps(i,j)-ptop) + ptop
         end do
@@ -343,7 +373,9 @@ module mod_hgt
             hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
           end if
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine height_o_double
 
@@ -376,8 +408,13 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) &
+      local(psfc,temp,wb,wt,k,kb,kt,n)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         psfc = ps(i,j)
         do n = 1 , kp
           if ( p(n) <= p3(i,j,1) ) then
@@ -404,7 +441,9 @@ module mod_hgt
             hp(i,j,n) = h(i,j,kb) + rovg*temp*log(p3(i,j,kb)/p(n))
           end if
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine height_o_double_nonhy
 
@@ -441,8 +480,13 @@ module mod_hgt
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
     ptp = real(ptop)
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) &
+      local(psfc,temp,wb,wt,psig,k,kb,kt,n)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         do k = 1 , km
           psig(k) = sig(k)*(ps(i,j)-ptp) + ptp
         end do
@@ -472,7 +516,9 @@ module mod_hgt
             hp(i,j,n) = h(i,j,kb) + srovg*temp*log(psig(kb)/p(n))
           end if
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine height_o_single
 
@@ -505,8 +551,13 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) &
+      local(psfc,temp,wb,wt,k,kb,kt,n)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         psfc = ps(i,j)
         do n = 1 , kp
           if ( p(n) > psfc ) then
@@ -533,7 +584,9 @@ module mod_hgt
             hp(i,j,n) = h(i,j,kb) + srovg*temp*log(p3(i,j,kb)/p(n))
           end if
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine height_o_single_nonhy
 
@@ -548,47 +601,55 @@ module mod_hgt
     integer(ik4) :: i , j , k
 
     if ( p3d(1,1,km) > p3d(1,1,1) ) then
-      do j = 1 , jm
-        do i = 1 , im
-          if ( ps(i,j) > -9995.0_rkx ) then
-            h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
-          else
-            h(i,j,km) = -9999.0_rkx
-          end if
-        end do
+      do concurrent ( i = 1:im, j = 1:jm )
+        if ( ps(i,j) > -9995.0_rkx ) then
+          h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
+        else
+          h(i,j,km) = -9999.0_rkx
+        end if
       end do
       do k = km - 1 , 1 , -1
+#ifdef STDPAR
+        do concurrent ( i = 1:im, j = 1:jm ) local(tbar)
+#else
         do j = 1 , jm
           do i = 1 , im
+#endif
             if ( h(i,j,k+1) > -9995.0_rkx ) then
               tbar = d_half*(t(i,j,k)+t(i,j,k+1))
               h(i,j,k) = h(i,j,k+1)+rovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
             else
               h(i,j,k) = -9999.0_rkx
             end if
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
     else
-      do j = 1 , jm
-        do i = 1 , im
-          if ( ps(i,j) > -9995.0_rkx ) then
-            h(i,j,1) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,1))
-          else
-            h(i,j,1) = -9999.0_rkx
-          end if
-        end do
+      do concurrent ( i = 1:im, j = 1:jm )
+        if ( ps(i,j) > -9995.0_rkx ) then
+          h(i,j,1) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,1))
+        else
+          h(i,j,1) = -9999.0_rkx
+        end if
       end do
       do k = 2 , km
+#ifdef STDPAR
+        do concurrent ( i = 1:im, j = 1:jm ) local(tbar)
+#else
         do j = 1 , jm
           do i = 1 , im
+#endif
             if ( h(i,j,k-1) > -9995.0_rkx ) then
               tbar = d_half*(t(i,j,k)+t(i,j,k-1))
               h(i,j,k) = h(i,j,k-1)+rovg*tbar*log(p3d(i,j,k-1)/p3d(i,j,k))
             else
               h(i,j,k) = -9999.0_rkx
             end if
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
     end if
@@ -604,20 +665,24 @@ module mod_hgt
     real(rk8) , intent(out) , dimension(i1:i2,j1:j2,km) :: h
     real(rk8) :: tbar
     integer(ik4) :: i , j , k
-    do j = j1 , j2
-      do i = i1 , i2
-        h(i,j,km) = ht(i,j) + &
+    do concurrent ( i = i1:i2, j = j1:j2 )
+      h(i,j,km) = ht(i,j) + &
           rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
-      end do
     end do
     do k = km - 1 , 1 , -1
+#ifdef STDPAR
+      do concurrent ( i = i1:i2, j = j1:j2 ) local(tbar)
+#else
       do j = j1 , j2
         do i = i1 , i2
+#endif
           tbar = d_half*(t(i,j,k)+t(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + &
             rovg*tbar*log(((pstar(i,j)-ptop)*sig(k+1)+ptop)/ &
                           ((pstar(i,j)-ptop)*sig(k)+ptop))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine htsig_2
@@ -629,42 +694,68 @@ module mod_hgt
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: z
     integer(ik4) :: ni , nj , nk
     integer(ik4) :: i , j , k
-    real(rkx) :: tv0 , tv1
+    real(rkx) :: tv0 , h0 , p0 , tv1
     ni = size(z,1)
     nj = size(z,2)
     nk = size(z,3)
     if ( p(1,1,1) > p(1,1,nk) ) then
+#ifdef STDPAR
+      do concurrent( i = 1:ni, j = 1:nj ) local(h0,tv0)
+#else
       do j = 1 , nj
         do i = 1 , ni
+#endif
+          p0 = ps(i,j)
+          h0 = ht(i,j)
           tv0 = t(i,j,1) * (1.0_rkx + ep1 * q(i,j,1))
-          z(i,j,1) = ht(i,j) + rovg * tv0 * log(ps(i,j)/p(i,j,1))
+          z(i,j,1) = h0 + rovg * tv0 * log(p0/p(i,j,1))
+#ifndef STDPAR
         end do
+#endif
       end do
       do k = 2 , nk
+#ifdef STDPAR
+        do concurrent( i = 1:ni, j = 1:nj ) local(tv0,tv1)
+#else
         do j = 1 , nj
           do i = 1 , ni
+#endif
             tv0 = t(i,j,k-1) * (1.0_rkx + ep1 * q(i,j,k-1))
             tv1 = t(i,j,k) * (1.0_rkx + ep1 * q(i,j,k))
             z(i,j,k) = z(i,j,k-1) + &
               rovg * 0.5_rkx * (tv0+tv1) * log(p(i,j,k-1)/p(i,j,k))
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
     else
+#ifdef STDPAR
+      do concurrent( i = 1:ni, j = 1:nj ) local(tv0)
+#else
       do j = 1 , nj
         do i = 1 , ni
+#endif
           tv0 = t(i,j,nk) * (1.0_rkx + ep1 * q(i,j,nk))
           z(i,j,nk) = ht(i,j) + rovg * tv0 * log(ps(i,j)/p(i,j,nk))
+#ifndef STDPAR
         end do
+#endif
       end do
       do k = nk-1 , 1 , -1
+#ifdef STDPAR
+        do concurrent( i = 1:ni, j = 1:nj ) local(tv0,tv1)
+#else
         do j = 1 , nj
           do i = 1 , ni
+#endif
             tv0 = t(i,j,k+1) * (1.0_rkx + ep1 * q(i,j,k+1))
             tv1 = t(i,j,k) * (1.0_rkx + ep1 * q(i,j,k))
             z(i,j,k) = z(i,j,k+1) + &
               rovg * 0.5_rkx * (tv0+tv1) * log(p(i,j,k+1)/p(i,j,k))
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
     end if
@@ -680,20 +771,24 @@ module mod_hgt
     real(rk8) , intent(out) , dimension(im,jm,km) :: h
     real(rk8) :: tbar
     integer(ik4) :: i , j , k
-    do j = 1 , jm
-      do i = 1 , im
-        h(i,j,km) = ht(i,j) + &
+    do concurrent( i = 1:im, j = 1:jm )
+      h(i,j,km) = ht(i,j) + &
           rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
-      end do
     end do
     do k = km - 1 , 1 , -1
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(tbar)
+#else
       do j = 1 , jm
         do i = 1 , im
+#endif
           tbar = d_half*(t(i,j,k)+t(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + &
             rovg*tbar*log(((pstar(i,j)-ptop)*sig(k+1)+ptop)/ &
                            ((pstar(i,j)-ptop)*sig(k)+ptop))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine htsig_o_double
@@ -709,20 +804,24 @@ module mod_hgt
     real(rk4) :: tbar , rpt
     integer(ik4) :: i , j , k
     rpt = real(ptop)
-    do j = 1 , jm
-      do i = 1 , im
-        h(i,j,km) = ht(i,j) + &
+    do concurrent( i = 1:im, j = 1:jm )
+      h(i,j,km) = ht(i,j) + &
           srovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-rpt)*sig(km)+rpt))
-      end do
     end do
     do k = km - 1 , 1 , -1
+#ifdef STDPAR
+      do concurrent( i = 1:im, j = 1:jm ) local(tbar)
+#else
       do j = 1 , jm
         do i = 1 , im
+#endif
           tbar = 0.5*(t(i,j,k)+t(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + &
             srovg*tbar*log(((pstar(i,j)-rpt)*sig(k+1)+rpt)/ &
                            ((pstar(i,j)-rpt)*sig(k)+rpt))
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine htsig_o_single
@@ -776,8 +875,12 @@ module mod_hgt
 
     ! Follow Kallen 1996
     alpha = real(lrate*rgas/egrav,rk4)
+#ifdef STDPAR
+    do concurrent ( i = 1:im, j = 1:jm ) local(tstar,hstar,sraval)
+#else
     do j = 1 , jm
       do i = 1 , im
+#endif
         tstar = t(i,j,kz)
         if ( tstar < 255.0 ) then
           tstar = (tstar+255.0)*0.5
@@ -787,7 +890,9 @@ module mod_hgt
         hstar = ht(i,j)*segrav/(srgas*tstar)
         sraval = 0.5*alpha*hstar
         slp(i,j) = ps(i,j) * exp(hstar*(1.0 - sraval + (sraval*sraval)/3.0))
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine mslp
 
@@ -800,18 +905,22 @@ module mod_hgt
     real(rkx) :: tbar
     integer(ik4) :: i , j , k
 
-    do j = 1 , jm
-      do i = 1 , im
-        p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
-      end do
+    do concurrent ( i = 1:im, j = 1:jm )
+      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
     end do
     do k = 2 , km
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(tbar)
+#else
       do j = 1 , jm
         do i = 1 , im
+#endif
           tbar = d_half*(t(i,j,k)+t(i,j,k-1))
           p3d(i,j,k) = p3d(i,j,k-1)*exp(-(h(i,j,k)-h(i,j,k-1))/rovg/tbar)
         end do
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine psig
 
@@ -824,17 +933,21 @@ module mod_hgt
     real(rkx) :: tbar
     integer(ik4) :: i , j , k
 
-    do j = 1 , jm
-      do i = 1 , im
-        p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
-      end do
+    do concurrent ( i = 1:im, j = 1:jm )
+      p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
     end do
     do k = 2 , km
+#ifdef STDPAR
+      do concurrent ( i = 1:im, j = 1:jm ) local(tbar)
+#else
       do j = 1 , jm
         do i = 1 , im
+#endif
           tbar = t(i,j,k)
           p3d(i,j,k) = p3d(i,j,k-1)*exp(-(h(i,j,k)-h(i,j,k-1))/rovg/tbar)
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
   end subroutine psig1
@@ -855,11 +968,9 @@ module mod_hgt
     v1(:,jm) = v(:,jm)
     mask(:,:) = 0.0
     mval = 0.5*(maxval(vm)-minval(vm))
-    do j = 2 , jm-1
-      do i = 2 , im-1
-        mask(i,j) = (vm(i-1,j)+vm(i+1,j)+vm(i,j-1) + &
-                     vm(i,j+1)-4.0*vm(i,j))/mval
-      end do
+    do concurrent ( i = 2:im-1, j = 2:jm-1 )
+      mask(i,j) = (vm(i-1,j)+vm(i+1,j)+vm(i,j-1) + &
+                   vm(i,j+1)-4.0*vm(i,j))/mval
     end do
     do n = 1 , niter
       do j = 2 , jm-1

@@ -41,7 +41,6 @@ module mod_rad_interface
   use mod_rad_aerosol , only : read_aerclima , close_aerclima
   use mod_rad_aerosol , only : cmip6_plume_profile
   use mod_rad_aerosol , only : aerclima_ntr , aerclima_nbin
-  use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
 
   implicit none
@@ -126,7 +125,6 @@ module mod_rad_interface
     if ( irrtm == 1 ) then
       call allocate_mod_rad_rrtmg
     else
-      call allocate_mod_rad_radiation
       call allocate_mod_rad_colmod3
       call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')

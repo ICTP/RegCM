@@ -8,6 +8,7 @@ from numpy.ma import is_masked
 from netCDF4 import Dataset, num2date
 from copy import copy
 from traceback import format_exc
+from datetime import timedelta
 
 from utilities.globals import *
 from utilities.variables import Variable, NetCDFData, get_var_with_name
@@ -106,24 +107,29 @@ def read_rcm_map(netcdf_file_pointer):
     return rcm_map, orcmap
 
 
-def get_first_and_last_date_str(dates, frequency):
+def get_first_and_last_date_str(dates, frequency, ispoint=True):
+    # Precision here must be month.
     if frequency == 'month':
-        dd1 = '{:04d}{:02d}{:02d}'.format(
+        dd1 = '{:04d}{:02d}'.format(
             dates[0].year,
-            dates[0].month,
-            dates[0].day
+            dates[0].month
         )
-        dd2 = '{:04d}{:02d}{:02d}'.format(
+        dd2 = '{:04d}{:02d}'.format(
             dates[-2].year,
-            dates[-2].month,
-            dates[-2].day
+            dates[-2].month
         )
+    # Precision for daily data must not have hour."yyyyMMdd"
     elif frequency == 'day':
-        # Notice the trailing '12'.
+        # We may already have STS data here, and a shift must be used
+        if ispoint:
+            ddx = dates[0]
+        else:
+            # Notice the trailing '12'.
+            ddx = dates[0]-timedelta(hours=12)
         dd1 = '{:04d}{:02d}{:02d}'.format(
-            dates[0].year,
-            dates[0].month,
-            dates[0].day
+            ddx.year,
+            ddx.month,
+            ddx.day
         )
         try:
             dd2 = '{:04d}{:02d}{:02d}'.format(
@@ -133,16 +139,21 @@ def get_first_and_last_date_str(dates, frequency):
             )
         except:
             dd2 = dd1
+    # sub daily frequency. According to CMIP6 (CORDEX should comply),
+    # precision of time label in this case must include minute:
+    # "yyyyMMddhhmm" (Table 2 CMIP6_global_attributes_filenames_CVs_v6.2.7.pdf)
     else:
-        dd1 = '{:04d}{:02d}{:02d}00'.format(
+        dd1 = '{:04d}{:02d}{:02d}{:02d}00'.format(
             dates[0].year,
             dates[0].month,
-            dates[0].day
+            dates[0].day,
+            dates[0].hour
         )
-        dd2 = '{:04d}{:02d}{:02d}00'.format(
+        dd2 = '{:04d}{:02d}{:02d}{:02d}00'.format(
             dates[-1].year,
             dates[-1].month,
-            dates[-1].day
+            dates[-1].day,
+            dates[-1].hour
         )
     return dd1, dd2
 
@@ -284,26 +295,22 @@ class RegcmOutputFile(object):
         LOGGER.debug('The domain is %s', self._domain)
         LOGGER.debug('The product is %s', self._product)
 
-        LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
-        try:
-            rev_temp = getattr(ncf, 'model_revision')
-            LOGGER.debug('The model revision is %s', rev_temp)
-        except:
-            LOGGER.warning(
-                'No attribute "model_revision" found%s. "0000" will be used as '
-                'placeholder!', in_file
-            )
-            rev_temp = 'rev0000'
+        self._revision = None
+        self._rev_version = None
+        self._nest_tag = None
 
         if regcm_version is not None:
-            self._revision = regcm_version
-            if regcm_version_id is not None:
-                self._rev_version = 'v' + str(regcm_version_id)
-                self._nest_tag = None
-            elif regcm_nest_tag is not None:
-                self._rev_version = regcm_nest_tag
-                self._nest_tag = regcm_nest_tag
+            rev_numbers = [int(i) for i in regcm_version.split('.')]
+            rev_numbers_str = [str(i) for i in rev_numbers]
+            self._revision = '-'.join(rev_numbers_str[0:2])
         else:
+            LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
+            try:
+                rev_temp = getattr(ncf, 'model_revision')
+                LOGGER.debug('The model revision is %s', rev_temp)
+            except:
+                LOGGER.warning('No attribute "model_revision" found')
+                rev_temp = 'rev0000'
             try:
                 if rev_temp.lower().startswith('tag'):
                     LOGGER.debug('Found a tagged version of RegCM')
@@ -311,30 +318,16 @@ class RegcmOutputFile(object):
                         cleaned_rev_temp = rev_temp[4:]
                     else:
                         cleaned_rev_temp = rev_temp[3:]
-                    LOGGER.debug(
-                        'Removed the initial "tag" from the name, now the '
-                        'string is %s', cleaned_rev_temp
-                    )
-                    LOGGER.debug(
-                        'Splitting string by points and read the result as a '
-                        'list of integers'
-                    )
                     rev_numbers = [int(i) for i in cleaned_rev_temp.split('.')]
                     rev_numbers_str = [str(i) for i in rev_numbers]
-                    self._revision = '-'.join(rev_numbers_str)
-                    self._rev_version = 'v{}'.format(rev_numbers[-1])
+                    self._revision = '-'.join(rev_numbers_str[0:2])
                 else:
-                    LOGGER.debug('Found an untagged version of RegCM')
                     if rev_temp.lower().startswith('rev'):
                         rev_temp = rev_temp[3:]
-                    self._revision = '5-' + rev_temp[2]
-                    self._rev_version = 'v0'
-                LOGGER.debug(
-                    'The model revision is %s; the version is %s',
-                    self._revision,
-                    self._rev_version
-                )
-                self._nest_tag = None
+                    rev_temp = rev_temp.split('-')[0]
+                    rev_numbers = [int(i) for i in rev_temp.split('.')]
+                    rev_numbers_str = [str(i) for i in rev_numbers]
+                    self._revision = '-'.join(rev_numbers_str[0:2])
             except Exception:
                 LOGGER.warning(
                     'Unable to understand the revision "%s"%s for the following '
@@ -342,8 +335,18 @@ class RegcmOutputFile(object):
                     rev_temp,
                     of_file
                 )
-                self._revision = None
-                self._rev_version = None
+
+        if regcm_version_id is not None:
+            self._rev_version = str(regcm_version_id)
+        else:
+            self._rev_version = ICTP_Model_Version_fallback
+        if regcm_nest_tag is not None:
+            self._nest_tag = regcm_nest_tag
+
+        LOGGER.debug(
+            'The model revision is %s; the version is %s; the nest tag is %s',
+            self._revision, self._rev_version, self._nest_tag
+        )
 
         self.__ncf = None
 
@@ -634,7 +637,7 @@ class CordexDataset(Dataset):
         )
 
         if regcm_file.revision is not None:
-            ICTP_Model = 'ICTP-RegCM{}'.format(regcm_file.revision)
+            ICTP_Model = 'RegCM' + str(regcm_file.revision)
             ICTP_Model_Version = regcm_file.revision_version
         else:
             LOGGER.warning('Using fallback values for RegCM version...')
@@ -642,33 +645,39 @@ class CordexDataset(Dataset):
             ICTP_Model_Version = ICTP_Model_Version_fallback
 
         scenario = simulation.experiment.upper().replace('.', '')
+        xdomain = 'Unspecified'
+        try:
+            xdomain = CORDEX_CMIP6_DEFINITIONS['domain_id'][simulation.domain]['domain']
+        except:
+            pass
         newattr = {
-            'project_id': 'CORDEX',
-            'ipcc_scenario_code': scenario,
-            'institute_id': 'ICTP',
-            'note': 'The domain is larger than ' + simulation.domain,
+            'activity_id': 'DD',      #only option allowed
             'comment': 'RegCM CORDEX {} run'.format(regcm_file.domain),
-            'experiment': simulation.domain,
-            'experiment_id': simulation.experiment.replace('.', ''),
-            'driving_experiment': '{}, {}, {}'.format(
-                simulation.global_model,
-                simulation.experiment.replace('.', ''),
-                simulation.ensemble
-            ),
-            'driving_model_id': simulation.global_model,
-            'driving_model_ensemble_member': simulation.ensemble,
-            'driving_experiment_name': simulation.experiment.replace('.', ''),
-            'institution': 'International Centre for Theoretical Physics',
-            'model_id': ICTP_Model,
+            'note': 'Regular production', #This will be different for every simulation
+            'contact': simulation.mail,
+            'Conventions': 'CF-1.11',  #only option allowed in CMIP6
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                            time.localtime(time.time())),
-            'CORDEX_domain': simulation.domain,
-            'rcm_version_id': ICTP_Model_Version,
-            'ICTP_version_note': simulation.notes,
-            'contact': simulation.mail,
-            'product': 'output',
-            'Conventions': 'CF-1.7',
+            'domain': xdomain,
+            'domain_id': simulation.domain,
+            'driving_experiment':'evaluation run with reanalysis forcing',  #should be linked to driving_experiment_id
+            'driving_experiment_id': simulation.experiment.replace('.', ''),
+            'driving_institution_id': 'ECMWF',   #should be linked to driving_source_id or additional input parameter
+            'driving_source_id': 'ERA5',         #should be added as input parameter to pycordex
+            'driving_variant_label': simulation.ensemble,
+            'grid': 'Rotated-pole latitude-longitude with 3km grid spacing',   #should be changed based on the simulation resolution
+            'institution': 'International Centre for Theoretical Physics',
+            'institution_id': 'ICTP',
+            'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
+            'mip_era': 'CMIP6',      #only option allowed
+            'product': 'model-output',    #only option allowed
+            'project_id': 'CORDEX',            #only option allowed
+            'source': 'ICTP Regional Climate model V5',
+            'source_id': ICTP_Model,
+            'source_type': 'ARCM',             #should be added as input parameter to pycordex (4 options: ARCM AORCM AGCM AOGCM)
             'tracking_id': str(uuid.uuid1()),
+            'version_realization': ICTP_Model_Version,
+            'version_realization_info': 'none',
         }
 
         if regcm_file.nesting_tag is not None:
@@ -1069,6 +1078,7 @@ class CordexDataset(Dataset):
 
         LOGGER.debug('Setting parameter "frequency" for the netCDF file')
         self.setncattr('frequency', cordex_var.frequency)
+        self.setncattr('variable_id', cordex_var.name)
 
         if 'coordinates' in attributes:
             # The "coordinates" attribute refers to variables that could have
@@ -1300,7 +1310,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     """
 
     if regcm_file.revision is not None:
-        ICTP_Model = 'ICTP-RegCM{}'.format(regcm_file.revision)
+        ICTP_Model = 'RegCM{}'.format(regcm_file.revision)
         ICTP_Model_Version = regcm_file.revision_version
     else:
         LOGGER.warning('Using fallback values for RegCM version...')
@@ -1310,7 +1320,8 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     # This is the directory where the NetCDf file will be saved
     cordex_last_dir = os.path.join(
         cordex_dir,
-        simul.product,
+        'CMIP6',
+        'DD',
         simul.domain,
         'ICTP',
         simul.global_model,
@@ -1339,7 +1350,8 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         LOGGER.debug('Path created!')
 
     LOGGER.debug('Preparing strings for the first and last date of the var')
-    dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq)
+    dd1, dd2 = get_first_and_last_date_str(var_dates, var_freq,
+                       ('STS' != regcm_file.ftype))
     LOGGER.debug('First date: %s    Last date: %s', dd1, dd2)
 
     LOGGER.debug('Creating netCDF file basename')
@@ -1349,6 +1361,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
         simul.global_model,
         simul.experiment.translate({None: '.'}),
         simul.ensemble,
+        'ICTP',
         ICTP_Model,
         ICTP_Model_Version,
         var_freq,

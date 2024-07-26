@@ -370,7 +370,7 @@ module mod_clm_params
       write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
       write(stdout,*) 'Final date of this run               : ', appdat
-      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,*) 'Total simulation length              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
     end if
 
@@ -384,7 +384,7 @@ module mod_clm_params
                           mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
                           mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
-                          mddom%rmoist,mddom%dhlake,base_state_ts0)
+                          mddom%rmoist,mddom%rts,mddom%dhlake,base_state_ts0)
     call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
@@ -559,9 +559,9 @@ module mod_clm_params
         implicit none
       end subroutine init_surface_model
 
-      recursive integer function gcd_rec(u,v) result(gcd)
+      recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer , intent(in) :: u , v
+        integer(ik4) , intent(in) :: u , v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else
@@ -596,22 +596,22 @@ module mod_clm_params
         implicit none
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
-        call model_zitaf(zita)
-        call model_zitah(zitah)
+        call model_zitaf(zita,mo_ztop)
+        call model_zitah(zitah,mo_ztop)
         mo_dzita = zita(kz)
-        sigma = sigmazita(zita)
-        hsigma = sigmazita(zitah)
-        fak = md_ak(zita)
-        fbk = md_bk(zita)
-        ak = md_ak(zitah)
-        bk = md_bk(zitah)
+        sigma = sigmazita(zita,mo_ztop)
+        hsigma = sigmazita(zitah,mo_ztop)
+        fak = md_ak(zita,mo_ztop,mo_h)
+        fbk = md_bk(zita,mo_ztop,mo_a0)
+        ak = md_ak(zitah,mo_ztop,mo_h)
+        bk = md_bk(zitah,mo_ztop,mo_a0)
         do k = 1 , kz
           dsigma(k) = (sigma(k+1)-sigma(k))
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
             zeta(j,i) = ak(kz) + (bk(kz) - d_one) * mddom%ht(j,i)*regrav
-            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i))
+            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
       end subroutine compute_moloch_static

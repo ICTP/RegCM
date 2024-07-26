@@ -559,6 +559,7 @@ module mod_ncout
       ! enable basic geolocation + vertical coord variables
       enable_atm_vars(1:nbase) = .true.
       enable_atm_vars(atm_mrso) = .true.
+      enable_atm_vars(atm_tgb) = .true.
       enable_atm_vars(natm2dvars+atm_u) = .true.
       enable_atm_vars(natm2dvars+atm_v) = .true.
       enable_atm_vars(natm2dvars+atm_w) = .true.
@@ -3975,7 +3976,7 @@ module mod_ncout
                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
     type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
-    integer , intent(in) :: ivar
+    integer(ik4) , intent(in) :: ivar
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
     character(len=*) , intent(in) , optional :: cell_method

@@ -176,10 +176,10 @@ program terrain
     call init_sigma(kz,dsmax,dsmin)
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
-    call model_zitaf(zita)
-    sigma = sigmazita(zita)
-    ak = md_ak(zita)
-    bk = md_bk(zita)
+    call model_zitaf(zita,mo_ztop)
+    sigma = sigmazita(zita,mo_ztop)
+    ak = md_ak(zita,mo_ztop,mo_h)
+    bk = md_bk(zita,mo_ztop,mo_a0)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
   end if
@@ -217,7 +217,7 @@ program terrain
   pjpara%rotparam = .false.
 
   if ( nsg > 1 ) then
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
     write (stdout,*) 'iy     = ' , iysg
     write (stdout,*) 'jx     = ' , jxsg
@@ -419,7 +419,7 @@ program terrain
   !
   ! set up the parameters and constants
   !
-  write (stdout,*) ''
+  write (stdout,*) ' '
   write (stdout,*) 'Doing Horizontal Grid with following parameters'
   write (stdout,*) 'iy     = ' , iy
   write (stdout,*) 'jx     = ' , jx
@@ -835,8 +835,8 @@ program terrain
       do k = 1 , kzp1
         do i = 1 , iysg
           do j = 1 , jxsg
-            zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i))
-            fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i))
+            zeta_s(j,i,k) = md_zeta_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
+            fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
       end do
@@ -848,17 +848,18 @@ program terrain
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,    &
                       ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,     &
                       coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,smoist_s,  &
-                      rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,t0_s, &
-                      rho0_s,z0_s,ts0,zeta_s,fmz_s)
+                      rmoist_s,rts_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,&
+                      t0_s,rho0_s,z0_s,ts0,zeta_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
-  call read_moist(moist_filename,rmoist,snowam,jx,iy,num_soil_layers,lrmoist)
+  call read_moist(moist_filename,rmoist,rts,snowam, &
+                  jx,iy,num_soil_layers,lrmoist,lrts)
 
   if ( idynamic == 1 ) then
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (T estimated)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
     write (stdout,*) '--------------------------------------------------'
@@ -882,7 +883,7 @@ program terrain
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
     write (stdout,*) '--------------------------------------------------'
@@ -895,14 +896,14 @@ program terrain
     do k = 1 , kzp1
       do i = 1 , iy
         do j = 1 , jx
-          zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i))
-          fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i))
+          zeta(j,i,k) = md_zeta_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
+          fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i),mo_ztop,mo_h,mo_a0)
         end do
       end do
     end do
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
-    write (stdout,*) ''
+    write (stdout,*) ' '
     write (stdout,*) '--------------------------------------------------'
     write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
     write (stdout,*) '--------------------------------------------------'
@@ -931,8 +932,8 @@ program terrain
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
                     dmap,umap,vmap,coriol,mask,htgrid,lndout,snowam,      &
-                    smoist,rmoist,dpth,texout,frac_tex,ps0,pr0,t0,rho0,   &
-                    z0,ts0,zeta,fmz)
+                    smoist,rmoist,rts,dpth,texout,frac_tex,ps0,pr0,t0,    &
+                    rho0,z0,ts0,zeta,fmz)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

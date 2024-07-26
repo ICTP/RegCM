@@ -57,6 +57,7 @@ module mod_cu_shallow
         !
         ! Prepare input, erase output
         !
+        psur = m2c%psf(j,i)
         do k = 1 , kz
           kk = kzp1-k
           t(k) = m2c%tas(j,i,kk)
@@ -69,7 +70,6 @@ module mod_cu_shallow
             qns(k) = q(k) + m2c%qxten(j,i,kk,iqv)/m2c%psb(j,i)*dt
           end if
           p(k) = m2c%pas(j,i,kk)*d_r100
-          psur = m2c%psf(j,i)
           outts(k) = d_zero
           outqs(k) = d_zero
         end do
@@ -101,7 +101,7 @@ module mod_cu_shallow
       integer(ik4) , intent(in) :: klev , kbmax
       real(rkx) , intent(in) :: z1 , dtime , pcut , c0 , psur , rads
       real(rkx) , intent(out) :: xmb
-      integer , intent(out) :: ier
+      integer(ik4) , intent(out) :: ier
       real(rkx) , intent(out) :: pre
       !
       ! Environmental properties before large scale forcing,
@@ -820,7 +820,7 @@ module mod_cu_shallow
       real(rkx) , intent(in) :: c0 , pcut , qkb , r
       integer(ik4) :: ktop
       real(rkx) :: dh , dz , agamma , qrch
-      integer :: k
+      integer(ik4) :: k
       !
       ! Erase
       !

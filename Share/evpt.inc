@@ -2,6 +2,7 @@
   ! Shuttleworth, J., Putting the vap' into evaporation (1993)
   ! Return value in kg m-2 s-1
   pure elemental real(rkx) function evpt(p,t,u,e,es,m,sw,lw)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: p   ! Pressure in Pa
     real(rkx) , intent(in) :: t   ! Temperature in K
@@ -33,6 +34,7 @@
 
   ! ASCE-EWRI for Reference Evapotranspiration for grass
   pure real(rkx) function evpt_fao(p,t,u,e,es,m,sw,lw)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: p   ! Pressure in Pa
     real(rkx) , intent(in) :: t   ! 2m Temperature in K

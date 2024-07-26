@@ -354,6 +354,8 @@ module mod_atm_stub
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rmoist')
+      call getmem3d(dom%rts,jde1,jde2,ide1,ide2, &
+                    1,num_soil_layers,'storage:rts')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
@@ -556,6 +558,7 @@ module mod_atm_stub
       call assignpnt(mddom%snowam,lm%snowam)
       call assignpnt(mddom%smoist,lm%smoist)
       call assignpnt(mddom%rmoist,lm%rmoist)
+      call assignpnt(mddom%rts,lm%rts)
       call assignpnt(mdsub%xlat,lm%xlat1)
       call assignpnt(mdsub%xlon,lm%xlon1)
       call assignpnt(mdsub%area,lm%area1)
@@ -899,7 +902,7 @@ module mod_atm_stub
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = zeta(j,i)
-        zlr = stdlrate(yeardayfrac(rcmtimer%idate),mddom%xlat(j,i))
+        zlr = stdlrate(yeardayfrac(rcmtimer%idate),dayspy,mddom%xlat(j,i))
         ! zlr = -lrate
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
         zz2 = egrav/(rgas*tv)

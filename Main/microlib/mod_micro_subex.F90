@@ -101,77 +101,91 @@ module mod_micro_subex
     implicit none
     type(mod_2_micro) , intent(in) :: mo2mc
     type(micro_2_mod) , intent(out) :: mc2mo
-    real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
-                pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rhcs , prainx , qcth , dqv , rlv , ocpm
-    real(rkx) :: tcel
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
+    real(rkx) :: afc1 , qcw1 , qcincl1 , qcth1 , prainx , tcel1
+    real(rkx) :: pptnew , pptmax , afc , qcw , qcleft
+    real(rkx) :: pptkm1 , pptacc , dpovg
+    real(rkx) :: qs , dqv , rhcs , rdevap , rlv , ocpm
     !
     ! 0. Compute dqc
     !
     lsecind = (ichem == 1 .and. iaerosol == 1 .and. iindirect == 2)
     if ( l_lat_hack ) then
-      call sun_cevap
+      call sun_cevap(mo2mc%xlat,calday)
     end if
     if ( lsecind ) then
       if ( idiag > 0 ) then
         mc2mo%dia_qcr(:,:,:) = d_zero
         mc2mo%dia_qcl(:,:,:) = d_zero
       end if
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(afc1,qcw1,qcincl1,qcth1)
+#else
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            afc = mc2mo%fcc(j,i,k)
-            qcw = mo2mc%qcn(j,i,k)
-            if ( qcw > actliq .and. afc > actcld ) then
+#endif
+            afc1 = mc2mo%fcc(j,i,k)
+            qcw1 = mo2mc%qcn(j,i,k)
+            if ( qcw1 > actliq .and. afc1 > actcld ) then
               ! include aerosol second indirect effect on threshold
               ! auto-conversion
               ! rcrit is a critical cloud radius for cloud
               ! water undergoing autoconversion
               ! ccn = number of ccn /m3
               ! In cloud mixing ratio [kg/kg]
-              qcincl = mo2mc%qcn(j,i,k)/afc
-              qcth = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                    ((rcrit*1e-6_rkx)**3)*rhow
+              qcincl1 = mo2mc%qcn(j,i,k)/afc1
+              qcth1 = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                      ((rcrit*1e-6_rkx)**3)*rhow
               if ( idiag > 0 ) then
-                mc2mo%dia_qcr(j,i,k) = qcth
-                mc2mo%dia_qcl(j,i,k) = qcincl
+                mc2mo%dia_qcr(j,i,k) = qcth1
+                mc2mo%dia_qcl(j,i,k) = qcincl1
               end if
-              dqc(j,i,k) = max(qcincl - qcth,d_zero)
+              dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
             else
               dqc(j,i,k) = d_zero
             end if
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
     else
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(afc1,qcw1,qcincl1,qcth1,tcel1)
+#else
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             ! 1ad. Implement here the formula for qcth.
             !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
             !   - The factor of 1000 converts from g/kg to kg/kg
             !   - The factor of cgul accounts for the fact that the Gultepe
             !     and Isaac equation is for mean cloud water while qcth is the
             !     theshhold for auto-conversion.
-            afc = mc2mo%fcc(j,i,k)
-            qcw = mo2mc%qcn(j,i,k)
-            if ( qcw > actliq .and. afc > actcld ) then
+            afc1 = mc2mo%fcc(j,i,k)
+            qcw1 = mo2mc%qcn(j,i,k)
+            if ( qcw1 > actliq .and. afc1 > actcld ) then
               ! In cloud mixing ratio [kg/kg]
-              qcincl = mo2mc%qcn(j,i,k)/afc
-              tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
-              qcth = cgul(j,i) * &
-                 (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
+              qcincl1 = mo2mc%qcn(j,i,k)/afc1
+              tcel1 = mo2mc%t(j,i,k) - tzero   ![C][avg]
+              qcth1 = cgul(j,i) * &
+                   (d_10**(-0.48911_rkx+0.01344_rkx*tcel1))*d_r1000
               ! Use same function of Lemus et al., 1997 as in lwc computation
               !qcth = cgul(j,i) * &
               !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
-              dqc(j,i,k) = max(qcincl - qcth,d_zero)
+              dqc(j,i,k) = max(qcincl1 - qcth1,d_zero)
             else
               dqc(j,i,k) = d_zero
             end if
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
     end if
     !--------------------------------------------------------------------
@@ -193,8 +207,13 @@ module mod_micro_subex
     end if
     ! 1a. Perform computations for the top layer (layer 1)
     !   maximum precipation rate (total cloud water/dt)
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+      local(pptnew,pptmax,afc,qcw,qcleft,pptkm1,pptacc,dpovg)
+#else
     do i = ici1 , ici2
       do j = jci1 , jci2
+#endif
         pptnew = d_zero
         afc = min(mc2mo%fcc(j,i,1),d_one-actcld)                ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
@@ -240,15 +259,23 @@ module mod_micro_subex
             end if
           end if
         end if
+#ifndef STDPAR
       end do
+#endif
     end do
 
     ! LAYER TWO TO KZ
     ! 1b. Perform computations for the 2nd layer to the surface
     ! precipation accumulated from above
     do k = 2 , kz
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+        local(dpovg,afc,qcw,pptnew,pptkm1,qs,dqv,rhcs,rdevap, &
+              rlv,ocpm,pptmax,pptacc,qcleft)
+#else
       do i = ici1 , ici2
         do j = jci1 , jci2
+#endif
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
@@ -352,7 +379,9 @@ module mod_micro_subex
               end if
             end if
           end if
+#ifndef STDPAR
         end do
+#endif
       end do
     end do
     !
@@ -363,10 +392,8 @@ module mod_micro_subex
     !--------------------------------------------------------------------
     !
     if ( ichem == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mc2mo%rembc(j,i,1) = d_zero
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        mc2mo%rembc(j,i,1) = d_zero
       end do
       do k = 2 , kz
         do i = ici1 , ici2
@@ -374,10 +401,9 @@ module mod_micro_subex
             mc2mo%rembc(j,i,k) = d_zero
             if ( mc2mo%remrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                qcw = mo2mc%qcn(j,i,k)
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
-                  mc2mo%remrat(j,i,kk) * qcw * &
-                              (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
+                  mc2mo%remrat(j,i,kk) * mo2mc%qcn(j,i,k) * &
+                  (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
               end do
             end if
           end do
@@ -408,17 +434,18 @@ module mod_micro_subex
 #include <pfwsat.inc>
 #include <clwfromt.inc>
 
-    pure real(rkx) function season_factor(lat) result(sf)
+    pure real(rkx) function season_factor(lat,day,dpy) result(sf)
+!$acc routine seq
       implicit none
-      real(rkx) , intent(in) :: lat
+      real(rkx) , intent(in) :: lat , day , dpy
       real(rkx) :: theta , delta
       ! Maximum abs value for the declination angle
       real(rkx) , parameter :: dmax = 0.40910517666747085282_rkx
       ! Different phase in the two emispheres
       if ( lat > d_zero ) then
-        theta = twopi*mod(calday+(dayspy*d_half),dayspy)/dayspy
+        theta = twopi*mod(day+(dpy*d_half),dpy)/dpy
       else
-        theta = twopi*calday/dayspy
+        theta = twopi*day/dpy
       end if
       delta = 0.006918_rkx - 0.399912_rkx*cos(theta) + &
               0.070257_rkx*sin(theta) -                &
@@ -429,18 +456,18 @@ module mod_micro_subex
       sf = (d_one + delta/dmax)/d_two
     end function season_factor
 
-    subroutine sun_cevap
+    subroutine sun_cevap(lat,day)
       implicit none
       integer(ik4) :: i , j
-      real(rkx) :: xxlat
+      real(rkx) , dimension(:,:) , intent(in) , pointer :: lat
+      real(rkx) , intent(in) :: day
       ! cevap minimum seasonal paraneter
       real(rkx) , parameter :: mincevap = 1.0e-5_rkx
       do i = ici1 , ici2
         do j = jci1 , jci2
-          xxlat = mo2mc%xlat(j,i)
           xcevap(j,i) = max(cevap(j,i) * (d_one - &
-                     (sin(abs(xxlat*90.0_rkx/maxlat)*degrad) * &
-                      season_factor(xxlat))), mincevap)
+                   (sin(abs(lat(j,i)*90.0_rkx/maxlat)*degrad) * &
+                    season_factor(lat(j,i),day,dayspy))), mincevap)
         end do
       end do
     end subroutine sun_cevap

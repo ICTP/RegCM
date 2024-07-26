@@ -168,7 +168,7 @@ module mod_micro_wdm7
 
   public :: allocate_mod_wdm7 , init_wdm7 , wdm7
 
-  integer :: is , ie
+  integer(ik4) :: is , ie
 
   real(rkx) , dimension(:,:) , pointer :: t
   real(rkx) , dimension(:,:) , pointer :: qv
@@ -2376,7 +2376,7 @@ module mod_micro_wdm7
   subroutine slope_wdm7(qrs,ncr,den,denfac,t,rslope,rslopeb,rslope2,rslope3,&
                         vt,vtn,ims,ime)
     implicit none
-    integer , intent(in) :: ims , ime
+    integer(ik4) , intent(in) :: ims , ime
     real(rkx) , dimension(ims:ime,kz,4) , intent(in) :: qrs
     real(rkx) , dimension(ims:ime,kz) , intent(in) :: den , denfac , t , ncr
     real(rkx) , dimension(ims:ime,kz,4) , intent(out) :: rslope , rslopeb

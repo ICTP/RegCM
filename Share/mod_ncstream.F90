@@ -1056,10 +1056,10 @@ module mod_ncstream
           stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
           call outstream_writevar(ncout,stvar%ptop_var)
         else
-          zita = zitasigma(sigma)
-          buffer%doublebuff(1:size(sigma)) = md_ak(zita)
+          zita = zitasigma(sigma,mo_ztop)
+          buffer%doublebuff(1:size(sigma)) = md_ak(zita,mo_ztop,mo_h)
           call outstream_writevar(ncout,stvar%ak_var,nocopy)
-          buffer%doublebuff(1:size(sigma)) = md_bk(zita)
+          buffer%doublebuff(1:size(sigma)) = md_bk(zita,mo_ztop,mo_a0)
           call outstream_writevar(ncout,stvar%bk_var,nocopy)
         end if
       end if
@@ -2156,6 +2156,7 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       integer(ik4) :: nd , totsize
       logical :: docopy
+      nd = 0
       if ( .not. associated(ncout%ncp%xs) ) return
       docopy = .true.
       if ( present(lcopy) ) docopy = lcopy

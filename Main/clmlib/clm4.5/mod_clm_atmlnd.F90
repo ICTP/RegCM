@@ -28,6 +28,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: snow
     real(rk8) , pointer , dimension(:) :: smoist
     real(rk8) , pointer , dimension(:,:) :: rmoist
+    real(rk8) , pointer , dimension(:,:) :: rts
     real(rk8) , pointer , dimension(:) :: tgrd
   end type atm_domain
 
@@ -166,10 +167,6 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: tsoi
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
-    ! Surface subsurface drain
-    real(rk8) , pointer , dimension(:) :: qflx_drain
-    ! Surface liquid runoff from glaciers, wetlands, and lakes
-    real(rk8) , pointer , dimension(:) :: qflx_qrgwl
     ! Total runoff
     real(rk8) , pointer , dimension(:) :: qflx_tot
     ! Snow melt

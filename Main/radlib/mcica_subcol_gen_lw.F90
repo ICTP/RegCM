@@ -110,7 +110,7 @@
                                                       ! Dimensions: (ncol,nlayers)
 
 ! Local
-      integer :: i,k
+      integer(kind=im) :: i,k
       real(kind=rb) :: decorr_lat                     ! decorrelation length, latitude-varying (m)
       real(kind=rb) :: decorr_len(ncol)               ! final decorrelation length (m)
       real(kind=rb) :: decorr_inv(ncol)               ! 1. / decorr_len

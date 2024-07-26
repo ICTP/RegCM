@@ -580,14 +580,20 @@ module mod_atm_interface
       type(atmosphere) , intent(inout) :: atm
       call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
+#ifdef RCEMIP
+      call getmem3d(atm%ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:ux')
+      call getmem3d(atm%vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#else
       call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
       call getmem3d(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#endif
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
       call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
       call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
       call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
@@ -852,6 +858,8 @@ module mod_atm_interface
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rmoist')
+      call getmem3d(dom%rts,jde1,jde2,ide1,ide2, &
+                    1,num_soil_layers,'storage:rts')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
@@ -1098,8 +1106,6 @@ module mod_atm_interface
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem3d(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
-
-
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')

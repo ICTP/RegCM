@@ -677,6 +677,7 @@ sensitivity experiments to select the best scheme for your application.
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
+ iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective algo for lwp in the large-scale
@@ -781,8 +782,8 @@ conditions and the base state vertical profile curve shape.
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
  mo_nzfilt = 5,     ! # of top levels where W filter is active (default kz/5)
- mo_divfilter = .false. ! Do divergence filtering
- mo_anu2 = 0.6,         ! Moloch factor for divergence filtering
+ mod_divfilter = .false. ! Do divergence filtering
+ mo_anu2 = 0.6,          ! Moloch factor for divergence filtering
  /
 \end{Verbatim}
 }

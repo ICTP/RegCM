@@ -31,24 +31,26 @@ module mod_moist
 
   contains
 
-  subroutine read_moist(fname,rmoist,snow,jx,iy,ns,lrmoist)
+  subroutine read_moist(fname,rmoist,tsl,snow,jx,iy,ns,lrmoist,ltsl)
     implicit none
     character(len=256) , intent(in) :: fname
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist , tsl
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: snow
     integer(ik4) , intent(in) :: jx , iy , ns
-    logical , intent(out) :: lrmoist
+    logical , intent(out) :: lrmoist , ltsl
     integer(ik4) :: ncid , istat
     integer(ik4) :: dimid , njx , niy , nlev , ntime
-    integer(ik4) :: idmoist , idsnow
+    integer(ik4) :: idmoist , idsnow , idtsl
     integer(ik4) :: istart(4) , icount(4)
-    real(rkx) , dimension(:,:,:) , allocatable :: moist_in
+    real(rkx) , dimension(:,:,:) , allocatable :: moist_in , tsl_in
     real(rkx) , dimension(:,:) , allocatable :: snow_in
-    logical :: lsnw , lmrso
+    logical :: lsnw , lmrso , ltemp
 
     lrmoist = .false.
+    ltemp = .false.
     lsnw = .false.
     lmrso = .false.
+    ltsl = .false.
 
     istat = nf90_open(fname,nf90_nowrite,ncid)
     if ( istat /= nf90_noerr ) then
@@ -112,19 +114,22 @@ module mod_moist
     end if
 
     allocate(moist_in(njx,niy,nlev))
+    allocate(tsl_in(njx,niy,nlev))
     allocate(snow_in(njx,niy))
 
-    istat = nf90_inq_varid(ncid,'mrso',idmoist)
+    istat = nf90_inq_varid(ncid,'mrsol',idmoist)
     if ( istat /= nf90_noerr ) then
-      istat = nf90_inq_varid(ncid,'mrsos',idmoist)
-      if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error finding variable mrso in moisture file'
-        lmrso = .false.
-      else
-        lmrso = .true.
-      end if
+      write(stderr,*) 'Error finding variable mrso in moisture file'
+      lmrso = .false.
     else
       lmrso = .true.
+    end if
+    istat = nf90_inq_varid(ncid,'tsl',idtsl)
+    if ( istat /= nf90_noerr ) then
+      write(stderr,*) 'Error finding variable tsl in moisture file'
+      ltemp = .false.
+    else
+      ltemp = .true.
     end if
     istat = nf90_inq_varid(ncid,'snw',idsnow)
     if ( istat /= nf90_noerr ) then
@@ -134,7 +139,7 @@ module mod_moist
       lsnw = .true.
     end if
 
-    if ( lmrso .or. lsnw ) then
+    if ( lmrso .or. lsnw .or. ltemp ) then
       istat = nf90_inq_dimid(ncid,'time',dimid)
       if ( istat /= nf90_noerr ) then
         if ( lmrso ) then
@@ -143,6 +148,16 @@ module mod_moist
             write(stderr,*) 'Error reading variable mrso in moisture file'
           else
             rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+            lrmoist = .true.
+          end if
+        end if
+        if ( ltemp ) then
+          istat = nf90_get_var(ncid,idtsl,tsl_in)
+          if ( istat /= nf90_noerr ) then
+            write(stderr,*) 'Error reading variable tsl in moisture file'
+          else
+            tsl(2:jx-2,2:iy-2,:) = tsl_in(:,:,:)
+            ltsl = .true.
           end if
         end if
         if ( lsnw ) then
@@ -174,6 +189,16 @@ module mod_moist
             write(stderr,*) 'Error reading variable mrso in moisture file'
           else
             rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+            lrmoist = .true.
+          end if
+        end if
+        if ( ltemp ) then
+          istat = nf90_get_var(ncid,idtsl,tsl_in,istart,icount)
+          if ( istat /= nf90_noerr ) then
+            write(stderr,*) 'Error reading variable tsl in moisture file'
+          else
+            tsl(2:jx-2,2:iy-2,:) = tsl_in(:,:,:)
+            ltsl = .true.
           end if
         end if
         istart(1) = 1
@@ -194,9 +219,8 @@ module mod_moist
     end if
 
     deallocate(moist_in)
+    deallocate(tsl_in)
     deallocate(snow_in)
-
-    lrmoist = .true.
 
   end subroutine read_moist
 

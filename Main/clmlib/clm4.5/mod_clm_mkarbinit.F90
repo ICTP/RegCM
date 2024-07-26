@@ -4,7 +4,7 @@ module mod_clm_mkarbinit
   use mod_stdio
   use mod_mppparam
   use mod_dynparam
-  use mod_runparams , only : replacemoist
+  use mod_runparams , only : replacemoist , replacetemp
   use mod_clm_atmlnd
   use mod_clm_type
   use mod_clm_varpar , only : nlevsoi , nlevgrnd , nlevsno , nlevlak , nlevurb
@@ -845,6 +845,7 @@ module mod_clm_mkarbinit
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    real(rk8) :: w1 , sfcsat
 #if (defined CN)
     real(rk8) :: vwc , psi      ! for calculating soilpsi
 #endif
@@ -1157,8 +1158,10 @@ module mod_clm_mkarbinit
             else
               ! h2osoi_vol(c,j) = 0.15_rk8
               ! h2osoi_vol(c,j) = watsat(c,j)*0.10_rk8
+              w1 = real(j,rk8)/real(nlevs,rk8)
               if ( lsmoist ) then
-                h2osoi_vol(c,j) = adomain%smoist(g)
+                sfcsat = adomain%smoist(g)
+                h2osoi_vol(c,j) = sfcsat + w1*(0.9_rk8*watsat(c,j)-sfcsat)
               else
                 h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
               end if
@@ -1169,7 +1172,7 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.3_rk8*watsat(c,j)
+                h2osoi_vol(c,j) = 0.5_rk8*watsat(c,j)
                 !h2osoi_vol(c,j) = 0.3_rk8
               else
                 h2osoi_vol(c,j) = 0.0_rk8
@@ -1206,7 +1209,7 @@ module mod_clm_mkarbinit
 
     if ( replacemoist ) then
       if ( myid == italk ) then
-         write(stdout,*) 'Initializing moisture from DOMAIN file'
+         write(stdout,*) 'Initializing SOIL moisture from DOMAIN file'
       end if
       do c = begc , endc
         g = cgridcell(c)
@@ -1215,6 +1218,7 @@ module mod_clm_mkarbinit
           if ( ltype(l) == istsoil .or. &
                ltype(l) == istcrop .or. &
                ltype(l) == isturb ) then
+            nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
@@ -1223,6 +1227,28 @@ module mod_clm_mkarbinit
                   h2osoi_vol(c,j) = adomain%rmoist(g,j) / &
                     (max(dzsoi(c,j),0.0_rk8)*denh2o)
                 end if
+              end if
+            end do
+          end if
+        end if
+      end do
+    end if
+
+    if ( replacetemp ) then
+      if ( myid == italk ) then
+         write(stdout,*) 'Initializing SOIL temperature from DOMAIN file'
+      end if
+      do c = begc , endc
+        g = cgridcell(c)
+        l = clandunit(c)
+        if ( .not. lakpoi(l) ) then  !not lake
+          if ( ltype(l) == istsoil .or. &
+               ltype(l) == istcrop .or. &
+               ltype(l) == isturb ) then
+            nlevs = nlevgrnd
+            do j = 1 , nlevs
+              if ( adomain%rts(g,j) < 1.0e+10_rk8 ) then
+                t_soisno(c,j) = adomain%rts(g,j)
               end if
             end do
           end if

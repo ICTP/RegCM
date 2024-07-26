@@ -374,24 +374,6 @@ module mod_constants
   real(rkx) , parameter :: cice = 6133.0_rkx
   real(rkx) , parameter :: dice = 0.61_rkx
 
-  ! GTS system constants
-  real(rkx) , parameter :: egravgts = egrav*d_100
-  real(rkx) , parameter :: regravgts = d_one/egravgts
-  real(rkx) , parameter :: cpdgts = cpd*1.0e4_rkx
-  real(rkx) , parameter :: gocp = egravgts/cpdgts
-  real(rkx) , parameter :: sslp = stdp*d_10 ! dynes/cm^2
-  real(rkx) , parameter :: rsslp = d_one/sslp
-  real(rkx) , parameter :: stebol = sigm*d_1000
-  real(rkx) , parameter :: rgsslp = d_half/(egravgts*sslp)
-  ! Effective molecular weight of dry air (kg/mol)
-  real(rkx) , parameter :: amdk = amd*d_r1000
-  ! Avogadro Constant in lit/cm3
-  real(rkx) , parameter :: avogadrl = navgdr*d_1000
-
-  ! Radiation constants
-  real(rkx) , parameter :: dpfco2 = 5.0e-3_rkx
-  real(rkx) , parameter :: dpfo3 = 2.5e-3_rkx
-
   ! Pressure gradient force calculations (Why not standard atmosphere?)
   real(rkx) , parameter :: t00pg = 287.0_rkx       ! stdt ?
   real(rkx) , parameter :: p00pg = 101.325_rkx     ! stdpcb ?

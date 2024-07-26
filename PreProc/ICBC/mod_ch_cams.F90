@@ -52,11 +52,10 @@ module mod_cams
     pan , c3h8 , sslt1 , sslt2 , sslt3 , so4 , so2 , no2 , ch4 , aso2
   real(rkx) , pointer , dimension(:,:,:) :: hzvar , hzavar , o3var , &
     covar , dust1var , dust2var , dust3var , ethvar , xch2ovar, &
-    h2o2var , bchlvar , rochlvar , bchbvar , ochbvar , ochlvar
+    h2o2var , bchlvar , bchbvar , ochbvar , ochlvar
   real(rkx) , pointer , dimension(:,:,:) :: ohvar , isopvar , hno3var , &
     novar , panvar , c3h8var , sslt1var , sslt2var , sslt3var , so4var , &
     so2var , no2var , ch4var , aso2var
-  real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
@@ -64,7 +63,6 @@ module mod_cams
   real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) :: pss , pst
   integer(2) , pointer , dimension(:,:,:) :: work
-  integer(2) , pointer , dimension(:,:) :: iwork
 
   integer(ik4) , dimension(20) :: inet5 !care the first dimension must be
                                         !bigger than the number of species
@@ -497,6 +495,9 @@ module mod_cams
       nsp = 13
       varname(1:nsp) = aername(1:nsp)
       fname(1:nsp) = afname(1:nsp)
+    else
+      write(stderr, *) 'Unknown type! Support only CH and AE'
+      call die('mod_ch_cams','Unknown simulattion type.')
     end if
 
     call split_idate(idate,year,month,day,hour)

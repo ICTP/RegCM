@@ -243,7 +243,7 @@ module mod_cmip6_helper
       integer(ik4) , intent(in) :: year
       character(len=*) , intent(in) :: var , freq , ver
       character(len=12) :: experiment
-      character(len=4) :: grid
+      character(len=12) :: grid
 
       if ( dattyp == 'CMIP6' ) then
         select case ( cmip6_model )

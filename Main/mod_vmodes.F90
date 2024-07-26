@@ -632,10 +632,8 @@ module mod_vmodes
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do j = 1 , n
-      do i = 1 , n
-        v(i,j) = a(i,j)
-      end do
+    do concurrent ( i = 1:n, j = 1:n )
+      v(i,j) = a(i,j)
     end do
     call sgefa(v,n,n,ip,ier)
     if ( ier /= 0 ) then

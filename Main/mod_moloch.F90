@@ -51,20 +51,16 @@ module mod_moloch
   ! generalized vertical velocity
   real(rkx) , pointer , dimension(:,:,:) :: s
   ! nonhydrostatic term in pressure gradient force
-  real(rkx) , pointer , dimension(:,:,:) :: deltaw
   ! tridiagonal inversion
-  real(rkx) , pointer , dimension(:,:,:) :: wwkw , zrom1w , zwexpl
   real(rkx) , pointer , dimension(:,:,:) :: wx
+  real(rkx) , pointer , dimension(:,:,:) :: deltaw
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
-  real(rkx) , pointer , dimension(:,:) :: wfw
   real(rkx) , pointer , dimension(:,:) :: mx2
   real(rkx) , pointer , dimension(:,:) :: rmu
   real(rkx) , pointer , dimension(:,:) :: rmv
   real(rkx) , pointer , dimension(:,:,:) :: p0
   real(rkx) , pointer , dimension(:,:,:) :: zdiv2
-  real(rkx) , pointer , dimension(:,:) :: zpby
-  real(rkx) , pointer , dimension(:,:) :: zpbw
 
   real(rkx) , pointer , dimension(:,:,:) :: ten0
   real(rkx) , pointer , dimension(:,:,:) :: qen0
@@ -87,32 +83,31 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: ud , vd
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
-  real(rkx) , dimension(:,:,:) , pointer :: qv , qf , qc , qi , qr , qs , qsat
+  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
 
   public :: allocate_moloch , init_moloch , moloch
-  public :: uvstagtox , xtouvstag , wstagtox
 
   real(rkx) , parameter :: minden = 1.0e-30_rkx
+  real(rkx) , parameter :: xdamp = 0.0625_rkx
 
-  logical , parameter :: do_phys         = .true.
   logical , parameter :: do_fulleq       = .true.
-  logical , parameter :: do_vadvtwice    = .true.
   logical , parameter :: do_bdy          = .true.
   logical , parameter :: do_divdamp      = .true.
+  logical , parameter :: do_vadvtwice    = .true.
   logical , parameter :: do_filterpai    = .false.
-  logical , parameter :: do_filterqv     = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_diffutend    = .false.
+  logical , parameter :: do_gkfilter     = .true.
 #endif
-  logical , parameter :: do_convection    = .true.
-  logical , parameter :: do_microphysics  = .true.
-  logical , parameter :: do_radiation     = .true.
-  logical , parameter :: do_surface       = .true.
-  logical , parameter :: do_pbl           = .true.
+  logical , parameter :: do_phys         = .true.
+  logical , parameter :: do_convection   = .true.
+  logical , parameter :: do_microphysics = .true.
+  logical , parameter :: do_radiation    = .true.
+  logical , parameter :: do_surface      = .true.
+  logical , parameter :: do_pbl          = .true.
 
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -122,6 +117,48 @@ module mod_moloch
 
   real(rkx) :: dzita
   integer(ik4) :: jmin , jmax , imin , imax
+
+#ifdef RCEMIP
+  ! real(rkx) , parameter :: sigma = 0.5_rkx*sqrt(2.0_rkx)
+  ! do i = -2 , 2
+  !   do j = -2 , 2
+  !     kern(i+3,j+3) = (d_one/twopi)*exp(-(i*i+j*i)/(d_two*sigma**2))
+  !   end do
+  ! end do
+  ! kern = kern/sum(kern)
+  !real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
+  !       [ 1.0678874539336266E-004 , 2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 , &
+  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
+  !         0.1171080791453356E-000 , 4.3081654712647119E-002 , &
+  !         2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 0.1171080791453356E-000 , &
+  !         0.3183327635065094e-000 , 0.1171080791453356E-000 , &
+  !         5.8304679428380487E-003 , &
+  !         2.1449092885792707E-003 , 4.3081654712647119E-002 , &
+  !         0.1171080791453356e-000 , 4.3081654712647119E-002 , &
+  !         2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 , 2.1449092885792707E-003 , &
+  !         5.8304679428380487E-003 , 2.1449092885792707E-003 , &
+  !         1.0678874539336266E-004 ], [5,5])
+  real(rkx) , parameter , dimension(5,5) :: kern = reshape(&
+         [ 1.2477641543232609E-002 , 2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
+           1.2477641543232609E-002 , &
+           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
+           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
+           2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 7.1803869414926613E-002 , &
+           9.2197993345293314E-002 , 7.1803869414926613E-002 , &
+           3.3917746268994867E-002 , &
+           2.6415167354310421E-002 , 5.5920909727901751E-002 , &
+           7.1803869414926613E-002 , 5.5920909727901751E-002 , &
+           2.6415167354310421E-002 , &
+           1.2477641543232609E-002 , 2.6415167354310421E-002 , &
+           3.3917746268994867E-002 , 2.6415167354310421E-002 , &
+           1.2477641543232609E-002 ], [5,5])
+#endif
 
   contains
 
@@ -134,18 +171,16 @@ module mod_moloch
     call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
     call getmem2d(p2d,jdi1,jdi2,idi1,idi2,'moloch:p2d')
-    call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
+    call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:dw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+#ifdef RCEMIP
+    call getmem3d(wx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:wx')
+#else
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
+#endif
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
-    call getmem3d(wwkw,jci1,jci2,ici1,ici2,2,kzp1,'moloch:wwkw')
-    call getmem3d(zrom1w,jci1,jci2,ici1,ici2,2,kz,'moloch:zrom1w')
-    call getmem3d(zwexpl,jci1,jci2,ici1,ici2,2,kz,'moloch:zwexpl')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
-    call getmem2d(wfw,jci1,jci2,1,kzp1,'moloch:wfw')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
-    call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
-    call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
     call getmem2d(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
     call getmem2d(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
     call getmem2d(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
@@ -175,16 +210,14 @@ module mod_moloch
     end if
     call getmem1d(xknu,1,kz,'moloch:xknu')
     do concurrent ( k = 1:kz )
-      xknu(k) = sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
+      xknu(k) = xdamp + &
+        (1.0_rkx-xdamp) * sin(d_half*mathpi*(1.0_rkx-real(k-1,rkx)/kzm1))
     end do
     if ( do_filterpai ) then
       call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
     end if
     if ( do_filtertheta ) then
       call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
-    end if
-    if ( do_filterqv ) then
-      call getmem3d(qf,jce1,jce2,ice1,ice2,1,kz,'moloch:qf')
     end if
   end subroutine allocate_moloch
 
@@ -246,17 +279,13 @@ module mod_moloch
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
-    gzitak = gzita(zita)
-    gzitakh = gzita(zitah)
+    gzitak = gzita(zita,mo_ztop,mo_a0)
+    gzitakh = gzita(zitah,mo_ztop,mo_a0)
     dzita = mo_dzita
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      wwkw(j,i,kzp1) = d_zero
-    end do
     do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       w(j,i,1) = d_zero
     end do
     lrotllr = (iproj == 'ROTLLR')
-
     jmin = jcross1
     jmax = jcross2
     imin = icross1
@@ -271,7 +300,6 @@ module mod_moloch
       imin = icross1 - 2
       imax = icross2 + 2
     end if
-
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -279,8 +307,8 @@ module mod_moloch
   subroutine moloch
     implicit none
     real(rkx) :: dtsound , dtstepa
-    real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , fice
+    real(rkx) :: maxps , minps , pmax , pmin
+    real(rkx) :: fice , zdgz , lrt , tv
     !real(rk8) :: jday
     integer(ik4) :: i , j , k , n , nadv
     integer(ik4) :: iconvec
@@ -319,9 +347,14 @@ module mod_moloch
           tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - qc(j,i,k))
         end do
         if ( do_fulleq ) then
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(fice)
+#else
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 if ( t(j,i,k) >= tzero ) then
                   qwltot(j,i,k) = qc(j,i,k)
                 else if ( t(j,i,k) <= -20.0_rkx+tzero ) then
@@ -331,8 +364,10 @@ module mod_moloch
                   qwltot(j,i,k) = qc(j,i,k) * (1.0_rkx-fice)
                   qwitot(j,i,k) = qc(j,i,k) * fice
                 end if
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
         end if
       end if
@@ -377,11 +412,6 @@ module mod_moloch
           tf(j,i,k) = tetav(j,i,k)
         end do
       end if
-    end if
-    if ( do_filterqv ) then
-      do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-        qf(j,i,k) = qv(j,i,k)
-      end do
     end if
 
     do nadv = 1 , mo_nadv
@@ -456,15 +486,22 @@ module mod_moloch
     end do
 
     !jday = yeardayfrac(rcmtimer%idate)
+
+#ifdef STDPAR
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 ) local(zdgz,lrt,tv)
+#else
     do i = ice1 , ice2
       do j = jce1 , jce2
+#endif
         zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
+        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,xlat(j,i))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
         tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt ! Mean temperature
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
+#ifndef STDPAR
       end do
+#endif
     end do
     !
     ! Recompute saturation
@@ -509,13 +546,6 @@ module mod_moloch
         end if
       end if
     end if
-
-    if ( do_filterqv ) then
-      qv(jce1:jce2,ice1:ice2,:) = qv(jce1:jce2,ice1:ice2,:) - qf
-      call filtqv
-      qv(jce1:jce2,ice1:ice2,:) = max(qv(jce1:jce2,ice1:ice2,:) + qf,minqq)
-    end if
-
     !
     ! Mass check
     !
@@ -647,6 +677,161 @@ module mod_moloch
       end subroutine boundary
 
 #ifdef RCEMIP
+      subroutine gkfilter2d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:) :: temp
+        integer(ik4) :: i , j , n
+
+        call exchange(f,2,jce1,jce2,ice1,ice2)
+        allocate(temp, mold=f)
+        temp(:,:) = f(:,:)
+        do n = 1 , irep
+          do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
+            temp(j,i) = kern(1,1)*f(j-2,i-2) + &
+              kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
+              kern(4,1)*f(j+1,i-2) + kern(5,1)*f(j+2,i-2) + &
+              kern(1,2)*f(j-2,i-1) + kern(2,2)*f(j-1,i-1) + &
+              kern(3,2)*f(j,  i-1) + kern(4,2)*f(j+1,i-1) + &
+              kern(5,2)*f(j+2,i-1) + kern(1,3)*f(j-2,i  ) + &
+              kern(2,3)*f(j-1,i  ) + kern(3,3)*f(j,  i  ) + &
+              kern(4,3)*f(j+1,i  ) + kern(5,3)*f(j+2,i  ) + &
+              kern(1,4)*f(j-2,i+1) + kern(2,4)*f(j-1,i+1) + &
+              kern(3,4)*f(j,  i+1) + kern(4,4)*f(j+1,i+1) + &
+              kern(5,4)*f(j+2,i+1) + kern(1,5)*f(j-2,i+2) + &
+              kern(2,5)*f(j-1,i+2) + kern(3,5)*f(j,  i+2) + &
+              kern(4,5)*f(j+1,i+2) + kern(5,5)*f(j+2,i+2)
+          end do
+        end do
+        do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
+          f(j,i) = temp(j,i)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter2d
+
+      subroutine gkfilter3d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:,:) :: temp
+        integer(ik4) :: i , j , k , n
+
+        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=f)
+        temp(:,:,:) = f(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
+              kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
+              kern(4,1)*f(j+1,i-2,k) + kern(5,1)*f(j+2,i-2,k) + &
+              kern(1,2)*f(j-2,i-1,k) + kern(2,2)*f(j-1,i-1,k) + &
+              kern(3,2)*f(j,  i-1,k) + kern(4,2)*f(j+1,i-1,k) + &
+              kern(5,2)*f(j+2,i-1,k) + kern(1,3)*f(j-2,i  ,k) + &
+              kern(2,3)*f(j-1,i  ,k) + kern(3,3)*f(j,  i  ,k) + &
+              kern(4,3)*f(j+1,i  ,k) + kern(5,3)*f(j+2,i  ,k) + &
+              kern(1,4)*f(j-2,i+1,k) + kern(2,4)*f(j-1,i+1,k) + &
+              kern(3,4)*f(j,  i+1,k) + kern(4,4)*f(j+1,i+1,k) + &
+              kern(5,4)*f(j+2,i+1,k) + kern(1,5)*f(j-2,i+2,k) + &
+              kern(2,5)*f(j-1,i+2,k) + kern(3,5)*f(j,  i+2,k) + &
+              kern(4,5)*f(j+1,i+2,k) + kern(5,5)*f(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+          f(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter3d
+
+      subroutine gkfilter4d(f,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: f
+        real(rkx) , allocatable , dimension(:,:,:,:) :: temp
+        integer(ik4) :: i , j , k , n , m
+        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        allocate(temp, mold=f)
+        temp(:,:,:,:) = f(:,:,:,:)
+        do m = 1 , irep
+          do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz , n=1:nqx)
+            temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
+              kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
+              kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
+              kern(1,2)*f(j-2,i-1,k,n) + kern(2,2)*f(j-1,i-1,k,n) + &
+              kern(3,2)*f(j,  i-1,k,n) + kern(4,2)*f(j+1,i-1,k,n) + &
+              kern(5,2)*f(j+2,i-1,k,n) + kern(1,3)*f(j-2,i  ,k,n) + &
+              kern(2,3)*f(j-1,i  ,k,n) + kern(3,3)*f(j,  i  ,k,n) + &
+              kern(4,3)*f(j+1,i  ,k,n) + kern(5,3)*f(j+2,i  ,k,n) + &
+              kern(1,4)*f(j-2,i+1,k,n) + kern(2,4)*f(j-1,i+1,k,n) + &
+              kern(3,4)*f(j,  i+1,k,n) + kern(4,4)*f(j+1,i+1,k,n) + &
+              kern(5,4)*f(j+2,i+1,k,n) + kern(1,5)*f(j-2,i+2,k,n) + &
+              kern(2,5)*f(j-1,i+2,k,n) + kern(3,5)*f(j,  i+2,k,n) + &
+              kern(4,5)*f(j+1,i+2,k,n) + kern(5,5)*f(j+2,i+2,k,n)
+          end do
+        end do
+        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
+          f(j,i,k,n) = temp(j,i,k,n)
+        end do
+        deallocate(temp)
+      end subroutine gkfilter4d
+
+      subroutine gkfilteruv(u,v,irep)
+        implicit none
+        integer(ik4) , intent(in) :: irep
+        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+        real(rkx) , allocatable , dimension(:,:,:) :: temp
+        integer(ik4) :: i , j , k , n
+
+        call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=u)
+        temp(:,:,:) = u(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
+              kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
+              kern(4,1)*u(j+1,i-2,k) + kern(5,1)*u(j+2,i-2,k) + &
+              kern(1,2)*u(j-2,i-1,k) + kern(2,2)*u(j-1,i-1,k) + &
+              kern(3,2)*u(j,  i-1,k) + kern(4,2)*u(j+1,i-1,k) + &
+              kern(5,2)*u(j+2,i-1,k) + kern(1,3)*u(j-2,i  ,k) + &
+              kern(2,3)*u(j-1,i  ,k) + kern(3,3)*u(j,  i  ,k) + &
+              kern(4,3)*u(j+1,i  ,k) + kern(5,3)*u(j+2,i  ,k) + &
+              kern(1,4)*u(j-2,i+1,k) + kern(2,4)*u(j-1,i+1,k) + &
+              kern(3,4)*u(j,  i+1,k) + kern(4,4)*u(j+1,i+1,k) + &
+              kern(5,4)*u(j+2,i+1,k) + kern(1,5)*u(j-2,i+2,k) + &
+              kern(2,5)*u(j-1,i+2,k) + kern(3,5)*u(j,  i+2,k) + &
+              kern(4,5)*u(j+1,i+2,k) + kern(5,5)*u(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          u(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+        call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
+        allocate(temp, mold=v)
+        temp(:,:,:) = v(:,:,:)
+        do n = 1 , irep
+          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+            temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
+              kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
+              kern(4,1)*v(j+1,i-2,k) + kern(5,1)*v(j+2,i-2,k) + &
+              kern(1,2)*v(j-2,i-1,k) + kern(2,2)*v(j-1,i-1,k) + &
+              kern(3,2)*v(j,  i-1,k) + kern(4,2)*v(j+1,i-1,k) + &
+              kern(5,2)*v(j+2,i-1,k) + kern(1,3)*v(j-2,i  ,k) + &
+              kern(2,3)*v(j-1,i  ,k) + kern(3,3)*v(j,  i  ,k) + &
+              kern(4,3)*v(j+1,i  ,k) + kern(5,3)*v(j+2,i  ,k) + &
+              kern(1,4)*v(j-2,i+1,k) + kern(2,4)*v(j-1,i+1,k) + &
+              kern(3,4)*v(j,  i+1,k) + kern(4,4)*v(j+1,i+1,k) + &
+              kern(5,4)*v(j+2,i+1,k) + kern(1,5)*v(j-2,i+2,k) + &
+              kern(2,5)*v(j-1,i+2,k) + kern(3,5)*v(j,  i+2,k) + &
+              kern(4,5)*v(j+1,i+2,k) + kern(5,5)*v(j+2,i+2,k)
+          end do
+        end do
+        do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          v(j,i,k) = temp(j,i,k)
+        end do
+        deallocate(temp)
+      end subroutine gkfilteruv
+
       subroutine filt3d(p,nu)
         implicit none
         real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
@@ -787,35 +972,26 @@ module mod_moloch
         end do
       end subroutine filttheta
 
-      subroutine filtqv
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
-
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
-                                    qv(j,i-1,k) + qv(j,i+1,k)) - &
-                         d_half   * qv(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            qv(j,i,k) = qv(j,i,k) + nupaitq * p2d(j,i)
-          end do
-        end do
-      end subroutine filtqv
-
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
         integer(ik4) :: i , j , k , nsound
-        real(rkx) :: zu , zd , zrapp
         real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
+        real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
+        real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
+        real(rkx) :: zum , zup , zvm , zvp , zuh , zvh
+        real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
+        real(rkx) :: zcx , zcy , zfz
+        real(rkx) :: zrom1u , zcor1u , zrom1v , zcor1v
 
         dtrdx = dts/dx
         dtrdy = dts/dx
         dtrdz = dts/dzita
         zcs2 = dtrdz**2*rdrcv
+
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          wwkw(j,i,kzp1) = d_zero
+        end do
 
         !  sound waves
 
@@ -825,15 +1001,23 @@ module mod_moloch
 
         do nsound = 1 , mo_nsound
 
-          call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
 
           ! partial definition of the generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            w(j,i,kzp1) = d_half * &
-                ((u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)) + &
-                 (v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)))
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(zuh,zvh)
+#else
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
+              zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
+              zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
+              w(j,i,kzp1) = d_half * (zuh+zvh)
+#ifndef STDPAR
+            end do
+#endif
           end do
 
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
@@ -842,36 +1026,73 @@ module mod_moloch
 
           ! Equation 10, generalized vertical velocity
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            s(j,i,k) = -0.25_rkx * &
-                  (((u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
-                    (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)) + &
-                   ((v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
-                    (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1))) * gzitak(k)
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          k = 2:kz ) local(zuh,zvh)
+#else
+          do k = 2 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
+                      (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
+                zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
+                      (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
+                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+#ifndef STDPAR
+              end do
+            end do
+#endif
           end do
 
           ! Part of divergence (except w contribution) put in zdiv2
           ! Equation 16
 
           if ( lrotllr ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) *                           &
-                 ((d_two*dtrdx*(                                              &
-                      ((u(j+1,i,k)           )/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
-                      ((u(j  ,i,k)           )/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
-                  (d_two*dtrdy*(                                              &
-                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
-                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = dtrdx * u(j,i,k) * zrfmzum
+                  zup = dtrdx * u(j+1,i,k) * zrfmzup
+                  zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                  zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                  zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
           else
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              zdiv2(j,i,k) = fmz(j,i,k) * mx2(j,i) *                          &
-                 ((d_two*dtrdx*(                                              &
-                      ((u(j+1,i,k)*rmu(j+1,i))/(fmz(j,i,k)+fmz(j+1,i,k))) -   &
-                      ((u(j  ,i,k)*rmu(j  ,i))/(fmz(j,i,k)+fmz(j-1,i,k))))) + &
-                  (d_two*dtrdy*(                                              &
-                      ((v(j,i+1,k)*rmv(j,i+1))/(fmz(j,i,k)+fmz(j,i+1,k))) -   &
-                      ((v(j,i  ,k)*rmv(j,i  ))/(fmz(j,i,k)+fmz(j,i-1,k))))))
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                  zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                  zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                  zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                  zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
           end if
 
@@ -886,49 +1107,49 @@ module mod_moloch
 
           ! new w (implicit scheme) from Equation 19
 
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            deltaw(j,i,k) = -w(j,i,k)
-          end do
-
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            zrom1w(j,i,k) = (d_half * cpd * fmzf(j,i,k) * &
-              (tetav(j,i,k-1)+tetav(j,i,k))) - &
-              (cpd * w(j,i,k) * fmzf(j,i,k)*fmzf(j,i,k) * &
-               real(nsound,rkx) * dtrdz * (tetav(j,i,k-1)-tetav(j,i,k))) !! GW
-            if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-                 w(j,i,k) > 0.1_rkx ) then
-              zrom1w(j,i,k) = zrom1w(j,i,k) + fmzf(j,i,k) * &
-                ((egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv * &
-                    (d_half*(qsat(j,i,k)+qsat(j,i,k-1)))) / &
-                    (cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1)))
-            end if
-          end do
-
-          ! explicit w:
-          !    it must be consistent with the initialization of pai
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            zwexpl(j,i,k) = w(j,i,k) - (zrom1w(j,i,k) * dtrdz * &
-                         (pai(j,i,k-1) - pai(j,i,k))) - egrav*dts + &
-                         (rdrcv * zrom1w(j,i,k) * dtrdz * &
-                          (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
-                           pai(j,i,k)   * zdiv2(j,i,k)))
-          end do
-
-          ! computation of the tridiagonal matrix coefficients
-          ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
           do k = kz , 2 , -1
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+              local(zrom1w,zwexpl,zqs,zdth,zu,zd,zrapp)
+#else
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zu = zcs2 * fmz(j,i,k-1) * &
-                  zrom1w(j,i,k) * pai(j,i,k-1) + ffilt(k)
-                zd = zcs2 * fmz(j,i,k)   * &
-                  zrom1w(j,i,k) * pai(j,i,k)   + ffilt(k)
+#endif
+                deltaw(j,i,k) = -w(j,i,k)
+                ! explicit w:
+                !    it must be consistent with the initialization of pai
+                zrom1w = d_half * cpd * fmzf(j,i,k) * &
+                         (tetav(j,i,k-1)+tetav(j,i,k))
+                zrom1w = zrom1w - cpd * w(j,i,k) * &
+                         fmzf(j,i,k)*fmzf(j,i,k) * &
+                         real(nsound,rkx) * dtrdz * &
+                         (tetav(j,i,k-1)-tetav(j,i,k)) !! GW
+                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                      w(j,i,k) > 0.1_rkx ) then
+                  zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
+                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
+                    zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
+                end if
+                ! explicit w:
+                !    it must be consistent with the initialization of pai
+                zwexpl = w(j,i,k) - zrom1w * dtrdz * &
+                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
+                zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
+                         (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
+                          pai(j,i,k)   * zdiv2(j,i,k))
+                ! computation of the tridiagonal matrix coefficients
+                ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
+                zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+                zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
                 ! 1st loop for the tridiagonal inversion
                 ! a = -zd ; b = (1+zu+zd) ; c = -zu
                 zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl(j,i,k) + zd * w(j,i,k+1))
+                w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
                 wwkw(j,i,k) = zrapp * zu
+#ifndef STDPAR
               end do
+#endif
             end do
           end do
 
@@ -936,10 +1157,8 @@ module mod_moloch
           do k = 2 , kz
             do concurrent ( j = jci1:jci2, i = ici1:ici2 )
               w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
+              deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
             end do
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-            deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
           end do
 
           ! new Exner function (Equation 19)
@@ -957,8 +1176,6 @@ module mod_moloch
                                 3.2_rkx * qc(j,i,k)) / &
                        (d_one + 0.96_rkx * qv(j,i,k) + &
                                 4.8_rkx * qc(j,i,k))
-              end do
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tetav(j,i,k) = tetav(j,i,k) * &
                        (d_one + rdrcv*zdiv2(j,i,k) * &
                         (0.25_rkx * qv(j,i,k) +      &
@@ -988,55 +1205,103 @@ module mod_moloch
 
           if ( lrotllr ) then
             ! Equation 17
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              u(j,i,k) = u(j,i,k) + &
-                   (coru(j,i) * dts * 0.25_rkx * &
-                        (vd(j,i,k) + vd(j-1,i,k) + &
-                         vd(j-1,i+1,k) + vd(j,i+1,k))) - ((0.25_rkx * &
-                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hx(j,i) * gzitakh(k)) - &
-                   (dtrdx * mu(j,i) * &
-                    d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j-1,i,k)))
+#ifdef STDPAR
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+              local(zcx,zfz,zrom1u,zcor1u)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zcx = dtrdx * mu(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
             ! Equation 18
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              v(j,i,k) = v(j,i,k) - &
-                   (corv(j,i) * dts * 0.25_rkx * &
-                        (ud(j,i,k) + ud(j,i-1,k) + &
-                         ud(j+1,i,k) + ud(j+1,i-1,k))) - ((0.25_rkx * &
-                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hy(j,i) * gzitakh(k)) - &
-                   (dtrdy * &
-                    d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j,i-1,k)))
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+              local(zcy,zfz,zrom1v,zcor1v)
+#else
+            do k = 1 , kz
+              do i = idi1 , idi2
+                do j = jci1 , jci2
+#endif
+                  zcy = dtrdy
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
           else
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-              u(j,i,k) = u(j,i,k) + &
-                   (coru(j,i) * dts * 0.25_rkx * &
-                        (vd(j,i,k) + vd(j-1,i,k) + &
-                         vd(j-1,i+1,k) + vd(j,i+1,k))) - ((0.25_rkx * &
-                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hx(j,i) * gzitakh(k)) - &
-                   (dtrdx * mu(j,i) * &
-                    d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j-1,i,k)))
+#ifdef STDPAR
+            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+              local(zcx,zfz,zrom1u,zcor1u)
+#else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+#endif
+                  zcx = dtrdx * mu(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-              v(j,i,k) = v(j,i,k) - &
-                   (corv(j,i) * dts * 0.25_rkx * &
-                        (ud(j,i,k) + ud(j,i-1,k) + &
-                         ud(j+1,i,k) + ud(j+1,i-1,k))) - ((0.25_rkx * &
-                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts) * &
-                    hy(j,i) * gzitakh(k)) - &
-                   (dtrdy * mv(j,i) * &
-                    d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k)) * &
-                    (pai(j,i,k) - pai(j,i-1,k)))
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+              local(zcy,zfz,zrom1v,zcor1v)
+#else
+            do k = 1 , kz
+              do i = idi1 , idi2
+                do j = jci1 , jci2
+#endif
+                  zcy = dtrdy * mv(j,i)
+                  zfz = egrav * dts + 0.25_rkx * &
+                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                       deltaw(j,i,k)   + deltaw(j,i,k+1))
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifndef STDPAR
+                end do
+              end do
+#endif
             end do
           end if
 
@@ -1054,11 +1319,75 @@ module mod_moloch
 
       end subroutine sound
 
+      subroutine divdamp(dts)
+        implicit none
+        real(rkx) , intent(in) :: dts
+        integer(ik4) :: i , j , k
+        real(rkx) :: ddamp
+
+        if ( ma%has_bdybottom ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do concurrent ( j = jci1:jci2, k = 1:kz )
+            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+          end do
+        end if
+        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
+        ddamp = 0.125_rkx * (dx/dts)
+        if ( lrotllr ) then
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+            u(j,i,k) = u(j,i,k) + &
+                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+            v(j,i,k) = v(j,i,k) + &
+                    xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        else
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+            u(j,i,k) = u(j,i,k) + &
+                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          end do
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+            v(j,i,k) = v(j,i,k) + &
+                    xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          end do
+        end if
+        ! Horizontal diffusion
+        ddamp = xdamp * 0.015625_rkx/dts
+        do k = 1 , kz
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                    zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                         d_half   * zdiv2(j,i,k)
+          end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+            zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p2d(j,i)
+          end do
+        end do
+      end subroutine divdamp
+
       subroutine advection(dta)
         implicit none
         real(rkx) , intent(in) :: dta
         integer(ik4) :: n
         real(rkx) , pointer , dimension(:,:,:) :: ptr
+
+        ! Compute U,V on cross points
 
         call uvstagtox(u,v,ux,vx)
 
@@ -1100,6 +1429,12 @@ module mod_moloch
           end do
         end if
 
+#ifdef RCEMIP
+        if ( do_gkfilter ) then
+          call gkfilteruv(ux,vx,1)
+          call gkfilter3d(wx,1)
+        end if
+#endif
         ! Interpolate on staggered points
         call xtouvstag(ux,vx,u,v)
 
@@ -1110,53 +1445,56 @@ module mod_moloch
         end if
       end subroutine advection
 
-      pure real(rkx) function rdeno(t1,t2,t3,t4)
-        implicit none
-        real(rkx) , intent(in) :: t1 , t2 , t3 , t4
-        real(rkx) :: zzden
-        zzden = (t3-t4)
-        rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
-      end function rdeno
-
       subroutine wafone(pp,dta,pfac,pmin)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dta
         real(rkx) , optional , intent(in) :: pfac , pmin
         integer(ik4) :: j , i , k
-        integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
-        real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmu , zrfmd
-        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: dtrdx , dtrdy , dtrdz
-        real(rkx) :: zhxvtn , zhxvts , zcostx
-        real(rkx) :: xw1 , xw2
         real(rkx) , parameter :: wlow  = 0.0_rkx
         real(rkx) , parameter :: whigh = 2.0_rkx
+        real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
+        real(rkx) , dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
+        real(rkx) , dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
+        real(rkx) :: zamu , is , r , b , zphi , zzden , zdv
+        real(rkx) :: zhxvtn , zhxvts , zcostx
+        real(rkx) :: zrfmu , zrfmd
+        real(rkx) :: zrfmn , zrfms
+        real(rkx) :: zrfme , zrfmw
+        real(rkx) :: zfac , zmin
+        integer(ik4) :: k1 , k1p1
+        integer(ik4) :: ih , ihm1
+        integer(ik4) :: jh , jhm1
 
         dtrdx = dta/dx
         dtrdy = dta/dx
         dtrdz = dta/dzita
-        xw2 = dta/dtsec
-        xw1 = 1.0_rkx - xw2
         if ( do_vadvtwice ) then
           dtrdz = 0.5_rkx * dtrdz
         end if
 
         if ( present(pfac) ) then
+          zfac = pfac
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) * pfac
+            pp(j,i,k) = pp(j,i,k) * zfac
           end do
         end if
 
         ! Vertical advection
-        do concurrent ( j = jci1:jci2 )
-          wfw(j,1) = d_zero
-          wfw(j,kzp1) = d_zero
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          wfw(j,i,1) = d_zero
+          wfw(j,i,kzp1) = d_zero
         end do
 
-        do i = ici1 , ici2
-          do k = 1 , kzm1
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
+          local(zamu,is,r,b,zphi,zzden,k1,k1p1)
+#else
+        do k = 1 , kzm1
+          do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               zamu = s(j,i,k+1) * dtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
@@ -1169,27 +1507,46 @@ module mod_moloch
                 k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
+              zzden = pp(j,i,k)-pp(j,i,k+1)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                                  (d_one-zphi)*pp(j,i,k))
+              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                                    (d_one-zphi)*pp(j,i,k))
+#ifndef STDPAR
             end do
           end do
-          do k = 1 , kz
+#endif
+        end do
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zrfmu,zrfmd,zdv)
+#else
+        do k = 1 , kz
+          do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
               zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmu + wfw(j,k+1)*zrfmd + zdv
+              wz(j,i,k) = pp(j,i,k) - &
+                wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
+#ifndef STDPAR
             end do
           end do
+#endif
         end do
 
         if ( do_vadvtwice ) then
-          do i = ici1 , ici2
-            do k = 1 , kzm1
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
+            local(zamu,is,r,b,zphi,zzden,k1,k1p1)
+#else
+          do k = 1 , kzm1
+            do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zamu = s(j,i,k+1) * dtrdz
                 if ( zamu >= d_zero ) then
                   is = d_one
@@ -1202,32 +1559,46 @@ module mod_moloch
                   k1p1 = k
                   if ( k1 < 1 ) k1 = 1
                 end if
-                r = rdeno(wz(j,i,k1),wz(j,i,k1p1),wz(j,i,k),wz(j,i,k+1))
+                zzden = wz(j,i,k)-wz(j,i,k+1)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu * b - is * b
-                wfw(j,k+1) = d_half*s(j,i,k+1) * ((d_one+zphi)*wz(j,i,k+1) + &
-                                                  (d_one-zphi)*wz(j,i,k))
+                wfw(j,i,k+1) = d_half * s(j,i,k+1) * &
+                  ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
+#ifndef STDPAR
               end do
             end do
-            do k = 1 , kz
+#endif
+          end do
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmu,zrfmd,zdv)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
                 zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
                 zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
-                wz(j,i,k) = wz(j,i,k) - wfw(j,k)*zrfmu + wfw(j,k+1)*zrfmd + zdv
+                wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
+                                        wfw(j,i,k+1)*zrfmd + zdv
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
         end if
 
         if ( ma%has_bdybottom ) then
           do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice1,k) = xw1 * pp(j,ice1,k) + xw2 * wz(j,ici1,k)
+            wz(j,ice1,k) = wz(j,ici1,k)
           end do
         end if
         if ( ma%has_bdytop ) then
           do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice2,k) = xw1 * pp(j,ice2,k) + xw2 * wz(j,ici2,k)
+            wz(j,ice2,k) = wz(j,ici2,k)
           end do
         end if
 
@@ -1236,9 +1607,14 @@ module mod_moloch
         if ( lrotllr ) then
 
           ! Meridional advection
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,ih,ihm1)
+#else
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
+#endif
                 zamu = v(j,i,k) * dtrdy
                 if ( zamu > d_zero ) then
                   is = d_one
@@ -1248,35 +1624,48 @@ module mod_moloch
                   ih = min(i+1,imax)
                 end if
                 ihm1 = max(ih-1,imin)
-                r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+                zzden = wz(j,i,k)-wz(j,i-1,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
-                zpby(j,i) = d_half * v(j,i,k) * &
-                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+                zpby(j,i,k) = d_half * v(j,i,k) * &
+                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+#ifndef STDPAR
               end do
             end do
+#endif
+          end do
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zhxvtn,zhxvts,zrfmn,zrfms,zdv)
+#else
+          do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
                 zhxvts = dtrdy * rmv(j,i) * mx(j,i)
                 zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
                 zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
                 zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
                 p0(j,i,k) = wz(j,i,k) + &
-                      zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv
+                      zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
 
           if ( ma%has_bdyleft ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+              p0(jce1,i,k) = p0(jci1,i,k)
             end do
           end if
 
           if ( ma%has_bdyright ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+              p0(jce2,i,k) = p0(jci2,i,k)
             end do
           end if
 
@@ -1284,9 +1673,14 @@ module mod_moloch
 
           ! Zonal advection
 
+#ifdef STDPAR
+          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+#else
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jce2ga
+#endif
                 zamu = u(j,i,k) * mu(j,i) * dtrdx
                 if ( zamu > d_zero ) then
                   is = d_one
@@ -1296,32 +1690,50 @@ module mod_moloch
                   jh = min(j+1,jmax)
                 end if
                 jhm1 = max(jh-1,jmin)
-                r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+                zzden = p0(j,i,k)-p0(j-1,i,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
-                zpbw(j,i) = d_half * u(j,i,k) * &
-                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+                zpbw(j,i,k) = d_half * u(j,i,k) * &
+                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+#ifndef STDPAR
               end do
             end do
+#endif
+          end do
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zcostx,zrfme,zrfmw,zdv)
+#else
+          do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zcostx = dtrdx * mu(j,i)
                 zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
                 zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
                 zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
                 pp(j,i,k) = p0(j,i,k) + &
-                     zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv
+                       zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
 
         else
 
           ! Meridional advection
 
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden)
+#else
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
+#endif
                 zamu = v(j,i,k) * rmv(j,i) * dtrdy
                 if ( zamu > d_zero ) then
                   is = d_one
@@ -1331,34 +1743,47 @@ module mod_moloch
                   ih = min(i+1,imax)
                 end if
                 ihm1 = max(ih-1,imin)
-                r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+                zzden = wz(j,i,k)-wz(j,i-1,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
-                zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
-                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+                zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
+                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+#ifndef STDPAR
               end do
             end do
+#endif
+          end do
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmn,zrfms,zdv)
+#else
+          do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
                 zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
                 zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
                        v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
                 p0(j,i,k) = wz(j,i,k) + &
-                  mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+                  mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
 
           if ( ma%has_bdyleft ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = xw1 * pp(jce1,i,k) + xw2 * p0(jci1,i,k)
+              p0(jce1,i,k) = p0(jci1,i,k)
             end do
           end if
 
           if ( ma%has_bdyright ) then
             do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = xw1 * pp(jce2,i,k) + xw2 * p0(jci2,i,k)
+              p0(jce2,i,k) = p0(jci2,i,k)
             end do
           end if
 
@@ -1366,9 +1791,14 @@ module mod_moloch
 
           ! Zonal advection
 
+#ifdef STDPAR
+          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+#else
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jce2ga
+#endif
                 zamu = u(j,i,k) * rmu(j,i) * dtrdx
                 if ( zamu > d_zero ) then
                   is = d_one
@@ -1378,34 +1808,49 @@ module mod_moloch
                   jh = min(j+1,jmax)
                 end if
                 jhm1 = max(jh-1,jmin)
-                r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+                zzden = p0(j,i,k)-p0(j-1,i,k)
+                zzden = sign(max(abs(zzden),minden),zzden)
+                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
                 b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
                 zphi = is + zamu*b - is*b
-                zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
-                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+                zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
+                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+#ifndef STDPAR
               end do
             end do
+#endif
+          end do
+
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfme,zrfmw,zdv)
+#else
+          do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
                 zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
                 zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
                        u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
                 pp(j,i,k) = p0(j,i,k) + &
-                  mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
+                    mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+#ifndef STDPAR
               end do
             end do
+#endif
           end do
         end if
 
         if ( present(pfac) ) then
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) / pfac
+            pp(j,i,k) = pp(j,i,k) / zfac
           end do
         end if
         if ( present(pmin) ) then
+          zmin = pmin
           do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = max(pp(j,i,k),pmin)
+            pp(j,i,k) = max(pp(j,i,k),zmin)
           end do
         end if
       end subroutine wafone
@@ -1416,11 +1861,11 @@ module mod_moloch
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
           s(j,i,k) = d_zero
         end do
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
-          deltaw(j,i,k) = d_zero
-        end do
         do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
           zdiv2(j,i,k) = d_zero
+        end do
+        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
+          deltaw(j,i,k) = d_zero
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%tten(j,i,k) = d_zero
@@ -1688,17 +2133,6 @@ module mod_moloch
         !
         ! Update status
         !
-#ifdef RCEMIP
-        if ( do_diffutend ) then
-          call exchange_lrbt(mo_atm%tten,1,jci1,jci2,ici1,ici2,1,kz)
-          call filt3d(mo_atm%tten,mo_anu2)
-          call exchange_lrbt(mo_atm%qxten,1,jci1,jci2,ici1,ici2,1,kz,1,nqx)
-          call filt4d(mo_atm%qxten,mo_anu2,1,nqx)
-          call exchange_lrbt(mo_atm%uten,1,jdi1,jdi2,ici1,ici2,1,kz)
-          call exchange_lrbt(mo_atm%vten,1,jci1,jci2,idi1,idi2,1,kz)
-          call filtuv(mo_atm%uten,mo_atm%vten,mo_anu2)
-        end if
-#endif
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
         end do
@@ -1760,17 +2194,13 @@ module mod_moloch
     implicit none
     real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
-    integer(ik4) :: i , j , k , i1 , i2 , j1 , j2
-    i1 = lbound(wx,2)
-    i2 = ubound(wx,2)
-    j1 = lbound(wx,1)
-    j2 = ubound(wx,1)
+    integer(ik4) :: i , j , k
 
-    do concurrent ( j = j1:j2, i = i1:i2, k = 2:kzm1 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 2:kzm1 )
       wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                   0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
     end do
-    do concurrent ( j = j1:j2, i = i1:i2 )
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 )
       wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
       wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
     end do
@@ -1924,68 +2354,6 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
-
-  subroutine divdamp(dts)
-    implicit none
-    real(rkx) , intent(in) :: dts
-    integer(ik4) :: i , j , k
-    real(rkx) , parameter :: ddamp = 0.03125
-    real(rkx) , parameter :: nu2 = 0.05
-    real(rkx) :: ddamp1
-
-    ddamp1 = ddamp * ((dx**2)/dts)
-    if ( ma%has_bdybottom ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do concurrent ( j = jci1:jci2, k = 1:kz )
-        zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do concurrent ( i = ici1:ici2, k = 1:kz )
-        zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-      end do
-    end if
-    call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-
-    if ( lrotllr ) then
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        v(j,i,k) = v(j,i,k) + &
-               ddamp1/dx*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    else
-      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-        u(j,i,k) = u(j,i,k) + &
-                ddamp1/(dx*rmu(j,i))*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
-      end do
-      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-        v(j,i,k) = v(j,i,k) + &
-                ddamp1/(dx*rmv(j,i))*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
-      end do
-    end if
-    do k = 1 , kz
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                     d_half   * zdiv2(j,i,k)
-      end do
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        zdiv2(j,i,k) = zdiv2(j,i,k) + nu2 * xknu(k) * p2d(j,i)
-      end do
-    end do
-  end subroutine divdamp
 
 end module mod_moloch
 

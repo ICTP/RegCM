@@ -43,18 +43,23 @@ module mod_cloud_xuran
     real(rkx) , pointer , dimension(:,:) , intent(in) :: qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
-    real(rkx) :: botm , rm , qcld , rhrng
     real(rkx) , parameter :: parm_p = 0.25_rkx
     real(rkx) , parameter :: parm_gamma = 0.49_rkx
     real(rkx) , parameter :: parm_alpha0 = 100.0_rkx
+    real(rkx) :: botm , rm , qcld , rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(botm,rm,qcld,rhrng)
+#else
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+#endif
           if ( qc(j,i,k) > qcrit(j,i) ) then
             qcld = qc(j,i,k)
             rhrng = max(0.0_rkx,min(1.0_rkx,rh(j,i,k)))
@@ -69,8 +74,10 @@ module mod_cloud_xuran
           else
             fcc(j,i,k) = d_zero
           end if
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
 
   end subroutine xuran_cldfrac

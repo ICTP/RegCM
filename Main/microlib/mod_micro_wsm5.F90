@@ -93,7 +93,7 @@ module mod_micro_wsm5
 
   public :: allocate_mod_wsm5 , init_wsm5 , wsm5
 
-  integer :: is , ie
+  integer(ik4) :: is , ie
 
   real(rkx) , dimension(:,:) , pointer :: t
   real(rkx) , dimension(:,:) , pointer :: qv
@@ -1125,7 +1125,7 @@ module mod_micro_wsm5
   subroutine slope_wsm5(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt, &
                         ims,ime)
     implicit none
-    integer , intent(in) :: ims , ime
+    integer(ik4) , intent(in) :: ims , ime
     real(rkx) , dimension(ims:ime,kz,2) , intent(in) :: qrs
     real(rkx) , dimension(ims:ime,kz) , intent(in) :: den , denfac , t
     real(rkx) , dimension(ims:ime,kz,2) , intent(out) :: rslope , rslopeb

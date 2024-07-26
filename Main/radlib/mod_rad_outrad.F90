@@ -35,13 +35,14 @@ module mod_rad_outrad
 
   public :: allocate_mod_rad_outrad , radout
 
-  integer(ik4) :: npr
+  integer(ik4) :: npr , nj
 
   contains
 
   subroutine allocate_mod_rad_outrad
     implicit none
-    npr = (jci2-jci1+1)*(ici2-ici1+1)
+    nj = jci2-jci1+1
+    npr = nj*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
 
   subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,        &
@@ -102,28 +103,37 @@ module mod_rad_outrad
     !
     ! total heating rate in deg/s
     !
-    do k = 1 , kz
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
-          n = n + 1
+    if ( irrtm == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            n = (j-jci1)+(i-ici1)*nj+1
+            r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            n = (j-jci1)+(i-ici1)*nj+1
+            r2m%heatrt(j,i,k) = qrs(k,n) + qrl(k,n)
+          end do
+        end do
+      end do
+    end if
     !
     ! surface absorbed solar flux in watts/m2
     ! net up longwave flux at the surface
     !
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1)+(i-ici1)*nj+1
         r2m%totcf(j,i) = totcf(n)
         r2m%solis(j,i) = sol(n)
         r2m%fsw(j,i)   = frsa(n)
         r2m%flw(j,i)   = frla(n)
         r2m%flwd(j,i)  = slwd(n)
-        n = n + 1
       end do
     end do
     !
@@ -134,16 +144,15 @@ module mod_rad_outrad
     ! over sparsely vegetated areas in which vegetation and ground
     ! albedo are significantly different
     !
-    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        n = (j-jci1)+(i-ici1)*nj+1
         r2m%sabveg(j,i) = abv(n)
         r2m%solvs(j,i)  = sols(n)
         r2m%solvsd(j,i) = solsd(n)
         r2m%solvl(j,i)  = soll(n)
         r2m%solvld(j,i) = solld(n)
         r2m%sinc(j,i)   = soll(n) + sols(n) + solsd(n) + solld(n)
-        n = n + 1
       end do
     end do
 
@@ -157,9 +166,8 @@ module mod_rad_outrad
     if ( ifrad .and. associated(rad_higcl_out) .and. &
                      associated(rad_midcl_out) .and. &
                      associated(rad_lowcl_out) ) then
-      n = 1
       kh1 = 2
-      kl2 = kzp1
+      kl2 = kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           hif = d_one
@@ -180,18 +188,21 @@ module mod_rad_outrad
             end if
           end do
           do k = kh1 , kh2
-            hif = hif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
+            hif = hif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
+
           end do
           do k = km1 , km2
-            mif = mif*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
+            mif = mif*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
           end do
           do k = kl1 , kl2
-            lof = lof*(sm1-max(cld(n,k-1),cld(n,k)))/(sm1-cld(n,k-1))
+            lof = lof*(sm1-(m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                            (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))))
           end do
           rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
           rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
           rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
-          n = n + 1
         end do
       end do
     end if
@@ -270,11 +281,10 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1)+(i-ici1)*nj+1
           b(j,i) = a(n)
-          n = n + 1
         end do
       end do
     end if
@@ -288,15 +298,25 @@ module mod_rad_outrad
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       b(:,:) = d_zero
-      do k = ki , kl
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i) = b(j,i) + a(n,k,l)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i) = b(j,i) + a(n,k,l)
+            end do
           end do
         end do
-      end do
+      else
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i) = b(j,i) + a(k,l,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy2d_integrate_from3
 
@@ -314,15 +334,25 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = k1 , k2
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = a(n,k)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = k1 , k2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(n,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(k,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy3d1
 
@@ -333,17 +363,29 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: l , ki , kl
     integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
-      kk = 1
-      do k = ki , kl
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,kk) = a(n,k,l)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,kk) = a(n,k,l)
+            end do
           end do
+          kk = kk + 1
         end do
-        kk = kk + 1
-      end do
+      else
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,kk) = a(n,k,l)
+            end do
+          end do
+          kk = kk + 1
+        end do
+      end if
     end if
   end subroutine copy4d
 
@@ -354,17 +396,29 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: nl
     integer(ik4) :: i , j , l , k , n
     if ( associated(b) ) then
-      do l = 1 , nl
-        do k = 1 , kz
-          n = 1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              b(j,i,k,l) = a(n,k,l)
-              n = n + 1
+      if ( irrtm == 1 ) then
+        do l = 1 , nl
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                n = (j-jci1)+(i-ici1)*nj+1
+                b(j,i,k,l) = a(n,k,l)
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do l = 1 , nl
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                n = (j-jci1)+(i-ici1)*nj+1
+                b(j,i,k,l) = a(k,l,n)
+              end do
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy4d1
 
@@ -374,15 +428,25 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = a(n,k)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(n,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(k,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy4d2
 
@@ -394,15 +458,25 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = a(n,k,l) * c(n,k)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(n,k,l) * c(n,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = a(k,l,n) * c(k,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy4d_mult
 
@@ -414,17 +488,29 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: l , ki , kl
     integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
-      kk = 1
-      do k = ki , kl
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,kk) = a(n,k,l) / c(n,kk)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,kk) = a(n,k,l) / c(n,kk)
+            end do
           end do
+          kk = kk + 1
         end do
-        kk = kk + 1
-      end do
+      else
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,kk) = a(k,l,n) / c(kk,n)
+            end do
+          end do
+          kk = kk + 1
+        end do
+      end if
     end if
   end subroutine copy4d_div
 
@@ -436,21 +522,37 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: l , ki , kl
     integer(ik4) :: i , j , k , n , kk
     if ( associated(b) ) then
-      kk = 1
-      do k = ki , kl
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( abs(c(n,k,l)) > dlowval ) then
-              b(j,i,kk) = a(n,k,l) / c(n,k,l)
-            else
-              b(j,i,kk) = smissval
-            end if
-            n = n + 1
+      if ( irrtm == 1 ) then
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              if ( abs(c(n,k,l)) > dlowval ) then
+                b(j,i,kk) = a(n,k,l) / c(n,k,l)
+              else
+                b(j,i,kk) = smissval
+              end if
+            end do
           end do
+          kk = kk + 1
         end do
-        kk = kk + 1
-      end do
+      else
+        kk = 1
+        do k = ki , kl
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              if ( abs(c(k,l,n)) > dlowval ) then
+                b(j,i,kk) = a(k,l,n) / c(k,l,n)
+              else
+                b(j,i,kk) = smissval
+              end if
+            end do
+          end do
+          kk = kk + 1
+        end do
+      end if
     end if
   end subroutine copy4d_div2
 
@@ -460,11 +562,10 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
+          n = (j-jci1)+(i-ici1)*nj+1
           b(j,i) = b(j,i) + a(n)
-          n = n + 1
         end do
       end do
     end if
@@ -476,15 +577,25 @@ module mod_rad_outrad
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = b(j,i,k) + a(n,k)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = b(j,i,k) + a(n,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = b(j,i,k) + a(k,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy3d_add
 
@@ -495,15 +606,25 @@ module mod_rad_outrad
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            b(j,i,k) = b(j,i,k) + a(n,k,l)
-            n = n + 1
+      if ( irrtm == 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = b(j,i,k) + a(n,k,l)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              n = (j-jci1)+(i-ici1)*nj+1
+              b(j,i,k) = b(j,i,k) + a(k,l,n)
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine copy4d_add
 

@@ -1,0 +1,8 @@
+{
+    "source_type": {
+        "ARCM": "atmospheric regional climate model, including a land model",
+        "AORCM": "atmosphere-ocean regional climate model",
+        "AGCM": "atmosphere global climate model including variable resolution",
+        "AOGCM": "atmosphere-ocean global climate model including variable resolution"
+    }
+}
