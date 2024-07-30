@@ -219,6 +219,8 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp == 'IFSXX' ) then
+    write(stdout,*) 'No need to run sst program for IFS.'
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
