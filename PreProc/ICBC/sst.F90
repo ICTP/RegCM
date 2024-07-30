@@ -221,6 +221,8 @@ program sst
     call sst_gnhnc
   else if ( ssttyp == 'IFSXX' ) then
     write(stdout,*) 'No need to run sst program for IFS.'
+  else if ( ssttyp == 'FNEST' ) then
+    write(stdout,*) 'No need to run sst program for nesting run.'
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
