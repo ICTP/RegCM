@@ -1,7 +1,8 @@
 # gfortran
 # export F2PYC=f2py3 --opt="-fopenmp" -lgomp
 # intel
-export F2PYC=f2py3 --fcompiler=intelem --opt="-qopenmp" -liomp5
+INTELPATH = $(shell dirname `which ifort` | sed -e 's!/bin/!/lib/!')
+export F2PYC=f2py3 --fcompiler=intelem --opt="-qopenmp" -L$(INTELPATH) -liomp5 -lsvml
 #export F2PYC=f2py3
 
 all:
