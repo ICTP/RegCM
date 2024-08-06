@@ -123,7 +123,7 @@ regcm_SOURCES = mod_regcm_interface.F90 mod_atm_interface.F90 \
   mod_micro_interface.F90 mod_sun.F90 mod_savefile.F90 mod_slice.F90 \
   mod_init.F90 mod_vmodes.F90 mod_split.F90 mod_output.F90 \
   mod_tendency.F90 mod_params.F90 mod_slabocean.F90 mod_sldepparam.F90 \
-  mod_sladvection.F90 mod_oasis.F90 abort.F90 mod_sound.F90 \
+  mod_sladvection.F90 abort.F90 mod_sound.F90 \
   mod_timefilter.F90 mod_massck.F90 mod_moloch.F90 mod_bmiregcm.F90 regcm.F90
 
 FCLD = $(MPIFC)
@@ -170,7 +170,6 @@ endif
 endif
 mod_moloch.o : mod_moloch.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_constants.o mod_cu_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_massck.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_slice.o mod_stdatm.o mod_stdio.o mod_sun.o cpmf.inc wlh.inc pfesat.inc pfwsat.inc
 mod_ncio.o : mod_ncio.F90 mod_intkinds.o mod_realkinds.o mod_date.o mod_constants.o mod_stdio.o mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_runparams.o pfesat.inc
-mod_oasis.o : mod_oasis.F90 mod_atm_interface.o mod_realkinds.o
 mod_output.o : mod_output.F90 mod_atm_interface.o mod_bdycod.o mod_capecin.o mod_che_interface.o mod_che_output.o mod_cu_interface.o mod_dynparam.o mod_header.o mod_intkinds.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_moloch.o mod_split.o mod_projections.o pfwsat.inc pfesat.inc
 if DO_COMPILE_LIBCLM45
 if DO_COMPILE_OASIS
