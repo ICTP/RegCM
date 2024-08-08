@@ -156,7 +156,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk4) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
-    var(:,:) = 1E+20
+    var(:,:) = -9999.0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -198,7 +198,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk4) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
-    var(:,:) = 1E+20
+    var(:,:) = -9999.0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -263,7 +263,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk8) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
-    var(:,:) = 1D+20
+    var(:,:) = -9999.0d0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -305,7 +305,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk8) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
-    var(:,:) = 1D+20
+    var(:,:) = -9999.0d0
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -410,6 +410,7 @@ program clm45_1dto2d
   real(rk4) , allocatable , dimension(:,:,:) :: single_var_3d
   integer(ik4) , allocatable , dimension(:,:,:) :: int_var_3d
   integer(ik4) :: nsg
+  logical :: has_fillvalue
 
 #ifdef PNETCDF
   iomode = ior(nf90_clobber, nf90_64bit_offset)
@@ -566,20 +567,33 @@ program clm45_1dto2d
                            mapids(1:ndims), varids(iv))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error define variable '//trim(vname))
+    has_fillvalue = .false.
     do ia = 1 , natts
       istatus = nf90_inq_attname(ncid, iv, ia, aname)
       call checkncerr(istatus,__FILE__,__LINE__,'Error inquire attribute')
       istatus = nf90_copy_att(ncid, iv, aname, ncoutid, varids(iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error copy attribute')
+      if ( aname == "_FillValue" ) has_fillvalue = .true.
     end do
     if ( vname == 'topo' .or. vname == 'lon' .or. vname == 'longxy' .or. &
          vname == 'lat' .or.  vname == 'latixy' .or. vname == 'landfrac' .or. &
          vname == 'pftmask' .or. vname == 'area' ) then
       istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', 1.D+20)
       call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
-!    else if ( vname == 'landmask' ) then
-!      istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999)
-!      call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
+    else
+      if ( .not. has_fillvalue ) then
+        select case (vtype(iv))
+          case (nf90_int)
+            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999)
+          case (nf90_real)
+            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0)
+          case (nf90_double)
+            istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', -9999.0d0)
+          case default
+            istatus = nf90_noerr
+        end select
+        call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
+      end if
     end if
   end do
 
