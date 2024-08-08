@@ -272,6 +272,7 @@ module mod_domain
     character(len=6) :: proj
     logical :: lh , lb , ls
     real(rkx) :: dsx , iclat , iclon , ptsp
+    real(rkx) :: moloch_ztop , moloch_hscale, moloch_a0
     real(rkx) , dimension(2) :: icntr
 
     lh = .false.
@@ -404,6 +405,33 @@ module mod_domain
     istatus = nf90_get_att(ncid,nf90_global,'grid_factor',xcone)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_factor')
+    if ( idynamic == 3 ) then
+      ! Avoid running model with a different vertical settings!
+      istatus = nf90_get_att(ncid,nf90_global,'zita_height_top',moloch_ztop)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read attribute zita_height_top')
+      if ( abs(real(moloch_ztop)-real(mo_ztop)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', moloch_ztop
+        write(stderr,*) 'NAMELIST    : ', mo_ztop
+        call die('Mismatch: mo_ztop in DOMAIN file /= mo_ztop in namelist')
+      end if
+      istatus = nf90_get_att(ncid,nf90_global,'zita_atmosphere_h',moloch_hscale)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read attribute zita_atmosphere_h')
+      if ( abs(real(moloch_hscale)-real(mo_h)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', moloch_hscale
+        write(stderr,*) 'NAMELIST    : ', mo_h
+        call die('Mismatch: mo_h in DOMAIN file /= mo_h in namelist')
+      end if
+      istatus = nf90_get_att(ncid,nf90_global,'zita_factor_a0',moloch_a0)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read attribute zita_factor_a0')
+      if ( abs(real(moloch_a0)-real(mo_a0)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', moloch_a0
+        write(stderr,*) 'NAMELIST    : ', mo_a0
+        call die('Mismatch: mo_a0 in DOMAIN file /= mo_a0 in namelist')
+      end if
+    end if
   end subroutine check_domain
 
 end module mod_domain
