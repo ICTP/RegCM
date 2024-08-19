@@ -4582,6 +4582,10 @@ module mod_rad_radiation
         fclt4(k,n) = d_zero
         tclrsf(k+1,n) = tclrsf(k,n)*(d_one-cld(k+1,n))
         rtclrsf(k+1,n) = d_one/tclrsf(k+1,n)
+        xuinpl(k,1,n) = 0.0_rkx
+        xuinpl(k,2,n) = 0.0_rkx
+        xuinpl(k,3,n) = 0.0_rkx
+        xuinpl(k,4,n) = 0.0_rkx
       end do
     end do
     !
