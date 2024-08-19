@@ -1178,13 +1178,12 @@ module mod_rad_radiation
     fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
   end function fo3
 
-  pure integer(ik4) function intmax(imax)
+  pure integer(ik4) function intmax(imax,is,ie)
 !$acc routine seq
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: imax
-    integer(ik4) :: i , n , is , ie , mx
-    is = lbound(imax,1)
-    ie = ubound(imax,1)
+    integer(ik4) , intent(in) :: is , ie
+    integer(ik4) , dimension(is:ie) , intent(in) :: imax
+    integer(ik4) :: i , n , mx
     intmax = is
     n = ie-is+1
     if ( n > 1 ) then
@@ -4874,7 +4873,7 @@ module mod_rad_radiation
     ! Flux emitted by other layers
     ! Note: Vertical indexing here proceeds from bottom to top
     !
-    khighest = khiv(intmax(khiv))
+    khighest = khiv(intmax(khiv,n1,n2))
 #ifdef STDPAR
     do concurrent ( n = n1:n2 ) &
       local(tmp1,lstart,km,km1,km2,km3,km4,k,k1,k2,k3)
