@@ -519,7 +519,8 @@ module mod_rad_colmod3
           rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
           ! O3 mass and volume mixing ratios
           rt%o3vmr(k,n) = 0.5_rkx*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
-          if ( rt%clwp(k,n) > 0.0001_rkx ) then
+          ! Set a minimum clwp in the cloud of of 0.01 mm
+          if ( rt%clwp(k,n) > 0.01_rkx ) then
             temp(k,n) = m2r%cldfrc(j,i,k)
           else
             rt%clwp(k,n) = 0.0_rkx
