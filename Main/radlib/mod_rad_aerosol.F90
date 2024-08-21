@@ -2548,14 +2548,17 @@ module mod_rad_aerosol
       integer(ik4) :: ibin , i , j , k , kk , n
       integer(ik4) :: iy , im , id
       integer(ik4) , save :: idlast = -1
+      integer(ik4) :: visband
       real(rk8) :: year_fr
 
       if ( lfirst ) then
         if ( irrtm == 0 ) then
+          visband = 8
           do n = 1 , nband
             lambdaw(n) = (wavmin(n)+wavmax(n))*d_half*d_1000
           end do
         else if ( irrtm == 1 ) then
+          visband = 10
           do n = 1 , nband
             ! wavenumber is in cm-1 , convert to wavelenght in nm for mac-v2
             lambdaw(n) = (1.e7_rkx/wavnm1(n)+1.e7_rkx/wavnm2(n))*d_half
@@ -2587,24 +2590,30 @@ module mod_rad_aerosol
         end do
         year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
         do n = 1 , nband
-          call sp_aop_profile(macv2sp_hist,macv2sp_scen, &
-                              kth,npoints,lambdaw(n), &
-                              altr4,lonr4,latr4,year_fr,z,dz, &
-                              dnovrnr4,extprofr4(:,:,n), &
-                              ssaprofr4(:,:,n),asyprofr4(:,:,n))
+          if ( lambdaw(n) < 700.0_rkx ) then
+            call sp_aop_profile(macv2sp_hist,macv2sp_scen, &
+                                kth,npoints,lambdaw(n), &
+                                altr4,lonr4,latr4,year_fr,z,dz, &
+                                dnovrnr4,extprofr4(:,:,n), &
+                                ssaprofr4(:,:,n),asyprofr4(:,:,n))
+          else
+            extprofr4(:,:,n) = d_zero
+            ssaprofr4(:,:,n) = d_zero
+            asyprofr4(:,:,n) = d_zero
+          end if
         end do
         if ( myid == italk ) then
           write(stdout,*) 'Updating aerosol optical properties...'
           do k = 1 , kth
-            opprnt(k) = extprofr4(1,k,10)
+            opprnt(k) = extprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS ext profile')
           do k = 1 , kth
-            opprnt(k) = ssaprofr4(1,k,10)
+            opprnt(k) = ssaprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS ssa profile')
           do k = 1 , kth
-            opprnt(k) = asyprofr4(1,k,10)
+            opprnt(k) = asyprofr4(1,k,visband)
           end do
           call vprntv(opprnt,kth,'Updated VIS asy profile')
         end if

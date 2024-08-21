@@ -213,23 +213,32 @@ module mod_rad_outrad
       ! when outputing aerosol properties, back to extinction m-1, ssa, and g
       if ( irrtm == 1 ) then
         visband = 10
-        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,kth-kz+1,kth)
+        if ( associated(opt_aext8_out) ) &
+          call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,kth-kz+1,kth)
         ! Include the top radiation levels in integrated AOD
         ! (strato contribution) outputs
         ! Note that the stratospheric radiation hat is not visible in
         ! the oppt profiles
-        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,1,kth)
-        call copy4d(tauasc3d,opt_assa8_out,visband,kth-kz+1,kth)
-        call copy4d(gtota3d,opt_agfu8_out,visband,kth-kz+1,kth)
+        if ( associated(opt_aod_out) ) &
+          call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,1,kth)
+        if ( associated(opt_assa8_out) ) &
+          call copy4d(tauasc3d,opt_assa8_out,visband,kth-kz+1,kth)
+        if ( associated(opt_agfu8_out) ) &
+          call copy4d(gtota3d,opt_agfu8_out,visband,kth-kz+1,kth)
       else
         visband = 8
-        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,1,kz)
-        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kz)
-        call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
-        call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
+        if ( associated(opt_aext8_out) ) &
+          call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,1,kz)
+        if ( associated(opt_aod_out) ) &
+          call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kzm1)
+        if ( associated(opt_assa8_out) ) &
+          call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
+        if ( associated(opt_agfu8_out) ) &
+          call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
       endif
 
-      call copy4d2(deltaz,opt_deltaz_out)
+      if ( associated(opt_deltaz_out) ) &
+        call copy4d2(deltaz,opt_deltaz_out)
       if ( idirect > 0 .or. iclimaaer > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
@@ -312,7 +321,7 @@ module mod_rad_outrad
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i) = b(j,i) + a(k,l,n)
+              b(j,i) = b(j,i) + a(k,n,l)
             end do
           end do
         end do
@@ -505,7 +514,7 @@ module mod_rad_outrad
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1)+(i-ici1)*nj+1
-              b(j,i,kk) = a(k,l,n) / c(kk,n)
+              b(j,i,kk) = a(k,n,l) / c(kk,n)
             end do
           end do
           kk = kk + 1
@@ -543,8 +552,8 @@ module mod_rad_outrad
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1)+(i-ici1)*nj+1
-              if ( abs(c(k,l,n)) > dlowval ) then
-                b(j,i,kk) = a(k,l,n) / c(k,l,n)
+              if ( abs(c(k,n,l)) > dlowval ) then
+                b(j,i,kk) = a(k,n,l) / c(k,n,l)
               else
                 b(j,i,kk) = smissval
               end if

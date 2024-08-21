@@ -349,6 +349,7 @@
                         !   2 => Explicit moisture Nogherotto/Tompkins
                         !   3 => Explicit moisture WSM5
                         !   4 => Explicit moisture WSM7
+                        !   5 => Explicit moisture WDM7
  iocncpl =          0,  ! Ocean SST from coupled Ocean Model through RegESM
                         !   1 => Coupling activated
  iwavcpl =          0,  ! Ocean roughness from coupled Wave Model through RegESM
