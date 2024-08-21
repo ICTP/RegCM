@@ -217,6 +217,7 @@ module mod_rad_colmod3
     real(rkx) :: nc , aerc , lwc , kparam
     real(rkx) :: kabs , kabsi , kabsl , cldemis , arg
     real(rkx) :: iwc , tempc , tcels , fsr , aiwc , biwc , desr
+    real(rkx) , dimension(kz,rt%n1:rt%n2) :: temp
     !real(rkx) :: tpara
     real(rkx) , parameter :: minus20 = 253.15_rkx
 #ifdef DEBUG
@@ -510,32 +511,42 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    rt%cld  = 0.0_rkx
-    rt%clwp = 0.0_rkx
-    kmaxcld = 3
-    kmincld = kz - ncld
-    do k = kmaxcld , kmincld
+    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           n = (j-jci1)+(i-ici1)*nj+1
           ! Convert liquid water content into liquid water path
           rt%clwp(k,n) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
-        end do
-      end do
-    end do
-    do k = kmaxcld , kmincld
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          n = (j-jci1)+(i-ici1)*nj+1
-          if ( rt%clwp(k,n) > 0.0_rkx ) then
-            ! Use Maximum Random Overlap assumption
-            rt%cld(k,n) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
-            rt%cld(k,n) = min(rt%cld(k,n),cftotmax)
+          ! O3 mass and volume mixing ratios
+          rt%o3vmr(k,n) = 0.5_rkx*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
+          if ( rt%clwp(k,n) > 0.0001_rkx ) then
+            temp(k,n) = m2r%cldfrc(j,i,k)
+          else
+            rt%clwp(k,n) = 0.0_rkx
+            temp(k,n) = 0.0_rkx
           end if
         end do
       end do
     end do
+    do n = rt%n1 , rt%n2
+      rt%cld(kzp1,n) = temp(kz,n)
+    end do
+    do n = rt%n1 , rt%n2
+      do k = 2 , kz
+        ! Use Maximum Random Overlap assumption
+        rt%cld(k,n) = temp(k-1,n)+temp(k,n) - (temp(k-1,n)*temp(k,n))
+      end do
+    end do
+    do n = rt%n1 , rt%n2
+      rt%cld(1,n) = 0.0_rkx
+    end do
+    if ( ncld > 0 ) then
+      do n = rt%n1 , rt%n2
+        do k = kzp1-ncld , kzp1
+          rt%cld(k,n) = 0.0_rkx
+        end do
+      end do
+    end if
     !
     ! only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
     !
@@ -549,16 +560,6 @@ module mod_rad_colmod3
     !     end do
     !   end do
     !
-    ! O3 mass and volume mixing ratios
-    !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          n = (j-jci1)+(i-ici1)*nj+1
-          rt%o3vmr(k,n) = 0.5_rkx*(o3prof(j,i,k+1)+o3prof(j,i,k))*(amd/amo3)
-        end do
-      end do
-    end do
     !
     ! Tracers mixing ratios
     !
@@ -577,9 +578,6 @@ module mod_rad_colmod3
     !
     ! Compute cloud drop size and emissivity
     !
-    rt%totci(rt%n1:rt%n2) = 0.0_rkx
-    rt%totcl(rt%n1:rt%n2) = 0.0_rkx
-    rt%totwv(rt%n1:rt%n2) = 0.0_rkx
     do k = 1 , kz
       do n = rt%n1 , rt%n2
         ! Define liquid drop size
@@ -612,7 +610,7 @@ module mod_rad_colmod3
         ! Savijarvi,Raisanene (Tellus 1998)
         !
         ! g/m3, already account for cum and ls clouds
-        lwc = (rt%clwp(k,n) / rt%dz(k,n))
+        lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
         if ( rt%ioro(n) == 1 ) then
           ! Effective liquid radius over land
           rt%rel(k,n) = min(4.0_rkx + 7.0_rkx*lwc,15.0_rkx)
@@ -625,7 +623,7 @@ module mod_rad_colmod3
         ! On the Temperature Dependence of the Cloud Ice Particle Effective
         ! Radius - A Satellite Perspective
         !
-        iwc = rt%qi(k,n) * rt%rho(k,n) * 1000.0_rkx
+        iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
         tempc = rt%t(k,n) - 83.15_rkx
         tcels = tempc - tzero
         fsr = 1.2351_rkx + 0.0105_rkx * tcels
@@ -637,6 +635,9 @@ module mod_rad_colmod3
         rt%rei(k,n) = 0.64952_rkx*desr
       end do
     end do
+    rt%totci(rt%n1:rt%n2) = 0.0_rkx
+    rt%totcl(rt%n1:rt%n2) = 0.0_rkx
+    rt%totwv(rt%n1:rt%n2) = 0.0_rkx
     do k = 1 , kz
       do n = rt%n1 , rt%n2
         ! Turn off ice radiative properties by setting fice = 0.0
@@ -698,13 +699,17 @@ module mod_rad_colmod3
         rt%effcld(k,n) = rt%cld(k,n)*cldemis
       end do
     end do
+    rt%eccf = real(eccf,rkx)
+    rt%labsem = labsem
     !
     ! Main radiation driving routine.
     ! NB: All fluxes returned from radctl() have already been converted to MKS.
     !
-    rt%eccf = real(eccf,rkx)
-    rt%labsem = labsem
+    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    !############################
     call radctl(rt,iyear,imonth)
+    !############################
+    !@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     !
     ! Save gas emission/absorbtion
     !
