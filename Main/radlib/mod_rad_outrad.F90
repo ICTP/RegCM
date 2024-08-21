@@ -213,41 +213,36 @@ module mod_rad_outrad
       ! when outputing aerosol properties, back to extinction m-1, ssa, and g
       if ( irrtm == 1 ) then
         visband = 10
-        if ( associated(opt_aext8_out) ) &
-          call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,kth-kz+1,kth)
+        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,kth-kz+1,kth)
         ! Include the top radiation levels in integrated AOD
         ! (strato contribution) outputs
         ! Note that the stratospheric radiation hat is not visible in
         ! the oppt profiles
-        if ( associated(opt_aod_out) ) &
-          call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,1,kth)
-        if ( associated(opt_assa8_out) ) &
-          call copy4d(tauasc3d,opt_assa8_out,visband,kth-kz+1,kth)
-        if ( associated(opt_agfu8_out) ) &
-          call copy4d(gtota3d,opt_agfu8_out,visband,kth-kz+1,kth)
+        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,1,kth)
+        call copy4d(tauasc3d,opt_assa8_out,visband,kth-kz+1,kth)
+        call copy4d(gtota3d,opt_agfu8_out,visband,kth-kz+1,kth)
       else
         visband = 8
-        if ( associated(opt_aext8_out) ) &
-          call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,1,kz)
-        if ( associated(opt_aod_out) ) &
-          call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kzm1)
-        if ( associated(opt_assa8_out) ) &
-          call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
-        if ( associated(opt_agfu8_out) ) &
-          call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
+        call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz,1,kz)
+        call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband,0,kzm1)
+        call copy4d_div2(tauasc3d,opt_assa8_out,visband,tauxar3d,1,kz)
+        call copy4d_div2(gtota3d,opt_agfu8_out,visband,tauasc3d,1,kz)
       endif
 
-      if ( associated(opt_deltaz_out) ) &
-        call copy4d2(deltaz,opt_deltaz_out)
+      call copy4d2(deltaz,opt_deltaz_out)
       if ( idirect > 0 .or. iclimaaer > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
-        if (associated(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)
-        if (associated(asaeradfos)) call copy2d_add(asaeradfos,opt_aastsrrf_out)
+        if ( associated(asaeradfo) )  &
+          call copy2d_add(asaeradfo,opt_aastoarf_out)
+        if ( associated(asaeradfos) ) &
+          call copy2d_add(asaeradfos,opt_aastsrrf_out)
         call copy2d_add(aerlwfo,opt_acstalrf_out)
         call copy2d_add(aerlwfos,opt_acssrlrf_out)
-        if (associated(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
-        if (associated(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
+        if ( associated(asaerlwfo) )  &
+          call copy2d_add(asaerlwfo,opt_aastalrf_out)
+        if ( associated(asaerlwfos) ) &
+          call copy2d_add(asaerlwfos,opt_aassrlrf_out)
       end if
     end if
 
