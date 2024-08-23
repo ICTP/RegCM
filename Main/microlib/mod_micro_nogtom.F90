@@ -151,7 +151,6 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! Mass variables
   ! Microphysics
-  real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
   ! for convection detrainment source and subsidence source/sink terms
   real(rkx) , pointer , dimension(:) :: convsrce
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
@@ -260,7 +259,6 @@ module mod_micro_nogtom
     call getmem3d(pf,1,kzp1,jci1,jci2,ici1,ici2,'cmicro:pf')
     call getmem3d(qsliq,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsliq')
     call getmem3d(cldtopdist,1,kz,jci1,jci2,ici1,ici2,'cmicro:cldtopdist')
-    call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
     call getmem3d(pfplsl,1,kzp1,jci1,jci2,ici1,ici2,'cmicro:pfplsl')
     call getmem3d(pfplsn,1,kzp1,jci1,jci2,ici1,ici2,'cmicro:pfplsn')
     call getmem3d(koop,1,kz,jci1,jci2,ici1,ici2,'cmicro:koop')
