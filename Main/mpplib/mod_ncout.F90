@@ -603,6 +603,7 @@ module mod_ncout
       enable_srf_vars(srf_pcpmax) = .true.
       enable_srf_vars(srf_snow) = .true.
       enable_srf_vars(srf_grau) = .true.
+      enable_srf_vars(srf_hail) = .true.
       enable_srf_vars(srf_tprw) = .true.
       enable_srf_vars(srf_cape) = .true.
       enable_srf_vars(srf_cin) = .true.
