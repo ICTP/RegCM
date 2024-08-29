@@ -198,6 +198,7 @@ module mod_micro_wdm7
   real(rkx) , dimension(:) , pointer :: snow
   real(rkx) , dimension(:) , pointer :: grpl
   real(rkx) , dimension(:) , pointer :: hail
+  real(rkx) , dimension(:) , pointer :: qcm
 
   contains
 
@@ -226,6 +227,7 @@ module mod_micro_wdm7
     call getmem1d(snow,is,ie,'wdm7::snow')
     call getmem1d(grpl,is,ie,'wdm7::grpl')
     call getmem1d(hail,is,ie,'wdm7::hail')
+    call getmem1d(qcm,is,ie,'wdm7::qcm')
   end subroutine allocate_mod_wdm7
 
   subroutine init_wdm7
@@ -314,7 +316,7 @@ module mod_micro_wdm7
     prech3 = 2.0_rkx*mathpi*n0h*0.31_rkx*g6pbgh * &
       sqrt(sqrt(4.0_rkx*denh/3.0_rkx/cd))
     pidn0h = mathpi*denh*n0h
-    !
+    rslopecmax = d_one/lamdacmax
     rslopermax = d_one/lamdarmax
     rslopesmax = d_one/lamdasmax
     rslopegmax = d_one/lamdagmax
@@ -323,10 +325,12 @@ module mod_micro_wdm7
     rslopesbmax = rslopesmax ** bvts
     rslopegbmax = rslopegmax ** bvtg
     rslopehbmax = rslopehmax ** bvth
+    rslopec2max = rslopecmax * rslopecmax
     rsloper2max = rslopermax * rslopermax
     rslopes2max = rslopesmax * rslopesmax
     rslopeg2max = rslopegmax * rslopegmax
     rslopeh2max = rslopehmax * rslopehmax
+    rslopec3max = rslopec2max * rslopecmax
     rsloper3max = rsloper2max * rslopermax
     rslopes3max = rslopes2max * rslopesmax
     rslopeg3max = rslopeg2max * rslopegmax
@@ -382,6 +386,17 @@ module mod_micro_wdm7
     else
       ptfac(:) = rdt
     end if
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mo2mc%ldmsk(j,i) > 0 ) then
+          qcm(n) = qc1
+        else
+          qcm(n) = qc0
+        end if
+        n = n + 1
+      end do
+    end do
 
     do k = 1 , kz
       n = 1
@@ -900,6 +915,7 @@ module mod_micro_wdm7
               qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
               t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
               qs(i,k) = pfwsat(t(i,k),p(i,k))
+              rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
             end if
             if ( qrs(i,k,3) > 0.0_rkx ) then
               !
@@ -923,6 +939,7 @@ module mod_micro_wdm7
               qrs(i,k,1) = qrs(i,k,1) - pgmlt(i,k)
               t(i,k) = t(i,k) + xlf/cpm(i,k)*pgmlt(i,k)
               qs(i,k) = pfwsat(t(i,k),p(i,k))
+              rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
             end if
             if ( qrs(i,k,4) > 0.0_rkx ) then
               !
@@ -945,6 +962,7 @@ module mod_micro_wdm7
               end if
               t(i,k) = t(i,k) + xlf/cpm(i,k)*phmlt(i,k)
               qs(i,k) = pfwsat(t(i,k),p(i,k))
+              rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
             end if
           end if
         end do
@@ -1021,6 +1039,7 @@ module mod_micro_wdm7
             ncr(i,k,2) = ncr(i,k,2) + xni(i,k)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
             qci(i,k,2) = d_zero
           end if
           !
@@ -1036,6 +1055,7 @@ module mod_micro_wdm7
             if ( ncr(i,k,2) > d_zero ) ncr(i,k,2) = d_zero
             t(i,k) = t(i,k) + xlf/cpm(i,k)*qci(i,k,1)
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
             qci(i,k,1) = d_zero
           end if
           !
@@ -1060,6 +1080,7 @@ module mod_micro_wdm7
             qci(i,k,2) = qci(i,k,2) + pfrzdtc
             t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtc
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
           end if
           !
           ! pgfrz: freezing of rain water [hl a20] [lfo 45]
@@ -1083,6 +1104,7 @@ module mod_micro_wdm7
             qrs(i,k,1) = qrs(i,k,1) - pfrzdtr
             t(i,k) = t(i,k) + xlf/cpm(i,k)*pfrzdtr
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
           end if
         end do
       end do
@@ -1140,7 +1162,7 @@ module mod_micro_wdm7
           lencon  = 2.7e-2_rkx*den(i,k)*qci(i,k,1) * &
             (1.e20_rkx/16.0_rkx*rslopec2(i,k)*rslopec2(i,k)-0.4_rkx)
           lenconcr = max(1.2_rkx*lencon, qrsmin)
-          if ( qci(i,k,1) > qc0 .and. ncr(i,k,2) > ncmin ) then
+          if ( qci(i,k,1) > qcm(n) .and. ncr(i,k,2) > ncmin ) then
             praut(i,k) = qck1*qci(i,k,1)**(7.0_rkx/3.0_rkx) * &
                          ncr(i,k,2)**onet
             praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
@@ -1575,7 +1597,6 @@ module mod_micro_wdm7
           end if
           !
           ! pgwet: wet growth of graupel [LFO 43]
-          !
           !
           rs0 = pfwsat(ttp,p(i,k))
           ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
@@ -2019,6 +2040,7 @@ module mod_micro_wdm7
                        phacr(i,k)+pgacr(i,k)+psacr(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
           else   ! T > tzero
             !
             ! cloud water
@@ -2139,13 +2161,8 @@ module mod_micro_wdm7
               phevp(i,k))-xlf*(pseml(i,k)+pgeml(i,k)+pheml(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
           end if
-        end do
-      end do
-      ! Update relative humidity
-      do k = 1 , kz
-        do i = ims , ime
-          rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
         end do
       end do
 
@@ -2196,6 +2213,7 @@ module mod_micro_wdm7
             t(i,k) = t(i,k)+pcact(i,k)*xl(i,k)/cpm(i,k)*dtcld
             ! Recompute saturation after t update
             qs(i,k) = pfwsat(t(i,k),p(i,k))
+            rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
           end if
           !
           !  pcond:condensational/evaporational rate of cloud water
@@ -2223,6 +2241,7 @@ module mod_micro_wdm7
           qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,d_zero)
           t(i,k) = t(i,k)+pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
           qs(i,k) = pfwsat(t(i,k),p(i,k))
+          rh(i,k) = min(max(qv(i,k)/qs(i,k),0.001_rkx),1.10_rkx)
         end do
       end do
       !
