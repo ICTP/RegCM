@@ -30,6 +30,8 @@ module mod_micro_wsm5
 
   private
 
+  real(rkx) , parameter :: psat = 610.78_rkx
+
   ! maximum time step for minor loops
   real(rkx) , parameter :: dtcldcr = 120.0_rkx
   ! intercept parameter rain
@@ -77,10 +79,16 @@ module mod_micro_wsm5
   real(rkx) , parameter :: minni = 1.0e3_rkx
   real(rkx) , parameter :: maxni = 1.0e6_rkx
 
-  !real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
-  !real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
-  !real(rkx) , parameter :: xai = -(cpv-cpi)/rwat
-  !real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
+  real(rkx) , parameter :: ttp = tzero+0.01_rkx
+  real(rkx) , parameter :: xlf0 = 3.50e6_rkx
+  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
+  real(rkx) , parameter :: xlv1 = 2370.0_rkx
+  real(rkx) , parameter :: dldt  = cpv-cpw
+  real(rkx) , parameter :: dldti = cpv-cpi
+  real(rkx) , parameter :: xa = -dldt/rwat
+  real(rkx) , parameter :: xb = xa + xlv0/(rwat*ttp)
+  real(rkx) , parameter :: xai = -dldti/rwat
+  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*ttp)
 
   real(rkx) , save :: qc0 , qck1 , pidnc , bvtr1 , bvtr2 , bvtr3 ,  &
           bvtr4 , g1pbr , g3pbr , g4pbr , g5pbro2 , pvtr , eacrr ,  &
@@ -97,10 +105,8 @@ module mod_micro_wsm5
 
   real(rkx) , dimension(:,:) , pointer :: t
   real(rkx) , dimension(:,:) , pointer :: qv
-  !real(rkx) , dimension(:,:,:) , pointer :: qs
-  !real(rkx) , dimension(:,:,:) , pointer :: rh
-  real(rkx) , dimension(:,:) , pointer :: qs
-  real(rkx) , dimension(:,:) , pointer :: rh
+  real(rkx) , dimension(:,:,:) , pointer :: qs
+  real(rkx) , dimension(:,:,:) , pointer :: rh
   real(rkx) , dimension(:,:,:) , pointer :: qci
   real(rkx) , dimension(:,:,:) , pointer :: qrs
   real(rkx) , dimension(:,:,:) , pointer :: fall
@@ -124,10 +130,8 @@ module mod_micro_wsm5
     call getmem2d(qv,is,ie,1,kz,'wsm5::qv')
     call getmem3d(qci,is,ie,1,kz,1,2,'wsm5::qci')
     call getmem3d(qrs,is,ie,1,kz,1,2,'wsm5::qrs')
-    !call getmem3d(qs,is,ie,1,kz,1,2,'wsm5::qs')
-    !call getmem3d(rh,is,ie,1,kz,1,2,'wsm5::rh')
-    call getmem2d(qs,is,ie,1,kz,'wsm5::qs')
-    call getmem2d(rh,is,ie,1,kz,'wsm5::rh')
+    call getmem3d(qs,is,ie,1,kz,1,2,'wsm5::qs')
+    call getmem3d(rh,is,ie,1,kz,1,2,'wsm5::rh')
     call getmem3d(fall,is,ie,1,kz,1,2,'wsm5::fall')
     call getmem2d(den,is,ie,1,kz,'wsm5::den')
     call getmem2d(delz,is,ie,1,kz,'wsm5::delz')
@@ -249,19 +253,9 @@ module mod_micro_wsm5
           qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
           qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
           delz(n,kk) = mo2mc%delz(j,i,k)
-          !qs(n,kk) = mo2mc%qs(j,i,k)
-          !rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
-          !den(n,kk) = mo2mc%rho(j,i,k)
+          den(n,kk) = mo2mc%rho(j,i,k)
           n = n + 1
         end do
-      end do
-    end do
-
-    do k = 1 , kz
-      do n = is , ie
-        den(n,k) = p(n,k)/(rgas * t(n,k) * (d_one + ep1*qv(n,k) - &
-                   qci(n,k,1) - qci(n,k,2) - qrs(n,k,1) - &
-                   qrs(n,k,2)))
       end do
     end do
 
@@ -421,8 +415,7 @@ module mod_micro_wsm5
       supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2s ,     &
       acrfac , qimax , diameter , xni0 , roqi0 , fallsum ,     &
       fallsum_qsi , xlwork2 , factor , source , qval , xlf ,   &
-      pfrzdtc , pfrzdtr , supice
-    !real(rkx) :: tr , logtr
+      pfrzdtc , pfrzdtr , supice , tr
     ! variables for optimization
     real(rkx) :: temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
@@ -466,25 +459,21 @@ module mod_micro_wsm5
     do loop = 1 , loops
       do k = 1 , kz
         do i = ims , ime
-          !tr = wattp/t(i,k)
-          !logtr = log(tr)
-          !qs(i,k,1) = c1es * exp(logtr*xa + xb*(d_one-tr))
-          !qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
-          !qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
-          !qs(i,k,1) = max(qs(i,k,1),qcimin)
-          !rh(i,k,1) = max(qv(i,k)/qs(i,k,1),qcimin)
-          !if ( t(i,k) > wattp ) then
-          !  qs(i,k,2) = c1es * exp(logtr*xa + xb*(d_one-tr))
-          !else
-          !  qs(i,k,2) = c1es * exp(logtr*xai + xbi*(d_one-tr))
-          !end if
-          !qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-          !qs(i,k,2) = ep2 * qs(i,k,2)/(p(i,k)-qs(i,k,2))
-          !qs(i,k,2) = max(qs(i,k,2),qcimin)
-          !rh(i,k,2) = max(qv(i,k)/qs(i,k,2),qcimin)
-          qs(i,k) = pfwsat(t(i,k),p(i,k))
-          qs(i,k) = max(qs(i,k),qcimin)
-          rh(i,k) = max(qv(i,k)/qs(i,k),qcimin)
+          tr = ttp/t(i,k)
+          qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+          qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+          qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
+          qs(i,k,1) = max(qs(i,k,1),minqq)
+          rh(i,k,1) = max(qv(i,k) / qs(i,k,1),minqq)
+          if ( t(i,k) < ttp ) then
+            qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+          else
+            qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+          endif
+          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+          qs(i,k,2) = max(qs(i,k,2),minqq)
+          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),minqq)
         end do
       end do
       !
@@ -562,7 +551,7 @@ module mod_micro_wsm5
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
             !
-            xlf = wlhf
+            xlf = xlf0
             !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
                        ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
@@ -636,7 +625,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = wlhf
+          if ( supcol < d_zero ) xlf = xlf0
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
@@ -696,37 +685,9 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          !work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
-          !work1(i,k,1) = ((((den(i,k))*(xl(i,k))*(xl(i,k))) * &
-          !          ((t(i,k))+120.0_rkx)*(den(i,k))) / &
-          !          (1.414e3_rkx*(1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) * &
-          !          (den(i,k))*(rwat*(t(i,k))*(t(i,k))))) + &
-          !          p(i,k)/((qs(i,k,1)) * &
-          !          (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx))))
-          work1(i,k,1) = ((((den(i,k))*(xl(i,k))*(xl(i,k))) * &
-                    ((t(i,k))+120.0_rkx)*(den(i,k))) / &
-                    (1.414e3_rkx*(1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) * &
-                    (den(i,k))*(rwat*(t(i,k))*(t(i,k))))) + &
-                    p(i,k)/((qs(i,k)) * &
-                    (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx))))
-          !work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k,2))
-          !work1(i,k,2) = ((((den(i,k))*(wlhs)*(wlhs))*((t(i,k))+120.0_rkx) * &
-          !          (den(i,k)))/(1.414e3_rkx*(1.496e-6_rkx * &
-          !          ((t(i,k))*sqrt(t(i,k))))*(den(i,k)) * &
-          !          (rwat*(t(i,k))*(t(i,k))))+p(i,k)/(qs(i,k,2) * &
-          !          (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx)))))
-          work1(i,k,2) = ((((den(i,k))*(wlhs)*(wlhs))*((t(i,k))+120.0_rkx) * &
-                    (den(i,k)))/(1.414e3_rkx*(1.496e-6_rkx * &
-                    ((t(i,k))*sqrt(t(i,k))))*(den(i,k)) * &
-                    (rwat*(t(i,k))*(t(i,k))))+p(i,k)/(qs(i,k) * &
-                    (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx)))))
-          !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
-          work2(i,k) = (exp(onet*log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) * &
-                    p(i,k))/(((t(i,k))+120.0_rkx)*den(i,k)*(8.794e-5_rkx * &
-                    exp(log(t(i,k))*(1.81_rkx)))))) * &
-                    sqrt(sqrt(stdrho/(den(i,k))))) / &
-                    sqrt((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) / &
-                    (((t(i,k))+120.0_rkx)*den(i,k)))
+          work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
+          work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k,2))
+          work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
         end do
       end do
       !
@@ -736,8 +697,7 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          !supsat = max(qv(i,k),minqq)-qs(i,k,1)
-          supsat = max(qv(i,k),minqq)-qs(i,k)
+          supsat = max(qv(i,k),minqq)-qs(i,k,1)
           satdt = supsat*rdtcld
           !
           ! praut: auto conversion rate from cloud to rain [hdc 16]
@@ -761,9 +721,7 @@ module mod_micro_wsm5
           !
           if ( qrs(i,k,1) > d_zero ) then
             coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
-            !prevp(i,k) = (rh(i,k,1)-d_one)*(precr1*rslope2(i,k,1) + &
-            !             precr2*work2(i,k)*coeres)/work1(i,k,1)
-            prevp(i,k) = (rh(i,k)-d_one)*(precr1*rslope2(i,k,1) + &
+            prevp(i,k) = (rh(i,k,1)-d_one)*(precr1*rslope2(i,k,1) + &
                          precr2*work2(i,k)*coeres)/work1(i,k,1)
             if ( prevp(i,k) < d_zero ) then
               prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)*rdtcld)
@@ -788,8 +746,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-          !supsat = max(qv(i,k),minqq)-qs(i,k,2)
-          supsat = max(qv(i,k),minqq)-qs(i,k)
+          supsat = max(qv(i,k),minqq)-qs(i,k,2)
           satdt = supsat*rdtcld
           ifsat = 0
           !
@@ -832,10 +789,8 @@ module mod_micro_wsm5
             if ( qci(i,k,2) > 1.0e-15_rkx .and. ifsat /= 1 ) then
               xmi = den(i,k)*qci(i,k,2)/xni(i,k)
               diameter = dicon * sqrt(xmi)
-              !pidep(i,k) = d_four*diameter*xni(i,k) * &
-              !             (rh(i,k,2)-d_one)/work1(i,k,2)
               pidep(i,k) = d_four*diameter*xni(i,k) * &
-                           (rh(i,k)-d_one)/work1(i,k,2)
+                           (rh(i,k,2)-d_one)/work1(i,k,2)
               supice = satdt-prevp(i,k)
               if ( pidep(i,k) < d_zero ) then
                 pidep(i,k) = max(max(pidep(i,k),satdt*d_half),supice)
@@ -851,10 +806,7 @@ module mod_micro_wsm5
             !
             if ( qrs(i,k,2) > d_zero .and. ifsat /= 1 ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
-              !psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac(i,k) * &
-              !             (precs1*rslope2(i,k,2) + &
-              !              precs2*work2(i,k)*coeres)/work1(i,k,2)
-              psdep(i,k) = (rh(i,k)-d_one)*n0sfac(i,k) * &
+              psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac(i,k) * &
                            (precs1*rslope2(i,k,2) + &
                             precs2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)
@@ -894,8 +846,7 @@ module mod_micro_wsm5
           !       (t>t0: s->v)
           !
           if ( supcol <= d_zero ) then
-            !if ( qrs(i,k,2) > d_zero .and. rh(i,k,1) < d_one ) then
-            if ( qrs(i,k,2) > d_zero .and. rh(i,k) < d_one ) then
+            if ( qrs(i,k,2) > d_zero .and. rh(i,k,1) < d_one ) then
               psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
               psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
             end if
@@ -1019,14 +970,11 @@ module mod_micro_wsm5
       end do
       do k = 1 , kz
         do i = ims , ime
-          !tr = wattp/t(i,k)
-          !logtr = log(tr)
-          !qs(i,k,1) = c1es * exp(logtr*xa + xb*(d_one-tr))
-          !qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
-          !qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
-          !qs(i,k,1) = max(qs(i,k,1),qcimin)
-          qs(i,k) = pfwsat(t(i,k),p(i,k))
-          rh(i,k) = max(qv(i,k)/qs(i,k),qcimin)
+          tr = wattp/t(i,k)
+          qs(i,k,1) = psat * exp(log(tr)*xa + xb*(d_one-tr))
+          qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+          qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
+          qs(i,k,1) = max(qs(i,k,1),qcimin)
         end do
       end do
       ! pcond: condensational/evaporational rate of cloud water
@@ -1036,11 +984,8 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          !work1(i,k,1) = ((max(qv(i,k),minqq)-qs(i,k,1)))/  &
-          !     (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
-          !     ((t(i,k))*(t(i,k))))
-          work1(i,k,1) = ((max(qv(i,k),minqq)-qs(i,k)))/  &
-               (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k)) / &
+          work1(i,k,1) = ((max(qv(i,k),minqq)-qs(i,k,1)))/  &
+               (d_one+(xl(i,k))*(xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
                ((t(i,k))*(t(i,k))))
           work2(i,k) = qci(i,k,1)+work1(i,k,1)
           pcond(i,k) = min(max(work1(i,k,1)*rdtcld,d_zero), &
@@ -1076,8 +1021,7 @@ module mod_micro_wsm5
     pure real(rkx) function xlcal(t)
       implicit none
       real(rkx) , intent(in) :: t
-      real(rkx) , parameter :: xlv1 = 2370.0_rkx
-      xlcal = wlhv-xlv1*(t-tzero)
+      xlcal = xlv0-xlv1*(t-tzero)
     end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
