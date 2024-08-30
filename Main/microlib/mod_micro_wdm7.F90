@@ -1028,7 +1028,7 @@ module mod_micro_wdm7
       do k = 1 , kz
         do i = ims , ime
           supcol = tzero-t(i,k)
-          xlf = wlhs-xl(i,k)
+          xlf = max(wlhs-xl(i,k),d_zero)
           if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
@@ -2028,7 +2028,7 @@ module mod_micro_wdm7
             ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k) - &
                              niacr(i,k)-nsacr(i,k)-ngacr(i,k) -  &
                              nhacr(i,k))*dtcld,0.0_rkx)
-            xlf = wlhs-xl(i,k)
+            xlf = max(wlhs-xl(i,k),d_zero)
             xlwork2 = -wlhs*(psdep(i,k)+pgdep(i,k)+phdep(i,k)+pidep(i,k) + &
                        pigen(i,k))-xl(i,k)*prevp(i,k)                    - &
                        xlf*(piacr(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k)  + &
@@ -2149,7 +2149,7 @@ module mod_micro_wdm7
                nracw(i,k)-naacw(i,k)-naacw(i,k)-nhacw(i,k))*dtcld,0.0_rkx)
             ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k)+ &
                nseml(i,k)+ngeml(i,k)+nheml(i,k))*dtcld,0.0_rkx)
-            xlf = wlhs-xl(i,k)
+            xlf = max(wlhs-xl(i,k),d_zero)
             xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k)+pgevp(i,k) + &
               phevp(i,k))-xlf*(pseml(i,k)+pgeml(i,k)+pheml(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld

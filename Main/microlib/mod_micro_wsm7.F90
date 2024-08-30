@@ -834,7 +834,7 @@ module mod_micro_wsm7
       do k = 1 , kz
         do i = ims , ime
           supcol = tzero-t(i,k)
-          xlf = wlhs-xl(i,k)
+          xlf = max(wlhs-xl(i,k),d_zero)
           if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
@@ -1583,7 +1583,7 @@ module mod_micro_wsm7
               (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld, d_zero)
             qrs(i,k,2) = max(qrs(i,k,2) + &
               (psdep(i,k)+psaut(i,k)+psaci(i,k)+psacw(i,k))*dtcld, d_zero)
-            xlf = wlhs-xl(i,k)
+            xlf = max(wlhs-xl(i,k),d_zero)
             xlwork2 = -wlhs*(psdep(i,k)+pgdep(i,k)+phdep(i,k)+pidep(i,k)   &
                       +pigen(i,k))-xl(i,k)*prevp(i,k)                      &
                       -xlf*(piacr(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k)    &
@@ -1671,7 +1671,7 @@ module mod_micro_wsm7
                     -phacg(i,k))*dtcld,d_zero)
             qrs(i,k,4) = max(qrs(i,k,4)+(phacs(i,k)+phacg(i,k)+phevp(i,k) &
                     +pheml(i,k))*dtcld,d_zero)
-            xlf = wlhs-xl(i,k)
+            xlf = max(wlhs-xl(i,k),d_zero)
             xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k)+pgevp(i,k)+phevp(i,k)) &
                       -xlf*(pseml(i,k)+pgeml(i,k)+pheml(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
