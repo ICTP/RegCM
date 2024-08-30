@@ -191,17 +191,17 @@ module mod_constants
   real(rkx) , parameter :: spcpice = 2.11727e3_rkx ! fresh ice
 
   ! Latent heats (Joules/kg)
-  ! Water vaporization latent heat at T 0 Celsius
 #ifdef RCEMIP
   real(rkx) , parameter :: wlhv = 2.501e6_rkx
   real(rkx) , parameter :: wlhf = 3.337e5_rkx
   real(rkx) , parameter :: wlhs = 2.834e6_rkx
 #else
-  real(rkx) , parameter :: wlhv = 2.50080e6_rkx
+  ! Water vaporization latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhv = 2500610.0_rkx
   ! Water fusion latent heat at T 0 Celsius
-  real(rkx) , parameter :: wlhf = 0.33355e6_rkx
+  real(rkx) , parameter :: wlhf = 333560.5_rkx
   ! Water sublimation latent heat at T 0 Celsius
-  real(rkx) , parameter :: wlhs = wlhv + wlhf
+  real(rkx) , parameter :: wlhs = wlhv + wlhf ! 2834170.5
 #endif
   ! Reverse helpers
   real(rkx) , parameter :: rwlhv = d_one/wlhv
@@ -340,6 +340,11 @@ module mod_constants
   ! Ratio of mean molecular weight of water to that of dry air
   real(rkx) , parameter :: ep2 = amw/amd   ! 0.6219770795
   real(rkx) , parameter :: rep2 = amd/amw  ! 1.6077762876
+  ! Constant defined for calculation of latent heating
+  real(rkx) , parameter :: xlv0 = 3.15E6_rkx
+  real(rkx) , parameter :: xlv1 = 2370.0_rkx
+  real(rkx) , parameter :: xls0 = 2.905E6_rkx
+  real(rkx) , parameter :: xls1 = 259.532_rkx
 
   ! Terminal velocity constants
   real(rkx) , parameter :: avt = 841.99667_rkx
