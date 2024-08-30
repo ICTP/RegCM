@@ -25,6 +25,7 @@ module mod_cu_kf
   use mod_constants , only : cpd , rcpd , wlhf , p00
   use mod_constants , only : d_zero , d_one , d_half , d_two
   use mod_constants , only : d_10 , d_100 , d_1000 , dlowval
+  use mod_constants , only : xlv0 , xlv1
   use mod_memutil
   use mod_dynparam
   use mod_stdio
@@ -103,8 +104,6 @@ module mod_cu_kf
   real(rkx) , parameter :: dpmin = 3.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
-  real(rkx) , parameter :: xlv0 = 3.147e6_rkx
-  real(rkx) , parameter :: xlv1 = 2369.0_rkx
 
   real(rkx) , parameter :: u00 = 0.80_rkx
   real(rkx) , parameter :: u01 = 0.98_rkx

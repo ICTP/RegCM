@@ -114,16 +114,12 @@ module mod_micro_wsm7
   real(rkx) , parameter :: t01  = 273.16_rkx
   ! drag coefficient for hailsone
   real(rkx) , parameter :: cd = 0.6_rkx
-  real(rkx) , parameter :: ttp = tzero+0.01_rkx
-  real(rkx) , parameter :: xlf0 = 3.50e6_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
   real(rkx) , parameter :: dldt  = cpv-cpw
   real(rkx) , parameter :: dldti = cpv-cpi
   real(rkx) , parameter :: xa = -dldt/rwat
-  real(rkx) , parameter :: xb = xa + xlv0/(rwat*ttp)
+  real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -dldti/rwat
-  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*ttp)
+  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
 
   real(rkx) , save :: qc0 , qck1 , pidnc ,                            &
              bvtr1 , bvtr2 , bvtr3 , bvtr4 , g1pbr ,                  &
@@ -552,7 +548,7 @@ module mod_micro_wsm7
     do k = 1 , kz
       do i = ims , ime
         cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = xlcal(t(i,k))
+        xl(i,k) = wlh(t(i,k))
       end do
     end do
     do k = 1 , kz
@@ -584,13 +580,13 @@ module mod_micro_wsm7
     do loop = 1 , loops
       do k = 1 , kz
         do i = ims , ime
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
           qs(i,k,1) = max(qs(i,k,1),minqq)
           rh(i,k,1) = max(qv(i,k) / qs(i,k,1),minqq)
-          if ( t(i,k) < ttp ) then
+          if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           else
             qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
@@ -732,7 +728,7 @@ module mod_micro_wsm7
           supcol = tzero - t(i,k)
           n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
           if ( t(i,k) > tzero ) then
-            xlf = xlf0
+            xlf = wlhf
             !
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
@@ -839,7 +835,7 @@ module mod_micro_wsm7
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = xlf0
+          if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
@@ -1192,16 +1188,16 @@ module mod_micro_wsm7
           ! pgwet: wet growth of graupel [LFO 43]
           !
           !
-          rs0 = psat*exp(log(ttp/tzero)*xa)*exp(xb*(d_one-ttp/tzero))
+          rs0 = psat*exp(log(wattp/tzero)*xa)*exp(xb*(d_one-wattp/tzero))
           rs0 = min(rs0,0.99_rkx*p(i,k))
           rs0 = ep2*rs0/(p(i,k)-rs0)
           rs0 = max(rs0,minqq)
-          ghw1 = den(i,k)*xlv0*diffus(t(i,k),p(i,k))*(rs0-qv(i,k))      &
+          ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k))      &
                - xka(t(i,k),den(i,k))*(-supcol)
-          ghw2 = den(i,k)*(xlf0+cliq*(-supcol))
+          ghw2 = den(i,k)*(wlhf+cpw*(-supcol))
           ghw3 = venfac(p(i,k),t(i,k),den(i,k)) * &
             sqrt(sqrt(egrav*den(i,k)/stdrho))
-          ghw4 = den(i,k)*(xlf0-cliq*supcol+cice*supcol)
+          ghw4 = den(i,k)*(wlhf-cpw*supcol+cpi*supcol)
           if ( qrs(i,k,3) > qrsmin ) then
             if( pgaci(i,k) > d_zero ) then
               egi = exp(0.07*(-supcol))
@@ -1239,13 +1235,13 @@ module mod_micro_wsm7
           end if
           !
           if ( supcol <= d_zero ) then
-            xlf = xlf0
+            xlf = wlhf
           !
           ! pseml: Enhanced melting of snow by accretion of water [HL A34]
           !        (T>=T0: S->R)
           !
             if ( qrs(i,k,2) > d_zero ) &
-              pseml(i,k) = min(max(cliq*supcol*(paacw(i,k)+psacr(i,k))  &
+              pseml(i,k) = min(max(cpw*supcol*(paacw(i,k)+psacr(i,k))  &
                           /xlf,-qrs(i,k,2)/dtcld),d_zero)
           !
           ! pgeml: Enhanced melting of graupel by accretion of water
@@ -1253,14 +1249,14 @@ module mod_micro_wsm7
           !        (T>=T0: G->R)
           !
             if( qrs(i,k,3) > d_zero )  &
-              pgeml(i,k) = min(max(cliq*supcol*(paacw(i,k)+pgacr(i,k))  &
+              pgeml(i,k) = min(max(cpw*supcol*(paacw(i,k)+pgacr(i,k))  &
                           /xlf,-qrs(i,k,3)/dtcld),d_zero)
           !
           ! pheml: Enhanced melting of hail by accretion of water [BHT A23]
           !        (T>=T0: H->R)
           !
             if( qrs(i,k,4) > d_zero )  &
-              pheml(i,k) = min(max(cliq*supcol*(phacw(i,k)+phacr(i,k))  &
+              pheml(i,k) = min(max(cpw*supcol*(phacw(i,k)+phacr(i,k))  &
                           /xlf,-qrs(i,k,4)/dtcld),d_zero)
           end if
           !
@@ -1684,13 +1680,13 @@ module mod_micro_wsm7
       end do
       do k = 1 , kz
         do i = ims , ime
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
           qs(i,k,1) = max(qs(i,k,1),minqq)
           rh(i,k,1) = max(qv(i,k)/qs(i,k,1),minqq)
-          if ( t(i,k) < ttp ) then
+          if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           else
             qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
@@ -1735,20 +1731,13 @@ module mod_micro_wsm7
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
+#include <wlh.inc>
 
     pure real(rkx) function cpmcal(q)
       implicit none
       real(rkx) , intent(in) :: q
       cpmcal = cpd*(d_one-max(q,minqq)) + cpv*max(q,minqq)
     end function cpmcal
-
-    pure real(rkx) function xlcal(t)
-      implicit none
-      real(rkx) , intent(in) :: t
-      xlcal = xlv0-xlv1*(t-tzero)
-    end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
     pure real(rkx) function diffus(x,y)

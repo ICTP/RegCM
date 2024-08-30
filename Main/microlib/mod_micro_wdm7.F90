@@ -149,16 +149,12 @@ module mod_micro_wdm7
   real(rkx) , parameter :: di82    = 82.e-6_rkx
   ! auto conversion takes place beyond this diameter
   real(rkx) , parameter :: di15    = 15.e-6_rkx
-  real(rkx) , parameter :: ttp = tzero+0.01_rkx
-  real(rkx) , parameter :: xlf0 = 3.50e6_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
   real(rkx) , parameter :: dldt  = cpv-cpw
   real(rkx) , parameter :: dldti = cpv-cpi
   real(rkx) , parameter :: xa = -dldt/rwat
-  real(rkx) , parameter :: xb = xa + xlv0/(rwat*ttp)
+  real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -dldti/rwat
-  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*ttp)
+  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
 
   real(rkx) ,  save :: qc0 , qc1 , qck1 , pidnc , bvtr1 , bvtr2 ,       &
              bvtr3 , bvtr4 , bvtr5 ,                                    &
@@ -644,7 +640,7 @@ module mod_micro_wdm7
     do k = 1 , kz
       do i = ims , ime
         cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = xlcal(t(i,k))
+        xl(i,k) = wlh(t(i,k))
       end do
     end do
     do k = 1 , kz
@@ -678,13 +674,13 @@ module mod_micro_wdm7
       ! WRF code has formula for water and ice.
       do k = 1 , kz
         do i = ims , ime
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
           qs(i,k,1) = max(qs(i,k,1),qvmin)
           rh(i,k,1) = max(qv(i,k) / qs(i,k,1),qvmin)
-          if ( t(i,k) < ttp ) then
+          if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           else
             qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
@@ -905,7 +901,7 @@ module mod_micro_wdm7
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
             !
-            xlf = xlf0
+            xlf = wlhf
             work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             if ( qrs(i,k,2) > 0.0_rkx ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
@@ -1033,7 +1029,7 @@ module mod_micro_wdm7
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = xlf0
+          if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             !
@@ -1594,16 +1590,16 @@ module mod_micro_wdm7
           !
           ! pgwet: wet growth of graupel [LFO 43]
           !
-          rs0 = psat*exp(log(ttp/tzero)*xa)*exp(xb*(1.0_rkx-ttp/tzero))
+          rs0 = psat*exp(log(wattp/tzero)*xa)*exp(xb*(1.0_rkx-wattp/tzero))
           rs0 = min(rs0,0.99_rkx*p(i,k))
           rs0 = ep2*rs0/(p(i,k)-rs0)
           rs0 = max(rs0,qvmin)
-          ghw1 = den(i,k)*xlv0*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
+          ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
                  xka(t(i,k),den(i,k))*(-supcol)
-          ghw2 = den(i,k)*(xlf0+cliq*(-supcol))
+          ghw2 = den(i,k)*(wlhf+cpw*(-supcol))
           ghw3 = venfac(p(i,k),t(i,k),den(i,k)) * &
                  sqrt(sqrt(egrav*den(i,k)/stdrho))
-          ghw4 = den(i,k)*(xlf0-cliq*supcol+cice*supcol)
+          ghw4 = den(i,k)*(wlhf-cpw*supcol+cpi*supcol)
           if ( qrs(i,k,3) > qrsmin ) then
             if( pgaci(i,k) > d_zero ) then
               egi = exp(0.07_rkx*(-supcol))
@@ -1632,13 +1628,13 @@ module mod_micro_wdm7
                        ghw4*(phaci_w(i,k)+phacs(i,k)))
           phwet(i,k) = max(phwet(i,k), d_zero)
           if ( supcol <= d_zero ) then
-            xlf = xlf0
+            xlf = wlhf
             !
             ! pseml: Enhanced melting of snow by accretion of water [HL A34]
             !        (T>=T0: S->R)
             !
             if ( qrs(i,k,2) > 0.0_rkx ) then
-              pseml(i,k) = min(max(cliq*supcol*(paacw(i,k)+psacr(i,k))/xlf, &
+              pseml(i,k) = min(max(cpw*supcol*(paacw(i,k)+psacr(i,k))/xlf, &
                                -qrs(i,k,2)/dtcld),d_zero)
             end if
             !
@@ -1655,7 +1651,7 @@ module mod_micro_wdm7
             !        (T>=T0: QG->QR)
             !
             if ( qrs(i,k,3) > qrsmin ) then
-              pgeml(i,k) = min(max(cliq*supcol*(paacw(i,k)+pgacr(i,k))/xlf, &
+              pgeml(i,k) = min(max(cpw*supcol*(paacw(i,k)+pgacr(i,k))/xlf, &
                           -qrs(i,k,3)/dtcld),d_zero)
             end if
             !
@@ -1671,7 +1667,7 @@ module mod_micro_wdm7
             !        (T>=T0: H->R)
             !
             if ( qrs(i,k,4) > 0.0_rkx ) then
-              pheml(i,k) = min(max(cliq*supcol*(phacw(i,k)+phacr(i,k))/xlf,&
+              pheml(i,k) = min(max(cpw*supcol*(phacw(i,k)+phacr(i,k))/xlf,&
                                -qrs(i,k,4)/dtcld),d_zero)
             end if
             !
@@ -2163,13 +2159,13 @@ module mod_micro_wdm7
 
       do k = 1 , kz
         do i = ims, ime
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
           qs(i,k,1) = max(qs(i,k,1),qvmin)
           rh(i,k,1) = max(qv(i,k)/qs(i,k,1),qvmin)
-          if ( t(i,k) < ttp ) then
+          if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           else
             qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
@@ -2234,7 +2230,7 @@ module mod_micro_wdm7
           !     evaporation of cloud water is not enough to remove subsaturation
           !  (QV->QC or QC->QV)
           !
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
@@ -2303,20 +2299,13 @@ module mod_micro_wdm7
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
+#include <wlh.inc>
 
     pure real(rkx) function cpmcal(q)
       implicit none
       real(rkx) , intent(in) :: q
       cpmcal = cpd*(d_one-max(q,qvmin)) + cpv*max(q,qvmin)
     end function cpmcal
-
-    pure real(rkx) function xlcal(t)
-      implicit none
-      real(rkx) , intent(in) :: t
-      xlcal = xlv0-xlv1*(t-tzero)
-    end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
     pure real(rkx) function diffus(x,y)

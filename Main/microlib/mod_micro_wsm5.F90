@@ -79,16 +79,12 @@ module mod_micro_wsm5
   real(rkx) , parameter :: minni = 1.0e3_rkx
   real(rkx) , parameter :: maxni = 1.0e6_rkx
 
-  real(rkx) , parameter :: ttp = tzero+0.01_rkx
-  real(rkx) , parameter :: xlf0 = 3.50e6_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
   real(rkx) , parameter :: dldt  = cpv-cpw
   real(rkx) , parameter :: dldti = cpv-cpi
   real(rkx) , parameter :: xa = -dldt/rwat
-  real(rkx) , parameter :: xb = xa + xlv0/(rwat*ttp)
+  real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -dldti/rwat
-  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*ttp)
+  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
 
   real(rkx) , save :: qc0 , qck1 , pidnc , bvtr1 , bvtr2 , bvtr3 ,  &
           bvtr4 , g1pbr , g3pbr , g4pbr , g5pbro2 , pvtr , eacrr ,  &
@@ -429,7 +425,7 @@ module mod_micro_wsm5
     do k = 1 , kz
       do i = ims , ime
         cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = xlcal(t(i,k))
+        xl(i,k) = wlh(t(i,k))
       end do
     end do
     do k = 1 , kz
@@ -459,13 +455,13 @@ module mod_micro_wsm5
     do loop = 1 , loops
       do k = 1 , kz
         do i = ims , ime
-          tr = ttp/t(i,k)
+          tr = wattp/t(i,k)
           qs(i,k,1) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
           qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
           qs(i,k,1) = ep2 * qs(i,k,1) / (p(i,k) - qs(i,k,1))
           qs(i,k,1) = max(qs(i,k,1),minqq)
           rh(i,k,1) = max(qv(i,k) / qs(i,k,1),minqq)
-          if ( t(i,k) < ttp ) then
+          if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
           else
             qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
@@ -551,7 +547,7 @@ module mod_micro_wsm5
             ! psmlt: melting of snow [hl a33] [rh83 a25]
             !       (t>t0: s->r)
             !
-            xlf = xlf0
+            xlf = wlhf
             !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             work2(i,k) = (exp(log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k))) / &
                        ((t(i,k))+120.0_rkx)/(den(i,k)))/(8.794e-5_rkx * &
@@ -625,7 +621,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           xlf = wlhs-xl(i,k)
-          if ( supcol < d_zero ) xlf = xlf0
+          if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             t(i,k) = t(i,k) - xlf/cpm(i,k)*qci(i,k,2)
@@ -1009,20 +1005,13 @@ module mod_micro_wsm5
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
+#include <wlh.inc>
 
     pure real(rkx) function cpmcal(q)
       implicit none
       real(rkx) , intent(in) :: q
       cpmcal = cpd*(d_one-max(q,minqq)) + cpv*max(q,minqq)
     end function cpmcal
-
-    pure real(rkx) function xlcal(t)
-      implicit none
-      real(rkx) , intent(in) :: t
-      xlcal = xlv0-xlv1*(t-tzero)
-    end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
     pure real(rkx) function diffus(x,y)
