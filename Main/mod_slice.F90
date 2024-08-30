@@ -137,6 +137,14 @@ module mod_slice
           atms%qxb3d(j,i,k,n) = d_zero
         end if
       end do
+      if ( ipptls == 5 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                        k = 1:kz, n = iqlst+1:nqx )
+          if ( atms%qxb3d(j,i,k,n) < 0.0_rkx ) then
+            atms%qxb3d(j,i,k,n) = d_zero
+          end if
+        end do
+      end if
       if ( ichem == 1 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
           if ( atms%chib3d(j,i,k,n) < 1.0e-50_rkx ) then

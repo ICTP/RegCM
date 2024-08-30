@@ -916,7 +916,7 @@ module mod_tendency
         atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv),minqq)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , &
-                      k = 1:kz , n = iqfrst:iqlst )
+                      k = 1:kz , n = iqfrst:nqx )
         atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n),d_zero)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )

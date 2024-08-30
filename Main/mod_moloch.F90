@@ -1406,18 +1406,10 @@ module mod_moloch
         call wafone(wx,dta)
         call wafone(qv,dta)
         if ( ipptls > 0 ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             call assignpnt(qx,ptr,n)
             call wafone(ptr,dta)
           end do
-          if ( ipptls == 5 ) then
-            call assignpnt(qx,ptr,cqn)
-            call wafone(ptr,dta)
-            call assignpnt(qx,ptr,cqc)
-            call wafone(ptr,dta)
-            call assignpnt(qx,ptr,cqr)
-            call wafone(ptr,dta)
-          end if
         end if
         if ( ibltyp == 2 ) then
           call wafone(tkex,dta)
@@ -2147,12 +2139,21 @@ module mod_moloch
           qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
         end do
         do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                        k = 1:kz, n = iqfrst:nqx)
+                        k = 1:kz, n = iqfrst:iqlst)
           qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
           if ( qx(j,i,k,n) < 1.0e-16_rkx ) then
             qx(j,i,k,n) = d_zero
           end if
         end do
+        if ( ipptls == 5 ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                          k = 1:kz, n = iqlst+1:nqx)
+            qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
+            if ( qx(j,i,k,n) < 0.0_rkx ) then
+              qx(j,i,k,n) = d_zero
+            end if
+          end do
+        end if
         if ( ibltyp == 2 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
             tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)

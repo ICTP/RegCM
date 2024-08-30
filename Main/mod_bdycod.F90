@@ -2218,7 +2218,7 @@ module mod_bdycod
     if ( idynamic == 3 ) then
       if ( bdyflow ) then
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2244,7 +2244,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2270,7 +2270,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2296,7 +2296,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
 #ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else
@@ -2318,7 +2318,7 @@ module mod_bdycod
         end if
       else
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2340,7 +2340,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2362,7 +2362,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2384,7 +2384,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2406,7 +2406,7 @@ module mod_bdycod
     else
       if ( bdyflow ) then
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2432,7 +2432,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2458,7 +2458,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2484,7 +2484,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2508,7 +2508,7 @@ module mod_bdycod
         end if
       else
         if ( ma%has_bdyleft ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2530,7 +2530,7 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2552,7 +2552,7 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
@@ -2574,7 +2574,7 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
-          do n = iqfrst , iqlst
+          do n = iqfrst , nqx
             if ( present_qc .and. n == iqc ) cycle
             if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
