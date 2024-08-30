@@ -2548,7 +2548,7 @@ module mod_rad_aerosol
       integer(ik4) :: ibin , i , j , k , kk , n
       integer(ik4) :: iy , im , id
       integer(ik4) , save :: idlast = -1
-      integer(ik4) :: visband
+      integer(ik4) , save :: visband
       real(rk8) :: year_fr
 
       if ( lfirst ) then
