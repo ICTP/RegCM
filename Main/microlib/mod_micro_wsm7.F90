@@ -120,6 +120,8 @@ module mod_micro_wsm7
   real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -dldti/rwat
   real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
+  real(rkx) , parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
+                                        exp(xb*(1.0_rkx-wattp/tzero))
 
   real(rkx) , save :: qc0 , qck1 , pidnc ,                            &
              bvtr1 , bvtr2 , bvtr3 , bvtr4 , g1pbr ,                  &
@@ -525,18 +527,12 @@ module mod_micro_wsm7
       pgeml , pheml
     real(rkx) , dimension(ims:ime,kz) :: pgaci_w , phaci_w , qsum ,   &
                                          denqrs3 , denqrs4
-    real(rkx) :: rdtcld
-    real(rkx) :: supcol , supcolt , coeres , &
-      supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2r , vt2s , vt2g , &
-      vt2h , acrfac , egi , ehi , qimax , diameter , xni0 , roqi0 , fallsum , &
-      fallsum_qsi , fallsum_qg , fallsum_qh , xlwork2 , factor , source , &
-      qval , xlf , pfrzdtc , pfrzdtr , supice , alpha2 , delta2 , delta3
-    real(rkx) :: vt2ave
-    real(rkx) :: rs0 , ghw1 , ghw2 , ghw3 , ghw4 , tr
-
-    !real(rkx) :: tr , logtr
-    ! variables for optimization
-    real(rkx) :: temp
+    real(rkx) :: supcol , supcolt , coeres , rdtcld , vt2ave , rs0 , tr , &
+      supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2r , vt2s , vt2g ,  &
+      vt2h , acrfac , egi , ehi , qimax , diameter , xni0 , roqi0 ,       &
+      fallsum , fallsum_qsi , fallsum_qg , fallsum_qh , xlwork2 , factor ,&
+      source , qval , xlf , pfrzdtc , pfrzdtr , supice , alpha2 , delta2 ,&
+      delta3 , ghw1 , ghw2 , ghw3 , ghw4 , temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
 
     nval = ime-ims+1
@@ -588,13 +584,14 @@ module mod_micro_wsm7
           rh(i,k,1) = max(qv(i,k) / qs(i,k,1),minqq)
           if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+            qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+            qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+            qs(i,k,2) = max(qs(i,k,2),minqq)
+            rh(i,k,2) = max(qv(i,k) / qs(i,k,2),minqq)
           else
-            qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+            qs(i,k,2) = qs(i,k,1)
+            rh(i,k,2) = rh(i,k,1)
           endif
-          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-          qs(i,k,2) = max(qs(i,k,2),minqq)
-          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),minqq)
         end do
       end do
       !
@@ -1187,8 +1184,7 @@ module mod_micro_wsm7
           ! pgwet: wet growth of graupel [LFO 43]
           !
           !
-          rs0 = psat*exp(log(wattp/tzero)*xa)*exp(xb*(d_one-wattp/tzero))
-          rs0 = min(rs0,0.99_rkx*p(i,k))
+          rs0 = min(ep0,0.99_rkx*p(i,k))
           rs0 = ep2*rs0/(p(i,k)-rs0)
           rs0 = max(rs0,minqq)
           ghw1 = den(i,k)*wlhv*diffus(t(i,k),p(i,k))*(rs0-qv(i,k)) - &
@@ -1688,13 +1684,14 @@ module mod_micro_wsm7
           rh(i,k,1) = max(qv(i,k)/qs(i,k,1),minqq)
           if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+            qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+            qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+            qs(i,k,2) = max(qs(i,k,2),minqq)
+            rh(i,k,2) = max(qv(i,k)/qs(i,k,2),minqq)
           else
-            qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+            qs(i,k,2) = qs(i,k,1)
+            rh(i,k,2) = rh(i,k,1)
           endif
-          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-          qs(i,k,2) = max(qs(i,k,2),minqq)
-          rh(i,k,2) = max(qv(i,k)/qs(i,k,2),minqq)
         end do
       end do
       ! pcond: condensational/evaporational rate of cloud water

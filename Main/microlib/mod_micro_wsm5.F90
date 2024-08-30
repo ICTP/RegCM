@@ -85,6 +85,8 @@ module mod_micro_wsm5
   real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
   real(rkx) , parameter :: xai = -dldti/rwat
   real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
+  real(rkx) , parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
+                                        exp(xb*(1.0_rkx-wattp/tzero))
 
   real(rkx) , save :: qc0 , qck1 , pidnc , bvtr1 , bvtr2 , bvtr3 ,  &
           bvtr4 , g1pbr , g3pbr , g4pbr , g5pbro2 , pvtr , eacrr ,  &
@@ -406,14 +408,10 @@ module mod_micro_wsm5
     real(rkx) , dimension(ims:ime,kz) :: pigen , pidep , psdep , praut
     real(rkx) , dimension(ims:ime,kz) :: psaut , prevp , psevp , pracw
     real(rkx) , dimension(ims:ime,kz) :: psacw , psaci , pcond , psmlt
-    real(rkx) :: rdtcld
-    real(rkx) :: supcol , supcolt , coeres , &
-      supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2s ,     &
-      acrfac , qimax , diameter , xni0 , roqi0 , fallsum ,     &
-      fallsum_qsi , xlwork2 , factor , source , qval , xlf ,   &
-      pfrzdtc , pfrzdtr , supice , tr
-    ! variables for optimization
-    real(rkx) :: temp
+    real(rkx) :: supcol , supcolt , coeres , supsat , dtcld , xmi , tr , &
+      eacrs , satdt , vt2i , vt2s , acrfac , qimax , diameter , xni0 ,   &
+      roqi0 , fallsum , fallsum_qsi , xlwork2 , factor , source , qval , &
+      xlf , pfrzdtc , pfrzdtr , supice , temp , rdtcld
     integer(ik4) :: i , k , loop , loops , ifsat , nval
 
     nval = ime-ims+1
@@ -463,13 +461,14 @@ module mod_micro_wsm5
           rh(i,k,1) = max(qv(i,k) / qs(i,k,1),minqq)
           if ( t(i,k) < wattp ) then
             qs(i,k,2) = psat*exp(log(tr)*(xai))*exp(xbi*(1.0_rkx-tr))
+            qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+            qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
+            qs(i,k,2) = max(qs(i,k,2),minqq)
+            rh(i,k,2) = max(qv(i,k) / qs(i,k,2),minqq)
           else
-            qs(i,k,2) = psat*exp(log(tr)*(xa))*exp(xb*(1.0_rkx-tr))
+            qs(i,k,2) = qs(i,k,1)
+            rh(i,k,2) = rh(i,k,1)
           endif
-          qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
-          qs(i,k,2) = ep2 * qs(i,k,2) / (p(i,k) - qs(i,k,2))
-          qs(i,k,2) = max(qs(i,k,2),minqq)
-          rh(i,k,2) = max(qv(i,k) / qs(i,k,2),minqq)
         end do
       end do
       !
