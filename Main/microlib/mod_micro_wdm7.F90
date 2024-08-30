@@ -406,9 +406,9 @@ module mod_micro_wdm7
         do j = jci1 , jci2
           t(n,kk) = mo2mc%t(j,i,k)
           p(n,kk) = mo2mc%phs(j,i,k)
-          qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
-          qci(n,kk,1) = max(mo2mc%qxx(j,i,k,iqc),d_zero)
-          qci(n,kk,2) = max(mo2mc%qxx(j,i,k,iqi),d_zero)
+          qv(n,kk) = max(mo2mc%qxx(j,i,k,iqv),qvmin)
+          qci(n,kk,1) = max(mo2mc%qxx(j,i,k,iqc),0.9_rkx*qcimin)
+          qci(n,kk,2) = max(mo2mc%qxx(j,i,k,iqi),0.9_rkx*qcimin)
           qrs(n,kk,1) = max(mo2mc%qxx(j,i,k,iqr),d_zero)
           qrs(n,kk,2) = max(mo2mc%qxx(j,i,k,iqs),d_zero)
           qrs(n,kk,3) = max(mo2mc%qxx(j,i,k,iqg),d_zero)
@@ -450,6 +450,12 @@ module mod_micro_wdm7
                   (qrs(n,kk,3)-mo2mc%qxx(j,i,k,iqg))*ptfac(n)
           mc2mo%qxten(j,i,k,iqh) = mc2mo%qxten(j,i,k,iqh) + &
                   (qrs(n,kk,4)-mo2mc%qxx(j,i,k,iqh))*ptfac(n)
+          mc2mo%qxten(j,i,k,cqn) = mc2mo%qxten(j,i,k,cqn) + &
+                  (ncr(n,kk,1)-mo2mc%qxx(j,i,k,cqn))*ptfac(n)
+          mc2mo%qxten(j,i,k,cqc) = mc2mo%qxten(j,i,k,cqc) + &
+                  (ncr(n,kk,2)-mo2mc%qxx(j,i,k,cqc))*ptfac(n)
+          mc2mo%qxten(j,i,k,cqr) = mc2mo%qxten(j,i,k,cqr) + &
+                  (ncr(n,kk,3)-mo2mc%qxx(j,i,k,cqr))*ptfac(n)
           n = n + 1
         end do
       end do
@@ -969,7 +975,7 @@ module mod_micro_wdm7
       !
       do k = kz , 1 , -1
         do i = ims , ime
-          if ( qci(i,k,2) > 0.0_rkx ) then
+          if ( qci(i,k,2) > qcimin ) then
             xmi = den(i,k)*qci(i,k,2)/xni(i,k)
             diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
             work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
@@ -1027,7 +1033,7 @@ module mod_micro_wdm7
           supcol = tzero-t(i,k)
           xlf = max(wlhs-xl(i,k),d_zero)
           if ( supcol < d_zero ) xlf = wlhf
-          if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
+          if ( supcol < d_zero .and. qci(i,k,2) > qcimin ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
             !
             ! nimlt: instantaneous melting of cloud ice  [LH A18]
@@ -1041,7 +1047,7 @@ module mod_micro_wdm7
           ! pihmf: homogeneous freezing of cloud water below -40c [hl a45]
           !        (t<-40c: c->i)
           !
-          if ( supcol > 40.0_rkx .and. qci(i,k,1) > d_zero ) then
+          if ( supcol > 40.0_rkx .and. qci(i,k,1) > qcimin ) then
             qci(i,k,2) = qci(i,k,2) + qci(i,k,1)
             !
             ! nihmf: homogeneous  of cloud water below -40c [LH A17]
@@ -1311,7 +1317,7 @@ module mod_micro_wdm7
             ! niacr: Accretion of rain by cloud ice  [LH A25]
             !        (T<T0: NR->)
             !
-            if ( ncr(i,k,3) > nrmin ) then
+            if ( ncr(i,k,3) > nrmin .and. qrs(i,k,1) > 0.0_rkx ) then
               niacr(i,k) = mathpi*avtr*ncr(i,k,3)*xni(i,k)*denfac(i,k) * &
                 g4pbr*rslope2(i,k,1)*rslopeb(i,k,1)*d_rfour
               ! reduce collection efficiency (suggested by B. Wilt)
@@ -1388,9 +1394,7 @@ module mod_micro_wdm7
           ! ngacw: Accretion of cloud water by graupel [LH A13]
           !        (NC->
           !
-          if ( qrs(i,k,3) > qrsmin .and. &
-               ncr(i,k,2) > ncmin  .and. &
-               qci(i,k,1) > d_zero ) then
+          if ( qrs(i,k,3) > qrsmin .and. ncr(i,k,2) > ncmin ) then
             ! reduce collection efficiency (suggested by B. Wilt)
             ngacw(i,k) = min(pacrg*rslope3(i,k,3)*rslopeb(i,k,3)*ncr(i,k,2)* &
               min(max(d_zero,qrs(i,k,3)/qci(i,k,1)),d_one)**2 * &
@@ -1424,9 +1428,7 @@ module mod_micro_wdm7
           ! nhacw: Accretion of cloud water by hail
           !        (NC->)
           !
-          if ( qrs(i,k,4) > qrsmin .and. &
-               ncr(i,k,2) > ncmin  .and. &
-               qci(i,k,1) > d_zero ) then
+          if ( qrs(i,k,4) > qrsmin .and. ncr(i,k,2) > ncmin ) then
             ! reduce collection efficiency (suggested by B. Wilt)
             nhacw(i,k) = min(pacrh*rslope3(i,k,4)*rslopeb(i,k,4)*ncr(i,k,2)* &
               min(max(d_zero,qrs(i,k,4)/qci(i,k,1)),d_one)**2 * &
@@ -1637,7 +1639,7 @@ module mod_micro_wdm7
             ! nseml: Enhanced melt of snow by accretion of water    [LH A29]
             !        (T>=T0: ->NR)
             !
-            if (qrs(i,k,2) > d_zero ) then
+            if ( qrs(i,k,2) > d_zero ) then
               sfac = rslope(i,k,2)*n0s*n0sfac(i,k)/qrs(i,k,2)
               nseml(i,k) = -sfac*pseml(i,k)
             end if
@@ -1654,7 +1656,7 @@ module mod_micro_wdm7
             ! ngeml: Enhanced melting of graupel by accretion of water [LH A30]
             !         (T>=T0: -> NR)
             !
-            if (qrs(i,k,3) > qrsmin) then
+            if ( qrs(i,k,3) > qrsmin ) then
               gfac = rslope(i,k,3)*n0g/qrs(i,k,3)
               ngeml(i,k) = -gfac*pgeml(i,k)
             end if
@@ -1670,7 +1672,7 @@ module mod_micro_wdm7
             ! nheml: Enhanced melting of hail by accretion of water [LH A30]
             !         (T>=T0: -> NR)
             !
-            if (qrs(i,k,4) > qrsmin) then
+            if ( qrs(i,k,4) > qrsmin ) then
               gfac = rslope(i,k,4)*n0h/qrs(i,k,4)
               nheml(i,k) = -gfac*pheml(i,k)
             end if
@@ -1681,7 +1683,7 @@ module mod_micro_wdm7
             ! pidep: deposition/sublimation rate of ice [hdc 9]
             !       (t<t0: v->i or i->v)
             !
-            if ( qci(i,k,2) > d_zero .and. ifsat /= 1 ) then
+            if ( qci(i,k,2) > qcimin .and. ifsat /= 1 ) then
               pidep(i,k) = d_four*diameter*xni(i,k) * &
                           (rh(i,k,2)-d_one)/work1(i,k,2)
               supice = satdt-prevp(i,k)
@@ -1766,7 +1768,7 @@ module mod_micro_wdm7
            ! psaut: conversion(aggregation) of ice to snow [hdc 12]
            !       (t<t0: i->s)
            !
-           if ( qci(i,k,2) > d_zero ) then
+           if ( qci(i,k,2) > qcimin ) then
              qimax = roqimax/den(i,k)
              psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
            end if
@@ -2236,7 +2238,7 @@ module mod_micro_wdm7
           work2(i,k) = qci(i,k,1)+work1(i,k,1)
           pcond(i,k) = min(max(work1(i,k,1)/dtcld,d_zero), &
                            max(qv(i,k),d_zero)/dtcld)
-          if ( qci(i,k,1) > d_zero .and. work1(i,k,1) < d_zero ) then
+          if ( qci(i,k,1) > qcimin .and. work1(i,k,1) < d_zero ) then
             pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))/dtcld
           end if
           !
