@@ -2698,7 +2698,6 @@ module mod_micro_wdm7
   ! Author: Hann-Ming Henry Juang <henry.juang@noaa.gov>
   !         implemented by Song-You Hong
   !
-
   subroutine nislfv_rain_plmr(im,denl,denfacl,tkl,dzl, &
                              wwl,rql,rnl,precip,dt,id,maxiter,rid)
     implicit none
@@ -2715,7 +2714,7 @@ module mod_micro_wdm7
     integer(ik4) :: i , k , n , m , kk , kb , kt , rid
     real(rkx) :: tl , tl2 , qql , dql , qqd
     real(rkx) :: th , th2 , qqh , dqh
-    real(rkx) :: zsum , qsum , xdim , dip , d1 , d2 , con1
+    real(rkx) :: zsum , qsum , xdim , xdip , con1
     real(rkx) :: allold , decfl
     real(rkx) , dimension(kz) :: dz , ww , qq , wd , wa , wa2 , was , nr
     real(rkx) , dimension(kz) :: den , denfac , tk
@@ -2727,12 +2726,12 @@ module mod_micro_wdm7
 
     precip(:) = d_zero
 
-    k_loop : &
+    i_loop : &
     do i = 1 , im
       dz(:) = dzl(i,:)
       qq(:) = rql(i,:)
       nr(:) = rnl(i,:)
-      if (rid == 1) nr(:) = rnl(i,:)/denl(i,:)
+      if ( rid == 1 ) nr(:) = rnl(i,:)/denl(i,:)
       ww(:) = wwl(i,:)
       den(:) = denl(i,:)
       denfac(:) = denfacl(i,:)
@@ -2743,7 +2742,7 @@ module mod_micro_wdm7
         allold = allold + qq(k)
       end do
       if ( allold <= d_zero ) then
-        cycle k_loop
+        cycle i_loop
       end if
       !
       ! compute interface values
@@ -2777,7 +2776,7 @@ module mod_micro_wdm7
         ! terminate of top of raingroup
         !
         do k = 2 , kz
-          if ( abs(ww(k)) < epsilon(d_one) ) wi(k) = ww(k-1)
+          if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
         !
         ! diffusivity of wi
@@ -2803,59 +2802,51 @@ module mod_micro_wdm7
         do k = 1 , kz
           qa(k) = qq(k)*dz(k)/dza(k)
           qr(k) = qa(k)/den(k)
+          if ( rid == 1 ) qr(k) = qa(k)
         end do
         qa(kzp1) = d_zero
-        if ( n <= maxiter ) then
-          !
-          ! compute arrival terminal velocity, and estimate mean
-          ! terminal velocity then back to use mean terminal velocity
-          !
-          if ( id == 1 ) then
-            if ( rid == 1 ) then
-              call slope_rain(nr,qr,den,denfac,tmp,tmp1,tmp2,tmp3, &
-                              wa,wa2)
-            else
-              call slope_rain(qr,nr,den,denfac,tmp,tmp1,tmp2,tmp3, &
-                              wa,wa2)
-            end if
-            if (rid == 1 ) wa(:) = wa2(:)
-          else if ( id == 2 ) then
-              call slope_hail(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
-            end if
-            if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
-            do k = 1 , kz
-            ! mean wind is average of departure and new arrival winds
-              ww(k) = d_half * ( wd(k)+wa(k) )
-            end do
-            was(:) = wa(:)
-            n = n + 1
+        if ( n > maxiter ) exit
+        !
+        ! compute arrival terminal velocity, and estimate mean
+        ! terminal velocity then back to use mean terminal velocity
+        !
+        if ( id == 1 ) then
+          if ( rid == 1 ) then
+            call slope_rain(nr,qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa,wa2)
+            wa(:) = wa2(:)
           else
-            exit
+            call slope_rain(qr,nr,den,denfac,tmp,tmp1,tmp2,tmp3,wa,wa2)
           end if
+        else if ( id == 2 ) then
+          call slope_hail(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+        end if
+        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+        do k = 1 , kz
+          ! mean wind is average of departure and new arrival winds
+          ww(k) = d_half * ( wd(k)+wa(k) )
         end do
-        do k = 2 , kz
-          d1 = qa(k+1)-qa(k)
-          d2 = qa(k)-qa(k-1)
-          if ( d1 < 1.0e-20_rkx ) d1 = d_zero
-          if ( d2 < 1.0e-20_rkx ) d2 = d_zero
-          dip = d1 / (dza(k+1)+dza(k))
-          xdim = d2 / (dza(k-1)+dza(k))
-          if ( dip*xdim <= d_zero ) then
-            qmi(k) = qa(k)
+        was(:) = wa(:)
+        n = n + 1
+      end do
+      do k = 2 , kz
+        xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
+        xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+        if ( xdip*xdim <= d_zero ) then
+          qmi(k) = qa(k)
+          qpi(k) = qa(k)
+        else
+          qpi(k) = qa(k) + d_half*(xdip+xdim)*dza(k)
+          qmi(k) = d_two*qa(k) - qpi(k)
+          if ( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
             qpi(k) = qa(k)
-          else
-            qpi(k) = qa(k) + d_half*(dip+xdim)*dza(k)
-            qmi(k) = d_two*qa(k) - qpi(k)
-            if( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
-              qpi(k) = qa(k)
-              qmi(k) = qa(k)
-            end if
+            qmi(k) = qa(k)
           end if
-        end do
-        qpi(1) = qa(1)
-        qmi(1) = qa(1)
-        qmi(kzp1) = qa(kzp1)
-        qpi(kzp1) = qa(kzp1)
+        end if
+      end do
+      qpi(1) = qa(1)
+      qmi(1) = qa(1)
+      qmi(kzp1) = qa(kzp1)
+      qpi(kzp1) = qa(kzp1)
       !
       ! interpolation to regular point
       !
@@ -2942,7 +2933,7 @@ module mod_micro_wdm7
       ! replace the new values
       !
       rql(i,:) = qn(:)
-    end do k_loop
+    end do i_loop
   end subroutine nislfv_rain_plmr
 
   subroutine nislfv_rain_plm6(im,denl,denfacl,tkl,dzl,wwl,rql, &
@@ -2961,7 +2952,7 @@ module mod_micro_wdm7
     integer(ik4) :: i , k , n , m , kk , kb , kt , ist
     real(rkx) :: tl , tl2 , qql , dql , qqd
     real(rkx) :: th , th2 , qqh , dqh
-    real(rkx) :: zsum , qsum , xdim , dip , d1 , d2 , con1
+    real(rkx) :: zsum , qsum , xdim , xdip , con1
     real(rkx) :: allold , decfl
     real(rkx) , dimension(im) :: precip
     real(rkx) , dimension(kz) :: dz , ww , qq , wd , wa , wa2 , was
@@ -2976,7 +2967,7 @@ module mod_micro_wdm7
     precip1(:) = d_zero
     precip2(:) = d_zero
 
-    j_loop : &
+    i_loop : &
     do i = 1 , im
       dz(:) = dzl(i,:)
       qq(:) = rql(i,:)
@@ -2991,7 +2982,7 @@ module mod_micro_wdm7
         allold = allold + qq(k) + qq2(k)
       end do
       if ( allold <= d_zero ) then
-        cycle j_loop
+        cycle i_loop
       end if
       ! compute interface values
       zi(1) = d_zero
@@ -3000,7 +2991,7 @@ module mod_micro_wdm7
       end do
       !save departure wind
       wd(:) = ww(:)
-      n=1
+      n = 1
       do !inf
         ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
         ! 2nd order interpolation to get wi
@@ -3021,7 +3012,7 @@ module mod_micro_wdm7
         ! terminate of top of raingroup
         !
         do k = 2 , kz
-          if ( abs(ww(k)) < epsilon(d_one) ) wi(k) = ww(k-1)
+          if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
         !diffusivity of wi
         con1 = 0.05_rkx
@@ -3031,7 +3022,7 @@ module mod_micro_wdm7
             wi(k) = wi(k+1) - con1*dz(k)/dt
           end if
         end do
-    ! compute arrival point
+        ! compute arrival point
         do k = 1 , kzp1
           za(k) = zi(k) - wi(k)*dt
         end do
@@ -3048,154 +3039,144 @@ module mod_micro_wdm7
         end do
         qa(kzp1) = d_zero
         qa2(kzp1) = d_zero
-        if ( n <= maxiter ) then
-          !
-          ! compute arrival terminal velocity, and estimate mean
-          ! terminal velocity then back to use mean terminal velocity
-          !
-          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
-          call slope_graup(qr2,den,denfac,tmp,tmp1,tmp2,tmp3,wa2)
-          do k = 1 , kz
-            tmp(k) = max((qr(k)+qr2(k)), 1.e-15_rkx)
-            if ( tmp(k) > 1.1e-15_rkx ) then
-              wa(k) = (wa(k)*qr(k) + wa2(k)*qr2(k))/tmp(k)
-            else
-              wa(k) = d_zero
-            end if
-          end do
-          if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
-          do k = 1 , kz
-           ! mean wind is average of departure and new arrival winds
-            ww(k) = d_half * ( wd(k)+wa(k) )
-          end do
-          was(:) = wa(:)
-          n = n + 1
-        else
-          exit
-        end if
-        ist_loop : &
-        do ist = 1 , 2
-          if ( ist == 2 ) then
-            qa(:) = qa2(:)
+        !
+        ! compute arrival terminal velocity, and estimate mean
+        ! terminal velocity then back to use mean terminal velocity
+        !
+        if ( n > maxiter ) exit
+        call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+        call slope_graup(qr2,den,denfac,tmp,tmp1,tmp2,tmp3,wa2)
+        do k = 1 , kz
+          tmp(k) = max((qr(k)+qr2(k)), 1.e-15_rkx)
+          if ( tmp(k) > 1.1e-15_rkx ) then
+            wa(k) = (wa(k)*qr(k) + wa2(k)*qr2(k))/tmp(k)
           else
-            exit
+            wa(k) = d_zero
           end if
+        end do
+        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+        do k = 1 , kz
+          ! mean wind is average of departure and new arrival winds
+          ww(k) = d_half * ( wd(k)+wa(k) )
+        end do
+        was(:) = wa(:)
+        n = n + 1
+      end do
+      ist_loop : &
+      do ist = 1 , 2
+        if ( ist == 2 ) then
+          qa(:) = qa2(:)
+        end if
         !end do ist_loop
         precip(i) = d_zero
-      ! estimate values at arrival cell interface with monotone
-      do k = 2 , kz
-        d1 = qa(k+1)-qa(k)
-        d2 = qa(k)-qa(k-1)
-        if ( d1 < 1.0e-20_rkx ) d1 = d_zero
-        if ( d2 < 1.0e-20_rkx ) d2 = d_zero
-        dip = d1 / (dza(k+1)+dza(k))
-        xdim = d2 / (dza(k-1)+dza(k))
-        if ( dip*xdim <= d_zero ) then
-          qmi(k) = qa(k)
-          qpi(k) = qa(k)
-        else
-          qpi(k) = qa(k) + d_half*(dip+xdim)*dza(k)
-          qmi(k) = d_two*qa(k) - qpi(k)
-          if( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
-            qpi(k) = qa(k)
+        ! estimate values at arrival cell interface with monotone
+        do k = 2 , kz
+          xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
+          xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+          if ( xdip*xdim <= d_zero ) then
             qmi(k) = qa(k)
+            qpi(k) = qa(k)
+          else
+            qpi(k) = qa(k) + d_half*(xdip+xdim)*dza(k)
+            qmi(k) = d_two*qa(k) - qpi(k)
+            if( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
+              qpi(k) = qa(k)
+              qmi(k) = qa(k)
+            end if
           end if
-        end if
-      end do
-      qpi(1) = qa(1)
-      qmi(1) = qa(1)
-      qmi(kzp1) = qa(kzp1)
-      qpi(kzp1) = qa(kzp1)
-          ! interpolation to regular point
-      !
-      qn = d_zero
-      kb = 1
-      kt = 1
-     intp : &
-      do k = 1 , kz
-        kb = max(kb-1,1)
-        kt = max(kt-1,1)
-        ! find kb and kt
-        if ( zi(k) >= za(kzp1) ) then
-          exit intp
+        end do
+        qpi(1) = qa(1)
+        qmi(1) = qa(1)
+        qmi(kzp1) = qa(kzp1)
+        qpi(kzp1) = qa(kzp1)
+        ! interpolation to regular point
+        !
+        qn = d_zero
+        kb = 1
+        kt = 1
+        intp : &
+        do k = 1 , kz
+          kb = max(kb-1,1)
+          kt = max(kt-1,1)
+          ! find kb and kt
+          if ( zi(k) >= za(kzp1) ) then
+            exit intp
+          else
+            find_kb : &
+            do kk = kb , kz
+              if ( zi(k) <= za(kk+1) ) then
+                kb = kk
+                exit find_kb
+              else
+                cycle find_kb
+              end if
+            end do find_kb
+            find_kt : &
+            do kk = kt , kz
+              if ( zi(k+1) <= za(kk) ) then
+                kt = kk
+                exit find_kt
+              else
+                cycle find_kt
+              end if
+            end do find_kt
+            kt = kt - 1
+            ! compute q with piecewise constant method
+            if ( kt == kb ) then
+              tl = (zi(k)-za(kb)) / dza(kb)
+              th = (zi(k+1)-za(kb)) / dza(kb)
+              tl2 = tl*tl
+              th2 = th*th
+              qqd = d_half*(qpi(kb)-qmi(kb))
+              qqh = qqd*th2+qmi(kb)*th
+              qql = qqd*tl2+qmi(kb)*tl
+              qn(k) = (qqh-qql)/(th-tl)
+            else if ( kt > kb ) then
+              tl = (zi(k)-za(kb))/dza(kb)
+              tl2 = tl*tl
+              qqd = d_half*(qpi(kb)-qmi(kb))
+              qql = qqd*tl2+qmi(kb)*tl
+              dql = qa(kb)-qql
+              zsum = (d_one-tl)*dza(kb)
+              qsum = dql*dza(kb)
+              if ( kt-kb > 1 ) then
+                do m = kb+1 , kt-1
+                  zsum = zsum + dza(m)
+                  qsum = qsum + qa(m) * dza(m)
+                end do
+              end if
+              th = (zi(k+1)-za(kt))/dza(kt)
+              th2 = th*th
+              qqd = d_half*(qpi(kt)-qmi(kt))
+              dqh = qqd*th2+qmi(kt)*th
+              zsum = zsum + th*dza(kt)
+              qsum = qsum + dqh*dza(kt)
+              qn(k) = qsum/zsum
+            end if
+            cycle intp
+          end if
+        end do intp
+        ! rain out
+        !
+        sum_precip1: &
+        do k = 1 , kz
+          if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
+            precip(i) = precip(i) + qa(k)*dza(k)
+            cycle sum_precip1
+          else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
+            precip(i) = precip(i) + qa(k)*(d_zero-za(k))
+            exit sum_precip1
+          end if
+        end do sum_precip1
+        if ( ist.eq.1 ) then
+          rql(i,:) = qn(:)
+          precip1(i) = precip(i)
         else
-          find_kb : &
-          do kk = kb , kz
-            if ( zi(k) <= za(kk+1) ) then
-              kb = kk
-              exit find_kb
-            else
-              cycle find_kb
-            end if
-          end do find_kb
-          find_kt : &
-          do kk = kt , kz
-            if ( zi(k+1) <= za(kk) ) then
-              kt = kk
-              exit find_kt
-            else
-              cycle find_kt
-            end if
-          end do find_kt
-          kt = kt - 1
-          ! compute q with piecewise constant method
-          if ( kt == kb ) then
-            tl = (zi(k)-za(kb)) / dza(kb)
-            th = (zi(k+1)-za(kb)) / dza(kb)
-            tl2 = tl*tl
-            th2 = th*th
-            qqd = d_half*(qpi(kb)-qmi(kb))
-            qqh = qqd*th2+qmi(kb)*th
-            qql = qqd*tl2+qmi(kb)*tl
-            qn(k) = (qqh-qql)/(th-tl)
-          else if ( kt > kb ) then
-            tl = (zi(k)-za(kb))/dza(kb)
-            tl2 = tl*tl
-            qqd = d_half*(qpi(kb)-qmi(kb))
-            qql = qqd*tl2+qmi(kb)*tl
-           dql = qa(kb)-qql
-            zsum = (d_one-tl)*dza(kb)
-            qsum = dql*dza(kb)
-            if ( kt-kb > 1 ) then
-              do m = kb+1 , kt-1
-                zsum = zsum + dza(m)
-                qsum = qsum + qa(m) * dza(m)
-              end do
-            end if
-            th = (zi(k+1)-za(kt))/dza(kt)
-            th2 = th*th
-            qqd = d_half*(qpi(kt)-qmi(kt))
-            dqh = qqd*th2+qmi(kt)*th
-            zsum = zsum + th*dza(kt)
-            qsum = qsum + dqh*dza(kt)
-            qn(k) = qsum/zsum
-          end if
-          cycle intp
+          rql2(i,:) = qn(:)
+          precip2(i) = precip(i)
         end if
-      end do intp
-      ! rain out
-      !
-      sum_precip1: &
-      do k = 1 , kz
-        if ( za(k) < d_zero .and. za(k+1) < d_zero ) then
-          precip(i) = precip(i) + qa(k)*dza(k)
-          cycle sum_precip1
-        else if ( za(k) < d_zero .and. za(k+1) >= d_zero ) then
-          precip(i) = precip(i) + qa(k)*(d_zero-za(k))
-          exit sum_precip1
-        end if
-      end do sum_precip1
-      if(ist.eq.1) then
-        rql(i,:) = qn(:)
-        precip1(i) = precip(i)
-      else
-        rql2(i,:) = qn(:)
-        precip2(i) = precip(i)
-      end if
-    end do ist_loop
-   end do
-  end do j_loop
-
+      end do ist_loop
+    end do i_loop
   end subroutine nislfv_rain_plm6
   !
   !  Compute radiation effective radii of cloud water, ice, and snow for

@@ -1230,7 +1230,7 @@ module mod_micro_wsm5
     integer(ik4) :: i , k , n , m , kk , kb , kt
     real(rkx) :: tl , tl2 , qql , dql , qqd
     real(rkx) :: th , th2 , qqh , dqh
-    real(rkx) :: zsum , qsum , xdim , dip , d1 , d2 , con1
+    real(rkx) :: zsum , qsum , xdim , xdip , con1
     real(rkx) :: allold , decfl
     real(rkx) , dimension(kz) :: dz , ww , qq , wd , wa , was
     real(rkx) , dimension(kz) :: den , denfac , tk
@@ -1290,7 +1290,7 @@ module mod_micro_wsm5
         ! terminate of top of raingroup
         !
         do k = 2 , kz
-          if ( abs(ww(k)) < epsilon(d_one) ) wi(k) = ww(k-1)
+          if ( ww(k) == 0.0_rkx ) wi(k) = ww(k-1)
         end do
         !
         ! diffusivity of wi
@@ -1318,42 +1318,35 @@ module mod_micro_wsm5
           qr(k) = qa(k)/den(k)
         end do
         qa(kzp1) = d_zero
-        if ( n <= maxiter ) then
-          !
-          ! compute arrival terminal velocity, and estimate mean
-          ! terminal velocity then back to use mean terminal velocity
-          !
-          if ( id == 1 ) then
-            call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
-          else
-            call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
-          end if
-          if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
-          do k = 1 , kz
-            ! mean wind is average of departure and new arrival winds
-            ww(k) = d_half * ( wd(k)+wa(k) )
-          end do
-          was(:) = wa(:)
-          n = n + 1
+        if ( n > maxiter ) exit
+        !
+        ! compute arrival terminal velocity, and estimate mean
+        ! terminal velocity then back to use mean terminal velocity
+        !
+        if ( id == 1 ) then
+          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
         else
-          exit
+          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         end if
+        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+        do k = 1 , kz
+          ! mean wind is average of departure and new arrival winds
+          ww(k) = d_half * ( wd(k)+wa(k) )
+        end do
+        was(:) = wa(:)
+        n = n + 1
       end do
       !
       ! estimate values at arrival cell interface with monotone
       !
       do k = 2 , kz
-        d1 = qa(k+1)-qa(k)
-        d2 = qa(k)-qa(k-1)
-        if ( d1 < 1.0e-20_rkx ) d1 = d_zero
-        if ( d2 < 1.0e-20_rkx ) d2 = d_zero
-        dip = d1 / (dza(k+1)+dza(k))
-        xdim = d2 / (dza(k-1)+dza(k))
-        if ( dip*xdim <= d_zero ) then
+        xdip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
+        xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+        if ( xdip*xdim <= d_zero ) then
           qmi(k) = qa(k)
           qpi(k) = qa(k)
         else
-          qpi(k) = qa(k) + d_half*(dip+xdim)*dza(k)
+          qpi(k) = qa(k) + d_half*(xdip+xdim)*dza(k)
           qmi(k) = d_two*qa(k) - qpi(k)
           if( qpi(k) < d_zero .or. qmi(k) < d_zero ) then
             qpi(k) = qa(k)
