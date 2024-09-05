@@ -2297,6 +2297,8 @@ module mod_bdycod
         !
         if ( ma%has_bdytop ) then
           do n = iqfrst , nqx
+            if ( present_qc .and. n == iqc ) cycle
+            if ( present_qi .and. n == iqi ) cycle
 #ifdef STDPAR
             do concurrent ( j = jce1:jce2, k = 1:kz ) local(qxint,windavg)
 #else

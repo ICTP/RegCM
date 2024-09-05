@@ -87,6 +87,7 @@ module mod_micro_wsm5
   real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
   real(rkx) , parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
                                         exp(xb*(1.0_rkx-wattp/tzero))
+  real(rkx) , parameter :: lv1 = cpw-cpv
 
   real(rkx) , save :: qc0 , qck1 , pidnc , bvtr1 , bvtr2 , bvtr3 ,  &
           bvtr4 , g1pbr , g3pbr , g4pbr , g5pbro2 , pvtr , eacrr ,  &
@@ -423,7 +424,7 @@ module mod_micro_wsm5
     do k = 1 , kz
       do i = ims , ime
         cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = wlh(t(i,k))
+        xl(i,k) = wlhv-lv1*(t(i,k)-tzero)
       end do
     end do
     do k = 1 , kz
@@ -619,7 +620,7 @@ module mod_micro_wsm5
       do k = 1 , kz
         do i = ims , ime
           supcol = tzero-t(i,k)
-          xlf = max(wlhs-xl(i,k),d_zero)
+          xlf = wlhs-xl(i,k)
           if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > d_zero ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
@@ -912,7 +913,7 @@ module mod_micro_wsm5
               (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld, d_zero)
             qrs(i,k,2) = max(qrs(i,k,2) + &
               (psdep(i,k)+psaut(i,k)+psaci(i,k)+psacw(i,k))*dtcld, d_zero)
-            xlf = max(wlhs-xl(i,k),d_zero)
+            xlf = wlhs-xl(i,k)
             xlwork2 = -wlhs*(psdep(i,k)+pidep(i,k)+pigen(i,k)) - &
                        xl(i,k)*prevp(i,k)-xlf*psacw(i,k)
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
@@ -957,7 +958,7 @@ module mod_micro_wsm5
             qrs(i,k,1) = max(qrs(i,k,1) + &
               (praut(i,k)+pracw(i,k)+prevp(i,k)+psacw(i,k))*dtcld, d_zero)
             qrs(i,k,2) = max(qrs(i,k,2)+psevp(i,k)*dtcld, d_zero)
-            xlf = max(wlhs-xl(i,k),d_zero)
+            xlf = wlhs-xl(i,k)
             xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
           end if
@@ -1003,8 +1004,6 @@ module mod_micro_wsm5
     end do
 
   contains
-
-#include <wlh.inc>
 
     pure real(rkx) function cpmcal(q)
       implicit none

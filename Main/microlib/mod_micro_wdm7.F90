@@ -157,6 +157,7 @@ module mod_micro_wdm7
   real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
   real(rkx) , parameter :: ep0 = psat * exp(log(wattp/tzero)*xa) * &
                                         exp(xb*(1.0_rkx-wattp/tzero))
+  real(rkx) , parameter :: lv1 = cpw-cpv
 
   real(rkx) ,  save :: qc0 , qc1 , qck1 , pidnc , bvtr1 , bvtr2 ,       &
              bvtr3 , bvtr4 , bvtr5 ,                                    &
@@ -404,9 +405,11 @@ module mod_micro_wdm7
       kk = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          t(n,kk) = mo2mc%t(j,i,k)
-          p(n,kk) = mo2mc%phs(j,i,k)
-          qv(n,kk) = max(mo2mc%qxx(j,i,k,iqv),qvmin)
+          t(n,kk)     = mo2mc%t(j,i,k)
+          p(n,kk)     = mo2mc%phs(j,i,k)
+          delz(n,kk)  = mo2mc%delz(j,i,k)
+          den(n,kk)   = mo2mc%rho(j,i,k)
+          qv(n,kk)    = max(mo2mc%qxx(j,i,k,iqv),qvmin)
           qci(n,kk,1) = max(mo2mc%qxx(j,i,k,iqc),0.9_rkx*qcimin)
           qci(n,kk,2) = max(mo2mc%qxx(j,i,k,iqi),0.9_rkx*qcimin)
           qrs(n,kk,1) = max(mo2mc%qxx(j,i,k,iqr),d_zero)
@@ -416,8 +419,6 @@ module mod_micro_wdm7
           ncr(n,kk,1) = min(max(mo2mc%qxx(j,i,k,cqn),cnmin),cnmax)
           ncr(n,kk,2) = max(mo2mc%qxx(j,i,k,cqc),d_zero)
           ncr(n,kk,3) = max(mo2mc%qxx(j,i,k,cqr),d_zero)
-          delz(n,kk) = mo2mc%delz(j,i,k)
-          den(n,kk) = mo2mc%rho(j,i,k)
           n = n + 1
         end do
       end do
@@ -642,7 +643,7 @@ module mod_micro_wdm7
     do k = 1 , kz
       do i = ims , ime
         cpm(i,k) = cpmcal(qv(i,k))
-        xl(i,k) = wlh(t(i,k))
+        xl(i,k) = wlhv-lv1*(t(i,k)-tzero)
       end do
     end do
     do k = 1 , kz
@@ -1031,7 +1032,7 @@ module mod_micro_wdm7
       do k = 1 , kz
         do i = ims , ime
           supcol = tzero-t(i,k)
-          xlf = max(wlhs-xl(i,k),d_zero)
+          xlf = wlhs-xl(i,k)
           if ( supcol < d_zero ) xlf = wlhf
           if ( supcol < d_zero .and. qci(i,k,2) > qcimin ) then
             qci(i,k,1) = qci(i,k,1) + qci(i,k,2)
@@ -2026,7 +2027,7 @@ module mod_micro_wdm7
             ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k) - &
                              niacr(i,k)-nsacr(i,k)-ngacr(i,k) -  &
                              nhacr(i,k))*dtcld,0.0_rkx)
-            xlf = max(wlhs-xl(i,k),d_zero)
+            xlf = wlhs-xl(i,k)
             xlwork2 = -wlhs*(psdep(i,k)+pgdep(i,k)+phdep(i,k)+pidep(i,k) + &
                        pigen(i,k))-xl(i,k)*prevp(i,k)                    - &
                        xlf*(piacr(i,k)+paacw(i,k)+paacw(i,k)+phacw(i,k)  + &
@@ -2147,7 +2148,7 @@ module mod_micro_wdm7
                nracw(i,k)-naacw(i,k)-naacw(i,k)-nhacw(i,k))*dtcld,0.0_rkx)
             ncr(i,k,3) = max(ncr(i,k,3)+(nraut(i,k)-nrcol(i,k)+ &
                nseml(i,k)+ngeml(i,k)+nheml(i,k))*dtcld,0.0_rkx)
-            xlf = max(wlhs-xl(i,k),d_zero)
+            xlf = wlhs-xl(i,k)
             xlwork2 = -xl(i,k)*(prevp(i,k)+psevp(i,k)+pgevp(i,k) + &
               phevp(i,k))-xlf*(pseml(i,k)+pgeml(i,k)+pheml(i,k))
             t(i,k) = t(i,k)-xlwork2/cpm(i,k)*dtcld
@@ -2297,8 +2298,6 @@ module mod_micro_wdm7
     end do bigloop  ! big loops
 
   contains
-
-#include <wlh.inc>
 
     pure real(rkx) function cpmcal(q)
       implicit none

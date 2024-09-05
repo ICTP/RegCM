@@ -586,20 +586,21 @@ module mod_atm_interface
       call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
       call getmem3d(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
 #endif
+      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
-      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
+      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
+
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
-
+      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
-      call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
-      call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
       call getmem3d(atm%zetaf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:zetaf')
       call getmem3d(atm%dz,jce1,jce2,ice1,ice2,1,kz,'atmstate:dz')
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
       call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
       call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')

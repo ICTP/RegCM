@@ -398,11 +398,7 @@ module mod_tendency
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
                           0.53_rkx,sfs%psa,sfs%psb)
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-                          iqfrst,iqlst,1.0e-16_rkx)
-    if ( ipptls == 5 ) then
-      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-                            iqlst+1,nqx,0.0_rkx)
-    end if
+                          iqfrst,nqx,0.0_rkx)
 
     if ( idynamic == 1 ) then
       !
