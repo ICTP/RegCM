@@ -825,7 +825,7 @@ module mod_oasis_interface
       grd => ex_ulhf%grd
       call oasisxregcm_snd( &
            sum( lms%evpr(: , grd%j1:grd%j2 , grd%i1:grd%i2) &
-           *wlh(lms%prcp(: , grd%j1:grd%j2 , grd%i1:grd%i2)) , 1 ) * rdnnsg, &
+           *wlh(lms%t2m(: , grd%j1:grd%j2 , grd%i1:grd%i2)) , 1 ) * rdnnsg, &
            ex_ulhf, time, .false. .or. l_write_restart)
       nullify(grd)
     end if
