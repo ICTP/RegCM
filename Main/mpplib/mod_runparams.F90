@@ -40,8 +40,8 @@ module mod_runparams
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
-  integer(ik4) , public , parameter :: iqr = 3
-  integer(ik4) , public , parameter :: iqi = 4
+  integer(ik4) , public , parameter :: iqi = 3
+  integer(ik4) , public , parameter :: iqr = 4
   integer(ik4) , public , parameter :: iqs = 5
   integer(ik4) , public , parameter :: iqg = 6
   integer(ik4) , public , parameter :: iqh = 7

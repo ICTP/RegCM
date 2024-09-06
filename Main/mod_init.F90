@@ -258,18 +258,18 @@ module mod_init
         !
         if ( idynamic < 3 ) then
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-            atm1%qx(j,i,k,cqn) = 1.0e7_rkx
-            atm1%qx(j,i,k,cqc) = 1.0_rkx
-            atm1%qx(j,i,k,cqr) = 1.0e-3_rkx
-            atm2%qx(j,i,k,cqn) = 1.0e7_rkx
-            atm2%qx(j,i,k,cqc) = 1.0_rkx
-            atm2%qx(j,i,k,cqr) = 1.0e-3_rkx
+            atm1%qx(j,i,k,cqn) = 1.0e8_rkx
+            atm2%qx(j,i,k,cqn) = 1.0e8_rkx
+            atm1%qx(j,i,k,cqc) = 0.0_rkx
+            atm2%qx(j,i,k,cqc) = 0.0_rkx
+            atm1%qx(j,i,k,cqr) = 0.0_rkx
+            atm2%qx(j,i,k,cqr) = 0.0_rkx
           end do
         else
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-            mo_atm%qx(j,i,k,cqn) = 1.0e7_rkx
-            mo_atm%qx(j,i,k,cqc) = 1.0_rkx
-            mo_atm%qx(j,i,k,cqr) = 1.0e-3_rkx
+            mo_atm%qx(j,i,k,cqn) = 1.0e8_rkx
+            mo_atm%qx(j,i,k,cqc) = 0.0_rkx
+            mo_atm%qx(j,i,k,cqr) = 0.0_rkx
           end do
         end if
       end if

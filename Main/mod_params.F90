@@ -1584,16 +1584,16 @@ module mod_params
     iqfrst = iqc
     if ( ipptls == 2 .or. ipptls == 3 ) then
       nqx = 5
-      iqlst  = iqs
+      iqlst = iqs
     else if ( ipptls == 4 ) then
       nqx = 7
-      iqlst  = iqh
+      iqlst = iqh
     else if ( ipptls == 5 ) then
       nqx = 10
       iqlst = iqh
     else
       nqx = 2
-      iqlst  = iqc
+      iqlst = iqc
     end if
 
     if ( irrtm == 1 ) then

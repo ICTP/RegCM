@@ -361,6 +361,39 @@ module mod_output
             end do
           end if
         end if
+        if ( associated(atm_nn_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nn_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqn)
+            end do
+          else
+            do k = 1 , kz
+              atm_nn_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqn)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_nc_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqc)
+            end do
+          else
+            do k = 1 , kz
+              atm_nc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqc)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_nr_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqr)
+            end do
+          else
+            do k = 1 , kz
+              atm_nr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqr)/ps_out
+            end do
+          end if
+        end if
         if ( associated(atm_rh_out) ) then
           if ( idynamic == 3 ) then
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )

@@ -84,6 +84,10 @@ module mod_bdycod
   real(rk8) :: jday
   integer(ik4) :: som_month
 
+  real(rkx) , parameter , dimension(10) :: qxbval = &
+    [ 1.0e-8_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, 0.0_rkx, &
+      0.0_rkx, 0.0_rkx, 1.0e8_rkx, 0.0_rkx, 0.0_rkx ]
+
   interface timeint
     module procedure timeint2 , timeint3
   end interface timeint
@@ -2230,7 +2234,7 @@ module mod_bdycod
                 qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
                 windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
                 if ( windavg > d_zero ) then
-                  mo_atm%qx(jce1,i,k,n) = d_zero
+                  mo_atm%qx(jce1,i,k,n) = qxbval(n)
                 else
                   mo_atm%qx(jce1,i,k,n) = qxint
                 end if
@@ -2256,7 +2260,7 @@ module mod_bdycod
                 qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
                 windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
                 if ( windavg < d_zero ) then
-                  mo_atm%qx(jce2,i,k,n) = d_zero
+                  mo_atm%qx(jce2,i,k,n) = qxbval(n)
                 else
                   mo_atm%qx(jce2,i,k,n) = qxint
                 end if
@@ -2282,7 +2286,7 @@ module mod_bdycod
                 qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
                 windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
                 if ( windavg > d_zero ) then
-                  mo_atm%qx(j,ice1,k,n) = d_zero
+                  mo_atm%qx(j,ice1,k,n) = qxbval(n)
                 else
                   mo_atm%qx(j,ice1,k,n) = qxint
                 end if
@@ -2308,7 +2312,7 @@ module mod_bdycod
                 qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
                 windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
                 if ( windavg < d_zero ) then
-                  mo_atm%qx(j,ice2,k,n) = d_zero
+                  mo_atm%qx(j,ice2,k,n) = qxbval(n)
                 else
                   mo_atm%qx(j,ice2,k,n) = qxint
                 end if
@@ -2420,7 +2424,7 @@ module mod_bdycod
                 qxint = atm1%qx(jci1,i,k,n)
                 windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
                 if ( windavg > d_zero ) then
-                  atm1%qx(jce1,i,k,n) = d_zero
+                  atm1%qx(jce1,i,k,n) = qxbval(n)
                 else
                   atm1%qx(jce1,i,k,n) = qxint
                 end if
@@ -2446,7 +2450,7 @@ module mod_bdycod
                 qxint = atm1%qx(jci2,i,k,n)
                 windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
                 if ( windavg < d_zero ) then
-                  atm1%qx(jce2,i,k,n) = d_zero
+                  atm1%qx(jce2,i,k,n) = qxbval(n)
                 else
                   atm1%qx(jce2,i,k,n) = qxint
                 end if
@@ -2472,7 +2476,7 @@ module mod_bdycod
                 qxint = atm1%qx(j,ici1,k,n)
                 windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
                 if ( windavg > d_zero ) then
-                  atm1%qx(j,ice1,k,n) = d_zero
+                  atm1%qx(j,ice1,k,n) = qxbval(n)
                 else
                   atm1%qx(j,ice1,k,n) = qxint
                 end if
@@ -2498,7 +2502,7 @@ module mod_bdycod
                 qxint = atm1%qx(j,ici2,k,n)
                 windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
                 if ( windavg < d_zero ) then
-                  atm1%qx(j,ice2,k,n) = d_zero
+                  atm1%qx(j,ice2,k,n) = qxbval(n)
                 else
                   atm1%qx(j,ice2,k,n) = qxint
                 end if

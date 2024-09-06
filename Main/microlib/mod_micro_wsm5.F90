@@ -442,11 +442,12 @@ module mod_micro_wsm5
     !
     ! compute the minor time steps.
     !
-    loops = max(nint(delt/dtcldcr),1)
-    dtcld = delt/real(loops,rkx)
     if ( delt <= dtcldcr ) then
       dtcld = delt
       loops = 1
+    else
+      loops = max(nint(delt/dtcldcr),1)
+      dtcld = delt/real(loops,rkx)
     end if
     rdtcld = d_one/dtcld
 
