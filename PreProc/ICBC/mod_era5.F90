@@ -64,6 +64,7 @@ module mod_era5
   real(rkx) :: pss , pst
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
+  real(rkx) , pointer , dimension(:,:) :: rwork
 
   integer(ik4) , dimension(5) :: inet5
   integer(ik4) , dimension(5) :: ivar5
@@ -155,6 +156,7 @@ module mod_era5
     call getmem3d(b2,1,ilon,1,jlat,1,3,'mod_era5:b2')
     call getmem2d(prvar,1,ilon,1,jlat,'mod_era5:prvar')
     call getmem2d(iwork,1,ilon,1,jlat,'mod_era5:iwork')
+    call getmem2d(rwork,1,ilon,1,jlat,'mod_era5:rwork')
   end subroutine init_era5h
 
   subroutine init_era5
@@ -422,6 +424,7 @@ module mod_era5
     integer(ik4) :: year , month , day , hour
     integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
+    logical , save :: has_offset = .false.
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -465,41 +468,50 @@ module mod_era5
           'Error find var '//varname(kkrec))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                  'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
-                   'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att add_offset')
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                         xscl(kkrec) , xoff(kkrec)
+        if ( istatus == nf90_noerr ) then
+          istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                     'add_offset',xoff(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find att add_offset')
+          has_offset = .true.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                           xscl(kkrec) , xoff(kkrec)
+        else
+          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+        end if
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1),'time',timid)
-          if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1),'date',timid)
+          if ( dattyp == 'ERAXX' ) then
+            call getmem1d(itimes,1,1,'mod_era5:itimes')
+            itimes(1) = year*1000000 + month*10000+100
+            call setcal(itimes(1),'noleap')
+          else
+            istatus = nf90_inq_dimid(inet5(1),'time',timid)
             call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find var time/date')
+                            'Error find dim time')
+            istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error inquire time')
+            istatus = nf90_inq_varid(inet5(1),'time',timid)
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_varid(inet5(1),'date',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time/date')
+            end if
+            istatus = nf90_get_att(inet5(1),timid,'units',cunit)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time units')
+            istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time units')
+            call getmem1d(itimes,1,timlen,'mod_era5:itimes')
+            call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
+            istatus = nf90_get_var(inet5(1),timid,xtimes)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time')
+            do it = 1 , timlen
+              itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
+            end do
           end if
-          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          call getmem1d(itimes,1,timlen,'mod_era5:itimes')
-          call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
-          istatus = nf90_get_var(inet5(1),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read time')
-          do it = 1 , timlen
-            itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
-          end do
         end if
       end do
     end if
@@ -515,25 +527,42 @@ module mod_era5
       ivar = ivar5(kkrec)
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
-      call getwork(kkrec)
-      if ( kkrec == 1 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+      if ( has_offset ) then
+        call igetwork(kkrec)
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+            end do
           end do
-        end do
+        else
+          do j = 1 , jlat
+            do i = 1 , ilon
+              b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+            end do
+          end do
+        end if
       else
-        do j = 1 , jlat
-          do i = 1 , ilon
-            b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+        call rgetwork(kkrec)
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              prvar(i,j) = rwork(i,j)
+            end do
           end do
-        end do
+        else
+          do j = 1 , jlat
+            do i = 1 , ilon
+              b2(i,j,kkrec-1) = rwork(i,j)
+            end do
+          end do
+        end if
       end if
     end do
 
     contains
 
-      subroutine getwork(irec)
+      subroutine igetwork(irec)
         implicit none
         integer(ik4) , intent(in) :: irec
         integer(ik4) :: itile , iti , itf
@@ -550,7 +579,26 @@ module mod_era5
                           'Error read var '//varname(irec))
           iti = iti + gdomain%ni(itile)
         end do
-      end subroutine getwork
+      end subroutine igetwork
+
+      subroutine rgetwork(irec)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet,ivar,rwork(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine rgetwork
 
   end subroutine era5hour
 
