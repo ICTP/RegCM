@@ -87,9 +87,15 @@ module mod_era5
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
-    write(inname,'(a,i0.4,a,i0.2,a)') 'pr_', year, '_', month,'.nc'
-    pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+    if ( dattyp == 'ERAXX' ) then
+      write(inname,'(a,i0.2,a)') 'pr_XXXX_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep// &
          'hourly'//pthsep//inname
+    else
+      write(inname,'(a,i0.4,a,i0.2,a)') 'pr_', year, '_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+         'hourly'//pthsep//inname
+    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file '//trim(pathaddname))
@@ -439,10 +445,17 @@ module mod_era5
         end do
       end if
       do kkrec = 1 , 4
-        write(inname,'(a,a,i0.4,a,i0.2,a)') &
-          trim(fname(kkrec)), '_', year, '_', month,'.nc'
-        pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
-            pthsep//'hourly'//pthsep//inname
+        if ( dattyp == 'ERAXX' ) then
+          write(inname,'(a,a,i0.2,a)') &
+            trim(fname(kkrec)), '_XXXX_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep// &
+              pthsep//'hourly'//pthsep//inname
+        else
+          write(inname,'(a,a,i0.4,a,i0.2,a)') &
+            trim(fname(kkrec)), '_', year, '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+              pthsep//'hourly'//pthsep//inname
+        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
