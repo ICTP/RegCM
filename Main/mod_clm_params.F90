@@ -238,6 +238,8 @@ module mod_clm_params
         dtabem = dtabem * 3600.0_rkx
       end if
 
+      dt = dtsrf
+
       if ( dtcum < dt ) dtcum = dt
       if ( dtsrf < dt ) dtsrf = dt
       if ( dtche < dt ) dtche = dt
