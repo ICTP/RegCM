@@ -2403,7 +2403,7 @@ module mod_clm_histfile
           if ( myid == italk ) then
             write(stdout,*) 'Creating history file ',trim(locfnh(t))
           end if
-          call htape_create (t)
+          call htape_create(t)
 
           ! Define time-constant field variables
           call htape_timeconst(t, mode='define')

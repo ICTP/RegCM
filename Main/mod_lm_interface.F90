@@ -891,7 +891,7 @@ module mod_lm_interface
             do j = jci1 , jci2
 #endif
               if ( lm%ldmsk(j,i) == 0 ) then
-                srf_evpot_out(j,i) = srf_evpot_out(j,i) + lm%qfx(j,i)
+                srf_evpot_out(j,i) = 0.0_rkx
               else
                 tas = sum(lms%t2m(:,j,i))*rdnnsg
                 ps = sum(lms%sfcp(:,j,i))*rdnnsg

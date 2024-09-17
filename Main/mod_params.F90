@@ -1141,7 +1141,6 @@ module mod_params
         if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
         radfrq = 1.0_rkx
         srffrq = 1.0_rkx
-        lsync = .false. ! Faster this way
         idiag = 0
         icosp = 0
         ! Variable selection in mod_ncout where list is

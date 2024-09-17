@@ -32,13 +32,14 @@
     evpt = evpt / 86400.0_rkx
   end function evpt
 
-  ! ASCE-EWRI for Reference Evapotranspiration for grass
-  pure real(rkx) function evpt_fao(p,t,u,e,es,m,sw,lw)
+  ! ASCE-EWRI for Reference Evapotranspiration
+  ! https://ascelibrary.org/doi/book/10.1061/9780784408056
+  pure real(rkx) function evpt_fao(p,t2,u10,e,es,m,sw,lw)
 !$acc routine seq
     implicit none
     real(rkx) , intent(in) :: p   ! Pressure in Pa
-    real(rkx) , intent(in) :: t   ! 2m Temperature in K
-    real(rkx) , intent(in) :: u   ! 10 m Wind speed in m/s
+    real(rkx) , intent(in) :: t2  ! 2m Temperature in K
+    real(rkx) , intent(in) :: u10 ! 10m Wind speed in m/s
     real(rkx) , intent(in) :: e   ! Vapor pressure in Pa
     real(rkx) , intent(in) :: es  ! Saturation vapor pressure in Pa
     real(rkx) , intent(in) :: m   ! Saturation vapor pressure derivative Pa K-1
@@ -46,30 +47,16 @@
     real(rkx) , intent(in) :: lw  ! Surface net Longwave
 
     real(rk8) :: pkpa , rn , u2 , delta , xgamma , ut , dt , pt , tt
-    real(rk8) :: ekpa , eskpa , de , etr , etw
+    real(rk8) :: de , etr , etw
 
-    rn = (sw-lw) * 1.e-6_rk8           ! Mj s-1
+    rn = (sw-lw) * 0.00360_rk8         ! MJ m-2 h-1
     pkpa = p * 0.001_rk8               ! kPa
-    ekpa = e * 0.001_rk8               ! kPa
-    eskpa = es * 0.001_rk8             ! kPa
-    de = eskpa - ekpa                  ! kPa
-    u2 = max(u * 0.7342_rk8,0.5_rk8)   ! 4.87/ln(67.8*h-5.42) m s-1
-    rn = 0.408_rk8 * rn                ! mm s-1
+    de = (es - e) * 0.001_rk8          ! Saturation deficit kPa
     delta = m * 0.001_rk8              ! kPa K-1
     xgamma = 0.000665_rk8 * pkpa       ! Psychrometric constant kPa K-1
-    if ( rn > 0.0_rkx ) then
-      ut = (1.0_rk8 + 0.24_rk8 * u2)   ! Modificator for grass
-      rn = rn * 0.9_rk8
-    else
-      ut = (1.0_rk8 + 0.96_rk8 * u2)   ! Modificator for grass
-      rn = rn * 0.5_rk8
-    end if
-    dt = delta / (delta + xgamma * ut)
-    pt = xgamma / (delta + xgamma * ut)
-    tt = 0.010417_rk8 * ( u2/t )       ! 900/86400
-    etw = pt * tt * de
-    etr = dt * rn
-    evpt_fao = (etw+etr)               ! mm s-1
+    u2 = max(u10 * 0.7342_rk8,0.1_rk8) ! 4.87/ln(67.8*h-5.42) m s-1
+    evpt_fao = ((0.408_rk8*delta*rn+xgamma*(37.0_rk8/t2)*u2*de) / &
+                (delta + xgamma*(1.0_rkx+0.34_rk8*u2)))/3600.0_rkx
   end function evpt_fao
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

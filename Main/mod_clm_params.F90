@@ -102,9 +102,12 @@ module mod_clm_params
     dtche = 900.0_rkx ! time interval at which bats is called (secs)
     dirout = './output'
     sfbcread = 1
+    prestr = ''
+    ifcordex = .false.
     lsync = .true.
     do_parallel_netcdf_in = .false.
-    scenario = 'RCP4.5'
+    do_parallel_netcdf_out = .false.
+    scenario = 'SSP370'
     ghg_year_const = 1950
     ifixsolar = 0
     isolconst = 1
@@ -122,16 +125,8 @@ module mod_clm_params
     solar_tweak = 0.0_rkx
     gas_tweak_factors(:) = 1.0_rkx
 
-#ifdef CLM
-    if ( myid == italk ) then
-      if (nsg /= 1 ) then
-        write (stderr,*) 'Running SUBGRID with CLM: not implemented'
-        write (stderr,*) 'Please set nsg to 1 in regcm.in'
-        call fatal(__FILE__,__LINE__, &
-                   'CLM & SUBGRID TOGETHER')
-      end if
-    end if
-#endif
+    ntr = 0
+    nbin = 0
 
     if ( myid == iocpu ) then
       open(newunit=ipunit, file=namelistfile, status='old', &
@@ -297,6 +292,7 @@ module mod_clm_params
     call bcast(globidate1)
     call bcast(globidate2)
 
+    call bcast(ds)
     call bcast(dt)
     call bcast(dtrad)
     call bcast(dtsrf)
@@ -317,6 +313,8 @@ module mod_clm_params
       call bcast(solar_tweak)
       call bcast(gas_tweak_factors)
     end if
+
+    do_parallel_save = (do_parallel_netcdf_in .and. do_parallel_netcdf_out)
 
     rcmtimer => rcm_timer(idate0,idate1,idate2,dtsrf)
 
@@ -355,8 +353,6 @@ module mod_clm_params
       syncro_dbg => rcm_syncro(rcmtimer,secph*dbgfrq)
     end if
 
-    rnsrf_for_day = syncro_srf/alarm_day
-
     dtsq = dt*dt
     dtcb = dt*dt*dt
 
@@ -385,7 +381,6 @@ module mod_clm_params
                           mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
                           mddom%rmoist,mddom%rts,mddom%dhlake,base_state_ts0)
-    call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
 

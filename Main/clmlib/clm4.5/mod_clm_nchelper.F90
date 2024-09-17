@@ -93,7 +93,7 @@ module mod_clm_nchelper
   public :: clm_readvar
   public :: clm_writevar
 
-  integer(ik4) :: incstat
+  integer(ik4) :: incstat = nf90_noerr
 
   integer(ik4) , dimension(clm_maxdims) :: usedims
   integer(ik4) , dimension(4) :: istart

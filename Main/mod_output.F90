@@ -1022,7 +1022,7 @@ module mod_output
             if ( .not. associated(temp500) ) then
               call getmem2d(temp500,jci1,jci2,ici1,ici2,'output:temp500')
             end if
-            call vertint(mo_atm%t,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
+            call vertint(mo_atm%tvirt,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
           else
