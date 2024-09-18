@@ -212,7 +212,7 @@ module mod_rad_colmod3
     integer(ik4) , intent(in) :: iyear , imonth
     logical , intent(in) :: lout , labsem
 
-    integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
+    integer(ik4) :: n , m , i , j , k , k2 , itr
     integer(ik4) :: ni , nj
     real(rkx) :: nc , aerc , lwc , kparam
     real(rkx) :: kabs , kabsi , kabsl , cldemis , arg
@@ -570,7 +570,7 @@ module mod_rad_colmod3
           do i = ici1 , ici2
             do j = jci1 , jci2
               n = (j-jci1)+(i-ici1)*nj+1
-              aermmr(k,n,itr) = max(m2r%chiatms(j,i,k,itr),0.0_rkx)
+              aermmr(n,k,itr) = max(m2r%chiatms(j,i,k,itr),0.0_rkx)
             end do
           end do
         end do
