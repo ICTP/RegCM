@@ -83,7 +83,7 @@ module mod_ocn_zeng
             tstar , um , visa , zot , wc , zeta , zoq , tha ,    &
             cpm , rlv , rs , rd , td , tdelta , delta , q ,      &
             ustarw , fd , l , phidl , aa , bb , lamb , dtstend , &
-            dts , fs , tskin_new
+            dts , fs , tskin_new , fua
 !     real(rkx) :: lwds , lwus
       integer(ik4) :: nconv
 
@@ -132,11 +132,20 @@ module mod_ocn_zeng
         th = tsurf*(p00/sfps(i))**rovcp
         tha = tatm(i)*(p00/patm(i))**rovcp
         qs = pfwsat(tsurf,sfps(i))*0.998_rkx
-        ! in kg/kg
-        dqh = q995 - qs
         ! virtual potential T
         thv = th*(d_one+ep1*qs)
+        ! The deltas between surface and atmosphere
+        dqh = q995 - qs
         dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
+        if ( iocnzoq == 4 ) then
+          ! BCC_AGCM2.0.1 influence of the wind speed on waves and sea spray
+          ! in the computation of surface fluxes
+          if ( uv995 > 5.0_rkx ) then
+            fua = exp((5.0_rkx-uv995)/40.0_rkx)
+            dthv = dthv * fua
+            dqh = dqh * fua
+          end if
+        end if
         ! density
         xdens = sfps(i)/(rgas*tsurf*(d_one+ep1*qs))
         ! J/kg
@@ -556,6 +565,9 @@ module mod_ocn_zeng
         end if
         zot = rt*visa/ustar
         zoq = rq*visa/ustar
+      else if ( izoq == 4 ) then
+        zoq = min(5.0e-5_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
+        zot = zoq
       else
         xtq = 2.67_rkx*(re**0.25_rkx) - 2.57_rkx
         zoq = zo/exp(xtq)

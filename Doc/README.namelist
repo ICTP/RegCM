@@ -372,6 +372,8 @@
                         !   1 => 2.67*(re**d_rfour) - 2.57
                         !   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
                         !   3 => COARE formulation as in bulk flux above
+                        !   4 => Modifications presented in Wang, Gao et al
+                        !        https://doi.org/10.1080/16742834.2020.1697615
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature
