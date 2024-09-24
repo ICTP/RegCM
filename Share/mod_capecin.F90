@@ -418,6 +418,8 @@ module mod_capecin
       real(rkx) , parameter :: elivw = 2.72e6_rkx
       real(rkx) , parameter :: elocp = elivw/cpd
       real(rkx) , parameter :: oneps = 1.0_rkx-ep2
+      real(rkx) , parameter :: pt = 1.0_rkx
+      real(rkx) , parameter :: thl = 210.0_rkx
 
       real(rkx) :: tvp , esatp , qsatp
       real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
@@ -591,8 +593,6 @@ module mod_capecin
         real(rkx) , parameter :: a4 = 35.86_rkx
         real(rkx) , parameter :: eliwv = 2.683e+6_rkx
         real(rkx) , parameter :: eps = 1.E-9_rkx
-        real(rkx) , parameter :: pt = 1.0_rkx
-        real(rkx) , parameter :: thl = 210.0_rkx
         real(rkx) , dimension(jtb) :: qsold , pold, qsnew , pnew , tnew
         real(rkx) , dimension(jtb) :: told , theold , thenew
         real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
