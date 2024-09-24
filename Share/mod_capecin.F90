@@ -51,16 +51,12 @@ module mod_capecin
 
   integer(ik4) , parameter :: itb = 076
   integer(ik4) , parameter :: jtb = 134
-  integer(ik4) , parameter :: itbq = 152
-  integer(ik4) , parameter :: jtbq = 440
 
   real(rkx) :: pl , thl , rdq , rdth , rdp , rdthe , plq , rdpq , rdtheq
   real(rkx) , dimension(jtb) :: qs0 , sqs
   real(rkx) , dimension(itb) :: the0 , sthe
-  real(rkx) , dimension(itbq) :: the0q , stheq
   real(rkx) , dimension(itb,jtb) :: ptbl
   real(rkx) , dimension(jtb,itb) :: ttbl
-  real(rkx) , dimension(jtbq,itbq) :: ttblq
 
   contains
   !
