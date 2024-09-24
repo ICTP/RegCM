@@ -51,16 +51,12 @@ module mod_capecin
 
   integer(ik4) , parameter :: itb = 076
   integer(ik4) , parameter :: jtb = 134
-  integer(ik4) , parameter :: itbq = 152
-  integer(ik4) , parameter :: jtbq = 440
 
   real(rkx) :: pl , thl , rdq , rdth , rdp , rdthe , plq , rdpq , rdtheq
   real(rkx) , dimension(jtb) :: qs0 , sqs
   real(rkx) , dimension(itb) :: the0 , sthe
-  real(rkx) , dimension(itbq) :: the0q , stheq
   real(rkx) , dimension(itb,jtb) :: ptbl
   real(rkx) , dimension(jtb,itb) :: ttbl
-  real(rkx) , dimension(jtbq,itbq) :: ttblq
 
   contains
   !
@@ -422,6 +418,8 @@ module mod_capecin
       real(rkx) , parameter :: elivw = 2.72e6_rkx
       real(rkx) , parameter :: elocp = elivw/cpd
       real(rkx) , parameter :: oneps = 1.0_rkx-ep2
+      real(rkx) , parameter :: pt = 1.0_rkx
+      real(rkx) , parameter :: thl = 210.0_rkx
 
       real(rkx) :: tvp , esatp , qsatp
       real(rkx) :: tth , tp , apesp , partmp , thesp , tpsp
@@ -429,7 +427,7 @@ module mod_capecin
       real(rkx) :: pp00 , pp10 , pp01 , pp11 , t00 , t10 , t01 , t11
       real(rkx) :: bthe00 , sthe00 , bthe10 , sthe10 , bth , sth
       real(rkx) :: tqq , qq , qbt , tthbt , tbt , apebt , ppq , pp
-      integer(ik4) :: i , j , lbtm , ittbk , iq , it , iptbk
+      integer(ik4) :: i , j , ittbk , iq , it , iptbk
       integer(ik4) :: ith , ip , iqtb
       integer(ik4) :: ittb , iptb , ithtb
       !
@@ -446,8 +444,17 @@ module mod_capecin
         slindx(i,j) = d_zero
       end do
       ! Find Exner at lowest level-------------------------------
+#ifdef STDPAR
+      do concurrent ( i = ista:iend, j = jsta:jend ) &
+        local(tbt,qbt,apebt,tthbt,tth,tqq,ittb,ittbk,bqs00,sqs00,&
+        bqs10,sqs10,bq,sq,tq,ppq,iqtb,iq,it,pp00,pp10,pp01,pp11, &
+        tpsp,apesp,thesp,tp,qq,iptb,iptbk,bthe00,sthe00,bthe10,  &
+        sthe10,bth,sth,pp,ithtb,ith,ip,t00,t10,t01,t11,partmp,   &
+        esatp,qsatp,tvp)
+#else
       do j = jsta , jend
         do i = ista , iend
+#endif
           tbt = t(i,j,kk)
           ! Specific Humidity expected.
           qbt = q(i,j,kk)/(1.0_rkx+q(i,j,kk))
@@ -562,7 +569,9 @@ module mod_capecin
           qsatp = ep2*esatp/(p500-esatp*oneps)
           tvp = partmp*(1.0_rkx+ep1*qsatp)
           slindx(i,j) = t500(i,j)-tvp
+#ifndef STDPAR
         end do
+#endif
       end do
 
       contains
@@ -584,14 +593,12 @@ module mod_capecin
         real(rkx) , parameter :: a4 = 35.86_rkx
         real(rkx) , parameter :: eliwv = 2.683e+6_rkx
         real(rkx) , parameter :: eps = 1.E-9_rkx
-        real(rkx) , parameter :: pt = 1.0_rkx
-        real(rkx) , parameter :: thl = 210.0_rkx
         real(rkx) , dimension(jtb) :: qsold , pold, qsnew , pnew , tnew
         real(rkx) , dimension(jtb) :: told , theold , thenew
         real(rkx) , dimension(jtb) :: app , apt , aqp , aqt , y2p , y2t
         real(rkx) :: dth , dp , th , p , ape , denom , qs0k , sqsk , dqs
-        real(rkx) :: qs , theok , sthek , the0k , dthe
-        integer(ik4) :: lthm , kpm , kthm1 , kpm1 , kp , kmm , kthm , kth
+        real(rkx) :: qs , sthek , the0k , dthe
+        integer(ik4) :: kpm , kthm1 , kpm1 , kp , kthm , kth
 
         ! Coarse look-up table for saturation point----------------
         kthm  = jtb
