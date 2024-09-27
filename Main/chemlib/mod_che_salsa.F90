@@ -135,10 +135,9 @@ module mod_che_salsa
           aero(1:kproma,1:klev,1:nbins)%volc(vc) = ini_aero(1:kproma,1:klev,1:nbins) &
                                                       * pi6*aero(1:kproma,1:klev,1:nbins)%dmid**3
 ! 
-          aero_old(1:kproma,1:klev,1:nbins)%volc(vc) = aero(1:kproma,1:klev,1:nbins)%volc(vc)
+!          aero_old(1:kproma,1:klev,1:nbins)%volc(vc) = aero(1:kproma,1:klev,1:nbins)%volc(vc)
 ! 
-! need to initialize also tracers : to be refined with CHBC
-         
+! now initialize  also tracers : to be refined with CHBC         
           str = offset + (nc-1)*nbins+1
           end = offset + nc*nbins
           do k = 1 , kz
@@ -155,7 +154,6 @@ module mod_che_salsa
      
  !intialise number 
        aero(1:kproma,1:klev,1:nbins)%numc  = ini_aero(1:kproma,1:klev,1:nbins)
-       aero_old(1:kproma,1:klev,1:nbins)%numc = aero_old(1:kproma,1:klev,1:nbins)%numc
        str = offset + (nsalsp)*nbins+1
        end = offset + (nsalsp+1)*nbins
        do k = 1 , kz
@@ -175,8 +173,14 @@ module mod_che_salsa
 
     salsa_firstcall = .true.
 
-
-
+    !FAB TEST 
+     do k = 1 , kz
+      do i = ici1 , ici2
+       do j = jci1 , jci2
+               if(.not.( clndcat(j,i) == 6 .and. k > (kz-5)) )  chemt(j,i,k,:) = d_zero
+       end do
+      end do
+     end do
   end subroutine init_salsa  
 
   ! fxm: when dpmid is used for calculating coagulation coefficients
@@ -935,8 +939,8 @@ module mod_che_salsa
       do j = jci1 , jci2
         in_t(n,k) = ctb3d(j,i,k)
         in_p(n,k) = cpb3d(j,i,k)
-        in_rv(n,k)= cqxb3d(j,i,k,iqv)
-        in_rs(n,k) =  cqsb3d(j,i,k) 
+        in_rv(n,k)= cqxb3d(j,i,k,iqv) * crhob3d(j,i,k)
+        in_rs(n,k) =  cqsb3d(j,i,k)  * crhob3d(j,i,k)
         in_w(n,k) = cwpx3d(j,i,k) 
 ! FAB délicat !!
 !
@@ -986,7 +990,7 @@ module mod_che_salsa
 ! aero%volc(vc) should be in m3/m3 , convertir les traceurs de kg/kg à m3/m3
 !ini_aero en #/m3 
         
-     if (pruntime==1) call equilibration(kproma,kbdim,klev, ini_rh,in_t,aero,.TRUE.)
+     
 
 
 ! Set aerosol bins volume concentration in volume mixing ratio.
@@ -999,7 +1003,7 @@ module mod_che_salsa
 ! for stacking in the tracer table chib3d.    
      offset = 0
 
-     if (pruntime >1 ) then 
+!     if (pruntime >1 ) then 
 
 
        if (IsUsed(prtcl,'SO4')) THEN
@@ -1013,34 +1017,39 @@ module mod_che_salsa
             call trac2salsa('mass',vc,nc,offset,rhono)
        end if
        if (IsUsed(prtcl,'NH4')) THEN
-            nc = GetIndex(prtcl,'NO3')
+            nc = GetIndex(prtcl,'NH4')
             vc = 7 ! cf what I was saying before
             call trac2salsa('mass',vc,nc,offset,rhonh)
        end if
+
+       if ( 1== 1) then 
        ! H2O is always is the mixture
        nc = GetIndex(prtcl,'H2O')
        vc = 8 ! cf what I was saying before
        call trac2salsa('mass',vc,nc,offset,rhoh2o)
+       end if 
+
 
       ! set number distribution  
        nc =nsalsp +1
        vc = 0 ! not used 
        call trac2salsa('numb',vc,nc,offset,d_zero)
 
-     end if ! pruntime  
+!     end if ! pruntime  
 
 
      call set_salsa_runtime(pruntime) 
-
+     if (pruntime==1) call equilibration(kproma,kbdim,klev, ini_rh,in_t,aero,.TRUE.)
 !
-     if(1==0) then
+     if(1==1) then
+! RQ 
      call salsa(kproma, kbdim,  klev,   krow,                  &
                         in_p,   in_rv,  in_rs,  in_t, dt,   &
                         zgso4,  zgocnv, zgocsv, zghno3,        &
                         zgnh3,  aero,   cloud,  precp,         &
                         actd,   in_w,   dbg,   prtcl          )
      end if
-! ladies and gentlemen it is time to calculate the tendencies ..
+! time to calculate the tendencies ..
 
        if (IsUsed(prtcl,'SO4')) THEN
             nc = GetIndex(prtcl,'SO4')
@@ -1053,19 +1062,42 @@ module mod_che_salsa
             call salsa2tractend('mass',vc,nc,offset,rhono)
        end if
        if (IsUsed(prtcl,'NH4')) THEN
-            nc = GetIndex(prtcl,'NO3')
+            nc = GetIndex(prtcl,'NH4')
             vc = 7 ! cf what I was saying before
             call salsa2tractend('mass',vc,nc,offset,rhonh)
        end if
+       if (1==1) then 
        ! H2O is always is the mixture
        nc = GetIndex(prtcl,'H2O')
        vc = 8 ! cf what I was saying before
        call salsa2tractend('mass',vc,nc,offset,rhoh2o)
+       end if 
 
       ! set number distribution   
        nc = nsalsp + 1
        vc = 0
        call salsa2tractend('numb',vc,nc,offset,d_zero)
+
+
+!! feedback from salsa to model 
+! update gas phase tendency 
+
+! FAB :I THINK  IF AEROSOL ONLY I tHINK YOU DO NOT COUPLE AEROSOL WATER TO
+! VAPOR . YOU DO NOT tRANSPORT  WATER TRACER NEITHER. AEROSOL WATER CONTENT MUST BE
+! RECALCULATED EACH TIME FRom EQUILIBRIUMWITH RH ...
+ 
+! Tendency of water vapour mixing ratio is obtained from the change in RH
+! during SALSA run.
+! Assumes no temperature change during SALSA run.
+     ! rt(kk,ii,jj) = rt(kk,ii,jj) + &
+     !             ( in_rv(1,1) - rv(kk,ii,jj) )/tstep
+  
+
+
+
+
+
+
 
 end subroutine run_salsa
 
