@@ -195,8 +195,11 @@ module mod_era5
     istatus = nf90_inq_dimid(ncid,'levelist',idimid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(ncid,'level',idimid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist dimension in file '//trim(pathaddname))
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(ncid,'pressure_level',idimid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+              'Missing level/levelist dimension in file '//trim(pathaddname))
+      end if
     end if
     istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -236,8 +239,11 @@ module mod_era5
     istatus = nf90_inq_varid(ncid,'levelist',ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncid,'level',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(ncid,'pressure_level',idimid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
             'Missing level/levelist variable in file '//trim(pathaddname))
+      end if
     end if
     istatus = nf90_get_var(ncid,ivarid,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -486,16 +492,22 @@ module mod_era5
             call setcal(itimes(1),'noleap')
           else
             istatus = nf90_inq_dimid(inet5(1),'time',timid)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error find dim time')
+            if ( istatus /= nf90_nerr ) then
+              istatus = nf90_inq_dimid(inet5(1),'valid_time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find dim time')
+            end if
             istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error inquire time')
             istatus = nf90_inq_varid(inet5(1),'time',timid)
             if ( istatus /= nf90_noerr ) then
-              istatus = nf90_inq_varid(inet5(1),'date',timid)
-              call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find var time/date')
+              istatus = nf90_inq_varid(inet5(1),'valid_time',timid)
+              if ( istatus /= nf90_noerr ) then
+                istatus = nf90_inq_varid(inet5(1),'date',timid)
+                call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error find var time/date')
+              end if
             end if
             istatus = nf90_get_att(inet5(1),timid,'units',cunit)
             call checkncerr(istatus,__FILE__,__LINE__, &
@@ -674,16 +686,22 @@ module mod_era5
             call setcal(itimes(1),'noleap')
           else
             istatus = nf90_inq_dimid(inet5(1),'time',timid)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error find dim time')
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_dimid(inet5(1),'valid_time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find dim time')
+            end if
             istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error inquire time')
             istatus = nf90_inq_varid(inet5(1),'time',timid)
             if ( istatus /= nf90_noerr ) then
-              istatus = nf90_inq_varid(inet5(1),'date',timid)
-              call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find var time/date')
+              istatus = nf90_inq_varid(inet5(1),'valid_time',timid)
+              if ( istatus /= nf90_noerr ) then
+                istatus = nf90_inq_varid(inet5(1),'date',timid)
+                call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error find var time/date')
+              end if
             end if
             istatus = nf90_get_att(inet5(1),timid,'units',cunit)
             call checkncerr(istatus,__FILE__,__LINE__, &
