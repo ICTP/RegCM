@@ -357,10 +357,12 @@ program sigma2p
     outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
+#ifdef NCFILTERS_AVAIL
       istatus = nf90_def_var_filter(ncout, ivarid, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set filter for '//trim(varname))
+#endif
     end if
 #endif
     if (varname == 'plev') then
@@ -432,9 +434,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable hgt')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, ihgvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for hgt')
+#endif
 #endif
     istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
@@ -452,9 +456,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, imslpvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for mslp')
+#endif
 #endif
     istatus = nf90_put_att(ncout, imslpvar, 'standard_name', &
                      'air_pressure_at_sea_level')
@@ -476,9 +482,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, irhvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for rh')
+#endif
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')

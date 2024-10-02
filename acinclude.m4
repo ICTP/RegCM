@@ -195,7 +195,22 @@ AC_DEFUN([RR_NETCDF4],[
     fi
     FCFLAGS="$save_FCFLAGS"
   fi
+  AC_CHECKING([for NetCDF filtering capability])
+  FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([ ],
+                     [
+       use netcdf
+       implicit none
+       integer :: is,nc,iv
+       is = nf90_def_var_filter(nc,iv,1,1,(/1/))])],
+                     [ncfilter=yes],
+                     [ncfilter=no])
 
+  if test "x$ncfilter" = "xyes"; then
+    AM_CPPFLAGS="${DEFINE}NCFILTERS_AVAIL $AM_CPPFLAGS"
+  fi
+  FCFLAGS="$save_FCFLAGS"
   AC_SUBST([AM_CPPFLAGS])
 ])
 

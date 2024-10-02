@@ -1702,6 +1702,7 @@ module mod_ncstream
             ' in file '//trim(stream%filename), 1)
         end if
 #if defined(NETCDF4_HDF5)
+#ifdef NCFILTERS_AVAIL
 #if defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
           if ( stream%l_keep ) then
@@ -1720,6 +1721,7 @@ module mod_ncstream
             end if
           end if
         end if
+#endif
 #endif
         ! This forces collective I/O on time dependent variables.
         if ( stream%l_parallel .and. var%lrecords ) then
