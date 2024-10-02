@@ -492,7 +492,7 @@ module mod_era5
             call setcal(itimes(1),'noleap')
           else
             istatus = nf90_inq_dimid(inet5(1),'time',timid)
-            if ( istatus /= nf90_nerr ) then
+            if ( istatus /= nf90_noerr ) then
               istatus = nf90_inq_dimid(inet5(1),'valid_time',timid)
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error find dim time')
