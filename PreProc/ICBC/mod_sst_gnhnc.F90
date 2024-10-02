@@ -436,7 +436,7 @@ module mod_sst_gnhnc
       if ( cds_beta ) then
         call getworkf(2,work2)
         where ( is_nan(work2) )
-          work2 = 1E+20
+          work2 = 1E+20_rkx
         end where
       else
         call getworki(2,work)
