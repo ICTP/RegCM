@@ -54,6 +54,7 @@ module mod_nchelper
   public :: get_attribute
   public :: check_dimlen
   public :: checkncerr
+  public :: nf90_myget_att_text
 
 #ifdef SINGLE_PRECISION_REAL
   integer(ik4) , public :: regcm_vartype = nf90_real
@@ -1244,17 +1245,106 @@ module mod_nchelper
                     'Error adding attribute '//aname)
   end subroutine add_attribute
 
+  integer function nf90_myget_att_text(ncid,ivar,aname,aval) result(istat)
+    use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    character(len=*) , intent(out) :: aval
+    integer(ik4) , intent(in) :: ivar
+    integer :: varid
+    interface
+      integer(c_int) function nc_get_att_string(ncid, varid, name, pp) bind(c)
+        use iso_c_binding , only : c_int , c_char , c_ptr
+        integer(c_int) , value :: ncid , varid
+        character(kind=c_char) , intent(in) :: name
+        type(c_ptr), intent(out) :: pp
+      end function nc_get_att_string
+    end interface
+    interface
+      integer(c_size_t) function strlen(cs) bind(c, name='strlen')
+         use, intrinsic :: iso_c_binding , only : c_size_t , c_ptr
+         implicit none
+         type(c_ptr), intent(in), value :: cs
+      end function strlen
+    end interface
+    integer :: xtype , nlen , attid , i
+    integer(c_int) :: c_ncid , c_varid , c_status , c_nlen
+    type(c_ptr) :: c_str
+    character(len_trim(aname)+1) :: c_aname
+    character , pointer :: f_str(:)
+    istat = nf90_inquire_attribute(ncid, ivar, aname, xtype, nlen, attid)
+    if ( istat == nf90_noerr ) then
+      if ( xtype == nf90_string .and. nlen == 1 ) then
+        c_ncid = ncid
+        c_varid = ivar - 1
+        c_aname = aname//char(0)
+        c_status = nc_get_att_string(c_ncid, c_varid, c_aname, c_str)
+        istat = c_status
+        if ( istat == nf90_noerr ) then
+          call c_f_pointer(c_str,f_str,[strlen(c_str)])
+          aval = adjustl("")
+          do i = 1, size(f_str)
+            aval(i:i) = f_str(i)
+          end do
+        end if
+      else
+        istat = nf90_get_att(ncid,ivar,aname,aval)
+      end if
+    end if
+  end function nf90_myget_att_text
+
   subroutine get_attribute_char(ncid,aname,aval,ivar)
+    use, intrinsic :: iso_c_binding, only: c_ptr, c_size_t, c_f_pointer, c_int
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
     character(len=*) , intent(out) :: aval
     integer(ik4) , intent(in) , optional :: ivar
-    integer :: istat
+    integer :: istat , varid
+    interface
+      integer(c_int) function nc_get_att_string(ncid, varid, name, pp) bind(c)
+        use iso_c_binding , only : c_int , c_char , c_ptr
+        integer(c_int) , value :: ncid , varid
+        character(kind=c_char) , intent(in) :: name
+        type(c_ptr), intent(out) :: pp
+      end function nc_get_att_string
+    end interface
+    interface
+      integer(c_size_t) function strlen(cs) bind(c, name='strlen')
+         use, intrinsic :: iso_c_binding , only : c_size_t , c_ptr
+         implicit none
+         type(c_ptr), intent(in), value :: cs
+      end function strlen
+    end interface
+    integer :: xtype , nlen , attid , i
+    integer(c_int) :: c_ncid , c_varid , c_status , c_nlen
+    type(c_ptr) :: c_str
+    character(len_trim(aname)+1) :: c_aname
+    character , pointer :: f_str(:)
     if ( present(ivar) ) then
-      istat = nf90_get_att(ncid,ivar,aname,aval)
+      varid = ivar
     else
-      istat = nf90_get_att(ncid,nf90_global,aname,aval)
+      varid = nf90_global
+    end if
+    istat = nf90_inquire_attribute(ncid, varid, aname, xtype, nlen, attid)
+    if ( istat == nf90_noerr ) then
+      if ( xtype == nf90_string .and. nlen == 1 ) then
+        c_ncid = ncid
+        c_varid = varid - 1
+        c_aname = aname//char(0)
+        c_status = nc_get_att_string(c_ncid, c_varid, c_aname, c_str)
+        istat = c_status
+        if ( istat == nf90_noerr ) then
+          call c_f_pointer(c_str,f_str,[strlen(c_str)])
+          aval = adjustl("")
+          do i = 1, size(f_str)
+            aval(i:i) = f_str(i)
+          end do
+        end if
+      else
+        istat = nf90_get_att(ncid,varid,aname,aval)
+      end if
     end if
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error reading attribute '//aname)

@@ -259,15 +259,11 @@ module mod_sst_gndnc
     istatus = nf90_get_var(inet1,ivar2(1),work,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(1))
-    istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-    if ( istatus /= nf90_noerr ) then
-      ! Temporary FIX for netcdf Fortran < 4.6 !!
-      cunit = 'seconds since 1970-01-01'
-      ccal = 'gregorian'
-    else
-      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
-    end if
+    istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute units of '//varname(1))
+    istatus = nf90_myget_att_text(inet1,ivar2(1),'calendar',ccal)
+    if ( istatus /= nf90_noerr ) ccal = 'gregorian'
     fidate1 = timeval2date(work(1),cunit,ccal)
     idateo = globidate1
     idatef = globidate2
@@ -389,15 +385,11 @@ module mod_sst_gndnc
       istatus = nf90_get_var(inet1,ivar2(1),work,istart(1:1),icount(1:1))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1))
-      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-      if ( istatus /= nf90_noerr ) then
-        ! Temporary FIX for netcdf Fortran < 4.6 !!
-        cunit = 'seconds since 1970-01-01'
-        ccal = 'gregorian'
-      else
-        istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-        if ( istatus /= nf90_noerr ) ccal = 'gregorian'
-      end if
+      istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read attribute units of '//varname(1))
+      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
       fidate1 = timeval2date(work(1),cunit,ccal)
       tdif = idate-fidate1
       it = int(tohours(tdif))/24 + 1
