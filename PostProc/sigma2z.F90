@@ -356,12 +356,14 @@ program sigma2z
     invarid(i) = i
     outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     if (nvdims(i) > 2) then
       istatus = nf90_def_var_filter(ncout, ivarid, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set filter for '//trim(varname))
     end if
+#endif
 #endif
     if (varname == 'zlev') then
       istatus = nf90_put_att(ncout, ivarid, 'standard_name', 'height')
@@ -399,9 +401,11 @@ program sigma2z
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslzvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, imslzvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for mslp')
+#endif
 #endif
     istatus = nf90_put_att(ncout, imslzvar, 'standard_name', &
                      'air_pressure_at_sea_level')
@@ -423,9 +427,11 @@ program sigma2z
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, irhvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for rh')
+#endif
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')

@@ -1701,7 +1701,8 @@ module mod_ncstream
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
-#if defined(NETCDF4_HDF5)
+#if defined (NETCDF4_HDF5)
+#if defined (NCFILTERS_AVAIL)
 #if defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
           if ( stream%l_keep ) then
@@ -1720,6 +1721,7 @@ module mod_ncstream
             end if
           end if
         end if
+#endif
 #endif
         ! This forces collective I/O on time dependent variables.
         if ( stream%l_parallel .and. var%lrecords ) then
@@ -2157,6 +2159,7 @@ module mod_ncstream
       integer(ik4) :: nd , totsize
       logical :: docopy
       if ( .not. associated(ncout%ncp%xs) ) return
+      nd = 0
       docopy = .true.
       if ( present(lcopy) ) docopy = lcopy
       stream => ncout%ncp%xs
