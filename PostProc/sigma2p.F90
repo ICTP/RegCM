@@ -356,14 +356,14 @@ program sigma2p
     invarid(i) = i
     outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
-    if (nvdims(i) > 2) then
 #ifdef NCFILTERS_AVAIL
+    if (nvdims(i) > 2) then
       istatus = nf90_def_var_filter(ncout, ivarid, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set filter for '//trim(varname))
-#endif
     end if
+#endif
 #endif
     if (varname == 'plev') then
       istatus = nf90_put_att(ncout, ivarid, 'standard_name', 'pressure')

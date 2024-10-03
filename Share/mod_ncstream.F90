@@ -2158,8 +2158,8 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       integer(ik4) :: nd , totsize
       logical :: docopy
-      nd = 0
       if ( .not. associated(ncout%ncp%xs) ) return
+      nd = 0
       docopy = .true.
       if ( present(lcopy) ) docopy = lcopy
       stream => ncout%ncp%xs
