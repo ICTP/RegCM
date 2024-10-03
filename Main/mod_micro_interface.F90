@@ -343,9 +343,8 @@ module mod_micro_interface
 
     if ( iconvlwp == 1 ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-        ! get maximum cloud fraction between cumulus and large scale
-        cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k)+cldfra(j,i,k)
-        cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
+        ! get overlap of clouds
+        cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
         if ( cldfra(j,i,k) > lowcld ) then
           ! Cloud Water Volume
           ! Apply the parameterisation based on temperature to the
@@ -371,10 +370,8 @@ module mod_micro_interface
               ls_exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
               conv_exlwc = clwfromt(mo2mc%t(j,i,k))
               exlwc = conv_exlwc*cldfra(j,i,k) + ls_exlwc
-              ! get maximum cloud fraction between cumulus and large scale
-              cldfra(j,i,k) = (d_one-cldfra(j,i,k))*mc2mo%fcc(j,i,k) + &
-                              cldfra(j,i,k)
-              cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),d_one)
+              ! get overlap of clouds
+              cldfra(j,i,k) = rov2(cldfra(j,i,k),mc2mo%fcc(j,i,k))
               if ( cldfra(j,i,k) > lowcld ) then
                 ! NOTE : IN CLOUD LWC IS NEEDED IN THE RADIATION !!!
                 exlwc = exlwc/cldfra(j,i,k)
@@ -433,6 +430,54 @@ module mod_micro_interface
     contains
 
 #include <clwfromt.inc>
+
+    pure real(rkx) function max_overlap(a)
+      implicit none
+      real(rkx), dimension(:) , intent(in) :: a
+      max_overlap = maxval(a)
+    end function max_overlap
+
+    pure real(rkx) function min_overlap(a)
+      implicit none
+      real(rkx), dimension(:) , intent(in) :: a
+      min_overlap = minval(a)
+    end function min_overlap
+
+    pure real(rkx) function mean_overlap(a)
+      implicit none
+      real(rkx), dimension(:) , intent(in) :: a
+      mean_overlap = sum(a)/size(a)
+    end function mean_overlap
+
+    pure real(rkx) function random_overlap(a)
+      implicit none
+      real(rkx), dimension(:) , intent(in) :: a
+      real(rkx) :: fac
+      integer :: i
+      fac = d_one
+      do i = 1 , size(a)
+        fac = fac * (d_one-max(min(a(i),d_one),d_zero))
+      end do
+      random_overlap = d_one - fac
+    end function random_overlap
+
+    pure real(rkx) function max_random_overlap(a)
+      implicit none
+      real(rkx), dimension(:) , intent(in) :: a
+      real(rkx) :: fac
+      integer :: i
+      fac = d_one - a(1)
+      do i = 2 , size(a)
+        fac = fac * (d_one-max(a(i-1),a(i)))/(d_one-a(i-1))
+      end do
+      max_random_overlap = d_one - fac
+    end function max_random_overlap
+
+    elemental real(rkx) function rov2(a,b)
+      implicit none
+      real(rkx) , intent(in) :: a , b
+      rov2 = max_random_overlap([a,b])
+    end function rov2
 
   end subroutine cldfrac
   !
