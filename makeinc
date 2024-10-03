@@ -51,9 +51,12 @@ endif
 
 space :=
 space +=
+
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
+scppfla := $(filter-out $(DEFINE)VICHYDRO,$(scppfla))
 scppfla := $(filter-out $(DEFINE)USE_MPI3,$(scppfla))
+scppfla := $(filter-out $(DEFINE)F2008,$(scppfla))
 scppfla := $(filter-out $(DEFINE)QUAD_PRECISION,$(scppfla))
 scppfla := $(filter-out $(DEFINE)MPI_SERIAL,$(scppfla))
 scppfla := $(filter-out $(DEFINE)NETCDF_CDF5,$(scppfla))
@@ -61,6 +64,8 @@ scppfla := $(filter-out $(DEFINE)NETCDF4_COMPRESS,$(scppfla))
 scppfla := $(filter-out $(DEFINE)NETCDF4_HDF5,$(scppfla))
 scppfla := $(filter-out $(DEFINE)PNETCDF_IN_NETCDF,$(scppfla))
 scppfla := $(filter-out $(DEFINE)PNETCDF,$(scppfla))
+scppfla := $(filter-out $(DEFINE)NCFILTERS_AVAIL,$(scppfla))
+scppfla := $(strip $(scppfla))
 flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
 
-program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&
+program_transform_name := s&$$&$(rcsuffix)$(flagsuffix:_=)&
