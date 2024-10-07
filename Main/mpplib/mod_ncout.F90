@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 43 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 44 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -305,6 +305,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_cin      = 47
   integer(ik4) , parameter :: srf_li       = 48
   integer(ik4) , parameter :: srf_mrsos    = 49
+  integer(ik4) , parameter :: srf_htindx   = 50
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -612,6 +613,7 @@ module mod_ncout
       enable_srf_vars(srf_cin) = .true.
       enable_srf_vars(srf_li) = .true.
       enable_srf_vars(srf_mrsos) = .true.
+      enable_srf_vars(srf_htindx) = .true.
       enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
@@ -1729,6 +1731,12 @@ module mod_ncout
             'mass_content_of_water_in_soil_layer', &
             .true.,'time: point',l_fill=.true.)
           srf_mrsos_out => v2dvar_srf(srf_mrsos)%rval
+        end if
+        if ( enable_srf2d_vars(srf_htindx) ) then
+          call setup_var(v2dvar_srf,srf_htindx,vsize,'heatindex','K', &
+            'Heat Index (Lu & Romps, Extending the Heat Index, JAMC, 2022)', &
+            'heat_index',.true.,'time: point',l_fill=.true.)
+          srf_htindx_out => v2dvar_srf(srf_htindx)%rval
         end if
 
         vsize%k2 = 1

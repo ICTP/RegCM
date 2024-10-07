@@ -34,6 +34,7 @@ module mod_lm_interface
   use mod_ocn_common
   use mod_stdio
   use mod_slabocean
+  use mod_heatindex
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -1144,6 +1145,18 @@ module mod_lm_interface
             elsewhere
               srf_smw_out(:,:,n) = dmissval
             end where
+          end do
+        end if
+        if ( associated(srf_htindx_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tas = sum(lms%t2m(:,j,i))*rdnnsg
+              ps = sum(lms%sfcp(:,j,i))*rdnnsg
+              qs = pfwsat(tas,ps)
+              qas = lm%q2m(j,i)
+              rh = min(max((qas/qs),d_zero),d_one)
+              srf_htindx_out(j,i) = heatindex(tas,rh)
+            end do
           end do
         end if
 #ifdef CLM45
