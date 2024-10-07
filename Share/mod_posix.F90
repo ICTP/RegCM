@@ -71,6 +71,7 @@ module mod_posix
   end type direntry
 
   public :: dirlist , direntry
+  public :: replacestr , lower , upper , splitstr , basename
 
   contains
 
@@ -121,6 +122,230 @@ module mod_posix
     end do
     ires = closedir(dir)
   end subroutine dirlist
+
+  pure recursive function replacestr(string,search,sub) result(mstring)
+    implicit none
+    character(len=*), intent(in) :: string, search, sub
+    character(len=:), allocatable :: mstring
+    integer :: i , stringlen , searchlen
+    stringlen = len(string)
+    searchlen = len(search)
+    if ( stringlen == 0 .or. searchlen == 0 ) then
+      mstring = ""
+      return
+    else if ( stringlen < searchlen ) then
+      mstring = string
+      return
+    end if
+    i = 1
+    do
+      if ( string(i:i+searchlen-1) == search ) then
+        mstring = string(1:i-1)//sub// &
+          replacestr(string(i+searchlen:stringlen),search,sub)
+        exit
+      end if
+      if ( i+searchlen > stringlen ) then
+        mstring = string
+        exit
+      end if
+      i = i + 1
+      cycle
+    end do
+  end function replacestr
+
+  elemental pure function lower(str,istart,istop) result (string)
+    implicit none
+    character(*), intent(in) :: str
+    character(len(str)) :: string
+    integer , intent(in) , optional :: istart , istop
+    integer :: i
+    integer :: ibegin , iend
+    string = str
+    ibegin = 1
+    if ( present(istart) ) then
+      ibegin = max(ibegin,istart)
+    end if
+    iend = len_trim(str)
+    if ( present(istop) ) then
+      iend = min(iend,istop)
+    end if
+    do i = ibegin , iend
+      select case (str(i:i))
+        case ('A':'Z')
+          string(i:i) = char(iachar(str(i:i))+32)
+        case default
+      end select
+    end do
+  end function lower
+
+  elemental pure function upper(str,istart,istop) result (string)
+    implicit none
+    character(*), intent(in) :: str
+    character(len(str)) :: string
+    integer , intent(in) , optional :: istart , istop
+    integer :: i
+    integer :: ibegin , iend
+    string = str
+    ibegin = 1
+    if ( present(istart) ) then
+      ibegin = max(ibegin,istart)
+    end if
+    iend = len_trim(str)
+    if ( present(istop) ) then
+      iend = min(iend,istop)
+    end if
+    do i = ibegin , iend
+      select case (str(i:i))
+        case ('a':'z')
+          string(i:i) = char(iachar(str(i:i))-32)
+        case default
+      end select
+    end do
+  end function upper
+
+  subroutine splitstr(input_line,array,delimiters,order,nulls)
+    implicit none
+    character(len=*) , intent(in) :: input_line
+    character(len=*) , optional, intent(in) :: delimiters
+    character(len=*) , optional , intent(in) :: order
+    character(len=*) , optional , intent(in) :: nulls
+    character(len=:) , allocatable , intent(out) :: array(:)
+
+    integer :: n
+    integer , allocatable , dimension(:) :: ibegin
+    integer , allocatable , dimension(:) :: iterm
+    character(len=:) , allocatable :: dlim
+    character(len=:) , allocatable :: ordr
+    character(len=:) , allocatable  :: nlls
+    integer :: ii , iiii
+    integer :: icount
+    integer :: ilen
+    integer :: i , j , k
+    integer :: icol
+    integer :: idlim
+    integer :: ifound
+    integer :: inotnull
+    integer :: ireturn
+    integer :: imax
+
+    if ( present(delimiters) ) then
+      if ( delimiters /= '' ) then
+        dlim = delimiters
+      else
+        dlim = ' '//char(9)//char(10)//char(11)//char(12)//char(13)//char(0)
+      end if
+    else
+      dlim = ' '//char(9)//char(10)//char(11)//char(12)//char(13)//char(0)
+    end if
+    idlim = len(dlim)
+
+    if ( present(order) ) then
+      ordr = lower(adjustl(order))
+    else
+      ordr='sequential'
+    end if
+    if ( present(nulls) ) then
+      nlls = lower(adjustl(nulls))
+    else
+      nlls = 'ignore'
+    end if
+
+    n = len(input_line)+1
+    allocate(ibegin(n))
+    allocate(iterm(n))
+    ibegin(:) = 1
+    iterm(:) = 1
+
+    ilen = len(input_line)
+    icount = 0
+    inotnull = 0
+    imax = 0
+
+    select case (ilen)
+      case (0)
+      case default
+        icol = 1
+        parseloop: do k = 1 , ilen , 1
+          ibegin(k) = icol
+          if ( index(dlim(1:idlim),input_line(icol:icol)) == 0 ) then
+            iterm(k) = ilen
+            do i = 1 , idlim
+              ifound = index(input_line(ibegin(k):ilen),dlim(i:i))
+              if ( ifound > 0 ) then
+                iterm(k) = min(iterm(k),ifound+ibegin(k)-2)
+              end if
+            end do
+            icol = iterm(k)+2
+            inotnull = inotnull+1
+          else
+            iterm(k) = icol-1
+            icol = icol+1
+          end if
+          imax = max(imax,iterm(k)-ibegin(k)+1)
+          icount = k
+          if ( icol > ilen ) then
+            exit parseloop
+          end if
+        end do parseloop
+    end select
+
+    select case ( trim(adjustl(nlls)) )
+      case ('ignore', '', 'ignoreend')
+        ireturn = inotnull
+      case default
+        ireturn = icount
+    end select
+    allocate(character(len=imax) :: array(ireturn))
+    select case ( trim(adjustl(ordr)) )
+      case ('reverse', 'right')
+        ii = ireturn
+        iiii = -1
+      case default
+        ii = 1
+        iiii = 1
+    end select
+
+    do j = 1 , icount
+      if ( iterm(j) < ibegin(j) ) then
+        select case ( trim(adjustl(nlls)) )
+          case ('ignore', '', 'ignoreend')
+          case default
+            array(ii) = ' '
+            ii = ii+iiii
+        end select
+      else
+        array(ii) = input_line(ibegin(j):iterm(j))
+        ii = ii+iiii
+      end if
+    end do
+  end subroutine splitstr
+
+  function basename(path,suffix) result(base)
+    implicit none
+    character(*), intent(In) :: path
+    logical, intent(in), optional :: suffix
+    character(:), allocatable :: base
+    character(:), allocatable :: file_parts(:)
+    logical :: with_suffix
+
+    if ( .not. present(suffix) ) then
+      with_suffix = .true.
+    else
+      with_suffix = suffix
+    end if
+    call splitstr(path,file_parts,delimiters='\/')
+    if ( size(file_parts) > 0 ) then
+      base = trim(file_parts(size(file_parts)))
+    else
+      base = ''
+    end if
+    if ( .not. with_suffix ) then
+      call splitstr(base,file_parts,delimiters='.')
+      if ( size(file_parts) >= 2 ) then
+        base = trim(file_parts(size(file_parts)-1))
+      end if
+    end if
+  end function basename
 
 end module mod_posix
 
