@@ -453,7 +453,7 @@ module mod_runparams
   integer(ik4) , public :: nochl , nbchl
   integer(ik4) , public , dimension(nchlmax) :: iochl , ibchl
   integer(ik4) , public :: ibchb , iochb , ianh4 , iano3 , iisop , &
-                           ich4 , ism1 , ism2 , ino
+                           ich4 , ism1 , ism2 , ino, io3
 
   ! Cloud control parameters
 
