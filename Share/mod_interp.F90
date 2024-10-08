@@ -354,8 +354,12 @@ module mod_interp
     !
     dlon = abs(min(hlon(2)-hlon(1),hlon(nlon)-hlon(nlon-1)))
     dlat = abs(min(hlat(2)-hlat(1),hlat(nlat)-hlat(nlat-1)))
+#ifdef STDPAR
+    do concurrent ( j = 1:jx, i = 1:iy ) local(j1,j2,i1,i2,p1,q1,p2,q2)
+#else
     do i = 1 , iy
       do j = 1 , jx
+#endif
         j1 = whereislon(nlon,alon(j,i),hlon)
         ! Assume global data here
         if ( j1 > nlon ) j1 = 1
@@ -377,7 +381,9 @@ module mod_interp
           b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
                      (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
         end if
+#ifndef STDPAR
       end do
+#endif
     end do
   end subroutine bilinx_2d
 
@@ -401,9 +407,10 @@ module mod_interp
     integer(ik4) , intent(in) :: iy , jx , nlat , nlon
     real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
     real(rkx) , dimension(nlon,nlat) , intent(in) :: glat , glon
-    real(rkx) , dimension(jx,iy) , intent(out) :: d1xa , d1xb , d1xc , d1xd
-    integer(ik4) , dimension(jx,iy) , intent(out) :: i1dl , i1dr , &
-      i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: d1xa , &
+      d1xb , d1xc , d1xd
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: i1dl , &
+      i1dr , i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
     real(rkx) :: dist , wa , wb , wc , wd , distx
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , mx , nx
@@ -427,8 +434,8 @@ module mod_interp
             end if
           end do
         end do
-        if ( topof(glat(mx,nx),alat(j,i)) ) then
-          if ( rightof(glon(mx,nx),alon(j,i)) ) then
+        if ( topof(glat(mx,nx),alat(j,i),lsouthnorth) ) then
+          if ( rightof(glon(mx,nx),alon(j,i),l360) ) then
             ! mx,nx is top right
             mur = mx
             nur = nx
@@ -450,7 +457,7 @@ module mod_interp
             ndl = nx-1
           end if
         else
-          if ( rightof(glon(mx,nx),alon(j,i)) ) then
+          if ( rightof(glon(mx,nx),alon(j,i),l360) ) then
             ! mx,nx is bottom right
             mur = mx
             nur = nx+1
@@ -517,36 +524,6 @@ module mod_interp
       end do
     end do
 
-    contains
-
-      logical function rightof(a,b)
-        implicit none
-        real(rkx) , intent(in) :: a , b
-        if ( l360 ) then
-          if ( a > 180.0_rkx ) then
-            rightof = ( ( a - 360.0_rkx ) > b )
-          else
-            rightof = ( a > b )
-          end if
-        else
-          if ( b > 180.0_rkx ) then
-            rightof = ( a > ( b - 360.0_rkx ) )
-          else
-            rightof = ( a > b )
-          end if
-        end if
-      end function rightof
-
-      logical function topof(a,b)
-        implicit none
-        real(rkx) , intent(in) :: a , b
-        if ( lsouthnorth ) then
-          topof = ( a > b )
-        else
-          topof = ( b > a )
-        end if
-      end function topof
-
   end subroutine compwgt
 
   subroutine dwgt(jx,iy,nlon,nlat,b2,b3,d1xa,d1xb,d1xc,d1xd, &
@@ -555,8 +532,9 @@ module mod_interp
     integer(ik4) , intent(in) :: nlon , nlat , jx , iy
     real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
     real(rkx) , dimension(jx,iy) , intent(out) :: b3
-    real(rkx) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
-    integer(ik4) , dimension(jx,iy) , intent(in) :: i1dl , i1dr , &
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: d1xa , d1xb , &
+      d1xc , d1xd
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
     real(rkx) :: wa , wb , wc , wd , wg , vv
     real(rkx) , dimension(jx,iy) :: smth1 , smth2
@@ -631,13 +609,11 @@ module mod_interp
 
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
-    integer(ik4) :: iy , jx , nlat , nlon
-    real(rkx) , dimension(jx,iy) :: alat , alon
-    real(rkx) , dimension(jx,iy) :: b3
-    real(rkx) , dimension(nlon,nlat) :: glat , glon
-    real(rkx) , dimension(nlon,nlat) :: b2
-    intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
-    intent (out) b3
+    integer(ik4) , intent(in) :: iy , jx , nlat , nlon
+    real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: glat , glon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
+    real(rkx) , dimension(jx,iy) , intent(out) :: b3
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -817,12 +793,10 @@ module mod_interp
     integer(ik4) :: i , j , n
     real(rkx) , dimension(nx,ny) :: newf
     do n = 1 , npass
-      do j = 2 , ny - 1
-        do i = 2 , nx - 1
-          newf(i,j) = (f(i+1,j-1) + f(i+1,j) + f(i+1,j+1) + &
+      do concurrent ( i = 2:nx-1, j = 2:ny-1 )
+        newf(i,j) = (f(i+1,j-1) + f(i+1,j) + f(i+1,j+1) + &
             f(i,j-1) + f(i,j) * 4.0_rkx + f(i,j+1) + &
             f(i-1,j-1) + f(i-1,j) + f(i-1,j+1)) / 12.0_rkx
-        end do
       end do
       do j = 2 , ny-1
         newf(1,j) = (f(1,j-1) + f(1,j) * 7.0_rkx + f(1,j+1) + &
@@ -852,12 +826,10 @@ module mod_interp
     real(rkx) , dimension(nx,ny) :: newf
     do n = 1 , npass
       do k = 1 , nz
-        do j = 2 , ny - 1
-          do i = 2 , nx - 1
-            newf(i,j) = (f(i+1,j-1,k) + f(i+1,j,k) + f(i+1,j+1,k) + &
+        do concurrent ( i = 2:nx-1, j = 2:ny-1 )
+          newf(i,j) = (f(i+1,j-1,k) + f(i+1,j,k) + f(i+1,j+1,k) + &
               f(i,j-1,k) + f(i,j,k) * 4.0_rkx + f(i,j+1,k) + &
               f(i-1,j-1,k) + f(i-1,j,k) + f(i-1,j+1,k)) / 12.0_rkx
-          end do
         end do
         do j = 2 , ny-1
           newf(1,j) = (f(1,j-1,k) + f(1,j,k) * 7.0_rkx + f(1,j+1,k) + &
@@ -880,7 +852,8 @@ module mod_interp
     end do
   end subroutine kernsmooth3
 
-  integer(ik4) function whereislon(nlon,lon,lonarr) result(jj)
+  pure integer(ik4) function whereislon(nlon,lon,lonarr) result(jj)
+!$acc routine seq
     implicit none
     integer(ik4) , intent(in) :: nlon
     real(rkx) , intent(in) :: lon
@@ -906,7 +879,8 @@ module mod_interp
     jj = int((xlon-xlonarr(1))/dlon) + 1
   end function whereislon
 
-  integer(ik4) function whereislat(nlat,lat,latarr) result(ii)
+  pure integer(ik4) function whereislat(nlat,lat,latarr) result(ii)
+!$acc routine seq
     implicit none
     real(rkx) , intent(in) :: lat
     integer(ik4) , intent(in) :: nlat
@@ -925,6 +899,36 @@ module mod_interp
     if ( ii < 1 ) ii = 1
     if ( ii > nlat - 1 ) ii = nlat - 1
   end function whereislat
+
+  pure logical function rightof(a,b,l360)
+    implicit none
+    real(rkx) , intent(in) :: a , b
+    logical , intent(in) :: l360
+    if ( l360 ) then
+      if ( a > 180.0_rkx ) then
+        rightof = ( ( a - 360.0_rkx ) > b )
+      else
+        rightof = ( a > b )
+      end if
+    else
+      if ( b > 180.0_rkx ) then
+        rightof = ( a > ( b - 360.0_rkx ) )
+      else
+        rightof = ( a > b )
+      end if
+    end if
+  end function rightof
+
+  pure logical function topof(a,b,lsouthnorth)
+    implicit none
+    real(rkx) , intent(in) :: a , b
+    logical , intent(in) :: lsouthnorth
+    if ( lsouthnorth ) then
+      topof = ( a > b )
+    else
+      topof = ( b > a )
+    end if
+  end function topof
 
 end module mod_interp
 

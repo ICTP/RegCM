@@ -98,6 +98,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: snowam
     real(rkx) , pointer , dimension(:,:) :: smoist
     real(rkx) , pointer , dimension(:,:,:) :: rmoist
+    real(rkx) , pointer , dimension(:,:,:) :: rts
     real(rkx) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:) :: iveg
@@ -495,6 +496,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: snowam      ! mddom%snowam
     real(rkx) , pointer , dimension(:,:) :: smoist      ! mddom%smoist
     real(rkx) , pointer , dimension(:,:,:) :: rmoist    ! mddom%rmoist
+    real(rkx) , pointer , dimension(:,:,:) :: rts       ! mddom%rts
     integer(ik4) , pointer , dimension(:,:) :: iveg     ! mddom%iveg
     integer(ik4) , pointer , dimension(:,:) :: itex     ! mddom%itex
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
@@ -536,7 +538,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
     real(rkx) , pointer , dimension(:,:) :: dwrlwf      ! flwd
-    real(rkx) , pointer , dimension(:,:) :: uwrlwf      ! flwu
     real(rkx) , pointer , dimension(:,:) :: zencos      ! coszrs
     real(rkx) , pointer , dimension(:,:) :: ncprate     ! pptnc
     real(rkx) , pointer , dimension(:,:) :: cprate      ! cprate

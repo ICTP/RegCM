@@ -2403,7 +2403,7 @@ module mod_clm_histfile
           if ( myid == italk ) then
             write(stdout,*) 'Creating history file ',trim(locfnh(t))
           end if
-          call htape_create (t)
+          call htape_create(t)
 
           ! Define time-constant field variables
           call htape_timeconst(t, mode='define')
@@ -2463,7 +2463,7 @@ module mod_clm_histfile
             write(stdout,*)  'Closing local history file ',trim(locfnh(t))
           end if
           call clm_closefile(nfid(t))
-          if ( .not. if_stop .and. nlomon ) then
+          if ( .not. if_stop ) then
             call clm_openfile(trim(locfnh(t)), nfid(t), clm_readwrite)
           end if
         else
@@ -2883,12 +2883,14 @@ module mod_clm_histfile
       call get_proc_global(numg,numl,numc,nump)
 
       if ( rcmtimer%integrating( ) ) then
+        if ( ntapes > 0 ) then
+          call clm_openfile(locrest(1),ncid_hist(1))
+          call clm_inqdim(ncid_hist(1),'max_nflds',max_nflds)
+          allocate(itemp2d(max_nflds,ntapes))
+          call clm_closefile(ncid_hist(1))
+        end if
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
-          if ( t == 1 ) then
-            call clm_inqdim(ncid_hist(t),'max_nflds',max_nflds)
-            allocate(itemp2d(max_nflds,ntapes))
-          end if
           call clm_readvar(ncid_hist(t),'fincl',fincl(:,t))
           call clm_readvar(ncid_hist(t),'fexcl',fexcl(:,t))
           call clm_readvar(ncid_hist(t),'nflds',nflds_onfile)

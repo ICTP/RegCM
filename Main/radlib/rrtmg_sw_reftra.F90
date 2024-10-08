@@ -140,7 +140,7 @@
       real(kind=rb), parameter :: zsr3 = sqrt(3._rb)
       real(kind=rb), parameter :: zwcrit = 0.9999995_rb
 
-      integer , parameter :: kmodts = 2
+      integer(kind=im) , parameter :: kmodts = 2
 
 !     ------------------------------------------------------------------
 

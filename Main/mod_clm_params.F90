@@ -102,9 +102,12 @@ module mod_clm_params
     dtche = 900.0_rkx ! time interval at which bats is called (secs)
     dirout = './output'
     sfbcread = 1
+    prestr = ''
+    ifcordex = .false.
     lsync = .true.
     do_parallel_netcdf_in = .false.
-    scenario = 'RCP4.5'
+    do_parallel_netcdf_out = .false.
+    scenario = 'SSP370'
     ghg_year_const = 1950
     ifixsolar = 0
     isolconst = 1
@@ -122,16 +125,8 @@ module mod_clm_params
     solar_tweak = 0.0_rkx
     gas_tweak_factors(:) = 1.0_rkx
 
-#ifdef CLM
-    if ( myid == italk ) then
-      if (nsg /= 1 ) then
-        write (stderr,*) 'Running SUBGRID with CLM: not implemented'
-        write (stderr,*) 'Please set nsg to 1 in regcm.in'
-        call fatal(__FILE__,__LINE__, &
-                   'CLM & SUBGRID TOGETHER')
-      end if
-    end if
-#endif
+    ntr = 0
+    nbin = 0
 
     if ( myid == iocpu ) then
       open(newunit=ipunit, file=namelistfile, status='old', &
@@ -243,6 +238,8 @@ module mod_clm_params
         dtabem = dtabem * 3600.0_rkx
       end if
 
+      dt = dtsrf
+
       if ( dtcum < dt ) dtcum = dt
       if ( dtsrf < dt ) dtsrf = dt
       if ( dtche < dt ) dtche = dt
@@ -297,6 +294,7 @@ module mod_clm_params
     call bcast(globidate1)
     call bcast(globidate2)
 
+    call bcast(ds)
     call bcast(dt)
     call bcast(dtrad)
     call bcast(dtsrf)
@@ -317,6 +315,8 @@ module mod_clm_params
       call bcast(solar_tweak)
       call bcast(gas_tweak_factors)
     end if
+
+    do_parallel_save = (do_parallel_netcdf_in .and. do_parallel_netcdf_out)
 
     rcmtimer => rcm_timer(idate0,idate1,idate2,dtsrf)
 
@@ -355,8 +355,6 @@ module mod_clm_params
       syncro_dbg => rcm_syncro(rcmtimer,secph*dbgfrq)
     end if
 
-    rnsrf_for_day = syncro_srf/alarm_day
-
     dtsq = dt*dt
     dtcb = dt*dt*dt
 
@@ -370,7 +368,7 @@ module mod_clm_params
       write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
       write(stdout,*) 'Final date of this run               : ', appdat
-      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,*) 'Total simulation length              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
     end if
 
@@ -384,8 +382,7 @@ module mod_clm_params
                           mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
                           mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
-                          mddom%rmoist,mddom%dhlake,base_state_ts0)
-    call bcast(ds)
+                          mddom%rmoist,mddom%rts,mddom%dhlake,base_state_ts0)
     call bcast(ptop)
     call bcast(xcone)
 
@@ -559,9 +556,9 @@ module mod_clm_params
         implicit none
       end subroutine init_surface_model
 
-      recursive integer function gcd_rec(u,v) result(gcd)
+      recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer , intent(in) :: u , v
+        integer(ik4) , intent(in) :: u , v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else
@@ -596,22 +593,22 @@ module mod_clm_params
         implicit none
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
-        call model_zitaf(zita)
-        call model_zitah(zitah)
+        call model_zitaf(zita,mo_ztop)
+        call model_zitah(zitah,mo_ztop)
         mo_dzita = zita(kz)
-        sigma = sigmazita(zita)
-        hsigma = sigmazita(zitah)
-        fak = md_ak(zita)
-        fbk = md_bk(zita)
-        ak = md_ak(zitah)
-        bk = md_bk(zitah)
+        sigma = sigmazita(zita,mo_ztop)
+        hsigma = sigmazita(zitah,mo_ztop)
+        fak = md_ak(zita,mo_ztop,mo_h)
+        fbk = md_bk(zita,mo_ztop,mo_a0)
+        ak = md_ak(zitah,mo_ztop,mo_h)
+        bk = md_bk(zitah,mo_ztop,mo_a0)
         do k = 1 , kz
           dsigma(k) = (sigma(k+1)-sigma(k))
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
             zeta(j,i) = ak(kz) + (bk(kz) - d_one) * mddom%ht(j,i)*regrav
-            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i))
+            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
           end do
         end do
       end subroutine compute_moloch_static

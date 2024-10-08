@@ -41,6 +41,7 @@ module mod_cu_interface
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv , &
       pmean , nmctop
   use mod_cu_tables , only : init_convect_tables
+  use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , cldefi
   use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d
   use mod_cu_kuo , only : allocate_mod_cu_kuo , cupara , twght , vqflx , k700
   use mod_cu_grell , only : allocate_mod_cu_grell , cuparan , mincld2d ,   &
@@ -62,6 +63,7 @@ module mod_cu_interface
   public :: cuscheme
   public :: cbmf2d
   public :: avg_ww
+  public :: cldefi
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -110,6 +112,9 @@ module mod_cu_interface
     end if
     if ( any(icup == 2) ) then
       call allocate_mod_cu_grell
+    end if
+    if ( any(icup == 3) ) then
+      call allocate_mod_cu_bm
     end if
     if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic == 3 ) then
@@ -216,7 +221,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i , j , k
     if ( all(icup == 0) ) return
-    if ( any(icup == 1) ) then
+    if ( any(icup == 1) .or. any(icup == 3) ) then
       call model_cumulus_cloud(m2c)
     end if
     do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -242,30 +247,6 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
-      if ( iconv == 1 ) then
-        ! Calculate average elevation of cmcptop level
-        nmctop = 0
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            iplmlc = 1
-            do k = 1 , kzp1
-              iplmlc = k
-              if ( m2c%pasf(j,i,k) >= cmcptop ) exit
-            end do
-            nmctop = nmctop + iplmlc
-          end do
-        end do
-        iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
-        call minall(iplmlc,mintop)
-        call maxall(iplmlc,maxtop)
-        nmctop = (mintop+maxtop)/2
-      else if ( iconv == 4 ) then
-        do k = 1 , kz
-          mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
-          call meanall(mymean,pmean(k))
-        end do
-      end if
-
       w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
         if ( cuscheme(j,i) == 5 ) then
@@ -321,6 +302,29 @@ module mod_cu_interface
           cu_convpr(:,:,:) = d_zero
         end if
         if ( any(icup == 5) ) then
+          if ( iconv == 1 ) then
+            ! Calculate average elevation of cmcptop level
+            nmctop = 0
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                iplmlc = 1
+                do k = 1 , kzp1
+                  iplmlc = k
+                  if ( m2c%pasf(j,i,k) >= cmcptop ) exit
+                end do
+                nmctop = nmctop + iplmlc
+              end do
+            end do
+            iplmlc = nmctop / ((jci2-jci1)*(ici2-ici1))
+            call minall(iplmlc,mintop)
+            call maxall(iplmlc,maxtop)
+            nmctop = (mintop+maxtop)/2
+          else if ( iconv == 4 ) then
+            do k = 1 , kz
+              mymean = sum(m2c%pas(:,:,k))/real(((jci2-jci1)*(ici2-ici1)),rkx)
+              call meanall(mymean,pmean(k))
+            end do
+          end if
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
         end if
@@ -332,6 +336,8 @@ module mod_cu_interface
               call cupara(m2c)
             case (2)
               call cuparan(m2c)
+            case (3)
+              call bmpara(m2c)
             case (4)
               call cupemandrv(m2c)
             case (5)
@@ -481,16 +487,12 @@ module mod_cu_interface
       if ( idynamic == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%tten(j,i,k) = cu_tten(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           mo_atm%qxten(j,i,k,iqv) = cu_qten(j,i,k,iqv)
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
                           cu_tten(j,i,k) * m2c%psb(j,i)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
                           cu_qten(j,i,k,iqv) * m2c%psb(j,i)
         end do

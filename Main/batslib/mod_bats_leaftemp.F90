@@ -300,13 +300,6 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
-
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
-
   end subroutine lftemp
 
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -542,11 +535,6 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
-
-#include <pfesat.inc>
-#include <pfqsat.inc>
-
   end subroutine satur
 
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -742,13 +730,6 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
-
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pfdesatdt.inc>
-#include <pqderiv.inc>
-
   end subroutine deriv
 
   subroutine fseas(temp,ffsea)
@@ -785,6 +766,11 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine fseas
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pfdesatdt.inc>
+#include <pqderiv.inc>
 
 end module mod_bats_leaftemp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

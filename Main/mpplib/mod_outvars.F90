@@ -55,6 +55,9 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_qs_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_qg_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_qh_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_nn_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_nc_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_nr_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_rh_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_zf_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_zh_out => null()
@@ -160,6 +163,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_cin_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_li_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_mrsos_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_htindx_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()

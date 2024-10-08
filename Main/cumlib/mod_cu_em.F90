@@ -56,7 +56,7 @@ module mod_cu_em
 
   real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
 
-  integer :: ncp , nap
+  integer(ik4) :: ncp , nap
 
   real(rkx) , pointer , dimension(:) :: cbmf , pret , qprime , &
     tprime , wd , elcrit , epmax
@@ -312,9 +312,7 @@ module mod_cu_em
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-    contains
-#include <pfesat.inc>
-#include <pfqsat.inc>
+
   end subroutine cupemandrv
 !
 !**************************************************************************
@@ -452,7 +450,7 @@ module mod_cu_em
                      ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,kcb, &
                      kct,elcrit,epmax)
     implicit none
-    integer , intent(in) :: np , nd , ntra
+    integer(ik4) , intent(in) :: np , nd , ntra
     real(rkx) , pointer , dimension(:) , intent(inout) :: cbmf
     real(rkx) , pointer , dimension(:) , intent(in) :: elcrit , epmax
     real(rkx) , pointer , dimension(:,:) , intent(in) :: p , q , qs , t , u , v
@@ -1216,15 +1214,13 @@ module mod_cu_em
     contains
 
 #include <wlh.inc>
-#include <pfesat.inc>
-#include <pfqsat.inc>
 
       !
       ! Calculate lifting level temperature
       !
       subroutine tlift(n,p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
         implicit none
-        integer , intent(in) :: n , nd , nk , nl , kk
+        integer(ik4) , intent(in) :: n , nd , nk , nl , kk
         integer(ik4) , intent(in) :: icb
         real(rkx) , dimension(:,:) , intent(in) :: p , q , qs , t
         real(rkx) , dimension(nd) , intent(in) :: gz
@@ -1290,6 +1286,9 @@ module mod_cu_em
       end subroutine tlift
 
   end subroutine cupeman
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
 
 end module mod_cu_em
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

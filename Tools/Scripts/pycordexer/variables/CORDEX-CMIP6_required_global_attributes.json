@@ -1,0 +1,29 @@
+{
+    "required_global_attributes": [
+        "activity_id",
+        "contact",
+        "Conventions",
+        "creation_date",
+        "domain_id",
+        "domain",
+        "driving_experiment_id",
+        "driving_experiment",
+        "driving_institution_id",
+        "driving_source_id",
+        "driving_variant_label",
+        "frequency",
+        "grid",
+        "institution",
+        "institution_id",
+        "license",
+        "mip_era",
+        "product",
+        "project_id",
+        "source",
+        "source_id",
+        "source_type",
+        "tracking_id",
+        "variable_id",
+        "version_realization"
+    ]
+}

@@ -52,7 +52,7 @@ module mod_date
   integer(ik4) , public , parameter :: ucnt = 7
 
   integer(ik4) , parameter :: reference_year = 1900
-  integer(ik4) , parameter :: cordex_refdate = 1949120100
+  integer(ik4) , parameter :: cordex_refdate = 1950010100
 
   character (len=16) , public , dimension(7) :: cintstr
   character (len=12) , public , dimension(3) :: calstr
@@ -2044,8 +2044,8 @@ module mod_date
   subroutine ref_date(iy,im,id,isec)
     implicit none
     integer(ik4) , intent(out) :: iy , im , id , isec
-    iy = 1949
-    im = 12
+    iy = 1950
+    im = 1
     id = 1
     isec = 0
   end subroutine ref_date

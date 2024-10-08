@@ -94,11 +94,6 @@ module mod_ocn_bats
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
-
-#include <pfesat.inc>
-#include <pfqsat.inc>
-
   end subroutine ocnbats
 
   subroutine seaice
@@ -308,12 +303,10 @@ module mod_ocn_bats
     call time_end(subroutine_name,idindx)
 #endif
 
-    contains
+  end subroutine seaice
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
-
-  end subroutine seaice
 
 end module mod_ocn_bats
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

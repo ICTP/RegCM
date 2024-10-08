@@ -361,6 +361,39 @@ module mod_output
             end do
           end if
         end if
+        if ( associated(atm_nn_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nn_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqn)
+            end do
+          else
+            do k = 1 , kz
+              atm_nn_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqn)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_nc_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqc)
+            end do
+          else
+            do k = 1 , kz
+              atm_nc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqc)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_nr_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_nr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,cqr)
+            end do
+          else
+            do k = 1 , kz
+              atm_nr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,cqr)/ps_out
+            end do
+          end if
+        end if
         if ( associated(atm_rh_out) ) then
           if ( idynamic == 3 ) then
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -559,6 +592,12 @@ module mod_output
           if ( associated(atm_kzm_out) ) then
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
               atm_kzm_out(j,i,k) = uwstate%kzm(j,i,k)
+            end do
+          end if
+        else if ( ibltyp == 4 ) then
+          if ( associated(atm_tke_out) ) then
+            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+              atm_tke_out(j,i,k) = atms%tkepbl(j,i,k)
             end do
           end if
         end if
@@ -983,7 +1022,7 @@ module mod_output
             if ( .not. associated(temp500) ) then
               call getmem2d(temp500,jci1,jci2,ici1,ici2,'output:temp500')
             end if
-            call vertint(mo_atm%t,mo_atm%p,temp500,50000.0_rkx)
+            call vertint(mo_atm%tvirt,mo_atm%p,sfs%psa,temp500,50000.0_rkx)
             call otlift(srf_li_out,mo_atm%t,qv,mo_atm%p,temp500, &
                         jci1,jci2,ici1,ici2,kz)
           else
@@ -1486,6 +1525,14 @@ module mod_output
           if ( ibltyp == 2 ) then
             kpbl_io = kpbl
           end if
+          if ( ibltyp == 4 ) then
+            tke_pbl_io = atms%tkepbl
+            kpbl_io = kpbl
+            myjsf_uz0_io = sfs%uz0
+            myjsf_vz0_io = sfs%vz0
+            myjsf_thz0_io = sfs%thz0
+            myjsf_qz0_io = sfs%qz0
+          end if
           if ( idynamic == 2 ) then
             atm1_pp_io(jce1:jce2,ice1:ice2,:) = atm1%pp(jce1:jce2,ice1:ice2,:)
             atm2_pp_io(jce1:jce2,ice1:ice2,:) = atm2%pp(jce1:jce2,ice1:ice2,:)
@@ -1517,6 +1564,9 @@ module mod_output
           o3prof_io = o3prof
           if ( iocnflx == 2 ) then
             zpbl_io = zpbl
+          end if
+          if ( any(icup == 3) ) then
+            cldefi_io = cldefi
           end if
           if ( any(icup == 4) ) then
             cbmf2d_io = cbmf2d
@@ -1656,6 +1706,14 @@ module mod_output
           if ( ibltyp == 2 ) then
             call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
           end if
+          if ( ibltyp == 4 ) then
+            call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
+            call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sfs%uz0,myjsf_uz0_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sfs%thz0,myjsf_thz0_io,jci1,jci2,ici1,ici2)
+            call grid_collect(sfs%qz0,myjsf_qz0_io,jci1,jci2,ici1,ici2)
+          end if
           if ( idynamic == 2 ) then
             call grid_collect(atm1%pp,atm1_pp_io,jce1,jce2,ice1,ice2,1,kz)
             call grid_collect(atm2%pp,atm2_pp_io,jce1,jce2,ice1,ice2,1,kz)
@@ -1687,6 +1745,9 @@ module mod_output
           call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
           if ( iocnflx == 2 ) then
             call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
+          end if
+          if ( any(icup == 3) ) then
+            call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
           end if
           if ( any(icup == 4) ) then
             call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
@@ -1802,7 +1863,7 @@ module mod_output
       if ( lnewf ) then
         call newoutfiles(rcmtimer%idate)
         call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
-                       trim(domname)//'.'//tochar10(lastout))
+                       trim(domname)//'.'//tochar10(lastout),'period')
         lastout = rcmtimer%idate
       end if
     else
@@ -1810,7 +1871,7 @@ module mod_output
         if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
           call newoutfiles(rcmtimer%idate)
           call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
-                         trim(domname)//'.'//tochar10(lastout))
+                         trim(domname)//'.'//tochar10(lastout),'month')
           lastout = rcmtimer%idate
         end if
       end if
@@ -1827,21 +1888,21 @@ module mod_output
 
   end subroutine output
 
-  subroutine vertint(f3,p3,f2,plev)
+  subroutine vertint(f3,p3,ps,f2,plev)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: f2
     real(rkx) , intent(in) :: plev
     integer(ik4) :: i , j , ik
-    real(rkx) , dimension(kz) :: f1 , p1
-    real(rkx) :: blw , tlw , dp
+    real(rkx) , dimension(kz) :: p1
+    real(rkx) :: blw , tlw , tp , s1 , s2 , s3
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        f1 = f3(j,i,:)
         p1 = p3(j,i,:)
-        ik = findlev()
+        ik = findlev(p1,plev)
         if ( ik < 1 ) then
           ! higher than top
           f2(j,i) = f3(j,i,1)
@@ -1850,25 +1911,29 @@ module mod_output
           f2(j,i) = f3(j,i,kz)
         else
           ! in between two levels
-          dp = p3(j,i,ik+1) - p3(j,i,ik)
-          blw = (plev - p3(j,i,ik)) / dp
+          tp = p3(j,i,1)
+          s1 = (plev-tp)/ps(j,i)
+          s2 = (p3(j,i,ik)-tp)/ps(j,i)
+          s3 = (p3(j,i,ik+1)-tp)/ps(j,i)
+          blw = log(s1/s2)/log(s3/s2)
           tlw = d_one - blw
-          f2(j,i) = (f3(j,i,ik+1)*blw+f3(j,i,ik)*tlw)
+          f2(j,i) = f3(j,i,ik+1)*blw + f3(j,i,ik)*tlw
         end if
       end do
     end do
 
     contains
 
-    integer(ik4) function findlev() result(kk)
+    integer(ik4) function findlev(p,plev) result(kk)
       implicit none
+      real(rkx) , dimension(kz) , intent(in) :: p
+      real(rkx) , intent(in) :: plev
       integer(ik4) :: k
       kk = 0
       if ( plev >= p1(1) ) then
         do k = 1 , kz
-          if ( plev > p1(k) ) then
-            kk = k
-          end if
+          if ( p(k) > plev ) exit
+          kk = k
         end do
       end if
     end function findlev
@@ -1927,6 +1992,66 @@ module mod_output
     end if
     rotinit = .true.
   end subroutine alpharot_compute
+
+  subroutine wstagtox(w,wx)
+    implicit none
+    real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
+    integer(ik4) :: i , j , k
+
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kzm1 )
+      wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
+                  0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
+    end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
+      wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
+    end do
+  end subroutine wstagtox
+
+  subroutine uvstagtox(u,v,ux,vx)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
+    integer(ik4) :: i , j , k
+
+    call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
+    call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
+
+    ! Compute U-wind on T points
+
+    do concurrent ( j = jci1:jci2, i = ice1:ice2, k = 1:kz )
+      ux(j,i,k) = 0.5625_rkx * (u(j+1,i,k)+u(j,i,k)) - &
+                  0.0625_rkx * (u(j+2,i,k)+u(j-1,i,k))
+    end do
+    if ( ma%has_bdyleft ) then
+      do concurrent ( i = ice1:ice2, k = 1:kz )
+        ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do concurrent ( i = ice1:ice2, k = 1:kz )
+        ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
+      end do
+    end if
+
+    ! Compute V-wind on T points
+
+    do concurrent ( j = jce1:jce2, i = ici1:ici2, k = 1:kz )
+      vx(j,i,k) = 0.5625_rkx * (v(j,i+1,k)+v(j,i,k)) - &
+                  0.0625_rkx * (v(j,i+2,k)+v(j,i-1,k))
+    end do
+    if ( ma%has_bdybottom ) then
+      do concurrent ( j = jce1:jce2, k = 1:kz )
+        vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do concurrent ( j = jce1:jce2, k = 1:kz )
+        vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
+      end do
+    end if
+  end subroutine uvstagtox
 
   subroutine windcompute(u,v,h)
     implicit none

@@ -40,38 +40,44 @@ module mod_zita
 
   contains
 
-  pure real(rkx) elemental function sigmazita(zita)
+  pure real(rkx) elemental function sigmazita(zita,ztop)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
-    sigmazita = 1.0_rkx - zita/mo_ztop
+    real(rkx) , intent(in) :: zita , ztop
+    sigmazita = 1.0_rkx - zita/ztop
   end function sigmazita
 
-  pure real(rkx) elemental function zitasigma(sigma)
+  pure real(rkx) elemental function zitasigma(sigma,ztop)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: sigma
-    zitasigma = mo_ztop * (1.0_rkx - sigma)
+    real(rkx) , intent(in) :: sigma , ztop
+    zitasigma = ztop * (1.0_rkx - sigma)
   end function zitasigma
 
-  subroutine model_zitaf(zitaf)
+  subroutine model_zitaf(zitaf,ztop)
+!$acc routine seq
     implicit none
+    real(rkx) , intent(in) :: ztop
     real(rkx) , intent(out) , dimension(:) :: zitaf
     real(rkx) :: dz
     integer :: kzp1 , kz , k
     kzp1 = size(zitaf)
     kz = kzp1-1
-    dz = mo_ztop/real(kz,rkx)
+    dz = ztop/real(kz,rkx)
     zitaf(kzp1) = 0.0_rkx
     do k = kz , 1 , -1
       zitaf(k) = zitaf(k+1) + dz
     end do
   end subroutine model_zitaf
 
-  subroutine model_zitah(zitah)
+  subroutine model_zitah(zitah,ztop)
+!$acc routine seq
+    real(rkx) , intent(in) :: ztop
     real(rkx) , intent(out) , dimension(:) :: zitah
     real(rkx) :: dz
     integer :: kz , k
     kz = size(zitah)
-    dz = mo_ztop/real(kz,rkx)
+    dz = ztop/real(kz,rkx)
     zitah(kz) = dz*0.5_rkx
     do k = kz-1 , 1 , -1
       zitah(k) = zitah(k+1) + dz
@@ -80,84 +86,96 @@ module mod_zita
 
   ! Decay function
 
-  pure real(rkx) elemental function zfz( )
+  pure real(rkx) elemental function zfz(ztop,zh)
+!$acc routine seq
     implicit none
-    zfz = mo_ztop/(exp(mo_ztop/mo_h)-1.0_rkx)
+    real(rkx) , intent(in) :: ztop , zh
+    zfz = ztop/(exp(ztop/zh)-1.0_rkx)
   end function zfz
 
-  pure real(rkx) elemental function bzita(zita)
+  pure real(rkx) elemental function bzita(zita,ztop,zh)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
-    bzita = zfz( )*(exp(zita/mo_h)-1.0_rkx)
+    real(rkx) , intent(in) :: zita , ztop , zh
+    bzita = zfz(ztop,zh)*(exp(zita/zh)-1.0_rkx)
   end function bzita
 
-  pure real(rkx) elemental function bzitap(zita)
+  pure real(rkx) elemental function bzitap(zita,ztop,zh)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
-    bzitap = zfz( )*exp(zita/mo_h)/mo_h
+    real(rkx) , intent(in) :: zita , ztop , zh
+    bzitap = zfz(ztop,zh)*exp(zita/zh)/zh
   end function bzitap
 
-  pure real(rkx) elemental function gzita(zita)
+  pure real(rkx) elemental function gzita(zita,ztop,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
+    real(rkx) , intent(in) :: zita , ztop , a0 
     real(rkx) :: ratio
-    ratio = zita/mo_ztop
-    gzita = ((0.0_rkx - 1.0_rkx * mo_a0) * ratio**1 - &
-             (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
-             (2.0_rkx - 1.0_rkx * mo_a0) * ratio**3) + 1.0_rkx
-    !gzita = sinh((mo_ztop-zita)/mo_h)/sinh(mo_ztop/mo_h)
+    ratio = zita/ztop
+    gzita = ((0.0_rkx - 1.0_rkx * a0) * ratio**1 - &
+             (3.0_rkx - 2.0_rkx * a0) * ratio**2 + &
+             (2.0_rkx - 1.0_rkx * a0) * ratio**3) + 1.0_rkx
+    !gzita = sinh((ztop-zita)/zh)/sinh(ztop/zh)
   end function gzita
 
   ! Derivative of decay function
-  pure real(rkx) elemental function gzitap(zita)
+  pure real(rkx) elemental function gzitap(zita,ztop,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
+    real(rkx) , intent(in) :: zita , ztop , a0
     real(rkx) :: ratio
-    ratio = zita/mo_ztop
-    gzitap = ((0.0_rkx - 1.0_rkx * mo_a0) * ratio**0 - &
-              (6.0_rkx - 4.0_rkx * mo_a0) * ratio**1 + &
-              (6.0_rkx - 3.0_rkx * mo_a0) * ratio**2) / mo_ztop
-    !gzitap = -(1.0_rkx/mo_h)*cosh((mo_ztop-zita)/mo_h)/sinh(mo_ztop/mo_h)
+    ratio = zita/ztop
+    gzitap = ((0.0_rkx - 1.0_rkx * a0) * ratio**0 - &
+              (6.0_rkx - 4.0_rkx * a0) * ratio**1 + &
+              (6.0_rkx - 3.0_rkx * a0) * ratio**2) / ztop
+    !gzitap = -(1.0_rkx/zh)*cosh((ztop-zita)/zh)/sinh(ztop/zh)
   end function gzitap
 
   ! Factor used to transform the vertical derivatives in zeta
-  pure real(rkx) function md_fmz_h(zita,orog)
+  pure real(rkx) function md_fmz_h(zita,orog,ztop,zh,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita , orog
+    real(rkx) , intent(in) :: zita , orog , ztop , zh , a0
     ! Equation 9
-    md_fmz_h = 1.0_rkx/(gzitap(zita)*orog + bzitap(zita))
+    md_fmz_h = 1.0_rkx/(gzitap(zita,ztop,a0)*orog + bzitap(zita,ztop,zh))
   end function md_fmz_h
 
   ! Elevation above orography as function of zita
-  pure real(rkx) function md_zeta_h(zita,orog)
+  pure real(rkx) function md_zeta_h(zita,orog,ztop,zh,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita , orog
-    md_zeta_h = orog*(gzita(zita)-1.0_rkx) + bzita(zita)
+    real(rkx) , intent(in) :: zita , orog , ztop , zh , a0
+    md_zeta_h = orog*(gzita(zita,ztop,a0)-1.0_rkx) + bzita(zita,ztop,zh)
   end function md_zeta_h
 
-  pure real(rkx) elemental function md_ak(zita)
+  pure real(rkx) elemental function md_ak(zita,ztop,zh)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
-    md_ak = bzita(zita)
+    real(rkx) , intent(in) :: zita , ztop , zh
+    md_ak = bzita(zita,ztop,zh)
   end function md_ak
 
-  pure real(rkx) elemental function md_bk(zita)
+  pure real(rkx) elemental function md_bk(zita,ztop,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita
-    md_bk = gzita(zita)
+    real(rkx) , intent(in) :: zita , ztop , a0
+    md_bk = gzita(zita,ztop,a0)
   end function md_bk
 
-  pure real(rkx) function md_fmz(zita,geopot)
+  pure real(rkx) function md_fmz(zita,geopot,ztop,zh,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita , geopot
-    md_fmz = md_fmz_h(zita,geopot*regrav)
+    real(rkx) , intent(in) :: zita , geopot , ztop , zh , a0
+    md_fmz = md_fmz_h(zita,geopot*regrav,ztop,zh,a0)
   end function md_fmz
 
   ! Elevation above orography as function of zita
-  pure real(rkx) function md_zeta(zita,geopot)
+  pure real(rkx) function md_zeta(zita,geopot,ztop,zh,a0)
+!$acc routine seq
     implicit none
-    real(rkx) , intent(in) :: zita , geopot
-    md_zeta = md_zeta_h(zita,geopot*regrav)
+    real(rkx) , intent(in) :: zita , geopot , ztop , zh , a0
+    md_zeta = md_zeta_h(zita,geopot*regrav,ztop,zh,a0)
   end function md_zeta
 
   subroutine zh3d(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps,imet)

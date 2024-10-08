@@ -62,8 +62,10 @@ module mod_era5
   real(rkx) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) :: pss , pst
-  integer(2) , pointer , dimension(:,:,:) :: work
+  integer(2) , pointer , dimension(:,:,:) :: iwork3
+  real(rkx) , pointer , dimension(:,:,:) :: rwork3
   integer(2) , pointer , dimension(:,:) :: iwork
+  real(rkx) , pointer , dimension(:,:) :: rwork
 
   integer(ik4) , dimension(5) :: inet5
   integer(ik4) , dimension(5) :: ivar5
@@ -87,9 +89,15 @@ module mod_era5
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
-    write(inname,'(a,i0.4,a,i0.2,a)') 'pr_', year, '_', month,'.nc'
-    pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+    if ( dattyp == 'ERAXX' ) then
+      write(inname,'(a,i0.2,a)') 'pr_XXXX_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep// &
          'hourly'//pthsep//inname
+    else
+      write(inname,'(a,i0.4,a,i0.2,a)') 'pr_', year, '_', month,'.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+         'hourly'//pthsep//inname
+    end if
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file '//trim(pathaddname))
@@ -149,6 +157,7 @@ module mod_era5
     call getmem3d(b2,1,ilon,1,jlat,1,3,'mod_era5:b2')
     call getmem2d(prvar,1,ilon,1,jlat,'mod_era5:prvar')
     call getmem2d(iwork,1,ilon,1,jlat,'mod_era5:iwork')
+    call getmem2d(rwork,1,ilon,1,jlat,'mod_era5:rwork')
   end subroutine init_era5h
 
   subroutine init_era5
@@ -187,8 +196,11 @@ module mod_era5
     istatus = nf90_inq_dimid(ncid,'levelist',idimid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(ncid,'level',idimid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist dimension in file '//trim(pathaddname))
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(ncid,'pressure_level',idimid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+              'Missing level/levelist dimension in file '//trim(pathaddname))
+      end if
     end if
     istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -228,8 +240,11 @@ module mod_era5
     istatus = nf90_inq_varid(ncid,'levelist',ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncid,'level',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(ncid,'pressure_level',idimid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
             'Missing level/levelist variable in file '//trim(pathaddname))
+      end if
     end if
     istatus = nf90_get_var(ncid,ivarid,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -269,7 +284,8 @@ module mod_era5
 
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_era5:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_era5:d2')
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_era5:work')
+    call getmem3d(iwork3,1,ilon,1,jlat,1,klev,'mod_era5:iwork3')
+    call getmem3d(rwork3,1,ilon,1,jlat,1,klev,'mod_era5:rwork3')
     !
     ! Set up pointers
     !
@@ -341,18 +357,20 @@ module mod_era5
     !
     ! Invert vertical order, set BOTTOM -> TOP
     !
+    if ( h3(1,1,1) > h3(1,1,klev) ) then
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3)
+      call top2btm(t3)
 !$OMP SECTION
-    call top2btm(q3)
+      call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3)
+      call top2btm(h3)
 !$OMP SECTION
-    call top2btm(u3)
+      call top2btm(u3)
 !$OMP SECTION
-    call top2btm(v3)
+      call top2btm(v3)
 !$OMP END SECTIONS
+    end if
     !
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
@@ -416,6 +434,7 @@ module mod_era5
     integer(ik4) :: year , month , day , hour
     integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
+    logical , save :: has_offset = .false.
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -439,10 +458,17 @@ module mod_era5
         end do
       end if
       do kkrec = 1 , 4
-        write(inname,'(a,a,i0.4,a,i0.2,a)') &
-          trim(fname(kkrec)), '_', year, '_', month,'.nc'
-        pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
-            pthsep//'hourly'//pthsep//inname
+        if ( dattyp == 'ERAXX' ) then
+          write(inname,'(a,a,i0.2,a)') &
+            trim(fname(kkrec)), '_XXXX_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5_MEAN'//pthsep// &
+              pthsep//'hourly'//pthsep//inname
+        else
+          write(inname,'(a,a,i0.4,a,i0.2,a)') &
+            trim(fname(kkrec)), '_', year, '_', month,'.nc'
+          pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+              pthsep//'hourly'//pthsep//inname
+        end if
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
           'Error open file '//trim(pathaddname))
@@ -452,41 +478,57 @@ module mod_era5
           'Error find var '//varname(kkrec))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                  'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
-                   'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att add_offset')
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                         xscl(kkrec) , xoff(kkrec)
+        if ( istatus == nf90_noerr ) then
+          istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                     'add_offset',xoff(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find att add_offset')
+          has_offset = .true.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                           xscl(kkrec) , xoff(kkrec)
+        else
+          has_offset = .false.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+        end if
         if ( kkrec == 1 ) then
-          istatus = nf90_inq_dimid(inet5(1),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find dim time')
-          istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error inquire time')
-          istatus = nf90_inq_varid(inet5(1),'time',timid)
-          if ( istatus /= nf90_noerr ) then
-            istatus = nf90_inq_varid(inet5(1),'date',timid)
+          if ( dattyp == 'ERAXX' ) then
+            call getmem1d(itimes,1,1,'mod_era5:itimes')
+            itimes(1) = year*1000000 + month*10000+100
+            call setcal(itimes(1),'noleap')
+          else
+            istatus = nf90_inq_dimid(inet5(1),'time',timid)
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_dimid(inet5(1),'valid_time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find dim time')
+            end if
+            istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find var time/date')
+                            'Error inquire time')
+            istatus = nf90_inq_varid(inet5(1),'time',timid)
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_varid(inet5(1),'valid_time',timid)
+              if ( istatus /= nf90_noerr ) then
+                istatus = nf90_inq_varid(inet5(1),'date',timid)
+                call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error find var time/date')
+              end if
+            end if
+            istatus = nf90_myget_att_text(inet5(1),timid,'units',cunit)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time units')
+            istatus = nf90_myget_att_text(inet5(1),timid,'calendar',ccal)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time units')
+            call getmem1d(itimes,1,timlen,'mod_era5:itimes')
+            call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
+            istatus = nf90_get_var(inet5(1),timid,xtimes)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time')
+            do it = 1 , timlen
+              itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
+            end do
           end if
-          istatus = nf90_get_att(inet5(1),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                              'Error read time units')
-          call getmem1d(itimes,1,timlen,'mod_era5:itimes')
-          call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
-          istatus = nf90_get_var(inet5(1),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read time')
-          do it = 1 , timlen
-            itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
-          end do
         end if
       end do
     end if
@@ -502,25 +544,42 @@ module mod_era5
       ivar = ivar5(kkrec)
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
-      call getwork(kkrec)
-      if ( kkrec == 1 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+      if ( has_offset ) then
+        call igetwork(kkrec)
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+            end do
           end do
-        end do
+        else
+          do j = 1 , jlat
+            do i = 1 , ilon
+              b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+            end do
+          end do
+        end if
       else
-        do j = 1 , jlat
-          do i = 1 , ilon
-            b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+        call rgetwork(kkrec)
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              prvar(i,j) = rwork(i,j)
+            end do
           end do
-        end do
+        else
+          do j = 1 , jlat
+            do i = 1 , ilon
+              b2(i,j,kkrec-1) = rwork(i,j)
+            end do
+          end do
+        end if
       end if
     end do
 
     contains
 
-      subroutine getwork(irec)
+      subroutine igetwork(irec)
         implicit none
         integer(ik4) , intent(in) :: irec
         integer(ik4) :: itile , iti , itf
@@ -537,7 +596,26 @@ module mod_era5
                           'Error read var '//varname(irec))
           iti = iti + gdomain%ni(itile)
         end do
-      end subroutine getwork
+      end subroutine igetwork
+
+      subroutine rgetwork(irec)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet,ivar,rwork(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine rgetwork
 
   end subroutine era5hour
 
@@ -557,6 +635,7 @@ module mod_era5
     integer(ik4) :: year , month , day , hour
     integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
+    logical , save :: has_offset = .false.
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -598,14 +677,18 @@ module mod_era5
           'Error find var '//varname(kkrec))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                  'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att scale_factor')
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
-                   'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error find att add_offset')
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
-                         xscl(kkrec) , xoff(kkrec)
+        if ( istatus == nf90_noerr ) then
+          istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec),  &
+                     'add_offset',xoff(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error find att add_offset')
+          has_offset = .true.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname) ,   &
+                           xscl(kkrec) , xoff(kkrec)
+        else
+          has_offset = .false.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+        end if
         if ( kkrec == 1 ) then
           if ( dattyp == 'ERAXX' ) then
             call getmem1d(itimes,1,1,'mod_era5:itimes')
@@ -613,21 +696,27 @@ module mod_era5
             call setcal(itimes(1),'noleap')
           else
             istatus = nf90_inq_dimid(inet5(1),'time',timid)
-            call checkncerr(istatus,__FILE__,__LINE__, &
-                            'Error find dim time')
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_dimid(inet5(1),'valid_time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find dim time')
+            end if
             istatus = nf90_inquire_dimension(inet5(1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error inquire time')
             istatus = nf90_inq_varid(inet5(1),'time',timid)
             if ( istatus /= nf90_noerr ) then
-              istatus = nf90_inq_varid(inet5(1),'date',timid)
-              call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error find var time/date')
+              istatus = nf90_inq_varid(inet5(1),'valid_time',timid)
+              if ( istatus /= nf90_noerr ) then
+                istatus = nf90_inq_varid(inet5(1),'date',timid)
+                call checkncerr(istatus,__FILE__,__LINE__, &
+                                'Error find var time/date')
+              end if
             end if
-            istatus = nf90_get_att(inet5(1),timid,'units',cunit)
+            istatus = nf90_myget_att_text(inet5(1),timid,'units',cunit)
             call checkncerr(istatus,__FILE__,__LINE__, &
                                 'Error read time units')
-            istatus = nf90_get_att(inet5(1),timid,'calendar',ccal)
+            istatus = nf90_myget_att_text(inet5(1),timid,'calendar',ccal)
             call checkncerr(istatus,__FILE__,__LINE__, &
                                 'Error read time units')
             call getmem1d(itimes,1,timlen,'mod_era5:itimes')
@@ -650,52 +739,73 @@ module mod_era5
     istart(4) = it
     icount(4) = 1
 
-    do kkrec = 1 , 5
-      inet = inet5(kkrec)
-      ivar = ivar5(kkrec)
-      xscale = xscl(kkrec)
-      xadd = xoff(kkrec)
-      call getwork(kkrec)
-      if ( kkrec == 1 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            tvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+    if ( has_offset ) then
+      do kkrec = 1 , 5
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
+        call igetwork(kkrec)
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              tvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
+            end do
           end do
-        end do
-      else if ( kkrec == 2 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            hvar(i,j,:) = real(real(work(i,j,:),rkx) * &
-                      xscale+xadd,rkx)/9.80616_rk4
+        else if ( kkrec == 2 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              hvar(i,j,:) = real(real(iwork3(i,j,:),rkx) * &
+                        xscale+xadd,rkx)/9.80616_rk4
+            end do
           end do
-        end do
-      else if ( kkrec == 3 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            qvar(i,j,:) = &
-              max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
+        else if ( kkrec == 3 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              qvar(i,j,:) = &
+                max(real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
+            end do
           end do
-        end do
-        call sph2mxr(qvar,ilon,jlat,klev)
-        qvar = log10(max(qvar,dlowval))
-      else if ( kkrec == 4 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            uvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+          call sph2mxr(qvar,ilon,jlat,klev)
+          qvar = log10(max(qvar,dlowval))
+        else if ( kkrec == 4 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              uvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
+            end do
           end do
-        end do
-      else if ( kkrec == 5 ) then
-        do j = 1 , jlat
-          do i = 1 , ilon
-            vvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+        else if ( kkrec == 5 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              vvar(i,j,:) = real(real(iwork3(i,j,:),rkx)*xscale+xadd,rkx)
+            end do
           end do
-        end do
-      end if
-    end do
+        end if
+      end do
+    else
+      do kkrec = 1 , 5
+        inet = inet5(kkrec)
+        ivar = ivar5(kkrec)
+        call rgetwork(kkrec)
+        if ( kkrec == 1 ) then
+          tvar = rwork3
+        else if ( kkrec == 2 ) then
+          hvar = rwork3/9.80616_rkx
+        else if ( kkrec == 3 ) then
+          qvar = max(rwork3,0.0_rkx)
+          call sph2mxr(qvar,ilon,jlat,klev)
+          qvar = log10(max(qvar,dlowval))
+        else if ( kkrec == 4 ) then
+          uvar = rwork3
+        else if ( kkrec == 5 ) then
+          vvar = rwork3
+        end if
+      end do
+    end if
 
     contains
 
-      subroutine getwork(irec)
+      subroutine igetwork(irec)
         implicit none
         integer(ik4) , intent(in) :: irec
         integer(ik4) :: itile , iti , itf
@@ -707,12 +817,32 @@ module mod_era5
           istart(2) = gdomain%jgstart
           icount(2) = gdomain%nj
           itf = iti + gdomain%ni(itile) - 1
-          istatus = nf90_get_var(inet,ivar,work(iti:itf,:,:),istart,icount)
+          istatus = nf90_get_var(inet,ivar,iwork3(iti:itf,:,:),istart,icount)
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error read var '//varname(irec))
           iti = iti + gdomain%ni(itile)
         end do
-      end subroutine getwork
+      end subroutine igetwork
+
+      subroutine rgetwork(irec)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet,ivar,rwork3(iti:itf,:,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine rgetwork
+
   end subroutine era56hour
 
   subroutine conclude_era5

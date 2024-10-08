@@ -171,6 +171,16 @@ if eval "test x"$USE_OPENACC" = x3"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+AC_ARG_ENABLE(openacc-stdpar,
+  AC_HELP_STRING([--enable-openacc-stdpar],
+                 [Compile OpenACC directives with stdpar (only for PGI fortran compilation)]),
+                 [USE_OPENACC="4"]
+)
+if eval "test x"$USE_OPENACC" = x4"; then
+  AM_CPPFLAGS="\$(DEFINE)OPENACC $AM_CPPFLAGS -DSTDPAR"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -363,8 +373,6 @@ AC_SUBST(NC_LIBS)
 if eval "test x$PNETCDF = x1"; then
   AX_PROG_PNETCDF_CONFIG([NCP_PREFIX=`pnetcdf-config --prefix`; NCPAUTO="yes"],
                          [NCP_PREFIX="${NETCDF}"; NCPAUTO="no"])
-  echo $NCPAUTO
-
   if eval "test x$NCPAUTO = xyes"; then
     CC=`pnetcdf-config --cc`
     AC_SUBST(CC)
@@ -473,7 +481,8 @@ AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
                                       -z "${FCPROG##impif*}" -o \
                                       -z "${FCPROG##mpiifort*}" ] )
-AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" ] )
+AM_CONDITIONAL(COMPILER_INTEL_LLVM, [ test -z "${FCPROG##ifx*}" -o \
+                                           -z "${FCPROG##mpiifx*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 DEFINE="-D"
@@ -522,9 +531,9 @@ if test -z "$COMPILER_GNU_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
+  OMPFLAGS="-qopenmp -qopt-report"
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC"
-  OMPFLAGS="-qopenmp"
+           -heap-arrays -fPIC -DSTDPAR $OMPFLAGS"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
@@ -611,13 +620,27 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+    if test -z "${osname##Linux}"; then
+      FCFLAGS="-O0 -g -pg -fbacktrace \
+            -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
+            -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
+            -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
+            -Wunused-parameter -Wno-align-commons $FCFLAGS \
+            -fno-range-check -fcheck=bounds -Wimplicit-interface \
+            -Wimplicit-procedure -Wintrinsic-shadow \
+            -fcheck=array-temps,bounds,do,mem,recursion,pointer"
+            # -ffpe-trap=zero,invalid,overflow,underflow
+    else
+      # Newver Macos versions have a missing library problem for -pg
+      FCFLAGS="-O0 -g -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
             -Wintrinsic-shadow -fcheck=array-temps,bounds,do,mem,recursion"
+            # -ffpe-trap=zero,invalid,overflow,underflow
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -650,6 +673,10 @@ if eval "test x$DEBUG = x1"; then
     if test "test x$USE_OPENACC = x1"; then
       FCFLAGS="$FCFLAGS -acc=gpu -gpu=$PGI_GPU_ARCH,lineinfo -Minfo=accel"
     fi
+    if test "test x$USE_OPENACC = x4"; then
+      FCFLAGS="$FCFLAGS -acc=gpu \
+	      -gpu=$PGI_GPU_ARCH,managed,ptxinfo,lineinfo -Mnodepchk -Minfo=all"
+    fi
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
@@ -672,7 +699,7 @@ else
     # The GNU compiler works with -O2
     NOOPTFC="-O2 -finline-functions $FCFLAGS" # -fno-var-tracking-assignments
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -finline-functions -mtune=native \
+      FCFLAGS="-O3 -finline-functions -mtune=native -ftree-vectorize \
                -march=native $FCFLAGS" # -ftree-parallelize-loops=2"
       if eval "test x"$USE_PROF" = x1"; then
         FCFLAGS="-g -pg $FCFLAGS"
@@ -680,8 +707,9 @@ else
     else
       # MacOSX may choke on using AVX extensions...
       FCFLAGS="-O3 -finline-functions $FCFLAGS"
+      # Newer versions of MacOS have problems with pg options
       if eval "test x"$USE_PROF" = x1"; then
-        FCFLAGS="-g -pg $FCFLAGS"
+        FCFLAGS="-g $FCFLAGS"
       fi
     fi
     AC_SUBST(FCFLAGS)
@@ -695,7 +723,7 @@ else
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     else
-      FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
+	    FCFLAGS="-ftz -O3 -finline-functions -fp-model source $FCFLAGS"
       AC_SUBST(FCFLAGS)
     fi
     AC_SUBST(NOOPTFC)
@@ -750,6 +778,12 @@ else
       NOOPTFC="$NOOPTFC -acc=gpu \
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
     fi
+    if eval "test x"$USE_OPENACC" = x4"; then
+      FCFLAGS="$FCFLAGS -stdpar=gpu,multicore \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+      NOOPTFC="$NOOPTFC -stdpar=gpu,multicore \
+          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+    fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
   fi
@@ -801,7 +835,7 @@ AM_LDFLAGS="-L$MCTPATH $AM_LDFLAGS"
 AC_SUBST(AM_LDFLAGS)
 if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
-  #RCM_MPI_CHECK_MPI3
+  RCM_MPI_CHECK_MPI3
 else
   FORT_SIZE="real4double8"
   AC_SUBST(FORT_SIZE)

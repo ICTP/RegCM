@@ -34,6 +34,7 @@ module mod_lm_interface
   use mod_ocn_common
   use mod_stdio
   use mod_slabocean
+  use mod_heatindex
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -154,7 +155,6 @@ module mod_lm_interface
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
-    call getmem3d(lms%urlwf,1,nnsg,jci1,jci2,ici1,ici2,'lm:urlwf')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%ddepv,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:ddepv')
@@ -300,6 +300,7 @@ module mod_lm_interface
     call assignpnt(mddom%snowam,lm%snowam)
     call assignpnt(mddom%smoist,lm%smoist)
     call assignpnt(mddom%rmoist,lm%rmoist)
+    call assignpnt(mddom%rts,lm%rts)
     call assignpnt(mdsub%area,lm%area1)
     call assignpnt(mdsub%xlat,lm%xlat1)
     call assignpnt(mdsub%xlon,lm%xlon1)
@@ -347,9 +348,6 @@ module mod_lm_interface
     call assignpnt(fsw,lm%rswf)
     call assignpnt(flw,lm%rlwf)
     call assignpnt(flwd,lm%dwrlwf)
-#ifdef CLM45
-    call assignpnt(flwu,lm%uwrlwf)
-#endif
     call assignpnt(sabveg,lm%vegswab)
     call assignpnt(albvl,lm%lwalb)
     call assignpnt(albvs,lm%swalb)
@@ -453,22 +451,16 @@ module mod_lm_interface
     if ( irceideal == 0 ) call runclm45(lm,lms)
     !coupling of biogenic VOC and other stuff from CLM45 speicif to chemistry
     if ( ichem == 1 ) then
-      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
         voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
       end do
-      do concurrent ( n = 1:4, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:4 )
         dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
       end do
-      do concurrent ( n = 1:ntr, j = jci1:jci2, i = ici1:ici2 )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, n = 1:ntr )
         ddepv_clm(j,i,n) = sum(lms%ddepv(:,j,i,n),1) * rdnnsg
       end do
     end if
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-      if ( lm%ldmsk(j,i) == 1 ) then
-        lm%uwrlwf(j,i) = sum(lms%urlwf(:,j,i)) * rdnnsg
-        lm%rlwf(j,i) = lm%uwrlwf(j,i) - lm%dwrlwf(j,i)
-      end if
-    end do
 #else
     if ( irceideal == 0 ) call vecbats(lm,lms)
 #endif
@@ -634,10 +626,6 @@ module mod_lm_interface
       lm%dsrnof(:,:) = d_zero
     end if
 
-    contains
-
-#include <wlh.inc>
-
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
@@ -646,7 +634,7 @@ module mod_lm_interface
     type(imp_data) , intent(in) :: impfie
     real(rkx) , intent(in) :: tol
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
-    integer :: i , j , n
+    integer(ik4) :: i , j , n
     logical :: flag = .false.
 !    character (len=*) , parameter :: f99001 =                   &
 !       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &
@@ -833,7 +821,8 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rkx) :: qas , tas , uas , ps , qs , es , desdt , rh , sws , lws
+    real(rkx) :: tas , ps , es , qs , qas , uas , rh , desdt
+    real(rkx) :: sws , lws
 
     ! Fill accumulators
 
@@ -895,25 +884,32 @@ module mod_lm_interface
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
         if ( associated(srf_evpot_out) ) then
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+            local(tas,ps,es,qs,qas,uas,rh,desdt,sws,lws)
+#else
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               if ( lm%ldmsk(j,i) == 0 ) then
-                srf_evpot_out(j,i) = srf_evpot_out(j,i) + lm%qfx(j,i)
-                cycle
-              end if
-              tas = sum(lms%t2m(:,j,i))*rdnnsg
-              ps = sum(lms%sfcp(:,j,i))*rdnnsg
-              es = pfesat(tas,ps)
-              qs = pfwsat(tas,ps,es)
-              qas = lm%q2m(j,i)
-              uas = lm%w10m(j,i)
-              rh = min(max((qas/qs),d_zero),d_one)
-              desdt = pfesdt(tas)
-              sws = lm%rswf(j,i)
-              lws = lm%rlwf(j,i)
-              srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
+                srf_evpot_out(j,i) = 0.0_rkx
+              else
+                tas = sum(lms%t2m(:,j,i))*rdnnsg
+                ps = sum(lms%sfcp(:,j,i))*rdnnsg
+                es = pfesat(tas,ps)
+                qs = pfwsat(tas,ps,es)
+                qas = lm%q2m(j,i)
+                uas = lm%w10m(j,i)
+                rh = min(max((qas/qs),d_zero),d_one)
+                desdt = pfesdt(tas)
+                sws = lm%rswf(j,i)
+                lws = lm%rlwf(j,i)
+                srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
                    evpt_fao(ps,tas,uas,rh*es,es,desdt,sws,lws)
+              end if
+#ifndef STDPAR
             end do
+#endif
           end do
         end if
       end if
@@ -939,8 +935,13 @@ module mod_lm_interface
         if ( associated(shf_pcprcv_out) ) &
           shf_pcprcv_out = shf_pcprcv_out + lm%cprate*syncro_srf%rw
         if ( associated(shf_twetb_out) ) then
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+            local(tas,ps,qs,qas,rh)
+#else
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               qs = pfwsat(tas,ps)
@@ -951,7 +952,9 @@ module mod_lm_interface
                       atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                       0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                       atan(0.023101_rkx * rh) - 4.686035_rkx)
+#ifndef STDPAR
             end do
+#endif
           end do
         end if
       else
@@ -959,8 +962,13 @@ module mod_lm_interface
           if ( associated(srf_pcpmax_out) ) &
             srf_pcpmax_out = max(srf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
           if ( associated(srf_twetb_out) ) then
+#ifdef STDPAR
+            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+              local(tas,ps,qs,qas,rh)
+#else
             do i = ici1 , ici2
               do j = jci1 , jci2
+#endif
                 tas = sum(lms%t2m(:,j,i))*rdnnsg
                 ps = sum(lms%sfcp(:,j,i))*rdnnsg
                 qs = pfwsat(tas,ps)
@@ -971,7 +979,9 @@ module mod_lm_interface
                         atan(tas + rh) - atan(rh - 1.676331_rkx) + &
                         0.00391838_rkx * rh**(3.0_rkx/2.0_rkx) * &
                         atan(0.023101_rkx * rh) - 4.686035_rkx)
+#ifndef STDPAR
               end do
+#endif
             end do
           end if
         end if
@@ -1103,8 +1113,13 @@ module mod_lm_interface
           srf_q2m_out(:,:,1) = lm%q2m
         if ( associated(srf_rh2m_out) ) then
           srf_rh2m_out = d_zero
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+            local(qas,tas,ps,qs,n)
+#else
           do i = ici1 , ici2
             do j = jci1 , jci2
+#endif
               do n = 1 , nnsg
                 qas = lms%q2m(n,j,i)
                 tas = lms%t2m(n,j,i)
@@ -1113,7 +1128,9 @@ module mod_lm_interface
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
                               min(max((qas/qs),rhmin),rhmax)*d_100
               end do
+#ifndef STDPAR
             end do
+#endif
           end do
           srf_rh2m_out = srf_rh2m_out * rdnnsg
         end if
@@ -1128,6 +1145,18 @@ module mod_lm_interface
             elsewhere
               srf_smw_out(:,:,n) = dmissval
             end where
+          end do
+        end if
+        if ( associated(srf_htindx_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tas = sum(lms%t2m(:,j,i))*rdnnsg
+              ps = sum(lms%sfcp(:,j,i))*rdnnsg
+              qs = pfwsat(tas,ps)
+              qas = lm%q2m(j,i)
+              rh = min(max((qas/qs),d_zero),d_one)
+              srf_htindx_out(j,i) = heatindex(tas,rh)
+            end do
           end do
         end if
 #ifdef CLM45
@@ -1188,14 +1217,10 @@ module mod_lm_interface
         if ( associated(lak_ice_out) ) &
           lak_ice_out = sum(lms%sfice,1,lms%lakmsk)*rdnnsg
         if ( associated(lak_tlake_out) ) then
-          do k = 1 , ndpmax
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( lm%iveg(j,i) == 14 ) then
-                  lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:ndpmax )
+            if ( lm%iveg(j,i) == 14 ) then
+              lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
+            end if
           end do
         end if
       end if
@@ -1225,106 +1250,117 @@ module mod_lm_interface
     if ( associated(lm%grprat) ) lm%grprat(:,:) = d_zero
     if ( associated(lm%hairat) ) lm%hairat(:,:) = d_zero
 
-    contains
+  end subroutine collect_output
+
+  subroutine mslp
+    implicit none
+    integer(ik4) :: i , j , n
+    integer(ik4) , parameter :: niter = 20
+    real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
+    real(rkx) , parameter :: alpha = lrate*rgas/egrav
+    real(rkx) :: mval , mall
+    real(rkx) :: tstar , hstar , raval
+
+    ! Follow Kallen 1996
+#ifdef STDPAR
+    do concurrent ( j = jce1:jce2, i = ice1:ice2 ) &
+      local(tstar,hstar,raval)
+#else
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+#endif
+        tstar = lm%tatm(j,i)
+        if ( tstar < 255.0_rkx ) then
+          tstar = (tstar+255.0_rkx)*0.5_rkx
+        else if ( tstar > 290.5_rkx ) then
+          tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
+        end if
+        hstar = lm%ht(j,i)/(rgas*tstar)
+        raval = d_half*alpha*hstar
+        slp(j,i) = lm%sfps(j,i) * &
+             exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
+#ifndef STDPAR
+      end do
+#endif
+    end do
+    ! Gauss Siedel Filtering
+    mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
+    call sumall(mval,mall)
+    mval = mall/real(nproc,rkx)
+    sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
+    call exchange(slp,1,jce1,jce2,ice1,ice2)
+    call exchange(sfp,1,jce1,jce2,ice1,ice2)
+    slp1 = slp
+    mask = d_zero
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
+                   sfp(j-1,i)+sfp(j+1,i) - &
+                   4.0_rkx*sfp(j,i))/mval
+    end do
+    do n = 1 , niter
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
+                               slp1(j-1,i)+slp(j+1,i)-mask(j,i))
+        end do
+      end do
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          slp1(jce1,i) = slp1(jci1,i)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          slp1(jce2,i) = slp1(jci2,i)
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          slp1(j,ice1) = slp1(j,ici1)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          slp1(j,ice2) = slp1(j,ici2)
+        end do
+      end if
+      call exchange(slp1,1,jce1,jce2,ice1,ice2)
+      slp(:,:) = slp1
+    end do
+  end subroutine mslp
+
+  subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
+    implicit none
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
+    real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
+    integer(ik4) :: i , j
+    real(rkx) :: delwind , spd1 , spd2
+
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+      local(delwind,spd1,spd2)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
+        spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
+        spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
+        delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
+        gust(j,i) = max(gust(j,i),spd1+delwind)
+#ifndef STDPAR
+      end do
+#endif
+    end do
+  end subroutine compute_maxgust
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <pfdesatdt.inc>
 #include <pqderiv.inc>
-#include <wlh.inc>
 #include <evpt.inc>
-
-    subroutine mslp
-      implicit none
-      integer(ik4) :: i , j , n
-      real(rkx) :: tstar , hstar , alpha , raval , mval , mall
-      integer(ik4) , parameter :: niter = 20
-      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
-
-      ! Follow Kallen 1996
-      alpha = lrate*rgas/egrav
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          tstar = lm%tatm(j,i)
-          if ( tstar < 255.0_rkx ) then
-            tstar = (tstar+255.0_rkx)*0.5_rkx
-          else if ( tstar > 290.5_rkx ) then
-            tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
-          end if
-          hstar = lm%ht(j,i)/(rgas*tstar)
-          raval = d_half*alpha*hstar
-          slp(j,i) = lm%sfps(j,i) * &
-               exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
-        end do
-      end do
-      ! Gauss Siedel Filtering
-      mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
-      call sumall(mval,mall)
-      mval = mall/real(nproc,rkx)
-      sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
-      call exchange(slp,1,jce1,jce2,ice1,ice2)
-      call exchange(sfp,1,jce1,jce2,ice1,ice2)
-      slp1 = slp
-      mask = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
-                       sfp(j-1,i)+sfp(j+1,i) - &
-                       4.0_rkx*sfp(j,i))/mval
-        end do
-      end do
-      do n = 1 , niter
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
-                                 slp1(j-1,i)+slp(j+1,i)-mask(j,i))
-          end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do i = ici1 , ici2
-            slp1(jce1,i) = slp1(jci1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ici1 , ici2
-            slp1(jce2,i) = slp1(jci2,i)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            slp1(j,ice1) = slp1(j,ici1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            slp1(j,ice2) = slp1(j,ici2)
-          end do
-        end if
-        call exchange(slp1,1,jce1,jce2,ice1,ice2)
-        slp(:,:) = slp1
-      end do
-    end subroutine mslp
-
-    subroutine compute_maxgust(u10,v10,ua,va,zpbl,gust)
-      implicit none
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: u10 , v10
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: ua , va
-      real(rkx) , dimension(:,:) , pointer , intent(in) :: zpbl
-      real(rkx) , dimension(:,:) , pointer , intent(inout) :: gust
-      integer(ik4) :: i , j
-      real(rkx) :: delwind , spd1 , spd2
-
-      do j = jci1 , jci2
-        do i = ici1 , ici2
-          spd1 = sqrt(u10(j,i)**2+v10(j,i)**2)
-          spd2 = sqrt(ua(j,i)**2+va(j,i)**2)
-          delwind = (spd2-spd1)*(1.0_rkx-min(0.5_rkx,zpbl(j,i)/2000.0_rkx))
-          gust(j,i) = max(gust(j,i),spd1+delwind)
-        end do
-      end do
-    end subroutine compute_maxgust
-
-  end subroutine collect_output
+#include <wlh.inc>
 
 end module mod_lm_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

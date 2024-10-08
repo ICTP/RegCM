@@ -103,8 +103,10 @@ program mksurfdata
   integer(ik4) , parameter :: numurbl = 3
 
 #ifdef CN
+#ifndef DYNPFT
   integer(ik4) , parameter :: noleap_yday_3h = 365*8
   integer(ik4) , parameter :: nyears = 2100-1850+1
+#endif
 #endif
 #ifdef DYNPFT
   integer(ik4) , parameter :: noleap_yday_3h = 365*8
@@ -125,7 +127,7 @@ program mksurfdata
   integer(ik4) :: istatus , ncid , ndim , nvar
   integer(ik4) , dimension(12) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
-  integer(ik4) :: islope2d , istddev2d
+  integer(ik4) :: imask2d , islope2d , istddev2d
   integer(ik4) :: ipft2dvar , iglc2dvar , iwet2dvar , ilake2dvar , iurban2dvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
@@ -344,6 +346,17 @@ program mksurfdata
     igstop = iysg-2*nsg
     call setup_pack(2,jx-2,2,iy-2)
   end if
+  do i = 1 , iysg
+    if ( i < igstart .or. i > igstop ) then
+      xmask(:,i) = 0.0_rkx
+    else
+      do j = 1 , jxsg
+        if ( j < jgstart .or. j > jgstop ) then
+          xmask(j,i) = 0.0_rkx
+        end if
+      end do
+    end if
+  end do
   ngcells = count(xmask(jgstart:jgstop,igstart:igstop) > 0.5_rkx)
   call closefile(ncid)
   !
@@ -484,6 +497,12 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
   istatus = nf90_put_att(ncid, ipft2dvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
+
+  istatus = nf90_def_var(ncid, 'regcm_mask', regcm_vartype, &
+    ivdims(1:2), imask2d)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var regcm_mask')
+  istatus = nf90_put_att(ncid, imask2d, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add regcm_mask Fill Value')
 
   istatus = nf90_def_var(ncid, 'slope', regcm_vartype, ivdims(1:2), islope2d)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
@@ -849,15 +868,18 @@ program mksurfdata
     hptop = real(ptop*10.0_rkx)
     call write_vertical_coord(ncid,rsigx,hptop,izvar)
   else
-    call model_zitah(zita)
-    ax = real(md_ak(zita),rk4)
-    bx = real(md_bk(zita),rk4)
+    call model_zitah(zita,mo_ztop)
+    ax = real(md_ak(zita,mo_ztop,mo_h),rk4)
+    bx = real(md_bk(zita,mo_ztop,mo_a0),rk4)
     call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
   end if
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
   ipnt = 1
   call write_var2d_static(ncid,'xlat',rxlat,ipnt,illvar)
   call write_var2d_static(ncid,'xlon',rxlon,ipnt,illvar)
+
+  istatus = nf90_put_var(ncid, imask2d, xmask)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write mask')
 
   imondate = irefdate
   do it = 1 , 12
@@ -1520,9 +1542,9 @@ program mksurfdata
       hptop = real(ptop*10.0_rkx)
       call write_vertical_coord(ncid,rsigx,hptop,izvar)
     else
-      call model_zitah(zita)
-      ax = md_ak(zita)
-      bx = md_bk(zita)
+      call model_zitah(zita,mo_ztop)
+      ax = real(md_ak(zita,mo_ztop,mo_h),rk4)
+      bx = real(md_bk(zita,mo_ztop,mo_a0),rk4)
       call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
     end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)

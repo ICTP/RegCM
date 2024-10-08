@@ -1,0 +1,11 @@
+{
+    "frequency": {
+        "1hr": "sampled hourly",
+        "3hr": "3 hourly mean samples",
+        "6hr": "6 hourly mean samples",
+        "day": "daily mean samples",
+        "fx": "fixed (time invariant) field",
+        "mon": "monthly mean samples",
+        "yr": "annual mean samples"
+    }
+}

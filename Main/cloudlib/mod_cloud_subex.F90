@@ -50,16 +50,20 @@ module mod_cloud_subex
     real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0 , qcrit
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) , intent(in) :: tc0
-    real(rkx) :: rh0adj , rhrng
     integer(ik4) :: i , j , k
+    real(rkx) :: rh0adj , rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
-
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+      local(rh0adj,rhrng)
+#else
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+#endif
           if ( qc(j,i,k) > qcrit(j,i) ) then
             ! Use Pal et al. formula
             ! rhrng = rh(j,i,k)
@@ -73,7 +77,7 @@ module mod_cloud_subex
               !    (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
               ! Adjusted for Sundqvist
               rh0adj = d_one - &
-                  (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+                (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
             end if
             if ( rhrng <= rh0adj ) then
               fcc(j,i,k) = d_zero
@@ -88,8 +92,10 @@ module mod_cloud_subex
           else
             fcc(j,i,k) = d_zero
           end if
+#ifndef STDPAR
         end do
       end do
+#endif
     end do
     !
     ! Correction:
@@ -99,17 +105,13 @@ module mod_cloud_subex
     ! in the CCSM3 Climate Model, J. Climate
     !
     if ( larcticcorr ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! clouds below 750hPa, extremely cold conditions,
-            !  when no cld microphy
-            if ( p(j,i,k) >= 75000.0_rkx .and. qv(j,i,k) <= 0.003_rkx ) then
-              fcc(j,i,k) = fcc(j,i,k) * &
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        ! clouds below 750hPa, extremely cold conditions,
+        !  when no cld microphy
+        if ( p(j,i,k) >= 75000.0_rkx .and. qv(j,i,k) <= 0.003_rkx ) then
+          fcc(j,i,k) = fcc(j,i,k) * &
                     max(0.15_rkx,min(d_one,qv(j,i,k)/0.003_rkx))
-            end if
-          end do
-        end do
+        end if
       end do
     end if
 

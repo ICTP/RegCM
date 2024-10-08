@@ -74,7 +74,7 @@ program sigma2p
   integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ppvarid , ip0varid
   integer(ik4) :: paivarid
   integer(ik4) :: jx , iy , kz , nt
-  real(rkx) :: ptop , dzita , ztop , htg
+  real(rkx) :: ptop , dzita , ztop , zh , a0 , htg
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
@@ -356,12 +356,14 @@ program sigma2p
     invarid(i) = i
     outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     if (nvdims(i) > 2) then
       istatus = nf90_def_var_filter(ncout, ivarid, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set filter for '//trim(varname))
     end if
+#endif
 #endif
     if (varname == 'plev') then
       istatus = nf90_put_att(ncout, ivarid, 'standard_name', 'pressure')
@@ -392,6 +394,14 @@ program sigma2p
 
   if ( is_icbc .and. iodyn == 3 ) then
     istatus = nf90_get_att(ncid, nf90_global, 'zita_height_top', ztop)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_height_top')
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_atmosphere_h', zh)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_atmosphere_h')
+    istatus = nf90_get_att(ncid, nf90_global, 'zita_factor_a0', a0)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading attribute zita_factor_a0')
     allocate(fm(jx,iy,kz+1), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'fm')
     allocate(z0(jx,iy,kz), stat=istatus)
@@ -405,8 +415,8 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'zita')
     allocate(zitah(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zitah')
-    call model_zitaf(zita)
-    call model_zitah(zitah)
+    call model_zitaf(zita,ztop)
+    call model_zitah(zitah,ztop)
   end if
 
   if ( has_t ) then
@@ -424,9 +434,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable hgt')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, ihgvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for hgt')
+#endif
 #endif
     istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
@@ -444,9 +456,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, imslpvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for mslp')
+#endif
 #endif
     istatus = nf90_put_att(ncout, imslpvar, 'standard_name', &
                      'air_pressure_at_sea_level')
@@ -468,9 +482,11 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
+#ifdef NCFILTERS_AVAIL
     istatus = nf90_def_var_filter(ncout, irhvar, &
                   ncfilter,ncfilter_nparams,ncfilter_params)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set filter for rh')
+#endif
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
@@ -539,7 +555,7 @@ program sigma2p
         do i = 1 , iy
           do j = 1 , jx
             htg = topo(j,i)
-            fm(j,i,k) = md_fmz_h(zita(k),htg)
+            fm(j,i,k) = md_fmz_h(zita(k),htg,ztop,zh,a0)
           end do
         end do
       end do
@@ -547,7 +563,7 @@ program sigma2p
         do i = 1 , iy
           do j = 1 , jx
             htg = topo(j,i)
-            z0(j,i,k) = md_zeta_h(zitah(k),htg)
+            z0(j,i,k) = md_zeta_h(zitah(k),htg,ztop,zh,a0)
           end do
         end do
       end do

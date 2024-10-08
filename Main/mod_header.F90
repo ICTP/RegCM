@@ -49,7 +49,7 @@ module mod_header
     if ( myid == iocpu ) then
       call cpu_time(start_time)
       last_time = start_time
-      write (stdout,"(/,2x,'This is RegCM 5')")
+      write (stdout,"(/,2x,'This is RegCM development version')")
       write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
     end if
 
@@ -87,20 +87,20 @@ module mod_header
     end if
   end subroutine header
 
-  subroutine checktime(myid,ctime)
+  subroutine checktime(myid,ctime,period)
     implicit none
     integer(ik4) , intent(in) :: myid
-    character(len=*) , intent(in) :: ctime
+    character(len=*) , intent(in) :: ctime , period
     integer(ik4) :: iunit
     real(rk4) :: check_time
     if ( myid == iocpu ) then
       call cpu_time(check_time)
-      write (stdout,*) 'Elapsed seconds of run for this month : ', &
-                (check_time-last_time)
+      write (stdout,*) 'Elapsed seconds of run for this ',trim(period), &
+            ' : ', (check_time-last_time)
       open(newunit=iunit,file=trim(ctime)//'.txt',form='formatted', &
            status='replace',action='write')
-      write(iunit,*) 'Elapsed seconds of run for this month : ', &
-            (check_time-last_time)
+      write(iunit,*) 'Elapsed seconds of run for this ',trim(period), &
+            ' : ', (check_time-last_time)
       close(iunit)
       last_time = check_time
     end if

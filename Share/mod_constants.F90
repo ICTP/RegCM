@@ -191,17 +191,17 @@ module mod_constants
   real(rkx) , parameter :: spcpice = 2.11727e3_rkx ! fresh ice
 
   ! Latent heats (Joules/kg)
-  ! Water vaporization latent heat at T 0 Celsius
 #ifdef RCEMIP
   real(rkx) , parameter :: wlhv = 2.501e6_rkx
   real(rkx) , parameter :: wlhf = 3.337e5_rkx
   real(rkx) , parameter :: wlhs = 2.834e6_rkx
 #else
-  real(rkx) , parameter :: wlhv = 2.50080e6_rkx
+  ! Water vaporization latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhv = 2500610.0_rkx
   ! Water fusion latent heat at T 0 Celsius
-  real(rkx) , parameter :: wlhf = 0.33355e6_rkx
+  real(rkx) , parameter :: wlhf = 333560.5_rkx
   ! Water sublimation latent heat at T 0 Celsius
-  real(rkx) , parameter :: wlhs = wlhv + wlhf
+  real(rkx) , parameter :: wlhs = wlhv + wlhf ! 2834170.5
 #endif
   ! Reverse helpers
   real(rkx) , parameter :: rwlhv = d_one/wlhv
@@ -340,6 +340,11 @@ module mod_constants
   ! Ratio of mean molecular weight of water to that of dry air
   real(rkx) , parameter :: ep2 = amw/amd   ! 0.6219770795
   real(rkx) , parameter :: rep2 = amd/amw  ! 1.6077762876
+  ! Constant defined for calculation of latent heating
+  real(rkx) , parameter :: xlv0 = 3.15E6_rkx
+  real(rkx) , parameter :: xlv1 = 2370.0_rkx
+  real(rkx) , parameter :: xls0 = 2.905E6_rkx
+  real(rkx) , parameter :: xls1 = 259.532_rkx
 
   ! Terminal velocity constants
   real(rkx) , parameter :: avt = 841.99667_rkx
@@ -373,24 +378,6 @@ module mod_constants
   real(rkx) , parameter :: bice = 22.452_rkx
   real(rkx) , parameter :: cice = 6133.0_rkx
   real(rkx) , parameter :: dice = 0.61_rkx
-
-  ! GTS system constants
-  real(rkx) , parameter :: egravgts = egrav*d_100
-  real(rkx) , parameter :: regravgts = d_one/egravgts
-  real(rkx) , parameter :: cpdgts = cpd*1.0e4_rkx
-  real(rkx) , parameter :: gocp = egravgts/cpdgts
-  real(rkx) , parameter :: sslp = stdp*d_10 ! dynes/cm^2
-  real(rkx) , parameter :: rsslp = d_one/sslp
-  real(rkx) , parameter :: stebol = sigm*d_1000
-  real(rkx) , parameter :: rgsslp = d_half/(egravgts*sslp)
-  ! Effective molecular weight of dry air (kg/mol)
-  real(rkx) , parameter :: amdk = amd*d_r1000
-  ! Avogadro Constant in lit/cm3
-  real(rkx) , parameter :: avogadrl = navgdr*d_1000
-
-  ! Radiation constants
-  real(rkx) , parameter :: dpfco2 = 5.0e-3_rkx
-  real(rkx) , parameter :: dpfo3 = 2.5e-3_rkx
 
   ! Pressure gradient force calculations (Why not standard atmosphere?)
   real(rkx) , parameter :: t00pg = 287.0_rkx       ! stdt ?

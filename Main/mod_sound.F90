@@ -76,6 +76,7 @@ module mod_sound
   real(rkx) :: cs , bp , bm , bpxbm , bpxbp
   real(rkx) :: dtsmax
   real(rkx) :: rnpts
+  logical :: lperi , lperj
 
   contains
 
@@ -125,6 +126,9 @@ module mod_sound
       rnpts = d_one/real(nicross*njcross,rkx)
     end if
 
+    lperi = ma%crmflag
+    lperj = ma%crmflag .or. ma%bandflag
+
     if ( ifupr == 1 ) then
       !
       ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
@@ -168,9 +172,7 @@ module mod_sound
 
   subroutine sound
     implicit none
-    real(rkx) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
-      dppdp0 , dpterm , dts , ppold , rho , rofac , maxcfl , rll ,   &
-      rkk , ri , rj
+    real(rkx) :: cfl , check , dts , maxcfl , rll , rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=*) , parameter :: f99003 =    &
@@ -181,8 +183,10 @@ module mod_sound
     !
     real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff
-    real(rkx) :: loc_abar , loc_rhon
-    integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
+    real(rkx) :: loc_abar , loc_rhon , rho , dppdp0 , chh , rofac
+    real(rkx) :: ppold , cddtmp , cjtmp , cpm , dpterm
+    real(rkx) :: denom
+    integer(ik4) :: ll , kk , nsi , inn , nsj , jnn
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -273,9 +277,14 @@ module mod_sound
       !
       ! Advance u and v
       !
+#ifdef STDPAR
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2, k = 1:kz ) &
+        local(rho,dppdp0,chh)
+#else
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
+#endif
             ! Predict u and v
             rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
                                 atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
@@ -288,16 +297,18 @@ module mod_sound
             ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
             ! 2.3.3, 2.3.4 in the MM5 manual.
             !
-            atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
-                  chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
-                         atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
-                         atm0%dprddx(j,i,k) * dppdp0)
-            atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
-                  chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
-                         atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
-                         atm0%dprddy(j,i,k) * dppdp0)
+            atmc%u(j,i,k) = atmc%u(j,i,k) -                        &
+                    chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
+                           atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
+                           atm0%dprddx(j,i,k) * dppdp0)
+            atmc%v(j,i,k) = atmc%v(j,i,k) -                        &
+                    chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
+                           atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
+                           atm0%dprddy(j,i,k) * dppdp0)
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
       do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
         atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,pc_total)
@@ -379,8 +390,12 @@ module mod_sound
       do k = 2 , kz
         kp1 = min(k+1,kz)
         km1 = k-1
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(rofac)
+#else
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             tk(j,i,k) = (d_half * atm0%ps(j,i) * atm0%t(j,i,k)) / &
                         (xgamma * atm0%pr(j,i,k) * atm2%t(j,i,k) * rpsb(j,i))
             rofac = (dsigma(km1)*atm0%rho(j,i,k) +    &
@@ -417,7 +432,9 @@ module mod_sound
                           atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
                           atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
                         ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
       !
@@ -472,12 +489,18 @@ module mod_sound
       ! Upward calculation of coefficients
       !
       do k = kz , 2 , -1
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(denom)
+#else
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
             e(j,i,k-1) = -c(j,i,k) / denom
             f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
+#ifndef STDPAR
           end do
+#endif
         end do
       end do
       !
@@ -490,12 +513,18 @@ module mod_sound
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
       if ( ifupr == 1 ) then
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 ) local(denom)
+#else
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             denom = (cdd(j,i,1) + cj(j,i,1)) * bp
             estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
             astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
+#ifndef STDPAR
           end do
+#endif
         end do
         call grid_collect(estore,estore_g,jci1,jci2,ici1,ici2)
         call bcast(estore_g)
@@ -554,16 +583,22 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(nsi,inn,nsj,jnn)
+#else
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             do nsi = -6 , 6
-              inn = inrange_i(i+nsi)
+              inn = inrange(i+nsi,icross1,icross2,lperi)
               do nsj = -6 , 6
-                jnn = inrange_j(j+nsj)
+                jnn = inrange(j+nsj,jcross1,jcross2,lperj)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
+#ifndef STDPAR
           end do
+#endif
         end do
       end if
       !
@@ -672,9 +707,14 @@ module mod_sound
       !
       ! Now compute the new pressure
       !
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(ppold,cddtmp,cjtmp,cpm,dpterm)
+#else
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
+#endif
             ppold = pi(j,i,k)
             cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                      egrav * dts / (atm0%ps(j,i)*dsigma(k))
@@ -690,8 +730,10 @@ module mod_sound
             dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
+#ifndef STDPAR
           end do
         end do
+#endif
       end do
 
       ! End of time loop
@@ -721,48 +763,20 @@ module mod_sound
 
 #include <cpmf.inc>
 
-    subroutine smallfilter
+    pure integer(ik4) function inrange(i,i1,i2,lper)
+!$acc routine seq
       implicit none
-      integer :: i , j , k
-      real(rkx) , dimension(jcii1:jcii2,icii1:icii2) :: e2
-      call exchange(e,1,jci1,jci2,ici1,ici2,1,kz)
-      do k = 1 , kz
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          e2(j,i) = 0.125_rkx * (e(j-1,i,k) + e(j+1,i,k) + &
-                                 e(j,i-1,k) + e(j,i+1,k)) - &
-                    0.5_rkx   * e(j,i,k)
-        end do
-        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-          e(j,i,k) = e(j,i,k) + 0.6_rkx * e2(j,i)
-        end do
-      end do
-    end subroutine smallfilter
-
-    integer(ik4) function inrange_i(i) result(inrange)
-      implicit none
-      integer(ik4) , intent(in) :: i
+      integer(ik4) , intent(in) :: i , i1 , i2
+      logical , intent(in) :: lper
       inrange = i
-      if ( ma%crmflag ) then
-        if ( i > icross2 ) inrange = icross1 + (i - icross2)
-        if ( i < icross1 ) inrange = icross2 - (icross1 - i)
+      if ( lper ) then
+        if ( i > i2 ) inrange = i1 + (i - i2)
+        if ( i < i1 ) inrange = i2 - (i1 - i)
       else
-        if ( i > icross2-1 ) inrange = icross2 -1
-        if ( i < icross1+1 ) inrange = icross1 +1
+        if ( i > i2-1 ) inrange = i2 -1
+        if ( i < i1+1 ) inrange = i1 +1
       end if
-    end function inrange_i
-
-    integer(ik4) function inrange_j(j) result(inrange)
-      implicit none
-      integer(ik4) , intent(in) :: j
-      inrange = j
-      if ( ma%crmflag .or. ma%bandflag ) then
-        if ( j > jcross2 ) inrange = jcross1 + (j - jcross2)
-        if ( j < jcross1 ) inrange = jcross2 - (jcross1 - j)
-      else
-        if ( j > jcross2-1 ) inrange = jcross2 -1
-        if ( j < jcross1+1 ) inrange = jcross1 +1
-      end if
-    end function inrange_j
+    end function inrange
 
   end subroutine sound
 

@@ -184,6 +184,7 @@ module mod_ocn_common
       call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
     emiss = ocean_emissivity(um10)
+    ! emiss = ocn_sfcemiss
     where ( mod(mask,2) > 0 )
       emiss = ice_sfcemiss
     end where
@@ -327,6 +328,7 @@ module mod_ocn_common
         end do
       end if
       emiss = ocean_emissivity(um10)
+      ! emiss = ocn_sfcemiss
       where ( mask == 2 )
         emiss = ice_sfcemiss
       end where
@@ -367,9 +369,8 @@ module mod_ocn_common
     real(rk8) , parameter :: cpaper = -0.037_rk8
     real(rk8) , parameter :: dpaper = 2.36_rk8
     real(rk8) , parameter :: bipaper = 0.0347_rk8 ! Seviri Channel 9
-    real(rk8) :: angle
-    real(rk8) :: x , xspeed
-    integer :: i
+    real(rk8) :: angle , xspeed
+    integer(ik4) :: i
     xspeed = max(0.1_rk8,min(20.0_rk8,speed))
     ocean_emissivity = 0.01_rk8 !  Baseline
     ! Integrate

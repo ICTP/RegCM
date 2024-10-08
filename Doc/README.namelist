@@ -327,6 +327,8 @@
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
+                        !   3 => GFS 2011
+                        !   4 => MYJ
  idiffu   =          1, ! Diffusion scheme
                         !   0 => No diffusion
                         !   1 => MM5 4th order interior/ 2nd order boundary
@@ -336,6 +338,7 @@
  icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo
                         !   2 => Grell
+                        !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
@@ -346,6 +349,7 @@
                         !   2 => Explicit moisture Nogherotto/Tompkins
                         !   3 => Explicit moisture WSM5
                         !   4 => Explicit moisture WSM7
+                        !   5 => Explicit moisture WDM7
  iocncpl =          0,  ! Ocean SST from coupled Ocean Model through RegESM
                         !   1 => Coupling activated
  iwavcpl =          0,  ! Ocean roughness from coupled Wave Model through RegESM
@@ -368,6 +372,8 @@
                         !   1 => 2.67*(re**d_rfour) - 2.57
                         !   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
                         !   3 => COARE formulation as in bulk flux above
+                        !   4 => Modifications presented in Wang, Gao et al
+                        !        https://doi.org/10.1080/16742834.2020.1697615
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature
@@ -379,13 +385,19 @@
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
+ iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
  iconvlwp =          0, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
  icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
-                        !   2 : digital cloud (0/1) on condensate presence
+                        !   2 : Thompson scheme
+                        !   3 : Gultepe-Isaac scheme
+                        !   4 : Texeira scheme
+                        !   5 : Tompkins linearized scheme
+                        !   6 : Echam5 like scheme
+                        !   7 : Digital : cloud/no cloud on total condensate
                         ! ===================================================
                         ! NOTE: Using the NoTo microphysics (ipptls=2) the
                         !       Xu-Randall scheme (icldfrac=1) is recommended
@@ -464,8 +476,8 @@
  mo_nadv = 3,       ! Number of advection loops for phisics loop
  mo_nsound = 5,     ! Number of sound loops for advection loop
  mo_nzfilt = 3,     ! # of top levels where W filter is active (default kz/5)
- mo_divfilter = .false. ! Do divergence filtering
- mo_anu2 = 0.6,         ! Moloch factor for divergence filtering
+ mod_divfilter = .false. ! Do divergence filtering
+ mo_anu2 = 0.6,          ! Moloch factor for divergence filtering
  /
 !
 ! Hydrostatic core option

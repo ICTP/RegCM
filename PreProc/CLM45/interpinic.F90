@@ -179,7 +179,7 @@ program interpinic
   write(stdout,*) 'Input column    : ',inco
   write(stdout,*) 'Input pft       : ',inpft
   write(stdout,*) 'Input levgrnd   : ',ingrd
-  write(stdout,*) ''
+  write(stdout,*) ' '
 
   ongc = dlen(ncout,'gridcell')
   onlu = dlen(ncout,'landunit')
@@ -193,7 +193,7 @@ program interpinic
   write(stdout,*) 'Output column   : ',onco
   write(stdout,*) 'Output pft      : ',onpft
   write(stdout,*) 'Output levgrnd  : ',ongrd
-  write(stdout,*) ''
+  write(stdout,*) ' '
 
   if ( ingrd /= ongrd ) then
     write (stderr,*) 'ERROR: levgrnd dimension do not match'

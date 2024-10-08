@@ -450,8 +450,9 @@ module mod_intldtr
     end if
     rincx = d_one/incx
     rincy = d_one/incy
+    drcm = ds*sqrt(2.0_rk8)
     if ( present(rdem) ) then
-      drcm = rdem*ds*sqrt(2.0_rk8)
+      drcm = rdem*drcm
     end if
 
     ! yy and xx are the exact index values of a point j,i of the

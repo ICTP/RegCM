@@ -89,7 +89,7 @@ module mod_cu_tiedtke
   real(rkx) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
   real(rkx) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
-        pmflxr , pccn,zcvrout
+        pmflxr , pccn , zcvrout
   real(rkx) , pointer , dimension(:) :: prsfc , pssfc , &
         ptopmax , xphfx , xpqfx
   real(rkx) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
@@ -174,9 +174,7 @@ module mod_cu_tiedtke
     call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
-    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-      call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
-    end if
+    call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
     call getmem2d(zcvrout,1,nipoi,1,kz,'mod_cu_tiedtke:zcvrout')
     call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
@@ -637,12 +635,11 @@ module mod_cu_tiedtke
     intent(out) :: zlude
     intent (inout) ptopmax
     integer(ik4) , dimension(kbdim) :: itopec2
-    integer(ik4) :: ilevmin , it , jk , jl , jt
+    integer(ik4) :: ilevmin , jk , jl , jt
     logical , dimension(kbdim) :: locum
     real(rkx) , dimension(kbdim,klev) :: zlu , zmfd , zqp1 , zqsat , zqu , &
-      zqude , ztp1 , ztu , ztvp1 , zup1 , zvp1 , zxp1, zcvrout
+      zqude , ztp1 , ztu , ztvp1 , zup1 , zvp1 , zxp1 , zcvrout
     real(rkx) , dimension(kbdim) :: zrain , ztopmax
-    real(rkx) :: zxip1 , zxlp1
     integer(ik4) , dimension(kbdim) :: kbotsc
     logical , dimension(kbdim) :: ldsc
     real(rkx) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
@@ -650,6 +647,8 @@ module mod_cu_tiedtke
     real(rkx) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
     real(rkx) , dimension(kbdim) :: pcape
     real(rkx) , dimension(kbdim,klev+1) :: pqhfl , pahfs
+    integer(ik4) :: it
+    real(rkx) :: zxlp , zxip
 
     lookupoverflow = .false.
     !
@@ -658,53 +657,70 @@ module mod_cu_tiedtke
     ! --------------------------------------
     !
     if ( iconv /= 4 ) then
+#ifdef STDPAR
+      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(it,zxlp,zxip)
+#else
       do jk = 1 , klev
         do jl = 1 , kproma
+#endif
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
+          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
           it = int(ztp1(jl,jk)*d_1000)
+#ifdef DEBUG
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
-            write(stderr,'(a,f12.4,a,i8)') &
-              '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
-              ' at ', rcmtimer%str( )
             lookupoverflow = .true.
           end if
+#endif
           it = max(min(it,jptlucu2),jptlucu1)
           zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
           zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
           zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
           ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
+#ifndef STDPAR
         end do
+#endif
       end do
       if ( lookupoverflow ) then
+        do jk = 1 , klev
+          do jl = 1 , kproma
+            it = int(ztp1(jl,jk)*d_1000)
+            if ( it < jptlucu1 .or. it > jptlucu2 ) then
+              write(stderr,'(a,f12.4,a,i8)') &
+                '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
+                ' at ', rcmtimer%str( )
+            end if
+          end do
+        end do
         call fatal(__FILE__,__LINE__, &
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
     else
+#ifdef STDPAR
+      do concurrent ( jl = 1:kproma, jk = 1:klev ) local(zxlp,zxip)
+#else
       do jk = 1 , klev
         do jl = 1 , kproma
+#endif
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtc
           zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dtc)
-          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
-          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
+          zxlp = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtc)
+          zxip = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtc)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtc
           zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtc
-          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
+          zxp1(jl,jk) = max(d_zero,zxlp+zxip)
+#ifndef STDPAR
         end do
+#endif
       end do
     end if
 
-    do jt = 1 , ktrac
-      do jk = 1 , klev
-        do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtc)
-        end do
-      end do
+    do concurrent ( jl = 1:kproma, jk = 1:klev, jt = 1:ktrac)
+      zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtc)
     end do
 
     do jl = 1 , kproma
@@ -4797,13 +4813,11 @@ module mod_cu_tiedtke
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
-    do k = 1 , nk
-      do n = n1 , n2
-        xtent(n,k) = tent(n,k)
-        xtenq(n,k) = tenq(n,k)
-        xtenu(n,k) = tenu(n,k)
-        xtenv(n,k) = tenv(n,k)
-      end do
+    do concurrent ( n = n1:n2, k = 1:nk )
+      xtent(n,k) = tent(n,k)
+      xtenq(n,k) = tenq(n,k)
+      xtenu(n,k) = tenu(n,k)
+      xtenv(n,k) = tenv(n,k)
     end do
     call initcum
     !---------------------------
@@ -4930,14 +4944,12 @@ module mod_cu_tiedtke
         rfl(n) = rfl(n) + dmfup(n,k)
       end do
     end do
-    do k = 1 , nk
-      do n = n1 , n2
-        mfd(n,k) = d_zero
-        mfds(n,k) = d_zero
-        mfdq(n,k) = d_zero
-        dmfdp(n,k) = d_zero
-        dpmel(n,k) = d_zero
-      end do
+    do concurrent ( n = n1:n2 , k = 1:nk )
+      mfd(n,k) = d_zero
+      mfds(n,k) = d_zero
+      mfdq(n,k) = d_zero
+      dmfdp(n,k) = d_zero
+      dpmel(n,k) = d_zero
     end do
     !----------------------------------
     ! 5. Cumulus downdraft calculations
@@ -5609,7 +5621,7 @@ module mod_cu_tiedtke
       real(rkx) , dimension(np) :: wmax
       real(rkx) , dimension(np) :: xph
       logical , dimension(np) :: llflag
-      integer(ik4) :: icall , ik , k , n
+      integer(ik4) :: icall , ik , k , n , km1
       real(rkx) :: zs
       !--------------------------------------------------
       ! 1. Specify large scale parameters at half levels
@@ -5660,18 +5672,17 @@ module mod_cu_tiedtke
       ! 2. Initialize values for updrafts and downdrafts
       ! ------------------------------------------------
       do k = 1 , nk
-        ik = k - 1
-        if ( k==1 ) ik = 1
         do n = n1 , n2
+          km1 = max(k-1,1)
           tu(n,k) = tf(n,k)
           td(n,k) = tf(n,k)
           qu(n,k) = qf(n,k)
           qd(n,k) = qf(n,k)
           lu(n,k) = d_zero
-          uu(n,k) = u(n,ik)
-          ud(n,k) = u(n,ik)
-          vu(n,k) = v(n,ik)
-          vd(n,k) = v(n,ik)
+          uu(n,k) = u(n,km1)
+          ud(n,k) = u(n,km1)
+          vu(n,k) = v(n,km1)
+          vd(n,k) = v(n,km1)
           ilab(n,k) = 0
           cvrainout(n,k) = d_zero
         end do
@@ -7185,28 +7196,24 @@ module mod_cu_tiedtke
       end do
       kt1 = nk350
       kt2 = nk060
-      do k = 1 , nk
-        do n = n1 , n2
-          xtu(n,k) = tu(n,k)
-          xqu(n,k) = qu(n,k)
-          xlu(n,k) = lu(n,k)
-          xuu(n,k) = uu(n,k)
-          xvu(n,k) = vu(n,k)
-          iilab(n,k) = ilab(n,k)
-          xcape(n,k) = d_zero
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        xtu(n,k) = tu(n,k)
+        xqu(n,k) = qu(n,k)
+        xlu(n,k) = lu(n,k)
+        xuu(n,k) = uu(n,k)
+        xvu(n,k) = vu(n,k)
+        iilab(n,k) = ilab(n,k)
+        xcape(n,k) = d_zero
       end do
       !-------------------------------------------
       ! 1. Prepare fields by linear interpolation
       !    of specific humidity and static energy
       ! ------------------------------------------
-      do k = 1 , nk
-        do n = n1 , n2
-          wu2h(n,k) = d_zero
-          xs(n,k) = cpd*t(n,k) + geo(n,k)
-          xqenh(n,k) = qf(n,k)
-          xsenh(n,k) = cpd*tf(n,k) + geof(n,k)
-        end do
+      do concurrent ( n = n1:n2, k = 1:nk )
+        wu2h(n,k) = d_zero
+        xs(n,k) = cpd*t(n,k) + geo(n,k)
+        xqenh(n,k) = qf(n,k)
+        xsenh(n,k) = cpd*tf(n,k) + geof(n,k)
       end do
       do kk = nk , kt1 , -1
         !

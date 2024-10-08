@@ -96,7 +96,6 @@ module mod_atm_interface
   real(rkx) , pointer , public , dimension(:,:) :: totcf
   real(rkx) , pointer , public , dimension(:,:) :: flw
   real(rkx) , pointer , public , dimension(:,:) :: fsw
-  real(rkx) , pointer , public , dimension(:,:) :: flwu
   real(rkx) , pointer , public , dimension(:,:) :: flwd
   real(rkx) , pointer , public , dimension(:,:,:) :: cldfra
   real(rkx) , pointer , public , dimension(:,:,:) :: cldlwc
@@ -580,33 +579,32 @@ module mod_atm_interface
       type(atmosphere) , intent(inout) :: atm
       call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
+#ifdef RCEMIP
+      call getmem3d(atm%ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:ux')
+      call getmem3d(atm%vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#else
       call getmem3d(atm%ux,jce1gb,jce2gb,ice1ga,ice2ga,1,kz,'atmstate:ux')
       call getmem3d(atm%vx,jce1ga,jce2ga,ice1gb,ice2gb,1,kz,'atmstate:vx')
+#endif
+      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
-      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
+      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
+      call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
+
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
-      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
+      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
-      call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
-      call getmem3d(atm%zeta,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:zeta')
       call getmem3d(atm%zetaf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:zetaf')
       call getmem3d(atm%dz,jce1,jce2,ice1,ice2,1,kz,'atmstate:dz')
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
-      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-#ifdef RCEMIP
-      call getmem3d(atm%tten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'atmstate:tten')
-      call getmem3d(atm%uten,jdi1ga,jdi2ga,ici1ga,ici2ga,1,kz,'atmstate:uten')
-      call getmem3d(atm%vten,jci1ga,jci2ga,idi1ga,idi2ga,1,kz,'atmstate:vten')
-      call getmem4d(atm%qxten,jci1ga,jci2ga,ici1ga,ici2ga, &
-              1,kz,1,nqx,'atmstate:qxten')
-#else
+
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
       call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
       call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
       call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
-#endif
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
         call getmem3d(atm%tketen,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tketen')
@@ -852,6 +850,8 @@ module mod_atm_interface
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rmoist')
+      call getmem3d(dom%rts,jde1,jde2,ide1,ide2, &
+                    1,num_soil_layers,'storage:rts')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
@@ -930,6 +930,12 @@ module mod_atm_interface
       call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
       call getmem2d(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
+      if ( ibltyp == 4 ) then
+        call getmem2d(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
+        call getmem2d(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
+        call getmem2d(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
+        call getmem2d(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
+      end if
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax,a0)
@@ -943,6 +949,9 @@ module mod_atm_interface
         call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
         if ( icldmstrat == 1 ) then
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
+        end if
+        if ( ibltyp == 4 ) then
+          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       else
         call getmem3d(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
@@ -979,6 +988,9 @@ module mod_atm_interface
           call assignpnt(a0%dzf,atms%dzq)
         end if
         call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
+        if ( ibltyp == 4 ) then
+          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+        end if
       end if
       call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
@@ -1098,8 +1110,6 @@ module mod_atm_interface
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem3d(tsoi,jci1,jci2, &
                            ici1,ici2,1,num_soil_layers,'storage:tsoi')
-
-
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
@@ -1120,9 +1130,6 @@ module mod_atm_interface
       call getmem2d(totcf,jci1,jci2,ici1,ici2,'storage:totcf')
       call getmem2d(flw,jci1,jci2,ici1,ici2,'storage:flw')
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
-#ifdef CLM45
-      call getmem2d(flwu,jci1,jci2,ici1,ici2,'storage:flwu')
-#endif
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
       call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
       call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')

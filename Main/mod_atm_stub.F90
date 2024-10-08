@@ -326,39 +326,56 @@ module mod_atm_stub
     subroutine allocate_domain(dom)
       implicit none
       type(domain) , intent(out) :: dom
-      call getmem2d(dom%ht,jde1,jde2,ide1,ide2,'storage:ht')
+      call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
-      call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'storage:xlat')
-      call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
+      call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
+      call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
+      call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem2d(dom%area,jde1,jde2,ide1,ide2,'storage:area')
       if ( idynamic == 3 ) then
         call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
-        call getmem2d(dom%msfu,jde1,jde2,ide1,ide2,'storage:msfu')
-        call getmem2d(dom%msfv,jde1,jde2,ide1,ide2,'storage:msfv')
-        call getmem2d(dom%hx,jde1,jde2,ice1,ice2,'storage:hx')
-        call getmem2d(dom%hy,jce1,jce2,ide1,ide2,'storage:hy')
+        call getmem2d(dom%msfu,jde1ga,jde2ga,ide1,ide2,'storage:msfu')
+        call getmem2d(dom%msfv,jde1,jde2,ide1ga,ide2ga,'storage:msfv')
+        call getmem2d(dom%hx,jde1ga,jde2ga,ice1,ice2,'storage:hx')
+        call getmem2d(dom%hy,jce1,jce2,ide1ga,ide2ga,'storage:hy')
         call getmem2d(dom%ulat,jde1,jde2,ide1,ide2,'storage:ulat')
         call getmem2d(dom%ulon,jde1,jde2,ide1,ide2,'storage:ulon')
         call getmem2d(dom%vlat,jde1,jde2,ide1,ide2,'storage:vlat')
         call getmem2d(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
+        call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
+        call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
       else
-        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
-        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
         call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       end if
+      call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
                     1,num_soil_layers,'storage:rmoist')
+      call getmem3d(dom%rts,jde1,jde2,ide1,ide2, &
+                    1,num_soil_layers,'storage:rts')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
       call getmem2d(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
       call getmem2d(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
+      if ( lakemod == 1 ) then
+        call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
+      end if
+      if ( idynamic == 2 ) then
+        call getmem2d(dom%ef,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ef')
+        call getmem2d(dom%ddx,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddx')
+        call getmem2d(dom%ddy,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddy')
+        call getmem2d(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
+        call getmem2d(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
+        call getmem2d(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
+        call getmem2d(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
+        call getmem2d(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
+      end if
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
@@ -369,10 +386,14 @@ module mod_atm_stub
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
       call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
-      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem3d(sub%area,1,nnsg,jde1,jde2,ide1,ide2,'storage:area')
       call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem3d(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem3d(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
+      if ( lakemod == 1 ) then
+        call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
+      end if
     end subroutine allocate_domain_subgrid
 
     subroutine allocate_surfstate(sfs)
@@ -556,6 +577,7 @@ module mod_atm_stub
       call assignpnt(mddom%snowam,lm%snowam)
       call assignpnt(mddom%smoist,lm%smoist)
       call assignpnt(mddom%rmoist,lm%rmoist)
+      call assignpnt(mddom%rts,lm%rts)
       call assignpnt(mdsub%xlat,lm%xlat1)
       call assignpnt(mdsub%xlon,lm%xlon1)
       call assignpnt(mdsub%area,lm%area1)
@@ -899,7 +921,7 @@ module mod_atm_stub
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = zeta(j,i)
-        zlr = stdlrate(yeardayfrac(rcmtimer%idate),mddom%xlat(j,i))
+        zlr = stdlrate(yeardayfrac(rcmtimer%idate),dayspy,mddom%xlat(j,i))
         ! zlr = -lrate
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
         zz2 = egrav/(rgas*tv)

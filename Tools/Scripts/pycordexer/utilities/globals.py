@@ -1,12 +1,13 @@
 import os
+import glob
 import json
 import re
 import numpy as np
 
 # The current version of RegCM. This information will be used only if there is
 # no way to get it from the RegCM files
-ICTP_Model_fallback = 'ICTP-RegCM5-0'
-ICTP_Model_Version_fallback = 'v0'
+ICTP_Model_fallback = 'RegCM5-0'
+ICTP_Model_Version_fallback = 'v1-r1'
 
 # Get the path of the directory that contains the software
 MAIN_DIR = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/..')
@@ -86,6 +87,18 @@ with open(REGCM_VAR_FILE, 'r') as f:
     except:
         print('Error reading '+REGCM_VAR_FILE)
         raise(SyntaxError)
+
+CORDEX_CMIP6_DEFINITIONS = { }
+jsonfiles = glob.glob(os.path.join('variables','CORDEX-CMIP6*json'))
+for jf in jsonfiles:
+    with open(jf, 'r') as f:
+        try:
+            elements = json.load(f)
+        except:
+            print('Error reading ' + jf)
+            raise(SyntaxError)
+        for k in elements.keys( ):
+            CORDEX_CMIP6_DEFINITIONS[k] = elements[k]
 
 # Default fill values for NETCDF. These are the same values that you can find
 # from the netCDF4._default_fillvals dictionary

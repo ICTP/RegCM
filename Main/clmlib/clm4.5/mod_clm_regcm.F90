@@ -19,7 +19,7 @@ module mod_clm_regcm
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
   use mod_clm_varctl , only : ndep_nochem , luse_cru , crufile , lcru_rand
-  use mod_clm_varpar , only : nlevsoi
+  use mod_clm_varpar , only : nlevsoi , nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
@@ -90,6 +90,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,nlevgrnd))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -109,6 +110,18 @@ module mod_clm_regcm
         call assignpnt(adomain%rmoist,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
+    end if
+    if ( replacetemp ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rts,p2,ilev)
+        call assignpnt(adomain%rts,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+      if ( num_soil_layers < nlevgrnd ) then
+        do ilev = num_soil_layers+1 , nlevgrnd
+          adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
+        end do
+      end if
     end if
 
     write(rdate,'(a)') tochar10(rcmtimer%idate)
@@ -161,6 +174,7 @@ module mod_clm_regcm
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
+    allocate(adomain%rts(begg:endg,nlevgrnd))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
@@ -180,6 +194,18 @@ module mod_clm_regcm
         call assignpnt(adomain%rmoist,p1,ilev)
         call glb_c2l_gs(lndcomm,p2,p1)
       end do
+    end if
+    if ( replacetemp ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rts,p2,ilev)
+        call assignpnt(adomain%rts,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+      if ( num_soil_layers < nlevgrnd ) then
+        do ilev = num_soil_layers+1 , nlevgrnd
+          adomain%rts(:,ilev) = adomain%rts(:,num_soil_layers)
+        end do
+      end if
     end if
 
     write(rdate,'(a)') tochar10(rcmtimer%idate)
@@ -756,7 +782,6 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
-    call glb_l2c_ss(lndcomm,clm_l2a%eflx_lwrad_out,lms%urlwf)
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
@@ -767,8 +792,11 @@ module mod_clm_regcm
     ! The CLM outputs directly to RegCM the radiant Temperature.
     ! We fill it here the output not to leave it empy, but it is not
     ! used in computing the surface Long Wave Radiation
-    clm_l2a%notused = 1.0_rkx
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
+    !clm_l2a%notused = 1.0_rkx
+    !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
+    do concurrent ( n = 1:nnsg, j = jci1:jci2, i = ici1:ici2 )
+      if ( lm%ldmsk1(n,j,i) == 1 ) lms%emisv(n,j,i) = 1.0_rkx
+    end do
 
     !--------------------------------------------------
     ! From land to chemistry
@@ -831,6 +859,9 @@ module mod_clm_regcm
     end if
     !--------------------------------------------------
     ! Will fix
+    !clm_l2a%eflx_lwrad_out
+    !clm_l2a%emv
+    !clm_l2a%emg
     !clm_l2a%fsa
     !clm_l2a%nee
     !clm_l2a%rofliq

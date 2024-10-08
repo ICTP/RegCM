@@ -40,8 +40,8 @@ module mod_runparams
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
-  integer(ik4) , public , parameter :: iqr = 3
-  integer(ik4) , public , parameter :: iqi = 4
+  integer(ik4) , public , parameter :: iqi = 3
+  integer(ik4) , public , parameter :: iqr = 4
   integer(ik4) , public , parameter :: iqs = 5
   integer(ik4) , public , parameter :: iqg = 6
   integer(ik4) , public , parameter :: iqh = 7
@@ -136,7 +136,7 @@ module mod_runparams
   integer(ik4) , public :: ibltyp
   ! Diffusion scheme
   integer(ik4) , public :: idiffu
-  integer , public :: idif
+  integer(ik4) , public :: idif
   ! Lake model activation index
   integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
@@ -224,6 +224,7 @@ module mod_runparams
   ! Moisture from previous run
 
   logical , public :: replacemoist = .false.
+  logical , public :: replacetemp = .false.
 
   ! Number od split exp modes
 
@@ -514,9 +515,9 @@ module mod_runparams
   logical , public :: stats
   logical , public :: budget_compute
   ! Super saturation option
-  integer , public :: nssopt
+  integer(ik4) , public :: nssopt
   ! Choose the autoconversion paramaterization
-  integer , public :: iautoconv
+  integer(ik4) , public :: iautoconv
   ! Fall speed values
   real(rkx) , public :: vfqr
   real(rkx) , public :: vfqi
@@ -561,6 +562,7 @@ module mod_runparams
       call getmem1d(zita,1,kzp1,'mod_runparams:zita')
       call getmem1d(zitah,1,kz,'mod_runparams:zitah')
       call getmem1d(ffilt,1,kz,'mod_runparams:ffilt')
+!$acc enter data create(ffilt)
       call getmem1d(ak,1,kz,'mod_runparams:ak')
       call getmem1d(bk,1,kz,'mod_runparams:bk')
     end if
@@ -572,18 +574,21 @@ module mod_runparams
   end subroutine allocate_mod_runparams
 
   pure logical function iswater(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     iswater = .false.
     if (a > 13.5_rkx .and. a < 15.5_rkx) iswater = .true.
   end function
 
   pure logical function isocean(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     isocean = .false.
     if (a > 14.5_rkx .and. a < 15.5_rkx) isocean = .true.
   end function
 
   pure logical function islake(a)
+!$acc routine seq
     real(rkx) , intent(in) :: a
     islake = .false.
     if (a > 13.5_rkx .and. a < 14.5_rkx) islake = .true.

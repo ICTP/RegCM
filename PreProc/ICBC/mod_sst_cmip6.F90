@@ -67,14 +67,16 @@ module mod_sst_cmip6
       implicit none
       type(rcm_time_and_date) :: idate , idatef , idateo
       type(rcm_time_interval) :: tdif , step
-      procedure(read_cmip6_sst) , pointer :: read_func
+      procedure(read_cmip6_sst) , pointer :: read_func => null( )
       integer :: nsteps , n
 
       idateo = globidate1
       idatef = globidate2
       tdif = idatef-idateo
 
-      if ( dattyp == 'CMIP6' ) then
+      dattyp = ssttyp
+
+      if ( ssttyp == 'CMIP6' ) then
         select case (cmip6_model)
           case ('MPI-ESM1-2-HR')
             if ( calendar /= 'gregorian' ) then
@@ -192,7 +194,7 @@ module mod_sst_cmip6
           case default
             call die('sst','Unknown CMIP6 model: '//trim(cmip6_model),1)
         end select
-      else if ( dattyp == 'PMIP4' ) then
+      else if ( ssttyp == 'PMIP4' ) then
         select case (pmip4_model)
           case ('MPI-ESM1-2-LR')
             if ( calendar /= 'gregorian' ) then

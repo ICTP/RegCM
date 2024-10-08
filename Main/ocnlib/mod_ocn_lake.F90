@@ -52,9 +52,9 @@ module mod_ocn_lake
   logical , pointer , public , dimension(:) :: lakmsk
   integer(ik4) , pointer , dimension(:) :: idep , ilp
 
-  integer , public , parameter :: var_eta    = 1
-  integer , public , parameter :: var_hi     = 2
-  integer , public , parameter :: var_tlak   = 5
+  integer(ik4) , public , parameter :: var_eta    = 1
+  integer(ik4) , public , parameter :: var_hi     = 2
+  integer(ik4) , public , parameter :: var_tlak   = 5
 
   ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
   ! with surface as hot as 25.5 degrees.

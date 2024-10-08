@@ -980,6 +980,13 @@ contains
   end subroutine print_model_info
 end module bmiregcm
 
+#else
+
+module bmiregcm
+  implicit none
+  private
+end module bmiregcm
+
 #endif
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

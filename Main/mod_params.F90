@@ -313,7 +313,7 @@ module mod_params
     iseaice = 0
     iconvlwp = 1
 #ifdef RCEMIP
-    icldfrac = 2
+    icldfrac = 7
 #else
     icldfrac = 1
 #endif
@@ -821,6 +821,13 @@ module mod_params
                      'INPUT NAMELIST ICUP INCONSISTENT')
         end if
       end if
+      if ( any(icup == 3) ) then
+        if ( icup_lnd /= icup_ocn ) then
+          write(stderr,*) 'ERROR: BM scheme MUST be used on both Land and Ocean'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST ICUP INCONSISTENT')
+        end if
+      end if
 
       rewind(ipunit)
       read (ipunit, nml=cldparam, iostat=iretval, err=107)
@@ -943,7 +950,7 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED CUMULUS SCHEME')
       end if
-      if ( ibltyp < 0 .or. ibltyp > 2 ) then
+      if ( ibltyp < 0 .or. ibltyp > 4 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
@@ -1120,6 +1127,25 @@ module mod_params
 
       minfrq = 86400.0_rkx
 
+      if ( ifcordex ) then
+        ! Save file setup and file granularity left to user.
+        ifatm = .true.
+        ifrad = .true.
+        ifsrf = .true.
+        ifsts = .true.
+        ifshf = .false.
+        iflak = .false.
+        ifsub = .false.
+        ifopt = .false.
+        ifchem = .false.
+        if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
+        radfrq = 1.0_rkx
+        srffrq = 1.0_rkx
+        idiag = 0
+        icosp = 0
+        ! Variable selection in mod_ncout where list is
+      end if
+
       ! Check user input
       if ( srffrq <= 0.0_rkx ) srffrq = 3.0_rkx
       if ( atmfrq <= 0.0_rkx ) atmfrq = 6.0_rkx
@@ -1219,25 +1245,6 @@ module mod_params
     !
     ! Force to grant same output
     !
-    if ( ifcordex ) then
-      ! Save file setup and file granularity left to user.
-      ifatm = .true.
-      ifrad = .true.
-      ifsrf = .true.
-      ifsts = .true.
-      ifshf = .false.
-      iflak = .false.
-      ifsub = .false.
-      ifopt = .false.
-      ifchem = .false.
-      atmfrq = 6.0
-      radfrq = 1.0
-      srffrq = 1.0
-      lsync = .false. ! Faster this way
-      idiag = 0
-      icosp = 0
-      ! Variable selection in mod_ncout where list is
-    end if
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
@@ -1576,16 +1583,16 @@ module mod_params
     iqfrst = iqc
     if ( ipptls == 2 .or. ipptls == 3 ) then
       nqx = 5
-      iqlst  = iqs
+      iqlst = iqs
     else if ( ipptls == 4 ) then
       nqx = 7
-      iqlst  = iqh
+      iqlst = iqh
     else if ( ipptls == 5 ) then
       nqx = 10
       iqlst = iqh
     else
       nqx = 2
-      iqlst  = iqc
+      iqlst = iqc
     end if
 
     if ( irrtm == 1 ) then
@@ -1948,7 +1955,7 @@ module mod_params
       write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
       write(stdout,*) 'Final date of this run               : ', appdat
-      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,*) 'Total simulation length              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
       if ( idynamic == 1 ) then
         write(stdout,'(a,2f11.6)') ' Split explicit dtau = ', dtau
@@ -2003,7 +2010,8 @@ module mod_params
                             mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
                             mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                             mddom%coriol,mddom%snowam,mddom%smoist,        &
-                            mddom%rmoist,mddom%dhlake,base_state_ts0)
+                            mddom%rmoist,mddom%rts,mddom%dhlake,           &
+                            base_state_ts0)
     end if
     if ( moloch_do_test_1 ) then
       ifrayd = 0
@@ -2278,15 +2286,15 @@ module mod_params
     !-----compute half sigma levels.
     !
     if ( idynamic == 3 ) then
-      call model_zitaf(zita)
-      call model_zitah(zitah)
+      call model_zitaf(zita,mo_ztop)
+      call model_zitah(zitah,mo_ztop)
       mo_dzita = zita(kz)
-      sigma = sigmazita(zita)
-      hsigma = sigmazita(zitah)
-      fak = md_ak(zita)
-      fbk = md_bk(zita)
-      ak = md_ak(zitah)
-      bk = md_bk(zitah)
+      sigma = sigmazita(zita,mo_ztop)
+      hsigma = sigmazita(zitah,mo_ztop)
+      fak = md_ak(zita,mo_ztop,mo_h)
+      fbk = md_bk(zita,mo_ztop,mo_a0)
+      ak = md_ak(zitah,mo_ztop,mo_h)
+      bk = md_bk(zitah,mo_ztop,mo_a0)
       do k = 1 , kz
         dsigma(k) = (sigma(k+1) - sigma(k))
       end do
@@ -2414,6 +2422,10 @@ module mod_params
         write(stdout,'(a,f11.6)') '  czero     = ', czero
         write(stdout,'(a,f11.6)') '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
+      else if ( ibltyp == 3 ) then
+        write(stdout,*) 'GFS PBL Scheme'
+      else if ( ibltyp == 4 ) then
+        write(stdout,*) 'MYJ PBL Scheme'
       else
         write(stdout,*) &
           'Model frictionless and insulated for the lower boundary.'
@@ -2622,6 +2634,13 @@ module mod_params
         htmin2d(j,i) = htmin
         dtauc2d(j,i) = dtauc*secpm
       end do
+    end if
+    if ( any(icup == 3) ) then
+      if ( myid == italk ) then
+        write(stderr,*) &
+          'WARNING : The Betts-Miller Convection scheme is not ', &
+          'properly implemented'
+      end if
     end if
     if ( any(icup == 4) ) then
       if ( myid == italk ) then
@@ -3095,14 +3114,26 @@ module mod_params
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
         call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          mo_atm%zeta(j,i,k) = md_zeta(zitah(k),mddom%ht(j,i))
-          mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
+          mo_atm%zeta(j,i,k) = md_zeta(zitah(k), &
+            mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
+          mo_atm%fmz(j,i,k) = md_fmz(zitah(k), &
+            mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
+#ifdef RCEMIP
+        if ( myid == italk ) then
+          write(stdout,'(a)') 'Vertical level height profile: '
+          do k = kz , 1 , -1
+            write(stdout,'(i3,f9.2)') kzp1-k , mo_atm%zeta(jci1,ici1,k)
+          end do
+        end if
+#endif
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
         do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kzp1 )
-          mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
-          mo_atm%zetaf(j,i,k) = md_zeta(zita(k),mddom%ht(j,i))
+          mo_atm%fmzf(j,i,k) = md_fmz(zita(k), &
+                   mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
+          mo_atm%zetaf(j,i,k) = md_zeta(zita(k), &
+                   mddom%ht(j,i),mo_ztop,mo_h,mo_a0)
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
@@ -3113,9 +3144,9 @@ module mod_params
         end if
       end subroutine compute_moloch_static
 
-      recursive integer function gcd_rec(u,v) result(gcd)
+      recursive integer(ik4) function gcd_rec(u,v) result(gcd)
         implicit none
-        integer , intent(in) :: u , v
+        integer(ik4) , intent(in) :: u , v
         if ( mod(u,v) /= 0 ) then
           gcd = gcd_rec(v,mod(u,v))
         else
