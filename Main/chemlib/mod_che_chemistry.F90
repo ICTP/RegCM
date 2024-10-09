@@ -61,7 +61,7 @@ module mod_che_chemistry
       do i = ici1 , ici2
         do j = jci1 , jci2
           altmid   = cpb3d(j,i,k)
-          ! Skip stratosphere :  treated as a BC in topbchi 
+          ! Skip stratosphere :  treated as a BC in topbchi
           if ( altmid < cptrop(j,i) ) cycle
           temp     = ctb3d(j,i,k)
           zenith   = acos(czen(j,i))*raddeg

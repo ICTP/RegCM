@@ -29,7 +29,7 @@ module mod_che_indices
   integer(ik4) , parameter :: cbin_e = 2
 ! declarartoin of usefull chemical indices for species
 ! IMPORTANT : "INTERFACE SPECIES" indices
-!    ibchl , ibchb , iochl , iochb , iisop , ianh4 , iano3 , ich4 , ino, io3
+!    ibchl , ibchb , iochl , iochb , iisop , ianh4 , iano3 , ich4 , ino , io3
 !    now declared in mod_runparam for surface/chem  interface compatibility !!
 
   integer(ik4) , dimension(cbin_e) :: ibchl_e

@@ -31,7 +31,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , iqv , iqi , entrmax , dx ,      &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,   &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls , &
-         hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum, io3
+         hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum , io3
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit
@@ -216,7 +216,7 @@ module mod_cu_tiedtke
     if ( ichem == 1 ) then
       do n = 1 , ntr
         ! prevent excessive convectivedownward transport for o3
-        if (n==io3) cycle
+        if ( n == io3 ) cycle
         do k = 1 , kz
           do ii = 1 , nipoi
             i = imap(ii)
