@@ -1715,8 +1715,6 @@ module mod_micro_wsm7
       do i = ims , ime
         if ( qrs(i,k,1) < d_zero ) qrs(i,k,1) = d_zero
         if ( qrs(i,k,2) < d_zero ) qrs(i,k,2) = d_zero
-          if ( qci(i,k,1) < qvmin ) qci(i,k,1) = d_zero
-          if ( qci(i,k,2) < qvmin ) qci(i,k,2) = d_zero
       end do
     end do
 
