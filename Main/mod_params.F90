@@ -866,6 +866,11 @@ module mod_params
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
         end if
+      else if ( ipptls > 3 ) then
+          write(stderr,*) &
+            'Not implemented in this version of RegCM.'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST IPPTLS NOT IMPLEMENTED')
       end if
 
       if ( any(icup == 2) ) then
