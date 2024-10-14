@@ -1,4 +1,5 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
 !    This file is part of ICTP RegCM.
 !
 !    ICTP RegCM is free software: you can redistribute it and/or modify
@@ -283,7 +284,7 @@ module mod_micro_wdm7
     pacrs = mathpi*n0s*avts*g3pbs*0.25_rkx
     precs1 = 4.0_rkx*n0s*0.65_rkx
     precs2 = 4.0_rkx*n0s*0.44_rkx*avts**0.5*g5pbso2
-    pidn0s =  mathpi*dens*n0s
+    pidn0s =  mathpi*rhosnow*n0s
     !
     pacrc = mathpi*n0s*avts*g3pbs*0.25_rkx*eacrc
     !
@@ -1286,7 +1287,7 @@ module mod_micro_wdm7
           else
             vt2ave = d_zero
           end if
-          if ( supcol > d_zero .and. qci(i,k,2) < qcimin ) then
+          if ( supcol > d_zero .and. qci(i,k,2) > qcimin ) then
             if ( qrs(i,k,1) > qrsmin ) then
               !
               ! praci: accretion of cloud ice by rain [lf0 25]
@@ -1629,7 +1630,7 @@ module mod_micro_wdm7
             ! pseml: Enhanced melting of snow by accretion of water [HL A34]
             !        (T>=T0: S->R)
             !
-            if ( qrs(i,k,2) > 0.0_rkx ) then
+            if ( qrs(i,k,2) > qrsmin ) then
               pseml(i,k) = min(max(cpw*supcol*(paacw(i,k)+psacr(i,k))/xlf, &
                                -qrs(i,k,2)*rdtcld),d_zero)
             end if
@@ -1637,7 +1638,7 @@ module mod_micro_wdm7
             ! nseml: Enhanced melt of snow by accretion of water    [LH A29]
             !        (T>=T0: ->NR)
             !
-            if ( qrs(i,k,2) > d_zero ) then
+            if ( qrs(i,k,2) > qrsmin ) then
               sfac = rslope(i,k,2)*n0s*n0sfac(i,k)/qrs(i,k,2)
               nseml(i,k) = -sfac*pseml(i,k)
             end if
@@ -1662,7 +1663,7 @@ module mod_micro_wdm7
             ! pheml: Enhanced melting of hail by accretion of water [BHT A23]
             !        (T>=T0: H->R)
             !
-            if ( qrs(i,k,4) > 0.0_rkx ) then
+            if ( qrs(i,k,4) > qrsmin ) then
               pheml(i,k) = min(max(cpw*supcol*(phacw(i,k)+phacr(i,k))/xlf,&
                                -qrs(i,k,4)*rdtcld),d_zero)
             end if
@@ -2213,7 +2214,7 @@ module mod_micro_wdm7
             ncact(i,k) = min(ncact(i,k), ncr(i,k,1)*rdtcld)
             pcact(i,k) = min(d_four*mathpi*rhoh2o * &
               (actr*1.e-6_rkx)**3*ncact(i,k)/(d_three*den(i,k)), &
-              max(qv(i,k),d_zero)*rdtcld)
+              max(qv(i,k),qvmin)*rdtcld)
             qv(i,k) = max(qv(i,k)-pcact(i,k)*dtcld,qvmin)
             qci(i,k,1) = max(qci(i,k,1)+pcact(i,k)*dtcld,d_zero)
             ncr(i,k,1) = max(ncr(i,k,1)-ncact(i,k)*dtcld,cnmin)
@@ -2235,7 +2236,7 @@ module mod_micro_wdm7
           work1(i,k,1) = conden(t(i,k),qv(i,k),qs(i,k,1),xl(i,k),cpm(i,k))
           work2(i,k) = qci(i,k,1)+work1(i,k,1)
           pcond(i,k) = min(max(work1(i,k,1)*rdtcld,d_zero), &
-                           max(qv(i,k),d_zero)*rdtcld)
+                           max(qv(i,k),qvmin)*rdtcld)
           if ( qci(i,k,1) > qcimin .and. work1(i,k,1) < d_zero ) then
             pcond(i,k) = max(work1(i,k,1),-qci(i,k,1))*rdtcld
           end if
@@ -2621,7 +2622,7 @@ module mod_micro_wdm7
         rslope2(k) = rslopeg2max
         rslope3(k) = rslopeg3max
       else
-        rslope(k) = 1./lamdag(qrs(k),den(k))
+        rslope(k) = d_one/lamdag(qrs(k),den(k))
         rslopeb(k) = rslope(k)**bvtg
         rslope2(k) = rslope(k)*rslope(k)
         rslope3(k) = rslope2(k)*rslope(k)
@@ -3164,7 +3165,7 @@ module mod_micro_wdm7
             exit sum_precip1
           end if
         end do sum_precip1
-        if ( ist.eq.1 ) then
+        if ( ist == 1 ) then
           rql(i,:) = qn(:)
           precip1(i) = precip(i)
         else
