@@ -101,8 +101,8 @@ module mod_micro_wdm7
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qrsmin = 1.0e-10_rkx
-  real(rkx) , parameter :: qcimin = 1.0e-9_rkx
+  real(rkx) , parameter :: qrsmin = 1.0e-12_rkx
+  real(rkx) , parameter :: qcimin = 1.0e-10_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   ! minimum value for Nn
   real(rkx) , parameter :: cnmin = 1.0e8_rkx
@@ -872,7 +872,7 @@ module mod_micro_wdm7
           denqrs2(i,k) = den(i,k)*qrs(i,k,2)
           denqrs3(i,k) = den(i,k)*qrs(i,k,3)
           denqrs4(i,k) = den(i,k)*qrs(i,k,4)
-          if( qrs(i,k,4) <= d_zero ) workh(i,k) = d_zero
+          if( qrs(i,k,4) <= qrsmin ) workh(i,k) = d_zero
         end do
       end do
       call nislfv_rain_plm6(nval,den,denfac,t,delz,worka, &
@@ -907,7 +907,7 @@ module mod_micro_wdm7
             !
             xlf = wlhf
             work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
-            if ( qrs(i,k,2) > 0.0_rkx ) then
+            if ( qrs(i,k,2) > qrsmin ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
               psmlt(i,k) = xka(t(i,k),den(i,k))/xlf * &
                 (tzero-t(i,k))*halfpi*n0sfac(i,k) * &
@@ -925,7 +925,7 @@ module mod_micro_wdm7
               qrs(i,k,1) = qrs(i,k,1) - psmlt(i,k)
               t(i,k) = t(i,k) + xlf/cpm(i,k)*psmlt(i,k)
             end if
-            if ( qrs(i,k,3) > 0.0_rkx ) then
+            if ( qrs(i,k,3) > qrsmin ) then
               !
               ! pgmlt: melting of graupel [HL A23]  [LFO 47]
               !       (T>T0: G->R)
@@ -947,7 +947,7 @@ module mod_micro_wdm7
               qrs(i,k,1) = qrs(i,k,1) - pgmlt(i,k)
               t(i,k) = t(i,k) + xlf/cpm(i,k)*pgmlt(i,k)
             end if
-            if ( qrs(i,k,4) > 0.0_rkx ) then
+            if ( qrs(i,k,4) > qrsmin ) then
               !
               ! phmlt: melting of hail [BHT A22]
               !       (T>T0: H->R)
@@ -1084,7 +1084,7 @@ module mod_micro_wdm7
           ! pgfrz: freezing of rain water [hl a20] [lfo 45]
           !        (t<t0, r->g)
           !
-          if ( supcol > d_zero .and. qrs(i,k,1) > 0.0_rkx ) then
+          if ( supcol > d_zero .and. qrs(i,k,1) > qrsmin ) then
             supcolt = min(supcol,70.0_rkx)
             pfrzdtr = min(140.0_rkx*pisqr*pfrz1*ncr(i,k,3)*rhoh2o/den(i,k) * &
                   (exp(pfrz2*supcolt)-d_one)*rslope3(i,k,1) * &
@@ -1228,7 +1228,7 @@ module mod_micro_wdm7
           ! prevp: evaporation/condensation rate of rain [hdc 14]
           !        (v->r or r->v)
           !
-          if ( qrs(i,k,1) > d_zero ) then
+          if ( qrs(i,k,1) > qrsmin ) then
             coeres = rslope(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
             prevp(i,k) = (rh(i,k,1)-d_one)*ncr(i,k,3)*(precr1*rslope(i,k,1) + &
                          precr2*work2(i,k)*coeres)/work1(i,k,1)
@@ -1318,7 +1318,7 @@ module mod_micro_wdm7
             ! niacr: Accretion of rain by cloud ice  [LH A25]
             !        (T<T0: NR->)
             !
-            if ( ncr(i,k,3) > nrmin .and. qrs(i,k,1) > 0.0_rkx ) then
+            if ( ncr(i,k,3) > nrmin .and. qrs(i,k,1) > qrsmin ) then
               niacr(i,k) = mathpi*avtr*ncr(i,k,3)*xni(i,k)*denfac(i,k) * &
                 g4pbr*rslope2(i,k,1)*rslopeb(i,k,1)*d_rfour
               ! reduce collection efficiency (suggested by B. Wilt)
@@ -1464,7 +1464,7 @@ module mod_micro_wdm7
             psacr(i,k) = min(psacr(i,k), qrs(i,k,1)*rdtcld)
           end if
           if ( qrs(i,k,2) > qrsmin .and. &
-               qrs(i,k,1) > d_zero .and. &
+               qrs(i,k,1) > qrsmin .and. &
                ncr(i,k,3) > nrmin ) then
             !
             ! nsacr: Accretion of rain by snow  [LH A23]
@@ -1484,7 +1484,7 @@ module mod_micro_wdm7
           !         (T<T0: G->H)
           !
           if ( qrs(i,k,3) > qrsmin .and. qrs(i,k,1) > qrsmin ) then
-            if( supcol > 0 ) then
+            if( supcol > d_zero ) then
               acrfac = d_five*rslope3(i,k,3)*rslope3(i,k,3) +        &
                        d_four*rslope3(i,k,3)*rslope2(i,k,3)*rslope(i,k,1) + &
                        1.5_rkx*rslope2(i,k,3)*rslope2(i,k,3)*rslope2(i,k,1)
@@ -1551,7 +1551,7 @@ module mod_micro_wdm7
           !        (T<T0: NR->)
           !
           if ( qrs(i,k,4) > qrsmin .and. &
-               qrs(i,k,1) > d_zero .and. &
+               qrs(i,k,1) > qrsmin .and. &
                ncr(i,k,3) > nrmin ) then
             acrfac = 1.5_rkx*rslope2(i,k,1)*rslope(i,k,4) + &
                      d_one*rslope(i,k,1)*rslope2(i,k,4) + d_half*rslope3(i,k,4)
@@ -1698,7 +1698,7 @@ module mod_micro_wdm7
             ! psdep: deposition/sublimation rate of snow [hdc 14]
             !        (v->s or s->v)
             !
-            if ( qrs(i,k,2) > 0.0_rkx .and. ifsat /= 1 ) then
+            if ( qrs(i,k,2) > qrsmin .and. ifsat /= 1 ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
               psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac(i,k) * &
                            (precs1*rslope2(i,k,2) + &
@@ -1718,7 +1718,7 @@ module mod_micro_wdm7
             ! pgdep: deposition/sublimation rate of graupel [HL A21] [LFO 46]
             !        (T<T0: V->G or G->V)
             !
-            if ( qrs(i,k,3) > 0.0_rkx .and. ifsat /= 1 ) then
+            if ( qrs(i,k,3) > qrsmin .and. ifsat /= 1 ) then
               coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
               pgdep(i,k) = (rh(i,k,2)-d_one)*(precg1*rslope2(i,k,3) + &
                            precg2*work2(i,k)*coeres)/work1(i,k,2)
@@ -1736,7 +1736,7 @@ module mod_micro_wdm7
             ! phdep: deposition/sublimation rate of hail [BHT A19]
             !        (T<T0: V->H or H->V)
             !
-            if ( qrs(i,k,4) > 0.0_rkx .and. ifsat /= 1 ) then
+            if ( qrs(i,k,4) > qrsmin .and. ifsat /= 1 ) then
               coeres = rslope2(i,k,4)*sqrt(rslope(i,k,4)*rslopeb(i,k,4))
               phdep(i,k) = (rh(i,k,2)-d_one)*(prech1*rslope2(i,k,4) + &
                            prech2*work2(i,k)*coeres)/work1(i,k,2)
@@ -1775,7 +1775,7 @@ module mod_micro_wdm7
            ! pgaut: conversion(aggregation) of snow to graupel [HL A4] [LFO 37]
            !        (T<T0: QS->QG)
            !
-            if ( qrs(i,k,2) > 0.0_rkx ) then
+            if ( qrs(i,k,2) > qrsmin ) then
               alpha2 = 1.e-3_rkx*exp(0.09_rkx*(-supcol))
               pgaut(i,k) = min(max(d_zero,alpha2*(qrs(i,k,2)-qs0)), &
                 qrs(i,k,2)*rdtcld)
@@ -1785,7 +1785,7 @@ module mod_micro_wdm7
           ! phaut: conversion(aggregation) of grauple to hail [BHT A18]
           !        (T<T0: QG->QH)
           !
-          if ( qrs(i,k,3) > 0.0_rkx ) then
+          if ( qrs(i,k,3) > qrsmin ) then
             alpha2 = 1.e-3_rkx*exp(0.09_rkx*(-supcol))
             phaut(i,k) = min(max(d_zero,alpha2*(qrs(i,k,3)-qs0)), &
               qrs(i,k,3)*rdtcld)
@@ -1795,7 +1795,7 @@ module mod_micro_wdm7
           !       (t>t0: s->v)
           !
           if ( supcol < d_zero ) then
-            if ( qrs(i,k,2) > 0.0_rkx .and. rh(i,k,1) < d_one ) then
+            if ( qrs(i,k,2) > qrsmin .and. rh(i,k,1) < d_one ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
               psevp(i,k) = (rh(i,k,1)-d_one)*n0sfac(i,k) * &
                            (precs1*rslope2(i,k,2)+precs2*work2(i,k) * &
@@ -1806,7 +1806,7 @@ module mod_micro_wdm7
             ! pgevp: Evaporation of melting graupel [HL A25] [RH84 A19]
             !       (T>=T0: QG->QV)
             !
-            if ( qrs(i,k,3) > 0.0_rkx .and. rh(i,k,1) < d_one ) then
+            if ( qrs(i,k,3) > qrsmin .and. rh(i,k,1) < d_one ) then
               coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
               pgevp(i,k) = (rh(i,k,1)-d_one)*(precg1*rslope2(i,k,3) + &
                            precg2*work2(i,k)*coeres)/work1(i,k,1)
@@ -1816,7 +1816,7 @@ module mod_micro_wdm7
             ! phevp: Evaporation of melting hail [BHT A20]
             !       (T>=T0: QH->QV)
             !
-            if ( qrs(i,k,4) > 0.0_rkx .and. rh(i,k,1) < d_one ) then
+            if ( qrs(i,k,4) > qrsmin .and. rh(i,k,1) < d_one ) then
               coeres = rslope2(i,k,4)*sqrt(rslope(i,k,4)*rslopeb(i,k,4))
               phevp(i,k) = (rh(i,k,1)-1.0_rkx)*(prech1*rslope2(i,k,4) + &
                            prech2*work2(i,k)*coeres)/work1(i,k,1)
@@ -1840,7 +1840,7 @@ module mod_micro_wdm7
             !
             ! cloud water
             !
-            qval = max(qci(i,k,1),qcimin)
+            qval = max(qci(i,k,1),d_zero)
             source = (praut(i,k)+pracw(i,k)+paacw(i,k) + &
                       paacw(i,k)+phacw(i,k))*dtcld
             if ( source > qval ) then
@@ -1853,7 +1853,7 @@ module mod_micro_wdm7
             !
             ! cloud ice
             !
-            qval = max(qci(i,k,2),qcimin)
+            qval = max(qci(i,k,2),d_zero)
             source = (psaut(i,k)-pigen(i,k)-pidep(i,k)+praci(i,k) + &
                       psaci(i,k)+pgaci(i,k)+phaci(i,k))*dtcld
             if ( source > qval ) then
@@ -1869,7 +1869,7 @@ module mod_micro_wdm7
             !
             ! rain
             !
-            qval = max(qrs(i,k,1),qrsmin)
+            qval = max(qrs(i,k,1),d_zero)
             source = (-praut(i,k)-prevp(i,k)-pracw(i,k)+piacr(i,k) + &
                        psacr(i,k)+pgacr(i,k)+phacr(i,k))*dtcld
             if (source > qval) then
@@ -1885,7 +1885,7 @@ module mod_micro_wdm7
             !
             ! snow
             !
-            qval = max(qrs(i,k,2),qrsmin)
+            qval = max(qrs(i,k,2),d_zero)
             source = -(psdep(i,k)+psaut(i,k)-pgaut(i,k)+paacw(i,k) + &
                       piacr(i,k)*delta3+praci(i,k)*delta3 +          &
                       pvapg(i,k)+pvaph(i,k) -                        &
@@ -1910,7 +1910,7 @@ module mod_micro_wdm7
             !
             ! graupel
             !
-            qval = max(qrs(i,k,3),qrsmin)
+            qval = max(qrs(i,k,3),d_zero)
             source = -(pgdep(i,k)+pgaut(i,k)+pgaci(i,k)+paacw(i,k)         + &
                        pgacs(i,k)+piacr(i,k)*(d_one-delta3)                + &
                        praci(i,k)*(d_one-delta3)                           + &
@@ -1938,7 +1938,7 @@ module mod_micro_wdm7
             !
             ! hail
             !
-            qval = max(qrs(i,k,4),qrsmin)
+            qval = max(qrs(i,k,4),d_zero)
             source = -(phdep(i,k)+phaut(i,k)                               + &
                        pgacr(i,k)*(d_one-delta2)+pracg(i,k)*(d_one-delta2) + &
                        phacw(i,k)+phacr(i,k)+phaci(i,k)+phacs(i,k)         + &
@@ -1960,7 +1960,7 @@ module mod_micro_wdm7
             !
             !     cloud
             !
-            qval = max(ncmin,ncr(i,k,2))
+            qval = max(ncr(i,k,2),ncmin)
             source = (nraut(i,k)+nccol(i,k)+nracw(i,k) + &
                       naacw(i,k)+naacw(i,k)+nhacw(i,k))*dtcld
             if (source > qval) then
@@ -1974,7 +1974,7 @@ module mod_micro_wdm7
             !
             !     rain
             !
-            qval = max(nrmin,ncr(i,k,3))
+            qval = max(ncr(i,k,3),d_zero)
             source = (-nraut(i,k)+nrcol(i,k)+niacr(i,k) + &
                        nsacr(i,k)+ngacr(i,k)+nhacr(i,k))*dtcld
             if (source > qval) then
@@ -2035,7 +2035,7 @@ module mod_micro_wdm7
             !
             ! cloud water
             !
-            qval = max(qci(i,k,1),qcimin)
+            qval = max(qci(i,k,1),d_zero)
             source = (praut(i,k)+pracw(i,k)+paacw(i,k) + &
                       paacw(i,k)-phacw(i,k))*dtcld
             if ( source > qval ) then
@@ -2048,7 +2048,7 @@ module mod_micro_wdm7
             !
             ! rain
             !
-            qval = max(qrs(i,k,1),qrsmin)
+            qval = max(qrs(i,k,1),d_zero)
             source = (-prevp(i,k)-praut(i,k)+pseml(i,k)+pgeml(i,k) + &
                       pheml(i,k)-pracw(i,k)-paacw(i,k)-paacw(i,k) -  &
                       phacw(i,k))*dtcld
@@ -2066,7 +2066,7 @@ module mod_micro_wdm7
             !
             ! snow
             !
-            qval = max(qrs(i,k,2),qrsmin)
+            qval = max(qrs(i,k,2),d_zero)
             source = (pgacs(i,k)+phacs(i,k)-pseml(i,k)-psevp(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -2078,7 +2078,7 @@ module mod_micro_wdm7
             !
             ! graupel
             !
-            qval = max(qrsmin,qrs(i,k,3))
+            qval = max(qrs(i,k,3),d_zero)
             source = -(pgacs(i,k)+pgevp(i,k)+pgeml(i,k)-phacg(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -2090,7 +2090,7 @@ module mod_micro_wdm7
             !
             ! hail
             !
-            qval = max(qrsmin,qrs(i,k,4))
+            qval = max(qrs(i,k,4),d_zero)
             source = -(phacs(i,k)+phacg(i,k)+phevp(i,k)+pheml(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -2102,7 +2102,7 @@ module mod_micro_wdm7
             !
             !     cloud
             !
-            qval = max(ncmin,ncr(i,k,2))
+            qval = max(ncr(i,k,2),ncmin)
             source = (nraut(i,k)+nccol(i,k)+nracw(i,k)+naacw(i,k) + &
                       naacw(i,k)+nhacw(i,k))*dtcld
             if ( source > qval ) then
@@ -2116,7 +2116,7 @@ module mod_micro_wdm7
             !
             !     rain
             !
-            qval = max(nrmin,ncr(i,k,3))
+            qval = max(ncr(i,k,3),d_zero)
             source = (-nraut(i,k)+nrcol(i,k)-nseml(i,k)-ngeml(i,k) - &
                        nheml(i,k))*dtcld
             if ( source > qval ) then
@@ -2287,10 +2287,10 @@ module mod_micro_wdm7
                 lamdc_tmp(i,k)**3/pidnc,d_zero)
             end if
           end if
-          if ( qrs(i,k,1) < 0.0_rkx ) qrs(i,k,1) = d_zero
-          if ( qrs(i,k,2) < 0.0_rkx ) qrs(i,k,2) = d_zero
-          if ( qrs(i,k,3) < 0.0_rkx ) qrs(i,k,3) = d_zero
-          if ( qrs(i,k,4) < 0.0_rkx ) qrs(i,k,4) = d_zero
+          if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
+          if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
+          if ( qrs(i,k,3) < qrsmin ) qrs(i,k,3) = d_zero
+          if ( qrs(i,k,4) < qrsmin ) qrs(i,k,4) = d_zero
         end do
       end do
     end do bigloop  ! big loops
@@ -2420,11 +2420,11 @@ module mod_micro_wdm7
         vt(i,k,3) = pvtg*rslopeb(i,k,3)*denfac(i,k)
         vt(i,k,4) = pvth*rslopeb(i,k,4)*denfac(i,k)
         vtn(i,k) = pvtrn*rslopeb(i,k,1)*denfac(i,k)
-        if ( qrs(i,k,1) <= d_zero ) vt(i,k,1) = d_zero
-        if ( qrs(i,k,2) <= d_zero ) vt(i,k,2) = d_zero
-        if ( qrs(i,k,2) <= d_zero ) vt(i,k,3) = d_zero
-        if ( qrs(i,k,2) <= d_zero ) vt(i,k,4) = d_zero
-        if ( ncr(i,k) <= d_zero ) vtn(i,k) = d_zero
+        if ( qrs(i,k,1) <= qrsmin ) vt(i,k,1) = d_zero
+        if ( qrs(i,k,2) <= qrsmin ) vt(i,k,2) = d_zero
+        if ( qrs(i,k,2) <= qrsmin ) vt(i,k,3) = d_zero
+        if ( qrs(i,k,2) <= qrsmin ) vt(i,k,4) = d_zero
+        if ( ncr(i,k) <= nrmin ) vtn(i,k) = d_zero
       end do
     end do
 
@@ -2485,8 +2485,8 @@ module mod_micro_wdm7
       end if
       vt(k) = pvtr*rslopeb(k)*denfac(k)
       vtn(k) = pvtrn*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= d_zero ) vt(k) = d_zero
-      if ( ncr(k) <= d_zero ) vtn(k) = d_zero
+      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
+      if ( ncr(k) <= nrmin ) vtn(k) = d_zero
     end do
 
     contains
@@ -2535,8 +2535,8 @@ module mod_micro_wdm7
           end if
           vt(i,k) = pvtr*rslopeb(i,k)*denfac(i,k)
           vtn(i,k) = pvtrn*rslopeb(i,k)*denfac(i,k)
-          if ( qrs(i,k) <= d_zero ) vt(i,k) = d_zero
-          if ( ncr(i,k) <= d_zero ) vtn(i,k) = d_zero
+          if ( qrs(i,k) <= qrsmin ) vt(i,k) = d_zero
+          if ( ncr(i,k) <= nrmin ) vtn(i,k) = d_zero
         end do
       end do
 
@@ -2587,7 +2587,7 @@ module mod_micro_wdm7
        rslope3(k) = rslope2(k)*rslope(k)
      end if
      vt(k) = pvts*rslopeb(k)*denfac(k)
-     if ( qrs(k) <= d_zero ) vt(k) = d_zero
+     if ( qrs(k) <= qrsmin ) vt(k) = d_zero
    end do
 
    contains
@@ -2628,7 +2628,7 @@ module mod_micro_wdm7
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvtg*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= d_zero ) vt(k) = d_zero
+      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
     end do
 
     contains
@@ -2663,7 +2663,7 @@ module mod_micro_wdm7
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvth*rslopeb(k)*denfac(k)
-      if(qrs(k) <= d_zero) vt(k) = d_zero
+      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
     end do
 
     contains
