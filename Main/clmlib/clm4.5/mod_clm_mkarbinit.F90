@@ -1269,11 +1269,15 @@ module mod_clm_mkarbinit
         do j = 1 , nlevgrnd
           h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           if ( dz(c,j) > 1.0e10_rk8 ) cycle
-          ! soil layers
-          if ( t_soisno(c,j) <= tfrz ) then
-            h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+          if ( ltype(l) == istice ) then
+            h2osoi_ice(c,j) = dz(c,j)*denice
           else
-            h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+            ! soil layers
+            if ( t_soisno(c,j) <= tfrz ) then
+              h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+            else
+              h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+            end if
           end if
         end do
 
