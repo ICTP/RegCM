@@ -611,29 +611,35 @@ module mod_rad_colmod3
         ! Savijarvi,Raisanene (Tellus 1998)
         !
         ! g/m3, already account for cum and ls clouds
-        lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
-        if ( rt%ioro(n) == 1 ) then
-          ! Effective liquid radius over land
-          rt%rel(k,n) = min(4.0_rkx + 7.0_rkx*lwc,15.0_rkx)
+        if ( temp(k,n) > 0.0_rkx ) then
+          lwc = (rt%ql(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
+          if ( rt%ioro(n) == 1 ) then
+            ! Effective liquid radius over land
+            rt%rel(k,n) = min(4.0_rkx + 7.0_rkx*lwc,15.0_rkx)
+          else
+            ! Effective liquid radius over ocean and sea ice
+            rt%rel(k,n) = min(5.5_rkx + 9.5_rkx*lwc,18.0_rkx)
+          end if
+          !
+          ! Stengel, Fokke Meirink, Eliasson (2023)
+          ! On the Temperature Dependence of the Cloud Ice Particle Effective
+          ! Radius - A Satellite Perspective
+          !
+          iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
+          tempc = rt%t(k,n) - 83.15_rkx
+          tcels = tempc - tzero
+          fsr = 1.2351_rkx + 0.0105_rkx * tcels
+          aiwc = 45.8966_rkx * iwc**0.2214_rkx
+          biwc = 0.7957_rkx * iwc**0.2535_rkx
+          desr = fsr*(aiwc+biwc*tempc)
+          desr = max(30.0_rkx,min(155.0_rkx,desr))
+          ! rei : ice effective drop size (microns)
+          rt%rei(k,n) = 0.64952_rkx*desr
         else
-          ! Effective liquid radius over ocean and sea ice
-          rt%rel(k,n) = min(5.5_rkx + 9.5_rkx*lwc,18.0_rkx)
+          ! filler for no clouds
+          rt%rel(k,n) = 8.5_rkx
+          rt%rei(k,n) = 20.0_rkx
         end if
-        !
-        ! Stengel, Fokke Meirink, Eliasson (2023)
-        ! On the Temperature Dependence of the Cloud Ice Particle Effective
-        ! Radius - A Satellite Perspective
-        !
-        iwc = (rt%qi(k,n) * rt%rho(k,n) * 1000.0_rkx)/temp(k,n)
-        tempc = rt%t(k,n) - 83.15_rkx
-        tcels = tempc - tzero
-        fsr = 1.2351_rkx + 0.0105_rkx * tcels
-        aiwc = 45.8966_rkx * iwc**0.2214_rkx
-        biwc = 0.7957_rkx * iwc**0.2535_rkx
-        desr = fsr*(aiwc+biwc*tempc)
-        desr = max(30.0_rkx,min(155.0_rkx,desr))
-        ! rei : ice effective drop size (microns)
-        rt%rei(k,n) = 0.64952_rkx*desr
       end do
     end do
     rt%totci(rt%n1:rt%n2) = 0.0_rkx
