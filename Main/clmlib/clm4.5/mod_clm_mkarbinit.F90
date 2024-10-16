@@ -1171,11 +1171,11 @@ module mod_clm_mkarbinit
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
             do j = 1 , nlevs
-              if ( j <= nlevsoi ) then
+              if ( j > nlevsoi ) then
+                h2osoi_vol(c,j) = 0.0_rk8
+              else
                 h2osoi_vol(c,j) = 0.5_rk8*watsat(c,j)
                 !h2osoi_vol(c,j) = 0.3_rk8
-              else
-                h2osoi_vol(c,j) = 0.0_rk8
               end if
             end do
           else if ( ctype(c) == icol_road_imperv ) then
@@ -1201,7 +1201,11 @@ module mod_clm_mkarbinit
         else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd
           do j = 1 , nlevs
-            h2osoi_vol(c,j) = 1.0_rk8
+            if ( j > nlevsoi ) then
+              h2osoi_vol(c,j) = 0.0_rk8
+            else
+              h2osoi_vol(c,j) = 1.0_rk8
+            end if
           end do
         end if
       end if
