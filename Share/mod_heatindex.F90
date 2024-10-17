@@ -126,7 +126,7 @@ module mod_heatindex
     implicit none
     real(rkx) , intent(in) :: t
     if ( t <= 0.0_rkx ) then
-      pvstar = 0.0_rkx
+      pvstar = 1.0e-20_rkx
     else if ( t < ttrip ) then
       pvstar = ptrip * (t/ttrip)**((cpv-cvs)/rgasv) * &
         exp( (e0v + e0s -(cvv-cvs)*ttrip)/rgasv * (1.0_rkx/ttrip - 1.0_rkx/t) )
@@ -370,7 +370,6 @@ module mod_heatindex
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve1,"
@@ -401,7 +400,6 @@ module mod_heatindex
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve2"
@@ -438,7 +436,6 @@ module mod_heatindex
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve3"
@@ -472,7 +469,6 @@ module mod_heatindex
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve4"
@@ -503,7 +499,6 @@ module mod_heatindex
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve5"
@@ -531,13 +526,12 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,1.0_rkx)
       fc = tmp(1) - eqvar
-      if ( abs(b-a) < errt ) exit
+      if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
       if ( fb*fc > 0.0_rkx ) then
         b = c
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solvei"
@@ -550,7 +544,6 @@ module mod_heatindex
     integer :: iter
     real(rkx) :: a , b , c , fa , fb , fc
     real(rkx) , dimension(4) :: tmp
-    integer :: region
 
     a = 230.0_rkx
     b = 300.0_rkx
@@ -567,13 +560,12 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,min(1.0_rkx,pa0/pvstar(c)))
       fc = tmp(2) - eqvar
-      if ( abs(b-a) < errt ) exit
+      if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
       if ( fb*fc > 0.0_rkx ) then
         b = c
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveii"
@@ -586,7 +578,6 @@ module mod_heatindex
     integer :: iter
     real(rkx) :: a , b , c , fa , fb , fc
     real(rkx) , dimension(4) :: tmp
-    integer :: region
 
     a = 295.0_rkx
     b = 350.0_rkx
@@ -602,13 +593,12 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(3) - eqvar
-      if ( abs(b-a) < errt ) exit
+      if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
       if ( fb*fc > 0.0_rkx ) then
         b = c
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveiii"
@@ -621,7 +611,6 @@ module mod_heatindex
     integer :: iter
     real(rkx) :: a , b , c , fa , fb , fc
     real(rkx) , dimension(4) :: tmp
-    integer :: region
 
     a = 340.0_rkx
     b = 800.0_rkx
@@ -637,13 +626,12 @@ module mod_heatindex
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
       fc = tmp(4) - eqvar
-      if ( abs(b-a) < errt ) exit
+      if ( abs(b-a) < errt .or. abs(fc) < tiny(fc) ) exit
       if ( fb*fc > 0.0_rkx ) then
         b = c
         fb = fc
       else
         a = c
-        fa = fc
       end if
     end do
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveiv"

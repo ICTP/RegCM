@@ -1201,11 +1201,7 @@ module mod_clm_mkarbinit
         else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd
           do j = 1 , nlevs
-            if ( j > nlevsoi ) then
-              h2osoi_vol(c,j) = 0.0_rk8
-            else
-              h2osoi_vol(c,j) = 1.0_rk8
-            end if
+            h2osoi_vol(c,j) = 1.0_rk8
           end do
         end if
       end if
@@ -1267,16 +1263,31 @@ module mod_clm_mkarbinit
         h2osoi_ice(c,:) = 0.0_rk8
         h2osoi_liq(c,:) = 0.0_rk8
         do j = 1 , nlevgrnd
-          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           if ( dz(c,j) > 1.0e10_rk8 ) cycle
           if ( ltype(l) == istice ) then
             h2osoi_ice(c,j) = dz(c,j)*denice
           else
+            h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
             ! soil layers
-            if ( t_soisno(c,j) <= tfrz ) then
-              h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+            if ( replacetemp ) then
+              ! Soil temperature is correct
+              if ( t_soisno(c,j) <= tfrz ) then
+                h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+              else
+                h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+              end if
             else
-              h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+              ! Soil temperature is atmosphere temperature
+              ! Leave model accomodate some water
+              if ( t_soisno(c,j) <= tfrz - 10.0_rk8 ) then
+                h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+              else if ( t_soisno(c,j) <= tfrz ) then
+                w1 = (tfrz-t_soisno(c,j))/10.0_rk8
+                h2osoi_ice(c,j) = dz(c,j)*denice*(w1*h2osoi_vol(c,j))
+                h2osoi_liq(c,j) = dz(c,j)*denh2o*((1.0_rk8-w1)*h2osoi_vol(c,j))
+              else
+                h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+              end if
             end if
           end if
         end do
