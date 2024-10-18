@@ -444,14 +444,16 @@ module mod_ncep
              'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                               'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-             'Variable '//varname(kkrec)// &
-             ':scale_factor in file'//trim(pathaddname))
+        ! TAO: assume a scale factor of 1 if it's missing
+        if ( istatus /= 0 ) then
+            xscl(kkrec) = 1.0
+        end if
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                                'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-              'Variable '//varname(kkrec)// &
-              ':add_offset in file'//trim(pathaddname))
+        ! TAO: assume an offset of 0 if it's missing
+        if ( istatus /= 0 ) then
+            xoff(kkrec) = 0.0
+        end if
         write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
                          xscl(kkrec) , xoff(kkrec)
       end if
