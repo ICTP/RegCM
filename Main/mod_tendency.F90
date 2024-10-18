@@ -622,8 +622,8 @@ module mod_tendency
       end if
 
       if ( syncro_rep%act( ) ) then
-        pt2bar = pt2tot
-        ptnbar = ptntot
+        pt2bar = pt2tot*rptn
+        ptnbar = ptntot*rptn
         iconvec = 0
         pt2tot = d_zero
         ptntot = d_zero
@@ -631,8 +631,6 @@ module mod_tendency
         call sumall(pt2bar,pt2tot)
         call sumall(ptnbar,ptntot)
         if ( myid == italk ) then
-          ptntot = ptntot*rptn
-          pt2tot = pt2tot*rptn
           write(stdout,*) '$$$ ', rcmtimer%str( )
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
                 ptntot , pt2tot

@@ -105,13 +105,6 @@ module mod_heatindex
   ! maximum number of iteration of the root solver
   integer, parameter :: maxiter = 100
 
-  integer , parameter :: region_1 = 1
-  integer , parameter :: region_2 = 2
-  integer , parameter :: region_3 = 3
-  integer , parameter :: region_4 = 4
-  integer , parameter :: region_5 = 5
-  integer , parameter :: region_6 = 6
-
   integer , parameter :: eqvar_indx_1 = 1 ! phi
   integer , parameter :: eqvar_indx_2 = 2 ! rf
   integer , parameter :: eqvar_indx_3 = 3 ! rs
@@ -120,13 +113,18 @@ module mod_heatindex
 
   public  :: heatindex
 
+  type eqvar
+    integer :: indx
+    real(rkx) , dimension(4) :: var
+  end type eqvar
+
   contains
 
   pure real(rkx) function pvstar(t)
     implicit none
     real(rkx) , intent(in) :: t
     if ( t <= 0.0_rkx ) then
-      pvstar = 1.0e-20_rkx
+      pvstar = 0.0_rkx
     else if ( t < ttrip ) then
       pvstar = ptrip * (t/ttrip)**((cpv-cvs)/rgasv) * &
         exp( (e0v + e0s -(cvv-cvs)*ttrip)/rgasv * (1.0_rkx/ttrip - 1.0_rkx/t) )
@@ -192,11 +190,13 @@ module mod_heatindex
     ra_un   = 1.0_rkx/(hc+hr)
   end function ra_un
 
-  function initial_find_eqvar(ta,rh,eqvar_indx)
+#ifdef DEBUG
+  type(eqvar) function initial_find_eqvar(ta,rh) result(res)
+#else
+  pure type(eqvar) function initial_find_eqvar(ta,rh) result(res)
+#endif
     implicit none
-    real(rkx) , dimension(4) :: initial_find_eqvar
     real(rkx) , intent(in) :: ta , rh
-    integer , intent(out) :: eqvar_indx
     real(rkx) :: pa , phi , rf , rs , dtcdt , ts , ts_bar
     real(rkx) :: tf , ps , flux1 , flux2 , flux3 , m , m_bar
 
@@ -216,37 +216,41 @@ module mod_heatindex
     ! c*dtc/dt when rf=zf=0
     flux2 = q-qv(ta,pa)-(1.0_rkx-phi)*(tc-ts)/rs - phi*(tc-tf)/rs
     if ( flux1 <= 0.0_rkx ) then ! region I
-      eqvar_indx = eqvar_indx_1
       phi = 1.0_rkx-(q-qv(ta,pa))*rs/(tc-ts)
       rf  = huge(0.0_rkx)
+      res%indx = eqvar_indx_1
     else if ( flux2 <= 0.0_rkx ) then ! region II&III
-      eqvar_indx = eqvar_indx_2
       ts_bar = tc - (q-qv(ta,pa))*rs/phi + (1.0_rkx/phi -1.0_rkx)*(tc-ts)
       tf = solve3(ta,pa,rs,ts_bar,ta,ts_bar,err,maxiter)
       rf = ra_bar(tf,ta)*(ts_bar-tf)/(tf-ta)
+      res%indx = eqvar_indx_2
     else ! region IV,V,VI
       rf = 0.0_rkx
       flux3 = q-qv(ta,pa)-(tc-ta)/ra_un(tc,ta)-(phi_salt*pvstar(tc)-pa)/za_un
       if ( flux3 <= 0.0_rkx ) then ! region IV,V
         ts = solve4(ta,pa,0.0_rkx,tc,err,maxiter)
         rs = (tc-ts)/(q-qv(ta,pa))
-        eqvar_indx = eqvar_indx_3
         ps = pc - (pc-pa)* zs(rs)/( zs(rs)+za_un)
+        res%indx = eqvar_indx_3
         if ( ps > phi_salt * pvstar(ts) ) then  ! region V
           ts = solve5(ta,pa,0.0_rkx,tc,err,maxiter)
           rs = (tc-ts)/(q-qv(ta,pa))
-          eqvar_indx = eqvar_indx_3
+          res%indx = eqvar_indx_4
         end if
       else ! region VI
         rs = 0.0_rkx
-        eqvar_indx = eqvar_indx_4
         dtcdt = (1.0_rkx/c)* flux3
+        res%indx = eqvar_indx_5
       end if
     end if
-    initial_find_eqvar = (/ phi,rf,rs,dtcdt /)
+    res%var = (/ phi,rf,rs,dtcdt /)
   end function initial_find_eqvar
 
+#ifdef DEBUG
   function find_eqvar(ta,rh)
+#else
+  pure function find_eqvar(ta,rh)
+#endif
     implicit none
     real(rkx) , dimension(4) :: find_eqvar
     real(rkx) , intent(in) :: ta , rh
@@ -294,7 +298,11 @@ module mod_heatindex
     find_eqvar = (/ phi,rf,rs,dtcdt /)
   end function find_eqvar
 
+#ifdef DEBUG
   real(rkx) function find_t(eqvar_indx, eqvar)
+#else
+  pure real(rkx) function find_t(eqvar_indx, eqvar)
+#endif
     implicit none
     integer , intent(in) :: eqvar_indx
     real(rkx) , intent(in) :: eqvar
@@ -321,32 +329,39 @@ module mod_heatindex
     find_t = t
   end function find_t
 
+#ifdef DEBUG
   real(rkx) function heatindex(ta,rh)
+#else
+  pure real(rkx) function heatindex(ta,rh)
+#endif
     implicit none
     real(rkx), intent(in) :: ta , rh
-    real(rkx) :: eqvars(4)
-    integer :: eqvar_indx
+    type(eqvar) :: initial
 
     if ( ta == 0.0_rkx ) then
       heatindex = 0.0_rkx
     else
-      eqvars = initial_find_eqvar(ta, rh, eqvar_indx)
-      select case ( eqvar_indx )
+      initial = initial_find_eqvar(ta, rh)
+      select case ( initial%indx )
         case ( eqvar_indx_1 )
-          heatindex = find_t(eqvar_indx, eqvars(1))
+          heatindex = find_t(initial%indx, initial%var(1))
         case ( eqvar_indx_2 )
-          heatindex = find_t(eqvar_indx, eqvars(2))
+          heatindex = find_t(initial%indx, initial%var(2))
         case ( eqvar_indx_3, eqvar_indx_4 )
-          heatindex = find_t(eqvar_indx, eqvars(3))
+          heatindex = find_t(initial%indx, initial%var(3))
         case default
-          heatindex = find_t(eqvar_indx, eqvars(4))
+          heatindex = find_t(initial%indx, initial%var(4))
       end select
     end if
   end function heatindex
 
   !!!!!!!!!!!!!!!!! root solvers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+#ifdef DEBUG
   real(rkx) function solve1(ta,pa,rs,x1,x2,err,maxiter)
+#else
+  pure real(rkx) function solve1(ta,pa,rs,x1,x2,err,maxiter)
+#endif
     implicit none
     real(rkx) , intent(in) :: ta , pa , rs , x1 , x2 , err
     integer , intent(in) :: maxiter
@@ -357,10 +372,12 @@ module mod_heatindex
     b = x2
     fa = (a-ta)/ra(a,ta) + (pc-pa)/(zs(rs)+za) - (tc-a)/rs
     fb = (b-ta)/ra(b,ta) + (pc-pa)/(zs(rs)+za) - (tc-b)/rs
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solve1 : ta, pa, rs : ', ta, pa, rs
       call fatal(__FILE__,__LINE__,'error interval, solve1')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra(c,ta) + (pc-pa)/(zs(rs)+za) - (tc-c)/rs
@@ -372,11 +389,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve1,"
+#endif
     solve1 = c
   end function solve1
 
+#ifdef DEBUG
   real(rkx) function solve2(ta,pa,rs,x1,x2,err,maxiter)
+#else
+  pure real(rkx) function solve2(ta,pa,rs,x1,x2,err,maxiter)
+#endif
     implicit none
     real(rkx) , intent(in) :: ta , pa , rs , x1 , x2 , err
     integer , intent(in) :: maxiter
@@ -387,10 +410,12 @@ module mod_heatindex
     b = x2
     fa = (a-ta)/ra_bar(a,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-a)/rs
     fb = (b-ta)/ra_bar(b,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-b)/rs
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solve2'
       call fatal(__FILE__,__LINE__,'error interval, solve2')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)/(zs(rs)+za_bar) - (tc-c)/rs
@@ -402,11 +427,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve2"
+#endif
     solve2 = c
   end function solve2
 
+#ifdef DEBUG
   real(rkx) function solve3(ta,pa,rs,ts_bar,x1,x2,err,maxiter)
+#else
+  pure real(rkx) function solve3(ta,pa,rs,ts_bar,x1,x2,err,maxiter)
+#endif
     implicit none
     real(rkx) , intent(in) :: ta , pa , rs , ts_bar , x1 , x2 , err
     integer , intent(in) :: maxiter
@@ -421,11 +452,13 @@ module mod_heatindex
     fb = (b-ta)/ra_bar(b,ta) + &
       (pc-pa)*(b-ta)/((b-ta)*(zs(rs)+za_bar)+r*ra_bar(b,ta)*(ts_bar-b)) - &
       (tc-ts_bar)/rs
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solve3 : ta, pa, rs, ts_bar, a, b, fa, fb : ', &
         ta, pa, rs, ts_bar, a, b, fa, fb
       call fatal(__FILE__,__LINE__,'error interval, solve3')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_bar(c,ta) + (pc-pa)*(c-ta)/((c-ta)*(zs(rs)+za_bar) + &
@@ -438,11 +471,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve3"
+#endif
     solve3 = c
   end function solve3
 
+#ifdef DEBUG
   real(rkx) function solve4(ta,pa,x1,x2,err,maxiter)
+#else
+  pure real(rkx) function solve4(ta,pa,x1,x2,err,maxiter)
+#endif
     implicit none
     real(rkx) , intent(in) :: ta , pa , x1 , x2 , err
     integer , intent(in) :: maxiter
@@ -455,10 +494,12 @@ module mod_heatindex
       (pc-pa)/(zs((tc-a)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
     fb = (b-ta)/ra_un(b,ta) + &
       (pc-pa)/(zs((tc-b)/(q-qv(ta,pa)))+za_un)-(q-qv(ta,pa))
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solve4'
       call fatal(__FILE__,__LINE__,'error interval, solve4')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + &
@@ -471,11 +512,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve4"
+#endif
     solve4 = c
   end function solve4
 
+#ifdef DEBUG
   real(rkx) function solve5(ta,pa,x1,x2,err,maxiter)
+#else
+  pure real(rkx) function solve5(ta,pa,x1,x2,err,maxiter)
+#endif
     implicit none
     real(rkx) , intent(in) :: ta , pa , x1 , x2 , err
     integer , intent(in) :: maxiter
@@ -486,10 +533,12 @@ module mod_heatindex
     b = x2
     fa = (a-ta)/ra_un(a,ta) + (phi_salt*pvstar(a)-pa)/za_un -(q-qv(ta,pa))
     fb = (b-ta)/ra_un(b,ta) + (phi_salt*pvstar(b)-pa)/za_un -(q-qv(ta,pa))
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solve5'
       call fatal(__FILE__,__LINE__,'error interval, solve5')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       fc = (c-ta)/ra_un(c,ta) + (phi_salt*pvstar(c)-pa)/za_un -(q-qv(ta,pa))
@@ -501,11 +550,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solve5"
+#endif
     solve5 = c
   end function solve5
 
+#ifdef DEBUG
   real(rkx) function solvei(eqvar)
+#else
+  pure real(rkx) function solvei(eqvar)
+#endif
     implicit none
     real(rkx) , intent(in) :: eqvar
     integer :: iter
@@ -518,10 +573,12 @@ module mod_heatindex
     fa = tmp(1) - eqvar
     tmp = find_eqvar(b,1.0_rkx)
     fb = tmp(1) - eqvar
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solvei'
       call fatal(__FILE__,__LINE__,'error interval, solvei')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,1.0_rkx)
@@ -534,11 +591,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solvei"
+#endif
     solvei = c
   end function solvei
 
+#ifdef DEBUG
   real(rkx) function solveii(eqvar)
+#else
+  pure real(rkx) function solveii(eqvar)
+#endif
     implicit none
     real(rkx) , intent(in) :: eqvar
     integer :: iter
@@ -551,11 +614,13 @@ module mod_heatindex
     fa = tmp(2) - eqvar
     tmp = find_eqvar(b,min(1.0_rkx,pa0/pvstar(b)))
     fb = tmp(2) - eqvar
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solveii : a, b, fa, fb, eqvar : ', &
         a, b, fa, fb, eqvar
       call fatal(__FILE__,__LINE__,'error interval, solveii')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,min(1.0_rkx,pa0/pvstar(c)))
@@ -568,11 +633,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveii"
+#endif
     solveii = c
   end function solveii
 
+#ifdef DEBUG
   real(rkx) function solveiii(eqvar)
+#else
+  pure real(rkx) function solveiii(eqvar)
+#endif
     implicit none
     real(rkx) , intent(in) :: eqvar
     integer :: iter
@@ -585,10 +656,12 @@ module mod_heatindex
     fa = tmp(3) - eqvar
     tmp = find_eqvar(b,pa0/pvstar(b))
     fb = tmp(3) - eqvar
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solveiii'
       call fatal(__FILE__,__LINE__,'error interval, solveiii')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
@@ -601,11 +674,17 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveiii"
+#endif
     solveiii = c
   end function solveiii
 
+#ifdef DEBUG
   real(rkx) function solveiv(eqvar)
+#else
+  pure real(rkx) function solveiv(eqvar)
+#endif
     implicit none
     real(rkx) , intent(in) :: eqvar
     integer :: iter
@@ -618,10 +697,12 @@ module mod_heatindex
     fa = tmp(4) - eqvar
     tmp = find_eqvar(b,pa0/pvstar(b))
     fb = tmp(4) - eqvar
+#ifdef DEBUG
     if ( fa*fb > 0.0_rkx ) then
       write(stderr,*) 'solveiv : eqvar : ', eqvar
       call fatal(__FILE__,__LINE__,'error interval, solveiv')
     end if
+#endif
     do iter = 1 , maxiter
       c = (a+b) * 0.5_rkx
       tmp = find_eqvar(c,pa0/pvstar(c))
@@ -634,7 +715,9 @@ module mod_heatindex
         a = c
       end if
     end do
+#ifdef DEBUG
     if ( iter == maxiter+1 ) write(stderr,*) "maxiter, solveiv"
+#endif
     solveiv = c
   end function solveiv
 

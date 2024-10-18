@@ -150,9 +150,8 @@ module mod_sound
       fi(6) = d_half
       fj(6) = d_half
 
-      loc_xmsf = sum(mddom%msfx(jci1:jci2,ici1:ici2))
+      loc_xmsf = sum(mddom%msfx(jci1:jci2,ici1:ici2))*rnpts
       call sumall(loc_xmsf,xmsf)
-      xmsf = xmsf*rnpts
     end if
     bet = nhbet
     xkd = nhxkd
@@ -547,13 +546,11 @@ module mod_sound
               rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
             end do
           end do
-          loc_abar = atot
-          loc_rhon = rhontot
+          loc_abar = atot*rnpts
+          loc_rhon = rhontot*rnpts
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
           if ( myid == iocpu ) then
-            abar = abar*rnpts
-            rhon = rhon*rnpts
             dxmsfb = d_two/dxsq/xmsf
             tmask(:,:) = d_zero
             do kk = 0 , 6

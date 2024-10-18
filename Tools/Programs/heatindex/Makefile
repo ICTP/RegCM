@@ -1,5 +1,7 @@
-FC = gfortran
-FFLAGS = `nf-config --fflags` -fopenmp
+#FC = gfortran
+FC = ifort
+#FFLAGS = `nf-config --fflags` -fopenmp
+FFLAGS = `nf-config --fflags` -qopenmp
 LIBS = `nf-config --flibs`
 
 all :: heatindex

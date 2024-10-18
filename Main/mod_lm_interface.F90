@@ -1284,9 +1284,8 @@ module mod_lm_interface
 #endif
     end do
     ! Gauss Siedel Filtering
-    mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
+    mval = (d_half*(maxval(lm%sfps)-minval(lm%sfps)))/real(nproc,rkx)
     call sumall(mval,mall)
-    mval = mall/real(nproc,rkx)
     sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
     call exchange(slp,1,jce1,jce2,ice1,ice2)
     call exchange(sfp,1,jce1,jce2,ice1,ice2)
@@ -1295,7 +1294,7 @@ module mod_lm_interface
     do concurrent ( j = jci1:jci2, i = ici1:ici2 )
       mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
                    sfp(j-1,i)+sfp(j+1,i) - &
-                   4.0_rkx*sfp(j,i))/mval
+                   4.0_rkx*sfp(j,i))/mall
     end do
     do n = 1 , niter
       do i = ici1 , ici2

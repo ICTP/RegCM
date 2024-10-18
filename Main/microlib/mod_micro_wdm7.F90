@@ -237,8 +237,7 @@ module mod_micro_wdm7
     !denr=rhoh2o. den0=stdrho
     qc0  = fourt*mathpi*rhoh2o*r0**3*xncr0/stdrho  ! 0.419e-3 -- .61e-3
     qc1  = fourt*mathpi*rhoh2o*r0**3*xncr1/stdrho  ! 0.419e-3 -- .61e-3
-    qck1 = 0.104_rkx*egrav*peaut / &
-                  (xncr*rhoh2o)**(onet)/xmyu*stdrho**(fourt) ! 7.03
+    qck1 = 0.104_rkx*egrav*peaut/rhoh2o**onet/xmyu*stdrho**(fourt) ! 4706.08203
     pidnc = mathpi*rhoh2o/d_six        ! syb
     !cpv = 1885.0       ! specific heat of water vapor
     !n
