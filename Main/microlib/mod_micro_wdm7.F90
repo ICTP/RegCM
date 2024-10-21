@@ -1158,7 +1158,7 @@ module mod_micro_wdm7
             (1.e20_rkx/16.0_rkx*rslopec2(i,k)*rslopec2(i,k)-0.4_rkx)
           lenconcr = max(1.2_rkx*lencon, qrsmin)
           if ( qci(i,k,1) > qcm(i) .and. ncr(i,k,2) > ncmin ) then
-            praut(i,k) = qck1*qci(i,k,1)**(7.0_rkx/3.0_rkx) * &
+            praut(i,k) = qck1*qci(i,k,1)**(7.0_rkx/3.0_rkx) / &
                          ncr(i,k,2)**onet
             praut(i,k) = min(praut(i,k),qci(i,k,1)*rdtcld)
             !
