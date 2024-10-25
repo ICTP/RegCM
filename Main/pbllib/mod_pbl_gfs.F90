@@ -38,14 +38,13 @@ module mod_pbl_gfs
 
   ! Input to moninq
 
-  real(rkx) , dimension(:,:) , pointer :: uo , vo , t1 , xpfac
-  real(rkx) , dimension(:,:,:) , pointer :: q1
+  real(rkx) , dimension(:,:) , pointer :: uo , vo , to , xpfac
+  real(rkx) , dimension(:,:,:) , pointer :: qo
   real(rkx) , dimension(:) , pointer :: psk , rbsoil
   real(rkx) , dimension(:) , pointer :: fm , fh , spd1
   real(rkx) , dimension(:,:) , pointer :: prsi , phii , z , dz
   real(rkx) , dimension(:,:) , pointer :: del , prsl , prslk , phil , thraten
-  real(rkx) , dimension(:,:) , pointer :: rcs
-  real(rkx) , dimension(:) , pointer :: heat , evap , stress
+  real(rkx) , dimension(:) , pointer :: heat , evap , stress , ustar , rrho
 
   ! Output from moninq
 
@@ -70,11 +69,10 @@ module mod_pbl_gfs
       call getmem2d(tau,1,iblp,1,kz,'mod_pbl_gfs:tau')
       call getmem3d(rtg,1,iblp,1,kz,1,ibnt,'mod_pbl_gfs:rtg')
 
-      call getmem2d(rcs,1,iblp,1,kz,'mod_pbl_gfs:rcs')
       call getmem2d(uo,1,iblp,1,kz,'mod_pbl_gfs:uo')
       call getmem2d(vo,1,iblp,1,kz,'mod_pbl_gfs:vo')
-      call getmem2d(t1,1,iblp,1,kz,'mod_pbl_gfs:t1')
-      call getmem3d(q1,1,iblp,1,kz,1,ibnt,'mod_pbl_gfs:q1')
+      call getmem2d(to,1,iblp,1,kz,'mod_pbl_gfs:to')
+      call getmem3d(qo,1,iblp,1,kz,1,ibnt,'mod_pbl_gfs:qo')
       call getmem1d(psk,1,iblp,'mod_pbl_gfs:psk')
       call getmem1d(rbsoil,1,iblp,'mod_pbl_gfs:rbsoil')
       call getmem1d(fm,1,iblp,'mod_pbl_gfs:fm')
@@ -91,7 +89,9 @@ module mod_pbl_gfs
       call getmem2d(dz,1,iblp,1,kz,'mod_pbl_gfs:dz')
       call getmem1d(heat,1,iblp,'mod_pbl_gfs:heat')
       call getmem1d(evap,1,iblp,'mod_pbl_gfs:evap')
+      call getmem1d(rrho,1,iblp,'mod_pbl_gfs:rrho')
       call getmem1d(stress,1,iblp,'mod_pbl_gfs:stress')
+      call getmem1d(ustar,1,iblp,'mod_pbl_gfs:ustar')
       call getmem2d(xpfac,jci1,jci2,ici1,ici2,'mod_pbl_gfs:xpfac')
 
     end subroutine init_pbl_gfs
@@ -103,9 +103,7 @@ module mod_pbl_gfs
 
       integer(ik4) :: i , j , k , kk , km , n
       integer(ik4) :: iq , it , iit
-      real(rkx) :: tvcon
       real(rkx) :: ps , ta , qa , pa , ua , va
-      real(rkx) :: rrhox , hf , qf
 
       n = 1
       do i = ici1 , ici2
@@ -116,18 +114,16 @@ module mod_pbl_gfs
           qa = m2p%qxatm(j,i,kz,iqv)
           ps = m2p%patmf(j,i,kzp1)
           pa = m2p%patm(j,i,kz)
-          tvcon = d_one + ep1*qa
-          rrhox = d_one/m2p%rhox2d(j,i)
           fm(n) = m2p%ram1(j,i)
           fh(n) = m2p%rah1(j,i)
-          hf = m2p%hfx(j,i)
-          qf = m2p%qfx(j,i)
           rbsoil(n) = m2p%br(j,i)
           psk(n) = (ps/p00)**rovcp
-          stress(n) = m2p%ustar(j,i)*m2p%ustar(j,i)
-          heat(n) = hf/cpd*rrhox
-          evap(n) = qf*rrhox
-          spd1(n) = sqrt(ua*ua + va*va)
+          ustar(n) = m2p%ustar(j,i)
+          rrho(n) = 1.0_rkx/m2p%rhox2d(j,i)
+          stress(n) = (ustar(n)*ustar(n))*m2p%rhox2d(j,i)
+          heat(n) = m2p%hfx(j,i)*rcpd*rrho(n)
+          evap(n) = m2p%qfx(j,i)
+          spd1(n) = sqrt(ua*ua+va*va)
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1
@@ -139,7 +135,7 @@ module mod_pbl_gfs
         kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            t1(n,kk) = m2p%tatm(j,i,k)
+            to(n,kk) = m2p%tatm(j,i,k)
             uo(n,kk) = m2p%uxatm(j,i,k)
             vo(n,kk) = m2p%vxatm(j,i,k)
             prsl(n,kk) = m2p%patm(j,i,k)*d_r1000
@@ -147,7 +143,6 @@ module mod_pbl_gfs
             dz(n,kk) = m2p%dzq(j,i,k)
             z(n,kk) = m2p%za(j,i,k)
             thraten(n,kk) = m2p%heatrt(j,i,k)/prslk(n,kk)
-            rcs(n,kk) = 1.0_rkx
             n = n + 1
           end do
         end do
@@ -158,7 +153,7 @@ module mod_pbl_gfs
         km = k - 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            del(n,km) = prsl(n,km)/rovg*dz(n,km)/t1(n,km)
+            del(n,km) = prsl(n,km)/rovg*dz(n,km)/to(n,km)
             prsi(n,k) = prsi(n,km)-del(n,km)
             phii(n,k) = (z(n,k)-z(n,1))*egrav
             phil(n,km) = d_half*(z(n,k)+z(n,km)-d_two*z(n,1))*egrav
@@ -184,7 +179,7 @@ module mod_pbl_gfs
           kk = kzp1 - k
           do i = ici1 , ici2
             do j = jci1 , jci2
-              q1(n,kk,iq) = m2p%qxatm(j,i,k,iq)/(d_one + m2p%qxatm(j,i,k,iq))
+              qo(n,kk,iq) = m2p%qxatm(j,i,k,iq)/(d_one + m2p%qxatm(j,i,k,iq))
               n = n + 1
             end do
           end do
@@ -199,7 +194,7 @@ module mod_pbl_gfs
             kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                q1(n,kk,iit) = m2p%chib(j,i,k,it)/(d_one + m2p%chib(j,i,k,it))
+                qo(n,kk,iit) = m2p%chib(j,i,k,it)/(d_one + m2p%chib(j,i,k,it))
                 n = n + 1
               end do
             end do
@@ -241,7 +236,7 @@ module mod_pbl_gfs
           do i = ici1 , ici2
             do j = jci1 , jci2
               p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + &
-                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * xpfac(j,i)
+                     rtg(n,kk,iq)/(d_one-qo(n,kk,iq))**2 * xpfac(j,i)
               n = n + 1
             end do
           end do
@@ -257,7 +252,7 @@ module mod_pbl_gfs
             do i = ici1 , ici2
               do j = jci1 , jci2
                 p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
-                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * xpfac(j,i)
+                      rtg(n,kk,iit)/(d_one-qo(n,kk,iit)) * xpfac(j,i)
                 n = n + 1
               end do
             end do
@@ -281,21 +276,20 @@ module mod_pbl_gfs
 
       integer(ik4) , intent(in) :: im , km , ntrac
       integer(ik4) :: i , is , k , kk , km1 , kmpbl
-      integer(ik4) , dimension(im) :: lcld , icld , kcld , krad
-      integer(ik4) , dimension(im) :: kpblx
+      integer(ik4) , dimension(im) :: lcld , icld , kcld , krad , kx1
+      integer(ik4) , dimension(im) :: kpblx , kinver
 
       real(rkx) , dimension(im) :: phih , phim
       real(rkx) , dimension(im) :: rbdn , rbup , beta
-      real(rkx) , dimension(im) :: ustar , wscale , thermal , wstar3
+      real(rkx) , dimension(im) :: wscale , thermal , wstar3
       real(rkx) , dimension(im) :: hpblx
 
       real(rkx) , dimension(im,km) :: thvx , thlvx
       real(rkx) , dimension(im,km) :: qlx , thetae , qtx
       real(rkx) , dimension(im,km-1) :: bf , radx
-      real(rkx) , dimension(im,km) :: u1 , v1
       real(rkx) , dimension(im) :: govrth , hrad , cteit
       real(rkx) , dimension(im) :: radmin , vrad , zd , zdd , thlvx1
-      real(rkx) , dimension(im) :: hgamt , hgamq
+      real(rkx) , dimension(im) :: hgamt , hgamq , tx1 , tx2
 
       real(rkx) , dimension(im,km-1) :: rdzt , dktx , dkux , xkzo , xkzmo
       real(rkx) , dimension(im,km+1) :: zi
@@ -309,7 +303,7 @@ module mod_pbl_gfs
       real(rkx) :: prnum , qtend , rbint , rdt , rdz , ri , rl2
       real(rkx) :: sflux , shr2 , spdk2 , sri , tem , ti
       real(rkx) :: ttend , utend , vtend , zfac , vpert , zk
-      real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2 , rlv
+      real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2
 
       real(rkx) , parameter :: gocp = egrav*rcpd
       real(rkx) , parameter :: rlam = 30.0_rkx
@@ -353,8 +347,6 @@ module mod_pbl_gfs
         do i = 1 , im
           zi(i,k) = phii(i,k) * regrav
           zl(i,k) = phil(i,k) * regrav
-          u1(i,k) = uo(i,k) * rcs(i,k)
-          v1(i,k) = vo(i,k) * rcs(i,k)
         end do
       end do
       do i = 1 , im
@@ -365,26 +357,32 @@ module mod_pbl_gfs
           rdzt(i,k) = d_one / (zl(i,k+1) - zl(i,k))
         end do
       end do
+      do i = 1 , im
+        kinver(i) = km
+        kx1(i) = 1
+        tx1(i) = 1.0 / prsi(i,1)
+        tx2(i) = tx1(i)
+      end do
       ! Vertical background diffusivity
       do k = 1 , km1
         do i = 1 , im
-          tem1      = d_one - prsi(i,k+1) / prsi(i,1)
-          tem1      = min(tem1 * tem1 * 10.0_rkx,25.0_rkx)
-          xkzo(i,k) = xkzm * min(d_one, exp(-tem1))
-        end do
-      end do
-      ! Vertical background diffusivity for momentum
-      ptem1 = prsi(i,km)
-      do k = 1 , km1
-        do i = 1 , im
-          ptem = prsi(i,k+1) / prsi(i,1)
-          if ( ptem >= 0.2_rkx ) then
-            xkzmo(i,k) = xkzmu
-            ptem1 = prsi(i,k+1)
-          else
-            tem1 = d_one - prsi(i,k+1) / ptem1
-            tem1 = min(tem1 * tem1 * 5.0_rkx,25.0_rkx)
-            xkzmo(i,k) = xkzmu * min(d_one, exp(-tem1))
+          xkzo(i,k) = d_zero
+          xkzmo(i,k) = d_zero
+          if ( k < kinver(i) ) then
+            ptem      = prsi(i,k+1) * tx1(i)
+            tem1      = d_one - ptem
+            tem1      = min(tem1 * tem1 * 10.0_rkx,25.0_rkx)
+            xkzo(i,k) = xkzm * min(d_one, exp(-tem1))
+            ! Vertical background diffusivity for momentum
+            if ( ptem >= 0.2_rkx ) then
+              xkzmo(i,k) = xkzmu
+              kx1(i)     = k + 1
+            else
+              if (k == kx1(i) .and. k > 1) tx2(i) = 1.0 / prsi(i,k)
+              tem1 = d_one - prsi(i,k+1) * tx2(i)
+              tem1 = min(tem1 * tem1 * 5.0_rkx,25.0_rkx)
+              xkzmo(i,k) = xkzmu * min(d_one, exp(-tem1))
+            end if
           end if
         end do
       end do
@@ -392,7 +390,7 @@ module mod_pbl_gfs
       do k = 1 , kmpbl
         do i = 1 , im
           if ( zi(i,k+1) > 250.0_rkx ) then
-            tem1 = (t1(i,k+1)-t1(i,k)) * rdzt(i,k)
+            tem1 = (to(i,k+1)-to(i,k)) * rdzt(i,k)
             if ( tem1 > 1.e-5_rkx ) then
               xkzo(i,k) = min(xkzo(i,k),xkzminv)
             end if
@@ -425,15 +423,14 @@ module mod_pbl_gfs
       end do
       do k = 1 , km
         do i = 1 , im
-          theta(i,k) = t1(i,k) * psk(i) / prslk(i,k)
-          qlx(i,k)   = max(q1(i,k,2),qlmin)
-          qtx(i,k)   = max(q1(i,k,1),qmin)+qlx(i,k)
+          theta(i,k) = to(i,k) * psk(i) / prslk(i,k)
+          qlx(i,k)   = max(qo(i,k,2),qlmin)
+          qtx(i,k)   = max(qo(i,k,1),qmin)+qlx(i,k)
           ptem       = qlx(i,k)
-          rlv        = wlh(t1(i,k))
-          ptem1      = rlv*max(q1(i,k,1),qmin)/(cpd*t1(i,k))
+          ptem1      = wlhvocp*max(qo(i,k,1),qmin)/to(i,k)
           thetae(i,k)= theta(i,k)*(d_one+ptem1)
-          thvx(i,k)  = theta(i,k)*(d_one+ep1*max(q1(i,k,1),qmin)-ptem)
-          ptem2      = theta(i,k)-(rlv/cpd)*ptem
+          thvx(i,k)  = theta(i,k)*(d_one+ep1*max(qo(i,k,1),qmin)-ptem)
+          ptem2      = theta(i,k)-wlhvocp*ptem
           thlvx(i,k) = ptem2*(d_one+ep1*qtx(i,k))
         end do
       end do
@@ -473,7 +470,6 @@ module mod_pbl_gfs
         beta(i) = dt / (zi(i,2)-zi(i,1))
       end do
       do i = 1 , im
-        ustar(i) = sqrt(stress(i))
         thermal(i) = thvx(i,1)
       end do
       ! Compute the first guess pbl height
@@ -485,8 +481,8 @@ module mod_pbl_gfs
         do i = 1 , im
           if ( .not. flg(i) ) then
             rbdn(i) = rbup(i)
-            spdk2   = max((u1(i,k)**2+v1(i,k)**2),d_one)
-            rbup(i) = (thvx(i,k)-thermal(i))*        &
+            spdk2   = max((uo(i,k)**2+vo(i,k)**2),1.0_rkx)
+            rbup(i) = (thvx(i,k)-thermal(i)) * &
                       (egrav*zl(i,k)/thvx(i,1))/spdk2
             kpbl(i) = k
             flg(i)  = (rbup(i) > rbcr)
@@ -509,7 +505,7 @@ module mod_pbl_gfs
       end do
       ! Compute similarity parameters
       do i = 1 , im
-        sflux = heat(i) + evap(i)*ep1*theta(i,1)
+        sflux = heat(i) + evap(i)*ep1*theta(i,1)*rrho(i)
         if ( sfcflg(i) .and. sflux > d_zero ) then
           hol = max(rbsoil(i)*fm(i)*fm(i)/fh(i),rimin)
           hol = min(hol,-zfmin)
@@ -550,7 +546,7 @@ module mod_pbl_gfs
         do i = 1 , im
           if ( .not. flg(i) ) then
             rbdn(i) = rbup(i)
-            spdk2   = max((u1(i,k)**2+v1(i,k)**2),d_one)
+            spdk2   = max((uo(i,k)**2+vo(i,k)**2),1.0_rkx)
             rbup(i) = (thvx(i,k)-thermal(i)) * &
                       (egrav*zl(i,k)/thvx(i,1))/spdk2
             kpbl(i) = k
@@ -707,8 +703,8 @@ module mod_pbl_gfs
         do i = 1 , im
           if ( k >= kpbl(i) ) then
             rdz  = rdzt(i,k)
-            ti   = d_two/(t1(i,k)+t1(i,k+1))
-            dw2  = (u1(i,k)-u1(i,k+1))**2 +(v1(i,k)-v1(i,k+1))**2
+            ti   = d_two/(to(i,k)+to(i,k+1))
+            dw2  = (uo(i,k)-uo(i,k+1))**2 +(vo(i,k)-vo(i,k+1))**2
             shr2 = max(dw2,dw2min)*rdz*rdz
             bvf2 = egrav*bf(i,k)*ti
             ri   = max(bvf2/shr2,rimin)
@@ -748,8 +744,7 @@ module mod_pbl_gfs
           tem = thetae(i,k) - thetae(i,k+1)
           tem1 = qtx(i,k) - qtx(i,k+1)
           if ( tem > d_zero .and. tem1 > d_zero ) then
-            rlv = wlh(t1(i,k))
-            cteit(i)= cpd*tem/(rlv*tem1)
+            cteit(i)= cpd*tem/(wlhv*tem1)
             if ( cteit(i) > actei ) rent(i) = rentf2
           end if
         end if
@@ -794,14 +789,14 @@ module mod_pbl_gfs
       ! Compute tridiagonal matrix elements for heat and moisture
       do i = 1 , im
          ad(i,1) = d_one
-         a1(i,1) = t1(i,1)   + beta(i) * heat(i)
-         a2(i,1) = q1(i,1,1) + beta(i) * evap(i)
+         a1(i,1) = to(i,1)   + beta(i) * heat(i)
+         a2(i,1) = qo(i,1,1) + beta(i) * evap(i)
       end do
       if ( ntrac >= 2 ) then
         do k = 2 , ntrac
           is = (k-1) * km
           do i = 1 , im
-            a2(i,1+is) = q1(i,1,k)
+            a2(i,1+is) = qo(i,1,k)
           end do
         end do
       end if
@@ -818,10 +813,10 @@ module mod_pbl_gfs
              dsdzt = tem1 * gocp - ptem1*hgamt(i)*tem
              dsdzq = ptem1 * (-hgamq(i)*tem)
              a2(i,k)   = a2(i,k)+dtodsd*dsdzq
-             a2(i,k+1) = q1(i,k+1,1)-dtodsu*dsdzq
+             a2(i,k+1) = qo(i,k+1,1)-dtodsu*dsdzq
           else
              dsdzt = tem1 * gocp
-             a2(i,k+1) = q1(i,k+1,1)
+             a2(i,k+1) = qo(i,k+1,1)
           endif
           dsdz2     = tem1 * rdz
           au(i,k)   = -dtodsd*dsdz2
@@ -829,7 +824,7 @@ module mod_pbl_gfs
           ad(i,k)   = ad(i,k)-au(i,k)
           ad(i,k+1) = d_one-al(i,k)
           a1(i,k)   = a1(i,k)+dtodsd*dsdzt
-          a1(i,k+1) = t1(i,k+1)-dtodsu*dsdzt
+          a1(i,k+1) = to(i,k+1)-dtodsu*dsdzt
         end do
       end do
       if ( ntrac >= 2 ) then
@@ -837,7 +832,7 @@ module mod_pbl_gfs
           is = (kk-1) * km
           do k = 1 , km1
             do i = 1 , im
-              a2(i,k+1+is) = q1(i,k+1,kk)
+              a2(i,k+1+is) = qo(i,k+1,kk)
             end do
           end do
         end do
@@ -847,8 +842,8 @@ module mod_pbl_gfs
       ! Recover tendencies of heat and moisture
       do k = 1,km
         do i = 1 , im
-          ttend      = (a1(i,k)-t1(i,k))*rdt
-          qtend      = (a2(i,k)-q1(i,k,1))*rdt
+          ttend      = (a1(i,k)-to(i,k))*rdt
+          qtend      = (a2(i,k)-qo(i,k,1))*rdt
           tau(i,k)   = tau(i,k)+ttend
           rtg(i,k,1) = rtg(i,k,1)+qtend
         end do
@@ -858,7 +853,7 @@ module mod_pbl_gfs
           is = (kk-1) * km
           do k = 1 , km
             do i = 1 , im
-              qtend = (a2(i,k+is)-q1(i,k,kk))*rdt
+              qtend = (a2(i,k+is)-qo(i,k,kk))*rdt
               rtg(i,k,kk) = rtg(i,k,kk)+qtend
             end do
           end do
@@ -867,8 +862,8 @@ module mod_pbl_gfs
       ! Compute tridiagonal matrix elements for momentum
       do i = 1 , im
         ad(i,1) = d_one + beta(i) * stress(i) / spd1(i)
-        a1(i,1) = u1(i,1)
-        a2(i,1) = v1(i,1)
+        a1(i,1) = uo(i,1)
+        a2(i,1) = vo(i,1)
       end do
       do k = 1 , km1
         do i = 1 , im
@@ -877,8 +872,8 @@ module mod_pbl_gfs
           dsig   = prsl(i,k)-prsl(i,k+1)
           rdz    = rdzt(i,k)
           tem1   = dsig*dku(i,k)*rdz
-          a1(i,k+1) = u1(i,k+1)
-          a2(i,k+1) = v1(i,k+1)
+          a1(i,k+1) = uo(i,k+1)
+          a2(i,k+1) = vo(i,k+1)
           dsdz2     = tem1*rdz
           au(i,k)   = -dtodsd*dsdz2
           al(i,k)   = -dtodsu*dsdz2
@@ -891,11 +886,10 @@ module mod_pbl_gfs
       ! Recover tendencies of momentum
       do k = 1 , km
         do i = 1 , im
-          ptem = d_one/rcs(i,k)
-          utend = (a1(i,k)-u1(i,k))*rdt
-          vtend = (a2(i,k)-v1(i,k))*rdt
-          du(i,k)  = du(i,k)+utend*ptem
-          dv(i,k)  = dv(i,k)+vtend*ptem
+          utend = (a1(i,k)-uo(i,k))*rdt
+          vtend = (a2(i,k)-vo(i,k))*rdt
+          du(i,k)  = du(i,k)+utend
+          dv(i,k)  = dv(i,k)+vtend
         end do
       end do
       ! PBL height for diagnostic purpose
@@ -905,8 +899,6 @@ module mod_pbl_gfs
       end do
 
       contains
-
-#include <wlh.inc>
 
     end subroutine moninq
 

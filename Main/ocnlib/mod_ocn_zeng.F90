@@ -77,7 +77,7 @@ module mod_ocn_zeng
       integer(ik4) :: i
       real(rkx) :: wt1 , wt2
       real(rkx) :: t995 , q995 , uv995 , z995
-      real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo ,    &
+      real(rkx) :: dqh , dth , facttq , lh , qs , sh , zo , es , &
             tau , tsurf , ustar , uv10 , zi , cd , dthv , zq ,   &
             zh , zu , obu , qstar , xdens , th , thv , thvstar , &
             tstar , um , visa , zot , wc , zeta , zoq , tha ,    &
@@ -131,7 +131,9 @@ module mod_ocn_zeng
         ! potential T
         th = tsurf*(p00/sfps(i))**rovcp
         tha = tatm(i)*(p00/patm(i))**rovcp
-        qs = pfwsat(tsurf,sfps(i))*0.998_rkx
+        ! the saturation vapor pressure for salty water is on average 2% lower
+        es = pfesat(tsurf,sfps(i))*0.98_rkx
+        qs = pfwsat(tsurf,sfps(i),es)
         ! virtual potential T
         thv = th*(d_one+ep1*qs)
         ! The deltas between surface and atmosphere
