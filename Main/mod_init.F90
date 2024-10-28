@@ -313,6 +313,8 @@ module mod_init
           sfs%vz0 = d_zero
           sfs%thz0 = d_zero
           sfs%qz0 = d_zero
+        else if ( ibltyp == 5 ) then
+          atms%tkepbl(:,:,:) = tkemin
         end if
       else
         if ( ibltyp == 2 ) then
@@ -324,6 +326,8 @@ module mod_init
           sfs%vz0 = d_zero
           sfs%thz0 = d_zero
           sfs%qz0 = d_zero
+        else if ( ibltyp == 5 ) then
+          atms%tkepbl(:,:,:) = tkemin
         end if
       end if
       !
@@ -447,6 +451,9 @@ module mod_init
           sfs%vz0 = myjsf_vz0_io
           sfs%thz0 = myjsf_thz0_io
           sfs%qz0 = myjsf_qz0_io
+        end if
+        if ( ibltyp == 5 ) then
+          atms%tkepbl = tke_pbl_io
         end if
         if ( idynamic == 2 ) then
           do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
@@ -641,6 +648,10 @@ module mod_init
           call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
+        end if
+        if ( ibltyp == 5 ) then
+          call grid_distribute(tke_pbl_io,atms%tkepbl, &
+                               jci1,jci2,ici1,ici2,1,kz)
         end if
         if ( idynamic == 2 ) then
           call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)

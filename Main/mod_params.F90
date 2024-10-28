@@ -950,7 +950,7 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED CUMULUS SCHEME')
       end if
-      if ( ibltyp < 0 .or. ibltyp > 4 ) then
+      if ( ibltyp < 0 .or. ibltyp > 5 ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
@@ -2426,6 +2426,8 @@ module mod_params
         write(stdout,*) 'GFS PBL Scheme'
       else if ( ibltyp == 4 ) then
         write(stdout,*) 'MYJ PBL Scheme'
+      else if ( ibltyp == 5 ) then
+        write(stdout,*) 'Shin and Hong PBL Scheme'
       else
         write(stdout,*) &
           'Model frictionless and insulated for the lower boundary.'

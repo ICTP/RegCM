@@ -21,11 +21,13 @@ module mod_pbl_shinhong
 
   use mod_realkinds
   use mod_regcm_types
-  use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , kz , kzm1 , kzp1 , ntr
+  use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , ntr
+  use mod_dynparam , only : kz , kzm1 , kzp1 , kzp2 , ntr
   use mod_dynparam , only : idynamic
   use mod_runparams , only : ichem , ipptls , iqv , iqc , iqi , dt , dx
   use mod_constants , only : egrav , regrav , cpd , rcpd , rdry , rwat
   use mod_constants , only : vonkar , ep1 , wlhv , p00 , rovcp , d_one
+  use mod_memutil , only : getmem1d , getmem2d
 
   integer :: numbl , nj , ni , ndiff , ichs
 
@@ -34,9 +36,23 @@ module mod_pbl_shinhong
   real(rkx) , parameter :: ozo = 1.59e-5_rkx
   real(rkx) , dimension(0:1000) :: psimtb , psihtb
 
+  real(rkx) , dimension(:,:) , pointer :: u2d , v2d , utnp , vtnp
+  real(rkx) , dimension(:,:) , pointer :: t2d , ttnp , th2d , p2d , dz2d , pi2d
+  real(rkx) , dimension(:,:) , pointer :: p2di
+  real(rkx) , dimension(:,:) , pointer :: tke2d
+  real(rkx) , dimension(:,:) , pointer :: qtrac , qtnp
+  real(rkx) , dimension(:) , pointer :: psfc , hfx , qfx , ust , znt
+  real(rkx) , dimension(:) , pointer :: wspd , psim , psih , br
+  real(rkx) , dimension(:) , pointer :: hpbl , dusfc , dvsfc , dtsfc , dqsfc
+  real(rkx) , dimension(:) , pointer :: wstar , delta , wspd10
+  real(rkx) , dimension(:) , pointer :: corf , za
+  real(rkx) , dimension(:) , pointer :: govrth , dtg , rah , rpfac
+  integer , dimension(:) , pointer :: xland
+  integer , dimension(:) , pointer :: kpbl
+
   contains
 
-  subroutine init_shinhong_pbl
+  subroutine init_shinhong_pbl( )
     implicit none
     nj = jci2-jci1+1
     ni = ici2-ici1+1
@@ -52,6 +68,45 @@ module mod_pbl_shinhong
       ichs = 0
     end if
     call sfclayinit
+    call getmem2d(u2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(v2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(t2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(th2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(p2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(dz2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(pi2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(p2di,1,numbl,1,kzp1,'shinhong_pbl')
+    call getmem2d(tke2d,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(qtrac,1,numbl,1,kz*ndiff,'shinhong_pbl')
+    call getmem2d(utnp,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(vtnp,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(ttnp,1,numbl,1,kz,'shinhong_pbl')
+    call getmem2d(qtnp,1,numbl,1,kz*ndiff,'shinhong_pbl')
+    call getmem1d(psfc,1,numbl,'shinhong_pbl')
+    call getmem1d(hfx,1,numbl,'shinhong_pbl')
+    call getmem1d(qfx,1,numbl,'shinhong_pbl')
+    call getmem1d(ust,1,numbl,'shinhong_pbl')
+    call getmem1d(znt,1,numbl,'shinhong_pbl')
+    call getmem1d(wspd,1,numbl,'shinhong_pbl')
+    call getmem1d(wspd10,1,numbl,'shinhong_pbl')
+    call getmem1d(psim,1,numbl,'shinhong_pbl')
+    call getmem1d(psih,1,numbl,'shinhong_pbl')
+    call getmem1d(br,1,numbl,'shinhong_pbl')
+    call getmem1d(hpbl,1,numbl,'shinhong_pbl')
+    call getmem1d(dusfc,1,numbl,'shinhong_pbl')
+    call getmem1d(dvsfc,1,numbl,'shinhong_pbl')
+    call getmem1d(dtsfc,1,numbl,'shinhong_pbl')
+    call getmem1d(dqsfc,1,numbl,'shinhong_pbl')
+    call getmem1d(wstar,1,numbl,'shinhong_pbl')
+    call getmem1d(delta,1,numbl,'shinhong_pbl')
+    call getmem1d(corf,1,numbl,'shinhong_pbl')
+    call getmem1d(za,1,numbl,'shinhong_pbl')
+    call getmem1d(govrth,1,numbl,'shinhong_pbl')
+    call getmem1d(dtg,1,numbl,'shinhong_pbl')
+    call getmem1d(rah,1,numbl,'shinhong_pbl')
+    call getmem1d(rpfac,1,numbl,'shinhong_pbl')
+    call getmem1d(xland,1,numbl,'shinhong_pbl')
+    call getmem1d(kpbl,1,numbl,'shinhong_pbl')
   end subroutine init_shinhong_pbl
 
   subroutine shinhong_pbl(m2p,p2m)
@@ -59,18 +114,19 @@ module mod_pbl_shinhong
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
     !
-    ! u3d         3d u-velocity interpolated to theta points (m/s)
-    ! v3d         3d v-velocity interpolated to theta points (m/s)
-    ! th3d        3d potential temperature (k)
-    ! t3d         temperature (k)
+    ! u2d         3d u-velocity interpolated to theta points (m/s)
+    ! v2d         3d v-velocity interpolated to theta points (m/s)
+    ! th2d        3d potential temperature (k)
+    ! t2d         temperature (k)
     ! qtrac       3d water vapor mixing ratio (kg/kg)
     !             3d cloud mixing ratio (kg/kg)                      +
     !             3d ice mixing ratio (kg/kg) (ipptls > 1)           +
     !             3d tracer mixing ratio (kg/kg) (ichem == 1, ntr)
-    ! p3d         3d pressure (pa)
-    ! p3di        3d pressure (pa) at interface level
-    ! pi3d        3d exner function (dimensionless)
-    ! dz3d        dz between full levels (m)
+    ! p2d         3d pressure (pa)
+    ! p2di        3d pressure (pa) at interface level
+    ! pi2d        3d exner function (dimensionless)
+    ! dz2d        dz between full levels (m)
+    ! tke2d       3d diagnostic TKE
     ! psfc        pressure at the surface (pa)
     ! hfx	  upward heat flux at the surface (w/m^2)
     ! qfx	  upward moisture flux at the surface (kg/m^2/s)
@@ -85,19 +141,6 @@ module mod_pbl_shinhong
     ! u10         u-wind speed at 10 m (m/s)
     ! v10         v-wind speed at 10 m (m/s)
     !
-    real(rkx) , dimension(numbl,kz) :: u3d , v3d , utnp , vtnp
-    real(rkx) , dimension(numbl,kz) :: t3d , ttnp , th3d , p3d , dz3d
-    real(rkx) , dimension(numbl,kzp1) :: p3di , pi3d
-    real(rkx) , dimension(numbl,kz) :: exch , tke_pbl , el_pbl
-    real(rkx) , dimension(numbl,kz*ndiff) :: qtrac , qtnp
-    real(rkx) , dimension(numbl) :: psfc , hfx , qfx , ust , znt
-    real(rkx) , dimension(numbl) :: wspd , regime , psim , psih , br
-    real(rkx) , dimension(numbl) :: hpbl , dusfc , dvsfc , dtsfc , dqsfc
-    real(rkx) , dimension(numbl) :: wstar , delta , u10 , v10
-    real(rkx) , dimension(numbl) :: ctopo , ctopo2 , corf , za
-    real(rkx) , dimension(numbl) :: govrth , dtg , rah , rpfac
-    integer , dimension(numbl) :: xland
-    integer , dimension(numbl) :: kpbl
     integer :: i , j , k , kk , it , ibin
 
     if ( idynamic == 3 ) then
@@ -121,8 +164,7 @@ module mod_pbl_shinhong
         znt(ibin) = m2p%zo(j,i)
         xland(ibin) = m2p%ldmsk(j,i)
         wspd(ibin) = sqrt(m2p%uxatm(j,i,kz)**2 + m2p%vxatm(j,i,kz)**2)
-        u10(ibin) = m2p%u10m(j,i)
-        v10(ibin) = m2p%v10m(j,i)
+        wspd10(ibin) = sqrt(m2p%u10m(j,i)**2 + m2p%v10m(j,i)**2)
         br(ibin) = m2p%br(j,i)
         za(ibin) = m2p%za(j,i,kz)
         corf(ibin) = m2p%coriol(j,i)
@@ -137,24 +179,25 @@ module mod_pbl_shinhong
       do i = ici1 , ici2
         do j = jci1 , jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
-          p3d(ibin,kk) = m2p%patm(j,i,k)
-          u3d(ibin,kk) = m2p%uxatm(j,i,k)
-          v3d(ibin,kk) = m2p%uxatm(j,i,k)
-          dz3d(ibin,kk) = m2p%dzq(j,i,k)
-          t3d(ibin,kk) = m2p%tatm(j,i,k)
-          th3d(ibin,kk) = m2p%thatm(j,i,k)
-          pi3d(ibin,kk) = (m2p%patm(j,i,k)/p00)**rovcp
+          p2d(ibin,kk) = m2p%patm(j,i,k)
+          u2d(ibin,kk) = m2p%uxatm(j,i,k)
+          v2d(ibin,kk) = m2p%uxatm(j,i,k)
+          dz2d(ibin,kk) = m2p%dzq(j,i,k)
+          t2d(ibin,kk) = m2p%tatm(j,i,k)
+          th2d(ibin,kk) = m2p%thatm(j,i,k)
+          pi2d(ibin,kk) = (m2p%patm(j,i,k)/p00)**rovcp
+          tke2d(ibin,kk) = p2m%tkepbl(j,i,k)
           qtrac(ibin,kk) = m2p%qxatm(j,i,k,iqv)
           qtrac(ibin,kk+kz) = m2p%qxatm(j,i,k,iqc)
         end do
       end do
     end do
     do k = 1 , kzp1
-      kk = kzp1 - k
+      kk = kzp2 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
-          p3di(ibin,kk) = m2p%patmf(j,i,k)
+          p2di(ibin,kk) = m2p%patmf(j,i,k)
         end do
       end do
     end do
@@ -183,30 +226,37 @@ module mod_pbl_shinhong
       end do
     end if
     !
-    call sfclay(numbl,br,znt,za,ust,govrth,dtg,rah,regime,psim,psih)
+    call sfclay(numbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
     !
-    call shinhong2d(numbl,ux=u3d,vx=v3d,tx=t3d,qx=qtrac,p2d=p3d,        &
-                    p2di=p3di,pi2d=pi3d,utnp=utnp,vtnp=vtnp,ttnp=ttnp,  &
-                    qtnp=qtnp,dz8w2d=dz3d,psfcpa=psfc,znt=znt,ust=ust,  &
-                    hpbl=hpbl,regime=regime,psim=psim,psih=psih,        &
-                    xland=xland,hfx=hfx,qfx=qfx,wspd=wspd,br=br,        &
-                    dusfc=dusfc,dvsfc=dvsfc,dtsfc=dtsfc,dqsfc=dqsfc,    &
-                    dt=dt,rcl=d_one,kpbl1d=kpbl,exch_hx=exch,           &
-                    wstar=wstar,delta=delta,u10=u10,v10=v10,tke=tke_pbl,&
-                    el_pbl=el_pbl,corf=corf,dx=dx,dy=dx)
+    call shinhong2d(numbl,ux=u2d,vx=v2d,tx=t2d,qx=qtrac,p2d=p2d,         &
+                    p2di=p2di,pi2d=pi2d,utnp=utnp,vtnp=vtnp,ttnp=ttnp,   &
+                    qtnp=qtnp,dz8w2d=dz2d,psfcpa=psfc,znt=znt,ust=ust,   &
+                    hpbl=hpbl,psim=psim,psih=psih,xland=xland,hfx=hfx,   &
+                    qfx=qfx,wspd=wspd,br=br,dusfc=dusfc,dvsfc=dvsfc,     &
+                    dtsfc=dtsfc,dqsfc=dqsfc,dt=dt,rcl=d_one,kpbl1d=kpbl, &
+                    wstar=wstar,delta=delta,wspd10=wspd10,tke=tke2d,     &
+                    corf=corf,dx=dx,dy=dx)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ibin = (i-ici1)*nj+(j-jci1+1)
+        p2m%zpbl(j,i) = hpbl(ibin)
+        p2m%kpbl(j,i) = kpbl(ibin)
+      end do
+    end do
     do k = 1 , kz
-      kk = (ichs+it-1)*kz + kzp1 - k
+      kk = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-            (rpfac(ibin)*ttnp(ibin,kk)/pi3d(ibin,kk))
+            (rpfac(ibin)*ttnp(ibin,kk)/pi2d(ibin,kk))
           p2m%uxten(j,i,k) = p2m%uxten(j,i,k)+(rpfac(ibin)*utnp(ibin,kk))
           p2m%vxten(j,i,k) = p2m%vxten(j,i,k)+(rpfac(ibin)*vtnp(ibin,kk))
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
             (rpfac(ibin)*qtnp(ibin,kk))
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
             (rpfac(ibin)*qtnp(ibin,kz+kk))
+          p2m%tkepbl(j,i,k) = tke2d(ibin,kk)
         end do
       end do
     end do
@@ -240,8 +290,8 @@ module mod_pbl_shinhong
 
     subroutine shinhong2d(nbl,ux,vx,tx,qx,p2d,p2di,pi2d,utnp,vtnp,ttnp,qtnp, &
            dz8w2d,psfcpa,znt,ust,hpbl,psim,psih,xland,hfx,qfx,wspd,br,dusfc, &
-           dvsfc,dtsfc,dqsfc,dt,rcl,kpbl1d,exch_hx,wstar,delta,tke,el_pbl,   &
-           corf,u10,v10,dx,dy,regime)
+           dvsfc,dtsfc,dqsfc,dt,rcl,kpbl1d,wstar,delta,tke,corf,wspd10,      &
+           dx,dy)
       implicit none
       !
       !-----------------------------------------------------------------------
@@ -288,8 +338,7 @@ module mod_pbl_shinhong
       real(rkx) , dimension(nbl,kzp1) , intent(in) :: p2di
       real(rkx) , dimension(nbl,kz) , intent(in) :: p2d
       real(rkx) , dimension(nbl,kz) , intent(inout) :: utnp , vtnp , ttnp
-      real(rkx) , dimension(nbl,kz) , intent(inout) :: exch_hx
-      real(rkx) , dimension(nbl,kz) , intent(inout) :: tke , el_pbl
+      real(rkx) , dimension(nbl,kz) , intent(inout) :: tke
       real(rkx) , dimension(nbl,kz*ndiff) , intent(inout) :: qtnp
       integer , dimension(nbl) , intent(in) :: xland
       real(rkx) , dimension(nbl) , intent(in) :: hfx , qfx
@@ -297,12 +346,11 @@ module mod_pbl_shinhong
       real(rkx) , dimension(nbl) , intent(in) :: corf
       real(rkx) , dimension(nbl) , intent(inout) :: ust , hpbl , znt
       real(rkx) , dimension(nbl) , intent(inout) :: wspd
-      real(rkx) , dimension(nbl) , intent(inout) :: u10 , v10
+      real(rkx) , dimension(nbl) , intent(inout) :: wspd10
       real(rkx) , dimension(nbl) , intent(out) :: wstar , delta
-      real(rkx) , dimension(nbl) , intent(inout) :: regime
-      integer :: n , i , k , l , ic , is , nwmass
+      integer :: i , k , ic , is , nwmass
       integer :: klpbl , kqc , kqi
-      integer :: lmh , lmxl
+      integer :: lmh
       real(rkx) :: dt2 , rdt , spdk2 , fm , fh , hol1 , gamfac , vpert
       real(rkx) :: prnum , prnum0 , ss , ri , qmean , tmean , alpha
       real(rkx) :: chi , zk , rl2 , dk , sri , brint , dtodsd , dtodsu
@@ -312,15 +360,15 @@ module mod_pbl_shinhong
       real(rkx) :: cont , conq , conw , conwrc
       real(rkx) :: delxy , pu1 , pth1 , pq1
       real(rkx) :: zfacdx , dex , hgame_c
-      real(rkx) :: amf1 , amf2 , bmf2 , amf3 , bmf3 , amf4 , bmf4
+      real(rkx) :: amf1 , amf2 , bmf2 , amf3 , bmf3
       real(rkx) :: mlfrac , ezfrac , sfcfracn , sflux0 , snlflux0
       real(rkx) :: uwst , uwstx , csfac
       real(rkx) :: prnumfac , bfx0 , hfx0 , qfx0 , delb , dux , dvx ,    &
-        dsdzu , dsdzv , wm3 , dthx , dqx , wspd10 , ross , tem1 , dsig , &
-        tvcon , conpr , prfac , prfac2 , phim8z , cenlfrac
+        dsdzu , dsdzv , wm3 , dthx , dqx , ross , tem1 , dsig , tvcon ,  &
+        conpr , prfac , prfac2 , phim8z , cenlfrac
       integer , dimension(nbl) :: kpbl
       real(rkx) , dimension(nbl) :: rigs , enlfrac2 , cslen , deltaoh
-      real(rkx) , dimension(nbl) :: rhox , govrth , zl1 , thermal , hol
+      real(rkx) , dimension(nbl) :: rhox , govrth , zl1 , thermal
       real(rkx) , dimension(nbl) :: wscale , hgamt , hgamq , brdn , brup
       real(rkx) , dimension(nbl) :: phim , phih , dusfc , dvsfc
       real(rkx) , dimension(nbl) :: dtsfc , dqsfc , prpbl , wspd1
@@ -361,7 +409,6 @@ module mod_pbl_shinhong
       real(rkx) , parameter :: prmax = 4.0_rkx
       real(rkx) , parameter :: brcr_ub = 0.0_rkx
       real(rkx) , parameter :: brcr_sb = 0.25_rkx
-      real(rkx) , parameter :: cori = 1.e-4_rkx
       real(rkx) , parameter :: afac = 6.8_rkx
       real(rkx) , parameter :: bfac = 6.8_rkx
       real(rkx) , parameter :: pfac = 2.0_rkx
@@ -373,14 +420,12 @@ module mod_pbl_shinhong
       real(rkx) , parameter :: d3 = 0.001_rkx
       real(rkx) , parameter :: h1 = 0.33333333_rkx
       real(rkx) , parameter :: h2 = 0.6666667_rkx
-      real(rkx) , parameter :: ckz = 0.001_rkx
       real(rkx) , parameter :: zfmin = 1.e-8_rkx
       real(rkx) , parameter :: aphi5 = 5.0_rkx
       real(rkx) , parameter :: aphi16 = 16.0_rkx
       real(rkx) , parameter :: tmin = 1.e-2_rkx
       real(rkx) , parameter :: gamcrt = 3.0_rkx
       real(rkx) , parameter :: gamcrq = 2.e-3_rkx
-      real(rkx) , parameter :: xka = 2.4e-5_rkx
       integer , parameter :: imvdif = 1
       !
       ! tunable parameters for tke
@@ -405,7 +450,6 @@ module mod_pbl_shinhong
 
       klpbl = kz
       lmh = 1
-      lmxl = 1
 
       cont = cpd*regrav
       conq = wlhv*regrav
@@ -545,7 +589,6 @@ module mod_pbl_shinhong
 
       do k = 1 , kz
         do i = 1 , nbl
-          el_pbl(i,k)   = 0.0_rkx
           hgame2d(i,k)  = 0.0_rkx
           tflux_e(i,k)  = 0.0_rkx
           qflux_e(i,k)  = 0.0_rkx
@@ -742,9 +785,7 @@ module mod_pbl_shinhong
 
       do i = 1 , nbl
         if ( ( .not. stable(i)) .and. xland(i) > 0 ) then
-          wspd10 = u10(i)*u10(i) + v10(i)*v10(i)
-          wspd10 = sqrt(wspd10)
-          ross = wspd10 / (cori*znt(i))
+          ross = wspd10(i) / (max(corf(i),2.546e-5_rkx)*znt(i))
           brcr_sbro(i) = min(0.16_rkx*(1.e-7_rkx*ross)**(-0.18_rkx),0.3_rkx)
         end if
       end do
@@ -1060,7 +1101,6 @@ module mod_pbl_shinhong
           end if
           ad(i,k)   = ad(i,k)-au(i,k)
           ad(i,k+1) = 1.0_rkx-al(i,k)
-          exch_hx(i,k+1) = xkzh(i,k)
         end do
       end do
       !
@@ -1167,7 +1207,6 @@ module mod_pbl_shinhong
           end if
           ad(i,k)   = ad(i,k)-au(i,k)
           ad(i,k+1) = 1.0_rkx-al(i,k)
-          ! exch_hx(i,k+1) = xkzh(i,k)
         end do
       end do
 
@@ -1426,21 +1465,21 @@ module mod_pbl_shinhong
         !
         !---- find the mixing length
         !
-        call mixlen(lmh,uxk,vxk,txk,thxk,qxk(1),qxk(kzp1),q2xk,zqk, &
-                ust(i),corf(i),epshol(i),s2,gh,rig,el,hpbl(i),kpbl(i), &
-                lmxl,ct(i),hgamu(i),hgamv(i),hgamq(i),pblflg(i), &
-                mfk,ufxpblk,vfxpblk,qfxpblk)
+        call mixlen(lmh,uxk,vxk,txk,thxk,qxk(1),qxk(kzp1),q2xk,zqk,     &
+                ust(i),corf(i),epshol(i),s2,gh,rig,el,hpbl(i),kpbl(i),  &
+                ct(i),hgamu(i),hgamv(i),hgamq(i),pblflg(i),mfk,ufxpblk, &
+                vfxpblk,qfxpblk)
         !
         !---- solve for the production/dissipation of the
         !     turbulent kinetic energy
         !
-        call prodq2(lmh,dt,ust(i),s2,rig,q2xk,el,zqk,akmk,akhk,     &
+        call prodq2(dt,ust(i),s2,rig,q2xk,el,zqk,akmk,akhk,     &
                 uxk,vxk,thxk,thvxk,hgamu(i),hgamv(i),hgamq(i),delxy, &
                 hpbl(i),pblflg(i),kpbl(i),mfk,ufxpblk,vfxpblk,qfxpblk)
         !
         !---- carry out the vertical diffusion of turbulent kinetic energy
         !
-        call vdifq(lmh,dt,q2xk,el,zqk,akhk,ptke1,hgame,hpbl(i), &
+        call vdifq(lmh,dt,q2xk,zqk,akhk,ptke1,hgame,hpbl(i), &
                 pblflg(i),kpbl(i),efxpbl(i))
         !
         !---- save the new tke and mixing length.
@@ -1448,7 +1487,6 @@ module mod_pbl_shinhong
         do k = 1 , kz
           q2x(i,k) = max(q2xk(k),epsq2l)
           tke(i,k) = 0.5_rkx*q2x(i,k)
-          if ( k /= 1 ) el_pbl(i,k) = el(k) ! el is not defined at kz
         end do
       end do tke_calculation
       !
@@ -1564,10 +1602,10 @@ module mod_pbl_shinhong
     end subroutine tridin_ysu
 
     subroutine mixlen(lmh,u,v,t,the,q,cwm,q2,z,ustar,corf,epshol, &
-                      s2,gh,ri,el,hpbl,lpbl,lmxl,ct,hgamu,hgamv,  &
-                      hgamq,pblflg,mf,ufxpbl,vfxpbl,qfxpbl)
+                      s2,gh,ri,el,hpbl,lpbl,ct,hgamu,hgamv,hgamq, &
+                      pblflg,mf,ufxpbl,vfxpbl,qfxpbl)
       implicit none
-      integer , intent(in) :: lmh , lmxl , lpbl
+      integer , intent(in) :: lmh , lpbl
       real(rkx) , intent(in) :: hpbl , corf , ustar , hgamu  ,hgamv  ,hgamq
       real(rkx) , intent(inout) :: ct , epshol
       real(rkx) , dimension(kz) , intent(in) :: cwm , q , q2 , t
@@ -1579,7 +1617,7 @@ module mod_pbl_shinhong
       logical , intent(in) :: pblflg
       integer :: k , lpblm
       real(rkx) :: suk , svk , a , aden , b , bden , aubr , bubr
-      real(rkx) :: blmx , el0 , eloq2x , ghl , s2l , qol2st , qol2un
+      real(rkx) :: el0 , eloq2x , ghl , s2l , qol2st , qol2un
       real(rkx) :: qdzl , rdz , sq , srel , szq , tem , thm , vkrmz
       real(rkx) :: rlambda , rlb , rln , f , ckp
       real(rkx) , dimension(kz) :: q1 , en2
@@ -1769,11 +1807,11 @@ module mod_pbl_shinhong
       end do
     end subroutine mixlen
 
-    subroutine prodq2(lmh,dtturbl,ustar,s2,ri,q2,el,z,akm,akh,    &
+    subroutine prodq2(dtturbl,ustar,s2,ri,q2,el,z,akm,akh,    &
                       uxk,vxk,thxk,thvxk,hgamu,hgamv,hgamq,delxy, &
                       hpbl,pblflg,kpbl,mf,ufxpbl,vfxpbl,qfxpbl)
       implicit none
-      integer , intent(in) :: lmh , kpbl
+      integer , intent(in) :: kpbl
       real(rkx) , intent(in) :: dtturbl , ustar
       real(rkx) , intent(in) :: hgamu , hgamv , hgamq , delxy , hpbl
       logical,  intent(in) :: pblflg
@@ -1844,21 +1882,20 @@ module mod_pbl_shinhong
       q2(1) = max(rc02*ustar*ustar,epsq2l)
     end subroutine prodq2
 
-    subroutine vdifq(lmh,dtdif,q2,el,z,akhk,ptke1,hgame,hpbl, &
+    subroutine vdifq(lmh,dtdif,q2,z,akhk,ptke1,hgame,hpbl, &
                      pblflg,kpbl,efxpbl)
       implicit none
       integer , intent(in) :: lmh , kpbl
       real(rkx) , intent(in) :: dtdif , hpbl , efxpbl
       logical , intent(in) :: pblflg
       real(rkx) , dimension(kz) , intent(in) :: hgame , ptke1
-      real(rkx) , dimension(2:kz) , intent(in) :: el , akhk
+      real(rkx) , dimension(2:kz) , intent(in) :: akhk
       real(rkx) , dimension(kzp1) , intent(in) :: z
       real(rkx) , dimension(kz) , intent(inout) :: q2
       real(rkx) , parameter :: c_k = 1.0_rkx
       real(rkx) , parameter :: esq = 5.0_rkx
-      real(rkx) :: aden , akqs , bden , besh , besm , cden , cf , dtozs
-      real(rkx) :: ell , eloq2 , eloq4 , elqdz , esh , esm , esqhf , ghl
-      real(rkx) :: gml , q1l , rden , rdz , zak
+      real(rkx) :: akqs , cf , dtozs
+      real(rkx) :: esqhf , zak
       real(rkx) , dimension(2:kz) :: zfacentk
       real(rkx) , dimension(3:kz) :: akq , cm , cr , dtoz , rsq2
       integer :: k
@@ -2042,12 +2079,12 @@ module mod_pbl_shinhong
       ptke = min(ptke,pmax)
     end function ptke
 
-    subroutine sfclay(nbl,br,znt,za,ust,govrth,dtg,rah,regime,psim,psih)
+    subroutine sfclay(nbl,br,znt,za,ust,govrth,dtg,rah,psim,psih)
       implicit none
       integer , intent(in) :: nbl
       real(rkx) , dimension(nbl) , intent(in) :: br , znt , za , ust
       real(rkx) , dimension(nbl) , intent(in) :: govrth , rah , dtg
-      real(rkx) , dimension(nbl) , intent(out) :: psim , psih , regime
+      real(rkx) , dimension(nbl) , intent(out) :: psim , psih
       real(rkx) :: gz1oz0 , zol , rzol , mol
       integer :: i , nzol
       !
@@ -2077,7 +2114,6 @@ module mod_pbl_shinhong
           !
           ! Class 1; stable (nighttime) conditions:
           !
-          regime(i) = 1.0_rkx
           psim(i) = -10.0_rkx*gz1oz0
           psim(i) = max(psim(i),-10.0_rkx)
           psih(i) = psim(i)
@@ -2085,7 +2121,6 @@ module mod_pbl_shinhong
           !
           ! Class 2; damped mechanical turbulence:
           !
-          regime(i) = 2.0_rkx
           psim(i) = -5.0_rkx*br(i)*gz1oz0/(1.1_rkx-5.0_rkx*br(i))
           psim(i) = max(psim(i),-10.0_rkx)
           psih(i) = psim(i)
@@ -2093,14 +2128,12 @@ module mod_pbl_shinhong
           !
           ! Class 3; forced convection:
           !
-          regime(i) = 3.0_rkx
           psim(i) = 0.0_rkx
           psih(i) = psim(i)
         else
           !
           ! Class 4; free convection:
           !
-          regime(i) = 4.0_rkx
           if ( ust(i) < 0.01_rkx ) then
             zol = br(i)*gz1oz0
           else

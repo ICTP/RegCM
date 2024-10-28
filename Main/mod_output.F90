@@ -594,7 +594,7 @@ module mod_output
               atm_kzm_out(j,i,k) = uwstate%kzm(j,i,k)
             end do
           end if
-        else if ( ibltyp == 4 ) then
+        else if ( ibltyp == 4 .or. ibltyp == 5 ) then
           if ( associated(atm_tke_out) ) then
             do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
               atm_tke_out(j,i,k) = atms%tkepbl(j,i,k)
@@ -1533,6 +1533,9 @@ module mod_output
             myjsf_thz0_io = sfs%thz0
             myjsf_qz0_io = sfs%qz0
           end if
+          if ( ibltyp == 5 ) then
+            tke_pbl_io = atms%tkepbl
+          end if
           if ( idynamic == 2 ) then
             atm1_pp_io(jce1:jce2,ice1:ice2,:) = atm1%pp(jce1:jce2,ice1:ice2,:)
             atm2_pp_io(jce1:jce2,ice1:ice2,:) = atm2%pp(jce1:jce2,ice1:ice2,:)
@@ -1713,6 +1716,9 @@ module mod_output
             call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfs%thz0,myjsf_thz0_io,jci1,jci2,ici1,ici2)
             call grid_collect(sfs%qz0,myjsf_qz0_io,jci1,jci2,ici1,ici2)
+          end if
+          if ( ibltyp == 5 ) then
+            call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
           end if
           if ( idynamic == 2 ) then
             call grid_collect(atm1%pp,atm1_pp_io,jce1,jce2,ice1,ice2,1,kz)

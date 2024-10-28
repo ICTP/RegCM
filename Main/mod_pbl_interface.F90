@@ -32,6 +32,7 @@ module mod_pbl_interface
   use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , uwtkemin
   use mod_pbl_gfs , only : init_pbl_gfs , pbl_gfs
   use mod_pbl_myj , only : init_myjpbl , myjpbl , myjtkemin
+  use mod_pbl_shinhong , only : shinhong_pbl , init_shinhong_pbl
   use mod_runparams , only : ibltyp , pc_physic
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -73,6 +74,9 @@ module mod_pbl_interface
     else if ( ibltyp == 4 ) then
       tkemin = myjtkemin
       call init_myjpbl
+    else if ( ibltyp == 5 ) then
+      tkemin = 0.005_rkx
+      call init_shinhong_pbl
     end if
     if ( ibltyp > 1 ) then
       if ( idynamic == 3 ) then
@@ -158,6 +162,8 @@ module mod_pbl_interface
         call assignpnt(mo_atm%tketen,p2m%tketen)
       else if ( ibltyp == 4 ) then
         call assignpnt(atms%tkepbl,p2m%tkepbl)
+      else if ( ibltyp == 5 ) then
+        call assignpnt(atms%tkepbl,p2m%tkepbl)
       end if
       call assignpnt(mo_atm%chiten,p2m%chiten)
     else
@@ -168,6 +174,8 @@ module mod_pbl_interface
       if ( ibltyp == 2 ) then
         call assignpnt(aten%tke,p2m%tketen,pc_physic)
       else if ( ibltyp == 4 ) then
+        call assignpnt(atms%tkepbl,p2m%tkepbl)
+      else if ( ibltyp == 5 ) then
         call assignpnt(atms%tkepbl,p2m%tkepbl)
       end if
       call assignpnt(aten%chi,p2m%chiten,pc_physic)
@@ -235,6 +243,27 @@ module mod_pbl_interface
         utend = d_zero
         vtend = d_zero
         call myjpbl(m2p,p2m)
+        if ( idynamic == 3 ) then
+          call tenxtouvten(utenx,vtenx,utend,vtend)
+          do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)
+          end do
+          do concurrent ( j = jdi1:jdi2 , i = ici1:ici2 , k = 1:kz )
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)
+          end do
+        else
+          call uvcross2dot(utenx,vtenx,utend,vtend)
+          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+            p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
+          end do
+        end if
+      case (5)
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
+        call shinhong_pbl(m2p,p2m)
         if ( idynamic == 3 ) then
           call tenxtouvten(utenx,vtenx,utend,vtend)
           do concurrent ( j = jci1:jci2 , i = idi1:idi2 , k = 1:kz )

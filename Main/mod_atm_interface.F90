@@ -950,7 +950,7 @@ module mod_atm_interface
         if ( icldmstrat == 1 ) then
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
-        if ( ibltyp == 4 ) then
+        if ( ibltyp == 4 .or. ibltyp == 5 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       else
@@ -988,7 +988,7 @@ module mod_atm_interface
           call assignpnt(a0%dzf,atms%dzq)
         end if
         call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
-        if ( ibltyp == 4 ) then
+        if ( ibltyp == 4 .or. ibltyp == 5 ) then
           call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
         end if
       end if

@@ -250,7 +250,7 @@ module mod_savefile
         call getmem2d(psa_io,jce1,jce2,ice1,ice2,'psa_io')
         call getmem2d(psb_io,jce1,jce2,ice1,ice2,'psb_io')
       end if
-      if ( ibltyp == 4 ) then
+      if ( ibltyp == 4 .or. ibltyp == 5 ) then
         call getmem3d(tke_pbl_io,jci1,jci2,ici1,ici2,1,kz,'tke_pbl_io')
       end if
       if ( idynamic == 2 ) then
@@ -422,7 +422,7 @@ module mod_savefile
           call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
           call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
         end if
-        if ( ibltyp == 4 ) then
+        if ( ibltyp == 4 .or. ibltyp == 5 ) then
           call getmem3d(tke_pbl_io,jcross1,jcross2, &
                         icross1,icross2,1,kz,'tke_pbl_io')
         end if
@@ -645,6 +645,8 @@ module mod_savefile
       call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
       call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
       call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
+    else if ( ibltyp == 5 ) then
+      call mygetvar(ncid,'tke_pbl',tke_pbl_io)
     end if
     if ( idynamic == 2 ) then
       call mygetvar(ncid,'atm1_w',atm1_w_io)
@@ -912,6 +914,9 @@ module mod_savefile
       call savedefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    else if ( ibltyp == 5 ) then
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
     if ( idynamic == 2 ) then
       wrkdim(3) = dimids(idkf)
@@ -1145,6 +1150,8 @@ module mod_savefile
       call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
       call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
       call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
+    else if ( ibltyp == 5 ) then
+      call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
     end if
     if ( idynamic == 2 ) then
       call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
