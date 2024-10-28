@@ -329,6 +329,7 @@
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
                         !   3 => GFS 2011
                         !   4 => MYJ
+                        !   5 => Shin and Hong, (Shin and Hong 2015)
  idiffu   =          1, ! Diffusion scheme
                         !   0 => No diffusion
                         !   1 => MM5 4th order interior/ 2nd order boundary
