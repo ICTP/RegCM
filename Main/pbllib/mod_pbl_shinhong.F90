@@ -19,8 +19,8 @@
 
 module mod_pbl_shinhong
 
-  use mod_realkinds
-  use mod_regcm_types
+  use mod_realkinds , only : rkx
+  use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
   use mod_dynparam , only : jci1 , jci2 , ici1 , ici2 , ntr
   use mod_dynparam , only : kz , kzm1 , kzp1 , kzp2 , ntr
   use mod_dynparam , only : idynamic
@@ -28,6 +28,12 @@ module mod_pbl_shinhong
   use mod_constants , only : egrav , regrav , cpd , rcpd , rdry , rwat
   use mod_constants , only : vonkar , ep1 , wlhv , p00 , rovcp , d_one
   use mod_memutil , only : getmem1d , getmem2d
+
+  implicit none
+
+  private
+
+  public :: init_shinhong_pbl , shinhong_pbl
 
   integer :: numbl , nj , ni , ndiff , ichs
 
