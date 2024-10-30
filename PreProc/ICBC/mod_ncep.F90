@@ -307,9 +307,12 @@ module mod_ncep
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
     real(rkx) , dimension(5) , save :: xoff , xscl
     integer(2) , dimension(5) , save :: xfil
+    logical , dimension(5) , save :: lpacked , lfill
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
     if ( itcfs == 0 ) then
+      lpacked(:) = .true.
+      lfill(:) = .true.
       do kkrec = 1 , 5
         write(pathaddname,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
           trim(inpglob)//'/CFS/',year,month,day,hour, &
@@ -323,21 +326,23 @@ module mod_ncep
              'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                               'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-             'Variable '//varname(kkrec)// &
-             ':scale_factor in file'//trim(pathaddname))
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
-                               'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-              'Variable '//varname(kkrec)// &
-              ':add_offset in file'//trim(pathaddname))
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
-                         xscl(kkrec) , xoff(kkrec)
+        if ( istatus == nf90_noerr ) then
+          istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                                 'add_offset',xoff(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                'Variable '//varname(kkrec)// &
+                ':add_offset in file'//trim(pathaddname))
+          write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
+                           xscl(kkrec) , xoff(kkrec)
+        else
+          lpacked(kkrec) = .false.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+        end if
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                                '_FillValue',xfil(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-              'Variable '//varname(kkrec)// &
-              ':_FillValue in file'//trim(pathaddname))
+        if ( istatus /= nf90_noerr ) then
+          lfill(kkrec) = .false.
+        end if
         write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
                          xscl(kkrec) , xoff(kkrec)
         itcfs = 1
@@ -348,8 +353,6 @@ module mod_ncep
     itcfs = itcfs + 1
 
     do kkrec = 1 , 5
-      xscale = xscl(kkrec)
-      xadd = xoff(kkrec)
       istart(1) = 1
       icount(1) = ilon
       istart(2) = 1
@@ -359,54 +362,79 @@ module mod_ncep
       istart(4) = it
       icount(4) = 1
       inet = inet5(kkrec)
-      istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Variable '//varname(kkrec)// &
-                      'read error in file '//trim(pathaddname))
-      if ( kkrec == 1 ) then
-        do k = 1 , klev
-          do j = 1 , jlat
-            do i = 1 , ilon
-              tvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+      if ( lpacked(kkrec) ) then
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
+        istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Variable '//varname(kkrec)// &
+                        'read error in file '//trim(pathaddname))
+        if ( kkrec == 1 ) then
+          do k = 1 , klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                tvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+              end do
             end do
           end do
-        end do
-      else if ( kkrec == 2 ) then
-        do k = 1 , klev
-          do j = 1 , jlat
-            do i = 1 , ilon
-              hvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+        else if ( kkrec == 2 ) then
+          do k = 1 , klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                hvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+              end do
             end do
           end do
-        end do
-      else if ( kkrec == 3 ) then
-        do k = 1 , klev
-          do j = 1 , jlat
-            do i = 1 , ilon
-              if ( work(i,j,k) /= xfil(kkrec) ) then
-                rhvar(i,j,k) = (real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx
-              else
-                rhvar(i,j,k) = 0.01_rkx
-              end if
+        else if ( kkrec == 3 ) then
+          do k = 1 , klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                if ( work(i,j,k) /= xfil(kkrec) ) then
+                  rhvar(i,j,k) = (real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx
+                else
+                  rhvar(i,j,k) = 0.01_rkx
+                end if
+              end do
             end do
           end do
-        end do
-      else if ( kkrec == 4 ) then
-        do k = 1 , klev
-          do j = 1 , jlat
-            do i = 1 , ilon
-              uvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+        else if ( kkrec == 4 ) then
+          do k = 1 , klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                uvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+              end do
             end do
           end do
-        end do
-      else if ( kkrec == 5 ) then
-        do k = 1 , klev
-          do j = 1 , jlat
-            do i = 1 , ilon
-              vvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+        else if ( kkrec == 5 ) then
+          do k = 1 , klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                vvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
+              end do
             end do
           end do
-        end do
+        end if
+      else
+        if ( kkrec == 1 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),tvar,istart,icount)
+        else if ( kkrec == 2 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),hvar,istart,icount)
+        else if ( kkrec == 3 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),rhvar,istart,icount)
+          if ( lfill(kkrec) ) then
+            where ( rhvar == xfil(kkrec) )
+              rhvar = 1.0_rkx
+            end where
+            rhvar = rhvar * 0.01_rkx
+          end if
+        else if ( kkrec == 4 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),uvar,istart,icount)
+        else if ( kkrec == 5 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),vvar,istart,icount)
+        end if
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Variable '//varname(kkrec)// &
+                        'read error in file '//trim(pathaddname))
       end if
     end do
   end subroutine cfs6hour
@@ -422,6 +450,7 @@ module mod_ncep
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
     real(rkx) , dimension(5) , save :: xoff , xscl
+    logical , dimension(5) , save :: lpacked
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
     xadd = 0.0_rkx
@@ -434,6 +463,7 @@ module mod_ncep
       end if
       if ( idate == globidate1 .or. &
            (lfdoyear(idate) .and. lmidnight(idate))) then
+        lpacked(kkrec) = .true.
         write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
             dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
@@ -444,16 +474,18 @@ module mod_ncep
              'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
         istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
                               'scale_factor',xscl(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-             'Variable '//varname(kkrec)// &
-             ':scale_factor in file'//trim(pathaddname))
-        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
-                               'add_offset',xoff(kkrec))
-        call checkncerr(istatus,__FILE__,__LINE__, &
-              'Variable '//varname(kkrec)// &
-              ':add_offset in file'//trim(pathaddname))
-        write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
-                         xscl(kkrec) , xoff(kkrec)
+        if ( istatus == nf90_noerr ) then
+          istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                                 'add_offset',xoff(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                'Variable '//varname(kkrec)// &
+                ':add_offset in file'//trim(pathaddname))
+          write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
+                           xscl(kkrec) , xoff(kkrec)
+        else
+          lpacked(kkrec) = .false.
+          write (stdout,*) inet5(kkrec) , trim(pathaddname)
+        end if
       end if
 
       it = (day-1)*4 + hour/6 + 1
@@ -481,46 +513,64 @@ module mod_ncep
       istart(4) = it
       icount(4) = 1
       inet = inet5(kkrec)
-      istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Variable '//varname(kkrec)// &
-                      'read error in file '//trim(pathaddname))
-      xscale = xscl(kkrec)
-      xadd = xoff(kkrec)
-      do ilev = 1 , nlev
+      if ( lpacked(kkrec) ) then
+        istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Variable '//varname(kkrec)// &
+                        'read error in file '//trim(pathaddname))
+        xscale = xscl(kkrec)
+        xadd = xoff(kkrec)
+        do ilev = 1 , nlev
+          if ( kkrec == 1 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                tvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              end do
+            end do
+          else if ( kkrec == 2 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                hvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              end do
+            end do
+          else if ( kkrec == 3 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                rhvar(i,j,ilev) = min((real(work(i,j,ilev),rkx)* &
+                              xscale+xadd)*0.01_rkx,1._rkx)
+              end do
+            end do
+          else if ( kkrec == 4 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                uvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              end do
+            end do
+          else if ( kkrec == 5 ) then
+            do j = 1 , jlat
+              do i = 1 , ilon
+                vvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              end do
+            end do
+          end if
+        end do
+      else
         if ( kkrec == 1 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
-              tvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
-            end do
-          end do
+          istatus = nf90_get_var(inet,ivar5(kkrec),tvar,istart,icount)
         else if ( kkrec == 2 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
-              hvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
-            end do
-          end do
+          istatus = nf90_get_var(inet,ivar5(kkrec),hvar,istart,icount)
         else if ( kkrec == 3 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
-              rhvar(i,j,ilev) = min((real(work(i,j,ilev),rkx)* &
-                            xscale+xadd)*0.01_rkx,1._rkx)
-            end do
-          end do
-        else if ( kkrec == 4 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
-              uvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
-            end do
-          end do
+          istatus = nf90_get_var(inet,ivar5(kkrec),rhvar,istart,icount)
+          rhvar = min(1.0_rkx,rhvar)
+        else if ( kkrec == 3 ) then
+          istatus = nf90_get_var(inet,ivar5(kkrec),uvar,istart,icount)
         else if ( kkrec == 5 ) then
-          do j = 1 , jlat
-            do i = 1 , ilon
-              vvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
-            end do
-          end do
+          istatus = nf90_get_var(inet,ivar5(kkrec),vvar,istart,icount)
         end if
-      end do
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Variable '//varname(kkrec)// &
+                    'read error in file '//trim(pathaddname))
+      end if
       if ( dattyp == 'NNRP1' ) then
         if ( kkrec == 3 ) then
           do k = nlev+1, klev
