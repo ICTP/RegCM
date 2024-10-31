@@ -1,0 +1,125 @@
+ &dimparam
+ iy     = 239,   ! This is number of points in the N/S direction
+ jx     = 467,   ! This is number of points in the E/W direction
+ kz     = 30,    ! Number of vertical levels
+ /
+
+ &coreparam
+ idynamic = 3,  ! Choice of dynamical core
+ /
+
+ &geoparam
+ iproj = 'ROTLLR', ! Domain cartographic projection. Supported values are:
+ ds = -0.22,      ! Grid point horizontal resolution in km
+ clat = 19.0,     ! Central latitude  of model domain in degrees
+ clon = 24.5,     ! Central longitude of model domain in degrees
+ plat = 71.0,       ! Pole latitude (only for rotated Mercator Proj)
+ plon = 204.5,     ! Pole longitude (only for rotated Mercator Proj)
+ /
+
+ &terrainparam
+ domname  = 'MENA-22',  ! Name of the domain/experiment.
+ h2opct = 50.,          ! Surface min H2O percent to be considered water
+ h2ohgt = .false.,      ! Allow water points to have hgt greater than 0
+ dirter = '/marconi_work/ICT23_ESP/ggiulian/CORDEX/ERA5/icbc/', ! Output directory for terrain files
+ inpter = '/marconi_work/ICT23_ESP/RCMDATA/',      ! Input directory for SURFACE dataset
+ /
+
+ &boundaryparam
+ nspgx  = 40, ! nspgx-1 represent the number of cross point slices on
+ nspgd  = 40, ! nspgd-1 represent the number of dot point slices on
+ high_nudge =    8.0D0, ! Nudge value high range
+ medium_nudge =  4.0D0, ! Nudge value medium range
+ low_nudge =     2.0D0  ! Nudge value low range
+ /
+
+ &globdatparam
+ ibdyfrq =     6,            ! boundary condition interval (hours)
+ ssttyp = 'ERA5D',           ! Type of Sea Surface Temperature used
+ dattyp = 'ERA5',           ! Type of global analysis datasets used
+ gdate1 = startTarget,     ! Start date for ICBC data generation
+ gdate2 = endTarget,       ! End data for ICBC data generation
+ calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
+ dirglob = '/marconi_work/ICT23_ESP/ggiulian/CORDEX/ERA5/icbc/', ! Path for ICBC produced input files
+ inpglob = '/marconi_work/ICT23_ESP/RCMDATA/',    ! Path for ICBC global input datasets.
+ /
+
+ &restartparam
+ ifrest  = restLogic,   ! If a restart
+ mdate0  = startTarget, ! Global start (is globidate1)
+ mdate1  = startDate, ! Start date of this run
+ mdate2  = endDate, ! End date for this run
+ /
+
+ &timeparam
+ dt     =   120,   ! time step in seconds
+ /
+
+ &outparam
+ ifsave  = .true. ,           ! Create SAV files for restart
+ savfrq  =     0.,            ! Frequency in hours to create them (0 = monthly)
+ ifatm   = .true. ,           ! Output ATM ?
+ atmfrq  =     6.,            ! Frequency in hours to write to ATM
+ ifrad   = .true. ,           ! Output RAD ?
+ radfrq  =     6.,            ! Frequency in hours to write to RAD
+ ifsts   = .true. ,           ! Output STS (frequence is daily) ?
+ ifshf   = .true. ,           ! Output SHF (pr hourly)
+ ifsrf   = .true. ,           ! Output SRF ?
+ srffrq  =     3.,            ! Frequency in hours to write to SRF
+ dirout  = '/marconi_work/ICT23_ESP/ggiulian/CORDEX/ERA5/dpath',        ! Path where all output will be placed
+ lsync   = .true.,            ! If sync of output files at every timestep is
+ icosp = 1,                   ! Enable COSP needed fields in output in the ATM
+ do_parallel_netcdf_in  = .true., ! This enables paralell input
+ do_parallel_netcdf_out = .false., ! This enables paralell output if the
+ /
+
+ &physicsparam
+ iboudy  =          5,  ! Lateral Boundary conditions scheme
+ ibltyp  =          1,  ! Boundary layer scheme
+ icup_lnd =          5, ! Cumulus convection scheme Over Land
+ icup_ocn =          5, ! Cumulus convection scheme Over Ocean
+ ipptls  =          2,  ! Moisture scheme
+ iocnflx =          2,  ! Ocean Flux scheme
+   iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
+   iocnzoq =        1,  ! Zeng Ocean model factors for t,q roughness
+ scenario =   'SSP585', ! IPCC Scenario to use in A1B,A2,B1,B2
+ idcsst   =          0, ! Use diurnal cycle sst scheme
+ iseaice  =          0, ! Model seaice effects
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
+ icldfrac =          0, ! Cloud fraction algorithm
+ irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
+ iclimao3 =          1, ! Use O3 climatic dataset from SPARC CMIP5
+ isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
+ iclimaaer =         2, ! Use AEROSOL climatic dataset from AERGLOB for non
+ radclimpath = '/marconi_work/ICT23_ESP/RCMDATA/MERRA2/OPPMONTH',
+ /
+
+ &cldparam
+ ncld = 0,
+ cftotmax = 1.0,
+ clfrcvmax = 1.0,
+ /
+
+ &subexparam
+ /
+
+ &tiedtkeparam
+ /
+
+ &holtslagparam
+ /
+
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ /
+
+ &clm_soilhydrology_inparm
+ h2osfcflag = 1,
+ origflag = 0,
+ /
+
+ &clm_hydrology1_inparm
+ oldfflag = 0,
+ /

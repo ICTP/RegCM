@@ -39,8 +39,8 @@
  /
  &globdatparam
  ibdyfrq = 6,
- ssttyp = 'OI2WK',
- dattyp = 'EIN15',
+ ssttyp = 'ERA5D',
+ dattyp = 'ERA5 ',
  calendar = 'gregorian',
  gdate1 = 1995010100,
  gdate2 = 1995020100,

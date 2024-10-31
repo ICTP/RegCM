@@ -36,8 +36,8 @@
  /
  &globdatparam
  ibdyfrq = 6,
- ssttyp = 'OI_WK',
- dattyp = 'ERA40',
+ ssttyp = 'ERA5D',
+ dattyp = 'ERA5 ',
  gdate1 = 1994010100,
  gdate2 = 1994020100,
  dirglob = '/set/this/to/where/your/icbc/for/model/is',

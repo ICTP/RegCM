@@ -1,0 +1,110 @@
+ &coreparam
+ idynamic = 3,
+ /
+ &dimparam
+ iy     = 263,
+ jx     = 313,
+ kz     = 30,
+ /
+ &geoparam
+ iproj = 'ROTLLR',
+ ds = -0.22,
+ clat = 47.28,
+ clon = 263.0,
+ plat = 42.5,
+ plon = 83.0,
+ /
+ &terrainparam
+ domname  = 'NAM-22',
+ h2opct = 50.,
+ h2ohgt = .false.,
+ dirter = 'icbc',
+ inpter = 'RCMDATA',
+ /
+ &boundaryparam
+ nspgx  = 40,
+ nspgd  = 40,
+ high_nudge =    8.0D0,
+ medium_nudge =  4.0D0,
+ low_nudge =     2.0D0,
+ /
+ &globdatparam
+ ibdyfrq =     6,
+ ssttyp = 'ERA5D',
+ dattyp = 'ERA5',
+ gdate1 = 1999010100,
+ gdate2 = 2010010100,
+ calendar = 'gregorian',
+ dirglob = 'icbc',
+ inpglob = 'RCMDATA',
+ /
+ &restartparam
+ ifrest  = .false.,
+ mdate0  = 1999010100,
+ mdate1  = 1999010100,
+ mdate2  = 2010010100,
+ /
+ &timeparam
+ dt     =   120,
+ /
+ &outparam
+ ifsave  = .true. ,
+ savfrq  =     0.,
+ ifatm   = .true. ,
+ atmfrq  =     6., 
+ ifrad   = .true. ,
+ radfrq  =     6.,
+ ifsts   = .true. ,
+ ifshf   = .true. ,
+ ifsrf   = .true. ,
+ srffrq  =     3.,
+ dirout  = 'output',
+ lsync   = .true.,
+ icosp = 1,
+ do_parallel_netcdf_in  = .true.,
+ do_parallel_netcdf_out = .false.,
+ /
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup_lnd =         5,
+ icup_ocn =         5,
+ ipptls  =          2,
+ iocnflx =          2,
+   iocnrough =      1,
+   iocnzoq =        1,
+ scenario =   'SSP585',
+ idcsst   =          0,
+ iseaice  =          1,
+ iconvlwp =          0,
+ icldfrac =          0,
+ irrtm    =          0,
+ iclimao3 =          1,
+ isolconst =         0,
+ iclimaaer =         2,
+ radclimpath = 'MERRA2/OPPMONTH',
+ /
+ &cldparam
+ ncld = 3,
+ cftotmax = 1.0,
+ clfrcvmax = 1.0,
+ /
+ &subexparam
+ /
+ &tiedtkeparam
+ /
+ &holtslagparam
+ /
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ urban_hac = 'ON_WASTEHEAT',
+ /
+ &clm_soilhydrology_inparm
+ h2osfcflag = 1,
+ origflag = 0,
+ /
+ &clm_hydrology1_inparm
+ oldfflag = 0,
+ /
