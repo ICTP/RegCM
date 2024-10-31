@@ -30,19 +30,21 @@ This namelist controls which dynamical core is used in the model.
  idynamic = 1,  ! Choice of dynamical core
                 ! 1 = MM4 hydrostatic core
                 ! 2 = MM5 NON hydrostatic core
+                ! 3 = MOLOCH NON hydrostatical core
  /
 \end{Verbatim}
 }
 
 \begin{enumerate}
-\item For details about the two dynamical cores, refer to the Reference Manual.
-\item The hydrostatic core is cheaper computationally, but physically it should
-be limited to resolution greater than $15 km$. For higher resolution, the non
-hydrostatic core should be used.
-\item The output variables of the two dynamical cores differ in the ATM files
-because of the different state variables used. Vertical levels also differ.
-\item The ICBC for the non-hydrostatic cannot be used for the hydrostatic run
-and the other way round.
+\item For details about the dynamical cores, refer to the Reference Manual.
+    The dynamical core used in the CORDEX-CORE new experiments will be the
+        MOLOCH non-hydrostatic, i.e. option 3.
+\item The hydrostatic core physically should be limited to resolution greater
+    than $15 km$. For higher resolution, the non hydrostatic core should be
+    used. MOLOCH core works reliably from 25 km resolution.
+\item The output variables of the dynamical cores differ in the ATM files
+    because of the different state variables used. Vertical levels also differ.
+\item The ICBC for one dynamical core cannot be used for any other.
 \item Nesting using the \verb=FNEST= option is supported in these
 configurations:
 \begin{enumerate}
@@ -89,10 +91,14 @@ The things you need to know here:
 the work between the processors, with the minimum work per processor is 9
 points or a box $3\times3$, so the maximum theorical number of processors which
 can be used in a parallel run for the above configuration is limited by
-the domain the overall number of horizontal grid points.
-\item If a custom number of sigma level is chosen (not 14, 18, 23 or 41), the
-actual sigma values are calculated mimimizing the $a,b$ coefficients for the 
-equation:
+the domain the overall number of horizontal grid points. For performance
+reasons out of experience on current HPC interconnect overheads, the users
+should have in mind though a lower limit to the number of horizontal point per
+processing core of 100. Less than that, the communication overhead will
+lead to increasing WallTime versus processing cores.
+\item For the first two dynamical cores, if a custom number of sigma level is
+chosen (not 14, 18, 23 or 41), the actual sigma values are calculated by
+mimimizing the $a,b$ coefficients for the equation:
 
 \begin{equation}
   d\sigma(i) = max(dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)},dsmin)
@@ -104,12 +110,13 @@ derived from the recursive relation:
   d\sigma(i) = a(i)*d\sigma(i-1)
 \end{equation}
 
-where $a(i) = b*a(i-1)$. We at ICTP normally use 23 levels for the
-non-hydrostatic core and 18 for the hydrostatic core at 50 km.
+where $a(i) = b*a(i-1)$. 
+There is no magic number in the choice of vertical levels. We use with the
+MOLOCH non hydrostatic 30 levels at 25 km, 50-60 at 3 km. For the hydrostatic
+model, 18 levels at 50 km and 23 at 25 km are usually enough,
 \item Specifying an $nsg$ number greater than one triggers the subgrid
-BATS/CLM45 model on. There is no plan to extend this feature to CLM3.5 model.
-This affects only surface variable calculations. All dynamical
-variables are calculated still on the coarser grid.
+BATS/CLM45 model on.  This affects only surface variable calculations.
+All dynamical variables are calculated still on the coarser grid.
 Rain in the current implementation is also calculated on the coarser
 grid.
 \item The \verb=njxcpus=, \verb=niycpus= parameters can be used to force
@@ -189,14 +196,15 @@ position and extent of the domain. In particular, regardless of hemisphere:
 \item Middle latitudes (around 45 degrees) - Lambert Conformal
 \item Polar latitudes (more than 75 degrees) - Polar Stereographic
 \item Low latitudes (up to 30 degrees and crossing the equator) - Mercator
-\item Crossing more than 45 degrees extent in latitude - Rotated Mercator or Rotated Longitude/Latitude (latter is ggested by CORDEX project).
+\item Crossing more than 45 degrees extent in latitude - Rotated Mercator or Rotated Longitude/Latitude (the latter is used in CORDEX project run).
 \end{itemize}
 \item The model hydrostatic engine does not allow a resolution lower than
 $20 km$. For higher resolutions, use one of the non-hydrostatic dynamical cores
 or consider using the subgridding scheme. The Moloch non-hydrostatic scheme
 allows larger timesteps.
-\item Lowering the top pressure of the model can give you problems in regions
-with complex topography. Touch the default after thinking twice on that.
+\item Lowering the top pressure for the hydrostatic core of the model can give
+you problems in regions with complex topography.
+Touch the default after thinking twice on that.
 \item Always specify \verb=clat= and \verb=clon=, the central domain point,
 and do fine adjustment of the position moving it around a little bit. A
 little shift in position and some tests can help you obtain a better
@@ -209,8 +217,8 @@ possible to the center domain position.
 \item For the \verb=i_band= parameter, selecting this will enable the tropical
 band experiment, and the horizontal resolution will be calculated from the
 number of jx points.
-The projection is set to Normal Mercator, the center of the projection is set
-to \verb'clat = 0.0', \verb'clon = 180.0',
+The projection for the band configuration is set to Normal Mercator, the
+center of the projection is set to \verb'clat = 0.0', \verb'clon = 180.0',
 and the grid point resolution is calculated as:
 \begin{equation}
 \frac{2*\pi*6370.0}{jx}
@@ -269,7 +277,7 @@ The things you need to know here:
 
 \begin{enumerate}
 \item The \verb=domname= will control the output file naming convention, all
-generated files will add this prefix to the old V3 naming convention,
+generated files will add this prefix to the name of the prodced files,
 giving you the capability to recognize different runs. Try to use always
 meaningful names.
 \item You can control the final land-water mask using the h2opct parameter.
@@ -327,18 +335,31 @@ tell them how to build initial and bondary conditions.
 !
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'EIN75',           ! Type of Sea Surface Temperature used
+ ssttyp = 'ERAXX',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
-                             !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
- dattyp = 'EIN75',           ! Type of global analysis datasets used
+                             !   TMIST, ERSST, ERSKT, CAM4N, FV_A2, CCSM3,
+                             !   FV_B2, EH5A2, EH5B1, EHA1B, EIXXX, EIN75,
+                             !   EIN15, CCSST, CA_??, HA_??, EC_??, IP_??,
+                             !   GF_??, CN_??, MP_??, E5_A2, CMIP6, ERA5D,
+                             !   ERA5 , HRMED, ERAXX, PMIP4, LGMNN, CFSNN,
+                             !   JRA55, EIXXX
+                             ! for all codes, look into sst.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
+                             ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
+ dattyp = 'ERAXX',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
-                             !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
-                             !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
-                             !          IP_XX, GF_XX, CN_XX, MP_XX
-                             ! with XX for CMIP5 datasets in 26, 45, 85
+                             !   ERAHI, NNRP1, NNRP2, NRP2W, GFS11, FVGCM,
+                             !   FNEST, EH5A2, EH5B1, EHA1B, CCSMN, ECEXY,
+                             !   CA_??, HA_??, EC_??, IP_??, GF_??, CN_??,
+                             !   MP_??, CFSNN, CAM4N, CCSM3, ERA5 , ERAXX,
+                             !   IFSXX, CMIP6, PMIP4
+                             ! for all codes, look into icbc.f90
+                             ! with ?? for CMIP5 datasets in 26, 45, 85
+                             ! with NN in 01, 02, etc.
+                             ! For CMIP6, fill the cmip6param namelist
+                             ! For PMIP4, fill the pmip4param namelist
  chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -361,9 +382,9 @@ Things you need to know here:
 the time window you plan to run the model in.
 Different GCMs and reanalysis products have different length of the year.
 For example, the reanalysis products employ the real year length (365 days +
-real leap years, i.e. and average length of 365.2422), the CCSM has a length
-of 365 days (no leap year), the HadCM has a length of 360 days (30 day months).
-The RegCM4 length of the year has to be the same as in the forcing fields, and
+real leap years, i.e. and average length of 365.2422), some models have a length
+of 365 days (no leap year), and some have a length of 360 days (30 day months).
+The RegCM5 length of the year has to be the same as in the forcing fields, and
 this can be set in the variable \verb=dayspy=.
 Please remember to always check the consistency of the length of the year.
 \item Even if listed, not all the input engines are fully tested. Some of them
@@ -378,6 +399,38 @@ See below in \ref{chemparam} about chemistry boundary conditions.
 \item For notes on path, you can see the above in terrainparam namelist
 description at \ref{pathnote}.
 \end{enumerate}
+
+\subsection{cmip6param namelist}
+
+{\footnotesize
+\begin{Verbatim}
+!
+! CMIP6 model selection
+!
+ &cmip6param
+ cmip6_model = 'MPI-ESM1-2-HR',
+! cmip6_inp = 'https://esgf3.dkrz.de/thredds/dodsC',
+ cmip6_inp = '/data/cmip6',
+ cmip6_experiment = 'ssp585',
+ cmip6_variant = 'r1i1p1f1',
+ cmip6_grid = 'gn',
+ /
+\end{Verbatim}
+}
+
+In the case the user selects the CMIP6 model input, the actual model details
+are specified in this namelist. The user if OpenDAP is enabled in the netCDF
+library and an OpenDAP derver is (still) available for downloading using this
+protocol, use in the \verb=cmip6_inp= variable an URL.
+Note that if this is not possible, the user must download and organize the data
+in a directory structure respecting the CMIP directory structure template as it
+is available on the download site.
+An example downoad script can be had for the \verb=MPI-ESM1-2-HR= model above
+in
+
+\begin{Verbatim}
+http://clima-dods.ictp.it/regcm4/cmip6/mpi_download.sh
+\end{Verbatim}
 
 \subsection{fnestparam namelist}
 
@@ -478,12 +531,15 @@ time window.
 \item The dynamical hydrostatical core of RegCM requires a fixed timestep,
 and you need to manually find the correct value which permits not to break
 the Courant–Friedrichs–Lewy condition considering \cite{CFL}.
-A good rule of thumb is to have a \verb=dt= not greater than three times
-the \verb=ds= value in $km$ specified in the \verb=geoparam= namelist at
-\ref{geoparam}.
+A good rule of thumb for the hydrostatic core is to have a \verb=dt= not
+greater than three times the \verb=ds= value in $km$ specified in the
+\verb=geoparam= namelist at \ref{geoparam}.
 A greater value may lower computing time, but in case of strong advection
 may lead to non accurate computation or even the violation of CFL condition
 and the divergence of the solution.
+Much larger timesteps, usually 3-4 times larger, are possible using the
+MOLOCH non-hydrostatic core. Slightly smaller timesteps are instead possible
+for the MM5 non-hydrostatic core.
 \item If you hit a non stable condition, the restart capability of the model
 may help find the correct timestep just for a particular period, using a
 different timestep at different times.
@@ -535,15 +591,15 @@ written in the files.
  ifchem  = .true.,   ! Output CHE ?
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
- enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 46*.true., ! Mask to eventually disable variables SRF
- enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
- enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
- enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
- enable_shf_vars = 8*.true.,  ! Mask to eventually disable variables SHF
- enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
- enable_opt_vars = 20*.true., ! Mask to eventually disable variables OPT
- enable_che_vars = 26*.true., ! Mask to eventually disable variables CHE
+ enable_atm_vars = 79*.true., ! Mask to eventually disable variables ATM
+ enable_srf_vars = 65*.true., ! Mask to eventually disable variables SRF
+ enable_rad_vars = 31*.true., ! Mask to eventually disable variables RAD
+ enable_sub_vars = 19*.true., ! Mask to eventually disable variables SUB
+ enable_sts_vars = 29*.true., ! Mask to eventually disable variables STS
+ enable_shf_vars = 10*.true., ! Mask to eventually disable variables SHF
+ enable_lak_vars = 19*.true., ! Mask to eventually disable variables LAK
+ enable_opt_vars = 24*.true., ! Mask to eventually disable variables OPT
+ enable_che_vars = 31*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',        ! Path where all output will be placed
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
@@ -587,6 +643,9 @@ dependent variables in the output file, in the order they are saved in the
 output file itself. Note that geolocation and pressure variables cannot be
 disabled.
 \end{enumerate}
+
+The \verb=ncfilters= namelist is used if output compression is enabled at
+configure time.
 
 \subsection{physicsparam namelist}
 \label{physicsparam}
@@ -670,7 +729,6 @@ sensitivity experiments to select the best scheme for your application.
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature
- iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
  scenario =   'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
@@ -680,7 +738,6 @@ sensitivity experiments to select the best scheme for your application.
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iwhitecap =         0, ! Wind whitecapping effect on ocean albedo
  iseaice  =          0, ! Model seaice effects
- idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          1, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
  icldfrac =          0, ! Cloud fraction algorithm
@@ -812,7 +869,7 @@ fast wave removal. User is not advised to change the default values.
 
 \subsection{boundaryparam namelist}
 
-Being a limited area model, in order to be run RegCM4 requires the provision
+Being a limited area model, in order to be run RegCM5 requires the provision
 of meteorological initial and time dependent lateral boundary conditions,
 typically for wind components, temperature, water vapor and surface pressure.
 These are obtained by interpolation from output from reanalysis of observations
@@ -942,7 +999,7 @@ The parameters below are the ones currently used at ICTP.
 \end{Verbatim}
 }
 
-We found that RegCM4 is especially sensitive to:
+We found that RegCM5 is especially sensitive to:
 
 \begin{enumerate}
 \item \verb=cevap= : increasing cevap will generally decrease precipitation
@@ -1599,7 +1656,7 @@ Things you need to know here:
 \begin{enumerate}
 \item The \verb=inpter= path defined in \verb=terrainparam= namelist
 described in \ref{terparam} is used also by the \verb=clm2rcm= program.
-See at \ref{clmdata} how to obtain needed datasets.
+See in section \ref{obtaindata} how to obtain needed datasets.
 \item The file \verb=pft-physiology.c070207= should be manually copied in the
 \verb=dirclm= directory before running the model.
 \item The clmfrq is relative to the output produced by the \verb=CLM= model
@@ -1703,9 +1760,8 @@ In the case of \verb=CLM 4.5= run, the user needs to run, after the
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./bin/terrain regcm.in
-$> ./bin/mksurfdata regcm.in
-$> cp $REGCM_GLOBEDAT/CLM/pft-physiology.c070207 input/
+$> ./bin/terrainCLM45 regcm.in
+$> ./bin/mksurfdataCLM45 regcm.in
 \end{Verbatim}
 
 All the other pre-processing steps are just equal to the one detailed in
@@ -1898,7 +1954,7 @@ $> mpirun -np 2 ./bin/regcmMPIOASIS regcm.in
 \section{Sensitivity experiments hint}
 
 Although the LBC forcing does provide a constraint for the model, as any RCM,
-RegCM4 is characterized by a certain level of internal variability due to its
+RegCM5 is characterized by a certain level of internal variability due to its
 non-liner processes (e.g. convection).
 
 For example, if small perturbations are introduced in the initial or lateral
@@ -1914,7 +1970,7 @@ When doing for example sensitivity experiments to model modifications, e.g. to
 land use change, this internal variability “noise” can be misinterpreted as a
 model response to the factor modified.
 
-Users of RegCM4 should be aware of this when they do sensitivity experiments.
+Users of RegCM5 should be aware of this when they do sensitivity experiments.
 The best way to filter out this noise is to perform ensembles of simulations
 and lok at the ensemble averages to extract the real model response from the
 noise.

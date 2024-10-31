@@ -1,11 +1,11 @@
 %
 % This file is part of ICTP RegCM model.
-% Copyright (C) 2011 ICTP Trieste
+% Copyright (C) 2024 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
 
 Whatever method is chosen to download the code, we assume that you have now
-on your working directory a new directory, named \verb=RegCM-4.5.x=.
+on your working directory a new directory, named \verb=RegCM=.
 That directory will be for the rest of this guide referred as 
 \verb=$REGCM_ROOT= .
 
@@ -18,13 +18,15 @@ In order to configure and install the RegCM code, the following software are
 needed:
 
 \begin{enumerate}
-\item GNU Make program
-\item Fortran 2003 compiler
-\item One in:
+    \item GNU build system (\verb=autoconf=, \verb=automake= and
+        \verb=libtool= programs)
+    \item GNU \verb=make= program
+    \item Fortran 2003 compiler
+    \item One in:
   \begin{enumerate}
     \item C compiler for the serial option (\verb=enable-mpi-serial= at
       configure)
-    \item MPI2 Message Passing Library compiled with the above fortran compiler
+    \item MPI3 Message Passing Library compiled with the above fortran compiler
      for parallel runs using multiple core single machines or cluster of
      machines (default).  Source code for the implementation code was tested
      with can be obtained at: \\
@@ -32,7 +34,7 @@ needed:
   \end{enumerate}
 \item netCDF (\cite{Rew_90}) Format I/O library compiled with the above
   Fortran compiler with netCDF4 format support. Source code can be found from \\
-  {\bf ftp://ftp.unidata.ucar.edu/pub/netcdf} \\
+  {\bf https://downloads.unidata.ucar.edu/netcdf/} \\
 \end{enumerate}
 
 Optional requirements strongly suggested are :
@@ -41,55 +43,80 @@ Optional requirements strongly suggested are :
 \item NCO netCDF Operators for manging netCDF file. Most Linux distribution
 have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
-{\bf http://nco.sourceforge.net/src}
+{\bf http://nco.sourceforge.net}
 \item CDO Climatic data Operators for managing netCDF file. Most Linux
 distribution have this already packed, and you should refer to your System
 Administrator or OS Software Installation manual to obtain it.
 Source code is at: \\
-{\bf https://code.zmaw.de/projects/cdo/files}
+{\bf https://code.mpimet.mpg.de/projects/cdo }
 \item A Scientific Plotting and Data Analysis Software such as:
 \begin{itemize}
-\item IGES GrADS 2.0 Graphical Analysis and Display System. Convenient helpers
+\item Python Xarray \\ {\bf https://xarray.dev/ }
+\item Iris \\ {\bf https://scitools-iris.readthedocs.io/en/stable/ }
+\end{itemize}
+\item Historically supported software, now not actively maintained, are:
+\begin{itemize}
+    \item IGES GrADS Graphical Analysis and Display System. Convenient helpers
 are packed in RegCM to use GrADS with RegCM netCDF output files.
 Binaries and source code can be obtained from \\
-{\bf http://www.iges.org/grads/downloads.html}
-\item NCL, NCAR CISL Command Language. The NCL can read netCDF output files, and
-sample scripts can be found in the {\em Tools/Scripts/NCL} directory.
+        {\bf https://github.com/j-m-adams/GrADS}
+    \item NCL, NCAR CISL Command Language. The NCL can read netCDF output files, and sample scripts can be found in the {\em Tools/Scripts/NCL} directory.
 Binaries and source code can be obtained from \\
 {\bf http://www.ncl.ucar.edu}
 \end{itemize}
 \item A quick viewer for netCDF files like NcView: \\
-{\bf http://meteora.ucsd.edu/~pierce/ncview\_home\_page.html}
+{\bf https://cirrus.ucsd.edu/ncview/}
 \end{enumerate}
 
 A script is shipped in the RegCM codebase in the Tools directory to help
-user compile and install required packages, and its usage is detailed in
+user compile and install {\bf required} packages, and its usage is detailed in
 chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
-The RegCM Version 4.5 is configured by a configure script, which will select
+The RegCM Version 5 is configured by a configure script, which will select
 the known working configuration for the supported architectures.
 
 Currently tested and supported configurations (OS/Compiler) are:
 
 \begin{enumerate}
-\item Linux with GNU gfortran compiler version $\ge 4.8$
-\item Linux with Intel\texttrademark ifort compiler version $\ge 13.0$
-\item Linux with Portland\texttrademark pgf95 compiler version $\ge 12.0$
-\item Mac OsX\texttrademark with gfortran compiler $\ge 4.6$ from MacPorts
-\item IBM AIX\texttrademark with xlf2003 compiler
+\item Linux with GNU gfortran compiler version $\ge 6.0$
+\item Linux with Intel\texttrademark ifort/ifx compiler version $\ge 18.0$
+\item Linux with NVIDIA\texttrademark nvfortran compiler version $\ge 21.0$
+\item Mac OsX\texttrademark with gfortran compiler $\ge 6.0$ from Homebrew
 \end{enumerate}
 
-The 4.5 version of the RegCM model relies on the standard GNU autotools to
+The 5.0 version of the RegCM model relies on the standard GNU autotools to
 configure and build the model code.
 
-The first step is to change working directory to \verb=$REGCM_ROOT= and run the
-\verb=configure= script giving as arguments the chosen compilers:
+To create the \verb=configure= script, the user must change into the 
+working directory \verb=$REGCM_ROOT= and run the command:
 
 \begin{Verbatim}
 $> cd $REGCM_ROOT
-$> ./configure # or, for intel : ./configure CC=icc FC=ifort
+$> autoreconf -f -i
+\end{Verbatim}
+
+or the same through the packaged bootstrap script:
+
+\begin{Verbatim}
+$> cd $REGCM_ROOT
+$> ./bootstrap.sh
+\end{Verbatim}
+
+This command must be run any time modifications to the \verb=configure.ac= or
+the \verb=.m4= files is performed.
+If the above fails, the most probable problem is the missing or outdated
+version of GNU build tools on the target system. Please check with your
+system administrator on how to install them
+({ \bf https://www.gnu.org/software/automake/ }).
+
+The next step is to run the \verb=configure= script giving as arguments the
+chosen compilers:
+
+\begin{Verbatim}
+$> cd $REGCM_ROOT
+$> ./configure # or, for intel compiler OneApi: ./configure CC=icx FC=ifx
 \end{Verbatim}
 
 To know the list of arguments that can be given to the configure script, the
@@ -160,7 +187,8 @@ is to use the RegCM BATS Land Model.
 \end{Verbatim}
 This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V4.5 inside RegCM. The default
-is to use the RegCM BATS Land Model.
+is to use the RegCM BATS Land Model, but ICTP is strongly suggesting this as
+the default surface model option to be used on CORDEX projects,
 \item OASIS option
 \begin{verbatim}
   --enable-oasis     Supply this option if you plan on using OASIS
@@ -189,6 +217,7 @@ Now that everything is hopefully configured, you may use the \verb=make=
 program to build executables.
 
 \begin{Verbatim}
+$> make version
 $> make
 \end{Verbatim}
 

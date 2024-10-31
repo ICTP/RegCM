@@ -1,6 +1,6 @@
 %
 % This file is part of ICTP RegCM model.
-% Copyright (C) 2011 ICTP Trieste
+% Copyright (C) 2024 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
 
@@ -86,37 +86,23 @@ we have multiple choices:
 
 and for sure other which I may not be aware of. All of these compilers have pros
 and cons, so I am just for now selecting one in the pool only to continue the
-exposition. I am not selecting the trivial solution of Gfortran as most
-Linux distributions have it already packaged, and all the other required
-software as well (most complete distribution I am aware of for this is Fedora:
-all needed software is packaged and it is a matter of yum install).
-
-So let us assume I have licensed the Intel Composer XE Professional Suite
-13.0.0 on my laptop. My system administrator installed it on the default
-location under \verb=/opt/intel=, and I have my shell environment update
-loading vendor provided script:
-
-\begin{Verbatim}
-$> source /opt/intel/bin/compilervars.sh intel64
-\end{Verbatim}
+exposition.
 
 With some modification (the path, the script, the arguments to the script),
 same step is to be performed for all non-GNU compilers in the above list, and
 is documented in the installation manual of the compiler itself.
 
-In case of Intel, to check the correct behaviour of the compiler, try to
+In case of GNU, to check the correct behaviour of the compiler, try to
 type the following command:
 
 \begin{Verbatim}
-$> ifort --version
-ifort (IFORT) 13.0.0 20120731
-Copyright (C) 1985-2012 Intel Corporation.  All rights reserved.
-\end{Verbatim}
+$> gfortran --version
+GNU Fortran (Ubuntu 9.4.0-1ubuntu1~20.04.2) 9.4.0
+Copyright (C) 2019 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-I am skipping here any problem that may arise from license installation for any
-of the compilers, so I am assuming that if the compiler is callable, it works.
-As this step is usually performed by a system administrator on the machine,
-I am assuming a skilled professional will take care of that.
+\end{Verbatim}
 
 \section{Environment setup}
 
@@ -126,19 +112,19 @@ the file and decomment the lines relative to the selected compiler.
 
 \begin{Verbatim}
 # Working CC Compiler
-#CC=gcc
-CC=icc
+CC=gcc
+#CC=icc
 #CC=pgcc
 # Working C++ Compiler
-#CXX=g++
-CXX=icpc
+CXX=g++
+#CXX=icpc
 #CXX=pgCC
 # Working Fortran Compiler
-#FC=gfortran
-FC=ifort
+FC=gfortran
+#FC=ifort
 #FC=pgf90
 # Destination directory
-DEST=/home/regcm/intelsoft
+DEST=/home/regcm
 \end{Verbatim}
 
 I am now ready to compile software.
@@ -154,11 +140,11 @@ Then we can just execute the script:
 $> ./prereq_install.sh
 This script installs the netCDF/mpi librares in the
 
-         /home/regcm/intelsoft
+         /home/regcm
 
 directory. If something goes wrong, logs are saved in
 
-         /home/regcm/intelsoft/logs
+         /home/regcm/logs
 
 Downloading ZLIB library...
 Downloading HDF5 library...
@@ -176,10 +162,10 @@ Compiled netCDF Fortran library.
 Done!
 To link RegCM with this librares use:
 
-PATH=/home/regcm/intelsoft/bin:$PATH ./configure \
-  CC=icc FC=ifort \
-  CPPFLAGS=-I/home/regcm/intelsoft/include \
-  LDFLAGS=-L/home/regcm/intelsoft/lib \
+PATH=/home/regcm/bin:$PATH ./configure \
+  CC=gcc FC=gfortran \
+  CPPFLAGS=-I/home/regcm/include \
+  LDFLAGS=-L/home/regcm/lib \
   LIBS="-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz"
 
 \end{Verbatim}
@@ -191,7 +177,7 @@ how to use the just built libraries to compile RegCM model sources against.
 At run time an environment variable must be added to set correct paths:
 
 \begin{Verbatim}
-$> export PATH=/home/regcm/intelsoft/bin:$PATH
+$> export PATH=/home/regcm/bin:$PATH
 \end{Verbatim}
 
 The above is needed to be repeated for any shell which is used to run
