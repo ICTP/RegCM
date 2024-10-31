@@ -241,7 +241,7 @@ module mod_era5
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncid,'level',ivarid)
       if ( istatus /= nf90_noerr ) then
-        istatus = nf90_inq_dimid(ncid,'pressure_level',idimid)
+        istatus = nf90_inq_varid(ncid,'pressure_level',ivarid)
         call checkncerr(istatus,__FILE__,__LINE__, &
             'Missing level/levelist variable in file '//trim(pathaddname))
       end if
@@ -252,11 +252,19 @@ module mod_era5
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    do k = 1 , klev
-      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
-    end do
-    pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
-    pst = plevs(1)/10.0_rkx ! mb -> cb
+    if ( plevs(1) > plevs(klev) ) then
+      do k = 1 , klev
+        sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
+      end do
+      pss = (plevs(1)-plevs(klev))/10.0_rkx ! mb -> cb
+      pst = plevs(klev)/10.0_rkx ! mb -> cb
+    else
+      do k = 1 , klev
+        sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
+      end do
+      pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
+      pst = plevs(1)/10.0_rkx ! mb -> cb
+    end if
     !
     ! Find window to read
     !
