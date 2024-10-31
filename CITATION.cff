@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Giorgi
+    given-names: Filippo
+    orcid: https://orcid.org/0000-0003-2895-5274
+title: "The ICTP RegCM"
+version: 5.0.0
+identifiers:
+  - type: doi
+    value: 10.1029/2022JD038199
+date-released: 2023-03-13
