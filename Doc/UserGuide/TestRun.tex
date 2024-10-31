@@ -1,6 +1,6 @@
 %
 % This file is part of ICTP RegCM model.
-% Copyright (C) 2011 ICTP Trieste
+% Copyright (C) 2024 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
 
@@ -19,6 +19,9 @@ with enough space identified in the following discussion with \verb=$REGCM_RUN=
 
 We will setup in this directory a standard environment where the model can be
 executed for the purpose of learning how to use it.
+
+We assume here the model has been compiled using the \verb=CLM45= option (i.e.
+the \verb=--enable-clm45= has been added to the configure script).
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
@@ -47,10 +50,10 @@ TO:
 FROM:
  inpter = '/set/this/to/where/your/surface/dataset/is',
 TO:
- inpter = '$REGCM_GLOBEDAT',
+ inpter = 'REGCM_GLOBEDAT',
 \end{Verbatim}
 
-where \verb=$REGCM_GLOBEDAT= is the directory where input data have been
+where \verb=REGCM_GLOBEDAT= is the directory where input data have been
 downloaded in chapter \ref{obdata}.
 
 \begin{Verbatim}
@@ -64,7 +67,7 @@ TO:
 FROM:
  inpglob = '/set/this/to/where/your/input/global/data/is',
 TO:
- inpglob = '$REGCM_GLOBEDAT',
+ inpglob = 'REGCM_GLOBEDAT',
 \end{Verbatim}
 
 and last bits:
@@ -77,13 +80,14 @@ TO:
 \end{Verbatim}
 
 These modifications just reflect the above directory layout proposed for this
-tutorial, and any of these paths can point anywhere on your system disks. The path
-is limited to $256$ characters.
+tutorial, and any of these paths can point anywhere on your system disks.
+The path is limited to $256$ characters.
 We are now ready to execute the first program of the RegCM model.
 
 \section{Create the DOMAIN file using terrain}
 
-The first step is to create the DOMAIN file to localize the model on a world region.
+The first step is to create the DOMAIN file to localize the model on a world
+region.
 The program which does this for you reading the global databases is
 \verb=terrain= .
 
@@ -91,7 +95,7 @@ To launch the terrain program, enter the following commands:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./bin/terrain test_001.in
+$> ./bin/terrainCLM45 test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -112,40 +116,39 @@ test_001_DOMAIN000.nc test_001_LANDUSE
 The DOMAIN file contains the localized topography and landuse databases, as
 well as projection information and land sea mask. The second file is an ASCII
 encoded version of the landuse, used for modifying it on request. We will cover
-it's usage later on.  To have a quick look at the DOMAIN file content, you may want
-to use the GrADSNcPlot program:
+it's usage later on.  To have a quick look at the DOMAIN file content, you may
+want to use the ncview program:
 
 \begin{Verbatim}
-$> ./bin/GrADSNcPlot input/test_001_DOMAIN000.nc
+$> ncview input/test_001_DOMAIN000.nc
 \end{Verbatim}
 
-If not familiar with GrADS program, enter in sequence the following commands at
-the \verb=ga->= prompt:
+\section{Create the CLM45 input data}
 
-\begin{Verbatim}
-ga-> q file
-ga-> set gxout shaded
-ga-> set mpdset hires
-ga-> set cint 50
-ga-> d topo
-ga-> c
-ga-> set cint 1
-ga-> d landuse
-ga-> quit
-\end{Verbatim}
-
-this will plot the topography and the landuse on the X11 window.
-
-\section{Create the SST using the sst program}
-
-We are now ready to create the Sea Surface Temperature for the model, reading a
-global dataset.
-The program which does this for you is the \verb=sst= program, which is executed
-with the following commands:
+For the CLM4.5 model, additional global surface data must be interpolated on
+the model grid. To do this, the user must run the \verb=mksurfdata= program:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./bin/sst test_001.in
+$> ./bin/mksurfdataCLM45 test_001.in
+\end{Verbatim}
+
+This creates the file:
+
+\begin{Verbatim}
+input/test_001_CLM45_surface.nc
+\end{Verbatim}
+
+\section{Create the SST using the sst program}
+
+We are now ready to create the Sea Surface Temperature for the model, reading
+a global dataset.
+The program which does this for you is the \verb=sst= program, which is
+executed with the following commands:
+
+\begin{Verbatim}
+$> cd $REGCM_RUN
+$> ./bin/sstCLM45 test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -159,31 +162,20 @@ The input directory now contains a new file:
 
 \begin{Verbatim}
 $> ls input
-test_001_DOMAIN000.nc test_001_LANDUSE test_001_SST.nc
+test_001_CLM45_surface.nc  test_001_DOMAIN000.nc
+test_001_LANDUSE           test_001_SST.nc
 \end{Verbatim}
 
 The SST file contains the Sea Surface temperature to be used in generating the
 Initial and Boundary Conditions for the model for the period specified in the
-namelist file. Again you may want to use the GrADSNcPlot program to look at
+namelist file. Again you may want to use the ncview program to look at
 file content:
 
 \begin{Verbatim}
-$> ./bin/GrADSNcPlot input/test_001_SST.nc
+$> ncview input/test_001_SST.nc
 \end{Verbatim}
 
-If not familiar with GrADS program, enter in sequence the following commands at
-the \verb=ga->= prompt:
-
-\begin{Verbatim}
-ga-> q file
-ga-> set gxout shaded
-ga-> set mpdset hires
-ga-> set cint 2
-ga-> d sst
-ga-> quit
-\end{Verbatim}
-
-this will plot the interpolated sst field on the X11 window.
+this will allow you to view the interpolated sst field on the X11 window.
 
 \section{Create the ICBC files using the icbc program}
 
@@ -193,7 +185,7 @@ program, executed with the following commands:
 
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> ./bin/icbc test_001.in
+$> ./bin/icbcCLM45 test_001.in
 \end{Verbatim}
 
 If everything is correctly configured up to this point, the model should print
@@ -207,9 +199,10 @@ The input directory now contains two more files:
 
 \begin{Verbatim}
 $> ls -1 input
+test_001_CLM45_surface.nc
 test_001_DOMAIN000.nc
-test_001_ICBC.1990060100.nc
-test_001_ICBC.1990070100.nc
+test_001_ICBC.2020060100.nc
+test_001_ICBC.2020070100.nc
 test_001_LANDUSE
 test_001_SST.nc
 \end{Verbatim}
@@ -217,60 +210,25 @@ test_001_SST.nc
 The ICBC files contain the surface pressure, surface temperature, horizontal
 3D wind components, 3D temperature and mixing ratio for the RegCM domain for the
 period and time resolution specified in the input file.
-Again you may want to use the GrADSNcPlot program to look at file content:
+Again you may want to use the ncview program to look at file content:
 
 \begin{Verbatim}
-$> ./bin/GrADSNcPlot input/test_001_ICBC.1990060100.nc
+$> ncview input/test_001_ICBC.2020060100.nc
 \end{Verbatim}
-
-If not familiar with GrADS program, enter in sequence the following commands at
-the \verb=ga->= prompt:
-
-\begin{Verbatim}
-ga-> q file
-ga-> set gxout shaded
-ga-> set mpdset hires
-ga-> set cint 2
-ga-> d ts
-ga-> c
-ga-> set lon 10
-ga-> set lat 43
-ga-> set t 1 last
-ga-> d ts
-ga-> quit
-\end{Verbatim}
-
-this will plot the interpolated surface temperature field on the X11 window,
-first at first time step and then a time section in one of the domain points
-for a whole month.
 
 We are now ready to run the model!
 
 \section{First RegCM model simulation}
 
 The model has now all needed data to allow you to launch a test simulation,
-the final goal of our little tutorial.
+the final goal of our little tutorial. By using command line tools for the
+MPI library, \verb=mpirun=, we can run in parallel the model using all the
+available CPU computing cores of the system:
 
-The model command line now will differ if you have prepared the Serial or the
-MPI version. For the MPI enabled version we will assume that your machine is
-a dual core processor (baseline for current machines, even for laptops).
-Change the \verb=-np 2= argument to the number of processors you have on
-Your platform (on my laptop QuadCore I use \verb=-np 4=).
-
-\begin{itemize}
-\item MPI version \footnote{Use regcmMPICLM if the CLM version has been
-  configured}
 \begin{Verbatim}
 $> cd $REGCM_RUN
-$> mpirun -np 8 ./bin/regcmMPI test_001.in
+$> mpirun ./bin/regcmMPICLM45 test_001.in
 \end{Verbatim}
-\item Serial version \footnote{Deprecated. Support will be dropped in future
-releases.}
-\begin{Verbatim}
-$> cd $REGCM_RUN
-$> ./bin/regcmSerial test_001.in
-\end{Verbatim}
-\end{itemize}
 
 Now the model will start running, and a series of diagnostic messages will be
 printed on screen. As this is a simulation known to behave well, no stoppers
@@ -287,11 +245,12 @@ The output directory now contains four files:
 
 \begin{Verbatim}
 $> ls output
-test_001_ATM.1990060100.nc test_001_SRF.1990060100.nc
-test_001_RAD.1990060100.nc test_001_SAV.1990070100.nc
+test_001_ATM.2020060100.nc test_001_SRF.2020060100.nc
+test_001_RAD.2020060100.nc test_001_SAV.2020070100.nc
 \end{Verbatim}
 
-the ATM file contains the atmosphere status from the model, the SRF file
+along with some \verb=.clm.= files from the CLM45 model.
+The ATM file contains the atmosphere status from the model, the SRF file
 contains the surface diagnostic variables, and the RAD file contains radiation
 fluxes information. The SAV file stores the status of the model at the end of
 the simulation period to enable a restart, thus allowing a long simulation
@@ -301,12 +260,8 @@ To have a look for example at surface fields, you may want to use the
 following command:
 
 \begin{Verbatim}
-$> ./bin/GrADSNcPlot output/test_001_SRF.1990060100.nc
+$> ncview output/test_001_SRF.2020060100.nc
 \end{Verbatim}
-
-Assuming the previous crash course in using GraDS was received, you should be
-able to plot the variables in the file.
 
 This is the end of this little tutorial, and in the next chapter we will
 examine how to configure the model for your research needs.
-

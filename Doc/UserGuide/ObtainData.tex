@@ -1,8 +1,10 @@
 %
 % This file is part of ICTP RegCM model.
-% Copyright (C) 2011 ICTP Trieste
+% Copyright (C) 2024 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
+
+\label{obtaindata}
 
 The first step to run a test simulation is to obtain static data to localize
 model DOMAIN and Atmosphere and Ocean global model dataset to build initial
@@ -19,21 +21,16 @@ $> export ICTP_DATASITE=http://clima-dods.ictp.it/regcm4
 \end{Verbatim}
 
 As of now you are requested to download required global data on your local disk
-storage before any run attempt. In the future, the ICTP ESP team has
-planned to make available an OpenDAP THREDDS Server to give remote access
-to global dataset for creating DOMAIN and ICBC without the need to
-download the global dataset, but just the required subset in space and time,
-using the ICTP web server capabilities to create that subset.
+storage before any run attempt.
 
-Our advice to you is to use handy transfer program such as uget, but below
-we will show you how to use command line download tools curl and
+Here we will show you how to use command line download tools curl and
 wget to get data.
 
 \section{Global dataset directory Layout}
 
 You are suggested to establish a convenient location for global datasets
-on your local storage. Keep in mind that required space for a year of global
-data can be as large as 8 GBytes.
+on your local storage. Keep in mind that required space for a year of GLOBAL
+data can be as large as 250 GBytes with the original resolution!
 
 Having this in mind, we will now consider that you the user have identified
 on your system or have network access to such a storage resource to store say
@@ -43,7 +40,7 @@ On this directory, you are required to make the following directories:
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
-$> mkdir SURFACE CLM CLM45 SST EIN15
+$> mkdir SURFACE CLM45 CMIP6 ERA5
 \end{Verbatim}
 
 This does not fill all possible global data sources paths, but will be enough
@@ -53,8 +50,7 @@ for the scope of running the model for testing its capabilities.
 
 The model needs to be localized on a particular DOMAIN. The needed information
 are topography, land type classification and optionally lake depth (to run the
-Hostetler lake model) and soil texture classification (to run the chemistry option
-with DUST enabled).
+Hostetler lake model) and soil texture classification.
 
 This means downloading four files, which are global archives at $30 second$
 horizontal resolution on a global latitude-longitude grid of the above data.
@@ -75,37 +71,28 @@ $> cd SURFACE
 $> curl -o ETOPO_BTM_30s.nc ${ICTP_DATASITE}/SURFACE/ETOPO_BTM_30s.nc
 \end{Verbatim}
 
-\section{CLM Dataset}
-\label{clmdata}
+\section{CMIP6 Dataset}
 
-If you are planning to enable the \verb=CLM= option in the model, you will need
-a series of files with global land surface characteristics datasets.
+The data in this directory come from the Input4Mip (
+{\bf https://aims2.llnl.gov/search/input4mips/ } ). The data are the common
+radiative forcings used in the CMIP experiments.
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
-$> cd CLM
-$> curl -o mksrf_fmax.nc ${ICTP_DATASITE}/CLM/mksrf_fmax.nc
-$> curl -o mksrf_glacier.nc ${ICTP_DATASITE}/CLM/mksrf_glacier.nc
-$> curl -o mksrf_lai.nc ${ICTP_DATASITE}/CLM/mksrf_lai.nc
-$> curl -o mksrf_lanwat.nc ${ICTP_DATASITE}/CLM/mksrf_lanwat.nc
-$> curl -o mksrf_navyoro_20min.nc ${ICTP_DATASITE}/CLM/mksrf_navyoro_20min.nc
-$> curl -o mksrf_pft.nc ${ICTP_DATASITE}/CLM/mksrf_pft.nc
-$> curl -o mksrf_soicol_clm2.nc ${ICTP_DATASITE}/CLM/mksrf_soicol_clm2.nc
-$> curl -o mksrf_soitex.10level.nc ${ICTP_DATASITE}/CLM/mksrf_soitex.10level.nc
-$> curl -o mksrf_urban.nc ${ICTP_DATASITE}/CLM/mksrf_urban.nc
-$> curl -o pft-physiology.c070207 ${ICTP_DATASITE}/CLM/pft-physiology.c070207
-$> curl -o pft-physiology.c070207.readme \
-> ${ICTP_DATASITE}/CLM/pft-physiology.c070207.readme
-$> curl -o rdirc.05.061026 ${ICTP_DATASITE}/CLM/rdirc.05.061026
+$> cd CMIP6
+$> mkdir AEROSOL GHG O3 SOLAR
+$> for dir in AEROSOL GHG O3 SOLAR; do cd $dir; \
+    wget ${ICTP_DATASITE}/CMIP6/$dir/ -O - | \
+    wget -A ".nc" -l1 --no-parent --base=${ICTP_DATASITE}/CMIP6/$dir/ \
+      -nd -Fri -; done
+$> cd $REGCM_GLOBEDAT
 \end{Verbatim}
-
-This is the input file for the \verb=clm2rcm= program (see at \ref{clm}).
 
 \section{CLM 4.5 Dataset}
 \label{clm45data}
 
-If you are planning to enable the \verb=CLM 4.5= option in the model, you will
-need a series of files with global land surface characteristics datasets.
+To use the \verb=CLM 4.5= option in the model, you need a series of files
+with global land surface characteristics datasets.
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
@@ -115,47 +102,38 @@ $> for dir in megan pftdata snicardata surface; do cd $dir; \
     wget ${ICTP_DATASITE}/CLM45/$dir/ -O - | \
     wget -A ".nc" -l1 --no-parent --base=${ICTP_DATASITE}/CLM45/$dir/ \
       -nd -Fri -; done
+$> cd $REGCM_GLOBEDAT
 \end{Verbatim}
 
 This is the input file for the \verb=mksurfdata= program (see at \ref{clm45}).
 
-\section{Sea Surface Temperature}
-
-The model needs a global SST dataset to feed the model with ocean temperature.
-You have multiple choices for SST data, but we will for now for our test run
-download just CAC OISST weekly for the period 1981 - present.
-
-\begin{Verbatim}
-$> cd $REGCM_GLOBEDAT
-$> cd SST
-$> CDCSITE="ftp.cdc.noaa.gov/pub/Datasets/noaa.oisst.v2"
-$> curl -o sst.wkmean.1981-1989.nc \
-> ftp://$CDCSITE/sst.wkmean.1981-1989.nc
-$> curl -o sst.wkmean.1990-present.nc \
-> ftp://$CDCSITE/sst.wkmean.1990-present.nc
-\end{Verbatim}
-
-\section{Atmosphere and Land temperature Global Dataset}
+\section{Atmosphere and SST temperature Global Dataset}
 
 The model needs to build initial and boundary conditions for the regional scale,
 interpolating on the RegCM grid the data from a Global Climatic Model output.
 The GCM dataset can come from any of the supported models, but we will for now
-for our test run download just the EIN15 dataset for the year 1990
-(Jan 01 00:00:00 UTC to Dec 31 18:00:00 UTC)
+for our test run download just the ERA5 dataset for June 2020
+(Jun 01 00:00:00 UTC to Jun 30 18:00:00 UTC). The dataset used in this tutorial
+is downgraded from the original (0.25x0.25) resolution down to (1.5x1.5) degrees
+to reduce the volume and bandwidth required for the data transfer from the
+ICTP. Original resolution dataset (36 times larger for the global data) can be
+obrained from Copernicus CDS using the cdsapi (example scripts can be had
+from ICTP in {\bf http://clima-dods.ictp.it/regcm4/ERA5/progs }.
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
-$> cd EIN15
-$> mkdir 1990
-$> cd 1990
-$> for type in "air hgt rhum uwnd vwnd"
->  do
->    for hh in "00 06 12 18"
->    do
->      curl -o ${type}.1990.${hh}.nc \
->         ${ICTP_DATASITE}/EIN15/1990/${type}.1990.${hh}.nc
->    done
->  done
+$> cd ERA5
+$> mkdir 2020 SSTD
+$> cd 2020
+$> for type in geop qhum tatm uwnd vwnd
+   do
+     curl -o ${type}_2020_06.nc \
+        ${ICTP_DATASITE}/ERA5/lowres_1.5/2020/${type}_2020_06.nc
+   done
+$> cd ../SSTD
+$> curl -o sst_2020_06.nc \
+      ${ICTP_DATASITE}/ERA5/lowres_1.5/SSTD/sst_2020_06.nc
+$> cd $REGCM_GLOBEDAT
 \end{Verbatim}
 
 With this datasets we are now ready to go through the RegCM Little Tutorial

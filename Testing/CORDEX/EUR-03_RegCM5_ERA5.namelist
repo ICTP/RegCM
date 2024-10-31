@@ -1,0 +1,94 @@
+ &dimparam
+ iy     = 1003,
+ jx     = 1003,
+ kz     = 50,
+ /
+ &coreparam
+ idynamic = 3,
+ /
+ &geoparam
+ iproj = 'ROTLLR',
+ ds = -0.03,
+ clat = 50.00,
+ clon = 6.60,
+ plat = 40.00,
+ plon = 186.6,
+ /
+ &terrainparam
+ domname  = 'WP3'
+ h2opct = 50.,
+ h2ohgt = .false.,
+ dirter = 'input',
+ inpter = 'RCMDATA',
+ /
+ &boundaryparam
+ nspgx  = 31,
+ nspgd  = 31,
+ high_nudge =    6.0D0,
+ medium_nudge =  4.0D0,
+ low_nudge =     2.0D0
+ /
+ &cldparam
+ ncld      = 0,
+ /
+ &globdatparam
+ ibdyfrq =     6,
+ ssttyp = 'ERA5D',
+ dattyp = 'ERA5',
+ gdate1 = 2007020100,
+ gdate2 = 2007030100,
+ calendar = 'gregorian',
+ dirglob = 'input',
+ inpglob = 'RCMDATA',
+ /
+ &restartparam
+ ifrest  = .false.,   ! If a restart
+ mdate0  = 1999010100, ! Global start (is globidate1)
+ mdate1  = 1999010100, ! Start date of this run
+ mdate2  = 2010010100, ! End date for this run
+ /
+ &timeparam
+ dt     =    45,
+ /
+ &outparam
+ outnwf  = 1.0,
+ ifcordex = .true.,
+ dirout  = 'output',
+ do_parallel_netcdf_in  = .true.,
+ do_parallel_netcdf_out = .false.,
+ /
+!
+! Model Physics
+!
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup_lnd =          0,
+ icup_ocn =          0,
+ ipptls  =          2,
+ iwavcpl =          0,
+ iocnflx =          2,
+   iocnrough =      1,
+   iocnzoq =        1,
+ scenario =   'SSP585',
+ idcsst   =          0,
+ iseaice  =          1,
+ iconvlwp =          0,
+ icldfrac =          0,
+ iclimao3 =          1,
+ isolconst =         0,
+ iclimaaer =         2,
+ radclimpath = 'RCMDATA/MERRA2/OPPMONTH',
+ /
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ /
+ &clm_soilhydrology_inparm
+ h2osfcflag = 1,
+ origflag = 0,
+ /
+ &clm_hydrology1_inparm
+ oldfflag = 0,
+ /
