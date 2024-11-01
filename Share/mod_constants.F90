@@ -136,9 +136,9 @@ module mod_constants
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rkx) , parameter :: pdbratio = 0.0112372_rkx
 
-  real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.3144717808
+  real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.31446261815324
   ! Gas constant for dry air
-  real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.2870569248
+  real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.28705660846515221715
   ! Gas constant for dry air in Joules/kg/K
 #ifdef RCEMIP
   real(rkx) , parameter :: rgas = 287.04_rkx
