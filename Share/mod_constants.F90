@@ -94,13 +94,13 @@ module mod_constants
 #endif
 
   real(rkx) , parameter :: speedoflight = 299792458.0_rkx
-  real(rkx) , parameter :: plankconstant = 6.62607550e-34_rkx
-  ! Stefan-Boltzmann  constant CODATA 2007
-  real(rkx) , parameter :: sigm = 5.670400e-8_rkx
-  ! Boltzman Constant k CODATA 2007
-  real(rkx) , parameter :: boltzk = 1.3806504e-23_rkx
-  ! Avogadro Constant
-  real(rkx) , parameter :: navgdr = 6.02214129e23_rkx
+  real(rkx) , parameter :: plankconstant = 6.62607015e-34_rkx
+  ! Stefan-Boltzmann  constant SI 2019
+  real(rkx) , parameter :: sigm = 5.670374419e-8_rkx
+  ! Boltzman Constant k SI 2019
+  real(rkx) , parameter :: boltzk = 1.3806490e-23_rkx
+  ! Avogadro Constant SI 2019
+  real(rkx) , parameter :: navgdr = 6.02214076e23_rkx
   ! CRC Handbook of Chemistry and Physics, 1997
   ! Effective molecular weight of dry air (g/mol)
   ! 78.084       % N2
