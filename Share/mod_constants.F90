@@ -139,13 +139,13 @@ module mod_constants
   real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.31446261815324
   ! Gas constant for dry air
   real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.28705660846515221715
-  ! Gas constant for dry air in Joules/kg/K
+  ! Gas constant for dry air and water vapor in Joules/kg/K
 #ifdef RCEMIP
   real(rkx) , parameter :: rgas = 287.04_rkx
   real(rkx) , parameter :: rwat = 461.50_rkx
 #else
-  real(rkx) , parameter :: rgas = c287*1000.0_rkx  ! 287.0569248
-  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx ! 461.5233169
+  real(rkx) , parameter :: rgas = (rgasmol/amd)*1000.0_rkx  ! 287.05661
+  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx  ! 461.52281
 #endif
   real(rkx) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
@@ -162,12 +162,13 @@ module mod_constants
   ! Specific heat for dry air at constant volume J/kg/K
   real(rkx) , parameter :: cvd = 717.6_rkx
 #else
+  ! Assume dry air is biatomic gas ;)
   ! Specific heat at constant pressure for dry air J/kg/K
-  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368
+  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.69813
   ! Specific heat at constant pressure for water vapor J/kg/K
-  real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
+  real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.09123
   ! Specific heat for dry air at constant volume J/kg/K
-  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.6423120
+  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.64152
 #endif
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
@@ -175,8 +176,6 @@ module mod_constants
   real(rkx) , parameter :: cpi = 2117.27_rkx
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rkx) , parameter :: cpw0 = 4218.0_rkx
-  ! Specific heat of water vapour
-  real(rkx) , parameter :: cp_h2o = cpd * (4.0_rkx*amd) / (3.5_rkx*amw)
 
   ! Specific heats per m**3  (joules/m**3/k)
   real(rkx) , parameter :: ch2o = 4.18695e6_rkx

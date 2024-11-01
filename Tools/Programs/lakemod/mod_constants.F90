@@ -22,6 +22,7 @@ module mod_constants
   implicit none
 
   integer , parameter :: rk4  = kind(1.0)
+  integer , parameter :: rk8  = kind(1.0d0)
   integer , parameter :: rkx  = selected_real_kind(2*precision(1.0_rk4))
 
   ! numbers
@@ -47,18 +48,28 @@ module mod_constants
   real(rkx) , parameter :: twot = d_two/d_three
   real(rkx) , parameter :: fourt = d_four/d_three
 
-  ! Angles degrees
-  real(rkx) , parameter :: deg00  = 0.0_rkx
-  real(rkx) , parameter :: deg45  = 45.0_rkx
-  real(rkx) , parameter :: deg90  = 90.0_rkx
-  real(rkx) , parameter :: deg180 = 180.0_rkx
-  real(rkx) , parameter :: deg360 = 360.0_rkx
+  ! Angles degrees : Operations must be always performed double precision
+  real(rk8) , parameter :: deg00  = 0.0_rk8
+  real(rk8) , parameter :: deg45  = 45.0_rk8
+  real(rk8) , parameter :: deg90  = 90.0_rk8
+  real(rk8) , parameter :: deg180 = 180.0_rk8
+  real(rk8) , parameter :: deg360 = 360.0_rk8
 
   ! minimum values for uncoupled/coupled variables which require them
-  real(rkx) , parameter :: minww   = 1.0e-7_rkx
+#ifdef RCEMIP
+  real(rkx) , parameter :: minqq   = 1.0e-14_rkx
+  real(rkx) , parameter :: minqc   = 1.0e-16_rkx
+#else
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
+  real(rkx) , parameter :: minqc   = 1.0e-10_rkx
+#endif
+  real(rkx) , parameter :: minqv   = minqq * 100.0_rkx
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: mintr   = 1.0e-20_rkx
+#else
+  real(rkx) , parameter :: mintr   = 1.0e-30_rkx
+#endif
   real(rkx) , parameter :: minqx   = 1.0e-16_rkx
-  real(rkx) , parameter :: mintr   = 1.0e-16_rkx
 
   ! Low/Hi values
   real(rkx) , parameter :: dlowval = 1.0e-20_rkx
@@ -78,16 +89,20 @@ module mod_constants
   real(rkx) , parameter :: houpd = 24.0_rkx
 
   ! Standard Gravity (m/sec**2) 3rd CGPM
+#ifdef RCEMIP
+  real(rkx) , parameter :: egrav = 9.79764_rkx
+#else
   real(rkx) , parameter :: egrav = 9.80665_rkx
+#endif
 
   real(rkx) , parameter :: speedoflight = 299792458.0_rkx
-  real(rkx) , parameter :: plankconstant = 6.62607550e-34_rkx
-  ! Stefan-Boltzmann  constant CODATA 2007
-  real(rkx) , parameter :: sigm = 5.670400e-8_rkx
-  ! Boltzman Constant k CODATA 2007
-  real(rkx) , parameter :: boltzk = 1.3806504e-23_rkx
-  ! Avogadro Constant
-  real(rkx) , parameter :: navgdr = 6.02214129e23_rkx
+  real(rkx) , parameter :: plankconstant = 6.62607015e-34_rkx
+  ! Stefan-Boltzmann  constant SI 2019
+  real(rkx) , parameter :: sigm = 5.670374419e-8_rkx
+  ! Boltzman Constant k SI 2019
+  real(rkx) , parameter :: boltzk = 1.3806490e-23_rkx
+  ! Avogadro Constant SI 2019
+  real(rkx) , parameter :: navgdr = 6.02214076e23_rkx
   ! CRC Handbook of Chemistry and Physics, 1997
   ! Effective molecular weight of dry air (g/mol)
   ! 78.084       % N2
@@ -123,29 +138,46 @@ module mod_constants
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rkx) , parameter :: pdbratio = 0.0112372_rkx
 
-  real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.3144717808
+  real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.31446261815324
   ! Gas constant for dry air
-  real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.2870569248
-  ! Gas constant for dry air in Joules/kg/K
-  real(rkx) , parameter :: rgas = c287*1000.0_rkx  ! 287.0569248
+  real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.28705660846515221715
+  ! Gas constant for dry air and water vapor in Joules/kg/K
+#ifdef RCEMIP
+  real(rkx) , parameter :: rgas = 287.04_rkx
+  real(rkx) , parameter :: rwat = 461.50_rkx
+#else
+  real(rkx) , parameter :: rgas = (rgasmol/amd)*1000.0_rkx  ! 287.05661
+  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx  ! 461.52281
+#endif
   real(rkx) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
-  real(rkx) , parameter :: rwat = (rgasmol/amw)*1000.0_rkx ! 461.5233169
   ! Ratio of the two above
   real(rkx) , parameter :: rgow = rgas/rwat
   ! Reverse of the above
   real(rkx) , parameter :: rgowi = rwat/rgas
 
+#ifdef RCEMIP
   ! Specific heat at constant pressure for dry air J/kg/K
-  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368000
-  ! Specific heat at constant pressure for moist air J/kg/K
-  real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
+  real(rkx) , parameter :: cpd = 1004.64_rkx
+  ! Specific heat at constant pressure for water vapor J/kg/K
+  real(rkx) , parameter :: cpv = 1846.00_rkx
+  ! Specific heat for dry air at constant volume J/kg/K
+  real(rkx) , parameter :: cvd = 717.6_rkx
+#else
+  ! Assume dry air is biatomic gas ;)
+  ! Specific heat at constant pressure for dry air J/kg/K
+  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.69813
+  ! Specific heat at constant pressure for water vapor J/kg/K
+  real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.09123
+  ! Specific heat for dry air at constant volume J/kg/K
+  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.64152
+#endif
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
+  ! Specific heat of ice at 0 Celsius J/kg/K
+  real(rkx) , parameter :: cpi = 2117.27_rkx
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rkx) , parameter :: cpw0 = 4218.0_rkx
-  ! Specific heat of water vapour
-  real(rkx) , parameter :: cp_h2o = cpd * (4.0_rkx*amd) / (3.5_rkx*amw)
 
   ! Specific heats per m**3  (joules/m**3/k)
   real(rkx) , parameter :: ch2o = 4.18695e6_rkx
@@ -160,9 +192,19 @@ module mod_constants
   real(rkx) , parameter :: spcpice = 2.11727e3_rkx ! fresh ice
 
   ! Latent heats (Joules/kg)
-  real(rkx) , parameter :: wlhf = 0.33355e6_rkx
-  real(rkx) , parameter :: wlhv = 2.50080e6_rkx
-  real(rkx) , parameter :: wlhs = wlhv + wlhf
+#ifdef RCEMIP
+  real(rkx) , parameter :: wlhv = 2.501e6_rkx
+  real(rkx) , parameter :: wlhf = 3.337e5_rkx
+  real(rkx) , parameter :: wlhs = 2.834e6_rkx
+#else
+  ! Water vaporization latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhv = 2500610.0_rkx
+  ! Water fusion latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhf = 333560.5_rkx
+  ! Water sublimation latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhs = wlhv + wlhf ! 2834170.5
+#endif
+  ! Reverse helpers
   real(rkx) , parameter :: rwlhv = d_one/wlhv
   real(rkx) , parameter :: rwlhf = d_one/wlhf
   real(rkx) , parameter :: rwlhs = d_one/wlhs
@@ -171,6 +213,8 @@ module mod_constants
   real(rkx) , parameter :: regrav = d_one/egrav
   real(rkx) , parameter :: rcpd = d_one/cpd
   real(rkx) , parameter :: rovcp = rgas*rcpd
+  real(rkx) , parameter :: rdrcv = rgas/cvd
+  real(rkx) , parameter :: cpovr = cpd/rgas
   real(rkx) , parameter :: rovg  = rgas/egrav
   real(rkx) , parameter :: govr  = egrav/rgas
   real(rkx) , parameter :: gdry  = -egrav/cpd
@@ -178,10 +222,11 @@ module mod_constants
   real(rkx) , parameter :: hcrm1 = hcratio - d_one
   real(rkx) , parameter :: rhoh2o = 1000.0_rkx
   real(rkx) , parameter :: rhosea = 1026.0_rkx
-  real(rkx) , parameter :: rhosnow = 330.0_rkx
+  real(rkx) , parameter :: rhosnow = 100.0_rkx
+  real(rkx) , parameter :: rhosnowp = 330.0_rkx
   real(rkx) , parameter :: rhoice = 917.0_rkx
   real(rkx) , parameter :: tzero = 273.15_rkx
-  real(rkx) , parameter :: tiso = 216.65_rkx
+  real(rkx) , parameter :: tiso =  216.65_rkx
   real(rkx) , parameter :: rtzero = d_one/tzero
   real(rkx) , parameter :: wattp = 273.16_rkx
   real(rkx) , parameter :: tboil = 373.1339_rkx
@@ -212,11 +257,17 @@ module mod_constants
   real(rkx) , parameter :: eliwv = 2.72e6_rkx
 
   ! Standard atmosphere ICAO 1993
+  real(rkx) , parameter :: p00 = 1.000000e5_rkx
   real(rkx) , parameter :: stdp = 1.013250e5_rkx
   real(rkx) , parameter :: stdpmb = 1013.250_rkx
+  real(rkx) , parameter :: stdpcb = 101.3250_rkx
   real(rkx) , parameter :: stdt = 288.15_rkx
+  real(rkx) , parameter :: stdrho = 1.28_rkx
+#ifdef RCEMIP
+  real(rkx) , parameter :: lrate = 0.0067_rkx  ! K/m
+#else
   real(rkx) , parameter :: lrate = 0.00649_rkx ! K/m from MSL up to 11 km
-  real(rkx) , parameter :: bltop = 0.960_rkx
+#endif
 
   ! Atmos. surface pressure mol/cm3
   real(rkx) , parameter :: atmos = 2.247e19_rkx
@@ -229,17 +280,18 @@ module mod_constants
   ! Gas-phase diffusion coeff. Lelieveld and Crutzen, 1991 cm2/s
   real(rkx) , parameter :: difgas = 0.1_rkx
 
-  ! Fixed emissivity of water
-  real(rkx) , parameter :: emsw = 0.97_rkx
+  real(rk8) , parameter :: m_euler = 0.577215664901532860606512090082402431_rk8
 
   ! Trigonometric constants.
-  real(rkx) , parameter :: mathpi =                                   &
-                      &   3.1415926535897932384626433832795029_rkx
-  real(rkx) , parameter :: invpi = d_one/mathpi
-  real(rkx) , parameter :: halfpi = mathpi*d_half
-  real(rkx) , parameter :: twopi = mathpi*d_two
-  real(rkx) , parameter :: degrad = mathpi/180.0_rkx
-  real(rkx) , parameter :: raddeg = 180.0_rkx/mathpi
+  real(rk8) , parameter :: mathpi =                                   &
+                      &   3.1415926535897932384626433832795029_rk8
+  real(rk8) , parameter :: invpi = d_one/mathpi
+  real(rk8) , parameter :: halfpi = mathpi*d_half
+  real(rk8) , parameter :: quartpi = halfpi*d_half
+  real(rk8) , parameter :: twopi = mathpi*d_two
+  real(rk8) , parameter :: pisqr = mathpi*mathpi
+  real(rk8) , parameter :: degrad = mathpi/180.0_rk8
+  real(rk8) , parameter :: raddeg = 180.0_rk8/mathpi
 
   ! Maximum stomatl resistance (s/m)
   real(rkx) , parameter :: rmax0 = 2.0e4_rkx
@@ -259,12 +311,16 @@ module mod_constants
   real(rkx) , parameter :: minwrat = 1.0e-4_rkx
 
   ! Earth radius in meters
-  real(rkx) , parameter :: earthrad = 6.371229e6_rkx
-  real(rkx) , parameter :: erkm = earthrad/d_1000
-  real(rkx) , parameter :: rearthrad = d_one/earthrad
+#ifdef RCEMIP
+  real(rk8) , parameter :: earthrad = 6.371e6_rk8
+#else
+  real(rk8) , parameter :: earthrad = 6.371229e6_rk8
+#endif
+  real(rk8) , parameter :: erkm = earthrad/1000.0_rk8
+  real(rk8) , parameter :: rearthrad = d_one/earthrad
   ! Angular velocity of rotation of Earth
-  real(rkx) , parameter :: eomeg = 7.2921159e-5_rkx
-  real(rkx) , parameter :: eomeg2 = d_two*eomeg
+  real(rk8) , parameter :: eomeg = 7.2921159e-5_rk8
+  real(rk8) , parameter :: eomeg2 = d_two*eomeg
 
   ! Soil roughness length
   real(rkx) , parameter :: zlnd = 0.01_rkx
@@ -285,6 +341,11 @@ module mod_constants
   ! Ratio of mean molecular weight of water to that of dry air
   real(rkx) , parameter :: ep2 = amw/amd   ! 0.6219770795
   real(rkx) , parameter :: rep2 = amd/amw  ! 1.6077762876
+  ! Constant defined for calculation of latent heating
+  real(rkx) , parameter :: xlv0 = 3.15E6_rkx
+  real(rkx) , parameter :: xlv1 = 2370.0_rkx
+  real(rkx) , parameter :: xls0 = 2.905E6_rkx
+  real(rkx) , parameter :: xls1 = 259.532_rkx
 
   ! Terminal velocity constants
   real(rkx) , parameter :: avt = 841.99667_rkx
@@ -293,23 +354,23 @@ module mod_constants
   real(rkx) , parameter :: g3pb = g4pb/(3.0_rkx+bvt)
   real(rkx) , parameter :: g5pb = 1.8273_rkx
   real(rkx) , parameter :: vtc = avt*g4pb/6.0_rkx
-  real(rkx) , parameter :: trel = 3000.0_rkx
 
   ! Dynamic parameters
   ! alpha = .2495 in brown-campana; = 0. in split explicit
   real(rkx) , parameter :: alpha_hyd = 0.0_rkx
   real(rkx) , parameter :: beta_hyd = d_one - d_two*alpha_hyd
 
-  real(rkx) , parameter :: gnu = 0.125_rkx
-  real(rkx) , parameter :: omu = d_one - d_two*gnu
-  real(rkx) , parameter :: gnuhf = d_half*gnu
-  real(rkx) , parameter :: omuhf = d_one - d_two*gnuhf
-
+  ! Fixed emissivity of water
+  real(rkx) , parameter :: emsw = 0.996_rkx
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
-  real(rkx) , parameter :: ocn_sfcemiss = 0.984_rkx
+  ! Nasa numbers
+  ! Monitoring surface climate with its emissivity derived from satellite
+  ! measurements, Daniel K. Zhou, Allen M. Larar, and Xu Liu
+  real(rkx) , parameter :: ocn_sfcemiss = emsw
+  real(rkx) , parameter :: ice_sfcemiss = 0.982_rkx
 
-  ! Constants used in Kain-Fritsch
+  ! Constants used in Kain-Fritsch and WSM5
   real(rkx) , parameter :: aliq = 613.3_rkx
   real(rkx) , parameter :: bliq = 17.502_rkx
   real(rkx) , parameter :: cliq = 4780.8_rkx
@@ -318,40 +379,17 @@ module mod_constants
   real(rkx) , parameter :: bice = 22.452_rkx
   real(rkx) , parameter :: cice = 6133.0_rkx
   real(rkx) , parameter :: dice = 0.61_rkx
-  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
-  real(rkx) , parameter :: xlv1 = 2370.0_rkx
-  real(rkx) , parameter :: xls0 = 2.905e6_rkx
-  real(rkx) , parameter :: xls1 = 259.532_rkx
-
-  ! GTS system constants
-  real(rkx) , parameter :: egravgts = egrav*d_100
-  real(rkx) , parameter :: regravgts = d_one/egravgts
-  real(rkx) , parameter :: cpdgts = cpd*1.0e4_rkx
-  real(rkx) , parameter :: gocp = egravgts/cpdgts
-  real(rkx) , parameter :: sslp = stdp*d_10 ! dynes/cm^2
-  real(rkx) , parameter :: rsslp = d_one/sslp
-  real(rkx) , parameter :: stebol = sigm*d_1000
-  real(rkx) , parameter :: rgsslp = d_half/(egravgts*sslp)
-  ! Effective molecular weight of dry air (kg/mol)
-  real(rkx) , parameter :: amdk = amd*d_r1000
-  ! Avogadro Constant in lit/cm3
-  real(rkx) , parameter :: avogadrl = navgdr*d_1000
-
-  ! Radiation constants
-  real(rkx) , parameter :: dpfco2 = 5.0e-3_rkx
-  real(rkx) , parameter :: dpfo3 = 2.5e-3_rkx
 
   ! Pressure gradient force calculations (Why not standard atmosphere?)
   real(rkx) , parameter :: t00pg = 287.0_rkx       ! stdt ?
-  real(rkx) , parameter :: p00pg = 101.325_rkx     ! stdp ?
+  real(rkx) , parameter :: p00pg = 101.325_rkx     ! stdpcb ?
   real(rkx) , parameter :: alam  = 6.5e-3_rkx      ! Lapse rate ?
   real(rkx) , parameter :: pgfaa1 = alam*rgas*regrav ! Utility constant
 
   ! Molecular heat diffusion coefficient in water
   real(rkx) , parameter :: hdmw = 1.3889e-7_rkx  ! m^2/s
 
-  ! Seaice temperature from ICBC trigger value
-  real(rkx) , parameter :: icetemp = 271.38_rkx
+  ! Seaice minimum depth value
   real(rkx) , parameter :: iceminh = 0.01_rkx
 
   ! Allowed range for cloud fraction
