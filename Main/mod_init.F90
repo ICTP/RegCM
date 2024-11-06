@@ -939,18 +939,6 @@ module mod_init
                       (mo_atm%zetaf(j,i,1)-mo_atm%zeta(j,i,1))
       end do
     end if
-    !
-    ! pressure of tropopause
-    !
-    if ( irceideal == 1 ) then
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-        ptrop(j,i) = 10000.0_rkx
-      end do
-    else
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-        ptrop(j,i) = 25.0e3_rkx - 15.0e3_rkx*cos(mddom%xlat(j,i)*degrad)**2
-      end do
-    end if
 
     if ( .not. ifrest ) then
       if ( any(icup == 6)  .or. any(icup == 5) ) then

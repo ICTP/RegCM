@@ -42,6 +42,15 @@ module mod_slice
   integer(ik4) :: id1 , id2 , jd1 , jd2
   real(rkx) , dimension(:,:) , pointer :: rpsb
   real(rkx) , dimension(:,:) , pointer :: rpsdotb
+
+  real(rkx) , parameter , dimension(0:5) :: anorth = &
+     [  7.9925_rkx, 8.3329_rkx, 24.1731_rkx, &
+       -1.8069_rkx, 0.1082_rkx, -0.1493_rkx ]
+
+  real(rkx) , parameter , dimension(0:5) :: asouth = &
+     [  8.1797_rkx, 8.1455_rkx, -23.4839_rkx, &
+        1.1464_rkx, 0.0798_rkx, -0.1491_rkx ]
+
   contains
 
   subroutine init_slice
@@ -105,7 +114,7 @@ module mod_slice
   subroutine mkslice
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: w1 , w2 , cell
+    real(rkx) :: w1 , w2 , cell , ztrop
 
     if ( idynamic == 3 ) then
       do concurrent ( j = jce1:jce2, i = ice1:ice2 )
@@ -360,6 +369,30 @@ module mod_slice
         end do
       end if
     end if
+    !
+    ! pressure of tropopause (Mateus, Mendes, Pires, Remote sensing 2022)
+    !
+#ifdef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ztrop)
+#else
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+#endif
+        ! Assume PVU = 2.5 , ztrop in km
+        if ( mddom%xlat(j,i) > 0.0_rkx ) then
+          ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
+            exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
+            anorth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+        else
+          ztrop = asouth(0) + asouth(1) / (1.0_rkx + &
+            exp(-(mddom%xlat(j,i)-asouth(2))/asouth(3)))**asouth(4) + &
+            asouth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+        end if
+        ptrop(j,i) = p00 * exp(-ztrop/8.4_rkx)
+#ifndef STDPAR
+      end do
+#endif
+    end do
     !
     ! Find tropopause hgt.
     !
