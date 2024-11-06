@@ -372,27 +372,29 @@ module mod_slice
     !
     ! pressure of tropopause (Mateus, Mendes, Pires, Remote sensing 2022)
     !
+    if ( irceideal /= 1 ) then
 #ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ztrop)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ztrop)
 #else
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
 #endif
-        ! Assume PVU = 2.5 , ztrop in km
-        if ( mddom%xlat(j,i) > 0.0_rkx ) then
-          ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
-            exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
-            anorth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
-        else
-          ztrop = asouth(0) + asouth(1) / (1.0_rkx + &
-            exp(-(mddom%xlat(j,i)-asouth(2))/asouth(3)))**asouth(4) + &
-            asouth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
-        end if
-        ptrop(j,i) = p00 * exp(-ztrop/8.4_rkx)
+          ! Assume PVU = 2.5 , ztrop in km
+          if ( mddom%xlat(j,i) > 0.0_rkx ) then
+            ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
+              exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
+              anorth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+          else
+            ztrop = asouth(0) + asouth(1) / (1.0_rkx + &
+              exp(-(mddom%xlat(j,i)-asouth(2))/asouth(3)))**asouth(4) + &
+              asouth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+          end if
+          ptrop(j,i) = p00 * exp(-ztrop/8.4_rkx)
 #ifndef STDPAR
-      end do
+        end do
 #endif
-    end do
+      end do
+    end if
     !
     ! Find tropopause hgt.
     !
