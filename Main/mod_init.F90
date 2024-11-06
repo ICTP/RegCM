@@ -940,7 +940,7 @@ module mod_init
       end do
     end if
 
-    if ( irceideal = 1 ) then
+    if ( irceideal == 1 ) then
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         ptrop(j,i) = 10000.0_rkx
       end do
