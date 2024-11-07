@@ -1,4 +1,4 @@
-  ! Computes saturation pressurre
+  ! Computes saturation pressure
   ! Reference:  Polynomial approximations from:
   !             Piotr J. Flatau, et al.,1992:  Polynomial fits to saturation
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.

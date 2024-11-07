@@ -1,4 +1,4 @@
-  ! Computes saturation pressurre
+  ! Computes saturation pressure
   ! Reference: Tetens, O., 1930:
   ! Uber einige meteorologische Begriffe. Zeitschrift fur Geophysik, Vol. 6:297.
   !
