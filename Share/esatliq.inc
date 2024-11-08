@@ -15,7 +15,7 @@
     real(rkx) , parameter :: t0 = 273.16_rkx
     real(rkx) , parameter :: lv0 = 2.501e6_rkx
     real(rkx) , parameter :: al0 = lv0/(rwat*t0)
-    real(rkx) :: l
+    real(rkx) :: lv
 
     lv = lv0-(cplmcpv)*(t-t0)
     es = es0 * (t0/t)**arg * exp(al0-lv/(rwat*t))

@@ -65,9 +65,8 @@ module mod_micro_nogtom
   use mod_constants , only : tzero , rtice , rtwat_rtice_r
   use mod_constants , only : c5alvcp , c5alscp , rhoh2o , rovcp
   use mod_constants , only : wlhfocp , wlhsocp , wlhvocp
-  use mod_constants , only : rwat , wlhs , wlhv
-  use mod_constants , only : c5les , c5ies , c3ies , c3les , c4les , c4ies
-  use mod_constants , only : c2es , ep1
+  use mod_constants , only : rwat , wlhs , wlhv , ep1
+  use mod_constants , only : c5les , c5ies , c4les , c4ies
   use mod_constants , only : egrav , regrav , ep1
   use mod_runparams , only : nqx
   use mod_runparams , only : iqqv => iqv !vapor
@@ -229,6 +228,9 @@ module mod_micro_nogtom
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
   contains
+
+#include <esatliq.inc>
+#include <esatice.inc>
 
   subroutine allocate_mod_nogtom
     implicit none
@@ -469,9 +471,9 @@ module mod_micro_nogtom
     end do
 
     ! Compute supersaturations
+    eeliq = esatliq(tx)
+    eeice = esatice(tx)
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
-      eeliq(k,j,i) = c2es*exp(c3les*((tx(k,j,i)-tzero)/(tx(k,j,i)-c4les)))
-      eeice(k,j,i) = c2es*exp(c3ies*((tx(k,j,i)-tzero)/(tx(k,j,i)-c4ies)))
       koop(k,j,i) = min(rkoop1-rkoop2*tx(k,j,i),eeliq(k,j,i)/eeice(k,j,i))
     end do
 
@@ -2195,10 +2197,7 @@ module mod_micro_nogtom
 !$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t , phase
-    real(rkx) :: eliq , eice
-    eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
-    eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
-    eewm = phase * eliq + (d_one-phase) * eice
+    eewm = phase * esatliq(t) + (d_one-phase) * esatice(t)
   end function eewm
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)

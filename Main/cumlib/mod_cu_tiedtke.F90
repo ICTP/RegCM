@@ -5759,7 +5759,7 @@ module mod_cu_tiedtke
       integer(ik4) , intent(in) :: jcall ! Calling method
       integer(ik4) :: jl
       real(rkx) :: cond , cond1 , cor , qs , rp
-      real(rkx) :: zl , zi , zf
+      real(rkx) :: zl , zi , zf , za
       !---------------------------------------------------------
       ! 1. Calculate condensation and adjust t and q accordingly
       ! --------------------------------------------------------
@@ -5769,9 +5769,8 @@ module mod_cu_tiedtke
             rp = d_one/sp(jl)
             zl = d_one/(t(jl,kk)-c4les)
             zi = d_one/(t(jl,kk)-c4ies)
-            qs = c2es*(xalpha(t(jl,kk))*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                  (d_one-xalpha(t(jl,kk)))*exp(c3ies*(t(jl,kk)-tzero)*zi))
-            qs = qs*rp
+            za = xalpha(t(jl,kk))
+            qs = (za*esatliq(t(jl,kk))+(d_one-za)*esatice(t(jl,kk)))*rp
             qs = min(qsmax,qs)
             cor = d_one - ep1*qs
             zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
@@ -5782,10 +5781,8 @@ module mod_cu_tiedtke
               q(jl,kk) = q(jl,kk) - cond
               zl = d_one/(t(jl,kk)-c4les)
               zi = d_one/(t(jl,kk)-c4ies)
-              qs = c2es*(xalpha(t(jl,kk)) * &
-                exp(c3les*(t(jl,kk)-tzero)*zl)+(d_one-xalpha(t(jl,kk))) * &
-                exp(c3ies*(t(jl,kk)-tzero)*zi))
-              qs = qs*rp
+              za = xalpha(t(jl,kk))
+              qs = (za*esatliq(t(jl,kk))+(d_one-za)*esatice(t(jl,kk)))*rp
               qs = xmin(qsmax,qs)
               cor = d_one - ep1*qs
               zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
@@ -7800,6 +7797,9 @@ module mod_cu_tiedtke
       deallocate (cen)
     end subroutine ctracer
 
+#include <esatliq.inc>
+#include <esatice.inc>
+
     pure real(rkx) function xmin(x,y)
       implicit none
       real(rkx) , intent(in) :: x , y
@@ -7823,8 +7823,9 @@ module mod_cu_tiedtke
     pure real(rkx) function fesat(t)
       implicit none
       real(rkx) , intent(in) :: t
-      fesat = c2es*(xalpha(t)*exp((c3les*((t-tzero)/(t-c4les)))) + &
-            (d_one-xalpha(t))*exp((c3ies*((t-tzero)/(t-c4ies)))))
+      real(rkx) :: xa
+      xa = xalpha(t)
+      fesat = xa*esatliq(t)+(d_one-xa)*esatice(t)
     end function fesat
     pure real(rkx) function fdqsat(t)
       implicit none
