@@ -403,7 +403,7 @@ module mod_sst_gndnc
     if ( ssttyp(1:4) == 'ERA5' .or. ssttyp(1:3) == 'EID' ) then
       if ( cds_beta ) then
         call getworkf(2,workf)
-        where ( isnan(workf) )
+        where ( is_nan(workf) )
           workf = 1.0E20_rkx
         end where
       else

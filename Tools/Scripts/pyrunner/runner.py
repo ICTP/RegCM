@@ -399,7 +399,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
         for item in c["SLURM"]["Extra"].split(','):
             slurm.add_cmd("#SBATCH "+item)
     slurm.add_cmd("module purge")
-    slurm.add_cmd("source " + c["RegCM_Env"])
+    slurm.add_cmd("source " + c["Pycordex_Env"])
     slurm.add_cmd("export OMP_NUM_THREADS=" + str(c["SLURM"]["PostOMP"]))
     opath = n["outparam"]["dirout"]
     domain = n["terrainparam"]["domname"]

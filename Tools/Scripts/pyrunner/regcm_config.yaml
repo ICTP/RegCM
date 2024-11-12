@@ -1,22 +1,23 @@
-RegCM_Data: /home/esp-shared-b/RegCM_Data
-RegCM_Path: /home/netapp-clima/users/ggiulian/RegCM/bin
-Pycordex_Path: /home/netapp-clima/users/ggiulian/RegCM/Tools/Scripts/pycordexer
-RegCM_Env: /opt-ictp/ESMF/env202108
-RegCM_Conf: CLM45
+RegCM_Data: /leonardo_work/ICT24_ESP/RCMDATA
+RegCM_Path: /leonardo/home/userexternal/ggiulian/RegCM/bin
+Pycordex_Path: /leonardo/home/userexternal/ggiulian/RegCM/Tools/Scripts/pycordexer
+RegCM_Env: /leonardo/home/userexternal/ggiulian/modules
+Pycordex_Env: /leonardo/home/userexternal/ggiulian/modules_gfortran
+RegCM_Conf: CLM45_SKL
 SLURM:
     Step: 6m
-    Account: esp
-    ModelPartition: esp
-    ModelNodes: 5
-    ModelNtasks: 20
+    Account: ICT24_ESP
+    ModelPartition: dcgp_usr_prod
+    ModelNodes: 4
+    ModelNtasks: 112
     ModelOMP: 1
-    ICBCPartition: esp
+    ICBCPartition: dcgp_usr_prod
     ICBCNodes: 1
-    ICBCNtasks: 20
-    ICBCOMP: 20
-    PostPartition: esp
+    ICBCNtasks: 64
+    ICBCOMP: 64
+    PostPartition: dcgp_usr_prod
     PostNodes: 1
-    PostNtasks: 20
+    PostNtasks: 112
     PostOMP: 1
     Time: 24
     Mail: True
@@ -24,7 +25,7 @@ SLURM:
 CORDEX:
     institute: ICTP
     model: RegCM
-    domain: CAM-22
+    domain: AFR-12
     global: ECMWF-ERA5
     experiment: evaluation
     ensemble: r0i0p0f0
