@@ -86,23 +86,35 @@ AC_DEFUN([RR_PATH_NETCDF],[
   AM_LDFLAGS="$NC_LDFLAGS $AM_LDFLAGS"
   AC_SUBST([AM_CPPFLAGS])
   AC_SUBST([AM_LDFLAGS])
-  AC_LANG_POP([C])
 
 # Netcdf Fortran interface can be placed in a separate libnetcdff
 #
   LDFLAGS="$LDFLAGS $NC_LDFLAGS"
-  AC_CHECKING([for libnetcdff])
   AC_CHECK_LIB([netcdf], [nf_close],
                [netcdf=yes], [netcdf=no])
   if test "x$netcdf" = xno; then
-    LIBS="-lnetcdff $LIBS"
+    case $ac_cv_fc_mangling in
+       "lower case, underscore, no extra underscore")
+         search="nf_close_";;
+       "upper case, no underscore")
+         search="NF_CLOSE_";;
+       "lower case, double underscore")
+         search="nf_close__";;
+       "upper case, double underscore")
+         search="NF_CLOSE__";;
+       "lower case, no underscore")
+         search="nf_close";;
+       "lower case, no underscore, no extra underscore")
+         search="nf_close";;
+       *)
+         search="nf_close";;
+    esac
     AC_CHECKING([for libnetcdff])
-    AC_CHECK_LIB([netcdff], [nf_close],
-                 [netcdf=yes], [netcdf=no])
-    if test "x$netcdf" = xno; then
-      AC_MSG_ERROR([NetCDF library not found])
-    fi
+    LIBS="-lnetcdff $LIBS"
+    AC_CHECK_LIB([netcdff], [$search],
+               [netcdf=yes], [netcdf=no])
   fi
+  AC_LANG_POP([C])
   LDFLAGS="$save_LDFLAGS"
   AC_SUBST([netcdf])
 
