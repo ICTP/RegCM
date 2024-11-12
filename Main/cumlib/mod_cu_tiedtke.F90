@@ -5759,7 +5759,7 @@ module mod_cu_tiedtke
       integer(ik4) , intent(in) :: jcall ! Calling method
       integer(ik4) :: jl
       real(rkx) :: cond , cond1 , cor , qs , rp
-      real(rkx) :: zl , zi , zf
+      real(rkx) :: zl , zi , zf , za
       !---------------------------------------------------------
       ! 1. Calculate condensation and adjust t and q accordingly
       ! --------------------------------------------------------
@@ -5769,27 +5769,26 @@ module mod_cu_tiedtke
             rp = d_one/sp(jl)
             zl = d_one/(t(jl,kk)-c4les)
             zi = d_one/(t(jl,kk)-c4ies)
-            qs = c2es*(xalpha(t(jl,kk))*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                  (d_one-xalpha(t(jl,kk)))*exp(c3ies*(t(jl,kk)-tzero)*zi))
+            za = xalpha(t(jl,kk))
+            qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
+                  (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
             qs = qs*rp
             qs = min(qsmax,qs)
             cor = d_one - ep1*qs
-            zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
-                 (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
+            zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
             cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
             if ( cond > d_zero ) then
               t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
               q(jl,kk) = q(jl,kk) - cond
               zl = d_one/(t(jl,kk)-c4les)
               zi = d_one/(t(jl,kk)-c4ies)
-              qs = c2es*(xalpha(t(jl,kk)) * &
-                exp(c3les*(t(jl,kk)-tzero)*zl)+(d_one-xalpha(t(jl,kk))) * &
-                exp(c3ies*(t(jl,kk)-tzero)*zi))
+              za = xalpha(t(jl,kk))
+              qs = c2es*(za*exp(c3les*(t(jl,kk)-tzero)*zl) + &
+                    (d_one-za)*exp(c3ies*(t(jl,kk)-tzero)*zi))
               qs = qs*rp
               qs = xmin(qsmax,qs)
               cor = d_one - ep1*qs
-              zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
-                   (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
+              zf = za*c5alvcp*zl**2 + (d_one-za)*c5alscp*zi**2
               cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
               if ( abs(cond) < almostzero ) cond1 = d_zero
               t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
@@ -7823,24 +7822,32 @@ module mod_cu_tiedtke
     pure real(rkx) function fesat(t)
       implicit none
       real(rkx) , intent(in) :: t
-      fesat = c2es*(xalpha(t)*exp((c3les*((t-tzero)/(t-c4les)))) + &
-            (d_one-xalpha(t))*exp((c3ies*((t-tzero)/(t-c4ies)))))
+      real(rkx) :: xa
+      xa = xalpha(t)
+      fesat = c2es*(xa*exp((c3les*((t-tzero)/(t-c4les)))) + &
+            (d_one-xa)*exp((c3ies*((t-tzero)/(t-c4ies)))))
     end function fesat
     pure real(rkx) function fdqsat(t)
       implicit none
       real(rkx) , intent(in) :: t
-      fdqsat = xalpha(t)*c5alvcp*(d_one/(t-c4les)**2) + &
-              (d_one-xalpha(t))*c5alscp*(d_one/(t-c4ies)**2)
+      real(rkx) :: xa
+      xa = xalpha(t)
+      fdqsat = xa*c5alvcp*(d_one/(t-c4les)**2) + &
+              (d_one-xa)*c5alscp*(d_one/(t-c4ies)**2)
     end function fdqsat
     pure real(rkx) function mlwocp(t)
       implicit none
       real(rkx) , intent(in) :: t
-      mlwocp = xalpha(t)*wlhvocp+(d_one-xalpha(t))*wlhsocp
+      real(rkx) :: xa
+      xa = xalpha(t)
+      mlwocp = xa*wlhvocp+(d_one-xa)*wlhsocp
     end function mlwocp
     pure real(rkx) function mlw(t)
       implicit none
       real(rkx) , intent(in) :: t
-      mlw = xalpha(t)*wlhv+(d_one-xalpha(t))*wlhs
+      real(rkx) :: xa
+      xa = xalpha(t)
+      mlw = xa*wlhv+(d_one-xa)*wlhs
     end function mlw
     pure real(rkx) function esw(t)
       implicit none
