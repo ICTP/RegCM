@@ -13,10 +13,10 @@ libmpp_a_SOURCES = mod_mppparam.F90 mod_mpmessage.F90 mod_service.F90 \
 	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

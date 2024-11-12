@@ -531,9 +531,13 @@ if test -z "$COMPILER_GNU_TRUE"; then
   fi
 fi
 if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
-  OMPFLAGS="-qopenmp -qopt-report"
+  if eval "test x$DEBUG = x1"; then
+    OMPFLAGS=""
+  else
+    OMPFLAGS="-qopenmp -qopt-report -DSTDPAR"
+  fi
   FCFLAGS="$FCFLAGS -convert big_endian -assume byterecl \
-           -heap-arrays -fPIC -DSTDPAR $OMPFLAGS"
+           -heap-arrays -fPIC $OMPFLAGS"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)

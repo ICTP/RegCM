@@ -32,10 +32,10 @@ mpif.h:
 	  $(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod mpif.h
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt mpif.h
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

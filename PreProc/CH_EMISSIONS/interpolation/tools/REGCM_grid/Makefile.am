@@ -8,10 +8,10 @@ emcre_grid_SOURCES = emcre_grid.F90 emcre_netcdf.F90 emcre_tools.F90 \
 	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
-	rm -f *.mod *__genmod.F90
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 distclean-local:
-	rm -f *.mod *__genmod.F90
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

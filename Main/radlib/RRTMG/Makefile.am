@@ -38,10 +38,10 @@ rrlw_kg15.F90  rrsw_kg16.F90  rrsw_kg26.F90
 	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod *__genmod.F90
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 clean-local:
-	rm -f *.mod *__genmod.F90
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on i.

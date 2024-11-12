@@ -58,10 +58,10 @@ LDADD = $(OMPFLAGS)
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 distclean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

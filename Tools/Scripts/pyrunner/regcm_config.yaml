@@ -6,18 +6,18 @@ Pycordex_Env: /leonardo/home/userexternal/ggiulian/modules_gfortran
 RegCM_Conf: CLM45_SKL
 SLURM:
     Step: 6m
-    Account: ICT24_ESP
+    Account: ICT23_ESP_1
     ModelPartition: dcgp_usr_prod
     ModelNodes: 4
     ModelNtasks: 112
     ModelOMP: 1
     ICBCPartition: dcgp_usr_prod
     ICBCNodes: 1
-    ICBCNtasks: 64
-    ICBCOMP: 64
+    ICBCNtasks: 32
+    ICBCOMP: 32
     PostPartition: dcgp_usr_prod
     PostNodes: 1
-    PostNtasks: 112
+    PostNtasks: 32
     PostOMP: 1
     Time: 24
     Mail: True

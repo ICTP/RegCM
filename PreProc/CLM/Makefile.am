@@ -15,10 +15,10 @@ clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.F90  \
 endif
 
 clean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 distclean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

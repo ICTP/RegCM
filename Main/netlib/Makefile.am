@@ -10,10 +10,10 @@ libnetlib_a_SOURCES = linpack.F90 eispack.F90 lapack_dgbsv.F90
 	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

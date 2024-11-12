@@ -11,10 +11,10 @@ CheckSun_SOURCES = CheckSun.F90
 	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

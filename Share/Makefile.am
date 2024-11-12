@@ -22,10 +22,10 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 clean-local:
-	rm -f *.mod
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

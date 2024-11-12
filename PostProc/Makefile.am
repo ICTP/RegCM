@@ -39,10 +39,10 @@ LDADD = $(OMPFLAGS)
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 clean-local:
-	rm -f *.mod *__genmod.*
+	rm -f *.mod *__genmod.* *opt.yaml *optrpt
 
 install-exec-hook:
 	cp regrid.sh $(DESTDIR)$(bindir)/regrid
