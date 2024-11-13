@@ -252,7 +252,7 @@ module mod_bdycod
         xtb%b0(:,:,k) = ti(k)
         xqb%b0(:,:,k) = qi(k)
       end do
-      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     else
       call fatal(__FILE__,__LINE__, &
@@ -350,7 +350,7 @@ module mod_bdycod
       xwwb%b0 = 0.0_rkx
     else if ( idynamic == 3 ) then
       xpsb%b0 = ps
-      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call exchange(xpaib%b0,1,jce1,jce2,ice1,ice2,1,kz)
     else
       call fatal(__FILE__,__LINE__, &
@@ -881,8 +881,8 @@ module mod_bdycod
     else if ( idynamic == 3 ) then
       jday = yeardayfrac(rcmtimer%idate)
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
-      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
@@ -1063,7 +1063,7 @@ module mod_bdycod
     else if ( idynamic == 3 ) then
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga,rdtbdy)
       jday = yeardayfrac(rcmtimer%idate)
-      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt, &
                    jce1ga,jce2ga,ice1ga,ice2ga,1,kz,rdtbdy)
     end if
@@ -6212,9 +6212,9 @@ module mod_bdycod
     end if
   end function tau
 
-  subroutine paicompute(lat,ps,z,t,q,pai)
+  subroutine paicompute(ps,z,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , lat
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
     integer(ik4) :: i , j , k
@@ -6232,7 +6232,6 @@ module mod_bdycod
         tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
         lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
         lrt = 0.65_rkx*lrt - 0.35_rkx*lrate
-        ! lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,dayspy,lat(j,i))
         tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
