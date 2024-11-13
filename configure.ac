@@ -650,8 +650,7 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
-    FCFLAGS="-O0 -fpe0 -g -check all -traceback -warn all -ftz \
-             -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
+    FCFLAGS="-O0 -g -traceback -warn all -mieee-fp $FCFLAGS"
     NOOPTFC="$FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
