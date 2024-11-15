@@ -43,7 +43,7 @@
 !===============================================================================
 
 !*******************************************************************************
-subroutine sw_kgb16
+subroutine sw_kgb16(fname)
     use rrsw_kg16, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no16, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -52,6 +52,7 @@ subroutine sw_kgb16
     implicit none
     save
 
+    character(len=*) , intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 1, numGPoints = no16
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
@@ -59,7 +60,7 @@ subroutine sw_kgb16
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -107,10 +108,8 @@ subroutine sw_kgb16
     status(20) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) then
-       write(0,*) 'Cannot read from file rrtmg_sw.nc'
-       write(0,*) 'The files rrtmg_sw.nc, rrtmg_lw.nc must be located in:'
-       write(0,*) 'the current model run directory'
-       stop  "Error reading band 16 variables from file rrtmg_sw.nc"
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 16 variables from file "//fname
     end if
 
     rayl = ncrayl(1)
@@ -119,7 +118,7 @@ end subroutine sw_kgb16
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb17
+subroutine sw_kgb17(fname)
         use rrsw_kg17, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no17, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -128,6 +127,7 @@ subroutine sw_kgb17
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 2
     integer(kind=im), parameter :: numGPoints = no17
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -136,7 +136,7 @@ subroutine sw_kgb17
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionUpperAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -188,7 +188,7 @@ subroutine sw_kgb17
     status(22) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 17 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 17 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -196,7 +196,7 @@ end subroutine sw_kgb17
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb18
+subroutine sw_kgb18(fname)
     use rrsw_kg18, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no18, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -205,6 +205,7 @@ subroutine sw_kgb18
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 3
     integer(kind=im), parameter :: numGPoints = no18
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -213,7 +214,7 @@ subroutine sw_kgb18
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -261,7 +262,7 @@ subroutine sw_kgb18
     status(20) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 18 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 18 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -269,7 +270,7 @@ end subroutine sw_kgb18
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb19
+subroutine sw_kgb19(fname)
         use rrsw_kg19, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no19, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -278,6 +279,7 @@ subroutine sw_kgb19
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 4
     integer(kind=im), parameter :: numGPoints = no19
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -286,7 +288,7 @@ subroutine sw_kgb19
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -334,7 +336,7 @@ subroutine sw_kgb19
     status(20) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 19 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 19 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -342,7 +344,7 @@ end subroutine sw_kgb19
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb20
+subroutine sw_kgb20(fname)
         use rrsw_kg20, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, absch4o, no20, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -351,6 +353,7 @@ subroutine sw_kgb20
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 5
     integer(kind=im), parameter :: numGPoints = no20
@@ -360,7 +363,7 @@ subroutine sw_kgb20
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -419,7 +422,7 @@ subroutine sw_kgb20
     status(24) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 20 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 20 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -427,7 +430,7 @@ end subroutine sw_kgb20
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb21
+subroutine sw_kgb21(fname)
         use rrsw_kg21, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no21, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -436,6 +439,7 @@ subroutine sw_kgb21
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 6
     integer(kind=im), parameter :: numGPoints = no21
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -444,7 +448,7 @@ subroutine sw_kgb21
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -496,7 +500,7 @@ subroutine sw_kgb21
     status(22) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 21 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 21 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -504,7 +508,7 @@ end subroutine sw_kgb21
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb22
+subroutine sw_kgb22(fname)
         use rrsw_kg22, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no22, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -513,6 +517,7 @@ subroutine sw_kgb22
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 7
     integer(kind=im), parameter :: numGPoints = no22
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -521,7 +526,7 @@ subroutine sw_kgb22
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -569,7 +574,7 @@ subroutine sw_kgb22
     status(20) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 22 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 22 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -577,7 +582,7 @@ end subroutine sw_kgb22
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb23
+subroutine sw_kgb23(fname)
         use rrsw_kg23, only: sfluxrefo, kao, selfrefo, forrefo, raylo, no23, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -586,13 +591,14 @@ subroutine sw_kgb23
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 8
     integer(kind=im), parameter :: numGPoints = no23
         integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
         status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -635,13 +641,13 @@ subroutine sw_kgb23
     status(18) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 23 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 23 variables from file "//fname
 
 end subroutine sw_kgb23
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb24
+subroutine sw_kgb24(fname)
         use rrsw_kg24, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
                              raylao, raylbo, abso3ao, abso3bo, no24, &
                              irradnceo, facbrghto, snsptdrko
@@ -651,6 +657,7 @@ subroutine sw_kgb24
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 9
     integer(kind=im), parameter :: numGPoints = no24
@@ -658,7 +665,7 @@ subroutine sw_kgb24
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -722,13 +729,13 @@ subroutine sw_kgb24
     status(26) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 24 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 24 variables from file "//fname
 
 end subroutine sw_kgb24
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb25
+subroutine sw_kgb25(fname)
         use rrsw_kg25, only: sfluxrefo, kao, raylo, abso3ao, abso3bo, no25, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -737,6 +744,7 @@ subroutine sw_kgb25
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
        integer(kind=im), parameter :: bandNumber = 10
     integer(kind=im), parameter :: numGPoints = no25
@@ -744,7 +752,7 @@ subroutine sw_kgb25
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -790,13 +798,13 @@ subroutine sw_kgb25
     status(18) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 25 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 25 variables from file "//fname
 
 end subroutine sw_kgb25
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb26
+subroutine sw_kgb26(fname)
         use rrsw_kg26, only: sfluxrefo, raylo, no26, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -805,13 +813,14 @@ subroutine sw_kgb26
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 11
     integer(kind=im), parameter :: numGPoints = no26
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -841,13 +850,13 @@ subroutine sw_kgb26
     status(12)  = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 26 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 26 variables from file "//fname
 
 end subroutine sw_kgb26
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb27
+subroutine sw_kgb27(fname)
         use rrsw_kg27, only: sfluxrefo, kao, kbo, raylo, no27, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -856,13 +865,14 @@ subroutine sw_kgb27
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 12
     integer(kind=im), parameter :: numGPoints = no27
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -902,13 +912,13 @@ subroutine sw_kgb27
     status(16) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 27 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 27 variables from file "//fname
 
 end subroutine sw_kgb27
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb28
+subroutine sw_kgb28(fname)
         use rrsw_kg28, only: sfluxrefo, kao, kbo, rayl, no28, &
                              irradnceo, facbrghto, snsptdrko
     use rrsw_ncpar
@@ -917,6 +927,7 @@ subroutine sw_kgb28
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 13
     integer(kind=im), parameter :: numGPoints = no28
     integer(kind=im), parameter :: gPointSetNumber = 1
@@ -925,7 +936,7 @@ subroutine sw_kgb28
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionUpperAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -965,7 +976,7 @@ subroutine sw_kgb28
     status(16) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 28 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 28 variables from file "//fname
 
     rayl = ncrayl(1)
 
@@ -973,7 +984,7 @@ end subroutine sw_kgb28
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine sw_kgb29
+subroutine sw_kgb29(fname)
         use rrsw_kg29, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
                              absh2oo, absco2o, rayl, no29, &
                              irradnceo, facbrghto, snsptdrko
@@ -983,6 +994,7 @@ subroutine sw_kgb29
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im) :: ab
     integer(kind=im), parameter :: bandNumber = 14
     integer(kind=im), parameter :: numGPoints = no29
@@ -992,7 +1004,7 @@ subroutine sw_kgb29
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_sw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
@@ -1058,7 +1070,7 @@ subroutine sw_kgb29
     status(26) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 29 variables from file rrtmg_sw.nc"
+       stop  "Error reading band 29 variables from file "//fname
 
     rayl = ncrayl(1)
 

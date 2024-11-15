@@ -44,7 +44,7 @@
       contains
 
 ! **************************************************************************
-      subroutine rrtmg_lw_ini(cpdair)
+      subroutine rrtmg_lw_ini(cpdair,fname)
 ! **************************************************************************
 !
 !  Original version:       Michael J. Iacono; July, 1998
@@ -61,6 +61,7 @@
       use rrlw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl, tfn_tbl
       use rrlw_vsn, only: hvrini
 
+      character(len=*) , intent(in) :: fname
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
                                               ! (J kg-1 K-1)
@@ -96,22 +97,22 @@
       call lwatmref               ! reference MLS profile
       call lwavplank              ! Planck function
       call lwavplankderiv         ! Planck function derivative wrt temp
-      call lw_kgb01               ! molecular absorption coefficients
-      call lw_kgb02
-      call lw_kgb03
-      call lw_kgb04
-      call lw_kgb05
-      call lw_kgb06
-      call lw_kgb07
-      call lw_kgb08
-      call lw_kgb09
-      call lw_kgb10
-      call lw_kgb11
-      call lw_kgb12
-      call lw_kgb13
-      call lw_kgb14
-      call lw_kgb15
-      call lw_kgb16
+      call lw_kgb01(fname)        ! molecular absorption coefficients
+      call lw_kgb02(fname)
+      call lw_kgb03(fname)
+      call lw_kgb04(fname)
+      call lw_kgb05(fname)
+      call lw_kgb06(fname)
+      call lw_kgb07(fname)
+      call lw_kgb08(fname)
+      call lw_kgb09(fname)
+      call lw_kgb10(fname)
+      call lw_kgb11(fname)
+      call lw_kgb12(fname)
+      call lw_kgb13(fname)
+      call lw_kgb14(fname)
+      call lw_kgb15(fname)
+      call lw_kgb16(fname)
 
 ! Compute lookup tables for transmittance, tau transition function,
 ! and clear sky tau (for the cloudy sky radiative transfer).  Tau is

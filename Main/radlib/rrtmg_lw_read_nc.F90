@@ -44,7 +44,7 @@
 !===============================================================================
 
 !*******************************************************************************
-subroutine lw_kgb01
+subroutine lw_kgb01(fname)
     use rrlw_kg01, only : fracrefao, fracrefbo, kao, kbo, kao_mn2, kbo_mn2, &
                         selfrefo, forrefo, no1
     use rrlw_ncpar
@@ -53,13 +53,14 @@ subroutine lw_kgb01
     implicit none
     save
 
+    character(len=*) , intent(in) :: fname
     integer(kind=im) :: ab
     integer(kind=im), parameter :: bandNumber = 1, numGPoints = no1
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -103,7 +104,7 @@ subroutine lw_kgb01
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -111,7 +112,7 @@ end subroutine lw_kgb01
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb02
+subroutine lw_kgb02(fname)
         use rrlw_kg02, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no2
         use rrlw_ncpar
     use netcdf
@@ -119,13 +120,14 @@ subroutine lw_kgb02
         implicit none
         save
 
+       character(len=*) , intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 2
     integer(kind=im), parameter :: numGPoints = no2
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -158,7 +160,7 @@ subroutine lw_kgb02
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -166,7 +168,7 @@ end subroutine lw_kgb02
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb03
+subroutine lw_kgb03(fname)
         use rrlw_kg03, only : fracrefao, fracrefbo, kao, kbo, kao_mn2o, &
                           kbo_mn2o, selfrefo, forrefo, no3
     use rrlw_ncpar
@@ -175,6 +177,7 @@ subroutine lw_kgb03
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 3
     integer(kind=im), parameter :: numGPoints = no3
@@ -182,7 +185,7 @@ subroutine lw_kgb03
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -227,7 +230,7 @@ subroutine lw_kgb03
                       count = (/keyupper,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -235,7 +238,7 @@ end subroutine lw_kgb03
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb04
+subroutine lw_kgb04(fname)
         use rrlw_kg04, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no4
     use rrlw_ncpar
     use netcdf
@@ -243,13 +246,14 @@ subroutine lw_kgb04
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 4
     integer(kind=im), parameter :: numGPoints = no4
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -282,7 +286,7 @@ subroutine lw_kgb04
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -290,7 +294,7 @@ end subroutine lw_kgb04
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb05
+subroutine lw_kgb05(fname)
         use rrlw_kg05, only : fracrefao, fracrefbo, kao, kbo, kao_mo3, &
                           selfrefo, forrefo, ccl4o, no5
     use rrlw_ncpar
@@ -299,6 +303,7 @@ subroutine lw_kgb05
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 5
     integer(kind=im), parameter :: numGPoints = no5
@@ -306,7 +311,7 @@ subroutine lw_kgb05
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -353,7 +358,7 @@ subroutine lw_kgb05
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -361,7 +366,7 @@ end subroutine lw_kgb05
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb06
+subroutine lw_kgb06(fname)
         use rrlw_kg06, only : fracrefao, kao, kao_mco2, selfrefo, forrefo, &
                           cfc11adjo, cfc12o, no6
     use rrlw_ncpar
@@ -370,6 +375,7 @@ subroutine lw_kgb06
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 6
     integer(kind=im), parameter :: numGPoints = no6
@@ -377,7 +383,7 @@ subroutine lw_kgb06
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -421,7 +427,7 @@ subroutine lw_kgb06
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -429,7 +435,7 @@ end subroutine lw_kgb06
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb07
+subroutine lw_kgb07(fname)
         use rrlw_kg07, only : fracrefao, fracrefbo, kao, kbo, kao_mco2, &
                           kbo_mco2, selfrefo, forrefo, no7
     use rrlw_ncpar
@@ -438,6 +444,7 @@ subroutine lw_kgb07
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
        integer(kind=im), parameter :: bandNumber = 7
     integer(kind=im), parameter :: numGPoints = no7
@@ -445,7 +452,7 @@ subroutine lw_kgb07
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -490,7 +497,7 @@ subroutine lw_kgb07
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -498,7 +505,7 @@ end subroutine lw_kgb07
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb08
+subroutine lw_kgb08(fname)
         use rrlw_kg08, only : fracrefao, fracrefbo, kao, kao_mco2, kao_mn2o, &
                           kao_mo3, kbo, kbo_mco2, kbo_mn2o, selfrefo, forrefo, &
                           cfc12o, cfc22adjo, no8
@@ -508,6 +515,7 @@ subroutine lw_kgb08
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 8
     integer(kind=im), parameter :: numGPoints = no8
@@ -515,7 +523,7 @@ subroutine lw_kgb08
     integer(kind=im) :: ncid, varID
 
         status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -593,7 +601,7 @@ subroutine lw_kgb08
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -601,7 +609,7 @@ end subroutine lw_kgb08
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb09
+subroutine lw_kgb09(fname)
         use rrlw_kg09, only : fracrefao, fracrefbo, kao, kbo, kao_mn2o, &
                             kbo_mn2o, selfrefo, forrefo, no9
     use rrlw_ncpar
@@ -610,6 +618,7 @@ subroutine lw_kgb09
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
         integer(kind=im), parameter :: bandNumber = 9
     integer(kind=im), parameter :: numGPoints = no9
@@ -617,7 +626,7 @@ subroutine lw_kgb09
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -662,7 +671,7 @@ subroutine lw_kgb09
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -670,7 +679,7 @@ end subroutine lw_kgb09
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb10
+subroutine lw_kgb10(fname)
         use rrlw_kg10, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no10
     use rrlw_ncpar
     use netcdf
@@ -678,13 +687,14 @@ subroutine lw_kgb10
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
        integer(kind=im), parameter :: bandNumber = 10
     integer(kind=im), parameter :: numGPoints = no10
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -717,7 +727,7 @@ subroutine lw_kgb10
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -725,7 +735,7 @@ end subroutine lw_kgb10
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb11
+subroutine lw_kgb11(fname)
         use rrlw_kg11, only : fracrefao, fracrefbo, kao, kbo, kao_mo2, &
                           kbo_mo2, selfrefo, forrefo, no11
     use rrlw_ncpar
@@ -734,6 +744,7 @@ subroutine lw_kgb11
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im) :: ab
     integer(kind=im), parameter :: bandNumber = 11
     integer(kind=im), parameter :: numGPoints = no11
@@ -741,7 +752,7 @@ subroutine lw_kgb11
     integer(kind=im) :: ncid, varID
 
     status(:)   = nf90_NoErr
-    status(1)   = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)   = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)   = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)   = nf90_get_var(ncid, varID, fracrefao, &
@@ -786,7 +797,7 @@ subroutine lw_kgb11
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -794,7 +805,7 @@ end subroutine lw_kgb11
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb12
+subroutine lw_kgb12(fname)
         use rrlw_kg12, only : fracrefao, kao, selfrefo, forrefo, no12
     use rrlw_ncpar
     use netcdf
@@ -802,13 +813,14 @@ subroutine lw_kgb12
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
     integer(kind=im), parameter :: bandNumber = 12
     integer(kind=im), parameter :: numGPoints = no12
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
     status(:) = nf90_NoErr
-    status(1) = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1) = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2) = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3) = nf90_get_var(ncid, varID, fracrefao, &
@@ -831,7 +843,7 @@ subroutine lw_kgb12
                     count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -839,7 +851,7 @@ end subroutine lw_kgb12
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb13
+subroutine lw_kgb13(fname)
         use rrlw_kg13, only : fracrefao, fracrefbo, kao, kao_mco2, kao_mco, &
                           kbo_mo3, selfrefo, forrefo, no13
     use rrlw_ncpar
@@ -848,6 +860,7 @@ subroutine lw_kgb13
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
     integer(kind=im), parameter :: bandNumber = 13
     integer(kind=im), parameter :: numGPoints = no13
@@ -855,7 +868,7 @@ subroutine lw_kgb13
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
@@ -904,7 +917,7 @@ subroutine lw_kgb13
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -912,13 +925,14 @@ end subroutine lw_kgb13
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb14
+subroutine lw_kgb14(fname)
         use rrlw_kg14, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no14
     use rrlw_ncpar
     use netcdf
 
         implicit none
         save
+        character(len=*) , intent(in) :: fname
 
     integer(kind=im), parameter :: bandNumber = 14
     integer(kind=im), parameter :: numGPoints = no14
@@ -926,7 +940,7 @@ subroutine lw_kgb14
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
@@ -959,7 +973,7 @@ subroutine lw_kgb14
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -967,7 +981,7 @@ end subroutine lw_kgb14
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb15
+subroutine lw_kgb15(fname)
         use rrlw_kg15, only : fracrefao, kao, kao_mn2, selfrefo, forrefo, no15
     use rrlw_ncpar
     use netcdf
@@ -975,6 +989,7 @@ subroutine lw_kgb15
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im) :: ab
      integer(kind=im), parameter :: bandNumber = 15
     integer(kind=im), parameter :: numGPoints = no15
@@ -982,7 +997,7 @@ subroutine lw_kgb15
     integer(kind=im) :: ncid, varID
 
     status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
@@ -1012,7 +1027,7 @@ subroutine lw_kgb15
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 
@@ -1020,7 +1035,7 @@ end subroutine lw_kgb15
 !*******************************************************************************
 
 !*******************************************************************************
-subroutine lw_kgb16
+subroutine lw_kgb16(fname)
         use rrlw_kg16, only : fracrefao, fracrefbo, kao, kbo, selfrefo, forrefo, no16
     use rrlw_ncpar
     use netcdf
@@ -1028,13 +1043,14 @@ subroutine lw_kgb16
         implicit none
         save
 
+        character(len=*) , intent(in) :: fname
         integer(kind=im), parameter :: bandNumber = 16
      integer(kind=im), parameter :: numGPoints = no16
         integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
 
         status(:)  = nf90_NoErr
-    status(1)  = nf90_open('rrtmg_lw.nc',nf90_nowrite,ncid)
+    status(1)  = nf90_open(fname,nf90_nowrite,ncid)
 
     status(2)  = nf90_inq_varid(ncid,"PlanckFractionLowerAtmos",varID)
     status(3)  = nf90_get_var(ncid, varID, fracrefao, &
@@ -1067,7 +1083,7 @@ subroutine lw_kgb16
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
     if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file rrtmg_lw.nc"
+           stop  "Error reading variables from file "//fname
 
     status(1) = nf90_close(ncid)
 

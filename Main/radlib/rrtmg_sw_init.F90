@@ -44,7 +44,7 @@
       contains
 
 ! **************************************************************************
-      subroutine rrtmg_sw_ini(cpdair)
+      subroutine rrtmg_sw_ini(cpdair,fname)
 ! **************************************************************************
 !
 !  Original version:   Michael J. Iacono; February, 2004
@@ -60,6 +60,7 @@
       use rrsw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl
       use rrsw_vsn, only: hvrini
 
+      character(len=*), intent(in) :: fname
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
                                               ! (J kg-1 K-1)
@@ -91,20 +92,20 @@
       call swaerpr               ! aerosol optical properties
       call swcldpr               ! cloud optical properties
       call swatmref              ! reference MLS profile
-      call sw_kgb16              ! molecular absorption coefficients
-      call sw_kgb17
-      call sw_kgb18
-      call sw_kgb19
-      call sw_kgb20
-      call sw_kgb21
-      call sw_kgb22
-      call sw_kgb23
-      call sw_kgb24
-      call sw_kgb25
-      call sw_kgb26
-      call sw_kgb27
-      call sw_kgb28
-      call sw_kgb29
+      call sw_kgb16(fname)       ! molecular absorption coefficients
+      call sw_kgb17(fname)
+      call sw_kgb18(fname)
+      call sw_kgb19(fname)
+      call sw_kgb20(fname)
+      call sw_kgb21(fname)
+      call sw_kgb22(fname)
+      call sw_kgb23(fname)
+      call sw_kgb24(fname)
+      call sw_kgb25(fname)
+      call sw_kgb26(fname)
+      call sw_kgb27(fname)
+      call sw_kgb28(fname)
+      call sw_kgb29(fname)
 
 ! Define exponential lookup tables for transmittance. Tau is
 ! computed as a function of the tau transition function, and transmittance
