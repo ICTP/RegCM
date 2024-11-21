@@ -351,7 +351,7 @@ module mod_bats_common
     type(lm_state) , intent(inout) :: lms
     integer(ik4) , intent (in) :: ivers
     real(rkx) :: facb , facs , fact , factuv , facv , fracb ,  &
-                 fracs , fracv , rh0 , solvt , xqs0 , xqsdif
+                 fracs , fracv , rh0 , solvt , xqs0 , xqsdif , wspd
     integer(ik4) :: i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
@@ -482,8 +482,10 @@ module mod_bats_common
         do j = jci1 , jci2
           do n = 1 , nnsg
             if ( lm%ldmsk1(n,j,i) == 1 ) then
+              wspd = max(sqrt(lm%uatm(j,i)*lm%uatm(j,i) + &
+                              lm%vatm(j,i)*lm%vatm(j,i)),0.1_rkx)
               lms%rah1(n,j,i) = d_one/lms%rah1(n,j,i)
-              lms%ram1(n,j,i) = d_one/lms%ram1(n,j,i)
+              lms%ram1(n,j,i) = wspd/lms%ram1(n,j,i)
             end if
           end do
         end do

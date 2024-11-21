@@ -496,7 +496,7 @@ module mod_clm_regcm
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
-    clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
+    clm_a2l%forc_wind = max(sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2),0.1_rk8)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
@@ -725,8 +725,7 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%ram1,lms%ram1)
     call glb_l2c_ss(lndcomm,clm_l2a%rah1,lms%rah1)
     call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
-    clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2) / &
-                   clm_a2l%forc_wind
+    clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2)/clm_a2l%forc_wind
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
 
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
