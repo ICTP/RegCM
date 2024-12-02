@@ -43,7 +43,7 @@ module mod_rdldtr
     type(global_domain) :: gdomain
     type(h_interpolator) :: hint
     logical :: lmask = .false.
-    integer(ik4) , dimension(:,:) , allocatable :: mask
+    integer(ik4) , dimension(:,:) , pointer :: mask => null( )
   end type globalfile
 
   integer(ik4) :: ncid , istatus
@@ -1711,7 +1711,7 @@ module mod_rdldtr
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     end if
     if ( gfile%lmask ) then
-      deallocate(gfile%mask)
+      if ( associated(gfile%mask) ) deallocate(gfile%mask)
     end if
   end subroutine gfclose
 

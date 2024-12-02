@@ -244,10 +244,10 @@ module mod_clm_driver
     end do
 
     !--- get initial heat,water content ---
-    call dynland_hwcontent(begg,endg,                       &
-                           clm3%g%gws%gc_liq1(begg:endg),   &
-                           clm3%g%gws%gc_ice1(begg:endg),   &
-                           clm3%g%ges%gc_heat1(begg:endg))
+    call dynland_hwcontent(begg,endg,            &
+                           clm3%g%gws%gc_liq1,   &
+                           clm3%g%gws%gc_ice1,   &
+                           clm3%g%ges%gc_heat1)
 
     ! ======================================================================
     ! Determine decomp vertical profiles
