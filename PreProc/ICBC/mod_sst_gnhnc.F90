@@ -54,6 +54,7 @@ module mod_sst_gnhnc
   real(rkx) , pointer , dimension(:,:) :: work2
   real(rkx) , pointer , dimension(:,:) :: sst
   real(rkx) :: add_offset , scale_factor
+  logical :: cds_beta = .false.
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
@@ -158,8 +159,11 @@ module mod_sst_gnhnc
                     'Error inquire dim lon')
 
     istatus = nf90_inq_dimid(inet1,'time',timid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim time')
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet1,'valid_time',timid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim time')
+    end if
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
@@ -179,8 +183,11 @@ module mod_sst_gnhnc
                       'Error find var lon')
     end if
     istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var '//varname(1))
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(inet1,'valid_'//varname(1),ivar2(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname(1))
+    end if
     istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var '//varname(2))
@@ -226,26 +233,30 @@ module mod_sst_gnhnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1))
 
-      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+      istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' units')
+                      'Error read attribute units of '//varname(1))
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
       if ( istatus /= nf90_noerr ) ccal = 'gregorian'
       fidate1 = timeval2date(work1(1),cunit,ccal)
     else
-      istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2)//' _FillValue')
       istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2)//' add_offset')
-      istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2)//' scale_factor')
-      write(stdout,*) 'Add offset   = ',add_offset
-      write(stdout,*) 'Scale factor = ',scale_factor
-      write(stdout,*) 'Fill Value   = ',fillvalue
-      call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
+      if ( istatus /= nf90_noerr ) then
+        add_offset = 0.0_rkx
+        scale_factor = 1.0_rkx
+        cds_beta = .true.
+      else
+        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' _FillValue')
+        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' scale_factor')
+        write(stdout,*) 'Add offset   = ',add_offset
+        write(stdout,*) 'Scale factor = ',scale_factor
+        write(stdout,*) 'Fill Value   = ',fillvalue
+        call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
+      end if
     end if
 
     if ( ssttyp(1:3) == 'CFS' .or. &
@@ -347,26 +358,33 @@ module mod_sst_gnhnc
                       'Error opening '//trim(inpfile))
       write (stdout,*) 'Opened ', trim(inpfile)
       istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var '//varname(1))
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet1,'valid_'//varname(1),ivar2(1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var '//varname(1))
+      end if
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//varname(2))
       if ( ssttyp(1:3) == 'CFS' .or. &
            ssttyp(1:3) == 'EIN' .or. &
            ssttyp(1:4) == 'ERA5' ) then
-        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' _FillValue')
         istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' add_offset')
-        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(2)//' scale_factor')
-        write(stdout,*) 'Add offset   = ',add_offset
-        write(stdout,*) 'Scale factor = ',scale_factor
-        write(stdout,*) 'Fill Value   = ',fillvalue
+        if ( istatus /= nf90_noerr ) then
+          add_offset = 0.0_rkx
+          scale_factor = 1.0_rkx
+          cds_beta = .true.
+        else
+          istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(2)//' _FillValue')
+          istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(2)//' scale_factor')
+          write(stdout,*) 'Add offset   = ',add_offset
+          write(stdout,*) 'Scale factor = ',scale_factor
+          write(stdout,*) 'Fill Value   = ',fillvalue
+        end if
       end if
       if ( ssttyp(1:3) == 'LGM' ) then
         istatus = nf90_inq_dimid(inet1,'time',timid)
@@ -379,8 +397,11 @@ module mod_sst_gnhnc
         it = (dayofyear(idate)-1)*4 + hour/6 + 1
       else
         istatus = nf90_inq_dimid(inet1,'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim time')
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(inet1,'valid_time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
+        end if
         istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim time')
@@ -390,9 +411,9 @@ module mod_sst_gnhnc
         istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(1))
-        istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+        istatus = nf90_myget_att_text(inet1,ivar2(1),'units',cunit)
         call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error read var '//varname(1)//' units')
+                        'Error read attribute units of '//varname(1))
         istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
         if ( istatus /= nf90_noerr ) ccal = 'gregorian'
         fidate1 = timeval2date(work1(1),cunit,ccal)
@@ -404,11 +425,18 @@ module mod_sst_gnhnc
     istart(3) = it
     if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
          ssttyp(1:3) == 'EIN' .or. ssttyp(1:4) == 'ERA5' ) then
-      call getworki(2,work)
-      work2 = 1E+20
-      where ( work /= fillvalue )
-        work2 = work * scale_factor + add_offset
-      end where
+      if ( cds_beta ) then
+        call getworkf(2,work2)
+        where ( is_nan(work2) )
+          work2 = 1E+20_rkx
+        end where
+      else
+        call getworki(2,work)
+        work2 = 1E+20
+        where ( work /= fillvalue )
+          work2 = work * scale_factor + add_offset
+        end where
+      end if
     else
       call getworkf(2,work2)
       if ( ssttyp(1:2) == 'E5' .or. ssttyp(1:2) == 'MP' ) then
