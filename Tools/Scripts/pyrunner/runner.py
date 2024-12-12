@@ -12,7 +12,9 @@ dynpft = False
 extension = ""
 only_model = False
 only_preproc = False
+no_preproc = False
 only_postproc = False
+no_postproc = False
 keep_files = False
 
 parser = argparse.ArgumentParser(description = "Run a RegCM simulation",
@@ -34,11 +36,17 @@ parser.add_argument("-m", "--makedir",
 parser.add_argument("-opre","--only-preproc",
         help = "Run only the pre-processing (no model or postproc)",
         action = "store_true")
+parser.add_argument("-npre","--no-preproc",
+        help = "Don't run the pre-processing",
+        action = "store_true")
 parser.add_argument("-omdl","--only-model",
         help = "Run only the model stage (no preproc or postproc)",
         action = "store_true")
 parser.add_argument("-opst","--only-postproc",
         help = "Run only the post-processing (no preproc or model)",
+        action = "store_true")
+parser.add_argument("-npst","--no-postproc",
+        help = "Don't run the post-processing",
         action = "store_true")
 parser.add_argument("-keep","--keep-files",
         help = "Do not remove original output file (enable for nesting into)",
@@ -67,9 +75,13 @@ def runner(args):
     "Run the regcm model using a namelist from start_date to end_date"
     import f90nml
     import yaml
-    global extension, only_model, only_preproc, only_postproc , keep_files
+    global extension , keep_files
+    global only_model, only_preproc, only_postproc
+    global no_preproc, no_postproc
 
     only_preproc = args.only_preproc
+    no_preproc = args.no_preproc
+    no_postproc = args.no_postproc
     only_model = args.only_model
     only_postproc = args.only_postproc
     keep_files = args.keep_files
@@ -226,7 +238,9 @@ def runner(args):
 def icbcrun(c,n,d1,d2,io,jid):
     import string
     from simple_slurm import Slurm
-    global static_done, dynpft, extension, only_model
+    global static_done, dynpft, extension, only_model , no_preproc
+    if no_preproc:
+        return 0
     if only_model or only_postproc:
         print("No preprocessing requested. Assuming ICBC ready.")
         return 0
@@ -351,6 +365,9 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     from simple_slurm import Slurm
     from dateutil.rrule import rrule, MONTHLY, DAILY
     global extension, only_preproc, only_model , keep_files
+    global no_postrpc
+    if no_postproc:
+        return 0
     if only_preproc or only_model:
         print("No postprocessing requested. Assuming products ready.")
         return 0

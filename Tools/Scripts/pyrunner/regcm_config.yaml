@@ -3,13 +3,13 @@ RegCM_Path: /leonardo/home/userexternal/ggiulian/RegCM/bin
 Pycordex_Path: /leonardo/home/userexternal/ggiulian/RegCM/Tools/Scripts/pycordexer
 RegCM_Env: /leonardo/home/userexternal/ggiulian/modules
 Pycordex_Env: /leonardo/home/userexternal/ggiulian/modules_gfortran
-RegCM_Conf: CLM45_SKL
+RegCM_Conf: CLM45
 SLURM:
     Step: 6m
     Account: ICT23_ESP_1
     ModelPartition: dcgp_usr_prod
-    ModelNodes: 4
-    ModelNtasks: 112
+    ModelNodes: 8
+    ModelNtasks: 108
     ModelOMP: 1
     ICBCPartition: dcgp_usr_prod
     ICBCNodes: 1
@@ -17,7 +17,7 @@ SLURM:
     ICBCOMP: 32
     PostPartition: dcgp_usr_prod
     PostNodes: 1
-    PostNtasks: 32
+    PostNtasks: 64
     PostOMP: 1
     Time: 24
     Mail: True
