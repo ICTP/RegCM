@@ -52,8 +52,6 @@ module mod_output
 
   type(rcm_time_and_date) , save , public :: lastout
 
-  type(regcm_projection) , save :: pj
-
   logical :: rotinit = .false.
 
   interface uvrot
@@ -75,6 +73,7 @@ module mod_output
     real(rkx) :: tsurf , t500
     real(rkx) , dimension(:,:,:) , pointer :: qv
     real(rkx) , dimension(:,:) , pointer :: temp500 => null( )
+    type(regcm_projection) , save :: pj
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -83,7 +82,7 @@ module mod_output
 
     if ( uvrotate ) then
       if ( .not. rotinit ) then
-        call alpharot_compute
+        call alpharot_compute(pj)
         rotinit = .true.
       end if
     end if
@@ -261,7 +260,7 @@ module mod_output
             end do
           end if
           if ( uvrotate ) then
-            call uvrot(atm_u_out,atm_v_out)
+            call uvrot(pj,atm_u_out,atm_v_out)
           end if
         end if
         if ( associated(atm_omega_out) ) then
@@ -985,7 +984,7 @@ module mod_output
           srf_taux_out = srf_taux_out*srffac
           srf_tauy_out = srf_tauy_out*srffac
           if ( uvrotate ) then
-            call uvrot(srf_taux_out,srf_tauy_out)
+            call uvrot(pj,srf_taux_out,srf_tauy_out)
           end if
         end if
         if ( associated(srf_snowmelt_out) ) &
@@ -996,7 +995,7 @@ module mod_output
                                 srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
           end if
           if ( uvrotate ) then
-            call uvrot(srf_u10m_out,srf_v10m_out)
+            call uvrot(pj,srf_u10m_out,srf_v10m_out)
           end if
         end if
 
@@ -1007,9 +1006,9 @@ module mod_output
           srf_evpot_out = srf_evpot_out * srffac
         end if
 
-        call windcompute(srf_ua50_out,srf_va50_out,50.0_rkx)
-        call windcompute(srf_ua100_out,srf_va100_out,100.0_rkx)
-        call windcompute(srf_ua150_out,srf_va150_out,150.0_rkx)
+        call windcompute(pj,srf_ua50_out,srf_va50_out,50.0_rkx)
+        call windcompute(pj,srf_ua100_out,srf_va100_out,100.0_rkx)
+        call windcompute(pj,srf_ua150_out,srf_va150_out,150.0_rkx)
         if ( idynamic == 3 ) then
           call assignpnt(mo_atm%qx,qv,iqv)
           call vinterz(mo_atm%t,srf_ta50_out,50.0_rkx)
@@ -1154,7 +1153,7 @@ module mod_output
 
         if ( associated(sub_u10m_out) .and. associated(sub_v10m_out) ) then
           if ( uvrotate ) then
-            call uvrot(sub_u10m_out,sub_v10m_out)
+            call uvrot(pj,sub_u10m_out,sub_v10m_out)
           end if
         end if
         call write_record_output_stream(sub_stream,alarm_out_sub%idate)
@@ -1955,8 +1954,9 @@ module mod_output
   !
   ! Change U and V from map values (X,Y) to true (N,E)
   !
-  subroutine uvrot2d(u,v)
+  subroutine uvrot2d(pj,u,v)
     implicit none
+    type(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
     call pj%wind2_antirotate(u,v)
   end subroutine uvrot2d
@@ -1964,14 +1964,16 @@ module mod_output
   !
   ! Change U and V from map values (X,Y) to true (N,E)
   !
-  subroutine uvrot3d(u,v)
+  subroutine uvrot3d(pj,u,v)
     implicit none
+    type(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
     call pj%wind_antirotate(u,v)
   end subroutine uvrot3d
 
-  subroutine alpharot_compute
+  subroutine alpharot_compute(pj)
     implicit none
+    type(regcm_projection) , intent(inout) :: pj
     type(anyprojparams) :: pjpara
     if ( debug_level > 3 ) then
       if ( myid == italk ) then
@@ -2059,8 +2061,9 @@ module mod_output
     end if
   end subroutine uvstagtox
 
-  subroutine windcompute(u,v,h)
+  subroutine windcompute(pj,u,v,h)
     implicit none
+    type(regcm_projection) , intent(in) :: pj
     real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
     real(rkx) , intent(in) :: h
     real(rkx) :: cell , zz , zz1 , ww , tv
@@ -2176,7 +2179,7 @@ module mod_output
         end do
       end if
       if ( uvrotate ) then
-        call uvrot(u,v)
+        call uvrot(pj,u,v)
       end if
     end if
   end subroutine windcompute
