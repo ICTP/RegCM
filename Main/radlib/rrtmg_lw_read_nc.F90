@@ -43,6 +43,10 @@
 ! Last Update: 1/23/2009
 !===============================================================================
 
+module rrtmg_lw_read_nc
+
+  contains
+
 !*******************************************************************************
 subroutine lw_kgb01(fname)
     use rrlw_kg01, only : fracrefao, fracrefbo, kao, kbo, kao_mn2, kbo_mn2, &
@@ -103,8 +107,10 @@ subroutine lw_kgb01(fname)
     status(17)  = nf90_get_var(ncid, varID, kbo_mn2, &
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -159,8 +165,10 @@ subroutine lw_kgb02(fname)
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -229,8 +237,10 @@ subroutine lw_kgb03(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/keyupper,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -285,8 +295,10 @@ subroutine lw_kgb04(fname)
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -357,8 +369,10 @@ subroutine lw_kgb05(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -426,8 +440,10 @@ subroutine lw_kgb06(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -496,8 +512,10 @@ subroutine lw_kgb07(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -600,8 +618,10 @@ subroutine lw_kgb08(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -670,8 +690,10 @@ subroutine lw_kgb09(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -726,8 +748,10 @@ subroutine lw_kgb10(fname)
                       start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                       count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -796,8 +820,10 @@ subroutine lw_kgb11(fname)
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -842,8 +868,10 @@ subroutine lw_kgb12(fname)
                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                     count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -916,8 +944,10 @@ subroutine lw_kgb13(fname)
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -972,8 +1002,10 @@ subroutine lw_kgb14(fname)
                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -1026,8 +1058,10 @@ subroutine lw_kgb15(fname)
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/keylower,T,numGPoints,1_im,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
@@ -1082,11 +1116,14 @@ subroutine lw_kgb16(fname)
                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeign,numGPoints,1_im,1_im/))
 
-    if(any(status(:) /= nf90_NoErr)) &
-           stop  "Error reading variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading variables from file"
+    end if
 
     status(1) = nf90_close(ncid)
 
 end subroutine lw_kgb16
+end module rrtmg_lw_read_nc
 !*******************************************************************************
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

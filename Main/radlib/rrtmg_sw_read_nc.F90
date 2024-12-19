@@ -41,6 +41,10 @@
 ! Written By: Patrick Hofmann
 ! Last Update: 4/3/2009
 !===============================================================================
+module rrtmg_sw_read_nc
+  implicit none
+
+  contains
 
 !*******************************************************************************
 subroutine sw_kgb16(fname)
@@ -56,7 +60,6 @@ subroutine sw_kgb16(fname)
     integer(kind=im), parameter :: bandNumber = 1, numGPoints = no16
     integer(kind=im), parameter :: gPointSetNumber = 1
     integer(kind=im) :: ncid, varID
-
     real(kind=rb) :: ncrayl(1)
 
     status(:)  = nf90_NoErr
@@ -109,7 +112,7 @@ subroutine sw_kgb16(fname)
 
     if(any(status(:) /= nf90_NoErr)) then
        write(0,*) 'Cannot read from file '//fname
-       stop  "Error reading band 16 variables from file "//fname
+       stop  "Error reading band 16 variables from file"
     end if
 
     rayl = ncrayl(1)
@@ -188,7 +191,7 @@ subroutine sw_kgb17(fname)
     status(22) = nf90_close(ncid)
 
     if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 17 variables from file "//fname
+       stop  "Error reading band 17 variables from file "
 
     rayl = ncrayl(1)
 
@@ -261,8 +264,10 @@ subroutine sw_kgb18(fname)
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 18 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 18 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -335,8 +340,10 @@ subroutine sw_kgb19(fname)
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 19 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 19 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -421,8 +428,10 @@ subroutine sw_kgb20(fname)
 
     status(24) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 20 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 20 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -499,8 +508,10 @@ subroutine sw_kgb21(fname)
 
     status(22) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 21 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 21 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -573,8 +584,10 @@ subroutine sw_kgb22(fname)
 
     status(20) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 22 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 22 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -640,8 +653,10 @@ subroutine sw_kgb23(fname)
 
     status(18) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 23 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 23 variables from file"
+    end if
 
 end subroutine sw_kgb23
 !*******************************************************************************
@@ -728,8 +743,10 @@ subroutine sw_kgb24(fname)
 
     status(26) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 24 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 24 variables from file"
+    end if
 
 end subroutine sw_kgb24
 !*******************************************************************************
@@ -797,8 +814,10 @@ subroutine sw_kgb25(fname)
 
     status(18) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 25 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 25 variables from file"
+    end if
 
 end subroutine sw_kgb25
 !*******************************************************************************
@@ -849,8 +868,10 @@ subroutine sw_kgb26(fname)
 
     status(12)  = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 26 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 26 variables from file"
+    end if
 
 end subroutine sw_kgb26
 !*******************************************************************************
@@ -911,8 +932,10 @@ subroutine sw_kgb27(fname)
 
     status(16) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 27 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 27 variables from file"
+    end if
 
 end subroutine sw_kgb27
 !*******************************************************************************
@@ -975,8 +998,10 @@ subroutine sw_kgb28(fname)
 
     status(16) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 28 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 28 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
@@ -1069,11 +1094,14 @@ subroutine sw_kgb29(fname)
 
     status(26) = nf90_close(ncid)
 
-    if(any(status(:) /= nf90_NoErr)) &
-       stop  "Error reading band 29 variables from file "//fname
+    if(any(status(:) /= nf90_NoErr)) then
+       write(0,*) 'Cannot read from file '//fname
+       stop  "Error reading band 29 variables from file"
+    end if
 
     rayl = ncrayl(1)
 
 end subroutine sw_kgb29
+end module rrtmg_sw_read_nc
 !*******************************************************************************
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -38,6 +38,7 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_wvn
       use rrtmg_sw_setcoef, only: swatmref
+      use rrtmg_sw_read_nc
 
       implicit none
 

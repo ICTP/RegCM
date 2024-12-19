@@ -38,6 +38,7 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use rrlw_wvn
       use rrtmg_lw_setcoef, only: lwatmref, lwavplank, lwavplankderiv
+      use rrtmg_lw_read_nc
 
       implicit none
 
