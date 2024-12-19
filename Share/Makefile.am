@@ -69,4 +69,4 @@ mod_zita.o : mod_zita.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dyn
 mod_hash.o : mod_hash.F90 mod_intkinds.o
 mod_isaatm.o : mod_isaatm.F90 mod_realkinds.o mod_constants.o
 mod_sort.o : mod_sort.F90 mod_realkinds.o mod_constants.o
-mod_heatindex.o : mod_heatindex.F90 mod_realkinds.o mod_stdio.o
+mod_heatindex.o : mod_heatindex.F90 mod_realkinds.o mod_stdio.o mod_message.o

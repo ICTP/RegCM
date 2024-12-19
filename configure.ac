@@ -139,7 +139,7 @@ fi
 
 USE_OPENACC="0"
 # TODO: make this configurable
-PGI_GPU_ARCH="cc80"
+PGI_GPU_ARCH="ccall-major"
 
 AC_ARG_ENABLE(openacc,
   AC_HELP_STRING([--enable-openacc],
@@ -776,9 +776,9 @@ else
     fi
     if eval "test x"$USE_OPENACC" = x4"; then
       FCFLAGS="$FCFLAGS -stdpar=gpu,multicore \
-          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+          -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
       NOOPTFC="$NOOPTFC -stdpar=gpu,multicore \
-          -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
+          -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
     fi
     AC_SUBST(FCFLAGS)
     AC_SUBST(NOOPTFC)
