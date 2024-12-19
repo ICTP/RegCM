@@ -89,7 +89,7 @@ with open(REGCM_VAR_FILE, 'r') as f:
         raise(SyntaxError)
 
 CORDEX_CMIP6_DEFINITIONS = { }
-jsonfiles = glob.glob(os.path.join('variables','CORDEX-CMIP6*json'))
+jsonfiles = glob.glob(os.path.join(MAIN_DIR,'variables','CORDEX-CMIP6*json'))
 for jf in jsonfiles:
     with open(jf, 'r') as f:
         try:
