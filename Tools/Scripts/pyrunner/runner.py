@@ -6,6 +6,7 @@ import argparse
 import string
 from datetime import timedelta, datetime
 
+submit=False
 outnwf = 0
 static_done = False
 dynpft = False
@@ -423,7 +424,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     gcmdata = n["globdatparam"]["dattyp"].strip( )
     postpath = os.path.join(io,gcmdata,domain,"postproc")
     command = (os.path.join(c["Pycordex_Path"],"pycordexer.py") + 
-           " -m " + c["CORDEX"]["email"] + 
+           " -m \"" + c["CORDEX"]["email"] + "\"" +
            " -d " + c["CORDEX"]["domain"] +
            " -g " + c["CORDEX"]["global"] + 
            " -e " + c["CORDEX"]["experiment"] +
@@ -478,7 +479,10 @@ def postrun(c,n,d1,d2,io,mjid,jid):
         slurm.add_cmd("rm -f "+(" ".join(str(x) for x in atmfiles)))
         slurm.add_cmd("rm -f "+(" ".join(str(x) for x in radfiles)))
         slurm.add_cmd("rm -f "+(" ".join(str(x) for x in stsfiles)))
-    job_id = slurm.sbatch("echo Done.", verbose = True, shell = "/bin/bash")
+    if submit:
+        job_id = slurm.sbatch("echo Done.", verbose = True, shell = "/bin/bash")
+    else:
+        job_id = 0
     with open(os.path.join(io,"jobs","POST." + str(job_id) + ".job"),"w") as f:
         f.write(str(slurm))
     return job_id
