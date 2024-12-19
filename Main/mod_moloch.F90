@@ -2133,6 +2133,21 @@ module mod_moloch
         do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
           v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
         end do
+#ifdef RCEMIP
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          if ( k > ktrop(j,i) ) then
+            qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
+            qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
+          end if
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                        k = 1:kz, n = iqfrst:nqx)
+          if ( k > ktrop(j,i) ) then
+            qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
+            qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+          end if
+        end do
+#else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
           qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
           qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
@@ -2142,6 +2157,7 @@ module mod_moloch
           qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
           qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
         end do
+#endif
         if ( ibltyp == 2 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
             tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)

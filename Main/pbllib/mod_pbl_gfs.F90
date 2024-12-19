@@ -898,8 +898,6 @@ module mod_pbl_gfs
         kpbl(i) = kpblx(i)
       end do
 
-      contains
-
     end subroutine moninq
 
     subroutine tridi2(l,n,cl,cm,cu,r1,r2,au,a1,a2)
