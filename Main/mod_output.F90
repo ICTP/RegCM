@@ -81,6 +81,13 @@ module mod_output
     call time_begin(subroutine_name,idindx)
 #endif
 
+    if ( uvrotate ) then
+      if ( .not. rotinit ) then
+        call alpharot_compute
+        rotinit = .true.
+      end if
+    end if
+
     lstartup = .false.
     if ( rcmtimer%start( ) .or. doing_restart ) then
       !
@@ -1951,9 +1958,6 @@ module mod_output
   subroutine uvrot2d(u,v)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    if ( .not. rotinit ) then
-      call alpharot_compute
-    end if
     call pj%wind2_antirotate(u,v)
   end subroutine uvrot2d
 
@@ -1963,9 +1967,6 @@ module mod_output
   subroutine uvrot3d(u,v)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    if ( .not. rotinit ) then
-      call alpharot_compute
-    end if
     call pj%wind_antirotate(u,v)
   end subroutine uvrot3d
 
@@ -1996,7 +1997,6 @@ module mod_output
         write(stdout,*) 'Done'
       end if
     end if
-    rotinit = .true.
   end subroutine alpharot_compute
 
   subroutine wstagtox(w,wx)
