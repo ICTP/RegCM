@@ -6,7 +6,7 @@ import argparse
 import string
 from datetime import timedelta, datetime
 
-submit=False
+submit=True
 outnwf = 0
 static_done = False
 dynpft = False
@@ -52,6 +52,9 @@ parser.add_argument("-npst","--no-postproc",
 parser.add_argument("-keep","--keep-files",
         help = "Do not remove original output file (enable for nesting into)",
         action = "store_true")
+parser.add_argument("-nosub","--no-submit",
+        help = "Do not submit the job. Just creates them :)",
+        action = "store_true")
 args = parser.parse_args()
 
 def parse_step(t1,step):
@@ -76,7 +79,7 @@ def runner(args):
     "Run the regcm model using a namelist from start_date to end_date"
     import f90nml
     import yaml
-    global extension , keep_files
+    global extension , keep_files , submit
     global only_model, only_preproc, only_postproc
     global no_preproc, no_postproc
 
@@ -86,6 +89,7 @@ def runner(args):
     only_model = args.only_model
     only_postproc = args.only_postproc
     keep_files = args.keep_files
+    submit = not args.no_submit
 
     if not args.directory:
         print("An output directory must be defined.")
@@ -191,7 +195,8 @@ def runner(args):
     mdate0 = datetime.strftime(date0,"%Y%m%d%H")
     temp1 = date1
     temp2 = parse_step(date1, config["SLURM"]["Step"])
-    namelist["outparam"]["outnwf"] = outnwf
+    if "outnwf" not in namelist["outparam"]:
+        namelist["outparam"]["outnwf"] = outnwf
     icbc_jobid = 0
     model_jobid = 0
     post_jobid = 0
@@ -240,6 +245,7 @@ def icbcrun(c,n,d1,d2,io,jid):
     import string
     from simple_slurm import Slurm
     global static_done, dynpft, extension, only_model , no_preproc
+    global submit
     if no_preproc:
         return 0
     if only_model or only_postproc:
@@ -289,8 +295,11 @@ def icbcrun(c,n,d1,d2,io,jid):
     thebin = "sst" + extension
     slurm.add_cmd(os.path.join(c["RegCM_Path"], thebin) + " " + tempfile)
     thebin = "icbc" + extension
-    job_id = slurm.sbatch(os.path.join(c["RegCM_Path"], thebin) +
-                " " + tempfile, verbose = True, shell = "/bin/bash")
+    if submit:
+        job_id = slurm.sbatch(os.path.join(c["RegCM_Path"], thebin) +
+                    " " + tempfile, verbose = True, shell = "/bin/bash")
+    else:
+        job_id = 0
     static_done = True
     with open(os.path.join(io,"jobs","ICBC." + str(job_id) + ".job"),"w") as f:
         f.write(str(slurm))
@@ -300,6 +309,7 @@ def regcmrun(c,n,d1,d2,io,jid,mjid):
     import string
     from simple_slurm import Slurm
     global extension, only_preproc, only_postproc
+    global submit
     if only_preproc or only_postproc:
         print("No RegCM model run, assuming model output ready.")
         return 0
@@ -354,8 +364,12 @@ def regcmrun(c,n,d1,d2,io,jid,mjid):
     slurm.add_cmd("source " + c["RegCM_Env"])
     slurm.add_cmd("export OMP_NUM_THREADS=" + str(c["SLURM"]["ModelOMP"]))
     modelbin = ("regcm" + "MPI" + extension)
-    job_id = slurm.sbatch("mpirun " + os.path.join(c["RegCM_Path"], modelbin) +
-                  " " + tempfile, verbose = True, shell = "/bin/bash")
+    if submit:
+        job_id = slurm.sbatch("mpirun " + 
+                os.path.join(c["RegCM_Path"], modelbin) +
+                " " + tempfile, verbose = True, shell = "/bin/bash")
+    else:
+        job_id = 0
     with open(os.path.join(io,"jobs","MODEL." + str(job_id) + ".job"),"w") as f:
         f.write(str(slurm))
     return job_id
@@ -367,6 +381,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
     from dateutil.rrule import rrule, MONTHLY, DAILY
     global extension, only_preproc, only_model , keep_files
     global no_postrpc
+    global submit
     if no_postproc:
         return 0
     if only_preproc or only_model:
@@ -447,6 +462,7 @@ def postrun(c,n,d1,d2,io,mjid,jid):
             dates = [dt for dt in rrule(MONTHLY, dtstart=dd1, until=dd2)]
     else:
         dates = [dt for dt in rrule(MONTHLY, dtstart=dd1, until=dd2)]
+
     dd1 = list(x.strftime("%Y%m%d%H") for x in dates[:-1])
     atmfiles = list(fbase+"_ATM."+x+'.nc' for x in dd1)
     radfiles = list(fbase+"_RAD."+x+'.nc' for x in dd1)
