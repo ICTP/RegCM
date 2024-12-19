@@ -1,0 +1,44 @@
+RegCM_Data: /leonardo_work/ICT24_ESP/RCMDATA
+RegCM_Path: /leonardo/home/userexternal/ggiulian/RegCM/bin
+Pycordex_Path: /leonardo/home/userexternal/ggiulian/RegCM/Tools/Scripts/pycordexer
+RegCM_Env: /leonardo/home/userexternal/ggiulian/modules
+Pycordex_Env: /leonardo/home/userexternal/ggiulian/modules_gfortran
+RegCM_Conf: CLM45
+SLURM:
+    Step: 6m
+    Account: ICT23_ESP_1
+    ModelPartition: dcgp_usr_prod
+    ModelNodes: 8
+    ModelNtasks: 108
+    ModelOMP: 1
+    ICBCPartition: dcgp_usr_prod
+    ICBCNodes: 1
+    ICBCNtasks: 32
+    ICBCOMP: 32
+    PostPartition: dcgp_usr_prod
+    PostNodes: 1
+    PostNtasks: 64
+    PostOMP: 1
+    Time: 24
+    Mail: True
+    Email: ggiulian@ictp.it
+CORDEX:
+    institute: ICTP
+    model: RegCM
+    domain: AFR-12
+    global: ECMWF-ERA5
+    experiment: evaluation
+    ensemble: r0i0p0f0
+    email: "ggiulian@ictp.it coppolae@ictp.it"
+    notes: None
+    regcm_release: 5.0
+    regcm_version_id: v1-r1
+    core_srfvars: tas,pr,evspsbl,huss,hurs,ps,psl,sfcWind,uas,vas,clt,rsds,rlds
+    core_stsvars: prmean,psmean,tasmean,tasmax,tasmin
+    tier1_srfvars: prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro
+    tier1_radvars: clwvi,clivi,rlut,rsut,rsdt
+    tier1_stsvars: sfcWindmax,sund
+    tier1_atmvars: ua,va,ta,hus,zg,wa,mrsol,mrso,tsl
+    tier2_srfvars: CAPE,CIN,LI,evspsblpot
+    tier2_radvars: clh,clm,cll
+    tier2_stsvars: wsgsmax
