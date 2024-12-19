@@ -269,15 +269,15 @@ class NetCDFData(Data):
             LOGGER.debug(
                 'Some values are masked (because they are outside the valid '
                 'range or because they coincide with the fill_value). These '
-                'values will set to NaN (if datatype is float)'
+                'values will set to nan (if datatype is float)'
             )
             data_mask = data_raw.mask
 
-            # If data is float, put NaN on the masked values
+            # If data is float, put nan on the masked values
             data_flat = data.reshape((data.size,))
             data_element = data_flat[0]
             if isinstance(data_element, numbers.Real):
-                data[data_mask] = np.NaN
+                data[data_mask] = np.nan
 
             return masked_array(data, mask=data_mask)
 

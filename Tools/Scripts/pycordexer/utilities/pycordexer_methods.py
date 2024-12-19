@@ -1205,7 +1205,7 @@ class ComputeMaximum(Filter):
             dtype=DATATYPE_MAIN,
         )
 
-        LOGGER.debug('Preparing a mask to hide NaN values')
+        LOGGER.debug('Preparing a mask to hide nan values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
             dtype=bool
@@ -1574,7 +1574,7 @@ class ComputeAverage(Filter):
             dtype=DATATYPE_MAIN,
         )
 
-        LOGGER.debug('Preparing a mask to hide NaN values')
+        LOGGER.debug('Preparing a mask to hide nan values')
         new_data_mask = np.zeros(
             [d[1] for d in new_dimensions],
             dtype=bool
@@ -1842,7 +1842,7 @@ class SumOnDimension(Filter):
             dtype=DATATYPE_MAIN
         )
 
-        LOGGER.debug('Preparing a mask to hide NaN values')
+        LOGGER.debug('Preparing a mask to hide nan values')
         new_data_mask = np.zeros(
             [d[1] for d in reduced_dims],
             dtype=bool
