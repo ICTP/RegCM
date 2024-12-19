@@ -16,13 +16,19 @@ module mod_clm_mkarbinit
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
-  use mod_bats_param , only : xmopor , slmo
 
   implicit none
 
   private
 
   logical , parameter :: lsnowhack = .false.
+
+  real(rk8) , dimension(22) , parameter :: slmo = &
+    [ 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+      0.50_rkx , 0.50_rkx , 0.01_rkx , 0.50_rkx , 0.50_rkx , &
+      0.10_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
+      0.50_rkx , 0.30_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
+      0.10_rkx , 0.50_rkx ]
 
   save
 
@@ -839,6 +845,7 @@ module mod_clm_mkarbinit
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    real(rk8) :: w1 , sfcsat
 #if (defined CN)
     real(rk8) :: vwc , psi      ! for calculating soilpsi
 #endif
@@ -1151,10 +1158,12 @@ module mod_clm_mkarbinit
             else
               ! h2osoi_vol(c,j) = 0.15_rk8
               ! h2osoi_vol(c,j) = watsat(c,j)*0.10_rk8
+              w1 = real(j,rk8)/real(nlevs,rk8)
               if ( lsmoist ) then
-                h2osoi_vol(c,j) = adomain%smoist(g)
+                sfcsat = adomain%smoist(g)
+                h2osoi_vol(c,j) = sfcsat + w1*(0.9_rk8*watsat(c,j)-sfcsat)
               else
-                h2osoi_vol(c,j) = slmo(adomain%iveg(g))*xmopor(adomain%itex(g))
+                h2osoi_vol(c,j) = slmo(adomain%iveg(g))*watsat(c,j)
               end if
             end if
           end do
@@ -1162,11 +1171,11 @@ module mod_clm_mkarbinit
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
             do j = 1 , nlevs
-              if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.5_rk8*xmopor(adomain%itex(g))
-                !h2osoi_vol(c,j) = 0.3_rk8
-              else
+              if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
+              else
+                h2osoi_vol(c,j) = 0.5_rk8*watsat(c,j)
+                !h2osoi_vol(c,j) = 0.3_rk8
               end if
             end do
           else if ( ctype(c) == icol_road_imperv ) then
@@ -1200,7 +1209,7 @@ module mod_clm_mkarbinit
 
     if ( replacemoist ) then
       if ( myid == italk ) then
-         write(stdout,*) 'Initializing moisture from DOMAIN file'
+         write(stdout,*) 'Initializing SOIL moisture from DOMAIN file'
       end if
       do c = begc , endc
         g = cgridcell(c)
@@ -1209,6 +1218,7 @@ module mod_clm_mkarbinit
           if ( ltype(l) == istsoil .or. &
                ltype(l) == istcrop .or. &
                ltype(l) == isturb ) then
+            nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
@@ -1231,13 +1241,23 @@ module mod_clm_mkarbinit
         h2osoi_ice(c,:) = 0.0_rk8
         h2osoi_liq(c,:) = 0.0_rk8
         do j = 1 , nlevgrnd
-          h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           if ( dz(c,j) > 1.0e10_rk8 ) cycle
-          ! soil layers
-          if ( t_soisno(c,j) <= tfrz ) then
-            h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+          if ( ltype(l) == istice ) then
+            h2osoi_ice(c,j) = dz(c,j)*denice
           else
-            h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+            h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
+            ! soil layers
+            ! Soil temperature is atmosphere temperature
+            ! Leave model accomodate some water
+            if ( t_soisno(c,j) <= tfrz - 10.0_rk8 ) then
+              h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
+            else if ( t_soisno(c,j) <= tfrz ) then
+              w1 = (tfrz-t_soisno(c,j))/10.0_rk8
+              h2osoi_ice(c,j) = dz(c,j)*denice*(w1*h2osoi_vol(c,j))
+              h2osoi_liq(c,j) = dz(c,j)*denh2o*((1.0_rk8-w1)*h2osoi_vol(c,j))
+            else
+              h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
+            end if
           end if
         end do
 
