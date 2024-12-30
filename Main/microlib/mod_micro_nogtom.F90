@@ -90,6 +90,7 @@ module mod_micro_nogtom
   private
 
   logical , parameter :: lmicro = .true.
+  integer , parameter :: mxqx = 5
 
   ! critical autoconversion
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
@@ -135,11 +136,11 @@ module mod_micro_nogtom
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
   ! 0 = vapour, 1 = liquid, 2 = ice
-  integer(ik4) , pointer , dimension(:) :: iphase
+  integer(ik4) , dimension(mxqx) :: iphase
   ! marks melting linkage for ice categories
   ! ice->liquid, snow->rain
-  integer(ik4) , pointer , dimension(:) :: imelt
-  logical , pointer , dimension(:) :: lfall
+  integer(ik4) , dimension(mxqx) :: imelt
+  logical , dimension(mxqx) :: lfall
 
   real(rkx) , pointer , dimension(:,:,:):: sumh0 , sumq0
   real(rkx) , pointer , dimension(:,:,:) :: sumh1 , sumq1
@@ -151,7 +152,7 @@ module mod_micro_nogtom
   ! Mass variables
   ! Microphysics
   ! for convection detrainment source and subsidence source/sink terms
-  real(rkx) , pointer , dimension(:) :: convsrce
+  real(rkx) , dimension(mxqx) :: convsrce
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   ! fluxes convergence of species
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -176,7 +177,7 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:,:) :: xlcrit
   real(rkx) , pointer , dimension(:,:) :: rhcrit
   ! fall speeds of three categories
-  real(rkx) , pointer , dimension(:) :: vqx
+  real(rkx) , dimension(mxqx) :: vqx
   ! decoupled mixing ratios tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
@@ -234,15 +235,10 @@ module mod_micro_nogtom
 
   subroutine allocate_mod_nogtom
     implicit none
-    call getmem1d(vqx,1,nqx,'cmicro:vqx')
-    call getmem1d(imelt,1,nqx,'cmicro:imelt')
-    call getmem1d(lfall,1,nqx,'cmicro:lfall')
-    call getmem1d(iphase,1,nqx,'cmicro:iphase')
     call getmem3d(qliq,1,kz,jci1,jci2,ici1,ici2,'cmicro:qliq')
     call getmem3d(eewmt,1,kz,jci1,jci2,ici1,ici2,'cmicro:eewmt')
     call getmem3d(qsmix,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsmix')
     call getmem3d(ttendc,1,kz,jci1,jci2,ici1,ici2,'cmicro:ttendc')
-    call getmem1d(convsrce,1,nqx,'cmicro:convsrce')
     call getmem3d(eew,1,kz,jci1,jci2,ici1,ici2,'cmicro:eew')
     call getmem3d(qsice,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsice')
     call getmem4d(qx,1,nqx,1,kz,jci1,jci2,ici1,ici2,'cmicro:qx')
@@ -251,12 +247,14 @@ module mod_micro_nogtom
     call getmem3d(delz,1,kz,jci1,jci2,ici1,ici2,'cmicro:delz')
     call getmem3d(ph,1,kz,jci1,jci2,ici1,ici2,'cmicro:ph')
     call getmem3d(rho,1,kz,jci1,jci2,ici1,ici2,'cmicro:rho')
-    call getmem3d(ccn,1,kz,jci1,jci2,ici1,ici2,'cmicro:ccn')
     call getmem3d(pverv,1,kz,jci1,jci2,ici1,ici2,'cmicro:pverv')
     call getmem3d(heatrt,1,kz,jci1,jci2,ici1,ici2,'cmicro:heatrt')
     call getmem3d(fcc,1,kz,jci1,jci2,ici1,ici2,'cmicro:fcc')
     if ( ichem == 1 ) then
       call getmem3d(remrat,1,kz,jci1,jci2,ici1,ici2,'cmicro:remrat')
+      if ( iaerosol == 1 .and. iindirect == 2 ) then
+        call getmem3d(ccn,1,kz,jci1,jci2,ici1,ici2,'cmicro:ccn')
+      end if
     end if
     call getmem3d(pf,1,kzp1,jci1,jci2,ici1,ici2,'cmicro:pf')
     call getmem3d(qsliq,1,kz,jci1,jci2,ici1,ici2,'cmicro:qsliq')
@@ -344,24 +342,25 @@ module mod_micro_nogtom
     implicit none
 #endif
     type(mod_2_micro) , intent(in) :: mo2mc
-    type(micro_2_mod) , intent(out) :: mc2mo
+    type(micro_2_mod) , intent(inout) :: mc2mo
 
     integer(ik4) :: i , j , k , kk , n , m , jn , jo
     real(rkx) :: tnew , dp , qe , tmpl , tmpi
     real(rkx) :: qprev , hprev , zdelta , prainx , psnowx
     ! for sedimentation source/sink terms
-    real(rkx) , dimension(nqx) :: fallsrce , fallsink
+    real(rkx) , dimension(mxqx) :: fallsrce , fallsink
+    real(rkx) , dimension(mxqx) :: convsrce
     ! n x n matrix storing the LHS of implicit solver
-    real(rkx) , dimension(nqx,nqx) :: qlhs
+    real(rkx) , dimension(mxqx,mxqx) :: qlhs
     ! explicit sources and sinks "q s exp"=q source explicit
-    real(rkx) , dimension(nqx,nqx) :: qsexp
+    real(rkx) , dimension(mxqx,mxqx) :: qsexp
     ! implicit sources and sinks "q s imp"=q source/sink implicit
-    real(rkx) , dimension(nqx,nqx) :: qsimp
+    real(rkx) , dimension(mxqx,mxqx) :: qsimp
     ! Initial values
-    real(rkx) , dimension(nqx) :: qx0 , qxfg , qxn
-    real(rkx) , dimension(nqx) :: ratio , sinksum
+    real(rkx) , dimension(mxqx) :: qx0 , qxfg , qxn
+    real(rkx) , dimension(mxqx) :: ratio , sinksum
     ! array for sorting explicit terms
-    ! integer(ik4) , dimension(nqx) :: iorder
+    ! integer(ik4) , dimension(mxqx) :: iorder
     real(rkx) :: tk , tc , dens , pbot , snowp , rainp , supsat , subsat
     real(rkx) :: totcond , qliqfrac , qicefrac , qicetot
     real(rkx) :: gdp , dtgdp , rdtgdp , alpha1 , ldefr
@@ -389,11 +388,11 @@ module mod_micro_nogtom
     real(rkx) :: precip , cfpr , acrit
     logical :: lccn , lerror , ldetr , lconden , lactiv , locast
     logical :: ltkgt0 , ltklt0 , ltkgthomo , lcloud
-    logical , dimension(nqx,nqx) :: lind2
+    logical , dimension(mxqx,mxqx) :: lind2
     integer(ik4) :: ii , jj , ll , imax , nn
     real(rkx) :: aamax , dum , xsum , swap
-    real(rkx) , dimension(nqx) :: vv
-    integer(ik4) , dimension(nqx) :: indx
+    real(rkx) , dimension(mxqx) :: vv
+    integer(ik4) , dimension(mxqx) :: indx
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -438,7 +437,7 @@ module mod_micro_nogtom
       fcc(k,j,i) = mo2mc%cldf(j,i,k)
     end do
 
-    if ( lccn ) then
+    if ( lccn .and. associated(mo2mc%ccn) ) then
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         ccn(k,j,i) = mo2mc%ccn(j,i,k)
       end do
@@ -662,19 +661,19 @@ module mod_micro_nogtom
     !
 #ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-      local(fallsrce,fallsink,ldefr,qlhs,qsexp,qsimp,qx0,qxfg,qxn,lind2, &
-            ratio,sinksum,tk,tc,dens,pbot,snowp,rainp,supsat,subsat,     &
-            totcond,qliqfrac,qicefrac,qicetot,dp,gdp,dtgdp,rdtgdp,alpha1,&
-            facl,faci,facw,corr,acond,zdl,infactor,alfaw,phases,qexc,    &
-            rhc,zsig,qe,preclr,arg,rexplicit,xlcondlim,tmpa,zrh,beta,    &
-            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,    &
-            evapl,excess,dqsmixdt,dqsicedt,dqsliqdt,corqsliq,corqsice,   &
-            corqsmix,evaplimmix,ql_incld,qi_incld,qli_incld,ldifdt,sink, &
-            covptot,covpclr,qold,tcond,dqs,chng,chngmax,icenuclei,       &
-            acrit,precip,cfpr,qpretot,fluxq,vpice,vpliq,xadd,xbdd,cvds,  &
-            qice0,qinew,rainaut,snowaut,dpmxdt,wtot,dtdiab,dtforc,qp,    &
-            qsat,cond1,levap,leros,qsmixv,ccover,lccover,k,n,m,jn,jo,    &
-            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud,  &
+      local(fallsrce,convsrce,fallsink,ldefr,qlhs,qsexp,qsimp,qx0,qxfg,   &
+            qxn,lind2,ratio,sinksum,tk,tc,dens,pbot,snowp,rainp,supsat,   &
+            subsat,totcond,qliqfrac,qicefrac,qicetot,dp,gdp,dtgdp,rdtgdp, &
+            alpha1,facl,faci,facw,corr,acond,zdl,infactor,alfaw,phases,   &
+            qexc,rhc,zsig,qe,preclr,arg,rexplicit,xlcondlim,tmpa,zrh,beta,&
+            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,     &
+            evapl,excess,dqsmixdt,dqsicedt,dqsliqdt,corqsliq,corqsice,    &
+            corqsmix,evaplimmix,ql_incld,qi_incld,qli_incld,ldifdt,sink,  &
+            covptot,covpclr,qold,tcond,dqs,chng,chngmax,icenuclei,        &
+            acrit,precip,cfpr,qpretot,fluxq,vpice,vpliq,xadd,xbdd,cvds,   &
+            qice0,qinew,rainaut,snowaut,dpmxdt,wtot,dtdiab,dtforc,qp,     &
+            qsat,cond1,levap,leros,qsmixv,ccover,lccover,k,n,m,jn,jo,     &
+            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud,   &
             ii,jj,kk,ll,imax,nn,aamax,dum,xsum,swap,vv,indx)
 #else
     do i = ici1 , ici2
