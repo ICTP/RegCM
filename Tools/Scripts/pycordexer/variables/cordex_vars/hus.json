@@ -11,7 +11,7 @@
       [
         "InterpolateOnMultipleHeights",
         {
-          "pressure_levels": [925, 850, 700, 600, 500, 400, 300, 200],
+          "pressure_levels": [1000, 925, 850, 700, 600, 500, 400, 300, 200],
           "method": "linear"
         }
       ],
@@ -24,12 +24,6 @@
             "long_name": "Specific Humidity",
             "standard_name": "specific_humidity"
           }
-        }
-      ],
-      [
-        "IfNeededThinAndSaveForEach",
-        {
-          "new_time_step": 6
         }
       ],
       [

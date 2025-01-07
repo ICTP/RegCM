@@ -16,12 +16,6 @@
         }
       ],
       [
-        "IfNeededThinAndSaveForEach",
-        {
-          "new_time_step": 6
-        }
-      ],
-      [
         "SaveMultipleVariablesToDisk",
         {
           "fill_value": "1e+20",
