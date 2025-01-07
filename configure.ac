@@ -775,9 +775,9 @@ else
           -gpu=$PGI_GPU_ARCH,lineinfo,managed -Minfo=accel"
     fi
     if eval "test x"$USE_OPENACC" = x4"; then
-      FCFLAGS="$FCFLAGS -stdpar=gpu,multicore \
+      FCFLAGS="$FCFLAGS -stdpar=gpu \
           -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
-      NOOPTFC="$NOOPTFC -stdpar=gpu,multicore \
+      NOOPTFC="$NOOPTFC -stdpar=gpu \
           -gpu=$PGI_GPU_ARCH,lineinfo,unified -Minfo=accel"
     fi
     AC_SUBST(FCFLAGS)

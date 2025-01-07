@@ -176,7 +176,7 @@ module mod_pbl_uwtcm
             zax,kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,   &
             rrhoxhl,uxs,qxs,rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,    &
             bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,    &
-            chix,chixs,chifxx,ktop,kbot,itr,ilay,kpbconv,iteration,k)
+            kpbl2dx,chix,chixs,chifxx,ktop,kbot,itr,ilay,kpbconv,iteration,k)
 #else
     do i = ici1 , ici2
       do j = jci1 , jci2

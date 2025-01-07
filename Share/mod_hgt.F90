@@ -700,7 +700,7 @@ module mod_hgt
     nk = size(z,3)
     if ( p(1,1,1) > p(1,1,nk) ) then
 #ifdef STDPAR
-      do concurrent( i = 1:ni, j = 1:nj ) local(h0,tv0)
+      do concurrent( i = 1:ni, j = 1:nj ) local(h0,tv0,p0)
 #else
       do j = 1 , nj
         do i = 1 , ni

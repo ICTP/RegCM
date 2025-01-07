@@ -591,893 +591,945 @@ module mod_moloch
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+  end subroutine moloch
 
-    contains
+  subroutine boundary
+    implicit none
+    logical :: do_nudge
+    integer(ik4) :: i , j , k , n
+    do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
+    call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
+      call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
+      call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+      call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+      if ( is_present_qc( ) ) then
+        call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
+      end if
+      if ( is_present_qi( ) ) then
+        call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
+      end if
+      if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
+        call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      end if
+      if ( idiag > 0 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          ten0(j,i,k) = t(j,i,k)
+          qen0(j,i,k) = qv(j,i,k)
+        end do
+      end if
+      if ( ichem == 1 ) then
+        if ( ichdiag > 0 ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+            chiten0(j,i,k,n) = trac(j,i,k,n)
+          end do
+        end if
+      end if
 
-      subroutine boundary
-        implicit none
-        logical :: do_nudge
-        do_nudge = ( iboudy == 1 .or. iboudy >= 5 .or. iboudy == 4)
-        call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
-        call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
-        call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
-        call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+      if ( iboudy == 1 .or. iboudy >= 5 ) then
+        call nudge(iboudy,ps,xpsb)
+        call nudge(iboudy,u,v,xub,xvb)
+        call nudge(iboudy,t,xtb)
+        call nudge(iboudy,qv,xqb)
+        call nudge(iboudy,pai,xpaib)
+        if ( idiag > 0 ) then
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+            tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
+            qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
+          end do
+        end if
         if ( is_present_qc( ) ) then
-          call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
+          call nudge(iboudy,qc,xlb)
         end if
         if ( is_present_qi( ) ) then
-          call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
+          call nudge(iboudy,qi,xib)
         end if
-        if ( (iboudy == 1 .or. iboudy >= 5) .and. ichem == 1 ) then
-          call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        if ( ichem == 1 ) then
+          call nudge_chi(trac)
+          if ( ichdiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                            k = 1:kz, n = 1:ntr )
+              cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
+            end do
+          end if
+        end if
+      else if ( iboudy == 4 ) then
+        call sponge(ps,xpsb)
+        call sponge(u,v,xub,xvb)
+        call sponge(t,xtb)
+        call sponge(qv,xqb)
+        call sponge(pai,xpaib)
+        if ( is_present_qc( ) ) then
+          call sponge(qc,xlb)
+        end if
+        if ( is_present_qi( ) ) then
+          call sponge(qi,xib)
         end if
         if ( idiag > 0 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = t(j,i,k)
-            qen0(j,i,k) = qv(j,i,k)
+            tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
+            qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
           end do
         end if
-        if ( ichem == 1 ) then
-          if ( ichdiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              chiten0(j,i,k,n) = trac(j,i,k,n)
-            end do
-          end if
-        end if
-
-        if ( iboudy == 1 .or. iboudy >= 5 ) then
-          call nudge(iboudy,ps,xpsb)
-          call nudge(iboudy,u,v,xub,xvb)
-          call nudge(iboudy,t,xtb)
-          call nudge(iboudy,qv,xqb)
-          call nudge(iboudy,pai,xpaib)
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-              qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
-            end do
-          end if
-          if ( is_present_qc( ) ) then
-            call nudge(iboudy,qc,xlb)
-          end if
-          if ( is_present_qi( ) ) then
-            call nudge(iboudy,qi,xib)
-          end if
-          if ( ichem == 1 ) then
-            call nudge_chi(trac)
-            if ( ichdiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                              k = 1:kz, n = 1:ntr )
-                cbdydiag(j,i,k,n) = trac(j,i,k,n) - chiten0(j,i,k,n)
-              end do
-            end if
-          end if
-        else if ( iboudy == 4 ) then
-          call sponge(ps,xpsb)
-          call sponge(u,v,xub,xvb)
-          call sponge(t,xtb)
-          call sponge(qv,xqb)
-          call sponge(pai,xpaib)
-          if ( is_present_qc( ) ) then
-            call sponge(qc,xlb)
-          end if
-          if ( is_present_qi( ) ) then
-            call sponge(qi,xib)
-          end if
-          if ( idiag > 0 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-              tdiag%bdy(j,i,k) = t(j,i,k) - ten0(j,i,k)
-              qdiag%bdy(j,i,k) = qv(j,i,k) - qen0(j,i,k)
-            end do
-          end if
-        end if
-      end subroutine boundary
+      end if
+    end subroutine boundary
 
 #ifdef RCEMIP
-      subroutine gkfilter2d(f,irep)
-        implicit none
-        integer(ik4) , intent(in) :: irep
-        real(rkx) , pointer , dimension(:,:) , intent(inout) :: f
-        real(rkx) , allocatable , dimension(:,:) :: temp
-        integer(ik4) :: i , j , n
+    subroutine gkfilter2d(f,irep)
+      implicit none
+      integer(ik4) , intent(in) :: irep
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: f
+      real(rkx) , allocatable , dimension(:,:) :: temp
+      integer(ik4) :: i , j , n
 
-        call exchange(f,2,jce1,jce2,ice1,ice2)
-        allocate(temp, mold=f)
-        temp(:,:) = f(:,:)
-        do n = 1 , irep
-          do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
-            temp(j,i) = kern(1,1)*f(j-2,i-2) + &
-              kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
-              kern(4,1)*f(j+1,i-2) + kern(5,1)*f(j+2,i-2) + &
-              kern(1,2)*f(j-2,i-1) + kern(2,2)*f(j-1,i-1) + &
-              kern(3,2)*f(j,  i-1) + kern(4,2)*f(j+1,i-1) + &
-              kern(5,2)*f(j+2,i-1) + kern(1,3)*f(j-2,i  ) + &
-              kern(2,3)*f(j-1,i  ) + kern(3,3)*f(j,  i  ) + &
-              kern(4,3)*f(j+1,i  ) + kern(5,3)*f(j+2,i  ) + &
-              kern(1,4)*f(j-2,i+1) + kern(2,4)*f(j-1,i+1) + &
-              kern(3,4)*f(j,  i+1) + kern(4,4)*f(j+1,i+1) + &
-              kern(5,4)*f(j+2,i+1) + kern(1,5)*f(j-2,i+2) + &
-              kern(2,5)*f(j-1,i+2) + kern(3,5)*f(j,  i+2) + &
-              kern(4,5)*f(j+1,i+2) + kern(5,5)*f(j+2,i+2)
-          end do
-        end do
+      call exchange(f,2,jce1,jce2,ice1,ice2)
+      allocate(temp, mold=f)
+      temp(:,:) = f(:,:)
+      do n = 1 , irep
         do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
-          f(j,i) = temp(j,i)
+          temp(j,i) = kern(1,1)*f(j-2,i-2) + &
+            kern(2,1)*f(j-1,i-2) + kern(3,1)*f(j,  i-2) + &
+            kern(4,1)*f(j+1,i-2) + kern(5,1)*f(j+2,i-2) + &
+            kern(1,2)*f(j-2,i-1) + kern(2,2)*f(j-1,i-1) + &
+            kern(3,2)*f(j,  i-1) + kern(4,2)*f(j+1,i-1) + &
+            kern(5,2)*f(j+2,i-1) + kern(1,3)*f(j-2,i  ) + &
+            kern(2,3)*f(j-1,i  ) + kern(3,3)*f(j,  i  ) + &
+            kern(4,3)*f(j+1,i  ) + kern(5,3)*f(j+2,i  ) + &
+            kern(1,4)*f(j-2,i+1) + kern(2,4)*f(j-1,i+1) + &
+            kern(3,4)*f(j,  i+1) + kern(4,4)*f(j+1,i+1) + &
+            kern(5,4)*f(j+2,i+1) + kern(1,5)*f(j-2,i+2) + &
+            kern(2,5)*f(j-1,i+2) + kern(3,5)*f(j,  i+2) + &
+            kern(4,5)*f(j+1,i+2) + kern(5,5)*f(j+2,i+2)
         end do
-        deallocate(temp)
-      end subroutine gkfilter2d
+      end do
+      do concurrent( j = jcii1:jcii2, i = icii1:icii2 )
+        f(j,i) = temp(j,i)
+      end do
+      deallocate(temp)
+    end subroutine gkfilter2d
 
-      subroutine gkfilter3d(f,irep)
-        implicit none
-        integer(ik4) , intent(in) :: irep
-        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: f
-        real(rkx) , allocatable , dimension(:,:,:) :: temp
-        integer(ik4) :: i , j , k , n
+    subroutine gkfilter3d(f,irep)
+      implicit none
+      integer(ik4) , intent(in) :: irep
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: f
+      real(rkx) , allocatable , dimension(:,:,:) :: temp
+      integer(ik4) :: i , j , k , n
 
-        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
-        allocate(temp, mold=f)
-        temp(:,:,:) = f(:,:,:)
-        do n = 1 , irep
-          do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-            temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
-              kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
-              kern(4,1)*f(j+1,i-2,k) + kern(5,1)*f(j+2,i-2,k) + &
-              kern(1,2)*f(j-2,i-1,k) + kern(2,2)*f(j-1,i-1,k) + &
-              kern(3,2)*f(j,  i-1,k) + kern(4,2)*f(j+1,i-1,k) + &
-              kern(5,2)*f(j+2,i-1,k) + kern(1,3)*f(j-2,i  ,k) + &
-              kern(2,3)*f(j-1,i  ,k) + kern(3,3)*f(j,  i  ,k) + &
-              kern(4,3)*f(j+1,i  ,k) + kern(5,3)*f(j+2,i  ,k) + &
-              kern(1,4)*f(j-2,i+1,k) + kern(2,4)*f(j-1,i+1,k) + &
-              kern(3,4)*f(j,  i+1,k) + kern(4,4)*f(j+1,i+1,k) + &
-              kern(5,4)*f(j+2,i+1,k) + kern(1,5)*f(j-2,i+2,k) + &
-              kern(2,5)*f(j-1,i+2,k) + kern(3,5)*f(j,  i+2,k) + &
-              kern(4,5)*f(j+1,i+2,k) + kern(5,5)*f(j+2,i+2,k)
-          end do
-        end do
+      call exchange(f,2,jce1,jce2,ice1,ice2,1,kz)
+      allocate(temp, mold=f)
+      temp(:,:,:) = f(:,:,:)
+      do n = 1 , irep
         do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
-          f(j,i,k) = temp(j,i,k)
+          temp(j,i,k) = kern(1,1)*f(j-2,i-2,k) + &
+            kern(2,1)*f(j-1,i-2,k) + kern(3,1)*f(j,  i-2,k) + &
+            kern(4,1)*f(j+1,i-2,k) + kern(5,1)*f(j+2,i-2,k) + &
+            kern(1,2)*f(j-2,i-1,k) + kern(2,2)*f(j-1,i-1,k) + &
+            kern(3,2)*f(j,  i-1,k) + kern(4,2)*f(j+1,i-1,k) + &
+            kern(5,2)*f(j+2,i-1,k) + kern(1,3)*f(j-2,i  ,k) + &
+            kern(2,3)*f(j-1,i  ,k) + kern(3,3)*f(j,  i  ,k) + &
+            kern(4,3)*f(j+1,i  ,k) + kern(5,3)*f(j+2,i  ,k) + &
+            kern(1,4)*f(j-2,i+1,k) + kern(2,4)*f(j-1,i+1,k) + &
+            kern(3,4)*f(j,  i+1,k) + kern(4,4)*f(j+1,i+1,k) + &
+            kern(5,4)*f(j+2,i+1,k) + kern(1,5)*f(j-2,i+2,k) + &
+            kern(2,5)*f(j-1,i+2,k) + kern(3,5)*f(j,  i+2,k) + &
+            kern(4,5)*f(j+1,i+2,k) + kern(5,5)*f(j+2,i+2,k)
         end do
-        deallocate(temp)
-      end subroutine gkfilter3d
+      end do
+      do concurrent( j = jcii1:jcii2, i = icii1:icii2, k = 1:kz )
+        f(j,i,k) = temp(j,i,k)
+      end do
+      deallocate(temp)
+    end subroutine gkfilter3d
 
-      subroutine gkfilter4d(f,irep)
-        implicit none
-        integer(ik4) , intent(in) :: irep
-        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: f
-        real(rkx) , allocatable , dimension(:,:,:,:) :: temp
-        integer(ik4) :: i , j , k , n , m
-        call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-        allocate(temp, mold=f)
-        temp(:,:,:,:) = f(:,:,:,:)
-        do m = 1 , irep
-          do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz , n=1:nqx)
-            temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
-              kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
-              kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
-              kern(1,2)*f(j-2,i-1,k,n) + kern(2,2)*f(j-1,i-1,k,n) + &
-              kern(3,2)*f(j,  i-1,k,n) + kern(4,2)*f(j+1,i-1,k,n) + &
-              kern(5,2)*f(j+2,i-1,k,n) + kern(1,3)*f(j-2,i  ,k,n) + &
-              kern(2,3)*f(j-1,i  ,k,n) + kern(3,3)*f(j,  i  ,k,n) + &
-              kern(4,3)*f(j+1,i  ,k,n) + kern(5,3)*f(j+2,i  ,k,n) + &
-              kern(1,4)*f(j-2,i+1,k,n) + kern(2,4)*f(j-1,i+1,k,n) + &
-              kern(3,4)*f(j,  i+1,k,n) + kern(4,4)*f(j+1,i+1,k,n) + &
-              kern(5,4)*f(j+2,i+1,k,n) + kern(1,5)*f(j-2,i+2,k,n) + &
-              kern(2,5)*f(j-1,i+2,k,n) + kern(3,5)*f(j,  i+2,k,n) + &
-              kern(4,5)*f(j+1,i+2,k,n) + kern(5,5)*f(j+2,i+2,k,n)
-          end do
+    subroutine gkfilter4d(f,irep)
+      implicit none
+      integer(ik4) , intent(in) :: irep
+      real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: f
+      real(rkx) , allocatable , dimension(:,:,:,:) :: temp
+      integer(ik4) :: i , j , k , n , m
+      call exchange(f,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      allocate(temp, mold=f)
+      temp(:,:,:,:) = f(:,:,:,:)
+      do m = 1 , irep
+        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz , n=1:nqx)
+          temp(j,i,k,n) = kern(1,1)*f(j-2,i-2,k,n) + &
+            kern(2,1)*f(j-1,i-2,k,n) + kern(3,1)*f(j,  i-2,k,n) + &
+            kern(4,1)*f(j+1,i-2,k,n) + kern(5,1)*f(j+2,i-2,k,n) + &
+            kern(1,2)*f(j-2,i-1,k,n) + kern(2,2)*f(j-1,i-1,k,n) + &
+            kern(3,2)*f(j,  i-1,k,n) + kern(4,2)*f(j+1,i-1,k,n) + &
+            kern(5,2)*f(j+2,i-1,k,n) + kern(1,3)*f(j-2,i  ,k,n) + &
+            kern(2,3)*f(j-1,i  ,k,n) + kern(3,3)*f(j,  i  ,k,n) + &
+            kern(4,3)*f(j+1,i  ,k,n) + kern(5,3)*f(j+2,i  ,k,n) + &
+            kern(1,4)*f(j-2,i+1,k,n) + kern(2,4)*f(j-1,i+1,k,n) + &
+            kern(3,4)*f(j,  i+1,k,n) + kern(4,4)*f(j+1,i+1,k,n) + &
+            kern(5,4)*f(j+2,i+1,k,n) + kern(1,5)*f(j-2,i+2,k,n) + &
+            kern(2,5)*f(j-1,i+2,k,n) + kern(3,5)*f(j,  i+2,k,n) + &
+            kern(4,5)*f(j+1,i+2,k,n) + kern(5,5)*f(j+2,i+2,k,n)
         end do
-        do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
-          f(j,i,k,n) = temp(j,i,k,n)
-        end do
-        deallocate(temp)
-      end subroutine gkfilter4d
+      end do
+      do concurrent(j=jcii1:jcii2, i=icii1:icii2, k=1:kz, n=1:nqx)
+        f(j,i,k,n) = temp(j,i,k,n)
+      end do
+      deallocate(temp)
+    end subroutine gkfilter4d
 
-      subroutine gkfilteruv(u,v,irep)
-        implicit none
-        integer(ik4) , intent(in) :: irep
-        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-        real(rkx) , allocatable , dimension(:,:,:) :: temp
-        integer(ik4) :: i , j , k , n
+    subroutine gkfilteruv(u,v,irep)
+      implicit none
+      integer(ik4) , intent(in) :: irep
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+      real(rkx) , allocatable , dimension(:,:,:) :: temp
+      integer(ik4) :: i , j , k , n
 
-        call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
-        allocate(temp, mold=u)
-        temp(:,:,:) = u(:,:,:)
-        do n = 1 , irep
-          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
-              kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
-              kern(4,1)*u(j+1,i-2,k) + kern(5,1)*u(j+2,i-2,k) + &
-              kern(1,2)*u(j-2,i-1,k) + kern(2,2)*u(j-1,i-1,k) + &
-              kern(3,2)*u(j,  i-1,k) + kern(4,2)*u(j+1,i-1,k) + &
-              kern(5,2)*u(j+2,i-1,k) + kern(1,3)*u(j-2,i  ,k) + &
-              kern(2,3)*u(j-1,i  ,k) + kern(3,3)*u(j,  i  ,k) + &
-              kern(4,3)*u(j+1,i  ,k) + kern(5,3)*u(j+2,i  ,k) + &
-              kern(1,4)*u(j-2,i+1,k) + kern(2,4)*u(j-1,i+1,k) + &
-              kern(3,4)*u(j,  i+1,k) + kern(4,4)*u(j+1,i+1,k) + &
-              kern(5,4)*u(j+2,i+1,k) + kern(1,5)*u(j-2,i+2,k) + &
-              kern(2,5)*u(j-1,i+2,k) + kern(3,5)*u(j,  i+2,k) + &
-              kern(4,5)*u(j+1,i+2,k) + kern(5,5)*u(j+2,i+2,k)
-          end do
-        end do
+      call exchange(u,2,jce1,jce2,ice1,ice2,1,kz)
+      allocate(temp, mold=u)
+      temp(:,:,:) = u(:,:,:)
+      do n = 1 , irep
         do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          u(j,i,k) = temp(j,i,k)
+          temp(j,i,k) = kern(1,1)*u(j-2,i-2,k) + &
+            kern(2,1)*u(j-1,i-2,k) + kern(3,1)*u(j,  i-2,k) + &
+            kern(4,1)*u(j+1,i-2,k) + kern(5,1)*u(j+2,i-2,k) + &
+            kern(1,2)*u(j-2,i-1,k) + kern(2,2)*u(j-1,i-1,k) + &
+            kern(3,2)*u(j,  i-1,k) + kern(4,2)*u(j+1,i-1,k) + &
+            kern(5,2)*u(j+2,i-1,k) + kern(1,3)*u(j-2,i  ,k) + &
+            kern(2,3)*u(j-1,i  ,k) + kern(3,3)*u(j,  i  ,k) + &
+            kern(4,3)*u(j+1,i  ,k) + kern(5,3)*u(j+2,i  ,k) + &
+            kern(1,4)*u(j-2,i+1,k) + kern(2,4)*u(j-1,i+1,k) + &
+            kern(3,4)*u(j,  i+1,k) + kern(4,4)*u(j+1,i+1,k) + &
+            kern(5,4)*u(j+2,i+1,k) + kern(1,5)*u(j-2,i+2,k) + &
+            kern(2,5)*u(j-1,i+2,k) + kern(3,5)*u(j,  i+2,k) + &
+            kern(4,5)*u(j+1,i+2,k) + kern(5,5)*u(j+2,i+2,k)
         end do
-        deallocate(temp)
-        call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
-        allocate(temp, mold=v)
-        temp(:,:,:) = v(:,:,:)
-        do n = 1 , irep
-          do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
-              kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
-              kern(4,1)*v(j+1,i-2,k) + kern(5,1)*v(j+2,i-2,k) + &
-              kern(1,2)*v(j-2,i-1,k) + kern(2,2)*v(j-1,i-1,k) + &
-              kern(3,2)*v(j,  i-1,k) + kern(4,2)*v(j+1,i-1,k) + &
-              kern(5,2)*v(j+2,i-1,k) + kern(1,3)*v(j-2,i  ,k) + &
-              kern(2,3)*v(j-1,i  ,k) + kern(3,3)*v(j,  i  ,k) + &
-              kern(4,3)*v(j+1,i  ,k) + kern(5,3)*v(j+2,i  ,k) + &
-              kern(1,4)*v(j-2,i+1,k) + kern(2,4)*v(j-1,i+1,k) + &
-              kern(3,4)*v(j,  i+1,k) + kern(4,4)*v(j+1,i+1,k) + &
-              kern(5,4)*v(j+2,i+1,k) + kern(1,5)*v(j-2,i+2,k) + &
-              kern(2,5)*v(j-1,i+2,k) + kern(3,5)*v(j,  i+2,k) + &
-              kern(4,5)*v(j+1,i+2,k) + kern(5,5)*v(j+2,i+2,k)
-          end do
-        end do
+      end do
+      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        u(j,i,k) = temp(j,i,k)
+      end do
+      deallocate(temp)
+      call exchange(v,2,jce1,jce2,ice1,ice2,1,kz)
+      allocate(temp, mold=v)
+      temp(:,:,:) = v(:,:,:)
+      do n = 1 , irep
         do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-          v(j,i,k) = temp(j,i,k)
+          temp(j,i,k) = kern(1,1)*v(j-2,i-2,k) + &
+            kern(2,1)*v(j-1,i-2,k) + kern(3,1)*v(j,  i-2,k) + &
+            kern(4,1)*v(j+1,i-2,k) + kern(5,1)*v(j+2,i-2,k) + &
+            kern(1,2)*v(j-2,i-1,k) + kern(2,2)*v(j-1,i-1,k) + &
+            kern(3,2)*v(j,  i-1,k) + kern(4,2)*v(j+1,i-1,k) + &
+            kern(5,2)*v(j+2,i-1,k) + kern(1,3)*v(j-2,i  ,k) + &
+            kern(2,3)*v(j-1,i  ,k) + kern(3,3)*v(j,  i  ,k) + &
+            kern(4,3)*v(j+1,i  ,k) + kern(5,3)*v(j+2,i  ,k) + &
+            kern(1,4)*v(j-2,i+1,k) + kern(2,4)*v(j-1,i+1,k) + &
+            kern(3,4)*v(j,  i+1,k) + kern(4,4)*v(j+1,i+1,k) + &
+            kern(5,4)*v(j+2,i+1,k) + kern(1,5)*v(j-2,i+2,k) + &
+            kern(2,5)*v(j-1,i+2,k) + kern(3,5)*v(j,  i+2,k) + &
+            kern(4,5)*v(j+1,i+2,k) + kern(5,5)*v(j+2,i+2,k)
         end do
-        deallocate(temp)
-      end subroutine gkfilteruv
+      end do
+      do concurrent( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+        v(j,i,k) = temp(j,i,k)
+      end do
+      deallocate(temp)
+    end subroutine gkfilteruv
 
-      subroutine filt3d(p,nu)
-        implicit none
-        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
-        real(rkx) , intent(in) :: nu
-        integer(ik4) :: j , i , k
+    subroutine filt3d(p,nu)
+      implicit none
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: p
+      real(rkx) , intent(in) :: nu
+      integer(ik4) :: j , i , k
 
+      do k = 1 , kz
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
+                                  p(j,i-1,k) + p(j,i+1,k)) - &
+                       d_half   * p(j,i,k)
+        end do
+        do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
+          p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
+        end do
+      end do
+    end subroutine filt3d
+
+    subroutine filtuv(u,v,nu)
+      implicit none
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+      real(rkx) , intent(in) :: nu
+      integer(ik4) :: j , i , k
+
+      do k = 1 , kz
+        do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
+          p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
+                                  u(j,i-1,k) + u(j,i+1,k)) - &
+                       d_half   * u(j,i,k)
+        end do
+        do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
+          u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
+        end do
+      end do
+      do k = 1 , kz
+        do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
+          p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
+                                  v(j,i-1,k) + v(j,i+1,k)) - &
+                       d_half   * v(j,i,k)
+        end do
+        do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
+          v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
+        end do
+      end do
+    end subroutine filtuv
+
+    subroutine filt4d(p,nu,n1,n2)
+      implicit none
+      real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
+      real(rkx) , intent(in) :: nu
+      integer(ik4) , intent(in) :: n1 , n2
+      integer(ik4) :: j , i , k , n
+
+      do n = n1 , n2
         do k = 1 , kz
           do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-            p2d(j,i) = 0.125_rkx * (p(j-1,i,k) + p(j+1,i,k) + &
-                                    p(j,i-1,k) + p(j,i+1,k)) - &
-                         d_half   * p(j,i,k)
+            p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
+                                    p(j,i-1,k,n) + p(j,i+1,k,n)) - &
+                           d_half * p(j,i,k,n)
           end do
           do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-            p(j,i,k) = p(j,i,k) + nu * p2d(j,i)
+            p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
           end do
         end do
-      end subroutine filt3d
-
-      subroutine filtuv(u,v,nu)
-        implicit none
-        real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-        real(rkx) , intent(in) :: nu
-        integer(ik4) :: j , i , k
-
-        do k = 1 , kz
-          do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
-            p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
-                                    u(j,i-1,k) + u(j,i+1,k)) - &
-                         d_half   * u(j,i,k)
-          end do
-          do concurrent ( j = jdii1:jdii2, i = icii1:icii2 )
-            u(j,i,k) = u(j,i,k) + nu * p2d(j,i)
-          end do
-        end do
-        do k = 1 , kz
-          do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
-            p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
-                                    v(j,i-1,k) + v(j,i+1,k)) - &
-                         d_half   * v(j,i,k)
-          end do
-          do concurrent ( j = jcii1:jcii2, i = idii1:idii2 )
-            v(j,i,k) = v(j,i,k) + nu * p2d(j,i)
-          end do
-        end do
-      end subroutine filtuv
-
-      subroutine filt4d(p,nu,n1,n2)
-        implicit none
-        real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: p
-        real(rkx) , intent(in) :: nu
-        integer(ik4) , intent(in) :: n1 , n2
-        integer(ik4) :: j , i , k , n
-
-        do n = n1 , n2
-          do k = 1 , kz
-            do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-              p2d(j,i) = 0.125_rkx * (p(j-1,i,k,n) + p(j+1,i,k,n) + &
-                                      p(j,i-1,k,n) + p(j,i+1,k,n)) - &
-                             d_half * p(j,i,k,n)
-            end do
-            do concurrent ( j = jcii1:jcii2, i = icii1:icii2 )
-              p(j,i,k,n) = p(j,i,k,n) + nu * p2d(j,i)
-            end do
-          end do
-        end do
-      end subroutine filt4d
+      end do
+    end subroutine filt4d
 #endif
 
-      subroutine divergence_filter( )
-        implicit none
-        integer(ik4) :: j , i , k
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-          end do
-        end if
-        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                    zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                         d_half   * zdiv2(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
-          end do
+    subroutine divergence_filter( )
+      implicit none
+      integer(ik4) :: j , i , k
+      if ( ma%has_bdybottom ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
         end do
-      end subroutine divergence_filter
-
-      subroutine filtpai
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
-                                    pai(j,i-1,k) + pai(j,i+1,k)) - &
-                         d_half   * pai(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
-          end do
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
         end do
-      end subroutine filtpai
-
-      subroutine filttheta
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
-                                    tetav(j,i-1,k) + tetav(j,i+1,k)) - &
-                         d_half   * tetav(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
-          end do
+      end if
+      if ( ma%has_bdyleft ) then
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
         end do
-      end subroutine filttheta
-
-      subroutine sound(dts)
-        implicit none
-        real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k , nsound
-        real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
-        real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
-        real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
-        real(rkx) :: zum , zup , zvm , zvp , zuh , zvh
-        real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
-        real(rkx) :: zcx , zcy , zfz
-        real(rkx) :: zrom1u , zcor1u , zrom1v , zcor1v
-
-        dtrdx = dts/dx
-        dtrdy = dts/dx
-        dtrdz = dts/dzita
-        zcs2 = dtrdz**2*rdrcv
-
+      end if
+      if ( ma%has_bdyright ) then
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+        end do
+      end if
+      call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+      do k = 1 , kz
         do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          wwkw(j,i,kzp1) = d_zero
+          p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                  zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                       d_half   * zdiv2(j,i,k)
         end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          zdiv2(j,i,k) = zdiv2(j,i,k) + mo_anu2 * xknu(k) * p2d(j,i)
+        end do
+      end do
+    end subroutine divergence_filter
 
-        !  sound waves
+    subroutine filtpai
+      implicit none
+      integer(ik4) :: j , i , k
 
-        if ( .not. do_fulleq ) then
-          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-        end if
+      call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
 
-        do nsound = 1 , mo_nsound
+      do k = 1 , kz
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
+                                  pai(j,i-1,k) + pai(j,i+1,k)) - &
+                       d_half   * pai(j,i,k)
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          pai(j,i,k) = pai(j,i,k) + nupaitq * p2d(j,i)
+        end do
+      end do
+    end subroutine filtpai
 
-          call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
+    subroutine filttheta
+      implicit none
+      integer(ik4) :: j , i , k
 
-          ! partial definition of the generalized vertical velocity
+      call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+
+      do k = 1 , kz
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
+                                  tetav(j,i-1,k) + tetav(j,i+1,k)) - &
+                       d_half   * tetav(j,i,k)
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          tetav(j,i,k) = tetav(j,i,k) + nupaitq * p2d(j,i)
+        end do
+      end do
+    end subroutine filttheta
+
+    subroutine sound(dts)
+      implicit none
+      real(rkx) , intent(in) :: dts
+      integer(ik4) :: i , j , k , nsound
+      real(rkx) :: dtrdx , dtrdy , dtrdz , zcs2
+      real(rkx) , dimension(jci1:jci2,ici1:ici2,2:kzp1) :: wwkw
+      real(rkx) :: zrfmzum , zrfmzvm , zrfmzup , zrfmzvp
+      real(rkx) :: zum , zup , zvm , zvp , zuh , zvh
+      real(rkx) :: zrom1w , zwexpl , zqs , zdth , zu , zd , zrapp
+      real(rkx) :: zcx , zcy , zfz
+      real(rkx) :: zrom1u , zcor1u , zrom1v , zcor1v
+
+      dtrdx = dts/dx
+      dtrdy = dts/dx
+      dtrdz = dts/dzita
+      zcs2 = dtrdz**2*rdrcv
+
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        wwkw(j,i,kzp1) = d_zero
+      end do
+
+      !  sound waves
+
+      if ( .not. do_fulleq ) then
+        call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+      end if
+
+      do nsound = 1 , mo_nsound
+
+        call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+        ! partial definition of the generalized vertical velocity
 
 #ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(zuh,zvh)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(zuh,zvh)
+#else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
+            zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
+            zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
+            w(j,i,kzp1) = d_half * (zuh+zvh)
+#ifndef STDPAR
+          end do
+#endif
+        end do
+
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          s(j,i,kzp1) = -w(j,i,kzp1)
+        end do
+
+        ! Equation 10, generalized vertical velocity
+
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                        k = 2:kz ) local(zuh,zvh)
+#else
+        do k = 2 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
+              zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
+                    (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
+              zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
+                    (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
+              s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
+#ifndef STDPAR
+            end do
+          end do
+#endif
+        end do
+
+        ! Part of divergence (except w contribution) put in zdiv2
+        ! Equation 16
+
+        if ( lrotllr ) then
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                zum = dtrdx * u(j,i,k) * zrfmzum
+                zup = dtrdx * u(j+1,i,k) * zrfmzup
+                zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
+#ifndef STDPAR
+              end do
+            end do
+#endif
+          end do
+        else
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+            local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+                zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
+#ifndef STDPAR
+              end do
+            end do
+#endif
+          end do
+        end if
+
+        if ( do_divdamp ) then
+          call divdamp(dts)
+        end if
+
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
+                     dtrdz * (s(j,i,k) - s(j,i,k+1))
+        end do
+
+        ! new w (implicit scheme) from Equation 19
+
+        do k = kz , 2 , -1
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
+            local(zrom1w,zwexpl,zqs,zdth,zu,zd,zrapp)
 #else
           do i = ici1 , ici2
             do j = jci1 , jci2
 #endif
-              zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
-              zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
-              w(j,i,kzp1) = d_half * (zuh+zvh)
+              deltaw(j,i,k) = -w(j,i,k)
+              ! explicit w:
+              !    it must be consistent with the initialization of pai
+              zrom1w = d_half * cpd * fmzf(j,i,k) * &
+                       (tetav(j,i,k-1)+tetav(j,i,k))
+              zrom1w = zrom1w - cpd * w(j,i,k) * &
+                       fmzf(j,i,k)*fmzf(j,i,k) * &
+                       real(nsound,rkx) * dtrdz * &
+                       (tetav(j,i,k-1)-tetav(j,i,k)) !! GW
+              if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                    w(j,i,k) > 0.1_rkx ) then
+                zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
+                zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
+                  zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
+                zrom1w = zrom1w + zdth*fmzf(j,i,k)
+              end if
+              ! explicit w:
+              !    it must be consistent with the initialization of pai
+              zwexpl = w(j,i,k) - zrom1w * dtrdz * &
+                       (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
+              zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
+                       (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
+                        pai(j,i,k)   * zdiv2(j,i,k))
+              ! computation of the tridiagonal matrix coefficients
+              ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
+              zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+              zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
+              ! 1st loop for the tridiagonal inversion
+              ! a = -zd ; b = (1+zu+zd) ; c = -zu
+              zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
+              w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
+              wwkw(j,i,k) = zrapp * zu
 #ifndef STDPAR
             end do
 #endif
           end do
+        end do
 
+        ! 2nd loop for the tridiagonal inversion
+        do k = 2 , kz
           do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            s(j,i,kzp1) = -w(j,i,kzp1)
+            w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
+            deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
           end do
-
-          ! Equation 10, generalized vertical velocity
-
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                          k = 2:kz ) local(zuh,zvh)
-#else
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) +    &
-                      (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
-                zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) +    &
-                      (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
-                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
-#ifndef STDPAR
-              end do
-            end do
-#endif
-          end do
-
-          ! Part of divergence (except w contribution) put in zdiv2
-          ! Equation 16
-
-          if ( lrotllr ) then
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
-#else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-#endif
-                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                  zum = dtrdx * u(j,i,k) * zrfmzum
-                  zup = dtrdx * u(j+1,i,k) * zrfmzup
-                  zvm = dtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
-                  zvp = dtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
-                  zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-          else
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-              local(zrfmzum,zrfmzvm,zrfmzup,zrfmzvp,zum,zup,zvm,zvp)
-#else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-#endif
-                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                  zum = dtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
-                  zup = dtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                  zvm = dtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
-                  zvp = dtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-          end if
-
-          if ( do_divdamp ) then
-            call divdamp(dts)
-          end if
-
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
-                       dtrdz * (s(j,i,k) - s(j,i,k+1))
-          end do
-
-          ! new w (implicit scheme) from Equation 19
-
-          do k = kz , 2 , -1
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-              local(zrom1w,zwexpl,zqs,zdth,zu,zd,zrapp)
-#else
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                deltaw(j,i,k) = -w(j,i,k)
-                ! explicit w:
-                !    it must be consistent with the initialization of pai
-                zrom1w = d_half * cpd * fmzf(j,i,k) * &
-                         (tetav(j,i,k-1)+tetav(j,i,k))
-                zrom1w = zrom1w - cpd * w(j,i,k) * &
-                         fmzf(j,i,k)*fmzf(j,i,k) * &
-                         real(nsound,rkx) * dtrdz * &
-                         (tetav(j,i,k-1)-tetav(j,i,k)) !! GW
-                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-                      w(j,i,k) > 0.1_rkx ) then
-                  zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*real(nsound-1,rkx)*dts*wlhv*wlhv* &
-                    zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)*t(j,i,k-1))
-                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
-                end if
-                ! explicit w:
-                !    it must be consistent with the initialization of pai
-                zwexpl = w(j,i,k) - zrom1w * dtrdz * &
-                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
-                zwexpl = zwexpl + rdrcv * zrom1w * dtrdz * &
-                         (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
-                          pai(j,i,k)   * zdiv2(j,i,k))
-                ! computation of the tridiagonal matrix coefficients
-                ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
-                zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
-                zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
-                ! 1st loop for the tridiagonal inversion
-                ! a = -zd ; b = (1+zu+zd) ; c = -zu
-                zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
-                wwkw(j,i,k) = zrapp * zu
-#ifndef STDPAR
-              end do
-#endif
-            end do
-          end do
-
-          ! 2nd loop for the tridiagonal inversion
-          do k = 2 , kz
-            do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-              w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
-              deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
-            end do
-          end do
-
-          ! new Exner function (Equation 19)
-
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
-                      (w(j,i,k) - w(j,i,k+1))
-          end do
-
-          if ( do_fulleq ) then
-            if ( ipptls > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                zdiv2(j,i,k) = zdiv2(j,i,k) * &
-                       (d_one + 0.86_rkx * qv(j,i,k) + &
-                                3.2_rkx * qc(j,i,k)) / &
-                       (d_one + 0.96_rkx * qv(j,i,k) + &
-                                4.8_rkx * qc(j,i,k))
-                tetav(j,i,k) = tetav(j,i,k) * &
-                       (d_one + rdrcv*zdiv2(j,i,k) * &
-                        (0.25_rkx * qv(j,i,k) +      &
-                         4.2_rkx * qwltot(j,i,k) +   &
-                         2.1_rkx * qwitot(j,i,k)))
-              end do
-            end if
-            call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-          end if
-
-          if ( mo_divfilter ) call divergence_filter( )
-
-          ! horizontal momentum equations
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
-          end do
-
-          call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
-
-          do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
-            ud(j,i,k) = u(j,i,k)
-          end do
-          do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
-            vd(j,i,k) = v(j,i,k)
-          end do
-
-          if ( lrotllr ) then
-            ! Equation 17
-#ifdef STDPAR
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
-              local(zcx,zfz,zrom1u,zcor1u)
-#else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-#endif
-                  zcx = dtrdx * mu(j,i)
-                  zfz = egrav * dts + 0.25_rkx * &
-                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                       deltaw(j,i,k)   + deltaw(j,i,k+1))
-                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
-                  ! Equation 17
-                  u(j,i,k) = u(j,i,k) + zcor1u - &
-                             zfz * hx(j,i) * gzitakh(k) - &
-                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-            ! Equation 18
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
-              local(zcy,zfz,zrom1v,zcor1v)
-#else
-            do k = 1 , kz
-              do i = idi1 , idi2
-                do j = jci1 , jci2
-#endif
-                  zcy = dtrdy
-                  zfz = egrav * dts + 0.25_rkx * &
-                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                       deltaw(j,i,k)   + deltaw(j,i,k+1))
-                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
-                  ! Equation 18
-                  v(j,i,k) = v(j,i,k) - zcor1v - &
-                             zfz * hy(j,i) * gzitakh(k) -  &
-                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-          else
-#ifdef STDPAR
-            do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
-              local(zcx,zfz,zrom1u,zcor1u)
-#else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-#endif
-                  zcx = dtrdx * mu(j,i)
-                  zfz = egrav * dts + 0.25_rkx * &
-                      (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                       deltaw(j,i,k)   + deltaw(j,i,k+1))
-                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coru(j,i) * dts * 0.25_rkx * &
-                       (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
-                  ! Equation 17
-                  u(j,i,k) = u(j,i,k) + zcor1u - &
-                             zfz * hx(j,i) * gzitakh(k) - &
-                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-#ifdef STDPAR
-            do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
-              local(zcy,zfz,zrom1v,zcor1v)
-#else
-            do k = 1 , kz
-              do i = idi1 , idi2
-                do j = jci1 , jci2
-#endif
-                  zcy = dtrdy * mv(j,i)
-                  zfz = egrav * dts + 0.25_rkx * &
-                      (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                       deltaw(j,i,k)   + deltaw(j,i,k+1))
-                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = corv(j,i) * dts * 0.25_rkx * &
-                         (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
-                  ! Equation 18
-                  v(j,i,k) = v(j,i,k) - zcor1v - &
-                             zfz * hy(j,i) * gzitakh(k) -  &
-                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
-#ifndef STDPAR
-                end do
-              end do
-#endif
-            end do
-          end if
-
-        end do ! sound loop
-
-        ! complete computation of generalized vertical velocity
-        ! Complete Equation 10
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
-          s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-          s(j,i,1) = d_zero
-          s(j,i,kzp1) = d_zero
         end do
 
-      end subroutine sound
+        ! new Exner function (Equation 19)
 
-      subroutine divdamp(dts)
-        implicit none
-        real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k
-        real(rkx) :: ddamp
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          zdiv2(j,i,k) = zdiv2(j,i,k) + dtrdz * fmz(j,i,k) * &
+                    (w(j,i,k) - w(j,i,k+1))
+        end do
 
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
-          end do
+        if ( do_fulleq ) then
+          if ( ipptls > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              zdiv2(j,i,k) = zdiv2(j,i,k) * &
+                     (d_one + 0.86_rkx * qv(j,i,k) + &
+                              3.2_rkx * qc(j,i,k)) / &
+                     (d_one + 0.96_rkx * qv(j,i,k) + &
+                              4.8_rkx * qc(j,i,k))
+              tetav(j,i,k) = tetav(j,i,k) * &
+                     (d_one + rdrcv*zdiv2(j,i,k) * &
+                      (0.25_rkx * qv(j,i,k) +      &
+                       4.2_rkx * qwltot(j,i,k) +   &
+                       2.1_rkx * qwitot(j,i,k)))
+            end do
+          end if
+          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do concurrent ( i = ici1:ici2, k = 1:kz )
-            zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
-          end do
-        end if
-        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
-        ddamp = 0.125_rkx * (dx/dts)
+        if ( mo_divfilter ) call divergence_filter( )
+
+        ! horizontal momentum equations
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+        end do
+
+        call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
+
+        do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
+          ud(j,i,k) = u(j,i,k)
+        end do
+        do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
+          vd(j,i,k) = v(j,i,k)
+        end do
+
         if ( lrotllr ) then
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            u(j,i,k) = u(j,i,k) + &
-                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+          ! Equation 17
+#ifdef STDPAR
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+            local(zcx,zfz,zrom1u,zcor1u)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zcx = dtrdx * mu(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                ! Equation 17
+                u(j,i,k) = u(j,i,k) + zcor1u - &
+                           zfz * hx(j,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifndef STDPAR
+              end do
+            end do
+#endif
           end do
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            v(j,i,k) = v(j,i,k) + &
-                    xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+          ! Equation 18
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+            local(zcy,zfz,zrom1v,zcor1v)
+#else
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jci1 , jci2
+#endif
+                zcy = dtrdy
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                ! Equation 18
+                v(j,i,k) = v(j,i,k) - zcor1v - &
+                           zfz * hy(j,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifndef STDPAR
+              end do
+            end do
+#endif
           end do
         else
-          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-            u(j,i,k) = u(j,i,k) + &
-                    xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+#ifdef STDPAR
+          do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz ) &
+            local(zcx,zfz,zrom1u,zcor1u)
+#else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+#endif
+                zcx = dtrdx * mu(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                zcor1u = coru(j,i) * dts * 0.25_rkx * &
+                     (vd(j,i,k) + vd(j-1,i,k) + vd(j-1,i+1,k) + vd(j,i+1,k))
+                ! Equation 17
+                u(j,i,k) = u(j,i,k) + zcor1u - &
+                           zfz * hx(j,i) * gzitakh(k) - &
+                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+#ifndef STDPAR
+              end do
+            end do
+#endif
           end do
-          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-            v(j,i,k) = v(j,i,k) + &
-                    xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+#ifdef STDPAR
+          do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz ) &
+            local(zcy,zfz,zrom1v,zcor1v)
+#else
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jci1 , jci2
+#endif
+                zcy = dtrdy * mv(j,i)
+                zfz = egrav * dts + 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1))
+                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                zcor1v = corv(j,i) * dts * 0.25_rkx * &
+                       (ud(j,i,k) + ud(j,i-1,k) + ud(j+1,i,k) + ud(j+1,i-1,k))
+                ! Equation 18
+                v(j,i,k) = v(j,i,k) - zcor1v - &
+                           zfz * hy(j,i) * gzitakh(k) -  &
+                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+#ifndef STDPAR
+              end do
+            end do
+#endif
           end do
         end if
-        ! Horizontal diffusion
-        ddamp = xdamp * 0.015625_rkx/dts
-        do k = 1 , kz
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
-                                    zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                         d_half   * zdiv2(j,i,k)
-          end do
-          do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-            zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p2d(j,i)
-          end do
+
+      end do ! sound loop
+
+      ! complete computation of generalized vertical velocity
+      ! Complete Equation 10
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 2:kz )
+        s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        s(j,i,1) = d_zero
+        s(j,i,kzp1) = d_zero
+      end do
+
+    end subroutine sound
+
+    subroutine divdamp(dts)
+      implicit none
+      real(rkx) , intent(in) :: dts
+      integer(ik4) :: i , j , k
+      real(rkx) :: ddamp
+
+      if ( ma%has_bdybottom ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          zdiv2(j,ice1,k) = zdiv2(j,ici1,k)
         end do
-      end subroutine divdamp
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          zdiv2(j,ice2,k) = zdiv2(j,ici2,k)
+        end do
+      end if
+      if ( ma%has_bdyleft ) then
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          zdiv2(jce1,i,k) = zdiv2(jci1,i,k)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do concurrent ( i = ici1:ici2, k = 1:kz )
+          zdiv2(jce2,i,k) = zdiv2(jci2,i,k)
+        end do
+      end if
+      call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
 
-      subroutine advection(dta)
-        implicit none
-        real(rkx) , intent(in) :: dta
-        integer(ik4) :: n
-        real(rkx) , pointer , dimension(:,:,:) :: ptr
+      ddamp = 0.125_rkx * (dx/dts)
+      if ( lrotllr ) then
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+          u(j,i,k) = u(j,i,k) + &
+                  xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+          v(j,i,k) = v(j,i,k) + &
+                  xknu(k)*ddamp*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+        end do
+      else
+        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+          u(j,i,k) = u(j,i,k) + &
+                  xknu(k)*ddamp*mu(j,i)*(zdiv2(j,i,k)-zdiv2(j-1,i,k))
+        end do
+        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+          v(j,i,k) = v(j,i,k) + &
+                  xknu(k)*ddamp*mv(j,i)*(zdiv2(j,i,k)-zdiv2(j,i-1,k))
+        end do
+      end if
+      ! Horizontal diffusion
+      ddamp = xdamp * 0.015625_rkx/dts
+      do k = 1 , kz
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
+                                  zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
+                       d_half   * zdiv2(j,i,k)
+        end do
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          zdiv2(j,i,k) = zdiv2(j,i,k) + ddamp * p2d(j,i)
+        end do
+      end do
+    end subroutine divdamp
 
-        ! Compute U,V on cross points
+    subroutine advection(dta)
+      implicit none
+      real(rkx) , intent(in) :: dta
+      integer(ik4) :: n
+      real(rkx) , pointer , dimension(:,:,:) :: ptr
 
-        call uvstagtox(u,v,ux,vx)
+      ! Compute U,V on cross points
 
-        ! Compute W (and TKE if required) on zita levels
+      call uvstagtox(u,v,ux,vx)
 
-        call wstagtox(w,wx)
+      ! Compute W (and TKE if required) on zita levels
 
-        if ( ibltyp == 2 ) then
-          call wstagtox(tke,tkex)
-        end if
+      call wstagtox(w,wx)
 
-        call wafone(tetav,dta)
-        call wafone(pai,dta)
-        call wafone(ux,dta)
-        call wafone(vx,dta)
-        call wafone(wx,dta)
-        call wafone(qv,dta)
-        if ( ipptls > 0 ) then
-          do n = iqfrst , nqx
-            call assignpnt(qx,ptr,n)
-            call wafone(ptr,dta)
-          end do
-        end if
-        if ( ibltyp == 2 ) then
-          call wafone(tkex,dta)
-        end if
-        if ( ichem == 1 ) then
-          do n = 1 , ntr
-            call assignpnt(trac,ptr,n)
-            call wafone(ptr,dta)
-          end do
-        end if
+      if ( ibltyp == 2 ) then
+        call wstagtox(tke,tkex)
+      end if
+
+      call wafone(tetav,dta)
+      call wafone(pai,dta)
+      call wafone(ux,dta)
+      call wafone(vx,dta)
+      call wafone(wx,dta)
+      call wafone(qv,dta)
+      if ( ipptls > 0 ) then
+        do n = iqfrst , nqx
+          call assignpnt(qx,ptr,n)
+          call wafone(ptr,dta)
+        end do
+      end if
+      if ( ibltyp == 2 ) then
+        call wafone(tkex,dta)
+      end if
+      if ( ichem == 1 ) then
+        do n = 1 , ntr
+          call assignpnt(trac,ptr,n)
+          call wafone(ptr,dta)
+        end do
+      end if
 
 #ifdef RCEMIP
-        if ( do_gkfilter ) then
-          call gkfilteruv(ux,vx,1)
-          call gkfilter3d(wx,1)
-        end if
+      if ( do_gkfilter ) then
+        call gkfilteruv(ux,vx,1)
+        call gkfilter3d(wx,1)
+      end if
 #endif
-        ! Interpolate on staggered points
-        call xtouvstag(ux,vx,u,v)
+      ! Interpolate on staggered points
+      call xtouvstag(ux,vx,u,v)
 
-        ! Back to half-levels
-        call xtowstag(wx,w)
-        if ( ibltyp == 2 ) then
-          call xtowstag(tkex,tke)
-        end if
-      end subroutine advection
+      ! Back to half-levels
+      call xtowstag(wx,w)
+      if ( ibltyp == 2 ) then
+        call xtowstag(tkex,tke)
+      end if
+    end subroutine advection
 
-      subroutine wafone(pp,dta,pfac,pmin)
-        implicit none
-        real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
-        real(rkx) , intent(in) :: dta
-        real(rkx) , optional , intent(in) :: pfac , pmin
-        integer(ik4) :: j , i , k
-        real(rkx) :: dtrdx , dtrdy , dtrdz
-        real(rkx) , parameter :: wlow  = 0.0_rkx
-        real(rkx) , parameter :: whigh = 2.0_rkx
-        real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
-        real(rkx) , dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
-        real(rkx) , dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
-        real(rkx) :: zamu , is , r , b , zphi , zzden , zdv
-        real(rkx) :: zhxvtn , zhxvts , zcostx
-        real(rkx) :: zrfmu , zrfmd
-        real(rkx) :: zrfmn , zrfms
-        real(rkx) :: zrfme , zrfmw
-        real(rkx) :: zfac , zmin
-        integer(ik4) :: k1 , k1p1
-        integer(ik4) :: ih , ihm1
-        integer(ik4) :: jh , jhm1
+    subroutine wafone(pp,dta,pfac,pmin)
+      implicit none
+      real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
+      real(rkx) , intent(in) :: dta
+      real(rkx) , optional , intent(in) :: pfac , pmin
+      integer(ik4) :: j , i , k
+      real(rkx) :: dtrdx , dtrdy , dtrdz
+      real(rkx) , parameter :: wlow  = 0.0_rkx
+      real(rkx) , parameter :: whigh = 2.0_rkx
+      real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wfw
+      real(rkx) , dimension(jci1:jci2,ici1:ice2ga,1:kz) :: zpby
+      real(rkx) , dimension(jci1:jce2ga,ici1:ici2,1:kz) :: zpbw
+      real(rkx) :: zamu , is , r , b , zphi , zzden , zdv
+      real(rkx) :: zhxvtn , zhxvts , zcostx
+      real(rkx) :: zrfmu , zrfmd
+      real(rkx) :: zrfmn , zrfms
+      real(rkx) :: zrfme , zrfmw
+      real(rkx) :: zfac , zmin
+      integer(ik4) :: k1 , k1p1
+      integer(ik4) :: ih , ihm1
+      integer(ik4) :: jh , jhm1
 
-        dtrdx = dta/dx
-        dtrdy = dta/dx
-        dtrdz = dta/dzita
-        if ( do_vadvtwice ) then
-          dtrdz = 0.5_rkx * dtrdz
-        end if
+      dtrdx = dta/dx
+      dtrdy = dta/dx
+      dtrdz = dta/dzita
+      if ( do_vadvtwice ) then
+        dtrdz = 0.5_rkx * dtrdz
+      end if
 
-        if ( present(pfac) ) then
-          zfac = pfac
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) * zfac
-          end do
-        end if
-
-        ! Vertical advection
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-          wfw(j,i,1) = d_zero
-          wfw(j,i,kzp1) = d_zero
+      if ( present(pfac) ) then
+        zfac = pfac
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          pp(j,i,k) = pp(j,i,k) * zfac
         end do
+      end if
 
+      ! Vertical advection
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        wfw(j,i,1) = d_zero
+        wfw(j,i,kzp1) = d_zero
+      end do
+
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
+        local(zamu,is,r,b,zphi,zzden,k1,k1p1)
+#else
+      do k = 1 , kzm1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
+            zamu = s(j,i,k+1) * dtrdz
+            if ( zamu >= d_zero ) then
+              is = d_one
+              k1 = k + 1
+              k1p1 = k1 + 1
+              if ( k1p1 > kz ) k1p1 = kz
+            else
+              is = -d_one
+              k1 = k - 1
+              k1p1 = k
+              if ( k1 < 1 ) k1 = 1
+            end if
+            zzden = pp(j,i,k)-pp(j,i,k+1)
+            zzden = sign(max(abs(zzden),minden),zzden)
+            r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
+            b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+            zphi = is + zamu * b - is * b
+            wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                                  (d_one-zphi)*pp(j,i,k))
+#ifndef STDPAR
+          end do
+        end do
+#endif
+      end do
+#ifdef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+        local(zrfmu,zrfmd,zdv)
+#else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+#endif
+            zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
+            zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
+            zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
+            wz(j,i,k) = pp(j,i,k) - &
+              wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
+#ifndef STDPAR
+          end do
+        end do
+#endif
+      end do
+
+      if ( do_vadvtwice ) then
 #ifdef STDPAR
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
           local(zamu,is,r,b,zphi,zzden,k1,k1p1)
@@ -1498,13 +1550,13 @@ module mod_moloch
                 k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              zzden = pp(j,i,k)-pp(j,i,k+1)
+              zzden = wz(j,i,k)-wz(j,i,k+1)
               zzden = sign(max(abs(zzden),minden),zzden)
-              r = (pp(j,i,k1)-pp(j,i,k1p1))/zzden
+              r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
               b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,i,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
-                                                    (d_one-zphi)*pp(j,i,k))
+              wfw(j,i,k+1) = d_half * s(j,i,k+1) * &
+                ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
 #ifndef STDPAR
             end do
           end do
@@ -1520,678 +1572,624 @@ module mod_moloch
 #endif
               zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) - &
-                wfw(j,i,k)*zrfmu + wfw(j,i,k+1)*zrfmd + zdv
+              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
+              wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
+                                      wfw(j,i,k+1)*zrfmd + zdv
+#ifndef STDPAR
+            end do
+          end do
+#endif
+        end do
+      end if
+
+      if ( ma%has_bdybottom ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          wz(j,ice1,k) = wz(j,ici1,k)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do concurrent ( j = jci1:jci2, k = 1:kz )
+          wz(j,ice2,k) = wz(j,ici2,k)
+        end do
+      end if
+
+      call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+
+      if ( lrotllr ) then
+
+        ! Meridional advection
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+          local(zamu,is,r,b,zphi,zzden,ih,ihm1)
+#else
+        do k = 1 , kz
+          do i = ici1 , ice2ga
+            do j = jci1 , jci2
+#endif
+              zamu = v(j,i,k) * dtrdy
+              if ( zamu > d_zero ) then
+                is = d_one
+                ih = i-1
+              else
+                is = -d_one
+                ih = min(i+1,imax)
+              end if
+              ihm1 = max(ih-1,imin)
+              zzden = wz(j,i,k)-wz(j,i-1,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+              zphi = is + zamu*b - is*b
+              zpby(j,i,k) = d_half * v(j,i,k) * &
+                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+#ifndef STDPAR
+            end do
+          end do
+#endif
+        end do
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zhxvtn,zhxvts,zrfmn,zrfms,zdv)
+#else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
+              zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
+              zhxvts = dtrdy * rmv(j,i) * mx(j,i)
+              zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+              zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+              zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
+              p0(j,i,k) = wz(j,i,k) + &
+                    zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv
 #ifndef STDPAR
             end do
           end do
 #endif
         end do
 
-        if ( do_vadvtwice ) then
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzm1 ) &
-            local(zamu,is,r,b,zphi,zzden,k1,k1p1)
-#else
-          do k = 1 , kzm1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                zamu = s(j,i,k+1) * dtrdz
-                if ( zamu >= d_zero ) then
-                  is = d_one
-                  k1 = k + 1
-                  k1p1 = k1 + 1
-                  if ( k1p1 > kz ) k1p1 = kz
-                else
-                  is = -d_one
-                  k1 = k - 1
-                  k1p1 = k
-                  if ( k1 < 1 ) k1 = 1
-                end if
-                zzden = wz(j,i,k)-wz(j,i,k+1)
-                zzden = sign(max(abs(zzden),minden),zzden)
-                r = (wz(j,i,k1)-wz(j,i,k1p1))/zzden
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu * b - is * b
-                wfw(j,i,k+1) = d_half * s(j,i,k+1) * &
-                  ((d_one+zphi)*wz(j,i,k+1) + (d_one-zphi)*wz(j,i,k))
-#ifndef STDPAR
-              end do
-            end do
-#endif
-          end do
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-            local(zrfmu,zrfmd,zdv)
-#else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                zrfmu = dtrdz * fmz(j,i,k)/fmzf(j,i,k)
-                zrfmd = dtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-                zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * wz(j,i,k)
-                wz(j,i,k) = wz(j,i,k) - wfw(j,i,k)*zrfmu + &
-                                        wfw(j,i,k+1)*zrfmd + zdv
-#ifndef STDPAR
-              end do
-            end do
-#endif
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce1,i,k) = p0(jci1,i,k)
           end do
         end if
 
-        if ( ma%has_bdybottom ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice1,k) = wz(j,ici1,k)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do concurrent ( j = jci1:jci2, k = 1:kz )
-            wz(j,ice2,k) = wz(j,ici2,k)
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce2,i,k) = p0(jci2,i,k)
           end do
         end if
 
-        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
-        if ( lrotllr ) then
+        ! Zonal advection
 
-          ! Meridional advection
 #ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
-            local(zamu,is,r,b,zphi,zzden,ih,ihm1)
+        do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+          local(zamu,is,r,b,zphi,zzden,jh,jhm1)
 #else
-          do k = 1 , kz
-            do i = ici1 , ice2ga
-              do j = jci1 , jci2
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jce2ga
 #endif
-                zamu = v(j,i,k) * dtrdy
-                if ( zamu > d_zero ) then
-                  is = d_one
-                  ih = i-1
-                else
-                  is = -d_one
-                  ih = min(i+1,imax)
-                end if
-                ihm1 = max(ih-1,imin)
-                zzden = wz(j,i,k)-wz(j,i-1,k)
-                zzden = sign(max(abs(zzden),minden),zzden)
-                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu*b - is*b
-                zpby(j,i,k) = d_half * v(j,i,k) * &
-                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+              zamu = u(j,i,k) * mu(j,i) * dtrdx
+              if ( zamu > d_zero ) then
+                is = d_one
+                jh = j-1
+              else
+                is = -d_one
+                jh = min(j+1,jmax)
+              end if
+              jhm1 = max(jh-1,jmin)
+              zzden = p0(j,i,k)-p0(j-1,i,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+              zphi = is + zamu*b - is*b
+              zpbw(j,i,k) = d_half * u(j,i,k) * &
+                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
 #ifndef STDPAR
-              end do
             end do
-#endif
           end do
+#endif
+        end do
 #ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-            local(zhxvtn,zhxvts,zrfmn,zrfms,zdv)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zcostx,zrfme,zrfmw,zdv)
 #else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
 #endif
-                zhxvtn = dtrdy * rmv(j,i+1) * mx(j,i)
-                zhxvts = dtrdy * rmv(j,i) * mx(j,i)
-                zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-                zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-                zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
-                p0(j,i,k) = wz(j,i,k) + &
-                      zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv
+              zcostx = dtrdx * mu(j,i)
+              zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+              zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+              zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
+              pp(j,i,k) = p0(j,i,k) + &
+                     zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
 #ifndef STDPAR
-              end do
             end do
-#endif
           end do
+#endif
+        end do
 
-          if ( ma%has_bdyleft ) then
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = p0(jci1,i,k)
-            end do
-          end if
+      else
 
-          if ( ma%has_bdyright ) then
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = p0(jci2,i,k)
-            end do
-          end if
-
-          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-          ! Zonal advection
+        ! Meridional advection
 
 #ifdef STDPAR
-          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
-            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+        do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
+          local(zamu,is,r,b,zphi,zzden,ihm1,ih)
 #else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jce2ga
+        do k = 1 , kz
+          do i = ici1 , ice2ga
+            do j = jci1 , jci2
 #endif
-                zamu = u(j,i,k) * mu(j,i) * dtrdx
-                if ( zamu > d_zero ) then
-                  is = d_one
-                  jh = j-1
-                else
-                  is = -d_one
-                  jh = min(j+1,jmax)
-                end if
-                jhm1 = max(jh-1,jmin)
-                zzden = p0(j,i,k)-p0(j-1,i,k)
-                zzden = sign(max(abs(zzden),minden),zzden)
-                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu*b - is*b
-                zpbw(j,i,k) = d_half * u(j,i,k) * &
-                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+              zamu = v(j,i,k) * rmv(j,i) * dtrdy
+              if ( zamu > d_zero ) then
+                is = d_one
+                ih = i-1
+              else
+                is = -d_one
+                ih = min(i+1,imax)
+              end if
+              ihm1 = max(ih-1,imin)
+              zzden = wz(j,i,k)-wz(j,i-1,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
+              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+              zphi = is + zamu*b - is*b
+              zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
+                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
 #ifndef STDPAR
-              end do
             end do
-#endif
           end do
+#endif
+        end do
 #ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-            local(zcostx,zrfme,zrfmw,zdv)
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zrfmn,zrfms,zdv)
 #else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
 #endif
-                zcostx = dtrdx * mu(j,i)
-                zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-                zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-                zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
-                pp(j,i,k) = p0(j,i,k) + &
-                       zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv
+              zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+              zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+              zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
+                     v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
+              p0(j,i,k) = wz(j,i,k) + &
+                mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
 #ifndef STDPAR
-              end do
             end do
-#endif
           end do
-
-        else
-
-          ! Meridional advection
-
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ice2ga, k = 1:kz ) &
-            local(zamu,is,r,b,zphi,zzden)
-#else
-          do k = 1 , kz
-            do i = ici1 , ice2ga
-              do j = jci1 , jci2
 #endif
-                zamu = v(j,i,k) * rmv(j,i) * dtrdy
-                if ( zamu > d_zero ) then
-                  is = d_one
-                  ih = i-1
-                else
-                  is = -d_one
-                  ih = min(i+1,imax)
-                end if
-                ihm1 = max(ih-1,imin)
-                zzden = wz(j,i,k)-wz(j,i-1,k)
-                zzden = sign(max(abs(zzden),minden),zzden)
-                r = (wz(j,ih,k)-wz(j,ihm1,k))/zzden
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu*b - is*b
-                zpby(j,i,k) = d_half * v(j,i,k) * rmv(j,i) * &
-                    ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
-#ifndef STDPAR
-              end do
-            end do
-#endif
-          end do
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-            local(zrfmn,zrfms,zdv)
-#else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                zrfmn = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-                zrfms = dtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-                zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-                       v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
-                p0(j,i,k) = wz(j,i,k) + &
-                  mx2(j,i) * (zpby(j,i,k)*zrfms - zpby(j,i+1,k)*zrfmn + zdv)
-#ifndef STDPAR
-              end do
-            end do
-#endif
-          end do
+        end do
 
-          if ( ma%has_bdyleft ) then
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce1,i,k) = p0(jci1,i,k)
-            end do
-          end if
-
-          if ( ma%has_bdyright ) then
-            do concurrent ( i = ici1:ici2, k = 1:kz )
-              p0(jce2,i,k) = p0(jci2,i,k)
-            end do
-          end if
-
-          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-          ! Zonal advection
-
-#ifdef STDPAR
-          do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
-            local(zamu,is,r,b,zphi,zzden,jh,jhm1)
-#else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jce2ga
-#endif
-                zamu = u(j,i,k) * rmu(j,i) * dtrdx
-                if ( zamu > d_zero ) then
-                  is = d_one
-                  jh = j-1
-                else
-                  is = -d_one
-                  jh = min(j+1,jmax)
-                end if
-                jhm1 = max(jh-1,jmin)
-                zzden = p0(j,i,k)-p0(j-1,i,k)
-                zzden = sign(max(abs(zzden),minden),zzden)
-                r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
-                b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
-                zphi = is + zamu*b - is*b
-                zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
-                       ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-#ifndef STDPAR
-              end do
-            end do
-#endif
-          end do
-
-#ifdef STDPAR
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-            local(zrfme,zrfmw,zdv)
-#else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-#endif
-                zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-                zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-                zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-                       u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
-                pp(j,i,k) = p0(j,i,k) + &
-                    mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
-#ifndef STDPAR
-              end do
-            end do
-#endif
+        if ( ma%has_bdyleft ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce1,i,k) = p0(jci1,i,k)
           end do
         end if
 
-        if ( present(pfac) ) then
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = pp(j,i,k) / zfac
+        if ( ma%has_bdyright ) then
+          do concurrent ( i = ici1:ici2, k = 1:kz )
+            p0(jce2,i,k) = p0(jci2,i,k)
           end do
         end if
-        if ( present(pmin) ) then
-          zmin = pmin
-          do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
-            pp(j,i,k) = max(pp(j,i,k),zmin)
-          end do
-        end if
-      end subroutine wafone
 
-      subroutine reset_tendencies
-        implicit none
-        integer(ik4) :: i , j , k , n
+        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+        ! Zonal advection
+
+#ifdef STDPAR
+        do concurrent ( j = jci1:jce2ga, i = ici1:ici2, k = 1:kz ) &
+          local(zamu,is,r,b,zphi,zzden,jh,jhm1)
+#else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jce2ga
+#endif
+              zamu = u(j,i,k) * rmu(j,i) * dtrdx
+              if ( zamu > d_zero ) then
+                is = d_one
+                jh = j-1
+              else
+                is = -d_one
+                jh = min(j+1,jmax)
+              end if
+              jhm1 = max(jh-1,jmin)
+              zzden = p0(j,i,k)-p0(j-1,i,k)
+              zzden = sign(max(abs(zzden),minden),zzden)
+              r = (p0(jh,i,k)-p0(jhm1,i,k))/zzden
+              b = max(wlow, min(whigh, max(r, min(d_two*r,d_one))))
+              zphi = is + zamu*b - is*b
+              zpbw(j,i,k) = d_half * u(j,i,k) * rmu(j,i) * &
+                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+#ifndef STDPAR
+            end do
+          end do
+#endif
+        end do
+
+#ifdef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
+          local(zrfme,zrfmw,zdv)
+#else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+#endif
+              zrfme = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+              zrfmw = dtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+              zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
+                     u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
+              pp(j,i,k) = p0(j,i,k) + &
+                  mx2(j,i) * (zpbw(j,i,k)*zrfmw - zpbw(j+1,i,k)*zrfme + zdv)
+#ifndef STDPAR
+            end do
+          end do
+#endif
+        end do
+      end if
+
+      if ( present(pfac) ) then
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          pp(j,i,k) = pp(j,i,k) / zfac
+        end do
+      end if
+      if ( present(pmin) ) then
+        zmin = pmin
+        do concurrent ( j = jce1:jce2, i = ice1:ice2, k = 1:kz )
+          pp(j,i,k) = max(pp(j,i,k),zmin)
+        end do
+      end if
+    end subroutine wafone
+
+    subroutine reset_tendencies
+      implicit none
+      integer(ik4) :: i , j , k , n
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+        s(j,i,k) = d_zero
+      end do
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
+        zdiv2(j,i,k) = d_zero
+      end do
+      do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
+        deltaw(j,i,k) = d_zero
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        mo_atm%tten(j,i,k) = d_zero
+        mo_atm%uten(j,i,k) = d_zero
+        mo_atm%vten(j,i,k) = d_zero
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
+        mo_atm%qxten(j,i,k,n) = d_zero
+      end do
+      if ( ichem == 1 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+          mo_atm%chiten(j,i,k,n) = d_zero
+        end do
+      end if
+      if ( ibltyp == 2 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-          s(j,i,k) = d_zero
+          mo_atm%tketen(j,i,k) = d_zero
         end do
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
-          zdiv2(j,i,k) = d_zero
-        end do
-        do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kzp1 )
-          deltaw(j,i,k) = d_zero
-        end do
+      end if
+
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        cldfra(j,i,k) = d_zero
+        cldlwc(j,i,k) = d_zero
+      end do
+
+      if ( idiag > 0 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          mo_atm%tten(j,i,k) = d_zero
-          mo_atm%uten(j,i,k) = d_zero
-          mo_atm%vten(j,i,k) = d_zero
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:nqx )
-          mo_atm%qxten(j,i,k,n) = d_zero
+          ten0(j,i,k) = t(j,i,k)
+          qen0(j,i,k) = qv(j,i,k)
         end do
         if ( ichem == 1 ) then
           do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-            mo_atm%chiten(j,i,k,n) = d_zero
+            chiten0(j,i,k,n) = trac(j,i,k,n)
           end do
         end if
-        if ( ibltyp == 2 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-            mo_atm%tketen(j,i,k) = d_zero
-          end do
-        end if
+      end if
+    end subroutine reset_tendencies
 
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          cldfra(j,i,k) = d_zero
-          cldlwc(j,i,k) = d_zero
-        end do
-
-        if ( idiag > 0 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            ten0(j,i,k) = t(j,i,k)
-            qen0(j,i,k) = qv(j,i,k)
-          end do
-          if ( ichem == 1 ) then
-            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-              chiten0(j,i,k,n) = trac(j,i,k,n)
-            end do
-          end if
-        end if
-      end subroutine reset_tendencies
-
-      subroutine physical_parametrizations
-        implicit none
-        integer(ik4) :: i , j , k , n
-        logical :: loutrad , labsem
+    subroutine physical_parametrizations
+      implicit none
+      integer(ik4) :: i , j , k , n
+      logical :: loutrad , labsem
 
 #ifdef DEBUG
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
-                write(100+myid,*) 'Before Phys On : ', myid
-                write(100+myid,*) 'At : ', i,j,k
-                write(100+myid,*) 'k pai u v w qv qc t tetav'
-                do n = 1 , kz
-                  write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
-                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                            t(j,i,n) , tetav(j,i,n)
-                end do
-                flush(100+myid)
-                call fatal(__FILE__,__LINE__, 'error')
-              end if
-            end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
+              write(100+myid,*) 'Before Phys On : ', myid
+              write(100+myid,*) 'At : ', i,j,k
+              write(100+myid,*) 'k pai u v w qv qc t tetav'
+              do n = 1 , kz
+                write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
+                          w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
+                          t(j,i,n) , tetav(j,i,n)
+              end do
+              flush(100+myid)
+              call fatal(__FILE__,__LINE__, 'error')
+            end if
           end do
         end do
+      end do
 #endif
-        if ( do_convection ) then
-          if ( any(icup > 0) ) then
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                ten0(j,i,k) = mo_atm%tten(j,i,k)
-                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-              end do
-            end if
-            if ( ichem == 1 .and. ichdiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                              k = 1:kz, n = 1:ntr )
-                chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
-              end do
-            end if
-            call cumulus
-            if ( ichem == 1 ) then
-              if ( ichcumtra == 1 ) then
-                if ( debug_level > 3 .and. myid == italk ) then
-                  write(stdout,*) 'Calling cumulus transport at ', &
-                             trim(rcmtimer%str())
-                end if
-                call cumtran(trac)
+      if ( do_convection ) then
+        if ( any(icup > 0) ) then
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                            k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            end do
+          end if
+          call cumulus
+          if ( ichem == 1 ) then
+            if ( ichcumtra == 1 ) then
+              if ( debug_level > 3 .and. myid == italk ) then
+                write(stdout,*) 'Calling cumulus transport at ', &
+                           trim(rcmtimer%str())
               end if
+              call cumtran(trac)
             end if
+          end if
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                            k = 1:kz, n = 1:ntr )
+              cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            end do
+          end if
+        else
+          if ( any(icup < 0) ) then
+            call shallow_convection
             if ( idiag > 0 ) then
               do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
                 tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
                 qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
               end do
             end if
-            if ( ichem == 1 .and. ichdiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                              k = 1:kz, n = 1:ntr )
-                cconvdiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
-              end do
-            end if
-          else
-            if ( any(icup < 0) ) then
-              call shallow_convection
-              if ( idiag > 0 ) then
-                do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                  tdiag%con(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-                  qdiag%con(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-                end do
-              end if
-            end if
           end if
         end if
-        !
-        !------------------------------------------------
-        ! Large scale precipitation microphysical schemes
-        !------------------------------------------------
-        !
-        if ( do_microphysics ) then
-          if ( ipptls > 0 ) then
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                ten0(j,i,k) = mo_atm%tten(j,i,k)
-                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-              end do
-            end if
-            ! Cumulus clouds
-            if ( icldfrac /= 2 ) then
-              call cucloud
-            end if
-            ! Save cumulus cloud fraction for chemistry before it is
-            ! overwritten in cldfrac
-            if ( ichem == 1 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                convcldfra(j,i,k) = cldfra(j,i,k)
-              end do
-            end if
-            ! Clouds and large scale precipitation
-            call cldfrac(cldlwc,cldfra)
-            call microscheme
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-                qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-              end do
-            end if
+      end if
+      !
+      !------------------------------------------------
+      ! Large scale precipitation microphysical schemes
+      !------------------------------------------------
+      !
+      if ( do_microphysics ) then
+        if ( ipptls > 0 ) then
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
+          end if
+          ! Cumulus clouds
+          if ( icldfrac /= 2 ) then
+            call cucloud
+          end if
+          ! Save cumulus cloud fraction for chemistry before it is
+          ! overwritten in cldfrac
+          if ( ichem == 1 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              convcldfra(j,i,k) = cldfra(j,i,k)
+            end do
+          end if
+          ! Clouds and large scale precipitation
+          call cldfrac(cldlwc,cldfra)
+          call microscheme
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%lsc(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%lsc(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
         end if
-        !
-        !------------------------------------------------
-        !       Call radiative transfer package
-        !------------------------------------------------
-        !
-        if ( do_radiation ) then
-          if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
-            if ( debug_level > 3 .and. myid == italk ) then
-              write(stdout,*) &
-                'Calling radiative transfer at ',trim(rcmtimer%str())
-            end if
-            ! calculate albedo
-            call surface_albedo
-            if ( iclimao3 == 1 ) then
-              call updateo3(rcmtimer%idate,scenario)
-            end if
-            if ( iclimaaer == 1 ) then
-              call updateaerosol(rcmtimer%idate)
-            else if ( iclimaaer == 2 ) then
-              call updateaeropp(rcmtimer%idate)
-            else if ( iclimaaer == 3 ) then
-              call updateaeropp_cmip6(rcmtimer%idate)
-            end if
-            loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-            labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
-            if ( debug_level > 3 .and. myid == italk ) then
-              if ( labsem ) then
-                write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
-              end if
-              if ( loutrad ) then
-                write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
-              end if
-            end if
-            call radiation(rcmtimer%year,rcmtimer%month, &
-                           rcmtimer%day,loutrad,labsem)
+      end if
+      !
+      !------------------------------------------------
+      !       Call radiative transfer package
+      !------------------------------------------------
+      !
+      if ( do_radiation ) then
+        if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+          if ( debug_level > 3 .and. myid == italk ) then
+            write(stdout,*) &
+              'Calling radiative transfer at ',trim(rcmtimer%str())
           end if
-          !
-          ! Add radiative transfer package-calculated heating rates to
-          ! temperature tendency (deg/sec)
-          !
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-            mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
-          end do
-          if ( idiag > 0 ) tdiag%rad = heatrt
-        end if
-        !
-        !------------------------------------------------
-        !            Call Surface model
-        !------------------------------------------------
-        !
-        if ( do_surface ) then
-          if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
-            if ( debug_level > 3 .and. myid == italk ) then
-              write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
-            end if
-            call surface_model
+          ! calculate albedo
+          call surface_albedo
+          if ( iclimao3 == 1 ) then
+            call updateo3(rcmtimer%idate,scenario)
           end if
-        end if
-        !
-        !------------------------------------------------
-        !             Call PBL scheme
-        !------------------------------------------------
-        !
-        if ( do_pbl ) then
-          if ( ibltyp > 0 ) then
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                ten0(j,i,k) = mo_atm%tten(j,i,k)
-                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-              end do
+          if ( iclimaaer == 1 ) then
+            call updateaerosol(rcmtimer%idate)
+          else if ( iclimaaer == 2 ) then
+            call updateaeropp(rcmtimer%idate)
+          else if ( iclimaaer == 3 ) then
+            call updateaeropp_cmip6(rcmtimer%idate)
+          end if
+          loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
+          labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+          if ( debug_level > 3 .and. myid == italk ) then
+            if ( labsem ) then
+              write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
             end if
-            if ( ichem == 1 .and. ichdiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                              k = 1:kz, n = 1:ntr )
-                chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
-              end do
-            end if
-            call pblscheme
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
-                qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-              end do
-            end if
-            if ( ichem == 1 .and. ichdiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                              k = 1:kz, n = 1:ntr )
-                ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
-              end do
+            if ( loutrad ) then
+              write(stdout,*) 'Collecting radiation at ',trim(rcmtimer%str())
             end if
           end if
+          call radiation(rcmtimer%year,rcmtimer%month, &
+                         rcmtimer%day,loutrad,labsem)
         end if
+        !
+        ! Add radiative transfer package-calculated heating rates to
+        ! temperature tendency (deg/sec)
+        !
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+          mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
+        end do
+        if ( idiag > 0 ) tdiag%rad = heatrt
+      end if
+      !
+      !------------------------------------------------
+      !            Call Surface model
+      !------------------------------------------------
+      !
+      if ( do_surface ) then
+        if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
+          if ( debug_level > 3 .and. myid == italk ) then
+            write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+          end if
+          call surface_model
+        end if
+      end if
+      !
+      !------------------------------------------------
+      !             Call PBL scheme
+      !------------------------------------------------
+      !
+      if ( do_pbl ) then
+        if ( ibltyp > 0 ) then
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                            k = 1:kz, n = 1:ntr )
+              chiten0(j,i,k,n) = mo_atm%chiten(j,i,k,n)
+            end do
+          end if
+          call pblscheme
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%tbl(j,i,k) = mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%tbl(j,i,k) = mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                            k = 1:kz, n = 1:ntr )
+              ctbldiag(j,i,k,n) = mo_atm%chiten(j,i,k,n) - chiten0(j,i,k,n)
+            end do
+          end if
+        end if
+      end if
 
-        if ( do_microphysics ) then
-          if ( ipptls == 1 ) then
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                ten0(j,i,k) = mo_atm%tten(j,i,k)
-                qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
-              end do
-            end if
-            call condtq
-            if ( idiag > 0 ) then
-              do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-                tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
-                  mo_atm%tten(j,i,k) - ten0(j,i,k)
-                qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
-                   mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
-              end do
-            end if
+      if ( do_microphysics ) then
+        if ( ipptls == 1 ) then
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              ten0(j,i,k) = mo_atm%tten(j,i,k)
+              qen0(j,i,k) = mo_atm%qxten(j,i,k,iqv)
+            end do
+          end if
+          call condtq
+          if ( idiag > 0 ) then
+            do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+              tdiag%lsc(j,i,k) = tdiag%lsc(j,i,k) + &
+                mo_atm%tten(j,i,k) - ten0(j,i,k)
+              qdiag%lsc(j,i,k) = qdiag%lsc(j,i,k) + &
+                 mo_atm%qxten(j,i,k,iqv) - qen0(j,i,k)
+            end do
           end if
         end if
-        !-------------------------------------------------------------
-        !call chemistry/aerosol schemes
-        !----------------------------------------------------------------------
-        if ( ichem == 1 ) then
-          call tractend2(rcmtimer%month,rcmtimer%day,declin)
-        end if
-        !
-        ! Update status
-        !
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
-        end do
-        do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
-          u(j,i,k) = u(j,i,k) + dtsec * mo_atm%uten(j,i,k)
-        end do
-        do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
-          v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
-        end do
+      end if
+      !-------------------------------------------------------------
+      !call chemistry/aerosol schemes
+      !----------------------------------------------------------------------
+      if ( ichem == 1 ) then
+        call tractend2(rcmtimer%month,rcmtimer%day,declin)
+      end if
+      !
+      ! Update status
+      !
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        t(j,i,k) = t(j,i,k) + dtsec * mo_atm%tten(j,i,k)
+      end do
+      do concurrent ( j = jdi1:jdi2, i = ici1:ici2, k = 1:kz )
+        u(j,i,k) = u(j,i,k) + dtsec * mo_atm%uten(j,i,k)
+      end do
+      do concurrent ( j = jci1:jci2, i = idi1:idi2, k = 1:kz )
+        v(j,i,k) = v(j,i,k) + dtsec * mo_atm%vten(j,i,k)
+      end do
 #ifdef RCEMIP
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( k > ktrop(j,i) ) then
-            qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
-            qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
-          end if
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                        k = 1:kz, n = iqfrst:nqx)
-          if ( k > ktrop(j,i) ) then
-            qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
-            qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
-          end if
-        end do
-#else
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        if ( k > ktrop(j,i) ) then
           qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
           qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
-        end do
-        do concurrent ( j = jci1:jci2, i = ici1:ici2, &
-                        k = 1:kz, n = iqfrst:nqx)
+        end if
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                      k = 1:kz, n = iqfrst:nqx)
+        if ( k > ktrop(j,i) ) then
           qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
           qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
-        end do
+        end if
+      end do
+#else
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+        qx(j,i,k,iqv) = qx(j,i,k,iqv) + mo_atm%qxten(j,i,k,iqv)*dtsec
+        qx(j,i,k,iqv) = max(qx(j,i,k,iqv),minqq)
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2, &
+                      k = 1:kz, n = iqfrst:nqx)
+        qx(j,i,k,n) = qx(j,i,k,n) + mo_atm%qxten(j,i,k,n)*dtsec
+        qx(j,i,k,n) = max(qx(j,i,k,n),d_zero)
+      end do
 #endif
-        if ( ibltyp == 2 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
-            tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
-          end do
-        end if
-        if ( ichem == 1 ) then
-          do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
-            trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
-            trac(j,i,k,n) = max(trac(j,i,k,n), d_zero)
-          end do
-        end if
+      if ( ibltyp == 2 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kzp1 )
+          tke(j,i,k) = max(tke(j,i,k) + dtsec * mo_atm%tketen(j,i,k),tkemin)
+        end do
+      end if
+      if ( ichem == 1 ) then
+        do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )
+          trac(j,i,k,n) = trac(j,i,k,n) + dtsec * mo_atm%chiten(j,i,k,n)
+          trac(j,i,k,n) = max(trac(j,i,k,n), d_zero)
+        end do
+      end if
 #ifdef DEBUG
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
-                write(100+myid,*) 'On : ', myid
-                write(100+myid,*) 'After Phys At : ', i,j,k
-                write(100+myid,*) 'k pai u v w qv qc t tetav'
-                do n = 1 , kz
-                  write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
-                            w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
-                            t(j,i,n) , tetav(j,i,n)
-                end do
-                flush(100+myid)
-                call fatal(__FILE__,__LINE__, 'error')
-              end if
-            end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( (t(j,i,k) > 350.0_rkx) .or. t(j,i,k) < 170.0_rkx ) then
+              write(100+myid,*) 'On : ', myid
+              write(100+myid,*) 'After Phys At : ', i,j,k
+              write(100+myid,*) 'k pai u v w qv qc t tetav'
+              do n = 1 , kz
+                write(100+myid,*) n, pai(j,i,n), u(j,i,n), v(j,i,n), &
+                          w(j,i,n) , qv(j,i,n) , qc(j,i,n) , &
+                          t(j,i,n) , tetav(j,i,n)
+              end do
+              flush(100+myid)
+              call fatal(__FILE__,__LINE__, 'error')
+            end if
           end do
         end do
+      end do
 #endif
-      end subroutine physical_parametrizations
-
-  end subroutine moloch
+    end subroutine physical_parametrizations
 
   subroutine wstagtox(w,wx)
     implicit none

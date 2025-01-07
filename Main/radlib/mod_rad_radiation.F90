@@ -2197,13 +2197,13 @@ module mod_rad_radiation
   ! Non-adjacent layer absorptivites
   ! Total emissivity
   !
-  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+  subroutine radabs(n1,n2,nk,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,  &
                     co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                     plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
                     uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
     implicit none
-    integer(ik4) , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2 , nk
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
     real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
     real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
@@ -2378,13 +2378,14 @@ module mod_rad_radiation
     real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
                       term3 , term4 , term5 , zinpl , temh2o
     real(rkx) , dimension(2) :: term7 , term8 , trline
-    real(rkx) , dimension(kzp1) :: dbvtit
-    real(rkx) , dimension(kzp1) :: term6
-    real(rkx) , dimension(kzp1) :: term9
-    real(rkx) , dimension(kzp1) :: pnmsq
-    real(rkx) , dimension(kz) :: dbvtly
+    real(rkx) , dimension(nk+1) :: dbvtit
+    real(rkx) , dimension(nk+1) :: term6
+    real(rkx) , dimension(nk+1) :: term9
+    real(rkx) , dimension(nk+1) :: pnmsq
+    real(rkx) , dimension(nk) :: dbvtly
     real(rkx) , dimension(4) :: tbar , pinpl , uinpl , winpl
     real(rkx) , dimension(nlwspi,4) :: bplnk
+    real(rkx) , dimension(nlwspi) :: xplnk
     !
     ! Initialize
     !
@@ -2403,7 +2404,7 @@ module mod_rad_radiation
       to3co2,duptyp,du1,du2,duch4,dbetac,du01,du11,dbeta01,dbeta11,duco11,  &
       duco12,duco13,duco21,duco22,duco23,tpnm,abso,emm,o3emm,term1,term2,   &
       term3,term4,term5,term7,term8,trline,zinpl,temh2o,dbvtit,term6,pnmsq, &
-      dbvtly,tbar,pinpl,uinpl,winpl,bplnk)
+      term9,dbvtly,tbar,pinpl,uinpl,winpl,bplnk,xplnk)
 #else
     do n = n1 , n2
 #endif
@@ -2626,10 +2627,13 @@ module mod_rad_radiation
             duco21  = abs(uco221(k1,n)-uco221(k2,n))
             duco22  = abs(uco222(k1,n)-uco222(k2,n))
             duco23  = abs(uco223(k1,n)-uco223(k2,n))
+            do wvl = 1 , nlwspi
+              xplnk(wvl) = abplnk1(wvl,k2,n)
+            end do
             abstrc = trcab(tpnm,ds2c,duptyp,du1,du2,duch4,dbetac,  &
                            du01,du11,dbeta01,dbeta11,duco11,duco12, &
                            duco13,duco21,duco22,duco23,dw,pnew,     &
-                           to3co2,ux,tco2,th2o,to3,abplnk1(:,k2,n))
+                           to3co2,ux,tco2,th2o,to3,xplnk)
             !
             ! Sum total absorptivity
             !
@@ -2886,10 +2890,12 @@ module mod_rad_radiation
           duco21 = abs(uco221(k2+1,n)-uco221(k2,n))*winpl(kn)
           duco22 = abs(uco222(k2+1,n)-uco222(k2,n))*winpl(kn)
           duco23 = abs(uco223(k2+1,n)-uco223(k2,n))*winpl(kn)
+          do wvl = 1 , nlwspi
+            xplnk(wvl) = bplnk(wvl,kn)
+          end do
           abstrc = trcabn(tbar(kn),dw,pnew,tco2,th2o,to3,ux,pinpl(kn),   &
                           winpl(kn),ds2c,duptyp,du1,du2,duch4,du01,du11, &
-                          duco11,duco12,duco13,duco21,duco22,duco23,     &
-                          bplnk(:,kn))
+                          duco11,duco12,duco13,duco21,duco22,duco23,xplnk)
           !
           ! Total next layer absorptivity:
           !
@@ -4625,7 +4631,7 @@ module mod_rad_radiation
       !
       ! Compute total absorptivity:
       !
-      call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
+      call radabs(n1,n2,kz,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,  &
                   co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                   plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                   bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
@@ -4694,7 +4700,7 @@ module mod_rad_radiation
       ! delt1=t**4 in layer below current sigma level km.
       !
 #ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,delt,delt1,k,km)
+      do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,delt,delt1,k,km,tmp)
 #else
       do n = n1 , n2
 #endif
@@ -5246,7 +5252,11 @@ module mod_rad_radiation
       xcfc12 = 0.4000_rkx
 #endif
 #ifdef STDPAR
-      do concurrent ( n = rt%n1:rt%n2 ) local(k)
+#ifdef RCEMIP
+      do concurrent ( n = rt%n1:rt%n2 ) local(k,pratio)
+#else
+      do concurrent ( n = rt%n1:rt%n2 ) local(k,alat,pratio)
+#endif
 #else
       do n = rt%n1 , rt%n2
 #endif

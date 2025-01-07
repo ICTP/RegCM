@@ -4284,7 +4284,7 @@ module mod_bdycod
       if ( ba_dt%ns /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4317,7 +4317,7 @@ module mod_bdycod
       if ( ba_dt%nn /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4350,7 +4350,7 @@ module mod_bdycod
       if ( ba_dt%nw /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4383,7 +4383,7 @@ module mod_bdycod
       if ( ba_dt%ne /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4417,7 +4417,7 @@ module mod_bdycod
       if ( ba_dt%ns /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4450,7 +4450,7 @@ module mod_bdycod
       if ( ba_dt%nn /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4483,7 +4483,7 @@ module mod_bdycod
       if ( ba_dt%nw /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2
@@ -4516,7 +4516,7 @@ module mod_bdycod
       if ( ba_dt%ne /= 0 ) then
 #ifdef STDPAR
         do concurrent ( j = jdi1:jdi2, i = idi1:idi2, k = 1:kz ) &
-          local(xf,xg,fls0,fls1,fls2,fls3,fls4)
+          local(ib,xf,xg,fls0,fls1,fls2,fls3,fls4)
 #else
         do k = 1 , kz
           do i = idi1 , idi2

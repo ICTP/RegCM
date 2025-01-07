@@ -86,7 +86,11 @@ module mod_rad_tracer
 #endif
     do k = 1 , kz
 #ifdef STDPAR
-      do concurrent ( n = n1:n2 )
+#ifdef RCEMIP
+      do concurrent ( n = n1:n2 ) local(pratio)
+#else
+      do concurrent ( n = n1:n2 ) local(pratio,alat)
+#endif
 #else
       do n = n1 , n2
 #endif
