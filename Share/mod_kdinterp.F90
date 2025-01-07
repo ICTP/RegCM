@@ -59,7 +59,10 @@ module mod_kdinterp
   end interface h_interpolate_nn
 
   interface h_interpolate_class
-    module procedure interp_class_r
+    module procedure interp_class_2dr
+    module procedure interp_class_3dr
+    module procedure interp_class_4dr
+    module procedure interp_class_5dr
     module procedure interp_class_i
     module procedure interp_class_ld
   end interface h_interpolate_class
@@ -762,14 +765,13 @@ module mod_kdinterp
     end do
   end subroutine interp_5d
 
-  subroutine interp_class_r(h_i,g,f)
+  subroutine interp_class_2dr(h_i,g,f)
     implicit none
     type(h_interpolator) , intent(in) :: h_i
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
-    integer(ik4) , dimension(1) :: v
-    real(rk8) , dimension(:) , allocatable :: gvals
+    real(rk8) :: wgtm
+    integer(ik4) :: i , j , ni , nj , n , si , sj
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -778,31 +780,82 @@ module mod_kdinterp
       write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
       call die('interp_class','Non conforming shape for target',1)
     end if
-    n1 = int(minval(g))
-    n2 = int(maxval(g))
-    nc = n2 - n1 + 1
-    if ( nc <= 0 ) then
-      write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
-      call die('interp_class','CLASS NUMBER <= 0',1)
-    end if
     nj = size(f,1)
     ni = size(f,2)
-    allocate(gvals(n1:n2))
     do i = 1 , ni
       do j = 1 , nj
-        gvals(:) = d_zero
-        do n = 1 , h_i%tg%ft(j,i)%np
-          si = h_i%tg%ft(j,i)%wgt(n)%i
-          sj = h_i%tg%ft(j,i)%wgt(n)%j
-          iv = nint(g(sj,si))
-          gvals(iv) = gvals(iv) + sqrt(h_i%tg%ft(j,i)%wgt(n)%wgt)
-        end do
-        v = maxloc(gvals) - 1 + n1
-        f(j,i) = real(v(1),rkx)
+        if ( h_i%tg%ft(j,i)%np > 0 ) then
+          wgtm = h_i%tg%ft(j,i)%wgt(1)%wgt
+          si = h_i%tg%ft(j,i)%wgt(1)%i
+          sj = h_i%tg%ft(j,i)%wgt(1)%j
+          f(j,i) = g(sj,si)
+          do n = 2 , h_i%tg%ft(j,i)%np
+            if ( wgtm < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
+              wgtm = h_i%tg%ft(j,i)%wgt(n)%wgt
+              si = h_i%tg%ft(j,i)%wgt(n)%i
+              sj = h_i%tg%ft(j,i)%wgt(n)%j
+              f(j,i) = g(sj,si)
+            end if
+          end do
+        else
+          f(j,i) = missl
+        end if
       end do
     end do
-    deallocate(gvals)
-  end subroutine interp_class_r
+  end subroutine interp_class_2dr
+
+  subroutine interp_class_3dr(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:,:,:) , intent(in) :: g
+    real(rkx) , dimension(:,:,:) , intent(out) :: f
+    integer(ik4) :: n3 , n
+    n3 = size(g,3)
+    if ( n3 /= size(f,3) ) then
+      write(stderr,*) 'DIMENSION 3 g = ',size(g,3)
+      write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
+      call die('interp_class_3dr','Non conforming shapes',1)
+    end if
+!$OMP PARALLEL DO
+    do n = 1 , n3
+      call interp_class_2dr(h_i,g(:,:,n),f(:,:,n))
+    end do
+!$OMP END PARALLEL DO
+  end subroutine interp_class_3dr
+
+  subroutine interp_class_4dr(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:,:,:,:) , intent(in) :: g
+    real(rkx) , dimension(:,:,:,:) , intent(out) :: f
+    integer(ik4) :: n4 , n
+    n4 = size(g,4)
+    if ( n4 /= size(f,4) ) then
+      write(stderr,*) 'DIMENSION 4 g = ',size(g,4)
+      write(stderr,*) 'DIMENSION 4 f = ',size(f,4)
+      call die('interp_4d','Non conforming shapes',1)
+    end if
+    do n = 1 , n4
+      call interp_class_3dr(h_i,g(:,:,:,n),f(:,:,:,n))
+    end do
+  end subroutine interp_class_4dr
+
+  subroutine interp_class_5dr(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:,:,:,:,:) , intent(in) :: g
+    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: f
+    integer(ik4) :: n5 , n
+    n5 = size(g,5)
+    if ( n5 /= size(f,5) ) then
+      write(stderr,*) 'DIMENSION 5 g = ',size(g,5)
+      write(stderr,*) 'DIMENSION 5 f = ',size(f,5)
+      call die('interp_5d','Non conforming shapes',1)
+    end if
+    do n = 1 , n5
+      call interp_class_4dr(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
+    end do
+  end subroutine interp_class_5dr
 
   subroutine interp_class_i(h_i,g,f)
     implicit none

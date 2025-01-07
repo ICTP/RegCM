@@ -1271,7 +1271,7 @@ module mod_rdldtr
       end do
     end if
 
-    call h_interpolate_cont(gfile%hint,vread,var)
+    call h_interpolate_class(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
     deallocate(mpu)
@@ -1467,7 +1467,7 @@ module mod_rdldtr
       end do
     end if
 
-    call h_interpolate_cont(gfile%hint,vread,var)
+    call h_interpolate_class(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
     deallocate(mpu)
@@ -1694,7 +1694,7 @@ module mod_rdldtr
       end do
     end if
 
-    call h_interpolate_cont(gfile%hint,vread,var)
+    call h_interpolate_class(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
     deallocate(mpu)

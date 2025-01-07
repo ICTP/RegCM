@@ -51,7 +51,12 @@ module mod_sort
     module procedure argsort_i4
   end interface argsort
 
-  public :: sort , argsort , msi_index
+  interface mostfrequent
+    module procedure mostfrequent_r4
+    module procedure mostfrequent_r8
+  end interface mostfrequent
+
+  public :: sort , argsort , msi_index , mostfrequent
 
   contains
 
@@ -61,8 +66,6 @@ module mod_sort
     integer :: istart, istop
     istart = 1
     istop = size(x)
-    if ( all(x == x(1)) ) return
-    if ( istop < 2 ) return
     call quicksort_int32(x,istart,istop)
   end subroutine sort_int32
 
@@ -72,8 +75,6 @@ module mod_sort
     integer :: istart, istop
     istart = 1
     istop = size(x)
-    if ( istop < 2 ) return
-    if ( all(x == x(1)) ) return
     call quicksort_int64(x,istart,istop)
   end subroutine sort_int64
 
@@ -83,8 +84,6 @@ module mod_sort
     integer :: istart, istop
     istart = 1
     istop = size(x)
-    if ( istop < 2 ) return
-    if ( all(x == x(1)) ) return
     call quicksort_real32(x,istart,istop)
   end subroutine sort_real32
 
@@ -94,8 +93,6 @@ module mod_sort
     integer :: istart, istop
     istart = 1
     istop = size(x)
-    if ( istop < 2 ) return
-    if ( all(x == x(1)) ) return
     call quicksort_real64(x,istart,istop)
   end subroutine sort_real64
 
@@ -375,6 +372,74 @@ module mod_sort
       end if
     end do
   end function argsort_i4
+
+  real(rk4) function mostfrequent_r4(a,n)
+    implicit none
+    integer(ik4) , intent(in) :: n
+    real(rk4) , dimension(n) , intent(in) :: a
+    integer :: i , j , n1 , n2
+    integer :: imax , nmax
+    real(rk4) , dimension(n) :: b
+    real(rk4) :: check
+
+    b(:) = a(:)
+    call sort_real32(b)
+    n1 = 1
+    imax = 1
+    nmax = 1
+    check = b(1)
+    i = 1
+    do
+      j = i+1
+      do
+        if ( b(j) /= b(i) ) exit
+        n1 = n1 + 1
+        if ( j == n ) exit
+        j = j + 1
+      end do
+      if ( n1 > nmax ) then
+        nmax = n1
+        imax = i
+      end if
+      i = j
+      if ( i == n ) exit
+    end do
+    mostfrequent_r4 = b(imax)
+  end function mostfrequent_r4
+
+  real(rk8) function mostfrequent_r8(a,n)
+    implicit none
+    integer(ik4) , intent(in) :: n
+    real(rk8) , dimension(n) , intent(in) :: a
+    integer :: i , j , n1 , n2
+    integer :: imax , nmax
+    real(rk8) , dimension(n) :: b
+    real(rk8) :: check
+
+    b(:) = a(:)
+    call sort_real64(b)
+    n1 = 1
+    imax = 1
+    nmax = 1
+    check = b(1)
+    i = 1
+    do
+      j = i+1
+      do
+        if ( b(j) /= b(i) ) exit
+        n1 = n1 + 1
+        if ( j == n ) exit
+        j = j + 1
+      end do
+      if ( n1 > nmax ) then
+        nmax = n1
+        imax = i
+      end if
+      i = j
+      if ( i == n ) exit
+    end do
+    mostfrequent_r8 = b(imax)
+  end function mostfrequent_r8
 
 end module mod_sort
 

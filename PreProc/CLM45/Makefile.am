@@ -47,7 +47,7 @@ mod_mksoilcol.o : mod_mksoilcol.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod
 mod_mksoitex.o : mod_mksoitex.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o mod_constants.o
 mod_mkurban.o : mod_mkurban.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_message.o mod_rdldtr.o mod_constants.o
 mod_mkwetland.o : mod_mkwetland.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_memutil.o mod_realkinds.o mod_message.o mod_rdldtr.o mod_constants.o
-mod_mkvocef.o : mod_mkvocef.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_intldtr.o mod_constants.o
+mod_mkvocef.o : mod_mkvocef.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_intldtr.o mod_constants.o mod_rdldtr.o
 mod_mklightning.o : mod_mklightning.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o mod_constants.o $(REGCM_ROOT)/makeinc
 mod_mkpopd.o : mod_mkpopd.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o mod_constants.o $(REGCM_ROOT)/makeinc
 mod_mkharvest.o : mod_mkharvest.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o $(REGCM_ROOT)/makeinc
