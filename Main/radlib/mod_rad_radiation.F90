@@ -276,6 +276,9 @@ module mod_rad_radiation
        0.18967069430426e-4_rkx ,  0.70172244841851e-4_rkx ]
   real(rkx) , dimension(2) , parameter :: st = [ &
        0.31930234492350e-3_rkx ,  0.97907319939060e-3_rkx ]
+  ! r2st - 1/(2*st) in eq(10) in table A2 (beta is st here)
+  real(rkx) , dimension(2) , parameter :: r2st = [ &
+       1.565913961952870e3_rkx ,  0.510687045985134e3_rkx ]
   real(rkx) , dimension(2) , parameter :: a1 = [ &
        0.28775403075736e-1_rkx ,  0.23236701470511e-1_rkx ]
   real(rkx) , dimension(2) , parameter :: a2 = [ &
@@ -578,7 +581,7 @@ module mod_rad_radiation
     real(rkx) , intent(in) :: duco21 , duco22 , duco23
     real(rkx) , intent(in) :: to3co2 , dw , pnew , dplh2o
     real(rkx) , intent(in) :: tco2 , th2o , to3
-    real(rkx) , dimension(14) , intent(in) :: abplnk1
+    real(rkx) , dimension(nlwspi) , intent(in) :: abplnk1
     !
     !-----------------------------------------------------------------------
     !
@@ -743,7 +746,7 @@ module mod_rad_radiation
     real(rkx) , intent(in) :: winpl , pinpl , ds2c , duptyp , du1 , du2
     real(rkx) , intent(in) :: duch4 , du01 , du11 , duco11 , duco12
     real(rkx) , intent(in) :: duco13 , duco21 , duco22 , duco23
-    real(rkx) , dimension(14) , intent(in) :: bplnk
+    real(rkx) , dimension(nlwspi) , intent(in) :: bplnk
     !
     ! sqti    - square root of mean temp
     ! rsqti   - reciprocal of sqti
@@ -2204,29 +2207,29 @@ module mod_rad_radiation
                     uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2 , nk
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
-    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: co2em , co2eml
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: tint , tlayr
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: pnm , piln
+    real(rkx) , dimension(nk,n1:n2) , intent(in) :: pbr , pmln
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: co2em , co2eml
     real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tplnka
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: s2c , s2t , wh2op
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: h2otr , co2t
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
-    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk1
-    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk2
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
-    real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
-    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
-    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: xuinpl
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: tplnka
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: s2c , s2t , wh2op
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: h2otr , co2t
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: plco2 , plh2o
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: plol , plos
+    real(rkx) , dimension(nlwspi,nk+1,n1:n2) , intent(in) :: abplnk1
+    real(rkx) , dimension(nlwspi,nk+1,n1:n2) , intent(in) :: abplnk2
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: un2o0 , un2o1
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uch4 , bch4
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco211 , uco212
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco213 , uco221
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco222 , uco223
+    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uptype
+    real(rkx) , dimension(nk+1,nk+1,n1:n2) , intent(out) :: absgastot
+    real(rkx) , dimension(nk,4,n1:n2) , intent(out) :: absgasnxt
+    real(rkx) , dimension(nk,4,n1:n2) , intent(out) :: xuinpl
     !
     ! kn       - Nearest level index
     ! iband    - Band  index
@@ -2294,7 +2297,6 @@ module mod_rad_radiation
     ! sqrtu    - Sqrt of pressure weighted h20 pathlength
     ! fwk      - Equation(33) in R&D far wing correction
     ! fwku     - GU term in eqs(1) and (6) in table A2
-    ! r2st     - 1/(2*beta) in eq(10) in table A2
     ! dtyp15   - DeltaTp in eqs(11) & (12) in table A3a
     ! dtyp15sq - (DeltaTp)^2 in eqs(11) & (12) table A3a
     ! to3co2   - P weighted temp in ozone band model
@@ -2355,10 +2357,7 @@ module mod_rad_radiation
     ! dbvtit   - Intrfc drvtv plnck fnctn for o3
     ! dbvtly   - Level drvtv plnck fnctn for o3
     !
-    integer(ik4) :: n
-    real(rkx) , dimension(2) :: r2st
-
-    integer(ik4) :: k , k1 , k2 , iband , kn , wvl
+    integer(ik4) :: n , l , k , k1 , k2 , iband , kn , wvl
     real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,   &
       absbnd , alphat , beta , cf812 , corfac , denom , dplco2 ,       &
       dplol , dplos , ds2c , dtym10 , et , et2 , et4 , f1co2 , g2 ,    &
@@ -2389,12 +2388,10 @@ module mod_rad_radiation
     !
     ! Initialize
     !
-    r2st(1) = d_one/(d_two*st(1))
-    r2st(2) = d_one/(d_two*st(2))
 #ifdef STDPAR
     do concurrent ( n = n1:n2 ) local( &
       k,k1,k2,iband,kn,wvl,a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat, &
-      beta,cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,et2,et4,    &
+      l,beta,cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,et2,et4,  &
       f1co2,g2,g4,k21,k22,o3bndi,omet,oneme,p1,p2,pbar,phi,pi,posqt,psi,    &
       rbeta13,rbeta8,rbeta9,rdpnm,rdpnmsq,realnu,rphat,rsqti,rsum,sqwp,     &
       t1t4,t2t5,tcrfac,te,tlocal,tmp1,tmp2,tmp3,tpath,tr1,tr2,tr5,tr6,tr9,  &
@@ -2408,8 +2405,8 @@ module mod_rad_radiation
 #else
     do n = n1 , n2
 #endif
-      dbvtit(kzp1) = dbvt(tint(kzp1,n))
-      do k = 1 , kz
+      dbvtit(nk+1) = dbvt(tint(nk+1,n))
+      do k = 1 , nk
         dbvtly(k) = dbvt(tlayr(k+1,n))
         dbvtit(k) = dbvt(tint(k,n))
       end do
@@ -2425,7 +2422,7 @@ module mod_rad_radiation
       ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
       ! abso(6)   co2 15  micrometer band system
       !
-      do k = 1 , kzp1
+      do k = 1 , nk+1
         pnmsq(k) = pnm(k,n)**2
         dtx = tplnka(k,n) - 250.0_rkx
         term6(k) = coeff(1,2) + coeff(2,2)*dtx *    &
@@ -2438,8 +2435,8 @@ module mod_rad_radiation
       !
       ! Non-nearest layer level loops
       !
-      do k1 = kzp1 , 1 , -1
-        do k2 = kzp1 , 1 , -1
+      do k1 = nk+1 , 1 , -1
+        do k2 = nk+1 , 1 , -1
           if ( k1 /= k2 ) then
             dplh2o = plh2o(k1,n) - plh2o(k2,n)
             ux = abs(dplh2o)
@@ -2504,15 +2501,15 @@ module mod_rad_radiation
             !
             ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
             !
-            do k = 1 , 2
-              phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
-              psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
+            do l = 1 , 2
+              phi = exp(a1(l)*dtyp15+a2(l)*dtyp15sq)
+              psi = exp(b1(l)*dtyp15+b2(l)*dtyp15sq)
               ubar = dw*phi*1.66_rkx*r80257
               pbar = pnew*(psi/phi)
               cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
-              g2 = d_one + ubar*d_four*st(k)*cf812/pbar
-              g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
-              trline(k) = exp(-g4)
+              g2 = d_one + ubar*d_four*st(l)*cf812/pbar
+              g4 = realk(l)*pbar*r2st(l)*(sqrt(g2)-d_one)
+              trline(l) = exp(-g4)
             end do
             term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
             term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
@@ -2654,7 +2651,7 @@ module mod_rad_radiation
       !
       ! Nearest layer level loop
       !
-      do k2 = kz , 1 , -1
+      do k2 = nk , 1 , -1
         tbar(1) = (tint(k2+1,n)+tlayr(k2+1,n))*d_half
         tbar(2) = (tlayr(k2+1,n)+tint(k2,n))*d_half
         tbar(3) = (tbar(2)+tbar(1))*d_half
@@ -2708,6 +2705,10 @@ module mod_rad_radiation
         if ( linteract  ) then
           do kn = 1 , 4
             xuinpl(k2,kn,n) = uinpl(kn)
+          end do
+        else
+          do kn = 1 , 4
+            xuinpl(k2,kn,n) = 0.0_rkx
           end do
         end if
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
@@ -2774,15 +2775,15 @@ module mod_rad_radiation
           !
           ! Line transmission in 800-1000 and 1000-1200 cm-1 intervals
           !
-          do k = 1 , 2
-            phi = exp(a1(k)*dtyp15+a2(k)*dtyp15sq)
-            psi = exp(b1(k)*dtyp15+b2(k)*dtyp15sq)
+          do l = 1 , 2
+            phi = exp(a1(l)*dtyp15+a2(l)*dtyp15sq)
+            psi = exp(b1(l)*dtyp15+b2(l)*dtyp15sq)
             ubar = dw*phi*winpl(kn)*1.66_rkx*r80257
             pbar = pnew*(psi/phi)
             cf812 = cfa1 + (d_one-cfa1)/(d_one+ubar*pbar*d_10)
-            g2 = d_one + ubar*d_four*st(k)*cf812/pbar
-            g4 = realk(k)*pbar*r2st(k)*(sqrt(g2)-d_one)
-            trline(k) = exp(-g4)
+            g2 = d_one + ubar*d_four*st(l)*cf812/pbar
+            g4 = realk(l)*pbar*r2st(l)*(sqrt(g2)-d_one)
+            trline(l) = exp(-g4)
           end do
           term7(1) = coefj(1,1)+coefj(2,1)*dty*(d_one+c16*dty)
           term8(1) = coefk(1,1)+coefk(2,1)*dty*(d_one+c17*dty)
