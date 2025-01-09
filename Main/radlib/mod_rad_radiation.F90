@@ -2200,36 +2200,36 @@ module mod_rad_radiation
   ! Non-adjacent layer absorptivites
   ! Total emissivity
   !
-  subroutine radabs(n1,n2,nk,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,  &
+  subroutine radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
                     co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                     plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                     bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
                     uco222,uco223,uptype,absgasnxt,absgastot,xuinpl)
     implicit none
-    integer(ik4) , intent(in) :: n1 , n2 , nk
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: tint , tlayr
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: pnm , piln
-    real(rkx) , dimension(nk,n1:n2) , intent(in) :: pbr , pmln
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: co2em , co2eml
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tint , tlayr
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: pnm , piln
+    real(rkx) , dimension(kz,n1:n2) , intent(in) :: pbr , pmln
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: co2em , co2eml
     real(rkx) , dimension(n1:n2) , intent(in) :: co2vmr
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: tplnka
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: s2c , s2t , wh2op
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: h2otr , co2t
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: plco2 , plh2o
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: plol , plos
-    real(rkx) , dimension(nlwspi,nk+1,n1:n2) , intent(in) :: abplnk1
-    real(rkx) , dimension(nlwspi,nk+1,n1:n2) , intent(in) :: abplnk2
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: ucfc11 , ucfc12
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: un2o0 , un2o1
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: bn2o0 , bn2o1
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uch4 , bch4
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco211 , uco212
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco213 , uco221
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uco222 , uco223
-    real(rkx) , dimension(nk+1,n1:n2) , intent(in) :: uptype
-    real(rkx) , dimension(nk+1,nk+1,n1:n2) , intent(out) :: absgastot
-    real(rkx) , dimension(nk,4,n1:n2) , intent(out) :: absgasnxt
-    real(rkx) , dimension(nk,4,n1:n2) , intent(out) :: xuinpl
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: tplnka
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: s2c , s2t , wh2op
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: h2otr , co2t
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plco2 , plh2o
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: plol , plos
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk1
+    real(rkx) , dimension(nlwspi,kzp1,n1:n2) , intent(in) :: abplnk2
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: ucfc11 , ucfc12
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: un2o0 , un2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: bn2o0 , bn2o1
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uch4 , bch4
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco211 , uco212
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco213 , uco221
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uco222 , uco223
+    real(rkx) , dimension(kzp1,n1:n2) , intent(in) :: uptype
+    real(rkx) , dimension(kzp1,kzp1,n1:n2) , intent(out) :: absgastot
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: absgasnxt
+    real(rkx) , dimension(kz,4,n1:n2) , intent(out) :: xuinpl
     !
     ! kn       - Nearest level index
     ! iband    - Band  index
@@ -2377,11 +2377,11 @@ module mod_rad_radiation
     real(rkx) , dimension(4) :: emm , o3emm , term1 , term2 , &
                       term3 , term4 , term5 , zinpl , temh2o
     real(rkx) , dimension(2) :: term7 , term8 , trline
-    real(rkx) , dimension(nk+1) :: dbvtit
-    real(rkx) , dimension(nk+1) :: term6
-    real(rkx) , dimension(nk+1) :: term9
-    real(rkx) , dimension(nk+1) :: pnmsq
-    real(rkx) , dimension(nk) :: dbvtly
+    real(rkx) , dimension(kzp1) :: dbvtit
+    real(rkx) , dimension(kzp1) :: term6
+    real(rkx) , dimension(kzp1) :: term9
+    real(rkx) , dimension(kzp1) :: pnmsq
+    real(rkx) , dimension(kz) :: dbvtly
     real(rkx) , dimension(4) :: tbar , pinpl , uinpl , winpl
     real(rkx) , dimension(nlwspi,4) :: bplnk
     real(rkx) , dimension(nlwspi) :: xplnk
@@ -2405,8 +2405,8 @@ module mod_rad_radiation
 #else
     do n = n1 , n2
 #endif
-      dbvtit(nk+1) = dbvt(tint(nk+1,n))
-      do k = 1 , nk
+      dbvtit(kzp1) = dbvt(tint(kzp1,n))
+      do k = 1 , kz
         dbvtly(k) = dbvt(tlayr(k+1,n))
         dbvtit(k) = dbvt(tint(k,n))
       end do
@@ -2422,7 +2422,7 @@ module mod_rad_radiation
       ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
       ! abso(6)   co2 15  micrometer band system
       !
-      do k = 1 , nk+1
+      do k = 1 , kzp1
         pnmsq(k) = pnm(k,n)**2
         dtx = tplnka(k,n) - 250.0_rkx
         term6(k) = coeff(1,2) + coeff(2,2)*dtx *    &
@@ -2435,8 +2435,8 @@ module mod_rad_radiation
       !
       ! Non-nearest layer level loops
       !
-      do k1 = nk+1 , 1 , -1
-        do k2 = nk+1 , 1 , -1
+      do k1 = kzp1 , 1 , -1
+        do k2 = kzp1 , 1 , -1
           if ( k1 /= k2 ) then
             dplh2o = plh2o(k1,n) - plh2o(k2,n)
             ux = abs(dplh2o)
@@ -2651,7 +2651,7 @@ module mod_rad_radiation
       !
       ! Nearest layer level loop
       !
-      do k2 = nk , 1 , -1
+      do k2 = kz , 1 , -1
         tbar(1) = (tint(k2+1,n)+tlayr(k2+1,n))*d_half
         tbar(2) = (tlayr(k2+1,n)+tint(k2,n))*d_half
         tbar(3) = (tbar(2)+tbar(1))*d_half
@@ -4632,7 +4632,7 @@ module mod_rad_radiation
       !
       ! Compute total absorptivity:
       !
-      call radabs(n1,n2,kz,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,  &
+      call radabs(n1,n2,pnm,pbr,piln,pmln,tint,tlayr,co2em,co2eml,     &
                   co2vmr,tplnka,s2c,s2t,wh2op,h2otr,co2t,plco2,plh2o,  &
                   plol,plos,abplnk1,abplnk2,ucfc11,ucfc12,un2o0,un2o1, &
                   bn2o0,bn2o1,uch4,bch4,uco211,uco212,uco213,uco221,   &
