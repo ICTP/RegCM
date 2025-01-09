@@ -378,6 +378,7 @@ module mod_regcm_interface
     ndev = acc_get_num_devices(acc_device_default)
     idev = mod(mpi_rank, ndev)
     call acc_set_device_num(idev, acc_get_device_type())
+    call acc_init(dev_type)
   end subroutine setup_openacc
 #endif
 
