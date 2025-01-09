@@ -81,7 +81,7 @@ module mod_ocn_zeng
             tau , tsurf , ustar , uv10 , zi , cd , dthv , zq ,   &
             zh , zu , obu , qstar , xdens , th , thv , thvstar , &
             tstar , um , visa , zot , wc , zeta , zoq , tha ,    &
-            cpm , rlv , rs , rd , td , tdelta , delta , q ,      &
+            cpm , rlv , rs , rd , td , tdelta , delta , q , tv , &
             ustarw , fd , l , phidl , aa , bb , lamb , dtstend , &
             dts , fs , tskin_new , fua
 !     real(rkx) :: lwds , lwus
@@ -102,7 +102,7 @@ module mod_ocn_zeng
               ustar,uv10,zi,cd,dthv,zq,zh,zu,obu,qstar,xdens,th,thv,um,  &
               thvstar,tstar,visa,zot,wc,zeta,zoq,tha,cpm,rlv,rs,rd,td,   &
               tdelta,delta,q,ustarw,fd,l,phidl,aa,bb,lamb,dtstend,dts,   &
-              fs,tskin_new,nconv)
+              fs,tskin_new,nconv,tv)
 #else
       do i = iocnbeg , iocnend
 #endif
@@ -135,6 +135,7 @@ module mod_ocn_zeng
         es = pfesat(tsurf,sfps(i))*0.98_rkx
         qs = pfwsat(tsurf,sfps(i),es)
         ! virtual potential T
+        tv = tatm(i)*(d_one+ep1*qs)
         thv = th*(d_one+ep1*qs)
         ! The deltas between surface and atmosphere
         dqh = q995 - qs
@@ -209,15 +210,7 @@ module mod_ocn_zeng
           if ( .not. flag1 ) then
             cd = (ustar/um)**2
           end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
-          if ( br(i) >= d_zero ) then       ! neutral or stable
-            zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
-            zeta = min(2.0_rkx,max(zeta,minz))
-          else                              ! unstable
-            zeta = br(i)*log(zu/zo)
-            zeta = max(-100.0_rkx,min(zeta,-minz))
-          end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
+          br(i) = egrav*zu*dthv/(tv*um*um)
           if ( br(i) >= d_zero ) then       ! neutral or stable
             zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
             zeta = min(2.0_rkx,max(zeta,minz))
@@ -287,7 +280,7 @@ module mod_ocn_zeng
               ustar = vonkar*um/log(1.0_rkx+zu/zo)
             end if
           end if
-          br(i) = egrav*zu*dthv/(thv*um*um)
+          br(i) = egrav*zu*dthv/(tv*um*um)
           if ( br(i) >= d_zero ) then       ! neutral or stable
             zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
             zeta = min(2.0_rkx,max(zeta,minz))
@@ -362,7 +355,7 @@ module mod_ocn_zeng
             ustar = vonkar*um/log(1.0_rkx+zu/zo)
             zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
           end do
-          br(i) = egrav*zu*dthv/(thv*um*um)
+          br(i) = egrav*zu*dthv/(tv*um*um)
           if ( br(i) >= d_zero ) then       ! neutral or stable
             zeta = br(i)*log(zu/zo)/(d_one-5.0_rkx*min(br(i),0.19_rkx))
             zeta = min(2.0_rkx,max(zeta,minz))
