@@ -369,15 +369,18 @@ module mod_regcm_interface
 
 #ifdef OPENACC
   subroutine setup_openacc(mpi_rank)
-    use openacc, only: acc_device_default, &
-      acc_get_device_type, acc_get_num_devices, acc_set_device_num
+    use openacc, only: acc_device_default , acc_device_kind , &
+                  acc_get_device_type , acc_get_num_devices , &
+                  acc_set_device_num , acc_init
     implicit none
     integer, intent(in) :: mpi_rank
     integer(ik4) :: idev, ndev
+    integer(acc_device_kind) :: dev_type
 
+    dev_type = acc_get_device_type()
     ndev = acc_get_num_devices(acc_device_default)
     idev = mod(mpi_rank, ndev)
-    call acc_set_device_num(idev, acc_get_device_type())
+    call acc_set_device_num(idev, dev_type)
     call acc_init(dev_type)
   end subroutine setup_openacc
 #endif
