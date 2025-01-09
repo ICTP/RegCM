@@ -343,17 +343,17 @@ module mod_pbl_shinhong
     real(rkx) , dimension(nbl,kz*ndiff) , intent(in) :: qx
     real(rkx) , dimension(nbl,kzp1) , intent(in) :: p2di
     real(rkx) , dimension(nbl,kz) , intent(in) :: p2d
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: utnp , vtnp , ttnp
+    real(rkx) , dimension(nbl,kz) , intent(out) :: utnp , vtnp , ttnp
     real(rkx) , dimension(nbl,kz) , intent(inout) :: tke
-    real(rkx) , dimension(nbl,kz*ndiff) , intent(inout) :: qtnp
+    real(rkx) , dimension(nbl,kz*ndiff) , intent(out) :: qtnp
     integer , dimension(nbl) , intent(in) :: xland
     real(rkx) , dimension(nbl) , intent(in) :: hfx , qfx
     real(rkx) , dimension(nbl) , intent(in) :: br , psim , psih , psfcpa
     real(rkx) , dimension(nbl) , intent(in) :: corf
-    real(rkx) , dimension(nbl) , intent(inout) :: ust , hpbl , znt
-    real(rkx) , dimension(nbl) , intent(inout) :: wspd
-    real(rkx) , dimension(nbl) , intent(inout) :: wspd10
-    real(rkx) , dimension(nbl) , intent(out) :: wstar , delta
+    real(rkx) , dimension(nbl) , intent(in) :: wspd10
+    real(rkx) , dimension(nbl) , intent(in) :: ust , znt
+    real(rkx) , dimension(nbl) , intent(in) :: wspd
+    real(rkx) , dimension(nbl) , intent(out) :: hpbl , wstar , delta
     integer :: i , k , ic , is , nwmass
     integer :: klpbl , kqc , kqi
     integer :: lmh
