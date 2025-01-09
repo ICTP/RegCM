@@ -95,12 +95,12 @@ module mod_kdinterp
 
   type ijwgt
     integer(ik4) :: np
-    type(pwgt) , dimension(:) , pointer :: wgt
+    type(pwgt) , dimension(:) , pointer :: wgt => null( )
   end type ijwgt
 
   type ftarget
     integer(ik4) , dimension(2) :: tshape
-    type(ijwgt) , dimension(:,:) , pointer :: ft
+    type(ijwgt) , dimension(:,:) , pointer :: ft => null( )
   end type ftarget
 
   type h_interpolator

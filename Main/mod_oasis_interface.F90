@@ -424,9 +424,9 @@ module mod_oasis_interface
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: dlon , dlat , &
                                                          xlon , xlat , lndcat
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: lon , lat , srf
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
     integer(ik4) :: i , j
     !--------------------------------------------------------------------------
     !
@@ -512,9 +512,9 @@ module mod_oasis_interface
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: dlon , dlat , &
                                                          xlon , xlat , lndcat
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: lon , lat , srf
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
     integer(ik4) :: i , j
     !--------------------------------------------------------------------------
     !

@@ -294,7 +294,7 @@ module mod_atm_stub
 
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
-      type(v3dbound) , intent(out) :: xb
+      type(v3dbound) , intent(inout) :: xb
       integer(ik4) , intent(in) :: ke
       logical , intent(in) :: ldot
       if ( ldot ) then
@@ -310,7 +310,7 @@ module mod_atm_stub
 
     subroutine allocate_v2dbound(xb,ldot)
       implicit none
-      type(v2dbound) , intent(out) :: xb
+      type(v2dbound) , intent(inout) :: xb
       logical , intent(in) :: ldot
       if ( ldot ) then
         call getmem2d(xb%b0,jde1,jde2,ide1,ide2,'v2dbound:b0')
@@ -325,7 +325,7 @@ module mod_atm_stub
 
     subroutine allocate_domain(dom)
       implicit none
-      type(domain) , intent(out) :: dom
+      type(domain) , intent(inout) :: dom
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -380,7 +380,7 @@ module mod_atm_stub
 
     subroutine allocate_domain_subgrid(sub)
       implicit none
-      type(domain_subgrid) , intent(out) :: sub
+      type(domain_subgrid) , intent(inout) :: sub
       call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -398,7 +398,7 @@ module mod_atm_stub
 
     subroutine allocate_surfstate(sfs)
       implicit none
-      type(surfstate) , intent(out) :: sfs
+      type(surfstate) , intent(inout) :: sfs
       call getmem2d(sfs%psa,jce1,jce2,ice1,ice2,'surf:psa')
       call getmem2d(sfs%psdota,jde1,jde2,ide1,ide2,'surf:psdota')
       call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')

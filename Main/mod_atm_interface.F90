@@ -385,7 +385,7 @@ module mod_atm_interface
     subroutine setup_boundaries(ldotx,ldoty,ba)
       implicit none
       logical , intent(in) :: ldotx , ldoty
-      type(bound_area) , intent(out) :: ba
+      type(bound_area) , intent(inout) :: ba
       integer(ik4) :: icx , icy
       integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
       integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
@@ -545,7 +545,7 @@ module mod_atm_interface
 
     subroutine allocate_v3dbound(xb,ke,ldot)
       implicit none
-      type(v3dbound) , intent(out) :: xb
+      type(v3dbound) , intent(inout) :: xb
       integer(ik4) , intent(in) :: ke
       logical , intent(in) :: ldot
       if ( ldot ) then
@@ -561,7 +561,7 @@ module mod_atm_interface
 
     subroutine allocate_v2dbound(xb,ldot)
       implicit none
-      type(v2dbound) , intent(out) :: xb
+      type(v2dbound) , intent(inout) :: xb
       logical , intent(in) :: ldot
       if ( ldot ) then
         call getmem2d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,'v2dbound:b0')
@@ -621,7 +621,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_a(atm)
       implicit none
-      type(atmstate_a) , intent(out) :: atm
+      type(atmstate_a) , intent(inout) :: atm
       call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
@@ -646,7 +646,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_b(atm)
       implicit none
-      type(atmstate_b) , intent(out) :: atm
+      type(atmstate_b) , intent(inout) :: atm
 
       call getmem3d(atm%u,jd1,jd2,id1,id2,1,kz,'atmstate:u')
       call getmem3d(atm%v,jd1,jd2,id1,id2,1,kz,'atmstate:v')
@@ -677,7 +677,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_c(atm)
       implicit none
-      type(atmstate_c) , intent(out) :: atm
+      type(atmstate_c) , intent(inout) :: atm
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
@@ -701,7 +701,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_decoupled(atm)
       implicit none
-      type(atmstate_decoupled) , intent(out) :: atm
+      type(atmstate_decoupled) , intent(inout) :: atm
       call getmem3d(atm%uc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:uc')
       call getmem3d(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
       call getmem3d(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
@@ -733,7 +733,7 @@ module mod_atm_interface
 
     subroutine allocate_atmstate_tendency(atm)
       implicit none
-      type(atmstate_tendency) , intent(out) :: atm
+      type(atmstate_tendency) , intent(inout) :: atm
       call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:u')
       call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
@@ -761,7 +761,7 @@ module mod_atm_interface
 
     subroutine allocate_reference_atmosphere(atm)
       implicit none
-      type(reference_atmosphere) , intent(out) :: atm
+      type(reference_atmosphere) , intent(inout) :: atm
       call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
@@ -780,13 +780,13 @@ module mod_atm_interface
 
     subroutine allocate_mass_divergence(div)
       implicit none
-      type(mass_divergence) , intent(out) :: div
+      type(mass_divergence) , intent(inout) :: div
       call getmem3d(div%cr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'massdiv:cr')
     end subroutine allocate_mass_divergence
 
     subroutine allocate_tendiag(dia)
       implicit none
-      type(tendiag) , intent(out) :: dia
+      type(tendiag) , intent(inout) :: dia
       call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
       call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
@@ -800,7 +800,7 @@ module mod_atm_interface
 
     subroutine allocate_qendiag(dia)
       implicit none
-      type(qendiag) , intent(out) :: dia
+      type(qendiag) , intent(inout) :: dia
       call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
       call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
       call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
@@ -819,7 +819,7 @@ module mod_atm_interface
 
     subroutine allocate_domain(dom)
       implicit none
-      type(domain) , intent(out) :: dom
+      type(domain) , intent(inout) :: dom
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -874,7 +874,7 @@ module mod_atm_interface
 
     subroutine allocate_domain_subgrid(sub)
       implicit none
-      type(domain_subgrid) , intent(out) :: sub
+      type(domain_subgrid) , intent(inout) :: sub
       call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
@@ -892,7 +892,7 @@ module mod_atm_interface
 
     subroutine allocate_surfstate(sfs)
       implicit none
-      type(surfstate) , intent(out) :: sfs
+      type(surfstate) , intent(inout) :: sfs
       call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       if ( idynamic == 3 ) then
         call assignpnt(sfs%psa,sfs%psb)
@@ -940,7 +940,7 @@ module mod_atm_interface
 
     subroutine allocate_slice(ax,a0)
       implicit none
-      type(slice) , intent(out) :: ax
+      type(slice) , intent(inout) :: ax
       type(reference_atmosphere) , intent(in) :: a0
       if ( idynamic == 3 ) then
         call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
@@ -999,7 +999,7 @@ module mod_atm_interface
 
     subroutine allocate_nhbh(nhbh)
       implicit none
-      type(nhboundhelp) , intent(out) :: nhbh
+      type(nhboundhelp) , intent(inout) :: nhbh
 
       call getmem2d(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
       if ( ichem == 1 .or. iclimaaer == 1 ) then

@@ -199,7 +199,7 @@ module mod_clm_restfile
     implicit none
     character(len=*),  intent(in) :: flag ! flag to specify read or write
     character(len=*),  intent(in) :: rfile ! filename
-    type(clm_filetype), intent(out):: ncid ! netcdf id
+    type(clm_filetype), intent(inout):: ncid ! netcdf id
     if (flag == 'write') then
       ! Create new netCDF file (in define mode) and set fill mode
       ! to "no fill" to optimize performance

@@ -215,9 +215,9 @@ module mod_oasis_generic
   subroutine oasisxregcm_allocate_oasisgrids(lon,lat,clon,clat,srf,mask,jsize,isize,csize)
     implicit none
     integer(ik4) , intent(in) :: jsize , isize , csize
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: lon , lat , srf
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: clon , clat
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: mask
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lon , lat , srf
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: clon , clat
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mask
     !--------------------------------------------------------------------------
     allocate(lon(jsize,isize),stat=ierror)
     if ( ierror /= 0 ) then

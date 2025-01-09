@@ -361,7 +361,7 @@ end subroutine init_lnd2atm_type
 ! !ARGUMENTS:
   implicit none
   type(atm2lnd_type), intent(in)  :: a2l_src
-  type(atm2lnd_type), intent(out) :: a2l_dst
+  type(atm2lnd_type), intent(inout) :: a2l_dst
 !
 ! !REVISION HISTORY:
 ! 2005.11.15  T Craig  Creation.
@@ -637,7 +637,7 @@ end subroutine clm_mapr2l
 ! !ARGUMENTS:
   implicit none
   type(atm2lnd_type), intent(in)  :: a2l_src
-  type(atm2lnd_type), intent(out) :: a2l_dst
+  type(atm2lnd_type), intent(inout) :: a2l_dst
 !
 ! !REVISION HISTORY:
 ! 2005.11.15  T Craig  Creation.
@@ -908,7 +908,7 @@ end subroutine clm_mapa2l
 ! !ARGUMENTS:
   implicit none
   type(lnd2atm_type), intent(in)  :: l2a_src
-  type(lnd2atm_type), intent(out) :: l2a_dst
+  type(lnd2atm_type), intent(inout) :: l2a_dst
 !
 ! !REVISION HISTORY:
 ! 2005.11.15  T Craig  Creation.
@@ -1364,7 +1364,7 @@ end subroutine clm_map2gcell
   implicit none
 !rcm above
   type(lnd2atm_type), intent(in)  :: clm_l2a
-!  type(lnd2atm_type), intent(out) :: l2a_dst
+!  type(lnd2atm_type), intent(inout) :: l2a_dst
 !
 ! !REVISION HISTORY:
 ! 2009.1.8    A Tawfik Revised to work with RegCM

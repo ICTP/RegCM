@@ -150,7 +150,7 @@ contains
   ! Get the name of the model.
   function regcm_component_name(this, name) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (len=*), pointer, intent(out) :: name
+    character (len=*), pointer, intent(inout) :: name
     integer :: bmi_status
 
     name => component_name
@@ -180,7 +180,7 @@ contains
   ! List input variables.
   function regcm_input_var_names(this, names) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (*), pointer, intent(out) :: names(:)
+    character (*), pointer, intent(inout) :: names(:)
     integer :: bmi_status
 
     input_items(1) = 'plate_surface__temperature'
@@ -194,7 +194,7 @@ contains
   ! List output variables.
   function regcm_output_var_names(this, names) result (bmi_status)
     class (bmi_regcm), intent(in) :: this
-    character (*), pointer, intent(out) :: names(:)
+    character (*), pointer, intent(inout) :: names(:)
     integer :: bmi_status
 
     names => output_items
@@ -203,7 +203,7 @@ contains
 
   ! BMI initializer.
   function regcm_initialize(this, config_file) result (bmi_status)
-    class (bmi_regcm), intent(out) :: this
+    class (bmi_regcm), intent(inout) :: this
     character (len=*), intent(in) :: config_file
     integer :: bmi_status
 

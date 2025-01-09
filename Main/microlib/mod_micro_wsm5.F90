@@ -217,7 +217,7 @@ module mod_micro_wsm5
   subroutine wsm5(mo2mc,mc2mo)
     implicit none
     type(mod_2_micro) , intent(in) :: mo2mc
-    type(micro_2_mod) , intent(out) :: mc2mo
+    type(micro_2_mod) , intent(inout) :: mc2mo
 
     integer(ik4) :: i , j , k , kk , n
     real(rkx) :: pf1 , pf2 , qcw , totp
