@@ -49,44 +49,70 @@ module mod_moloch
   private
 
   ! generalized vertical velocity
-  real(rkx) , pointer , dimension(:,:,:) :: s
+  real(rkx) , pointer , dimension(:,:,:) :: s => null( )
   ! nonhydrostatic term in pressure gradient force
   ! tridiagonal inversion
-  real(rkx) , pointer , dimension(:,:,:) :: wx
-  real(rkx) , pointer , dimension(:,:,:) :: deltaw
-  real(rkx) , pointer , dimension(:,:,:) :: tkex
-  real(rkx) , pointer , dimension(:,:,:) :: wz
-  real(rkx) , pointer , dimension(:,:) :: mx2
-  real(rkx) , pointer , dimension(:,:) :: rmu
-  real(rkx) , pointer , dimension(:,:) :: rmv
-  real(rkx) , pointer , dimension(:,:,:) :: p0
-  real(rkx) , pointer , dimension(:,:,:) :: zdiv2
+  real(rkx) , pointer , dimension(:,:,:) :: wx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: deltaw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tkex => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wz => null( )
+  real(rkx) , pointer , dimension(:,:) :: mx2 => null( )
+  real(rkx) , pointer , dimension(:,:) :: rmu => null( )
+  real(rkx) , pointer , dimension(:,:) :: rmv => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: p0 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: zdiv2 => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ten0
-  real(rkx) , pointer , dimension(:,:,:) :: qen0
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
+  real(rkx) , pointer , dimension(:,:,:) :: ten0 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: qen0 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0 => null( )
 
-  real(rkx) , dimension(:) , pointer :: gzitak
-  real(rkx) , dimension(:) , pointer :: gzitakh
-  real(rkx) , dimension(:) , pointer :: xknu
-  real(rkx) , dimension(:,:) , pointer :: p2d
-  real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coru , corv
-  real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
-  real(rkx) , dimension(:,:) , pointer :: mv , hy
-  real(rkx) , dimension(:,:) , pointer :: ps , ts , ht
-  real(rkx) , dimension(:,:,:) , pointer :: fmz
-  real(rkx) , dimension(:,:,:) , pointer :: fmzf
-  real(rkx) , dimension(:,:,:) , pointer :: pai , pf
-  real(rkx) , dimension(:,:,:) , pointer :: tetav , tf , tvirt
-  real(rkx) , dimension(:,:,:) , pointer :: zeta , zetau , zetav
-  real(rkx) , dimension(:,:,:) , pointer :: u , v , w
-  real(rkx) , dimension(:,:,:) , pointer :: ux , vx
-  real(rkx) , dimension(:,:,:) , pointer :: ud , vd
-  real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
-  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
-  real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
-  real(rkx) , dimension(:,:,:) , pointer :: tke
-  real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
+  real(rkx) , dimension(:) , pointer :: gzitak => null( )
+  real(rkx) , dimension(:) , pointer :: gzitakh => null( )
+  real(rkx) , dimension(:) , pointer :: xknu => null( )
+  real(rkx) , dimension(:,:) , pointer :: p2d => null( )
+  real(rkx) , dimension(:,:) , pointer :: xlat => null( )
+  real(rkx) , dimension(:,:) , pointer :: xlon => null( )
+  real(rkx) , dimension(:,:) , pointer :: coru => null( )
+  real(rkx) , dimension(:,:) , pointer :: corv => null( )
+  real(rkx) , dimension(:,:) , pointer :: mu => null( )
+  real(rkx) , dimension(:,:) , pointer :: hx => null( )
+  real(rkx) , dimension(:,:) , pointer :: mx => null( )
+  real(rkx) , dimension(:,:) , pointer :: mv => null( )
+  real(rkx) , dimension(:,:) , pointer :: hy => null( )
+  real(rkx) , dimension(:,:) , pointer :: ps => null( )
+  real(rkx) , dimension(:,:) , pointer :: ts => null( )
+  real(rkx) , dimension(:,:) , pointer :: ht => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: fmz => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: fmzf => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: pai => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: pf => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: tetav => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: tf => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: tvirt => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: zeta => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: zetau => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: zetav => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: u => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: v => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: w => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: ux => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: vx => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: ud => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: vd => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: p => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: t => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: rho => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qv => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qc => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qi => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qr => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qs => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qsat => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qwltot => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: qwitot => null( )
+  real(rkx) , dimension(:,:,:) , pointer :: tke => null( )
+  real(rkx) , dimension(:,:,:,:) , pointer :: qx => null( )
+  real(rkx) , dimension(:,:,:,:) , pointer :: trac => null( )
 
   public :: allocate_moloch , init_moloch , moloch
 
@@ -1384,7 +1410,7 @@ module mod_moloch
       implicit none
       real(rkx) , intent(in) :: dta
       integer(ik4) :: n
-      real(rkx) , pointer , dimension(:,:,:) :: ptr
+      real(rkx) , pointer , dimension(:,:,:) :: ptr => null( )
 
       ! Compute U,V on cross points
 

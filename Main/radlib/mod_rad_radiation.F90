@@ -46,84 +46,84 @@ module mod_rad_radiation
     integer(ik4) :: n1 , n2
     real(rkx) :: eccf
     logical :: labsem
-    integer(ik4) , dimension(:) , pointer :: ioro
-    real(rkx) , dimension(:) , pointer :: dlat
-    real(rkx) , dimension(:) , pointer :: xptrop
-    real(rkx) , dimension(:) , pointer :: ts
-    real(rkx) , dimension(:) , pointer :: ps
-    real(rkx) , dimension(:) , pointer :: totcl
-    real(rkx) , dimension(:) , pointer :: totci
-    real(rkx) , dimension(:) , pointer :: totwv
-    real(rkx) , dimension(:) , pointer :: fsns
-    real(rkx) , dimension(:) , pointer :: flwds
-    real(rkx) , dimension(:) , pointer :: sols
-    real(rkx) , dimension(:) , pointer :: soll
-    real(rkx) , dimension(:) , pointer :: solsd
-    real(rkx) , dimension(:) , pointer :: solld
-    real(rkx) , dimension(:) , pointer :: emiss
-    real(rkx) , dimension(:) , pointer :: fsnt
-    real(rkx) , dimension(:) , pointer :: fsntc
-    real(rkx) , dimension(:) , pointer :: fsnsc
-    real(rkx) , dimension(:) , pointer :: flnt
-    real(rkx) , dimension(:) , pointer :: lwout
-    real(rkx) , dimension(:) , pointer :: lwin
-    real(rkx) , dimension(:) , pointer :: flns
-    real(rkx) , dimension(:) , pointer :: flntc
-    real(rkx) , dimension(:) , pointer :: flnsc
-    real(rkx) , dimension(:) , pointer :: solin
-    real(rkx) , dimension(:) , pointer :: solout
-    real(rkx) , dimension(:) , pointer :: alb
-    real(rkx) , dimension(:) , pointer :: albc
-    real(rkx) , dimension(:) , pointer :: fsds
-    real(rkx) , dimension(:) , pointer :: fsnirt
-    real(rkx) , dimension(:) , pointer :: fsnrtc
-    real(rkx) , dimension(:) , pointer :: fsnirtsq
-    real(rkx) , dimension(:) , pointer :: totcf
-    real(rkx) , dimension(:) , pointer :: czen
-    logical , dimension(:) , pointer :: czengt0
-    real(rkx) , dimension(:) , pointer :: adirsw
-    real(rkx) , dimension(:) , pointer :: adifsw
-    real(rkx) , dimension(:) , pointer :: adirlw
-    real(rkx) , dimension(:) , pointer :: adiflw
-    real(rkx) , dimension(:) , pointer :: asw
-    real(rkx) , dimension(:) , pointer :: alw
-    real(rkx) , dimension(:) , pointer :: abv
-    real(rkx) , dimension(:) , pointer :: sol
-    real(rkx) , dimension(:) , pointer :: aeradfo
-    real(rkx) , dimension(:) , pointer :: aeradfos
-    real(rkx) , dimension(:) , pointer :: aerlwfo
-    real(rkx) , dimension(:) , pointer :: aerlwfos
-    real(rkx) , dimension(:) , pointer :: asaeradfo
-    real(rkx) , dimension(:) , pointer :: asaeradfos
-    real(rkx) , dimension(:) , pointer :: asaerlwfo
-    real(rkx) , dimension(:) , pointer :: asaerlwfos
-    real(rkx) , dimension(:,:) , pointer :: pmid
-    real(rkx) , dimension(:,:) , pointer :: pint
-    real(rkx) , dimension(:,:) , pointer :: pmln
-    real(rkx) , dimension(:,:) , pointer :: piln
-    real(rkx) , dimension(:,:) , pointer :: t
-    real(rkx) , dimension(:,:) , pointer :: q
-    real(rkx) , dimension(:,:) , pointer :: ql
-    real(rkx) , dimension(:,:) , pointer :: qi
-    real(rkx) , dimension(:,:) , pointer :: dz
-    real(rkx) , dimension(:,:) , pointer :: rh
-    real(rkx) , dimension(:,:) , pointer :: rho
-    real(rkx) , dimension(:,:) , pointer :: cld
-    real(rkx) , dimension(:,:) , pointer :: effcld
-    real(rkx) , dimension(:,:) , pointer :: clwp
-    real(rkx) , dimension(:,:) , pointer :: qrs
-    real(rkx) , dimension(:,:) , pointer :: qrl
-    real(rkx) , dimension(:,:) , pointer :: rel
-    real(rkx) , dimension(:,:) , pointer :: rei
-    real(rkx) , dimension(:,:) , pointer :: fice
-    real(rkx) , dimension(:,:) , pointer :: o3vmr
-    real(rkx) , dimension(:,:) , pointer :: emsgastot
-    real(rkx) , dimension(:,:,:) , pointer :: absgasnxt
-    real(rkx) , dimension(:,:,:) , pointer :: absgastot
-    real(rkx) , dimension(:,:,:) , pointer :: tauxcl
-    real(rkx) , dimension(:,:,:) , pointer :: tauxci
-    real(rkx) , dimension(:,:,:) , pointer :: outtaucl
-    real(rkx) , dimension(:,:,:) , pointer :: outtauci
+    integer(ik4) , dimension(:) , pointer :: ioro => null( )
+    real(rkx) , dimension(:) , pointer :: dlat => null( )
+    real(rkx) , dimension(:) , pointer :: xptrop => null( )
+    real(rkx) , dimension(:) , pointer :: ts => null( )
+    real(rkx) , dimension(:) , pointer :: ps => null( )
+    real(rkx) , dimension(:) , pointer :: totcl => null( )
+    real(rkx) , dimension(:) , pointer :: totci => null( )
+    real(rkx) , dimension(:) , pointer :: totwv => null( )
+    real(rkx) , dimension(:) , pointer :: fsns => null( )
+    real(rkx) , dimension(:) , pointer :: flwds => null( )
+    real(rkx) , dimension(:) , pointer :: sols => null( )
+    real(rkx) , dimension(:) , pointer :: soll => null( )
+    real(rkx) , dimension(:) , pointer :: solsd => null( )
+    real(rkx) , dimension(:) , pointer :: solld => null( )
+    real(rkx) , dimension(:) , pointer :: emiss => null( )
+    real(rkx) , dimension(:) , pointer :: fsnt => null( )
+    real(rkx) , dimension(:) , pointer :: fsntc => null( )
+    real(rkx) , dimension(:) , pointer :: fsnsc => null( )
+    real(rkx) , dimension(:) , pointer :: flnt => null( )
+    real(rkx) , dimension(:) , pointer :: lwout => null( )
+    real(rkx) , dimension(:) , pointer :: lwin => null( )
+    real(rkx) , dimension(:) , pointer :: flns => null( )
+    real(rkx) , dimension(:) , pointer :: flntc => null( )
+    real(rkx) , dimension(:) , pointer :: flnsc => null( )
+    real(rkx) , dimension(:) , pointer :: solin => null( )
+    real(rkx) , dimension(:) , pointer :: solout => null( )
+    real(rkx) , dimension(:) , pointer :: alb => null( )
+    real(rkx) , dimension(:) , pointer :: albc => null( )
+    real(rkx) , dimension(:) , pointer :: fsds => null( )
+    real(rkx) , dimension(:) , pointer :: fsnirt => null( )
+    real(rkx) , dimension(:) , pointer :: fsnrtc => null( )
+    real(rkx) , dimension(:) , pointer :: fsnirtsq => null( )
+    real(rkx) , dimension(:) , pointer :: totcf => null( )
+    real(rkx) , dimension(:) , pointer :: czen => null( )
+    logical , dimension(:) , pointer :: czengt0 => null( )
+    real(rkx) , dimension(:) , pointer :: adirsw => null( )
+    real(rkx) , dimension(:) , pointer :: adifsw => null( )
+    real(rkx) , dimension(:) , pointer :: adirlw => null( )
+    real(rkx) , dimension(:) , pointer :: adiflw => null( )
+    real(rkx) , dimension(:) , pointer :: asw => null( )
+    real(rkx) , dimension(:) , pointer :: alw => null( )
+    real(rkx) , dimension(:) , pointer :: abv => null( )
+    real(rkx) , dimension(:) , pointer :: sol => null( )
+    real(rkx) , dimension(:) , pointer :: aeradfo => null( )
+    real(rkx) , dimension(:) , pointer :: aeradfos => null( )
+    real(rkx) , dimension(:) , pointer :: aerlwfo => null( )
+    real(rkx) , dimension(:) , pointer :: aerlwfos => null( )
+    real(rkx) , dimension(:) , pointer :: asaeradfo => null( )
+    real(rkx) , dimension(:) , pointer :: asaeradfos => null( )
+    real(rkx) , dimension(:) , pointer :: asaerlwfo => null( )
+    real(rkx) , dimension(:) , pointer :: asaerlwfos => null( )
+    real(rkx) , dimension(:,:) , pointer :: pmid => null( )
+    real(rkx) , dimension(:,:) , pointer :: pint => null( )
+    real(rkx) , dimension(:,:) , pointer :: pmln => null( )
+    real(rkx) , dimension(:,:) , pointer :: piln => null( )
+    real(rkx) , dimension(:,:) , pointer :: t => null( )
+    real(rkx) , dimension(:,:) , pointer :: q => null( )
+    real(rkx) , dimension(:,:) , pointer :: ql => null( )
+    real(rkx) , dimension(:,:) , pointer :: qi => null( )
+    real(rkx) , dimension(:,:) , pointer :: dz => null( )
+    real(rkx) , dimension(:,:) , pointer :: rh => null( )
+    real(rkx) , dimension(:,:) , pointer :: rho => null( )
+    real(rkx) , dimension(:,:) , pointer :: cld => null( )
+    real(rkx) , dimension(:,:) , pointer :: effcld => null( )
+    real(rkx) , dimension(:,:) , pointer :: clwp => null( )
+    real(rkx) , dimension(:,:) , pointer :: qrs => null( )
+    real(rkx) , dimension(:,:) , pointer :: qrl => null( )
+    real(rkx) , dimension(:,:) , pointer :: rel => null( )
+    real(rkx) , dimension(:,:) , pointer :: rei => null( )
+    real(rkx) , dimension(:,:) , pointer :: fice => null( )
+    real(rkx) , dimension(:,:) , pointer :: o3vmr => null( )
+    real(rkx) , dimension(:,:) , pointer :: emsgastot => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: absgasnxt => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: absgastot => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: tauxcl => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: tauxci => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: outtaucl => null( )
+    real(rkx) , dimension(:,:,:) , pointer :: outtauci => null( )
   end type radtype
 
   integer(ik4) , parameter :: nlwspi = 14

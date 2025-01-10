@@ -47,10 +47,12 @@ module mod_ocn_lake
   ! steepness factor of latent heat removal
   real(rkx) , parameter :: steepf = 1.0_rkx  ! Tuning needed !
 
-  real(rkx) , pointer , dimension(:,:) :: tlak
-  real(rkx) , pointer , dimension(:) :: hi , eta
-  logical , pointer , public , dimension(:) :: lakmsk
-  integer(ik4) , pointer , dimension(:) :: idep , ilp
+  real(rkx) , pointer , dimension(:,:) :: tlak => null( )
+  real(rkx) , pointer , dimension(:) :: hi => null( )
+  real(rkx) , pointer , dimension(:) :: eta => null( )
+  logical , pointer , public , dimension(:) :: lakmsk => null( )
+  integer(ik4) , pointer , dimension(:) :: idep => null( )
+  integer(ik4) , pointer , dimension(:) :: ilp => null( )
 
   integer(ik4) , public , parameter :: var_eta    = 1
   integer(ik4) , public , parameter :: var_hi     = 2
@@ -845,6 +847,7 @@ module mod_ocn_lake
       case (var_hi)
         p => hi
       case default
+        p => null( )
         return
     end select
     if ( idir == 1 ) then
@@ -870,6 +873,7 @@ module mod_ocn_lake
       case (var_tlak)
         p => tlak
       case default
+        p => null( )
         return
     end select
     if ( idir == 1 ) then

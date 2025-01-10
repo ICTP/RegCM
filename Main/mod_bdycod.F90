@@ -69,17 +69,35 @@ module mod_bdycod
   ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
   !
-  real(rkx) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
-                                         sve , svi , nve , nvi
-  real(rkx) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
-                                         wve , wvi , eve , evi
-  real(rkx) , pointer , dimension(:,:) :: psdot
-  real(rkx) , pointer , dimension(:) :: fcx , gcx
-  real(rkx) , pointer , dimension(:) :: fcd , gcd
-  real(rkx) , pointer , dimension(:,:) :: hefc , hegc , hefd , hegd
-  real(rkx) , pointer , dimension(:) :: wgtd
-  real(rkx) , pointer , dimension(:) :: wgtx
-  real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
+  real(rkx) , pointer , dimension(:,:) :: sue => null( )
+  real(rkx) , pointer , dimension(:,:) :: sui => null( )
+  real(rkx) , pointer , dimension(:,:) :: nue => null( )
+  real(rkx) , pointer , dimension(:,:) :: nui => null( )
+  real(rkx) , pointer , dimension(:,:) :: sve => null( )
+  real(rkx) , pointer , dimension(:,:) :: svi => null( )
+  real(rkx) , pointer , dimension(:,:) :: nve => null( )
+  real(rkx) , pointer , dimension(:,:) :: nvi => null( )
+  real(rkx) , pointer , dimension(:,:) :: wue => null( )
+  real(rkx) , pointer , dimension(:,:) :: wui => null( )
+  real(rkx) , pointer , dimension(:,:) :: eue => null( )
+  real(rkx) , pointer , dimension(:,:) :: eui => null( )
+  real(rkx) , pointer , dimension(:,:) :: wve => null( )
+  real(rkx) , pointer , dimension(:,:) :: wvi => null( )
+  real(rkx) , pointer , dimension(:,:) :: eve => null( )
+  real(rkx) , pointer , dimension(:,:) :: evi => null( )
+  real(rkx) , pointer , dimension(:,:) :: psdot => null( )
+  real(rkx) , pointer , dimension(:) :: fcx => null( )
+  real(rkx) , pointer , dimension(:) :: gcx => null( )
+  real(rkx) , pointer , dimension(:) :: fcd => null( )
+  real(rkx) , pointer , dimension(:) :: gcd => null( )
+  real(rkx) , pointer , dimension(:,:) :: hefc => null( )
+  real(rkx) , pointer , dimension(:,:) :: hegc => null( )
+  real(rkx) , pointer , dimension(:,:) :: hefd => null( )
+  real(rkx) , pointer , dimension(:,:) :: hegd => null( )
+  real(rkx) , pointer , dimension(:) :: wgtd => null( )
+  real(rkx) , pointer , dimension(:) :: wgtx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fg1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fg2 => null( )
   real(rkx) :: fnudge , gnudge , rdtbdy
   real(rk8) :: jday
   integer(ik4) :: som_month

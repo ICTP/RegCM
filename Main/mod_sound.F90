@@ -38,24 +38,32 @@ module mod_sound
 
   public :: allocate_mod_sound , init_sound , sound
 
-  real(rkx) , pointer , dimension(:,:,:) :: aa
-  real(rkx) , pointer , dimension(:,:,:) :: b
-  real(rkx) , pointer , dimension(:,:,:) :: c
-  real(rkx) , pointer , dimension(:,:,:) :: rhs
-  real(rkx) , pointer , dimension(:,:,:) :: sigdot
-  real(rkx) , pointer , dimension(:,:,:) :: wo
-  real(rkx) , pointer , dimension(:,:,:) :: ca
-  real(rkx) , pointer , dimension(:,:,:) :: g1 , g2
-  real(rkx) , pointer , dimension(:,:,:) :: ptend , pxup , pyvp
-  real(rkx) , pointer , dimension(:,:,:) :: ucrs , vcrs
-  real(rkx) , pointer , dimension(:,:,:) :: tk
-  real(rkx) , pointer , dimension(:,:,:) :: cc , cdd , cj
-  real(rkx) , pointer , dimension(:,:,:) :: pi
-  real(rkx) , pointer , dimension(:,:,:) :: e , f
-  real(rkx) , pointer , dimension(:,:) :: astore
-  real(rkx) , pointer , dimension(:,:) :: estore , estore_g
-  real(rkx) , pointer , dimension(:,:) :: rpsb
-  real(rkx) , pointer , dimension(:,:) :: wpval
+  real(rkx) , pointer , dimension(:,:,:) :: aa => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: b => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: c => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: rhs => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: sigdot => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wo => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ca => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: g1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: g2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ptend => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: pxup => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: pyvp => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ucrs => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vcrs => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tk => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: cc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: cdd => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: cj => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: pi => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: e => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: f => null( )
+  real(rkx) , pointer , dimension(:,:) :: astore => null( )
+  real(rkx) , pointer , dimension(:,:) :: estore => null( )
+  real(rkx) , pointer , dimension(:,:) :: estore_g => null( )
+  real(rkx) , pointer , dimension(:,:) :: rpsb => null( )
+  real(rkx) , pointer , dimension(:,:) :: wpval => null( )
 
   real(rkx) , dimension(-6:6) :: fi , fj
   real(rkx) , dimension(0:6) :: fk , fl

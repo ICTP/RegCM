@@ -41,8 +41,10 @@ module mod_sladvection
   public :: trajcalc_x , trajcalc_d
   public :: slhadv_x, slhadv_d , hdvg_x , hdvg_d
 
-  real(rkx) , pointer , dimension(:,:,:) :: ua , va
-  real(rkx) , pointer , dimension(:,:) :: mapfx , mapfd
+  real(rkx) , pointer , dimension(:,:,:) :: ua => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: va => null( )
+  real(rkx) , pointer , dimension(:,:) :: mapfx => null( )
+  real(rkx) , pointer , dimension(:,:) :: mapfd => null( )
 
   interface slhadv_x
     module procedure slhadv_x3d

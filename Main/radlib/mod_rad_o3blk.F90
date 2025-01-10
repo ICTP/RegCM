@@ -42,19 +42,24 @@ module mod_rad_o3blk
   public :: allocate_mod_rad_o3blk , o3data , read_o3data , close_o3data
 
   real(rkx) , dimension(31) :: o3ann , ppann
-  real(rkx) , pointer , dimension(:,:) :: alon , alat
   character(len=16) , parameter :: ozname_rcp = 'ozone'
   character(len=16) , parameter :: ozname_ssp = 'vmro3'
   character(len=16) :: ozname
   integer(ik4) :: ystart , yend , moffset
   real(rkx) :: mulfac
-  real(rkx) , pointer , dimension(:) :: olat
-  real(rkx) , pointer , dimension(:) :: olon
-  real(rkx) , pointer , dimension(:) :: oplev
-  real(rkx) , pointer , dimension(:,:,:) :: rdoz1 , rdoz2
-  real(rkx) , pointer , dimension(:,:,:) :: hzioz1 , hzioz2
-  real(rkx) , pointer , dimension(:,:,:) :: ploz1 , ploz2
-  real(rkx) , pointer , dimension(:,:,:) :: sgoz1 , sgoz2
+  real(rkx) , pointer , dimension(:,:) :: alon => null( )
+  real(rkx) , pointer , dimension(:,:) :: alat => null( )
+  real(rkx) , pointer , dimension(:) :: olat => null( )
+  real(rkx) , pointer , dimension(:) :: olon => null( )
+  real(rkx) , pointer , dimension(:) :: oplev => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: rdoz1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: rdoz2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: hzioz1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: hzioz2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ploz1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ploz2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: sgoz1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: sgoz2 => null( )
 
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1

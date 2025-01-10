@@ -84,7 +84,9 @@ module mod_lm_interface
   public :: t_finalizef
 #endif
 
-  real(rkx) , pointer , dimension(:,:) :: slp , sfp , slp1
+  real(rkx) , pointer , dimension(:,:) :: slp => null( )
+  real(rkx) , pointer , dimension(:,:) :: sfp => null( )
+  real(rkx) , pointer , dimension(:,:) :: slp1 => null( )
 
   type(lm_exchange) :: lm
   type(lm_state) :: lms

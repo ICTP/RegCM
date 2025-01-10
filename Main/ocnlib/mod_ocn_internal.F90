@@ -43,68 +43,68 @@ module mod_ocn_internal
   logical :: ldcsst = .false.
   logical :: lseaice = .false.
 
-  real(rkx) , pointer , dimension(:) :: cprate
-  real(rkx) , pointer , dimension(:) :: czenith
-  real(rkx) , pointer , dimension(:) :: deltas
-  real(rkx) , pointer , dimension(:) :: dhlake
-  real(rkx) , pointer , dimension(:) :: drag
-  real(rkx) , pointer , dimension(:) :: tskin
-  real(rkx) , pointer , dimension(:) :: dwrlwf
-  real(rkx) , pointer , dimension(:) :: emiss
-  real(rkx) , pointer , dimension(:) :: evpr
-  real(rkx) , pointer , dimension(:) :: ht      ! hgt
-  real(rkx) , pointer , dimension(:) :: hpbl    ! hpbl
-  real(rkx) , pointer , dimension(:) :: lat     ! xlat
-  real(rkx) , pointer , dimension(:) :: ncprate
-  real(rkx) , pointer , dimension(:) :: prcp
-  real(rkx) , pointer , dimension(:) :: q2m
-  real(rkx) , pointer , dimension(:) :: qv      ! qvatm
-  real(rkx) , pointer , dimension(:) :: rhox    ! rhox
-  real(rkx) , pointer , dimension(:) :: rlwf    ! rlwf
-  real(rkx) , pointer , dimension(:) :: rswf    ! rswf
-  real(rkx) , pointer , dimension(:) :: sent
-  real(rkx) , pointer , dimension(:) :: sfice
-  real(rkx) , pointer , dimension(:) :: tatm    ! tatm
-  real(rkx) , pointer , dimension(:) :: sfps    ! sfps
-  real(rkx) , pointer , dimension(:) :: snag
-  real(rkx) , pointer , dimension(:) :: sncv
-  real(rkx) , pointer , dimension(:) :: sm
-  real(rkx) , pointer , dimension(:) :: sst
-  real(rkx) , pointer , dimension(:) :: t2m
-  real(rkx) , pointer , dimension(:) :: sfta
-  real(rkx) , pointer , dimension(:) :: patm
-  real(rkx) , pointer , dimension(:) :: taux
-  real(rkx) , pointer , dimension(:) :: tauy
-  real(rkx) , pointer , dimension(:) :: tdeltas
-  real(rkx) , pointer , dimension(:) :: tgb     ! tground2
-  real(rkx) , pointer , dimension(:) :: tgbrd
-  real(rkx) , pointer , dimension(:) :: tgrd
-  real(rkx) , pointer , dimension(:) :: u10m
-  real(rkx) , pointer , dimension(:) :: v10m
-  real(rkx) , pointer , dimension(:) :: um10
-  real(rkx) , pointer , dimension(:) :: usw     ! uatm
-  real(rkx) , pointer , dimension(:) :: vsw     ! vatm
-  real(rkx) , pointer , dimension(:) :: ustr    ! ustar
-  real(rkx) , pointer , dimension(:) :: zoo     ! zo
-  real(rkx) , pointer , dimension(:) :: rhoa    ! xdens
-  real(rkx) , pointer , dimension(:) :: ram1
-  real(rkx) , pointer , dimension(:) :: rah1
-  real(rkx) , pointer , dimension(:) :: br
+  real(rkx) , pointer , dimension(:) :: cprate => null( )
+  real(rkx) , pointer , dimension(:) :: czenith => null( )
+  real(rkx) , pointer , dimension(:) :: deltas => null( )
+  real(rkx) , pointer , dimension(:) :: dhlake => null( )
+  real(rkx) , pointer , dimension(:) :: drag => null( )
+  real(rkx) , pointer , dimension(:) :: tskin => null( )
+  real(rkx) , pointer , dimension(:) :: dwrlwf => null( )
+  real(rkx) , pointer , dimension(:) :: emiss => null( )
+  real(rkx) , pointer , dimension(:) :: evpr => null( )
+  real(rkx) , pointer , dimension(:) :: ht => null( )      ! hgt
+  real(rkx) , pointer , dimension(:) :: hpbl => null( )    ! hpbl
+  real(rkx) , pointer , dimension(:) :: lat => null( )     ! xlat
+  real(rkx) , pointer , dimension(:) :: ncprate => null( )
+  real(rkx) , pointer , dimension(:) :: prcp => null( )
+  real(rkx) , pointer , dimension(:) :: q2m => null( )
+  real(rkx) , pointer , dimension(:) :: qv => null( )      ! qvatm
+  real(rkx) , pointer , dimension(:) :: rhox => null( )    ! rhox
+  real(rkx) , pointer , dimension(:) :: rlwf => null( )    ! rlwf
+  real(rkx) , pointer , dimension(:) :: rswf => null( )    ! rswf
+  real(rkx) , pointer , dimension(:) :: sent => null( )
+  real(rkx) , pointer , dimension(:) :: sfice => null( )
+  real(rkx) , pointer , dimension(:) :: tatm => null( )    ! tatm
+  real(rkx) , pointer , dimension(:) :: sfps => null( )    ! sfps
+  real(rkx) , pointer , dimension(:) :: snag => null( )
+  real(rkx) , pointer , dimension(:) :: sncv => null( )
+  real(rkx) , pointer , dimension(:) :: sm => null( )
+  real(rkx) , pointer , dimension(:) :: sst => null( )
+  real(rkx) , pointer , dimension(:) :: t2m => null( )
+  real(rkx) , pointer , dimension(:) :: sfta => null( )
+  real(rkx) , pointer , dimension(:) :: patm => null( )
+  real(rkx) , pointer , dimension(:) :: taux => null( )
+  real(rkx) , pointer , dimension(:) :: tauy => null( )
+  real(rkx) , pointer , dimension(:) :: tdeltas => null( )
+  real(rkx) , pointer , dimension(:) :: tgb => null( )     ! tground2
+  real(rkx) , pointer , dimension(:) :: tgbrd => null( )
+  real(rkx) , pointer , dimension(:) :: tgrd => null( )
+  real(rkx) , pointer , dimension(:) :: u10m => null( )
+  real(rkx) , pointer , dimension(:) :: v10m => null( )
+  real(rkx) , pointer , dimension(:) :: um10 => null( )
+  real(rkx) , pointer , dimension(:) :: usw => null( )     ! uatm
+  real(rkx) , pointer , dimension(:) :: vsw => null( )     ! vatm
+  real(rkx) , pointer , dimension(:) :: ustr => null( )    ! ustar
+  real(rkx) , pointer , dimension(:) :: zoo => null( )     ! zo
+  real(rkx) , pointer , dimension(:) :: rhoa => null( )    ! xdens
+  real(rkx) , pointer , dimension(:) :: ram1 => null( )
+  real(rkx) , pointer , dimension(:) :: rah1 => null( )
+  real(rkx) , pointer , dimension(:) :: br => null( )
 
-  real(rkx) , pointer , dimension(:) :: laketa
-  real(rkx) , pointer , dimension(:) :: lakhi
-  real(rkx) , pointer , dimension(:) :: lakaveice
-  real(rkx) , pointer , dimension(:,:) :: laktlake
-  integer(ik4) , pointer , dimension(:) :: ilake
+  real(rkx) , pointer , dimension(:) :: laketa => null( )
+  real(rkx) , pointer , dimension(:) :: lakhi => null( )
+  real(rkx) , pointer , dimension(:) :: lakaveice => null( )
+  real(rkx) , pointer , dimension(:,:) :: laktlake => null( )
+  integer(ik4) , pointer , dimension(:) :: ilake => null( )
 
-  real(rkx) , pointer , dimension(:) :: swdiral
-  real(rkx) , pointer , dimension(:) :: lwdiral
-  real(rkx) , pointer , dimension(:) :: swdifal
-  real(rkx) , pointer , dimension(:) :: lwdifal
+  real(rkx) , pointer , dimension(:) :: swdiral => null( )
+  real(rkx) , pointer , dimension(:) :: lwdiral => null( )
+  real(rkx) , pointer , dimension(:) :: swdifal => null( )
+  real(rkx) , pointer , dimension(:) :: lwdifal => null( )
 
-  integer(ik4) , pointer , dimension(:) :: mask
-  integer(ik4) , pointer , dimension(:) :: icpl
-  integer(ik4) , pointer , dimension(:) :: omask
+  integer(ik4) , pointer , dimension(:) :: mask => null( )
+  integer(ik4) , pointer , dimension(:) :: icpl => null( )
+  integer(ik4) , pointer , dimension(:) :: omask => null( )
 
   contains
 

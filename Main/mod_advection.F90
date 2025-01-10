@@ -53,24 +53,36 @@ module mod_advection
     module procedure vadv4d
   end interface vadv
 
-  real(rkx) , pointer , dimension(:,:,:) :: ua   ! U/m * ps
-  real(rkx) , pointer , dimension(:,:,:) :: va   ! V/m * ps
-  real(rkx) , pointer , dimension(:,:) :: ps     ! Surface pressure
-  real(rkx) , pointer , dimension(:,:) :: pd     ! Surface pressure dot points
-  real(rkx) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2 * 4 * dx)
-  real(rkx) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2 * 16 * dx)
-  real(rkx) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
-  real(rkx) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
-  real(rkx) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
-  real(rkx) , pointer , dimension(:,:,:) :: divx ! Mass divergence
-  integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
+  real(rkx) , pointer , dimension(:,:,:) :: ua => null( )   ! U/m * ps
+  real(rkx) , pointer , dimension(:,:,:) :: va  => null( )  ! V/m * ps
+  ! Surface pressure
+  real(rkx) , pointer , dimension(:,:) :: ps  => null( )
+  ! Surface pressure dot points
+  real(rkx) , pointer , dimension(:,:) :: pd  => null( )
+  ! 1/(mapfx**2 * 4 * dx)
+  real(rkx) , pointer , dimension(:,:) :: xmapf  => null( )
+  ! 1/(mapfd**2 * 16 * dx)
+  real(rkx) , pointer , dimension(:,:) :: dmapf  => null( )
+  ! Sigma Vertical Velocity
+  real(rkx) , pointer , dimension(:,:,:) :: svv  => null( )
+  ! Pressure full sigma levels
+  real(rkx) , pointer , dimension(:,:,:) :: pfs  => null( )
+  ! Pressure half sigma levels
+  real(rkx) , pointer , dimension(:,:,:) :: phs  => null( )
+  ! Mass divergence
+  real(rkx) , pointer , dimension(:,:,:) :: divx  => null( )
+  ! Top of PBL
+  integer(ik4) , pointer , dimension(:,:) :: kpb  => null( )
 
   ! working space used to store the interlated values in vadv.
 
-  real(rkx) , pointer , dimension(:) :: dds , xds
-  real(rkx) , pointer , dimension(:,:,:) :: fg
-  real(rkx) , pointer , dimension(:,:,:) :: uavg1 , uavg2
-  real(rkx) , pointer , dimension(:,:,:) :: vavg1 , vavg2
+  real(rkx) , pointer , dimension(:) :: dds => null( )
+  real(rkx) , pointer , dimension(:) :: xds => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fg => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uavg1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uavg2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vavg1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vavg2 => null( )
 
   contains
 

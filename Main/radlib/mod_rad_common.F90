@@ -32,11 +32,11 @@ module mod_rad_common
   ! emstot  - Total emissivity
 
   ! Those need to be saved in output file
-  real(rkx) , pointer , dimension(:,:,:) :: o3prof
-  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabsnxt
-  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabstot
-  real(rkx) , pointer , dimension(:,:,:) :: gasemstot
-  real(rkx) , pointer , dimension(:,:,:,:) :: taucldsp
+  real(rkx) , pointer , dimension(:,:,:) :: o3prof => null( )
+  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabsnxt => null( )
+  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabstot => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: gasemstot => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: taucldsp => null( )
   logical , save :: doabsems , dolw , dosw
   integer(ik4) , save :: ichso4 , ichbc , ichoc
   integer(ik4) , save :: kclimh , kth , ktf , ksf , kclimf

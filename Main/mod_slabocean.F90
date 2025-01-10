@@ -41,13 +41,21 @@ module mod_slabocean
   real(rkx) :: dtocean
 
   ! the actual prognotic sst pointing on tg2
-  real(rkx) , pointer , dimension(:,:) :: sstemp
-  real(rkx) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
-  real(rkx) , pointer , dimension(:,:,:) :: slabmld
-  real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst
-  real(rkx) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
-    hflx , qflb0 , qflb1 , qflbt
-  logical , pointer , dimension(:,:) :: ocmask
+  real(rkx) , pointer , dimension(:,:) :: sstemp => null( )
+  real(rkx) , pointer , dimension(:,:) :: ohfx => null( )
+  real(rkx) , pointer , dimension(:,:) :: oqfx => null( )
+  real(rkx) , pointer , dimension(:,:) :: ofsw => null( )
+  real(rkx) , pointer , dimension(:,:) :: oflw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: slabmld => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst => null( )
+  real(rkx) , pointer , dimension (:,:) :: qflux_sst => null( )
+  real(rkx) , pointer , dimension(:,:) :: qflux_adj => null( )
+  real(rkx) , pointer , dimension(:,:) :: net_hflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: hflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: qflb0 => null( )
+  real(rkx) , pointer , dimension(:,:) :: qflb1 => null( )
+  real(rkx) , pointer , dimension(:,:) :: qflbt => null( )
+  logical , pointer , dimension(:,:) :: ocmask => null( )
 
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
@@ -85,10 +93,12 @@ module mod_slabocean
       integer(ik4) ::  ncid
       integer(ik4) :: iret
       integer(ik4)  icvar , idimid
-      real(rkx) , pointer , dimension(:,:,:) :: climld
-      real(rkx) , pointer , dimension(:) :: lat , lon
-      real(rkx) , pointer , dimension(:,:) :: alon , alat
-      real(rkx) , pointer , dimension(:,:,:) :: ymld
+      real(rkx) , pointer , dimension(:,:,:) :: climld => null( )
+      real(rkx) , pointer , dimension(:) :: lat => null( )
+      real(rkx) , pointer , dimension(:) :: lon => null( )
+      real(rkx) , pointer , dimension(:,:) :: alon => null( )
+      real(rkx) , pointer , dimension(:,:) :: alat => null( )
+      real(rkx) , pointer , dimension(:,:,:) :: ymld => null( )
       type(h_interpolator) :: hint
 
       ! water heat capacity ~ 4 J/g/K

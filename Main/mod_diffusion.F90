@@ -35,8 +35,10 @@ module mod_diffusion
 
   private
 
-  real(rkx) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
-  real(rkx) , public , pointer , dimension(:,:) :: hgfact
+  real(rkx) , pointer , dimension(:,:,:) :: xkc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: xkd => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: xkcf => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: hgfact => null( )
 
   real(rkx) :: dydc , xkhmax
 
@@ -53,8 +55,12 @@ module mod_diffusion
   public :: diffu_d
   public :: diffu_x
 
-  real(rkx) , pointer , dimension(:,:,:) :: ud , vd , wx
-  real(rkx) , pointer , dimension(:,:) :: pc , pd , mpd
+  real(rkx) , pointer , dimension(:,:,:) :: ud => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vd => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wx => null( )
+  real(rkx) , pointer , dimension(:,:) :: pc => null( )
+  real(rkx) , pointer , dimension(:,:) :: pd => null( )
+  real(rkx) , pointer , dimension(:,:) :: mpd => null( )
   !
   ! Use 9-point laplacian as in LeVeque,
   !   Finite Difference Methods for Differential Equations , Eq. 3.17

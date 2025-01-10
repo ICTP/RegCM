@@ -54,52 +54,156 @@ module mod_rrtmg_driver
 !
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
-  real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin ,  &
-         solout , clrss , firtp , lwout , lwin , frla , clrlt , clrls , &
-         abv , sol , sols , soll , solsd , solld , slwd , tsfc , psfc , &
-         asdir , asdif , aldir , aldif , czen , dlat , xptrop , totcf , &
-         totwv, totcl , totci
+  real(rkx) , pointer , dimension(:) :: frsa => null( )
+  real(rkx) , pointer , dimension(:) :: sabtp => null( )
+  real(rkx) , pointer , dimension(:) :: clrst => null( )
+  real(rkx) , pointer , dimension(:) :: solin => null( )
+  real(rkx) , pointer , dimension(:) :: solout => null( )
+  real(rkx) , pointer , dimension(:) :: clrss => null( )
+  real(rkx) , pointer , dimension(:) :: firtp => null( )
+  real(rkx) , pointer , dimension(:) :: lwout => null( )
+  real(rkx) , pointer , dimension(:) :: lwin => null( )
+  real(rkx) , pointer , dimension(:) :: frla => null( )
+  real(rkx) , pointer , dimension(:) :: clrlt => null( )
+  real(rkx) , pointer , dimension(:) :: clrls => null( )
+  real(rkx) , pointer , dimension(:) :: abv => null( )
+  real(rkx) , pointer , dimension(:) :: sol => null( )
+  real(rkx) , pointer , dimension(:) :: sols => null( )
+  real(rkx) , pointer , dimension(:) :: soll => null( )
+  real(rkx) , pointer , dimension(:) :: solsd => null( )
+  real(rkx) , pointer , dimension(:) :: solld => null( )
+  real(rkx) , pointer , dimension(:) :: slwd => null( )
+  real(rkx) , pointer , dimension(:) :: tsfc => null( )
+  real(rkx) , pointer , dimension(:) :: psfc => null( )
+  real(rkx) , pointer , dimension(:) :: asdir => null( )
+  real(rkx) , pointer , dimension(:) :: asdif => null( )
+  real(rkx) , pointer , dimension(:) :: aldir => null( )
+  real(rkx) , pointer , dimension(:) :: aldif => null( )
+  real(rkx) , pointer , dimension(:) :: czen => null( )
+  real(rkx) , pointer , dimension(:) :: dlat => null( )
+  real(rkx) , pointer , dimension(:) :: xptrop => null( )
+  real(rkx) , pointer , dimension(:) :: totcf => null( )
+  real(rkx) , pointer , dimension(:) :: totwv => null( )
+  real(rkx) , pointer , dimension(:) :: totcl => null( )
+  real(rkx) , pointer , dimension(:) :: totci => null( )
 
-  real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
-    rh , cld_int , tlay , h2ovmr , o3vmr , co2vmrk , play , ch4vmr ,   &
-    n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , o3 ,   &
-    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel , cldf ,&
-    lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1 , alpha
+  real(rkx) , pointer , dimension(:,:) :: qrs => null( )
+  real(rkx) , pointer , dimension(:,:) :: qrl => null( )
+  real(rkx) , pointer , dimension(:,:) :: clwp_int => null( )
+  real(rkx) , pointer , dimension(:,:) :: pint => null( )
+  real(rkx) , pointer , dimension(:,:) :: rh => null( )
+  real(rkx) , pointer , dimension(:,:) :: cld_int => null( )
+  real(rkx) , pointer , dimension(:,:) :: tlay => null( )
+  real(rkx) , pointer , dimension(:,:) :: h2ovmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: o3vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: co2vmrk => null( )
+  real(rkx) , pointer , dimension(:,:) :: play => null( )
+  real(rkx) , pointer , dimension(:,:) :: ch4vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: n2ovmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: o2vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: cfc11vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: cfc12vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: cfc22vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: ccl4vmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: o3 => null( )
+  real(rkx) , pointer , dimension(:,:) :: reicmcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: relqmcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: swhr => null( )
+  real(rkx) , pointer , dimension(:,:) :: swhrc => null( )
+  real(rkx) , pointer , dimension(:,:) :: ciwp => null( )
+  real(rkx) , pointer , dimension(:,:) :: clwp => null( )
+  real(rkx) , pointer , dimension(:,:) :: rei => null( )
+  real(rkx) , pointer , dimension(:,:) :: rel => null( )
+  real(rkx) , pointer , dimension(:,:) :: cldf => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwhr => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwhrc => null( )
+  real(rkx) , pointer , dimension(:,:) :: duflx_dt => null( )
+  real(rkx) , pointer , dimension(:,:) :: duflxc_dt => null( )
+  real(rkx) , pointer , dimension(:,:) :: ql1 => null( )
+  real(rkx) , pointer , dimension(:,:) :: qi1 => null( )
+  real(rkx) , pointer , dimension(:,:) :: alpha => null( )
 
-  real(rkx) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
-    swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,             &
-    swddiruviflx , swddifuviflx , swddirpirflx , swddifpirflx , swdvisflx
+  real(rkx) , pointer , dimension(:,:) :: plev => null( )
+  real(rkx) , pointer , dimension(:,:) :: tlev => null( )
+  real(rkx) , pointer , dimension(:,:) :: swuflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swdflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swuflxc => null( )
+  real(rkx) , pointer , dimension(:,:) :: swdflxc => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwuflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwdflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwuflxc => null( )
+  real(rkx) , pointer , dimension(:,:) :: lwdflxc => null( )
+  real(rkx) , pointer , dimension(:,:) :: swddiruviflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swddifuviflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swddirpirflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swddifpirflx => null( )
+  real(rkx) , pointer , dimension(:,:) :: swdvisflx => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
-         asmcmcl , fsfcmcl , ciwpmcl , clwpmcl
-  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
-         ciwpmcl_lw , clwpmcl_lw
+  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: taucmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ssacmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: asmcmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fsfcmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ciwpmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: clwpmcl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl_lw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: taucmcl_lw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ciwpmcl_lw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: clwpmcl_lw => null( )
 
-  real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , &
-    asaeradfo , asaeradfos
-  real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos , &
-    asaerlwfo , asaerlwfos
-  real(rkx) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
-         fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
-         cfc11mmr , cfc12mmr , deltaz , dzr
-  real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
+  real(rkx) , pointer , dimension(:) :: aeradfo => null( )
+  real(rkx) , pointer , dimension(:) :: aeradfos => null( )
+  real(rkx) , pointer , dimension(:) :: asaeradfo => null( )
+  real(rkx) , pointer , dimension(:) :: asaeradfos => null( )
+  real(rkx) , pointer , dimension(:) :: aerlwfo => null( )
+  real(rkx) , pointer , dimension(:) :: aerlwfos => null( )
+  real(rkx) , pointer , dimension(:) :: asaerlwfo => null( )
+  real(rkx) , pointer , dimension(:) :: asaerlwfos => null( )
+  real(rkx) , pointer , dimension(:,:) :: fice => null( )
+  real(rkx) , pointer , dimension(:,:) :: wcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: wci => null( )
+  real(rkx) , pointer , dimension(:,:) :: gcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: gci => null( )
+  real(rkx) , pointer , dimension(:,:) :: fcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: fci => null( )
+  real(rkx) , pointer , dimension(:,:) :: tauxcl => null( )
+  real(rkx) , pointer , dimension(:,:) :: tauxci => null( )
+  real(rkx) , pointer , dimension(:,:) :: h2ommr => null( )
+  real(rkx) , pointer , dimension(:,:) :: n2ommr => null( )
+  real(rkx) , pointer , dimension(:,:) :: ch4mmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: cfc11mmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: cfc12mmr => null( )
+  real(rkx) , pointer , dimension(:,:) :: deltaz => null( )
+  real(rkx) , pointer , dimension(:,:) :: dzr => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: outtaucl => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: outtauci => null( )
 
-  integer(ik4) , pointer , dimension(:) :: ioro
+  integer(ik4) , pointer , dimension(:) :: ioro => null( )
 
   ! spectral dependant quantities
 
-  real(rkx) , pointer , dimension(:,:,:) :: tauaer , ssaaer , asmaer , ecaer
+  real(rkx) , pointer , dimension(:,:,:) :: tauaer => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ssaaer => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: asmaer => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ecaer => null( )
   ! tauc = in-cloud optical depth
   ! ssac = in-cloud single scattering albedo (non-delta scaled)
   ! asmc = in-cloud asymmetry parameter (non-delta scaled)
   ! fsfc = in-cloud forward scattering fraction (non-delta scaled)
-  real(rkx) , pointer , dimension(:,:,:) :: tauc , ssac , asmc , fsfc
-  real(rkx) , pointer , dimension(:,:) :: emis_surf
-  real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
-  real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
+  real(rkx) , pointer , dimension(:,:,:) :: tauc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ssac => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: asmc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fsfc => null( )
+  real(rkx) , pointer , dimension(:,:) :: emis_surf => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tauc_lw => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw => null( )
 
-  real(rkx) , pointer , dimension(:) :: cfc110 , cfc120 , ch40
-  real(rkx) , pointer , dimension(:) :: co2mmr , co2vmr , n2o0
+  real(rkx) , pointer , dimension(:) :: cfc110 => null( )
+  real(rkx) , pointer , dimension(:) :: cfc120 => null( )
+  real(rkx) , pointer , dimension(:) :: ch40 => null( )
+  real(rkx) , pointer , dimension(:) :: co2mmr => null( )
+  real(rkx) , pointer , dimension(:) :: co2vmr => null( )
+  real(rkx) , pointer , dimension(:) :: n2o0 => null( )
 
   integer(ik4) :: npr , npj
 

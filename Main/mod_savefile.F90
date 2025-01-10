@@ -73,129 +73,130 @@ module mod_savefile
   integer(ik4) , parameter :: indep = 17
   integer(ik4) , parameter :: idndu = 18
 
-  integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
-  integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
+  integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io => null( )
+  integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_u_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_v_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_w_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_pai_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_t_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm_tke_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm_qx_io
-  real(rkx) , public , pointer , dimension(:,:) :: ps_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_u_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_v_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_w_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_pai_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_t_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_tke_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm_qx_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: ps_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_v_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_t_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_t_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_w_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_w_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_pp_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_pp_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_v_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_t_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_t_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_w_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_w_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_pp_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_pp_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: psa_io
-  real(rkx) , public , pointer , dimension(:,:) :: psb_io
+  real(rkx) , public , pointer , dimension(:,:) :: psa_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: psb_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: hfx_io
-  real(rkx) , public , pointer , dimension(:,:) :: qfx_io
-  real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
-  real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
-  real(rkx) , public , pointer , dimension(:,:) :: q2m_io
-  real(rkx) , public , pointer , dimension(:,:) :: u10m_io
-  real(rkx) , public , pointer , dimension(:,:) :: v10m_io
-  real(rkx) , public , pointer , dimension(:,:) :: w10m_io
-  real(rkx) , public , pointer , dimension(:,:) :: br_io
-  real(rkx) , public , pointer , dimension(:,:) :: ram_io
-  real(rkx) , public , pointer , dimension(:,:) :: rah_io
-  real(rkx) , public , pointer , dimension(:,:) :: ustar_io
-  real(rkx) , public , pointer , dimension(:,:) :: zo_io
-  real(rkx) , public , pointer , dimension(:,:) :: dsrnof_io
-  real(rkx) , public , pointer , dimension(:,:) :: dtrnof_io
+  real(rkx) , public , pointer , dimension(:,:) :: hfx_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: qfx_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: tgbb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: q2m_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: u10m_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: v10m_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: w10m_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: br_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: ram_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: rah_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: ustar_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: zo_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: dsrnof_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: dtrnof_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: snag_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tsoi_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: swvol_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: taf_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: um10_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: eta_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: hi_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: tlak_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: snag_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tsoi_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: swvol_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: taf_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: um10_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: eta_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: hi_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: tlak_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: flw_io
-  real(rkx) , public , pointer , dimension(:,:) :: flwd_io
-  real(rkx) , public , pointer , dimension(:,:) :: fsw_io
-  real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
-  real(rkx) , public , pointer , dimension(:,:) :: totcf_io
-  real(rkx) , public , pointer , dimension(:,:) :: sinc_io
-  real(rkx) , public , pointer , dimension(:,:) :: solis_io
-  real(rkx) , public , pointer , dimension(:,:) :: solvs_io
-  real(rkx) , public , pointer , dimension(:,:) :: solvsd_io
-  real(rkx) , public , pointer , dimension(:,:) :: solvl_io
-  real(rkx) , public , pointer , dimension(:,:) :: solvld_io
+  real(rkx) , public , pointer , dimension(:,:) :: flw_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: flwd_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: fsw_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: sabveg_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: totcf_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: sinc_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: solis_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: solvs_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: solvsd_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: solvl_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: solvld_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: sst_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tskin_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tdeltas_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: deltas_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sst_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tskin_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: tdeltas_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: deltas_io => null( )
 
-  integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io
-  real(rkx) , public , pointer , dimension(:,:) :: zpbl_io
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_uz0_io
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_vz0_io
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_thz0_io
-  real(rkx) , public , pointer , dimension(:,:) :: myjsf_qz0_io
+  integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: zpbl_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_uz0_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_vz0_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_thz0_io => null( )
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_qz0_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io
+  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: cldfra_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cldfra_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
+  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: &
+    qflux_restore_sst_io => null( )
 
 #ifdef CLM
-  real(rkx) , public , pointer , dimension(:,:) :: lndcat_io
+  real(rkx) , public , pointer , dimension(:,:) :: lndcat_io => null( )
 #endif
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: swalb_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwalb_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swalb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwalb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io => null( )
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io => null( )
 
-  real(rkx) , public , pointer , dimension(:,:,:,:) :: tmp_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: tmp_io => null( )
 
   interface myputvar
     module procedure myputvar2dd

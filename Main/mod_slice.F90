@@ -40,8 +40,8 @@ module mod_slice
 
   integer(ik4) :: ix1 , ix2 , jx1 , jx2
   integer(ik4) :: id1 , id2 , jd1 , jd2
-  real(rkx) , dimension(:,:) , pointer :: rpsb
-  real(rkx) , dimension(:,:) , pointer :: rpsdotb
+  real(rkx) , dimension(:,:) , pointer :: rpsb => null( )
+  real(rkx) , dimension(:,:) , pointer :: rpsdotb => null( )
 
   real(rkx) , parameter , dimension(0:5) :: anorth = &
      [  7.9925_rkx, 8.3329_rkx, 24.1731_rkx, &

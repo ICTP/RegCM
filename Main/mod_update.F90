@@ -38,8 +38,8 @@ module mod_update
   type(exp_data) , public :: exportFields
   type(exp_data3d) , public :: exportFields3d
 
-  integer(ik4) , pointer , dimension(:,:) :: ldmskb
-  integer(ik4) , pointer , dimension(:,:) :: wetdry
+  integer(ik4) , pointer , dimension(:,:) :: ldmskb => null( )
+  integer(ik4) , pointer , dimension(:,:) :: wetdry => null( )
 
   real(rk8) , parameter :: zeroval = 0.0_rk8
   real(rk8) , parameter :: missing_r8 = 1.0e20_rk8

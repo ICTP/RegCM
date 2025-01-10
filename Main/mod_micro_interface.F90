@@ -52,9 +52,11 @@ module mod_micro_interface
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
-  real(rkx) , pointer , dimension(:,:) :: rh0 , qtcrit
+  real(rkx) , pointer , dimension(:,:) :: rh0 => null( )
+  real(rkx) , pointer , dimension(:,:) :: qtcrit => null( )
   ! rh0adj - Adjusted relative humidity threshold
-  real(rkx) , pointer , dimension(:,:,:) :: totc , rh0adj
+  real(rkx) , pointer , dimension(:,:,:) :: totc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: rh0adj => null( )
 
   real(rkx) , parameter :: alphaice = d_one
 

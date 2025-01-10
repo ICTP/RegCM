@@ -72,7 +72,7 @@ module mod_output
     real(rkx) :: cell , srffac , radfac , lakfac , subfac , optfac , stsfac
     real(rkx) :: tsurf , t500
     real(rkx) , dimension(:,:,:) , pointer :: qv
-    real(rkx) , dimension(:,:) , pointer :: temp500 => null( )
+    real(rkx) , dimension(:,:) , pointer :: temp500
     type(regcm_projection) , save :: pj
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
@@ -80,6 +80,8 @@ module mod_output
     call time_begin(subroutine_name,idindx)
 #endif
 
+    qv => null( )
+    temp500 => null( )
     if ( uvrotate ) then
       if ( .not. rotinit ) then
         call alpharot_compute(pj)

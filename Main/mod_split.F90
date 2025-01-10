@@ -41,18 +41,21 @@ module mod_split
 
   public :: allocate_mod_split , spinit , splitf
 
-  real(rkx) , pointer , dimension(:) :: aam
-  real(rkx) , pointer , dimension(:) :: an
-  real(rkx) , pointer , dimension(:,:) :: am , map
-  real(rkx) , pointer , dimension(:,:,:) :: uuu , vvv
+  real(rkx) , pointer , dimension(:) :: aam => null( )
+  real(rkx) , pointer , dimension(:) :: an => null( )
+  real(rkx) , pointer , dimension(:,:) :: am => null( )
+  real(rkx) , pointer , dimension(:,:) :: map => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uuu => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vvv => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ddsum
-  real(rkx) , pointer , dimension(:,:,:) :: dhsum
-  real(rkx) , pointer , dimension(:,:,:,:) :: deld
-  real(rkx) , pointer , dimension(:,:,:,:) :: delh
-  real(rkx) , pointer , dimension(:,:,:) :: work
-  real(rkx) , pointer , dimension(:,:) :: uu , vv
-  real(rkx) , pointer , dimension(:,:) :: xdelh
+  real(rkx) , pointer , dimension(:,:,:) :: ddsum => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: dhsum => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: deld => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: delh => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: work => null( )
+  real(rkx) , pointer , dimension(:,:) :: uu => null( )
+  real(rkx) , pointer , dimension(:,:) :: vv => null( )
+  real(rkx) , pointer , dimension(:,:) :: xdelh => null( )
 
   contains
 

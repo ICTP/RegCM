@@ -52,8 +52,10 @@ module mod_pbl_interface
   public :: kmxpbl
 
   real(rkx) , public :: tkemin = 0.0_rkx
-  real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
-  real(rkx) , pointer , dimension(:,:,:) :: utend , vtend
+  real(rkx) , pointer , dimension(:,:,:) :: utenx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vtenx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: utend => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vtend => null( )
 
   contains
 

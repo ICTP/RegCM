@@ -87,8 +87,10 @@ module mod_cu_interface
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
 
-  real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
-  real(rkx) , pointer , dimension(:,:,:) :: utend , vtend
+  real(rkx) , pointer , dimension(:,:,:) :: utenx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vtenx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: utend => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vtend => null( )
 
   ! Midlevel convection top pressure for Tiedtke iconv = 1
   real(rkx) , parameter :: cmcptop = 30000.0_rkx

@@ -54,45 +54,56 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  real(rkx) , pointer , dimension(:,:,:) :: ttld , td , &
-         phi , qcd , qvd , tvfac , ucc , vcc , th , tha
-  real(rkx) , pointer , dimension(:,:,:) :: ps4
-  real(rkx) , pointer , dimension(:,:,:) :: ps_4
-  real(rkx) , pointer , dimension(:,:) :: pten
-  real(rkx) , pointer , dimension(:,:,:) :: thten
-  real(rkx) , pointer , dimension(:,:) :: rpsa , rpsb , rpsc
-  real(rkx) , pointer , dimension(:,:) :: rpsda
+  real(rkx) , pointer , dimension(:,:,:) :: ttld => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: td => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: phi => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: qcd => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: qvd => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tvfac => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ucc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vcc => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: th => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tha => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ps4 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ps_4 => null( )
+  real(rkx) , pointer , dimension(:,:) :: pten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: thten => null( )
+  real(rkx) , pointer , dimension(:,:) :: rpsa => null( )
+  real(rkx) , pointer , dimension(:,:) :: rpsb => null( )
+  real(rkx) , pointer , dimension(:,:) :: rpsc => null( )
+  real(rkx) , pointer , dimension(:,:) :: rpsda => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tten
-  real(rkx) , pointer , dimension(:,:,:) :: uten
-  real(rkx) , pointer , dimension(:,:,:) :: vten
-  real(rkx) , pointer , dimension(:,:,:) :: wten
-  real(rkx) , pointer , dimension(:,:,:) :: ppten
-  real(rkx) , pointer , dimension(:,:,:) :: tketen
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxten
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten
+  real(rkx) , pointer , dimension(:,:,:) :: tten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ppten => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tketen => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxten => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tdyn
-  real(rkx) , pointer , dimension(:,:,:) :: udyn
-  real(rkx) , pointer , dimension(:,:,:) :: vdyn
-  real(rkx) , pointer , dimension(:,:,:) :: wdyn
-  real(rkx) , pointer , dimension(:,:,:) :: ppdyn
-  real(rkx) , pointer , dimension(:,:,:) :: tkedyn
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxdyn
-  real(rkx) , pointer , dimension(:,:,:,:) :: chidyn
+  real(rkx) , pointer , dimension(:,:,:) :: tdyn => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: udyn => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vdyn => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wdyn => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ppdyn => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tkedyn => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxdyn => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: chidyn => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: tphy
-  real(rkx) , pointer , dimension(:,:,:) :: uphy
-  real(rkx) , pointer , dimension(:,:,:) :: vphy
-  real(rkx) , pointer , dimension(:,:,:) :: wphy
-  real(rkx) , pointer , dimension(:,:,:) :: ppphy
-  real(rkx) , pointer , dimension(:,:,:) :: tkephy
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxphy
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiphy
+  real(rkx) , pointer , dimension(:,:,:) :: tphy => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uphy => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vphy => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wphy => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ppphy => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tkephy => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxphy => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiphy => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ten0 , qen0
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
-  real(rkx) , pointer , dimension(:,:,:) :: tkeps
+  real(rkx) , pointer , dimension(:,:,:) :: ten0 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: qen0 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tkeps => null( )
 
   integer(ik4) :: idgq
   integer(ik4) :: ithadv = 1
@@ -2097,10 +2108,10 @@ module mod_tendency
 
   subroutine extracttent(ten,store,indx,ten0)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) :: ten
-    real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
-    real(rkx) , optional , pointer , dimension(:,:,:) :: ten0
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: ten
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: store
+    real(rkx) , optional , pointer , dimension(:,:,:) , intent(in) :: ten0
     integer(ik4) :: i , j , k
     if ( present(ten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -2116,10 +2127,10 @@ module mod_tendency
 
   subroutine extracttenqv(qen,store,indx,qen0)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:,:) :: qen
-    real(rkx) , pointer , dimension(:,:,:) :: store
     integer(ik4) , intent(in) :: indx
-    real(rkx) , optional , pointer , dimension(:,:,:) :: qen0
+    real(rkx) , pointer , dimension(:,:,:,:,:) , intent(in) :: qen
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: store
+    real(rkx) , optional , pointer , dimension(:,:,:) , intent(in) :: qen0
     integer(ik4) :: i , j , k
     if ( present(qen0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
@@ -2135,10 +2146,10 @@ module mod_tendency
 
   subroutine extracttenchi(chiten,store,indx,chiten0)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:,:,:) :: chiten
-    real(rkx) , pointer , dimension(:,:,:,:) :: store
     integer(ik4) , intent(in) :: indx
-    real(rkx) , optional , pointer , dimension(:,:,:,:) :: chiten0
+    real(rkx) , pointer , dimension(:,:,:,:,:) , intent(in) :: chiten
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: store
+    real(rkx) , optional , pointer , dimension(:,:,:,:) , intent(in) :: chiten0
     integer(ik4) :: i , j , k , n
     if ( present(chiten0) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz, n = 1:ntr )

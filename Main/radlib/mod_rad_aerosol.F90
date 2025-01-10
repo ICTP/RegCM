@@ -54,30 +54,47 @@ module mod_rad_aerosol
   public :: aerclima_ntr , aerclima_nbin
   !
   character(len=256) :: macv2sp_hist , macv2sp_scen
-  real(rk8) , pointer , dimension(:) :: lambdaw
-  real(rk8) , pointer , dimension(:) :: latr4 , lonr4 , altr4
-  real(rk8) , pointer , dimension(:,:) :: z , dz
-  real(rk8) , pointer , dimension(:) :: dnovrnr4
-  real(rk8) , pointer , dimension(:,:,:) :: extprofr4
-  real(rk8) , pointer , dimension(:,:,:) :: ssaprofr4
-  real(rk8) , pointer , dimension(:,:,:) :: asyprofr4
-  real(rkx) , pointer , dimension(:) :: lat , lon
-  real(rkx) , pointer , dimension(:,:) :: alon , alat
-  real(rkx) , pointer , dimension(:,:,:,:) :: extprof
-  real(rkx) , pointer , dimension(:,:,:,:) :: ssaprof
-  real(rkx) , pointer , dimension(:,:,:,:) :: asyprof
-  real(rkx) , pointer , dimension(:,:,:) :: zpr3d , zdzr3d
-  real(rkx) , pointer , dimension(:,:,:) :: rdvar
-  real(rkx) , pointer , dimension(:,:,:) :: hzivar
-  real(rkx) , pointer , dimension(:,:,:) :: plvar , p1 , p2
-  real(rkx) , pointer , dimension(:,:,:,:) :: plext1 , plext2
-  real(rkx) , pointer , dimension(:,:,:,:) :: plssa1 , plssa2
-  real(rkx) , pointer , dimension(:,:,:,:) :: plasy1 , plasy2
-  real(rkx) , pointer , dimension(:,:,:,:) :: pldp1 , pldp2 , pl1 , pl2
-  real(rkx) , pointer , dimension(:,:,:) :: sgvar
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgext1 , sgext2
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa1 , sgssa2
-  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy1 , sgasy2
+  real(rk8) , pointer , dimension(:) :: lambdaw => null( )
+  real(rk8) , pointer , dimension(:) :: latr4 => null( )
+  real(rk8) , pointer , dimension(:) :: lonr4 => null( )
+  real(rk8) , pointer , dimension(:) :: altr4 => null( )
+  real(rk8) , pointer , dimension(:,:) :: z => null( )
+  real(rk8) , pointer , dimension(:,:) :: dz => null( )
+  real(rk8) , pointer , dimension(:) :: dnovrnr4 => null( )
+  real(rk8) , pointer , dimension(:,:,:) :: extprofr4 => null( )
+  real(rk8) , pointer , dimension(:,:,:) :: ssaprofr4 => null( )
+  real(rk8) , pointer , dimension(:,:,:) :: asyprofr4 => null( )
+  real(rkx) , pointer , dimension(:) :: lat => null( )
+  real(rkx) , pointer , dimension(:) :: lon => null( )
+  real(rkx) , pointer , dimension(:,:) :: alon => null( )
+  real(rkx) , pointer , dimension(:,:) :: alat => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: extprof => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: ssaprof => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: asyprof => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: zpr3d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: zdzr3d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: rdvar => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: hzivar => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: plvar => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: p1 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: p2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plext1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plext2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plssa1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plssa2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plasy1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: plasy2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: pldp1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: pldp2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: pl1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: pl2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: sgvar => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgext1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgext2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgssa2 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: sgasy2 => null( )
   type(h_interpolator) :: hint
   integer(ik4) :: ncid = -1
   integer(ik4) :: clnlon , clnlat , clnlev
@@ -98,8 +115,9 @@ module mod_rad_aerosol
   type(rcm_time_and_date) :: d1 , d2
   type(rcm_time_interval) :: aefreq
   real(rkx) :: aerfreq
-  real(rkx) , pointer , dimension(:,:,:,:) :: aerm1 , aerm2
-  real(rkx) , pointer , dimension(:,:,:) :: aerio
+  real(rkx) , pointer , dimension(:,:,:,:) :: aerm1 => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: aerm2 => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: aerio => null( )
 
   real(rkx) , parameter :: d10e5  = 1.0e+5_rkx
   real(rkx) , parameter :: d10e4  = 1.0e+4_rkx
@@ -111,7 +129,7 @@ module mod_rad_aerosol
   !
   ! Sulfate param for standard scheme / works only with rad standard
   ! (Brieglieb et al.)
-  real(rkx) , pointer , dimension(:,:,:) :: aermmr
+  real(rkx) , pointer , dimension(:,:,:) :: aermmr => null( )
 
   ! optical properties for dust and org / for rrtm and standard scheme
 
@@ -124,19 +142,39 @@ module mod_rad_aerosol
   !
   ! Depth
   !
-  real(rkx) , pointer , dimension(:,:) :: path
+  real(rkx) , pointer , dimension(:,:) :: path => null( )
   !
   ! Aerosol optical properties (for the mixing)
   !
-  real(rkx) , pointer , dimension(:) :: gsbc_hb , gsbc_hl , gsoc_hb , &
-            gsoc_hl , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl ,         &
-            wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl , gssm1 , gssm2 ,   &
-            kssm1 , kssm2 , wssm1 , wssm2
+  real(rkx) , pointer , dimension(:) :: gsbc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: gsbc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: gsoc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: gsoc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: ksbc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: ksbc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: ksoc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: ksoc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: wsbc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: wsbc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: wsoc_hb => null( )
+  real(rkx) , pointer , dimension(:) :: wsoc_hl => null( )
+  real(rkx) , pointer , dimension(:) :: gssm1 => null( )
+  real(rkx) , pointer , dimension(:) :: gssm2 => null( )
+  real(rkx) , pointer , dimension(:) :: kssm1 => null( )
+  real(rkx) , pointer , dimension(:) :: kssm2 => null( )
+  real(rkx) , pointer , dimension(:) :: wssm1 => null( )
+  real(rkx) , pointer , dimension(:) :: wssm2 => null( )
 
-  real(rkx) , pointer,  dimension(:,:) :: gsdust , ksdust , wsdust , ksdust_lw
+  real(rkx) , pointer,  dimension(:,:) :: gsdust => null( )
+  real(rkx) , pointer,  dimension(:,:) :: ksdust => null( )
+  real(rkx) , pointer,  dimension(:,:) :: wsdust => null( )
+  real(rkx) , pointer,  dimension(:,:) :: ksdust_lw => null( )
 
-  real(rkx) , pointer , dimension(:,:,:) :: ftota3d , gtota3d , &
-    tauasc3d , tauxar3d, tauxar3d_lw
+  real(rkx) , pointer , dimension(:,:,:) :: ftota3d => null( )
+  real(rkx) , pointer,  dimension(:,:,:) :: gtota3d => null( )
+  real(rkx) , pointer,  dimension(:,:,:) :: tauasc3d => null( )
+  real(rkx) , pointer,  dimension(:,:,:) :: tauxar3d => null( )
+  real(rkx) , pointer,  dimension(:,:,:) :: tauxar3d_lw => null( )
   !
   ! Work arrays for aeroppt (aerosol individual optical properties SW)
   !
@@ -150,15 +188,24 @@ module mod_rad_aerosol
   ! faer          - Aerosol forward scattered fraction
   !
   !
-  real(rkx) , pointer , dimension(:,:) :: aermtot , aervtot
-  real(rkx) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
-  real(rkx) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
+  real(rkx) , pointer , dimension(:,:) :: aermtot => null( )
+  real(rkx) , pointer , dimension(:,:) :: aervtot => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: fa => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: ga => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: tx => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uaer => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: wa => null( )
+  real(rkx) , pointer , dimension(:,:) :: faer => null( )
+  real(rkx) , pointer , dimension(:,:) :: gaer => null( )
+  real(rkx) , pointer , dimension(:,:) :: tauaer => null( )
+  real(rkx) , pointer , dimension(:,:) :: utaer => null( )
+  real(rkx) , pointer , dimension(:,:) :: waer => null( )
   integer(ik4) :: npoints , nj
   integer(ik4) :: nband
   !
   ! Aersol LW optical properties
   !
-  real(rkx) , pointer , dimension(:,:,:) ::  aertrlw
+  real(rkx) , pointer , dimension(:,:,:) ::  aertrlw => null( )
   !
   !--------------------------------------------------------------------------
   !                  DATA SECTION
@@ -1456,6 +1503,7 @@ module mod_rad_aerosol
       integer(ik4) :: n , irec
       integer(ik4) , dimension(4) :: istart , icount
 
+      pnt => null( )
       irec = findrec(idate)
       if ( irec < 0 ) then
         write(stderr,* ) 'Searching for date '//tochar(idate)// &

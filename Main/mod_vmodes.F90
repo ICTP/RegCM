@@ -46,12 +46,16 @@ module mod_vmodes
   public :: hydroc , hydros
 
   real(rkx) :: xps , pd
-  real(rkx) , pointer , dimension(:,:) :: a0
-  real(rkx) , pointer , dimension(:) ::  sigmah , tbarh , hbar
-  real(rkx) , pointer , dimension(:,:) :: zmatx , zmatxr
-  real(rkx) , pointer , dimension(:,:) :: tau
-  real(rkx) , pointer , dimension(:,:) :: varpa1
-  real(rkx) , pointer , dimension(:,:) :: hydroc , hydros
+  real(rkx) , pointer , dimension(:,:) :: a0 => null( )
+  real(rkx) , pointer , dimension(:) :: sigmah => null( )
+  real(rkx) , pointer , dimension(:) :: tbarh => null( )
+  real(rkx) , pointer , dimension(:) :: hbar => null( )
+  real(rkx) , pointer , dimension(:,:) :: zmatx => null( )
+  real(rkx) , pointer , dimension(:,:) :: zmatxr => null( )
+  real(rkx) , pointer , dimension(:,:) :: tau => null( )
+  real(rkx) , pointer , dimension(:,:) :: varpa1 => null( )
+  real(rkx) , pointer , dimension(:,:) :: hydroc => null( )
+  real(rkx) , pointer , dimension(:,:) :: hydros => null( )
 
   contains
 

@@ -31,34 +31,63 @@ module mod_sldepparam
   public
 
   ! GTD the departe point location (for the interpolation) for dot points
-  integer(ik4), pointer , dimension(:,:,:) :: xndp_d , xnnm1dp_d , &
-       xnnm2dp_d , xnnp1dp_d , yndp_d , ynnm1dp_d , ynnm2dp_d , ynnp1dp_d
+  integer(ik4), pointer , dimension(:,:,:) :: xndp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: xnnm1dp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: xnnm2dp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: xnnp1dp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: yndp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: ynnm1dp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: ynnm2dp_d => null( )
+  integer(ik4), pointer , dimension(:,:,:) :: ynnp1dp_d => null( )
 
   ! GTD the departe point location (for the interpolation) for cross points
-  integer(ik4) , pointer , dimension(:,:,:) :: xndp_x , xnnm1dp_x , &
-       xnnm2dp_x , xnnp1dp_x , yndp_x , ynnm1dp_x , ynnm2dp_x , ynnp1dp_x
+  integer(ik4) , pointer , dimension(:,:,:) :: xndp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: xnnm1dp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: xnnm2dp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: xnnp1dp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: yndp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: ynnm1dp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: ynnm2dp_x => null( )
+  integer(ik4) , pointer , dimension(:,:,:) :: ynnp1dp_x => null( )
 
   ! GTD the weighting coefficient of interpolation) for dot points
-  real(rkx) , pointer , dimension(:,:,:) :: alfdp_d , alfp1dp_d , &
-       alfm1dp_d , alfm2dp_d , betdp_d , betp1dp_d , betm1dp_d ,  &
-       betm2dp_d , alffbl_d
+  real(rkx) , pointer , dimension(:,:,:) :: alfdp_d , alfp1dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alfm1dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alfm2dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betdp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betp1dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betm1dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betm2dp_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alffbl_d => null( )
 
   ! GTD the weighting coefficient of interpolation) for dot points
-  real(rkx) , pointer , dimension(:,:,:) :: alfdp_x , alfp1dp_x , &
-       alfm1dp_x , alfm2dp_x , betdp_x , betp1dp_x , betm1dp_x ,  &
-       betm2dp_x , alffbl_x
+  real(rkx) , pointer , dimension(:,:,:) :: alfdp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alfp1dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alfm1dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alfm2dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betdp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betp1dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betm1dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: betm2dp_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: alffbl_x => null( )
 
   ! GTD the advective velocity for the dot and cross points
-  real(rkx) , pointer , dimension(:,:,:) :: vadvy_d , uadvx_d
-  real(rkx) , pointer , dimension(:,:,:) :: vadvy_x , uadvx_x
+  real(rkx) , pointer , dimension(:,:,:) :: vadvy_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uadvx_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vadvy_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uadvx_x => null( )
 
   ! GTD the advective velocity near the arrival point for mcgregor calculation
-  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_d , uadxm1_d
-  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_d , vadym1_d
+  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uadxm1_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vadym1_d => null( )
 
   ! GTD the advective velocity near the arrival point for mcgregor calculation
-  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_x , uadxm1_x
-  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_x , vadym1_x
+  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: uadxm1_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_x => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: vadym1_x => null( )
 
   contains
 
