@@ -20,7 +20,7 @@
         "SaveVariableToDisk",
         {
           "new_attributes": {
-            "long_name": "Evaporation",
+            "long_name": "Evaporation Including Sublimation and Transpiration",
             "standard_name": "water_evaporation_flux",
             "units": "kg m-2 s-1"
           }

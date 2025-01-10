@@ -1,10 +1,10 @@
 {
-  "CIN": [
+  "cin": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "CIN",
+          "var_name": "cin",
           "need_time_bounds": false
         }
       ],

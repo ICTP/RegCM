@@ -1,10 +1,10 @@
 {
-  "zo": [
+  "z0": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "zo",
+          "var_name": "z0",
           "need_time_bounds": false
         }
       ],
@@ -30,7 +30,7 @@
         "IfNeededThinAndSave",
         {
           "new_time_step": 3,
-          "var_name": "zo",
+          "var_name": "z0",
           "fill_value": "1e+20",
           "new_attributes": {
             "long_name": "Surface Roughness Length",

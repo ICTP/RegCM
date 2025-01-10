@@ -31,9 +31,9 @@
   "rsus": ["rsus"],
   "rlds": ["rlds", "rsdl"],
   "rlus": ["rlus"],
-  "zo" : ["zo"],
-  "CAPE" : ["CAPE"],
-  "CIN" : ["CIN"],
-  "LI" : ["LI"],
+  "z0" : ["zo", "z0"],
+  "CAPE" : ["CAPE", "cape"],
+  "CIN" : ["CIN", "cin"],
+  "LI" : ["LI", "li"],
   "wsgsmax" : ["wsgsmax"]
 }
