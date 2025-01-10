@@ -1486,7 +1486,8 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_evp) ) then
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
-            'Evaporation','water_evaporation_flux',.true.,'time: mean')
+            'Evaporation Including Sublimation and Transpiration', &
+            'water_evaporation_flux',.true.,'time: mean')
           srf_evp_out => v2dvar_srf(srf_evp)%rval
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
