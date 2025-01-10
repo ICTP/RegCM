@@ -1455,7 +1455,7 @@ module mod_ncout
           srf_ustar_out => v2dvar_srf(srf_ustar)%rval
         end if
         if ( enable_srf2d_vars(srf_zo) ) then
-          call setup_var(v2dvar_srf,srf_zo,vsize,'zo','m', &
+          call setup_var(v2dvar_srf,srf_zo,vsize,'z0','m', &
             'Surface Roughness Length','surface_roughness_length',.true.)
           srf_zo_out => v2dvar_srf(srf_zo)%rval
         end if
@@ -1701,21 +1701,21 @@ module mod_ncout
         end if
         if ( ifcordex ) then
           if ( enable_srf2d_vars(srf_cape) ) then
-            call setup_var(v2dvar_srf,srf_cape,vsize,'CAPE','J kg-1', &
+            call setup_var(v2dvar_srf,srf_cape,vsize,'cape','J kg-1', &
               'Convective Available Potential Energy', &
               'atmosphere_convective_available_potential_energy_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             srf_cape_out => v2dvar_srf(srf_cape)%rval
           end if
           if ( enable_srf2d_vars(srf_cin) ) then
-            call setup_var(v2dvar_srf,srf_cin,vsize,'CIN','J kg-1', &
+            call setup_var(v2dvar_srf,srf_cin,vsize,'cin','J kg-1', &
               'Convective Inhibition', &
               'atmosphere_convective_inhibitioni_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             srf_cin_out => v2dvar_srf(srf_cin)%rval
           end if
           if ( enable_srf2d_vars(srf_li) ) then
-            call setup_var(v2dvar_srf,srf_li,vsize,'LI','K','Lifted Index',&
+            call setup_var(v2dvar_srf,srf_li,vsize,'li','K','Lifted Index',&
               'temperature_difference_between_ambient_'&
               &'air_and_air_lifted_adiabatically_from_the_surface', &
               .true.,'time: point',l_fill=.true.)

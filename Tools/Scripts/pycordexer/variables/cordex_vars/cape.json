@@ -1,10 +1,10 @@
 {
-  "CAPE": [
+  "cape": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "CAPE",
+          "var_name": "cape",
           "need_time_bounds": false
         }
       ],

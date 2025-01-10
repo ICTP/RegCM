@@ -1,10 +1,10 @@
 {
-  "LI": [
+  "li": [
     [
       [
         "ReadVariableFromFile",
         {
-          "var_name": "LI",
+          "var_name": "li",
           "need_time_bounds": false
         }
       ],
