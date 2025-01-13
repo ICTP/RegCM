@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 43 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 44 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -302,6 +302,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_cin      = 47
   integer(ik4) , parameter :: srf_li       = 48
   integer(ik4) , parameter :: srf_mrsos    = 49
+  integer(ik4) , parameter :: srf_hfso     = 50
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -608,6 +609,9 @@ module mod_ncout
       enable_srf_vars(srf_cin) = .true.
       enable_srf_vars(srf_li) = .true.
       enable_srf_vars(srf_mrsos) = .true.
+#ifdef CLM45
+      enable_srf_vars(srf_hfso) = .true.
+#endif
       enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
@@ -1413,7 +1417,7 @@ module mod_ncout
           srf_ustar_out => v2dvar_srf(srf_ustar)%rval
         end if
         if ( enable_srf2d_vars(srf_zo) ) then
-          call setup_var(v2dvar_srf,srf_zo,vsize,'zo','m', &
+          call setup_var(v2dvar_srf,srf_zo,vsize,'z0','m', &
             'Surface Roughness Length','surface_roughness_length',.true.)
           srf_zo_out => v2dvar_srf(srf_zo)%rval
         end if
@@ -1658,21 +1662,21 @@ module mod_ncout
         end if
         if ( ifcordex ) then
           if ( enable_srf2d_vars(srf_cape) ) then
-            call setup_var(v2dvar_srf,srf_cape,vsize,'CAPE','J kg-1', &
+            call setup_var(v2dvar_srf,srf_cape,vsize,'cape','J kg-1', &
               'Convective Available Potential Energy', &
               'atmosphere_convective_available_potential_energy_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             srf_cape_out => v2dvar_srf(srf_cape)%rval
           end if
           if ( enable_srf2d_vars(srf_cin) ) then
-            call setup_var(v2dvar_srf,srf_cin,vsize,'CIN','J kg-1', &
+            call setup_var(v2dvar_srf,srf_cin,vsize,'cin','J kg-1', &
               'Convective Inhibition', &
               'atmosphere_convective_inhibitioni_wrt_surface', &
               .true.,'time: point',l_fill=.true.)
             srf_cin_out => v2dvar_srf(srf_cin)%rval
           end if
           if ( enable_srf2d_vars(srf_li) ) then
-            call setup_var(v2dvar_srf,srf_li,vsize,'LI','K','Lifted Index',&
+            call setup_var(v2dvar_srf,srf_li,vsize,'li','K','Lifted Index',&
               'temperature_difference_between_ambient_'&
               &'air_and_air_lifted_adiabatically_from_the_surface', &
               .true.,'time: point',l_fill=.true.)
@@ -1690,6 +1694,16 @@ module mod_ncout
             .true.,'time: point',l_fill=.true.)
           srf_mrsos_out => v2dvar_srf(srf_mrsos)%rval
         end if
+#ifdef CLM45
+        if ( enable_srf2d_vars(srf_hfso) ) then
+          call setup_var(v2dvar_srf,srf_hfso,vsize,'hfso','W m-2', &
+            'Ground Heat Flux', 'downward_heat_flux_in_soil', &
+            .true.,'time: point',l_fill=.true.)
+          srf_hfso_out => v2dvar_srf(srf_hfso)%rval
+        end if
+#else
+        enable_srf2d_vars(srf_hfso) = .false.
+#endif
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'

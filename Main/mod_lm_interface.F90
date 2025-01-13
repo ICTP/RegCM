@@ -154,6 +154,7 @@ module mod_lm_interface
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
+    call getmem3d(lms%hfso,1,nnsg,jci1,jci2,ici1,ici2,'lm:hfso')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%ddepv,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:ddepv')
@@ -1151,6 +1152,8 @@ module mod_lm_interface
           end do
         end if
 #ifdef CLM45
+        if ( associated(srf_hfso_out) ) &
+          srf_hfso_out(:,:) = sum(lms%hfso,1)*rdnnsg
         if ( associated(srf_mrsos_out) ) then
           where ( lm%ldmsk == 1 )
             srf_mrsos_out(:,:) = (sum(lms%sw(:,:,:,1),1) + &

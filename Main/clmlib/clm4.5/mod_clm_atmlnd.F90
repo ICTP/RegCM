@@ -130,6 +130,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: zom
     !roughness length over vegetation, heat
     real(rk8) , pointer , dimension(:) :: zoh
+    !net ground heat flux into ground (W/m**2)
+    real(rk8) , pointer , dimension(:) :: eflx_gnet
     !total latent HF (W/m**2)  [+ to atm]
     real(rk8) , pointer , dimension(:) :: eflx_lh_tot
     !total sensible HF (W/m**2) [+ to atm]
@@ -302,6 +304,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%zom(ibeg:iend))
     allocate(l2a%zoh(ibeg:iend))
     allocate(l2a%eflx_lwrad_out(ibeg:iend))
+    allocate(l2a%eflx_gnet(ibeg:iend))
     allocate(l2a%eflx_sh_tot(ibeg:iend))
     allocate(l2a%eflx_lh_tot(ibeg:iend))
     allocate(l2a%qflx_evap_tot(ibeg:iend))
@@ -558,7 +561,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
 !FAB: for roughness lenght perform a ln averaging instead of linear
-      tmp = pptr%pps%z0mv 
+      tmp = pptr%pps%z0mv
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                tmp,clm_l2a%zom,               &
                p2c_scale_type='unity',                  &
@@ -571,8 +574,13 @@ end subroutine init_atm2lnd_type
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
-      !clm_l2a%zoh = exp(clm_l2a%zoh) 
+      !clm_l2a%zoh = exp(clm_l2a%zoh)
 !
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &
+               pptr%pef%eflx_gnet,clm_l2a%eflx_gnet,     &
+               p2c_scale_type='unity',                   &
+               c2l_scale_type='urbanf',                  &
+               l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,  &
                pptr%pef%eflx_lh_tot,clm_l2a%eflx_lh_tot, &
                p2c_scale_type='unity',                   &

@@ -471,6 +471,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: w10m
     real(rkx) , pointer , dimension(:,:,:) :: rhoa
 #ifdef CLM45
+    real(rkx) , pointer , dimension(:,:,:) :: hfso
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: ddepv
