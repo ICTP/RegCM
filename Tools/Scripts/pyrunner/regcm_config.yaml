@@ -33,9 +33,9 @@ CORDEX:
     notes: None
     regcm_release: 5.0
     regcm_version_id: v1-r1
-    core_srfvars: tas,pr,evspsbl,huss,hurs,ps,psl,sfcWind,uas,vas,clt,rsds,rlds,ts
+    core_srfvars: tas,pr,evspsbl,huss,hurs,ps,psl,sfcWind,uas,vas,clt,rsds,rlds
     core_stsvars: prmean,psmean,tasmean,tasmax,tasmin
-    tier1_srfvars: prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro
+    tier1_srfvars: prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro,ts
     tier1_radvars: clwvi,clivi,rlut,rsut,rsdt
     tier1_stsvars: sfcWindmax,sund
     tier1_atmvars: ua,va,ta,hus,zg,wa,mrsol,mrso,tsl
