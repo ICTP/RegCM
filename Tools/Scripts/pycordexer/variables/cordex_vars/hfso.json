@@ -1,0 +1,60 @@
+{
+  "hfso": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "hfso",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Ground Heat Flux",
+            "standard_name": "downward_heat_flux_in_soil",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "hfso",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Ground Heat flux",
+            "standard_name": "downward_heat_flux_in_soil",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Ground Heat Flux",
+            "standard_name": "downward_heat_flux_in_soil",
+            "units": "W m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}
