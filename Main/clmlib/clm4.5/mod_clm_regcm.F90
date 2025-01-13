@@ -756,6 +756,7 @@ module mod_clm_regcm
         end do
       end do
     end do
+    call glb_l2c_ss(lndcomm,clm_l2a%eflx_gnet,lms%hfso)
 
     clm_l2a%notused = 0.0_rk8
 

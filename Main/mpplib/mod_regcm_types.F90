@@ -472,6 +472,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: w10m => null( )
     real(rkx) , pointer , dimension(:,:,:) :: rhoa => null( )
 #ifdef CLM45
+    real(rkx) , pointer , dimension(:,:,:) :: hfso => null( )
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss => null( )
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss => null( )
     real(rkx) , pointer , dimension(:,:,:,:) :: ddepv => null( )
@@ -717,7 +718,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: chib => null( )  ! atms%chib3d
     real(rkx) , pointer , dimension(:,:,:) :: chifxuw => null( ) ! chifxuw
     real(rkx) , pointer , dimension(:,:,:) :: drydepv => null( ) ! drydepv
-    real(rkx) , pointer , dimension(:,:,:) :: heatrt => null( )  ! radiation 
+    real(rkx) , pointer , dimension(:,:,:) :: heatrt => null( )  ! radiation
     real(rkx) , pointer , dimension(:,:) :: uz0 => null( )   ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: vz0 => null( )   ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: thz0 => null( )  ! MYJ SF layer

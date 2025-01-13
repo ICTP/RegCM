@@ -58,9 +58,10 @@
       "ta50m",
       "hus50m",
       "z0",
-      "CAPE",
-      "CIN",
-      "LI"
+      "hfso",
+      "cape",
+      "cin",
+      "li"
     ],
     "mask":"_SRF\\.\\d+\\.[nN][cC]$"
   },

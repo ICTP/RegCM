@@ -63,7 +63,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nshfvars = 4 + nbase
 
-  integer(ik4) , parameter :: nsrf2dvars = 44 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 45 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 15
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -306,6 +306,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_li       = 48
   integer(ik4) , parameter :: srf_mrsos    = 49
   integer(ik4) , parameter :: srf_htindx   = 50
+  integer(ik4) , parameter :: srf_hfso     = 51
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -614,6 +615,9 @@ module mod_ncout
       enable_srf_vars(srf_li) = .true.
       enable_srf_vars(srf_mrsos) = .true.
       enable_srf_vars(srf_htindx) = .true.
+#ifdef CLM45
+      enable_srf_vars(srf_hfso) = .true.
+#endif
       enable_srf_vars(nsrf2dvars+srf_u10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_v10m) = .true.
       enable_srf_vars(nsrf2dvars+srf_t2m) = .true.
@@ -1739,6 +1743,16 @@ module mod_ncout
             'heat_index',.true.,'time: point',l_fill=.true.)
           srf_htindx_out => v2dvar_srf(srf_htindx)%rval
         end if
+#ifdef CLM45
+        if ( enable_srf2d_vars(srf_hfso) ) then
+          call setup_var(v2dvar_srf,srf_hfso,vsize,'hfso','W m-2', &
+            'Ground Heat Flux', 'downward_heat_flux_in_soil', &
+            .true.,'time: point',l_fill=.true.)
+          srf_hfso_out => v2dvar_srf(srf_hfso)%rval
+        end if
+#else
+        enable_srf2d_vars(srf_hfso) = .false.
+#endif
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'

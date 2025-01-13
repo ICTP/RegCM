@@ -164,6 +164,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_li_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_mrsos_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_htindx_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_hfso_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()

@@ -39,6 +39,6 @@ CORDEX:
     tier1_radvars: clwvi,clivi,rlut,rsut,rsdt
     tier1_stsvars: sfcWindmax,sund
     tier1_atmvars: ua,va,ta,hus,zg,wa,mrsol,mrso,tsl
-    tier2_srfvars: cape,cin,li,evspsblpot,z0
+    tier2_srfvars: cape,cin,li,evspsblpot,z0,hfso
     tier2_radvars: clh,clm,cll
     tier2_stsvars: wsgsmax
