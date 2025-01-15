@@ -650,6 +650,24 @@ class CordexDataset(Dataset):
             xdomain = CORDEX_CMIP6_DEFINITIONS['domain_id'][simulation.domain]['domain']
         except:
             pass
+        global_model = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_source_id']
+        global_institute = CORDEX_CMIP6_DEFINITIONS['driving_source_id'][simulation.global_model]['driving_institution_id']
+        try:
+            driving_expid = CORDEX_CMIP6_DEFINITIONS['driving_experiment_id'][simulation.experiment]
+        except:
+            driving_expid = 'evaluation'
+        gsize = "{:5.1f}".format(regcm_file.grid_size.item()/1000.0)
+        if regcm_file.map_projection == 'LAMCON':
+            mgrid = 'Lambert Conformal with '
+        elif regcm_file.map_projection == 'POLSTR':
+            mgrid = 'Polar Stereographic with '
+        elif regcm_file.map_projection == 'NORMER':
+            mgrid = 'Normal Mercator with '
+        elif regcm_file.map_projection == 'ROTMER':
+            mgrid = 'Rotated Mercator with '
+        else:
+            mgrid = 'Rotated-pole latitude-longitude with approx '
+        mgrid = mgrid + gsize +' km grid spacing'
         newattr = {
             'activity_id': 'DD',      #only option allowed
             'comment': 'RegCM CORDEX {} run'.format(regcm_file.domain),
@@ -660,12 +678,12 @@ class CordexDataset(Dataset):
                                            time.localtime(time.time())),
             'domain': xdomain,
             'domain_id': simulation.domain,
-            'driving_experiment':'evaluation run with reanalysis forcing',  #should be linked to driving_experiment_id
+            'driving_experiment': driving_expid,
             'driving_experiment_id': simulation.experiment.replace('.', ''),
-            'driving_institution_id': 'ECMWF',   #should be linked to driving_source_id or additional input parameter
-            'driving_source_id': 'ERA5',         #should be added as input parameter to pycordex
+            'driving_institution_id': global_institute,
+            'driving_source_id': global_model,
             'driving_variant_label': simulation.ensemble,
-            'grid': 'Rotated-pole latitude-longitude with 3km grid spacing',   #should be changed based on the simulation resolution
+            'grid': mgrid,
             'institution': 'International Centre for Theoretical Physics',
             'institution_id': 'ICTP',
             'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
@@ -674,12 +692,13 @@ class CordexDataset(Dataset):
             'project_id': 'CORDEX',            #only option allowed
             'source': 'ICTP Regional Climate model V5',
             'source_id': ICTP_Model,
-            'source_type': 'ARCM',             #should be added as input parameter to pycordex (4 options: ARCM AORCM AGCM AOGCM)
+            'source_type': 'ARCM',
             'tracking_id': str(uuid.uuid1()),
             'version_realization': ICTP_Model_Version,
             'version_realization_info': 'none',
         }
 
+        newattr = {**newattr, **CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]}
         if regcm_file.nesting_tag is not None:
             newattr['nesting_tag'] = regcm_file.nesting_tag
 

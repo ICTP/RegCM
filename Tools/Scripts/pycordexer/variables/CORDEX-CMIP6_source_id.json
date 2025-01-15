@@ -1,5 +1,41 @@
 {
     "source_id": {
+        "ALARO1-SFX": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://gmd.copernicus.org/articles/11/257/2018/",
+            "institution_id": [
+                "RMIB-UGent"
+            ],
+            "label": "ALARO1-SFX",
+            "label_extended": "ALARO1-SFX regional climate model, ALARO1 (ALadin-AROme) cycle 43T2 with SURFEX v8.0",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "ALARO1-SFX",
+            "source_type": "ARCM"
+        },
+        "BARPA-R1-NN": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "http://www.bom.gov.au/research/publications/researchreports/BRR-069.pdf",
+            "institution_id": [
+                "BOM"
+            ],
+            "label": "BARPA-R1-NN",
+            "label_extended": "Bureau of Meteorology Atmospheric Regional Projections for Australia (BARPA) Regional Climate Model version 1 with Newtonian nudging",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2022",
+            "source_id": "BARPA-R1-NN",
+            "source_type": "ARCM"
+        },
         "CCAM-v2105": {
             "activity_participation": [
                 "DD"
@@ -54,6 +90,42 @@
             "source_id": "CCAMoc-v2112",
             "source_type": "AOGCM"
         },
+        "CCLM6-0-1-URB": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.clm-community.eu/COSMO-CLM/Overview",
+            "institution_id": [
+                "CLMcom-CMCC"
+            ],
+            "label": "CCLM6-0-1-URB",
+            "label_extended": "COSMO model in climate mode (COSMO-CLM), Version 6.0 clm 1 with Urban Parametrization",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2021",
+            "source_id": "CCLM6-0-1-URB",
+            "source_type": "ARCM"
+        },
+        "CCLM6-0-1-URB-ESG": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.clm-community.eu/COSMO-CLM/Overview/",
+            "institution_id": [
+                "CLMcom-KUL"
+            ],
+            "label": "CCLM6-0-1-URB-ESG",
+            "label_extended": "COSMO model in climate mode (COSMO-CLM), Version 6.0 clm 1 with Urban Parametrization and ECOCLIMAP-Second Generation land cover",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2021",
+            "source_id": "CCLM6-0-1-URB-ESG",
+            "source_type": "ARCM"
+        },
         "CNRM-ALADIN64E1": {
             "activity_participation": [
                 "DD"
@@ -70,6 +142,24 @@
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
             "release_year": "2023",
             "source_id": "CNRM-ALADIN64E1",
+            "source_type": "ARCM"
+        },
+        "CNRM-ALADIN64P1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "http://www.umr-cnrm.fr/spip.php?article125&lang=en",
+            "institution_id": [
+                "IRD-MF"
+            ],
+            "label": "CNRM-ALADIN64P1",
+            "label_extended": "CNRM-ALADIN regional climate model, version 6.4 P1",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "CNRM-ALADIN64P1",
             "source_type": "ARCM"
         },
         "CRCM5-SN": {
@@ -107,6 +197,60 @@
             "release_year": "2024",
             "source_id": "CanRCM5-SN",
             "source_type": "ARCM"
+        },
+        "GCOAST-AHOI1-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://doi.org/10.3390/atmos11030227",
+            "institution_id": [
+                "CLMcom-Hereon"
+            ],
+            "label": "GCOAST-AHOI1-1",
+            "label_extended": "Regional coupled atmosphere-hydrological discharge-ocean-sea ice model based on COSMO-CLM v6.0, HD v5.2 and NEMO v3.6 for the North and Baltic Sea",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "GCOAST-AHOI1-1",
+            "source_type": "AORCM"
+        },
+        "GCOAST-AHOI2-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://egusphere.copernicus.org/preprints/2024/egusphere-2024-923/",
+            "institution_id": [
+                "CLMcom-Hereon"
+            ],
+            "label": "GCOAST-AHOI2-1",
+            "label_extended": "Regional coupled atmosphere-hydrological discharge-ocean-sea ice model based on icon-2024.07, HD v5.2 and NEMO v3.6 for the North and Baltic Sea",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "GCOAST-AHOI2-1",
+            "source_type": "AORCM"
+        },
+        "GCOAST-AHOIB1-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://doi.org/10.3390/atmos11030227",
+            "institution_id": [
+                "CLMcom-Hereon"
+            ],
+            "label": "GCOAST-AHOIB1-1",
+            "label_extended": "Regional coupled atmosphere-hydrological discharge-ocean-sea ice-biogeochemical model based on COSMO-CLM v6.0, HD v5.2, NEMO v3.6 and ECOSMO for the North and Baltic Sea",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "GCOAST-AHOIB1-1",
+            "source_type": "AORCM"
         },
         "HCLIM43-ALADIN": {
             "activity_participation": [
@@ -146,6 +290,81 @@
             "source_id": "HadREM3-GA7-05",
             "source_type": "ARCM"
         },
+        "ICON-CLM-202407-1-1": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://www.clm-community.eu/ICON-CLM/",
+            "institution_id": [
+                "CLMcom-DWD",
+                "CLMcom-KIT",
+                "CLMcom-CMCC",
+                "CLMcom-GERICS"
+            ],
+            "label": "ICON-CLM-202407-1-1",
+            "label_extended": "ICON model in Climate Limited-area Mode (ICON-CLM), Version 202407-1-1",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "ICON-CLM-202407-1-1",
+            "source_type": "ARCM"
+        },
+        "MetUM": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://doi.org/10.5194/gmd-16-1713-2023",
+            "institution_id": [
+                "BAS"
+            ],
+            "label": "MetUMv13p0",
+            "label_extended": "UK Met Office Unified Model version 13.0",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2022",
+            "source_id": "MetUM",
+            "source_type": "ARCM"
+        },
+        "RACMO23E": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://cdn.knmi.nl/system/data_center_publications/files/000/071/902/original/KNMI23_climate_scenarios_scientific_report_WR23-02.pdf",
+            "institution_id": [
+                "KNMI"
+            ],
+            "label": "RACMO23E",
+            "label_extended": "The KNMI Regional Climate Model RACMO, version 23E",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2022",
+            "source_id": "RACMO23E",
+            "source_type": "ARCM"
+        },
+        "RACMO24P": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://tc.copernicus.org/articles/18/4065/2024/",
+            "institution_id": [
+                "UU-IMAU"
+            ],
+            "label": "RACMO24P",
+            "label_extended": "The KNMI and UU/IMAU Regional Climate Model RACMO, version 24P, based on IFS cy47r1 physics and with detailed parameterizations of glaciated surfaces",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "RACMO24P",
+            "source_type": "ARCM"
+        },
         "REMO2020": {
             "activity_participation": [
                 "DD"
@@ -162,6 +381,60 @@
             "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0/).",
             "release_year": "2022",
             "source_id": "REMO2020",
+            "source_type": "ARCM"
+        },
+        "ROAM-NBS": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://egusphere.copernicus.org/preprints/2024/egusphere-2024-923/",
+            "institution_id": [
+                "DWD-BSH"
+            ],
+            "label": "ROAM-NBS",
+            "label_extended": "Regional coupled ocean-atmosphere model based on icon-2024.07 and NEMO4.2.0 for the North and Baltic Sea",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2024",
+            "source_id": "ROAM-NBS",
+            "source_type": "AORCM"
+        },
+        "RegCM5-0": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022JD038199",
+            "institution_id": [
+                "ICTP"
+            ],
+            "label": "RegCM V5 MOLOCH",
+            "label_extended": "The ICTP RegCM version 5 using non hydrostatic MOLOCH dynamical core",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "RegCM5-0",
+            "source_type": "ARCM"
+        },
+        "TSMP1-140-E": {
+            "activity_participation": [
+                "DD"
+            ],
+            "cohort": [
+                "Registered"
+            ],
+            "further_info_url": "https://github.com/HPSCTerrSys/TSMP",
+            "institution_id": [
+                "CLMcom-FZJ"
+            ],
+            "label": "TSMP1 v1.4.0-E",
+            "label_extended": "Terrestrial Systems Modeling Platform (TSMP1) version 1.4.0: COSMO 5.01 (atm), CLM 3.5.0 (land), ParFlow 3.13.0 (hydro), OASIS3-MCT (coupler)",
+            "license": "Creative Commons Attribution 4.0 International License (CC BY 4.0; https://creativecommons.org/licenses/by/4.0).",
+            "release_year": "2023",
+            "source_id": "TSMP1-140-E",
             "source_type": "ARCM"
         },
         "WRF451Q": {

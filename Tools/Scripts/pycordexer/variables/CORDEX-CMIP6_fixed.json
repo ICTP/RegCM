@@ -11,7 +11,7 @@
         "tracking_id": [
             "hdl:21.14103/.*"
         ],
-        "variant_label": [
+        "driving_variant_label": [
             "r[[:digit:]]\\{1,\\}i[[:digit:]]\\{1,\\}p[[:digit:]]\\{1,\\}f[[:digit:]]\\{1,\\}$"
         ],
         "Conventions": [
