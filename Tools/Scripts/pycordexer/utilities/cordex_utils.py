@@ -656,7 +656,7 @@ class CordexDataset(Dataset):
             driving_expid = CORDEX_CMIP6_DEFINITIONS['driving_experiment_id'][simulation.experiment]
         except:
             driving_expid = 'evaluation'
-        gsize = "{:5.1f}".format(regcm_file.grid_size.item()/1000.0)
+        gsize = "{:.1f}".format(regcm_file.grid_size.item()/1000.0)
         if regcm_file.map_projection == 'LAMCON':
             mgrid = 'Lambert Conformal with '
         elif regcm_file.map_projection == 'POLSTR':
@@ -670,12 +670,13 @@ class CordexDataset(Dataset):
         mgrid = mgrid + gsize +' km grid spacing'
         newattr = {
             'activity_id': 'DD',      #only option allowed
-            'comment': 'RegCM CORDEX {} run'.format(regcm_file.domain),
+            'comment': 'RegCM CORDEX {} run'.format(xdomain),
             'note': 'Regular production', #This will be different for every simulation
             'contact': simulation.mail,
             'Conventions': 'CF-1.11',  #only option allowed in CMIP6
             'creation_date': time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                            time.localtime(time.time())),
+            'experiment': xdomain,
             'domain': xdomain,
             'domain_id': simulation.domain,
             'driving_experiment': driving_expid,
@@ -690,7 +691,7 @@ class CordexDataset(Dataset):
             'mip_era': 'CMIP6',      #only option allowed
             'product': 'model-output',    #only option allowed
             'project_id': 'CORDEX',            #only option allowed
-            'source': 'ICTP Regional Climate model V5',
+            'source': CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]['label_extended'],
             'source_id': ICTP_Model,
             'source_type': 'ARCM',
             'tracking_id': str(uuid.uuid1()),
