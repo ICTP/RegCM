@@ -1,17 +1,33 @@
 {
     "institution_id": {
+        "BAS": "British Antarctic Survey, Cambridge, United Kingdom",
         "BCCR-UCAN": "BCCR [Bjerknes Center for Climate Research (BCCR), NORCE Norwegian Research Center, Bergen, Norway]; UCAN [Instituto de Fisica de Cantabria (IFCA), CSIC-Universidad de Cantabria, Santander, Spain]",
         "BOM": "Bureau of Meteorology, Melbourne, Australia",
         "CCCma": "Canadian Centre for Climate Modelling and Analysis, Environment and Climate Change Canada, Victoria (British Columbia), Canada",
+        "CLMcom-BTU": "Climate Limited-area Modelling Community (CLMcom) partner: Brandenburgische Technische Universitaet Cottbus-Senftenberg, Cottbus, Germany",
+        "CLMcom-CMCC": "Climate Limited-area Modelling Community (CLMcom) partner: Euro-Mediterranean Center on Climate Change (CMCC Foundation), Caserta, Italy",
+        "CLMcom-DWD": "Climate Limited-area Modelling Community (CLMcom) partner: Deutscher Wetterdienst, Offenbach am Main, Germany",
+        "CLMcom-ETH": "Climate Limited-area Modelling Community (CLMcom) partner: Federal Institute of Technology Zurich, Zurich, Switzerland",
+        "CLMcom-FZJ": "Climate Limited-area Modelling Community (CLMcom) partner: Forschungszentrum Juelich (FZJ), Juelich, Germany",
+        "CLMcom-GERICS": "Climate Limited-area Modelling Community (CLMcom) partner: Climate Service Center Germany, Hamburg, Germany",
+        "CLMcom-Hereon": "Climate Limited-area Modelling Community (CLMcom) partner: Helmholtz-Zentrum Hereon, Geesthacht, Germany",
+        "CLMcom-IMWM": "Climate Limited-area Modelling Community (CLMcom) partner: Institute of Meteorology and Water Management, Warsaw, Poland",
+        "CLMcom-KIT": "Climate Limited-area Modelling Community (CLMcom) partner: Karlsruhe Institute of Technology, Eggenstein-Leopoldshafen, Germany",
+        "CLMcom-KUL": "Climate Limited-area Modelling Community (CLMcom) partner: KU Leuven, Leuven, Belgium",
         "CNRM-MF": "CNRM [Centre National de Recherches Meteorologiques, Toulouse, France]; MF [Meteo France, Toulouse, France]",
+        "DWD-BSH": "DWD [Deutscher Wetterdienst, Offenbach am Main, Germany]; BSH [Bundesamt fuer Seeschifffahrt und Hydrographie, Hamburg, Germany]",
         "GERICS": "Climate Service Center Germany, Helmholtz Centre hereon GmbH, Hamburg, Germany",
         "HCLIMcom-DMI": "HARMONIE Climate Modelling Community (HCLIMcom) partner: Danish Meteorological Institute (DMI), Copenhagen, Denmark",
         "HCLIMcom-METNo": "HARMONIE Climate Modelling Community (HCLIMcom) partner: Norwegian Meteorological Institute (METNo), Oslo, Norway",
         "HCLIMcom-SMHI": "HARMONIE Climate Modelling Community (HCLIMcom) partner: Swedish Meteorological and Hydrological Institute (SMHI), Norrkoping, Sweden",
         "ICTP": "The Abdus Salam International Centre for Theoretical Physics, Trieste, Italy",
+        "IRD-MF": "IRD [Institut de Recherche pour le Developpement, Noumea (New Caledonia), France]; MF [Meteo France, Toulouse, France]",
+        "KNMI": "Royal Netherlands Meteorological Institute, De Bilt, The Netherlands",
         "MOHC": "Met Office Hadley Centre, Exeter, UK",
         "OURANOS": "Ouranos Consortium, Montreal (Quebec), Canada",
+        "RMIB-UGent": "RMIB [Royal Meteorological Institute of Belgium, Brussels, Belgium]; UGent [Ghent University, Ghent, Belgium]",
         "UBA-CIMA-IFAECI": "UBA [Universidad de Buenos Aires, C. A. Buenos Aires (CABA), Argentina]; CIMA [Centro de Investigaciones del Mar y la Atmosfera, C. A. Buenos Aires (CABA), Argentina]; IFAECI [Instituto Franco-Argentino sobre Estudios de Clima y sus Impactos, C. A. Buenos Aires (CABA), Argentina]",
-        "UQ-DEC": "UQ [University of Queensland, Brisbane, Australia]; DEC [Department of Energy and Climate, Brisbane, Australia]"
+        "UQ-DEC": "UQ [University of Queensland, Brisbane, Australia]; DEC [Department of Energy and Climate, Brisbane, Australia]",
+        "UU-IMAU": "Utrecht University, Institute for Marine and Atmospheric Research Utrecht (IMAU), Utrecht, The Netherlands"
     }
 }

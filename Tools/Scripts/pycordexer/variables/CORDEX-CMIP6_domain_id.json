@@ -36,14 +36,6 @@
             "domain": "Australasia",
             "domain_id": "AUS-50"
         },
-        "ANT-50": {
-            "domain": "Antarctica",
-            "domain_id": "ANT-50"
-        },
-        "ARC-50": {
-            "domain": "Arctic",
-            "domain_id": "ARC-50"
-        },
         "MED-50": {
             "domain": "Mediterranean",
             "domain_id": "MED-50"
@@ -147,6 +139,10 @@
         "SEA-25": {
             "domain": "South East Asia",
             "domain_id": "SEA-25"
+        },
+        "SEA-12": {
+            "domain": "South East Asia",
+            "domain_id": "SEA-12"
         },
         "SAM-50i": {
             "domain": "South America",
