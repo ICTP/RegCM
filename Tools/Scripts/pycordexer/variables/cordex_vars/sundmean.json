@@ -19,7 +19,7 @@
         "SaveVariableToDisk",
         {
           "new_attributes": {
-            "long_name": "Duration of Sunshine",
+            "long_name": "Daily Duration of Sunshine",
             "standard_name": "duration_of_sunshine",
             "units": "s"
           }

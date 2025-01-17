@@ -1972,7 +1972,8 @@ module mod_ncout
         end if
         if ( enable_sts2d_vars(sts_sund) ) then
           call setup_var(v2dvar_sts,sts_sund,vsize,'sund','s', &
-            'Duration of Sunshine','duration_of_sunshine',.true.,'time: sum')
+            'Daily Duration of Sunshine','duration_of_sunshine', &
+            .true.,'time: sum')
           sts_sund_out => v2dvar_sts(sts_sund)%rval
         end if
         if ( enable_sts2d_vars(sts_psmin) ) then
