@@ -126,7 +126,7 @@ module mod_moloch
   logical , parameter :: do_filterpai    = .false.
   logical , parameter :: do_filtertheta  = .false.
 #ifdef RCEMIP
-  logical , parameter :: do_gkfilter     = .true.
+  logical , parameter :: do_gkfilter     = .false.
 #endif
   logical , parameter :: do_phys         = .true.
   logical , parameter :: do_convection   = .true.

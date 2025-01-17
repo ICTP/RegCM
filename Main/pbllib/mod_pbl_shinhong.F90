@@ -167,17 +167,19 @@ module mod_pbl_shinhong
         hfx(ibin) = m2p%hfx(j,i)
         qfx(ibin) = m2p%qfx(j,i)
         ust(ibin) = m2p%ustar(j,i)
-        znt(ibin) = m2p%zo(j,i)
+        znt(ibin) = max(m2p%zo(j,i),2.0e-4_rkx)
         xland(ibin) = m2p%ldmsk(j,i)
         wspd(ibin) = sqrt(m2p%uxatm(j,i,kz)**2 + m2p%vxatm(j,i,kz)**2)
         wspd10(ibin) = sqrt(m2p%u10m(j,i)**2 + m2p%v10m(j,i)**2)
-        br(ibin) = m2p%br(j,i)
         za(ibin) = m2p%za(j,i,kz)
         corf(ibin) = m2p%coriol(j,i)
         govrth(ibin) = egrav/m2p%thatm(j,i,kz)
         rah(ibin) = m2p%rah1(j,i)
         dtg(ibin) = m2p%thatm(j,i,kz) - &
           (m2p%tg(j,i)*(1.0_rkx+ep1*m2p%qxatm(j,i,kz,iqv)))
+        hpbl(ibin) = za(ibin)
+        br(ibin) = govrth(ibin)*za(ibin)*dtg(ibin) / &
+                 max(wspd(ibin)*wspd(ibin),0.5_rkx)
       end do
     end do
     do k = 1 , kz
@@ -187,7 +189,7 @@ module mod_pbl_shinhong
           ibin = (i-ici1)*nj+(j-jci1+1)
           p2d(ibin,kk) = m2p%patm(j,i,k)
           u2d(ibin,kk) = m2p%uxatm(j,i,k)
-          v2d(ibin,kk) = m2p%uxatm(j,i,k)
+          v2d(ibin,kk) = m2p%vxatm(j,i,k)
           dz2d(ibin,kk) = m2p%dzq(j,i,k)
           t2d(ibin,kk) = m2p%tatm(j,i,k)
           th2d(ibin,kk) = m2p%thatm(j,i,k)
@@ -909,7 +911,7 @@ module mod_pbl_shinhong
         if ( pblflg(i) ) then
           entfacmf(i,k) = sqrt(((zq(i,k+1)-hpbl(i))/deltaoh(i))**2)
         end if
-        if ( pblflg(i) .and. k <= kpbl(i) ) then
+        if ( pblflg(i) .and. k >= kpbl(i) ) then
           entfac(i,k) = ((zq(i,k+1)-hpbl(i))/deltaoh(i))**2
         else
           entfac(i,k) = 1.e30_rkx
@@ -1119,7 +1121,7 @@ module mod_pbl_shinhong
       end do
     end do
 
-    call tridin_ysu(al,ad,cu,r1,au,f1,nbl,1)
+    call tridi1(al,ad,cu,r1,au,f1,nbl)
     !
     ! recover tendencies of heat
     !
@@ -1332,7 +1334,7 @@ module mod_pbl_shinhong
           f2(i,k)   = f2(i,k)+dtodsd*dsdzv
           f2(i,k+1) = vx(i,k+1)-dtodsu*dsdzv
         else if ( pblflg(i) .and. &
-                  k <= kpbl(i) .and. entfac(i,k) < 4.6_rkx ) then
+                  k >= kpbl(i) .and. entfac(i,k) < 4.6_rkx ) then
           xkzm(i,k) = prpbl(i)*xkzh(i,k)
           xkzm(i,k) = sqrt(xkzm(i,k)*xkzml(i,k))
           xkzm(i,k) = max(xkzm(i,k),xkzom(i,k))
@@ -1374,7 +1376,7 @@ module mod_pbl_shinhong
     !
     ! solve tridiagonal problem for momentum
     !
-    call tridi1n(al,ad,cu,r1,r2,au,f1,f2,nbl,1)
+    call tridi2(al,ad,cu,r1,r2,au,f1,f2,nbl)
     !
     ! recover tendencies of momentum
     !
@@ -1502,106 +1504,113 @@ module mod_pbl_shinhong
     !
   end subroutine shinhong2d
 
-  subroutine tridi1n(cl,cm,cu,r1,r2,au,f1,f2,nbl,nt)
+  subroutine tridi1(cl,cm,cu,r1,au,f1,nbl)
     implicit none
-    integer , intent(in) :: nbl , nt
+    integer , intent(in) :: nbl
     real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
-    real(rkx) , dimension(nbl,kz) , intent(in) :: cm , r1
-    real(rkx) , dimension(nbl,kz,nt) , intent(in) :: r2
-    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , cu , f1
-    real(rkx) , dimension(nbl,kz,nt) , intent(inout) :: f2
+    real(rkx) , dimension(nbl,kz) , intent(in) :: cm
+    real(rkx) , dimension(nbl,kz) , intent(in) :: r1
+    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , cu
+    real(rkx) , dimension(nbl,kz) , intent(inout) :: f1
     real(rkx) :: fk
-    integer :: i , k , n , it
+    integer :: i , k
 
-    n = kz
     do i = 1 , nbl
-      fk = 1.0_rkx/cm(i,1)
-      au(i,1) = fk*cu(i,1)
-      f1(i,1) = fk*r1(i,1)
+     fk = 1.0_rkx/cm(i,1)
+     au(i,1) = fk*cu(i,1)
+     f1(i,1) = fk*r1(i,1)
     end do
-    do it = 1 , nt
-      do i = 1 , nbl
-        fk = 1.0_rkx/cm(i,1)
-        f2(i,1,it) = fk*r2(i,1,it)
-      end do
-    end do
-    do k = 2 , n-1
+    do k = 2 , kzm1
       do i = 1 , nbl
         fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
         au(i,k) = fk*cu(i,k)
         f1(i,k) = fk*(r1(i,k)-cl(i,k)*f1(i,k-1))
       end do
     end do
-    do it = 1 , nt
-      do k = 2 , n-1
-        do i = 1 , nbl
-          fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
-          f2(i,k,it) = fk*(r2(i,k,it)-cl(i,k)*f2(i,k-1,it))
-        end do
-      end do
-    end do
     do i = 1 , nbl
-      fk = 1.0_rkx/(cm(i,n)-cl(i,n)*au(i,n-1))
-      f1(i,n) = fk*(r1(i,n)-cl(i,n)*f1(i,n-1))
+      fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
+      f1(i,kz) = fk*(r1(i,kz)-cl(i,kz)*f1(i,kzm1))
     end do
-    do it = 1 , nt
-      do i = 1 , nbl
-        fk = 1.0_rkx/(cm(i,n)-cl(i,n)*au(i,n-1))
-        f2(i,n,it) = fk*(r2(i,n,it)-cl(i,n)*f2(i,n-1,it))
-      end do
-    end do
-    do k = n-1 , 1 , -1
+    do k = kzm1 , 1 , -1
       do i = 1 , nbl
         f1(i,k) = f1(i,k)-au(i,k)*f1(i,k+1)
       end do
     end do
-    do it = 1 , nt
-      do k = n-1 , 1 , -1
-        do i = 1 , nbl
-          f2(i,k,it) = f2(i,k,it)-au(i,k)*f2(i,k+1,it)
-        end do
+  end subroutine tridi1
+
+  subroutine tridi2(cl,cm,cu,r1,r2,au,f1,f2,nbl)
+    implicit none
+    integer , intent(in) :: nbl
+    real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
+    real(rkx) , dimension(nbl,kz) , intent(in) :: cm , cu , r1 , r2
+    real(rkx) , dimension(nbl,kz) , intent(inout) :: au , f1 , f2
+    real(rkx) :: fk
+    integer :: i , k
+
+    do i = 1 , nbl
+      fk = 1.0_rkx/cm(i,1)
+      au(i,1) = fk*cu(i,1)
+      f1(i,1) = fk*r1(i,1)
+      f2(i,1) = fk*r2(i,1)
+    end do
+    do k = 2 , kzm1
+      do i = 1 , nbl
+        fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
+        au(i,k) = fk*cu(i,k)
+        f1(i,k) = fk*(r1(i,k)-cl(i,k)*f1(i,k-1))
+        f2(i,k) = fk*(r2(i,k)-cl(i,k)*f2(i,k-1))
       end do
     end do
-  end subroutine tridi1n
+    do i = 1 , nbl
+      fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
+      f1(i,kz) = fk*(r1(i,kz)-cl(i,kz)*f1(i,kzm1))
+      f2(i,kz) = fk*(r2(i,kz)-cl(i,kz)*f2(i,kzm1))
+    end do
+    do k = kzm1 , 1 , -1
+      do i = 1 , nbl
+        f1(i,k) = f1(i,k)-au(i,k)*f1(i,k+1)
+        f2(i,k) = f2(i,k)-au(i,k)*f2(i,k+1)
+      end do
+    end do
+  end subroutine tridi2
 
-  subroutine tridin_ysu(cl,cm,cu,r2,au,f2,nbl,nt)
+  subroutine tridin_ysu(cl,cm,cu,rn,au,fn,nbl,nt)
     implicit none
     integer , intent(in) :: nbl , nt
     real(rkx) , dimension(nbl,2:kzp1) , intent(in) :: cl
     real(rkx) , dimension(nbl,kz) , intent(in) :: cm
-    real(rkx) , dimension(nbl,kz,nt) , intent(in) :: r2
+    real(rkx) , dimension(nbl,kz,nt) , intent(in) :: rn
     real(rkx) , dimension(nbl,kz) , intent(inout) :: au , cu
-    real(rkx) , dimension(nbl,kz,nt) , intent(inout) :: f2
+    real(rkx) , dimension(nbl,kz,nt) , intent(inout) :: fn
     real(rkx) :: fk
-    integer :: i , k , n , it
+    integer :: i , k , it
 
-    n = kz
     do it = 1 , nt
       do i = 1 , nbl
        fk = 1.0_rkx/cm(i,1)
        au(i,1) = fk*cu(i,1)
-       f2(i,1,it) = fk*r2(i,1,it)
+       fn(i,1,it) = fk*rn(i,1,it)
       end do
     end do
     do it = 1 , nt
-      do k = 2 , n-1
+      do k = 2 , kzm1
         do i = 1 , nbl
           fk = 1.0_rkx/(cm(i,k)-cl(i,k)*au(i,k-1))
           au(i,k) = fk*cu(i,k)
-          f2(i,k,it) = fk*(r2(i,k,it)-cl(i,k)*f2(i,k-1,it))
+          fn(i,k,it) = fk*(rn(i,k,it)-cl(i,k)*fn(i,k-1,it))
         end do
       end do
     end do
     do it = 1 , nt
       do i = 1 , nbl
-        fk = 1.0_rkx/(cm(i,n)-cl(i,n)*au(i,n-1))
-        f2(i,n,it) = fk*(r2(i,n,it)-cl(i,n)*f2(i,n-1,it))
+        fk = 1.0_rkx/(cm(i,kz)-cl(i,kz)*au(i,kzm1))
+        fn(i,kz,it) = fk*(rn(i,kz,it)-cl(i,kz)*fn(i,kzm1,it))
       end do
     end do
     do it = 1 , nt
-      do k = n-1 , 1 , -1
+      do k = kzm1 , 1 , -1
         do i = 1 , nbl
-          f2(i,k,it) = f2(i,k,it)-au(i,k)*f2(i,k+1,it)
+          fn(i,k,it) = fn(i,k,it)-au(i,k)*fn(i,k+1,it)
         end do
       end do
     end do
