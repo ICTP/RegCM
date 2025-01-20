@@ -37,7 +37,7 @@ CORDEX:
     core_stsvars: prmean,psmean,tasmean,tasmax,tasmin
     tier1_srfvars: prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro,ts
     tier1_radvars: clwvi,clivi,rlut,rsut,rsdt
-    tier1_stsvars: sfcWindmax,sund
+    tier1_stsvars: sfcWindmax,sundmean
     tier1_atmvars: ua,va,ta,hus,zg,wa,mrsol,mrso,tsl
     tier2_srfvars: cape,cin,li,evspsblpot,z0,hfso
     tier2_radvars: clh,clm,cll
