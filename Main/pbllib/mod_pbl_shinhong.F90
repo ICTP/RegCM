@@ -188,7 +188,7 @@ module mod_pbl_shinhong
         thv10 =  m2p%thatm(j,i,kz) + hfxv/(vonkar*ust(ibin) * &
                  log(m2p%za(j,i,kz)*0.10_rkx))
         dtg(ibin) = m2p%thatm(j,i,kz) - thv10
-        br(ibin) = egrav/(m2p%tatm(j,i,kz)*corfac) * &
+        br(ibin) = egrav/(m2p%thatm(j,i,kz)) * &
           za(ibin)*dtg(ibin)/max(wspd(ibin)-ust(ibin)*ust(ibin),0.001_rkx)
         br(ibin) = max(-5.0_rkx,min(10.0_rkx,br(ibin)))
       end do
