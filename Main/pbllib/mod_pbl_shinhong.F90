@@ -148,6 +148,7 @@ module mod_pbl_shinhong
     ! v10         v-wind speed at 10 m (m/s)
     !
     integer :: i , j , k , kk , it , ibin
+    real(rkx) :: corfac , rrho , hfxv , uflxsfx , vflxsfx , thv10 , wind
 
     if ( idynamic == 3 ) then
       rpfac = 1.0
@@ -163,23 +164,33 @@ module mod_pbl_shinhong
     do i = ici1 , ici2
       do j = jci1 , jci2
         ibin = (i-ici1)*nj+(j-jci1+1)
+        corfac = 1.0_rkx + ep1*m2p%qxatm(j,i,kz,iqv)
         psfc(ibin) = m2p%patmf(j,i,kzp1)
         hfx(ibin) = m2p%hfx(j,i)
         qfx(ibin) = m2p%qfx(j,i)
-        ust(ibin) = m2p%ustar(j,i)
-        znt(ibin) = max(m2p%zo(j,i),2.0e-4_rkx)
+        rrho = 1.0_rkx/m2p%rhox2d(j,i)
+        hfxv = m2p%hfx(j,i)*rrho*rcpd + &
+               ep1 * m2p%thatm(j,i,kz) * m2p%qfx(j,i)*rrho
+        uflxsfx = -m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)*rrho
+        vflxsfx = -m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)*rrho
+        ust(ibin) = sqrt(sqrt(max(uflxsfx*uflxsfx + &
+          vflxsfx*vflxsfx,0.00000001_rkx)))
+        znt(ibin) = max(m2p%zo(j,i),1.0e-8_rkx)
         xland(ibin) = m2p%ldmsk(j,i)
-        wspd(ibin) = sqrt(m2p%uxatm(j,i,kz)**2 + m2p%vxatm(j,i,kz)**2)
-        wspd10(ibin) = sqrt(m2p%u10m(j,i)**2 + m2p%v10m(j,i)**2)
+        wspd(ibin) = max(sqrt(m2p%uxatm(j,i,kz)**2 + &
+                              m2p%vxatm(j,i,kz)**2),0.001_rkx)
+        wspd10(ibin) = max(sqrt(m2p%u10m(j,i)**2 + &
+                                m2p%v10m(j,i)**2),0.001_rkx)
         za(ibin) = m2p%za(j,i,kz)
         corf(ibin) = m2p%coriol(j,i)
         govrth(ibin) = egrav/m2p%thatm(j,i,kz)
         rah(ibin) = m2p%rah1(j,i)
-        dtg(ibin) = m2p%thatm(j,i,kz) - &
-          (m2p%tg(j,i)*(1.0_rkx+ep1*m2p%qxatm(j,i,kz,iqv)))
-        hpbl(ibin) = za(ibin)
-        br(ibin) = govrth(ibin)*za(ibin)*dtg(ibin) / &
-                 max(wspd(ibin)*wspd(ibin),0.5_rkx)
+        thv10 =  m2p%thatm(j,i,kz) + hfxv/(vonkar*ust(ibin) * &
+                 log(m2p%za(j,i,kz)*0.10_rkx))
+        dtg(ibin) = m2p%thatm(j,i,kz) - thv10
+        br(ibin) = egrav/(m2p%tatm(j,i,kz)*corfac) * &
+          za(ibin)*dtg(ibin)/max(wspd(ibin)-ust(ibin)*ust(ibin),0.001_rkx)
+        br(ibin) = max(-5.0_rkx,min(10.0_rkx,br(ibin)))
       end do
     end do
     do k = 1 , kz
