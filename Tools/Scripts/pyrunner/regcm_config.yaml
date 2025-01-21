@@ -26,7 +26,7 @@ CORDEX:
     institute: ICTP
     model: RegCM
     domain: AFR-12
-    global: ECMWF-ERA5
+    global: ERA5
     experiment: evaluation
     ensemble: r0i0p0f0
     email: "ggiulian@ictp.it coppolae@ictp.it"
@@ -35,7 +35,7 @@ CORDEX:
     regcm_version_id: v1-r1
     core_srfvars: tas,pr,evspsbl,huss,hurs,ps,psl,sfcWind,uas,vas,clt,rsds,rlds
     core_stsvars: prmean,psmean,tasmean,tasmax,tasmin
-    tier1_srfvars: prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro,ts
+    tier1_srfvars: ts,prc,prhmax,prsn,tauu,tauv,zmla,prw,rsus,rlus,hfss,hfls,ua50m,ua100m,ua150m,va50m,va100m,va150m,ta50m,hus50m,mrros,mrro
     tier1_radvars: clwvi,clivi,rlut,rsut,rsdt
     tier1_stsvars: sfcWindmax,sundmean
     tier1_atmvars: ua,va,ta,hus,zg,wa,mrsol,mrso,tsl
