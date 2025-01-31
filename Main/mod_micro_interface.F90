@@ -58,8 +58,6 @@ module mod_micro_interface
   real(rkx) , pointer , dimension(:,:,:) :: totc => null( )
   real(rkx) , pointer , dimension(:,:,:) :: rh0adj => null( )
 
-  real(rkx) , parameter :: alphaice = d_one
-
   integer(ik4) , parameter :: nchi = 256
   real(rkx) , dimension(0:nchi-1) :: chis
 
@@ -125,9 +123,9 @@ module mod_micro_interface
     else if ( ipptls == 5 ) then
       call allocate_mod_wdm7
     end if
-    call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
-    call getmem2d(qtcrit,jci1,jci2,ici1,ici2,'subex:qtcrit')
-    call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
+    call getmem2d(rh0,jci1,jci2,ici1,ici2,'micro:rh0')
+    call getmem2d(qtcrit,jci1,jci2,ici1,ici2,'micro:qtcrit')
+    call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'micro:totc')
     do i = 1 , nchi
       cf = real(i-1,rkx)/real(nchi-1,rkx)
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
@@ -249,12 +247,20 @@ module mod_micro_interface
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
-                        mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+          if ( mo2mc%phs(j,i,k) < 60000.0_rkx ) then
+            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
+                          mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+          else
+            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qrn(j,i,k)
+          end if
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+          if ( mo2mc%phs(j,i,k) < 60000.0_rkx ) then
+            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k)
+          else
+            totc(j,i,k) = mo2mc%qcn(j,i,k)
+          end if
         end do
       end if
     else
