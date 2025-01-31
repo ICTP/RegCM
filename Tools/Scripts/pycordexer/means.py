@@ -51,11 +51,11 @@ compressed in disk.
             print('How to make daily mean on day or monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:7])+
+            nco = Dataset(str.join('_',pieces[0:8])+
                           '_'+window+'_'+f1+'12-'+f2+'12.nc',
                           'w', format='NETCDF4_CLASSIC')
         except:
-            print(str.join('_',pieces[0:7])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
+            print(str.join('_',pieces[0:8])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
             raise RuntimeError('Cannot open output file')
         tunit = 'days since 1949-12-01 00:00:00'
     elif window == 'mon':
@@ -63,7 +63,7 @@ compressed in disk.
             print('How to make monthly mean on monthly dataset?')
             sys.exit(-1)
         try:
-            nco = Dataset(str.join('_',pieces[0:7])+'_'+
+            nco = Dataset(str.join('_',pieces[0:8])+'_'+
                           window+'_'+f1+'-'+f2+'.nc',
                           'w', format='NETCDF4_CLASSIC')
         except:
