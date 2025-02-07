@@ -108,7 +108,7 @@ class CacheDirectory:
             if isinstance(ds,xr.DataArray):
                 xds = ds.to_dataset( )
             encoding = None
-            if var:
+            if var is not None:
                 encoding = {var : {"zlib": True,
                                    "complevel": 4}}
             if self.verbose:
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     print('Retrieving dataset from existing cache.')
     ds = cachedir.retrieve('pippo.nc')
     print(ds.info)
-    if not cachedir.retrieve('pappo.nc'):
+    if cachedir.retrieve('pappo.nc') is None:
         print('Good, cannot retrieve non exixting resource.')
     cachedir.cleanup( )
     del(cachedir)

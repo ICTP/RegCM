@@ -56,10 +56,12 @@ class observation_reader:
     cache = None
     obs = None
     var = None
+    dom = None
     years = [ ]
     files = [ ]
 
-    def __init__(self, cache, years, obs, var, config= "obsdata.yaml"):
+    def __init__(self, cache, years, obs, var,
+                 dom=None, config= "obsdata.yaml"):
         cpath = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), config)
         with open(cpath,"r") as f:
@@ -96,6 +98,10 @@ class observation_reader:
         self.years = years
         self.var = var
         self.obs = obs
+        if dom is None:
+            self.dom = 'TEST'
+        else:
+            self.dom = dom
 
     def listfiles(self):
         return self.files
@@ -124,7 +130,7 @@ class observation_reader:
         return nds
 
     def seasonal_data(self,seasons,newgrid=None):
-        fname = (self.obs + "_" + self.var +
+        fname = (self.dom+"_"+self.obs + "_" + self.var +
                 '.' + "-".join((str(x) for x in self.years)))
         fseas = [ ]
         for seas in seasons:
@@ -136,20 +142,22 @@ class observation_reader:
                 xtmp = proc.seasonal_mean(s)
                 sname = fname+"_"+s+".nc"
                 self.cache.store(xtmp,sname,self.var)
-                print('Observation '+self.obs+' season '+s+' mean created.')
+                print('Observation '+self.obs + ' for ' + self.var +
+                      ' season '+s+' mean created.')
                 del(xtmp)
             ds = self.cache.retrieve(fseas)
         return ds
 
     def quantile_data(self,q=99,newgrid=None):
-        fname = (self.obs + "_q" + repr(q) + "_" + self.var +
+        fname = (self.dom+'_'+self.obs + "_q" + repr(q) + "_" + self.var +
                 '.' + "-".join((str(x) for x in self.years))+".nc")
         ds = self.cache.retrieve(fname)
         if ds is None:
             proc = data_processor(self.load_data(newgrid))
             xtmp = proc.quantile(q)
             self.cache.store(xtmp,fname,self.var)
-            print('Observation '+self.obs+' quantile '+ repr(q)+' created.')
+            print('Observation ' + self.obs + ' for ' + self.var +
+                  ' quantile '+ repr(q)+' created.')
             del(xtmp)
             ds = self.cache.retrieve(fname)
         return ds
@@ -226,7 +234,8 @@ class model_reader:
                 xtmp = proc.seasonal_mean(s)
                 sname = fname+"_"+s+".nc"
                 self.cache.store(xtmp,sname,self.var)
-                print('Model '+self.sid+' season '+s+' mean created.')
+                print('Model ' + self.sid + ' for ' + self.var +
+                      ' season ' + s + ' mean created.')
             ds = self.cache.retrieve(fseas)
         return ds
 
@@ -238,7 +247,8 @@ class model_reader:
             proc = data_processor(self.load_data())
             xtmp = proc.quantile(q)
             self.cache.store(xtmp,fname,self.var)
-            print('Model '+self.sid+' quantile '+repr(q)+' created.')
+            print('Model ' + self.sid + ' for ' + self.var +
+                  ' quantile ' + repr(q) + ' created.')
             del(xtmp)
             ds = self.cache.retrieve(fname)
         return ds
