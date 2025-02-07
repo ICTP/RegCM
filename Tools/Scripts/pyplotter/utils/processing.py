@@ -1,24 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import re
-import numpy as np
+import glob
+import yaml
 import xarray as xr
-
-def var_cache_dataset(ds,var,path):
-    ds.to_netcdf(path=path, format = 'NETCDF4', engine = 'netcdf4',
-                 encoding = {var : {"zlib": True,
-                                    "complevel": 9}},
-                 unlimited_dims = ['time',])
-
-def obsconf( ):
-    import os
-    import yaml
-    cpath = os.path.join(os.path.dirname(
-        os.path.abspath(__file__)), 'obsdata.yaml')
-    with open(cpath,"r") as f:
-        config = yaml.safe_load(f)
-    return config
 
 def season_string_to_monthlist(str):
     months = "DJFMAMJJASONDJ"
@@ -26,214 +11,252 @@ def season_string_to_monthlist(str):
     res = list(range(idx,idx+len(str)))
     if res[0] == 0:
         res[0] = 12
+    if res[0] == -1:
+        res[0] = 11
+        res[1] = 12
     if res[-1] == 13:
         res[-1] = 1
     return res
 
-def getmodelfnames(outdir,sid,fid,years):
-    import os
-    import glob
-    search = list(f"{sid}_{fid}.{y}[0-9][0-9][0-9][0-9][0-9][0-9].nc"
-            for y in years)
-    files = [ ]
-    for x in search:
-       files = files+sorted(glob.glob(os.path.join(outdir,x)))
-    return files
-
-def getobsfnames(config,obs,var,years):
-    import os
-    import glob
-    try:
-        fvar = config[obs][var]
-    except:
-        return None
-    path = config[obs]["path"]
-    fvname = config[obs][var]["varfile"]
-    cyears = (str(y) for y in years)
-    if obs == "EOBS":
-        names = [os.path.join(path,fvname+"_ens_mean_0.1deg_reg_v30.0e.nc"),]
-    elif obs == "CRU":
-        names = [os.path.join(path,fvname+".dat.nc"),]
-    elif obs == "CPC":
-        names = (os.path.join(path,fvname,fvname+"."+y+".nc") for y in cyears)
-    elif obs == "MSWEP":
-        names = (os.path.join(path,"monthly",y+"[0-1][0-9].nc") for y in cyears)
-    elif obs == "ERA5":
-        names = (os.path.join(path,"monthly",
-            y,fvname+"_"+y+"_[0-1][0-9].nc") for y in cyears)
-    else:
-        return None
-    return sorted(glob.glob(n) for n in names)[0]
-
-def load_model_data(files, var):
-    ds = xr.open_mfdataset(files, combine='nested',
+def load_model_data(files):
+    nds = xr.open_mfdataset(files, combine='nested',
             concat_dim="time", chunks={"time": 100}).unify_chunks()
-    return ds[var]
-
-def load_obs_data(files, var):
-    return xr.open_mfdataset(files, combine='by_coords', chunks={"time": 100})
-
-def compute_p99(ds):
-    p99_val = ds.quantile(0.99, dim="time", keep_attrs=True)
-    p99_val = p99_val.assign_attrs(quantile = 99)
-    return p99_val
-
-def compute_seasonal_mean(ds, season):
-    xtimes = ds['time.month'].isin(season_string_to_monthlist(season))
-    ds_season = ds.sel(time = xtimes)
-    nds = ds_season.mean(dim="time",keep_attrs=True)
-    nds = nds.assign_attrs(seasonal_average = season)
+    try:
+        nds = nds.rename({"xlat": "lat", "xlon": "lon"})
+    except:
+        pass
     return nds
 
-def load_model_seasonal_data(cachedir,mout,sid,fid,years,var,seasons):
-    fname = sid + "_" + var + '.' + "-".join((str(x) for x in years))
-    fseas = [ ]
-    for seas in seasons:
-       sname = fname+"_"+seas+".nc"
-       fseas.append(os.path.join(cachedir,sname))
-    if all(os.path.exists(target) for target in fseas):
-        ds = xr.open_mfdataset(fseas, combine='nested', concat_dim="time")
-        print('Model seasonal mean loaded.')
-    else:
-        files = getmodelfnames(mout,sid,fid,years)
-        if not files:
+def load_obs_data(files):
+    return xr.open_mfdataset(files, combine='by_coords', chunks={"time": 100})
+
+class data_processor:
+
+    ds = None
+
+    def __init__(self,ds):
+        if not (isinstance(ds,xr.Dataset) or isinstance(ds,xr.DataArray)):
+            raise TypeError("data_processor needs Xarray Dataset or DataArray")
+        self.ds = ds
+
+    def quantile(self,q=99):
+        pq_val = self.ds.quantile(q/100, dim = "time", keep_attrs = True)
+        return pq_val
+
+    def seasonal_mean(self, season):
+        xtimes = self.ds['time.month'].isin(season_string_to_monthlist(season))
+        ds_season = self.ds.sel(time = xtimes)
+        nds = ds_season.mean(dim = "time", keep_attrs = True)
+        nds = nds.assign_attrs(seasonal_average = season)
+        return nds
+
+class observation_reader:
+
+    config = None
+    cache = None
+    obs = None
+    var = None
+    years = [ ]
+    files = [ ]
+
+    def __init__(self, cache, years, obs, var, config= "obsdata.yaml"):
+        cpath = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), config)
+        with open(cpath,"r") as f:
+            self.config = yaml.safe_load(f)['obsdata']
+        try:
+            fvar = self.config[obs][var]
+        except:
             raise FileNotFoundError(
-                       f"No model files found for {var} in {mout}")
-        tmp = load_model_data(files, var)
-        # Apply unit conversion
-        if var == "pr":
-            tmp *= 86400  # Convert from kg/m²/s to mm/day
-            tmp = tmp.assign_attrs(units='mm/day')
-        elif var == "tas":
-            tmp -= 273.15  # Convert from K to °C
-            tmp = tmp.assign_attrs(units='Celsius')
-        for s in seasons:
-            xtmp = compute_seasonal_mean(tmp, s)
-            sname = fname+"_"+s+".nc"
-            var_cache_dataset(xtmp,var,os.path.join(cachedir,sname))
-            print('Model season '+s+' mean created.')
-        tmp.close( )
-        ds = xr.open_mfdataset(fseas, combine='nested', concat_dim="time")
-    return ds
-
-def load_model_full_data(mout,sid,fid,years,var):
-    files = getmodelfnames(mout,sid,fid,years)
-    if not files:
-       raise FileNotFoundError(
-                       f"No model files found for {var} in {mout}")
-    tmp = load_model_data(files, var)
-    # Apply unit conversion
-    if var == "pr":
-        tmp *= 86400  # Convert from kg/m²/s to mm/day
-        tmp = tmp.assign_attrs(units='mm/day')
-    elif var == "tas":
-        tmp -= 273.15  # Convert from K to °C
-        tmp = tmp.assign_attrs(units='Celsius')
-    return tmp
-
-def load_model_p99_data(cachedir,mout,sid,fid,years,var):
-    fname = sid + "_p99_" + var + '.' + "-".join((str(x) for x in years))
-    target = os.path.join(cachedir,fname+'.nc')
-    if os.path.exists(target):
-        return xr.open_dataset(target)
-    else:
-        ds = load_model_full_data(mout,sid,fid,years,var)
-        tmp = compute_p99(ds)
-        var_cache_dataset(tmp,var,target)
-        return tmp.to_dataset( )
-
-def load_obs_seasonal_data(cachedir, obs, var, years, seasons, model_grid):
-    fname = obs + "_" + var + '.' + "-".join((str(x) for x in years))
-    fseas = [ ]
-    for seas in seasons:
-       sname = fname+"_"+seas+".nc"
-       fseas.append(os.path.join(cachedir,sname))
-    if all(os.path.exists(target) for target in fseas):
-        ds = xr.open_mfdataset(fseas, combine='nested', concat_dim="time")
-        print('Observation '+obs+' seasonal mean loaded.')
-    else:
-        config = obsconf( )['obsdata']
-        files = getobsfnames(config,obs,var,years)
-        if files:
-            oname = config[obs][var]["var_ds"]
-            ds = load_obs_data(files, oname)
-            ds = ds.rename({oname: var})
-            factor = config[obs][var]["factor"]
-            offset = config[obs][var]["offset"]
-            nds = ds[var].sel(time=ds.time.dt.year.isin(years))
-            nds *= factor
-            nds += offset
-            if obs == 'CPC' or obs == 'ERA5' or obs == "EOBS":
-                try:
-                    nds = nds.rename({"latitude": "lat", "longitude": "lon"})
-                except:
-                    pass
-                nds = nds.assign_coords(
-                        lon=((nds.lon + 180) % 360) - 180).sortby("lon")
-            if var == "pr":
-                nds = nds.interp(lat = model_grid["xlat"],
-                                 lon = model_grid["xlon"], method="nearest")
-            else:
-                nds = nds.interp(lat = model_grid["xlat"],
-                                 lon = model_grid["xlon"], method="linear")
-            for s in seasons:
-                xtmp = compute_seasonal_mean(nds, s)
-                sname = fname+"_"+s+".nc"
-                var_cache_dataset(xtmp,var,os.path.join(cachedir,sname))
-                xtmp.close( )
-                print('Observation '+obs+' season '+s+' mean created.')
-            nds.close( )
-            ds.close( )
-            ds = xr.open_mfdataset(fseas, combine='nested', concat_dim="time")
+                       f"No files found for {var} in {obs}")
+        path = self.config[obs]["path"]
+        fvname = self.config[obs][var]["varfile"]
+        cyears = (str(y) for y in years)
+        if obs == "EOBS":
+            names = [os.path.join(path,
+                fvname+"_ens_mean_0.1deg_reg_v30.0e.nc"),]
+        elif obs == "CRU":
+            names = [os.path.join(path,fvname+".dat.nc"),]
+        elif obs == "CPC":
+            names = (os.path.join(path,
+                fvname,fvname+"."+y+".nc") for y in cyears)
+        elif obs == "MSWEP":
+            names = (os.path.join(path,
+                "monthly",y+"[0-1][0-9].nc") for y in cyears)
+        elif obs == "ERA5":
+            names = (os.path.join(path,"monthly",
+                y,fvname+"_"+y+"_[0-1][0-9].nc") for y in cyears)
         else:
-            print(obs)
-            print(var)
-            print(years)
-            raise ValueError('No dataset found')
-    return ds
+            names = [ ]
+        self.files = sorted(glob.glob(n) for n in names)[0]
+        if len(self.files) == 0:
+            raise FileNotFoundError(
+                       f"No files found for {var} in {obs}")
+        self.cache = cache
+        self.years = years
+        self.var = var
+        self.obs = obs
 
-def load_obs_full_data(cachedir, obs, var, years, model_grid):
-    config = obsconf( )['obsdata']
-    files = getobsfnames(config,obs,var,years)
-    if files:
-        oname = config[obs][var]["var_ds"]
-        ds = load_obs_data(files, oname)
-        ds = ds.rename({oname: var})
-        factor = config[obs][var]["factor"]
-        offset = config[obs][var]["offset"]
-        nds = ds[var].sel(time=ds.time.dt.year.isin(years))
+    def listfiles(self):
+        return self.files
+
+    def load_data(self,newgrid=None):
+        oname = self.config[self.obs][self.var]["var_ds"]
+        ds = load_obs_data(self.files).rename({oname: self.var})
+        factor = self.config[self.obs][self.var]["factor"]
+        offset = self.config[self.obs][self.var]["offset"]
+        nds = ds[self.var].sel(time=ds.time.dt.year.isin(self.years))
         nds *= factor
         nds += offset
-        if obs == 'CPC' or obs == 'ERA5' or obs == "EOBS":
+        if self.obs == 'CPC' or self.obs == 'ERA5' or self.obs == "EOBS":
             try:
                 nds = nds.rename({"latitude": "lat", "longitude": "lon"})
             except:
                 pass
             nds = nds.assign_coords(
                         lon=((nds.lon + 180) % 360) - 180).sortby("lon")
-        if var == "pr":
-            nds = nds.interp(lat = model_grid["xlat"],
-                             lon = model_grid["xlon"], method="nearest")
-        else:
-            nds = nds.interp(lat = model_grid["xlat"],
-                                 lon = model_grid["xlon"], method="linear")
-    else:
-        print(obs)
-        print(var)
-        print(years)
-        raise ValueError('No dataset found')
-    return nds
+        if newgrid is not None:
+            method = "linear"
+            if self.var == "pr":
+                method = "nearest"
+            nds = nds.interp(lat = newgrid["lat"],
+                             lon = newgrid["lon"], method=method)
+        return nds
 
-def load_obs_p99_data(cachedir,obs,var,years,model_grid):
-    fname = obs + "_p99_" + var + '.' + "-".join((str(x) for x in years))
-    target = os.path.join(cachedir,fname+'.nc')
-    if os.path.exists(target):
-        return xr.open_dataset(target)
-    else:
-        ds = load_obs_full_data(cachedir,obs,var,years,model_grid)
-        tmp = compute_p99(ds)
-        var_cache_dataset(tmp,var,target)
-        return tmp.to_dataset( )
+    def seasonal_data(self,seasons,newgrid=None):
+        fname = (self.obs + "_" + self.var +
+                '.' + "-".join((str(x) for x in self.years)))
+        fseas = [ ]
+        for seas in seasons:
+            fseas.append(fname+"_"+seas+".nc")
+        ds = self.cache.retrieve(fseas)
+        if ds is None:
+            proc = data_processor(self.load_data(newgrid))
+            for s in seasons:
+                xtmp = proc.seasonal_mean(s)
+                sname = fname+"_"+s+".nc"
+                self.cache.store(xtmp,sname,self.var)
+                print('Observation '+self.obs+' season '+s+' mean created.')
+                del(xtmp)
+            ds = self.cache.retrieve(fseas)
+        return ds
+
+    def quantile_data(self,q=99,newgrid=None):
+        fname = (self.obs + "_q" + repr(q) + "_" + self.var +
+                '.' + "-".join((str(x) for x in self.years))+".nc")
+        ds = self.cache.retrieve(fname)
+        if ds is None:
+            proc = data_processor(self.load_data(newgrid))
+            xtmp = proc.quantile(q)
+            self.cache.store(xtmp,fname,self.var)
+            print('Observation '+self.obs+' quantile '+ repr(q)+' created.')
+            del(xtmp)
+            ds = self.cache.retrieve(fname)
+        return ds
+
+class regcm_format:
+
+    sid = None
+    fid = None
+    model_dir = None
+
+    def __init__(self,sid,fid,model_dir):
+        self.sid = sid
+        self.fid = fid
+        self.model_dir = model_dir
+
+class cordex_format:
+
+    cordex_dir = None
+
+    def __init__(self,cordex_dir):
+        self.cordex_dir = cordex_dir
+
+class model_reader:
+
+    cache = None
+    model_dir = None
+    var = None
+    sid = None
+    fid = None
+    years = [ ]
+    files = [ ]
+
+    def __init__(self,cache,years,var,file_format=None):
+        self.var = var
+        self.cache = cache
+        self.years = years
+        if isinstance(file_format,regcm_format):
+            self.sid = file_format.sid
+            self.fid = file_format.fid
+            self.model_dir = file_format.model_dir
+            search = list(
+                f"{self.sid}_{self.fid}.{y}[0-9][0-9][0-9][0-9][0-9][0-9].nc"
+                for y in years)
+            for x in search:
+                self.files = (self.files +
+                        sorted(glob.glob(os.path.join(self.model_dir,x))))
+        else:
+            raise NotImplementedError("Not yet implemented")
+
+    def listfiles(self):
+        return self.files
+
+    def load_data(self):
+        tmp = load_model_data(self.files)[self.var]
+        # Apply unit conversion
+        if self.var == "pr":
+            tmp *= 86400  # Convert from kg/m²/s to mm/day
+            tmp = tmp.assign_attrs(units='mm/day')
+        elif self.var == "tas":
+            tmp -= 273.15  # Convert from K to °C
+            tmp = tmp.assign_attrs(units='Celsius')
+        return tmp
+
+    def seasonal_data(self,seasons):
+        fname = (self.sid + "_" + self.var +
+                '.' + "-".join((str(x) for x in self.years)))
+        fseas = [ ]
+        for seas in seasons:
+            fseas.append(fname+"_"+seas+".nc")
+        ds = self.cache.retrieve(fseas)
+        if ds is None:
+            proc = data_processor(self.load_data())
+            for s in seasons:
+                xtmp = proc.seasonal_mean(s)
+                sname = fname+"_"+s+".nc"
+                self.cache.store(xtmp,sname,self.var)
+                print('Model '+self.sid+' season '+s+' mean created.')
+            ds = self.cache.retrieve(fseas)
+        return ds
+
+    def quantile_data(self,q=99):
+        fname = (self.sid + "_q" + repr(q) + "_" + self.var +
+                '.' + "-".join((str(x) for x in self.years))+".nc")
+        ds = self.cache.retrieve(fname)
+        if ds is None:
+            proc = data_processor(self.load_data())
+            xtmp = proc.quantile(q)
+            self.cache.store(xtmp,fname,self.var)
+            print('Model '+self.sid+' quantile '+repr(q)+' created.')
+            del(xtmp)
+            ds = self.cache.retrieve(fname)
+        return ds
 
 if __name__ == "__main__":
-    print(obsconf( ))
+    from storage_class import CacheDirectory
+    for s in ["DJF","MAM","JJA","SON", "JJAS", "DJFM"]:
+        print(s,season_string_to_monthlist(s))
+
+    if False:
+        cache = CacheDirectory("./tmp")
+        file_format = regcm_format('MED-12','STS',
+          '/leonardo_scratch/large/userexternal/ggiulian/run/output')
+        mdl_accessor = model_reader(cache,[1980],'tas',file_format)
+        mds = mdl_accessor.seasonal_data(['JJA',])
+        mds1 = mdl_accessor.quantile_data(99)
+        obs_accessor = observation_reader(cache,[1980],'CRU','tas')
+        ods = obs_accessor.seasonal_data(['JJA',], mds)
+        ods1 = obs_accessor.quantile_data(99, mds)
+        print(cache.content( ))
+        cache.cleanup( )
