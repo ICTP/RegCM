@@ -17,10 +17,12 @@ def p99plot(var,years,obs,msd,osd,dpi,pname,dest):
     os.makedirs(dest,exist_ok=True)
 
     ncols = len(obs)
+    nrows = 1
     print(f"P99 : Processing variable: {var}")
 
-    fig, axes = plt.subplots(nrows=1, ncols=ncols,
-            figsize=(ncols * 3, 11.5),
+    ydim = 0.022*msd.sizes['iy']*nrows
+    xdim = 0.036*msd.sizes['jx']*ncols
+    fig, axes = plt.subplots(ncols=ncols, figsize=(xdim, ydim),
             subplot_kw={"projection": ccrs.PlateCarree()})
     custom_cmap = mcolors.LinearSegmentedColormap.from_list(
             "custom", hex_colors)
@@ -30,13 +32,18 @@ def p99plot(var,years,obs,msd,osd,dpi,pname,dest):
     for col, obs_name in enumerate(obs):
         bias = msd[var] - osd[col][var]
         ax = axes[col]
-        cs = ax.contourf(msd.xlon.values, msd.xlat.values, bias.squeeze(),
+        ax.set_extent([msd.xlon.min(), msd.xlon.max(),
+                       msd.xlat.min(), msd.xlat.max()],
+                       crs=ccrs.PlateCarree())
+        cs = ax.contourf(msd.xlon, msd.xlat, bias.squeeze( ),
                 levels=levels, cmap=custom_cmap, extend="both")
         ax.add_feature(cfeature.BORDERS, linewidth=0.5, edgecolor="grey")
         ax.add_feature(cfeature.COASTLINE, linewidth=0.5)
         ax.set_title(f"P99 Bias ({pname} - {obs_name})", fontsize=10)
 
-    cbar = fig.colorbar(cs, ax=ax, orientation="vertical", pad=0.05, shrink=0.8)
+    plt.subplots_adjust(wspace=0.02, hspace=0.02)
+    cbar = fig.colorbar(cs, ax=axes,
+            orientation="vertical", pad=0.015, shrink=0.8)
     cbar.set_label("P99 Precipitation Bias (mm/day)")
 
     cyears = "-".join(str(y) for y in years)

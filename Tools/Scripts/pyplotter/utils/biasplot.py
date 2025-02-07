@@ -40,7 +40,7 @@ def biasplot(var,years,seas,obs,msd,osd,dpi,pname,dest):
     nrows = len(seas)
     ncols = len(obs)
 
-    print(f"Processing variable: {var}")
+    print(f"BIAS : Processing variable: {var}")
     
     # Define colormap
     if isinstance(hex_colors[var], list):
@@ -51,8 +51,12 @@ def biasplot(var,years,seas,obs,msd,osd,dpi,pname,dest):
         custom_cmap = plt.get_cmap(hex_colors[var])
 
     # Plotting biases
+    yratio = 0.011*msd.sizes['iy']
+    xratio = 0.018*msd.sizes['jx']
+    ydim = yratio*nrows
+    xdim = xratio*ncols
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols,
-            figsize=(ncols * 3, 11.5),
+            figsize=(xdim,ydim),
             subplot_kw={"projection": ccrs.PlateCarree()})
     
     for row, season in enumerate(seas):
@@ -66,7 +70,6 @@ def biasplot(var,years,seas,obs,msd,osd,dpi,pname,dest):
                            crs=ccrs.PlateCarree())
             ax.add_feature(cfeature.BORDERS, linewidth=0.5, edgecolor='grey')
             ax.add_feature(cfeature.COASTLINE, linewidth=0.5) 
- 
             levels = var_levels.get(var, np.linspace(-8, 8, 11))  
             cs = ax.contourf(rcm_seasonal.xlon,
                              rcm_seasonal.xlat,
@@ -74,24 +77,29 @@ def biasplot(var,years,seas,obs,msd,osd,dpi,pname,dest):
                              levels=levels,
                              cmap=custom_cmap,
                              extend="both")
-            
             if row == 0:
                 ax.set_title(f"{pname} - {obs_name}", fontsize=10)
-
             # Add rectangle with season label
             if col == 0:
-                ax.text(-14.5, -40.5, f"{season}",
+                lat_s = msd["xlat"][0,0]
+                lat_e = msd["xlat"][-1,0]
+                lon_s = msd["xlon"][0,0]
+                lon_e = msd["xlon"][0,-1]
+                if lon_s > 150.0 and lon_e < 0.0:
+                    lon_e = lon_e + 360.0
+                xpos = lon_s + 0.20*(lon_e-lon_s)
+                ypos = lat_s + 0.20*(lat_e-lat_s)
+                ax.text(xpos, ypos, f"{season}",
                         fontsize=10, va="center", ha="center", color='grey',
                         bbox=dict(facecolor="white", alpha=0.5,
                             edgecolor="grey", boxstyle="round,pad=0.3"))
-    
     plt.subplots_adjust(wspace=0.02, hspace=0.02)
     if var == 'rsnl': #(single column)
-        cbar = fig.colorbar(cs, ax=axes,
-                orientation="vertical", fraction=0.08, pad=0.04)
+        cbar = fig.colorbar(cs, ax = axes, shrink = 0.8,
+                orientation = "vertical", fraction = 0.04*yratio, pad = 0.03)
     else:
-        cbar = fig.colorbar(cs, ax=axes,
-                orientation="vertical", fraction=0.04, pad=0.04)
+        cbar = fig.colorbar(cs, ax = axes, shrink = 0.8,
+                orientation = "vertical", fraction = 0.02*yratio, pad = 0.03)
     cbar.set_label(bar_labels[var])
 
     cyears = "-".join(str(y) for y in years)

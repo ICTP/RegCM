@@ -15,7 +15,6 @@ from os.path import expanduser
 import cartopy
 import argparse
 
-cartopy.config['data_dir'] = expanduser('~/.cartopy-data/')
 plot_types = [ "biasplot", "p99plot" ]
 
 parser = argparse.ArgumentParser(description = "Basic RegCM plotting",
@@ -58,7 +57,6 @@ else:
         print('Please check cache path in '+cfile)
         sys.exit(-1)
     if args.invalidate_cache:
-
         delete_files_in_directory(cachedir)
     else:
         size = getsize(cachedir)
