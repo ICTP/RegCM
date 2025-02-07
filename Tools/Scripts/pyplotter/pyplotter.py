@@ -41,12 +41,11 @@ except:
 rcmformat = config["format"]
 datadir = config["datapath"]
 
-file_format = { }
+file_format = None
 if rcmformat == "original":
     sid = config["original"]["simulation"]
-    for var in config["original"]["variables"]:
-        fid = config["original"]["variables"][var]
-        file_format[var] = regcm_format(sid,fid,datadir)
+    fid = config["original"]["variables"]
+    file_format = regcm_format(sid,fid,datadir)
 else:
     print("File reader for ",rcmformat," yet to be implemented.")
     sys.exit(0)
@@ -67,7 +66,7 @@ for plot in what.keys( ):
         years = parse_years(what[plot]["years"])
         for var in what[plot]["variables"].keys( ):
             observations = what[plot]["variables"][var]["obs"]
-            mdl_accessor = model_reader(cache,years,var,file_format[var])
+            mdl_accessor = model_reader(cache,years,var,file_format)
             mds = mdl_accessor.seasonal_data(seasons)
             ods = [ ]
             for obs in observations:
@@ -82,7 +81,7 @@ for plot in what.keys( ):
         years = parse_years(what[plot]["years"])
         for var in what[plot]["variables"].keys( ):
             observations = what[plot]["variables"][var]["obs"]
-            mdl_accessor = model_reader(cache,years,var,file_format[var])
+            mdl_accessor = model_reader(cache,years,var,file_format)
             mds = mdl_accessor.quantile_data(99)
             ods = [ ]
             for obs in observations:

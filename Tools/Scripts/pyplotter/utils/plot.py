@@ -194,7 +194,7 @@ class biasplot:
 
 if __name__ == "__main__":
     from processing_class import regcm_format
-    file_format = regcm_format('MED-12','STS',
+    file_format = regcm_format('MED-12',{"pr": 'STS'},
           '/leonardo_scratch/large/userexternal/ggiulian/run/output')
     if False:
         from storage_class import CacheDirectory

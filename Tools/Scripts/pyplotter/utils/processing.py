@@ -188,7 +188,7 @@ class model_reader:
         self.years = years
         if isinstance(file_format,regcm_format):
             self.sid = file_format.sid
-            self.fid = file_format.fid
+            self.fid = file_format.fid[var]
             self.model_dir = file_format.model_dir
             search = list(
                 f"{self.sid}_{self.fid}.{y}[0-9][0-9][0-9][0-9][0-9][0-9].nc"
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     if False:
         cache = CacheDirectory("./tmp")
-        file_format = regcm_format('MED-12','STS',
+        file_format = regcm_format('MED-12',{'pr' : 'STS'},
           '/leonardo_scratch/large/userexternal/ggiulian/run/output')
         mdl_accessor = model_reader(cache,[1980],'tas',file_format)
         mds = mdl_accessor.seasonal_data(['JJA',])
