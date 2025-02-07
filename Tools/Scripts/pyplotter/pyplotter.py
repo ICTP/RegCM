@@ -41,6 +41,8 @@ except:
 rcmformat = config["format"]
 datadir = config["datapath"]
 
+valid_cache = not args.invalidate_cache
+
 file_format = None
 if rcmformat == "original":
     sid = config["original"]["simulation"]
@@ -51,7 +53,7 @@ else:
     sys.exit(0)
 
 try:
-    cache = CacheDirectory(config["cache"])
+    cache = CacheDirectory(config["cache"],valid=valid_cache)
 except:
     print('Cannot access data cache.')
     sys.exit(-1)
