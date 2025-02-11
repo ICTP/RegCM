@@ -1807,7 +1807,7 @@ module mod_clm_soilhydrology
         ! make sure baseflow isn't negative
         rsub_top(c) = max(0.0_rk8, rsub_top(c))
 #else
-        rsub_top(c) = imped * rsub_top_max* exp(-fff(c)*zwt(c))
+        rsub_top(c) = max(0.0_rk8, imped * rsub_top_max* exp(-fff(c)*zwt(c)))
 #endif
         ! use analytical expression for aquifer specific yield
         rous = watsat(c,nlevsoi) * ( 1.0_rk8 - &
