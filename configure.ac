@@ -27,6 +27,7 @@ LT_INIT
 
 AM_INIT_AUTOMAKE([foreign])
 
+AM_PROG_AR
 AC_PROG_RANLIB
 AC_PROG_CC
 AC_PROG_FC
@@ -712,8 +713,6 @@ else
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_LLVM_TRUE"; then
-    AR=xiar
-    AC_SUBST(AR)
     NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
@@ -725,8 +724,6 @@ else
     AC_SUBST(NOOPTFC)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
-    AR=xiar
-    AC_SUBST(AR)
     NOOPTFC="-ftz -O0 -fp-model source $FCFLAGS"
     if eval "test x"$USE_PROF" = x1"; then
       FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
