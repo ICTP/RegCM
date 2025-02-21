@@ -180,7 +180,7 @@ module mod_pbl_myj
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
           dtturbl , rexnsfc , psfc , qold , ratiomx , tg ,     &
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
-          thsk , ct , qha , ustar
+          thsk , ct , qha , ustar , uspd
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
     real(rkx) :: akhs , akms , zo
     real(rkx) , dimension(nspec) :: clow , cts , sz0
@@ -336,8 +336,9 @@ module mod_pbl_myj
         ustar = m2p%ustar(j,i)
         tg = m2p%tg(j,i)
         thsk = tg*rexnsfc
-        akms = d_one/m2p%ram1(j,i)
-        akhs = d_one/m2p%rah1(j,i)
+        uspd = max(sqrt(m2p%uxatm(j,i,kz)**2+m2p%vxatm(j,i,k)**2),0.01_rkx)
+        akms = d_one/(m2p%ram1(j,i)*uspd)
+        akhs = cpd/(m2p%rah1(j,i)*uspd)
         akhs_dens = akhs*rhok(kz)
 
         if ( m2p%ldmsk(j,i) == 0 ) then

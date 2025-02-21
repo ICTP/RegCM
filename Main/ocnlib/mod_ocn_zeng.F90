@@ -229,6 +229,7 @@ module mod_ocn_zeng
             ram1(i) = (log(obu/zo)+5.0_rkx-5.0_rkx*zo/obu+  &
                       (5.0_rkx*log(zeta)+zeta-1.0_rkx))
           end if
+          ustar = vonkar*um/ram1(i)
           call roughness(zo,ustar,visa,zot,zoq,iocnzoq)
           !
           ! temperature
@@ -239,7 +240,7 @@ module mod_ocn_zeng
                     0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
           else if ( zeta < d_zero ) then ! -1 <= zeta < 0
             rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
-          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
             rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
           else                           !  1 < zeta, phi=5+zeta
             rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
@@ -256,7 +257,7 @@ module mod_ocn_zeng
                        0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
           else if ( zeta < d_zero ) then ! -1 <= zeta < 0
             qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
-          else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
             qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
           else                           !  1 < zeta, phi=5+zeta
             qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
@@ -316,7 +317,7 @@ module mod_ocn_zeng
                       0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
             else if ( zeta < d_zero ) then ! -1 <= zeta < 0
               rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
-            else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+            else if ( zeta <= d_one ) then !  0 <= zeta <= 1
               rah1(i) = (log(zh/zot) + 5.0_rkx*zeta-5.0_rkx*zot/obu)
             else                           !  1 < zeta, phi=5+zeta
               rah1(i) = (log(obu/zot) + 5.0_rkx-5.0_rkx*zot/obu+ &
@@ -333,7 +334,7 @@ module mod_ocn_zeng
                          0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
             else if ( zeta < d_zero ) then ! -1 <= zeta < 0
               qstar = vonkar*dqh/(log(zq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
-            else if ( zeta <= d_one ) then !  0 <= ztea <= 1
+            else if ( zeta <= d_one ) then !  0 <= zeta <= 1
               qstar = vonkar*dqh/(log(zq/zoq) + 5.0_rkx*zeta-5.0_rkx*zoq/obu)
             else                           !  1 < zeta, phi=5+zeta
               qstar = vonkar*dqh/(log(obu/zoq) + 5.0_rkx-5.0_rkx*zoq/obu+ &
@@ -351,7 +352,7 @@ module mod_ocn_zeng
             end if
             if ( .not. flag2 ) exit
             ! Recompute ustar , zo
-            ustar = vonkar*um/log(1.0_rkx+zu/zo)
+            ustar = vonkar*um/ram1(i)
             zo = ocnrough(ustar,um10(i),wc,visa,iocnrough)
           end do
           br(i) = egrav*zu*dthv/(thv*um*um)
@@ -486,6 +487,8 @@ module mod_ocn_zeng
         rhoa(i) = sfps(i)/(rgas*t2m(i)*(d_one+ep1*q2m(i)))
         ! We need specific humidity in output
         q2m(i) = q2m(i)/(d_one+q2m(i))
+        ram1(i) = ram1(i)/(vonkar * ustar)
+        rah1(i) = rah1(i)/(vonkar * ustar)
       end do
 
 #ifdef DEBUG

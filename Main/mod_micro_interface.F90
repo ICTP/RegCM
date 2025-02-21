@@ -247,20 +247,12 @@ module mod_micro_interface
     if ( ipptls > 1 ) then
       if ( icldfrac == 3 ) then
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( mo2mc%phs(j,i,k) < 60000.0_rkx ) then
-            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
-                          mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
-          else
-            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qrn(j,i,k)
-          end if
+          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
+                        mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
         end do
       else
         do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
-          if ( mo2mc%phs(j,i,k) < 60000.0_rkx ) then
-            totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k)
-          else
-            totc(j,i,k) = mo2mc%qcn(j,i,k)
-          end if
+          totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k)
         end do
       end if
     else
