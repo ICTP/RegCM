@@ -89,6 +89,8 @@
       "va",
       "ta",
       "hus",
+      "clw",
+      "cli",
       "zg"
     ],
     "mask":"_ATM\\.\\d+\\.[nN][cC]$"
@@ -98,6 +100,7 @@
     "vars":[
       "clwvi",
       "clivi",
+      "cld",
       "clh",
       "clm",
       "cll",

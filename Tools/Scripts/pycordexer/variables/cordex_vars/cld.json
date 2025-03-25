@@ -1,0 +1,46 @@
+{
+  "cld": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "cld",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "InterpolateOnMultipleHeights",
+        {
+          "pressure_levels": [1000, 925, 850, 700, 600, 500, 400, 300, 250, 200],
+          "method": "linear"
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "1",
+            "long_name": "Cloud Fraction of Layer"
+          }
+        }
+      ],
+      [
+        "ComputeAverageOfEachVariable",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "1",
+            "long_name": "Cloud Fraction of Layer"
+          }
+        }
+      ]
+    ]
+  ]
+}
