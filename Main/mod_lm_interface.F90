@@ -56,7 +56,7 @@ module mod_lm_interface
   private
 
   ! Coupling variables
-  real(rkx) :: runoffcount = 1.0_rkx
+  real(rkx) :: runoffcount = 0.0_rkx
   public :: lms
 
   public :: dtbat
@@ -614,7 +614,7 @@ module mod_lm_interface
       expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
                          expfie%shfx(j,i) - lm%rlwf(j,i)
     end do
-    if ( rcmtimer%lcount == 1 .or. alarm_day%will_act(dtsec) ) then
+    if ( alarm_day%will_act(dtsec) ) then
       do concurrent ( j = jci1:jci2, i = ici1:ici2 )
         if ( lm%ldmsk(j,i) == 1 ) then
           expfie%rnof(j,i) = lm%dtrnof(j,i)/runoffcount
@@ -624,7 +624,7 @@ module mod_lm_interface
           expfie%snof(j,i) = d_zero
         end if
       end do
-      runoffcount = d_one
+      runoffcount = d_zero
       lm%dtrnof(:,:) = d_zero
       lm%dsrnof(:,:) = d_zero
     end if
