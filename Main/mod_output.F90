@@ -1554,10 +1554,6 @@ module mod_output
           qfx_io = sfs%qfx
           tgbb_io = sfs%tgbb
           zo_io = sfs%zo
-          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-            dsrnof_io = sfs%dsrnof
-            dtrnof_io = sfs%dtrnof
-          end if
           uvdrag_io = sfs%uvdrag
           ram_io = sfs%ram1
           rah_io = sfs%rah1
@@ -1738,10 +1734,6 @@ module mod_output
           call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%zo,zo_io,jci1,jci2,ici1,ici2)
-          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-            call grid_collect(sfs%dsrnof,dsrnof_io,jci1,jci2,ici1,ici2)
-            call grid_collect(sfs%dtrnof,dtrnof_io,jci1,jci2,ici1,ici2)
-          end if
           call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%ram1,ram_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%rah1,rah_io,jci1,jci2,ici1,ici2)

@@ -306,8 +306,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: vz0 => null( )    ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: thz0 => null( )   ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: qz0 => null( )    ! MYJ SF layer
-    real(rkx) , pointer , dimension(:,:) :: dsrnof => null( ) ! srnof coupling
-    real(rkx) , pointer , dimension(:,:) :: dtrnof => null( ) ! trnof coupling
+    real(rkx) , pointer , dimension(:,:) :: dtrnof => null( ) ! rnoff
   end type surfstate
 
   type slice
@@ -533,13 +532,12 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: u10m => null( )   ! sfs%u10m
     real(rkx) , pointer , dimension(:,:) :: v10m => null( )   ! sfs%v10m
     real(rkx) , pointer , dimension(:,:) :: q2m => null( )    ! sfs%q2m
-    real(rkx) , pointer , dimension(:,:) :: dtrnof => null( ) ! sfs%dtrnof
-    real(rkx) , pointer , dimension(:,:) :: dsrnof => null( ) ! sfs%dsrnof
     real(rkx) , pointer , dimension(:,:) :: rhox => null( )   ! rhox2d
     real(rkx) , pointer , dimension(:,:) :: rswf => null( )   ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf => null( )   ! flw
     real(rkx) , pointer , dimension(:,:) :: dwrlwf => null( ) ! flwd
     real(rkx) , pointer , dimension(:,:) :: zencos => null( )   ! coszrs
+    real(rkx) , pointer , dimension(:,:) :: dtrnof => null( ) ! rnoff
     real(rkx) , pointer , dimension(:,:) :: ncprate => null( )  ! pptnc
     real(rkx) , pointer , dimension(:,:) :: cprate => null( )   ! cprate
     real(rkx) , pointer , dimension(:,:) :: snwrat => null( )   ! snwrat

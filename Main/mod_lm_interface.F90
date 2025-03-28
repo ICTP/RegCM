@@ -56,7 +56,6 @@ module mod_lm_interface
   private
 
   ! Coupling variables
-  real(rkx) :: runoffcount = 0.0_rkx
   public :: lms
 
   public :: dtbat
@@ -338,6 +337,7 @@ module mod_lm_interface
     call assignpnt(sfs%rah1,lm%rah1)
     call assignpnt(sfs%br,lm%br)
     call assignpnt(sfs%q2m,lm%q2m)
+    call assignpnt(sfs%dtrnof,lm%dtrnof)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
     if ( ipptls > 1 .and. any(icup == 5) ) then
@@ -384,10 +384,6 @@ module mod_lm_interface
       call assignpnt(tsoi,lm%tsoi)
       call assignpnt(idust,lm%idust)
 #endif
-    end if
-    if ( iocncpl == 1 .or. iwavcpl == 1) then
-      call assignpnt(sfs%dsrnof,lm%dsrnof)
-      call assignpnt(sfs%dtrnof,lm%dtrnof)
     end if
 #ifdef CLM
     allocate(landmask(jx,iy))
@@ -525,6 +521,9 @@ module mod_lm_interface
       lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
 #endif
     end if
+    if ( iocncpl == 1 .or. iwavcpl == 1) then
+      lm%dtrnof = lm%dtrnof + sum(lms%trnof,1)*rdnnsg*dtsrf*rsecpd
+    end if
     call collect_output
 #ifdef DEBUG
     ! Sanity check of surface temperatures
@@ -613,22 +612,8 @@ module mod_lm_interface
       expfie%ustr(j,i) = sum(lms%ustar(:,j,i))*rdnnsg
       expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
                          expfie%shfx(j,i) - lm%rlwf(j,i)
+      expfie%rnof(j,i) = lm%dtrnof(j,i)
     end do
-    if ( alarm_day%will_act(dtsec) ) then
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
-        if ( lm%ldmsk(j,i) == 1 ) then
-          expfie%rnof(j,i) = lm%dtrnof(j,i)/runoffcount
-          expfie%snof(j,i) = lm%dsrnof(j,i)/runoffcount
-        else
-          expfie%rnof(j,i) = d_zero
-          expfie%snof(j,i) = d_zero
-        end if
-      end do
-      runoffcount = d_zero
-      lm%dtrnof(:,:) = d_zero
-      lm%dsrnof(:,:) = d_zero
-    end if
-
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
@@ -1232,14 +1217,6 @@ module mod_lm_interface
 #endif
 
     end if ! IF output time
-
-    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-      ! Fill for the RTM component
-      lm%dsrnof(:,:) = lm%dsrnof(:,:) + sum(lms%srnof,1)*rdnnsg
-      lm%dtrnof(:,:) = lm%dtrnof(:,:) + &
-        (sum(lms%trnof,1)-sum(lms%srnof,1))*rdnnsg
-      runoffcount = runoffcount + d_one
-    end if
 
     ! Reset also accumulation for deposition fluxes
     if ( ichem == 1 ) then
