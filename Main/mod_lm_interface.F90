@@ -522,7 +522,12 @@ module mod_lm_interface
 #endif
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
-      lm%dtrnof = lm%dtrnof + sum(lms%trnof,1)*rdnnsg*dtsrf*rsecpd
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        if ( lm%ldmsk(j,i) > 0 ) then
+           lm%dtrnof(j,i) = lm%dtrnof(j,i) + &
+             sum(lms%trnof(:,j,i))*rdnnsg*dtsrf*rsecpd
+        end if
+      end do
     end if
     call collect_output
 #ifdef DEBUG
