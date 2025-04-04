@@ -470,7 +470,6 @@ module mod_init
         sfs%tgbb = tgbb_io
         sfs%zo = zo_io
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-          sfs%dsrnof = dsrnof_io
           sfs%dtrnof = dtrnof_io
         end if
         sfs%uvdrag = uvdrag_io
@@ -644,7 +643,6 @@ module mod_init
         call grid_distribute(zo_io,sfs%zo,jci1,jci2,ici1,ici2)
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
           call grid_distribute(dtrnof_io,sfs%dtrnof,jci1,jci2,ici1,ici2)
-          call grid_distribute(dsrnof_io,sfs%dsrnof,jci1,jci2,ici1,ici2)
         end if
         call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
         call grid_distribute(ram_io,sfs%ram1,jci1,jci2,ici1,ici2)

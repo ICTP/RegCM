@@ -117,7 +117,7 @@ module mod_spbarcoord
         end do
         lnp = np
         lsize = sizeof(voc(1))
-        call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(compare))
+        call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(spcompare))
       end subroutine set_clockwise_order
 
       pure real(rk8) function norma2(x) result(a)
@@ -173,7 +173,7 @@ module mod_spbarcoord
 
   end subroutine spherical_barycentric
 
-  integer(c_int) function compare(x1,x2) result(res) bind(C)
+  integer(c_int) function spcompare(x1,x2) result(res) bind(C)
     implicit none
     type(vpoint) , intent(in) :: x1 , x2
     real(rk8) , dimension(3) :: p1 , p2 , n
@@ -207,7 +207,7 @@ module mod_spbarcoord
       c(3) = a(3) - b(3)
     end subroutine vecdiff
 
-  end function compare
+  end function spcompare
 
 end module mod_spbarcoord
 

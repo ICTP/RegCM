@@ -102,7 +102,6 @@ module mod_update
     call getmem2d(exportFields%wndu,jce1,jce2,ice1,ice2,'cpl:wndu')
     call getmem2d(exportFields%wndv,jce1,jce2,ice1,ice2,'cpl:wndv')
     call getmem2d(exportFields%rnof,jci1,jci2,ici1,ici2,'cpl:rnof')
-    call getmem2d(exportFields%snof,jci1,jci2,ici1,ici2,'cpl:snof')
     call getmem2d(exportFields%taux,jce1,jce2,ice1,ice2,'cpl:taux')
     call getmem2d(exportFields%tauy,jce1,jce2,ice1,ice2,'cpl:tauy')
     call getmem2d(exportFields%wspd,jce1,jce2,ice1,ice2,'cpl:wspd')
@@ -149,7 +148,6 @@ module mod_update
         exportFields%wndu(j,i) = initval
         exportFields%wndv(j,i) = initval
         exportFields%rnof(j,i) = initval
-        exportFields%snof(j,i) = initval
         exportFields%taux(j,i) = initval
         exportFields%tauy(j,i) = initval
         exportFields%wspd(j,i) = initval
@@ -220,8 +218,9 @@ module mod_update
     !     Used module declarations
     !-----------------------------------------------------------------------
     !
+    use mod_runparams, only : dtsec, alarm_day
     use mod_lm_interface , only : export_data_from_surface
-    use mod_atm_interface , only : export_data_from_atm
+    use mod_atm_interface , only : export_data_from_atm, sfs
     use mod_rad_interface , only : export_data_from_rad
 
     implicit none
@@ -248,6 +247,9 @@ module mod_update
       call export_data_from_rad(exportFields3d)
     end if
 
+    if ( alarm_day%act() ) then
+      sfs%dtrnof = zeroval
+    end if
   end subroutine RCM_Put
 
 end module mod_update

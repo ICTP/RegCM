@@ -905,12 +905,9 @@ module mod_atm_interface
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
-      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-        call getmem2d(sfs%dsrnof,jci1,jci2,ici1,ici2,'surf:dsrnof')
-        call getmem2d(sfs%dtrnof,jci1,jci2,ici1,ici2,'surf:dtrnof')
-      end if
       call getmem2d(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
       call getmem2d(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
+      call getmem2d(sfs%dtrnof,jci1,jci2,ici1,ici2,'surf:dtrnof')
       call getmem2d(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
       call getmem2d(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
