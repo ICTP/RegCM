@@ -61,7 +61,7 @@ module mod_micro_nogtom
   use mod_service
   use mod_regcm_types
   use mod_constants , only : d_zero , d_one , d_half , d_two , d_1000
-  use mod_constants , only : dlowval , mathpi
+  use mod_constants , only : dlowval , mathpi , ep2
   use mod_constants , only : tzero , rtice , rtwat_rtice_r
   use mod_constants , only : c5alvcp , c5alscp , rhoh2o , rovcp
   use mod_constants , only : wlhfocp , wlhsocp , wlhvocp
@@ -470,8 +470,8 @@ module mod_micro_nogtom
     end do
 
     ! Compute supersaturations
-    eeliq = esatliq(tx)
-    eeice = esatice(tx)
+    eeliq = ep2*esatliq(tx)
+    eeice = ep2*esatice(tx)
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       koop(k,j,i) = min(rkoop1-rkoop2*tx(k,j,i),eeliq(k,j,i)/eeice(k,j,i))
     end do
@@ -2196,7 +2196,7 @@ module mod_micro_nogtom
 !$acc routine seq
     implicit none
     real(rkx) , intent(in) :: t , phase
-    eewm = phase * esatliq(t) + (d_one-phase) * esatice(t)
+    eewm = ep2*(phase * esatliq(t) + (d_one-phase) * esatice(t))
   end function eewm
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
