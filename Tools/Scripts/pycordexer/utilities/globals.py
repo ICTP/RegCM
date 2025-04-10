@@ -13,7 +13,7 @@ ICTP_Model_Version_fallback = 'v1-r1'
 MAIN_DIR = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/..')
 
 # The directory where the CORDEX file will be saved
-OUTPUTDIR = 'CORDEX'
+OUTPUTDIR = 'CORDEX-CMIP6'
 
 # NetCDF output options
 DATATYPE_AUXILIARIES = 'f8'
