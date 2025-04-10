@@ -690,7 +690,7 @@ class CordexDataset(Dataset):
             'license': 'https://cordex.org/data-access/cordex-cmip6-data/cordex-cmip6-terms-of-use', #only option allowed
             'mip_era': 'CMIP6',      #only option allowed
             'product': 'model-output',    #only option allowed
-            'project_id': 'CORDEX',            #only option allowed
+            'project_id': 'CORDEX-CMIP6', #only option allowed
             'source': CORDEX_CMIP6_DEFINITIONS['source_id'][ICTP_Model]['label_extended'],
             'source_id': ICTP_Model,
             'source_type': 'ARCM',
