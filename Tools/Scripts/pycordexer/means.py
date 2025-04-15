@@ -57,7 +57,7 @@ compressed in disk.
         except:
             print(str.join('_',pieces[0:8])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
             raise RuntimeError('Cannot open output file')
-        tunit = 'days since 1949-12-01 00:00:00'
+        tunit = 'days since 1950-01-01 00:00:00'
     elif window == 'mon':
         if ncf.frequency == 'mon':
             print('How to make monthly mean on monthly dataset?')
@@ -68,7 +68,7 @@ compressed in disk.
                           'w', format='NETCDF4_CLASSIC')
         except:
             raise RuntimeError('Cannot open output file')
-        tunit = 'days since 1949-12-01 00:00:00'
+        tunit = 'days since 1950-01-01 00:00:00'
     else:
         raise RuntimeError(
                 'Unsupported time window. Only day and mon implemented')
