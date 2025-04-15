@@ -2,18 +2,14 @@
 !
 !    This file is part of ICTP RegCM.
 !
-!    ICTP RegCM is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 3 of the License, or
-!    (at your option) any later version.
+!    Use of this source code is governed by an MIT-style license that can
+!    be found in the LICENSE file or at
+!
+!         https://opensource.org/licenses/MIT.
 !
 !    ICTP RegCM is distributed in the hope that it will be useful,
 !    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more details.
-!
-!    You should have received a copy of the GNU General Public License
-!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -103,7 +99,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon, cra,czo 
+         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon, cra,czo
   real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1 , crho2d
   real(rkx) , pointer , dimension(:,:) :: czen
   real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld

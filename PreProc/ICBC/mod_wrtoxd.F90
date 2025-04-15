@@ -2,18 +2,14 @@
 !
 !    This file is part of ICTP RegCM.
 !
-!    ICTP RegCM is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 3 of the License, or
-!    (at your option) any later version.
+!    Use of this source code is governed by an MIT-style license that can
+!    be found in the LICENSE file or at
+!
+!         https://opensource.org/licenses/MIT.
 !
 !    ICTP RegCM is distributed in the hope that it will be useful,
 !    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more details.
-!
-!    You should have received a copy of the GNU General Public License
-!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -96,7 +92,7 @@ module mod_wrtoxd
 ! This is usedi only for CAMS preproc, in the future try to harmonize..
  data aerospec /'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
                 'SO2   ','SO4   ','DUST01','DUST02', &
-                'DUST03','DUST04','SSLT01','SSLT02'/ 
+                'DUST03','DUST04','SSLT01','SSLT02'/
 
 
   integer , parameter :: maxaeout = 16
@@ -191,13 +187,13 @@ module mod_wrtoxd
         sum_soa_to_oc2 = .true.
       case ( 'CBMZ' )
         dochem = .true.
-      case ('DCCB') 
+      case ('DCCB')
         naesp = 15
         aespec => aeaero
         doaero = .true.
         dooxcl = .true.
-        dochem=.true. 
-        sum_sslt_bins = .true.  
+        dochem=.true.
+        sum_sslt_bins = .true.
       case default
     call die('init_outoxd','Unknown chemsimtype')
     end select
