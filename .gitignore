@@ -183,6 +183,7 @@ external/aerosols/*.o
 external/aerosols/sptest*
 
 aclocal.m4
+ar-lib
 autom4te.cache
 compile
 config.guess
