@@ -753,6 +753,7 @@ module mod_ncout
             'Surface Temperature','surface_temperature',.true.)
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
+#ifndef RCEMIP
         if ( enable_atm2d_vars(atm_mrso) ) then
           call setup_var(v2dvar_atm,atm_mrso,vsize,'mrso','kg m-2', &
             'Total Soil Moisture Content', &
@@ -760,6 +761,9 @@ module mod_ncout
             .true.,'time: point',l_fill=.true.)
           atm_mrso_out => v2dvar_atm(atm_mrso)%rval
         end if
+#else
+        enable_atm2d_vars(atm_mrso) = .false.
+#endif
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
           if ( uvrotate ) then
