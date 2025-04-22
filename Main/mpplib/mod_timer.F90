@@ -287,7 +287,7 @@ module mod_timer
       alarm%dt = dt
       alarm%idate = alarm%timer%idate
       alarm%intalm = rcm_time_interval(int(dt,ik8),usec)
-      alarm%actint = int(dt,ik8)
+      alarm%actint = max(1_ik8,int(dt,ik8))
       alarm%lastact = alarm%timer%model_internal_time
       alarm%triggered = lact0
       alarm%timer%nalarm = alarm%timer%nalarm + 1
