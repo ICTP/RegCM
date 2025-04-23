@@ -159,26 +159,18 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-#ifdef STDPAR
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(w1,w2,k)
-#else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-#endif
-            atms%th700(j,i) = atms%th3d(j,i,kz)
-            do k = 2 , kz-1
-              if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
-                w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
-                     (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
-                w2 = d_one - w1
-                atms%th700(j,i) = atms%th3d(j,i,k-1) * w1 + &
-                                  atms%th3d(j,i,k) * w2
-                exit
-              end if
-            end do
-#ifndef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          atms%th700(j,i) = atms%th3d(j,i,kz)
+          do k = 2 , kz-1
+            if ( atms%pb3d(j,i,k) > 70000.0_rkx ) then
+              w1 = (atms%pb3d(j,i,k) - 70000.0_rkx) / &
+                   (atms%pb3d(j,i,k) - atms%pb3d(j,i,k-1))
+              w2 = d_one - w1
+              atms%th700(j,i) = atms%th3d(j,i,k-1) * w1 + &
+                                atms%th3d(j,i,k) * w2
+              exit
+            end if
           end do
-#endif
         end do
       end if
 
@@ -312,18 +304,10 @@ module mod_slice
           atms%zq(j,i,kzp1) = d_zero
         end do
         do k = kz , 1, -1
-#ifdef STDPAR
-          do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga ) local(cell)
-#else
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
-#endif
-              cell = ptop * rpsb(j,i)
-              atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
-                        log((sigma(k+1)+cell)/(sigma(k)+cell))
-#ifndef STDPAR
-            end do
-#endif
+          do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga )
+            cell = ptop * rpsb(j,i)
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
+                      log((sigma(k+1)+cell)/(sigma(k)+cell))
           end do
         end do
         do concurrent ( j = jce1ga:jce2ga, i = ice1ga:ice2ga, k = 1:kz )
@@ -345,23 +329,15 @@ module mod_slice
       ! Find 700 mb theta
       !
       if ( icldmstrat == 1 ) then
-#ifdef STDPAR
-        do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
-#else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-#endif
-            atms%th700(j,i) = atms%th3d(j,i,kz)
-            do k = 1 , kz-1
-              if ( atms%pb3d(j,i,k) > 70000.0 ) then
-                atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
-                                  twt(k,2) * atms%th3d(j,i,k)
-                exit
-              end if
-            end do
-#ifndef STDPAR
+        do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+          atms%th700(j,i) = atms%th3d(j,i,kz)
+          do k = 1 , kz-1
+            if ( atms%pb3d(j,i,k) > 70000.0 ) then
+              atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
+                                twt(k,2) * atms%th3d(j,i,k)
+              exit
+            end if
           end do
-#endif
         end do
       end if
     end if
@@ -369,61 +345,37 @@ module mod_slice
     ! pressure of tropopause (Mateus, Mendes, Pires, Remote sensing 2022)
     !
     if ( irceideal /= 1 ) then
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(ztrop)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          ! Assume PVU = 2.5 , ztrop in km
-          if ( mddom%xlat(j,i) > 0.0_rkx ) then
-            ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
-              exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
-              anorth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
-          else
-            ztrop = asouth(0) + asouth(1) / (1.0_rkx + &
-              exp(-(mddom%xlat(j,i)-asouth(2))/asouth(3)))**asouth(4) + &
-              asouth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
-          end if
-          ptrop(j,i) = p00 * exp(-ztrop/8.4_rkx)
-#ifndef STDPAR
-        end do
-#endif
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        ! Assume PVU = 2.5 , ztrop in km
+        if ( mddom%xlat(j,i) > 0.0_rkx ) then
+          ztrop = anorth(0) + anorth(1) / (1.0_rkx + &
+            exp(-(mddom%xlat(j,i)-anorth(2))/anorth(3)))**anorth(4) + &
+            anorth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+        else
+          ztrop = asouth(0) + asouth(1) / (1.0_rkx + &
+            exp(-(mddom%xlat(j,i)-asouth(2))/asouth(3)))**asouth(4) + &
+            asouth(5) * cos((twopi*(calday-28.0_rkx))/dayspy)
+        end if
+        ptrop(j,i) = p00 * exp(-ztrop/8.4_rkx)
       end do
     end if
     !
     ! Find tropopause hgt.
     !
     ktrop(:,:) = kz
-#ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
-#else
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-#endif
-        do k = kzm1 , 2 , -1
-          ktrop(j,i) = k
-          if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
-        end do
-#ifndef STDPAR
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do k = kzm1 , 2 , -1
+        ktrop(j,i) = k
+        if ( atms%pb3d(j,i,k) < ptrop(j,i) ) exit
       end do
-#endif
     end do
     if ( ibltyp == 1 ) then
       kmxpbl(:,:) = kz
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          do k = kzm1 , 2 , -1
-            if ( atms%za(j,i,k) > 4000.0 ) exit
-            kmxpbl(j,i) = k
-          end do
-#ifndef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = kzm1 , 2 , -1
+          if ( atms%za(j,i,k) > 4000.0 ) exit
+          kmxpbl(j,i) = k
         end do
-#endif
       end do
     end if
 

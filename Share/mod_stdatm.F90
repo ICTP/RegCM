@@ -229,6 +229,16 @@ module mod_stdatm
    50.0_rkx,   0.57_rkx,259.00_rkx,0.7682e+0_rkx,0.630e-5_rkx,0.430e-5_rkx ] , &
    [n_atmparms,n_atmlevls,n_atmzones])
 
+ !
+ ! For OpenACC:
+ ! "declare create" is a data region defined as having the same scope as the
+ ! scoping unit in which it's used.  Primarily used for module and global
+ ! variables. If using module data directly (i.e. not passed in as an argument)
+ ! in a device subroutine, it's required.
+ !
+
+!$acc declare create(stdhlevh,stdhlevf,stdplevh,stdplevf,stdatm)
+
   interface stdatm_val
     module procedure stdatm_val_seasonal
     module procedure stdatm_val_noseason

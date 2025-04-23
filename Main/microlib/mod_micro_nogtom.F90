@@ -491,63 +491,45 @@ module mod_micro_nogtom
         sumh0(k,j,i)  = d_zero
       end do
       ! initialize the flux arrays
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-        local(tnew , dp , qe , tmpl , tmpi , alfaw)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          tnew = tx(1,j,i)
-          dp = dpfs(1,j,i)
-          qe = qdetr(1,j,i)
-          tmpl = qx(iqql,1,j,i)+qx(iqqr,1,j,i)
-          tmpi = qx(iqqi,1,j,i)+qx(iqqs,1,j,i)
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        tnew = tx(1,j,i)
+        dp = dpfs(1,j,i)
+        qe = qdetr(1,j,i)
+        tmpl = qx(iqql,1,j,i)+qx(iqqr,1,j,i)
+        tmpi = qx(iqqi,1,j,i)+qx(iqqs,1,j,i)
+        tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+        sumq0(1,j,i) = sumq0(1,j,i)+(tmpl+tmpi+qx(iqqv,1,j,i))*dp*regrav
+        ! Detrained water treated here
+        if ( lmicro .and. abs(qe) > activqx ) then
+          sumq0(1,j,i) = sumq0(1,j,i) + qe*dp*regrav
+          alfaw = qliq(1,j,i)
+          tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
+        end if
+        sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        qprev = sumq0(1,j,i)
+        hprev = sumh0(1,j,i)
+        do k = 2 , kz
+          tnew = tx(k,j,i)
+          dp = dpfs(k,j,i)
+          qe = qdetr(k,j,i)
+          sumq0(k,j,i) = qprev ! total water
+          sumh0(k,j,i) = hprev ! liquid water temperature
+          tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
+          tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
           tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-          sumq0(1,j,i) = sumq0(1,j,i)+(tmpl+tmpi+qx(iqqv,1,j,i))*dp*regrav
+          sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
           ! Detrained water treated here
           if ( lmicro .and. abs(qe) > activqx ) then
-            sumq0(1,j,i) = sumq0(1,j,i) + qe*dp*regrav
-            alfaw = qliq(1,j,i)
+            sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
+            alfaw = qliq(k,j,i)
             tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
           end if
-          sumh0(1,j,i) = sumh0(1,j,i) + dp*tnew
-#ifndef STDPAR
+          sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
+          qprev = sumq0(k,j,i)
+          hprev = sumh0(k,j,i)
         end do
-#endif
-      end do
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-        local(tnew,tmpi,alfaw,tmpl,qe,dp,qprev,hprev,k)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          qprev = sumq0(1,j,i)
-          hprev = sumh0(1,j,i)
-          do k = 2 , kz
-            tnew = tx(k,j,i)
-            dp = dpfs(k,j,i)
-            qe = qdetr(k,j,i)
-            sumq0(k,j,i) = qprev ! total water
-            sumh0(k,j,i) = hprev ! liquid water temperature
-            tmpl = qx(iqql,k,j,i)+qx(iqqr,k,j,i)
-            tmpi = qx(iqqi,k,j,i)+qx(iqqs,k,j,i)
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq0(k,j,i) = sumq0(k,j,i)+(tmpl+tmpi+qx(iqqv,k,j,i))*dp*regrav
-            ! Detrained water treated here
-            if ( lmicro .and. abs(qe) > activqx ) then
-              sumq0(k,j,i) = sumq0(k,j,i) + qe*dp*regrav
-              alfaw = qliq(k,j,i)
-              tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
-            end if
-            sumh0(k,j,i) = sumh0(k,j,i) + dp*tnew
-            qprev = sumq0(k,j,i)
-            hprev = sumh0(k,j,i)
-          end do
-#ifndef STDPAR
-        end do
-#endif
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh0(k,j,i) = sumh0(k,j,i)/pf(k+1,j,i)
@@ -557,49 +539,38 @@ module mod_micro_nogtom
     ! -------------------------------
     ! Define saturation values
     !---------------------------
-#ifdef STDPAR
-    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 ) &
-      local(zdelta , phases)
-#else
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          ! zdelta = 1 if t > tzero
-          ! zdelta = 0 if t < tzero
-          zdelta = max(d_zero,sign(d_one,tx(k,j,i)-tzero))
-          !---------------------------------------------
-          ! mixed phase saturation
-          !--------------------------------------------
-          phases = qliq(k,j,i)
-          eewmt(k,j,i) = eeliq(k,j,i)*phases + eeice(k,j,i)*(d_one-phases)
-          eewmt(k,j,i) = min(eewmt(k,j,i)/ph(k,j,i),maxsat)
-          qsmix(k,j,i) = eewmt(k,j,i)
-          ! ep1 = rwat/rgas - d_one
-          qsmix(k,j,i) = qsmix(k,j,i)/(d_one-ep1*qsmix(k,j,i))
-          !--------------------------------------------
-          ! ice saturation T < 273K
-          ! liquid water saturation for T > 273K
-          !--------------------------------------------
-          eew(k,j,i) = (zdelta*eeliq(k,j,i) + &
-               (d_one-zdelta)*eeice(k,j,i))/ph(k,j,i)
-          eew(k,j,i) = min(eew(k,j,i),maxsat)
-          !ice water saturation
-          qsice(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
-          qsice(k,j,i) = qsice(k,j,i)/(d_one-ep1*qsice(k,j,i))
-          !----------------------------------
-          ! liquid water saturation
-          !----------------------------------
-          !eeliq is the saturation vapor pressure es(T)
-          !the saturation mixing ratio is ws = es(T)/p *0.622
-          !ws = ws/(-(d_one/eps - d_one)*ws)
-          eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
-          qsliq(k,j,i) = eeliqt(k,j,i)
-          qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
-#ifndef STDPAR
-        end do
-      end do
-#endif
+    do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
+      ! zdelta = 1 if t > tzero
+      ! zdelta = 0 if t < tzero
+      zdelta = max(d_zero,sign(d_one,tx(k,j,i)-tzero))
+      !---------------------------------------------
+      ! mixed phase saturation
+      !--------------------------------------------
+      phases = qliq(k,j,i)
+      eewmt(k,j,i) = eeliq(k,j,i)*phases + eeice(k,j,i)*(d_one-phases)
+      eewmt(k,j,i) = min(eewmt(k,j,i)/ph(k,j,i),maxsat)
+      qsmix(k,j,i) = eewmt(k,j,i)
+      ! ep1 = rwat/rgas - d_one
+      qsmix(k,j,i) = qsmix(k,j,i)/(d_one-ep1*qsmix(k,j,i))
+      !--------------------------------------------
+      ! ice saturation T < 273K
+      ! liquid water saturation for T > 273K
+      !--------------------------------------------
+      eew(k,j,i) = (zdelta*eeliq(k,j,i) + &
+           (d_one-zdelta)*eeice(k,j,i))/ph(k,j,i)
+      eew(k,j,i) = min(eew(k,j,i),maxsat)
+      !ice water saturation
+      qsice(k,j,i) = min(eeice(k,j,i)/ph(k,j,i),maxsat)
+      qsice(k,j,i) = qsice(k,j,i)/(d_one-ep1*qsice(k,j,i))
+      !----------------------------------
+      ! liquid water saturation
+      !----------------------------------
+      !eeliq is the saturation vapor pressure es(T)
+      !the saturation mixing ratio is ws = es(T)/p *0.622
+      !ws = ws/(-(d_one/eps - d_one)*ws)
+      eeliqt(k,j,i) = min(eeliq(k,j,i)/ph(k,j,i),maxsat)
+      qsliq(k,j,i) = eeliqt(k,j,i)
+      qsliq(k,j,i) = qsliq(k,j,i)/(d_one-ep1*qsliq(k,j,i))
     end do
 
     !--------------------------------ADEED BY RITA
@@ -610,23 +581,15 @@ module mod_micro_nogtom
     do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
       cldtopdist(k,j,i) = d_zero
     end do
-#ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k,kk)
-#else
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-#endif
-        do k = 2 , kz
-          do kk = 2 , k
-            if ( fcc(kk-1,j,i) > cldtopcf .and. &
-                 fcc(kk,j,i)  <= cldtopcf ) then
-              cldtopdist(k,j,i) = cldtopdist(k,j,i) + delz(kk,j,i)
-            end if
-          end do
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      do k = 2 , kz
+        do kk = 2 , k
+          if ( fcc(kk-1,j,i) > cldtopcf .and. &
+               fcc(kk,j,i)  <= cldtopcf ) then
+            cldtopdist(k,j,i) = cldtopdist(k,j,i) + delz(kk,j,i)
+          end if
         end do
-#ifndef STDPAR
       end do
-#endif
     end do
 
 #ifdef DEBUG
@@ -659,20 +622,8 @@ module mod_micro_nogtom
     !
 #ifdef STDPAR
     do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-      local(fallsrce,convsrce,fallsink,ldefr,qlhs,qsexp,qsimp,qx0,qxfg,   &
-            qxn,lind2,ratio,sinksum,tk,tc,dens,pbot,snowp,rainp,supsat,   &
-            subsat,totcond,qliqfrac,qicefrac,qicetot,dp,gdp,dtgdp,rdtgdp, &
-            alpha1,facl,faci,facw,corr,acond,zdl,infactor,alfaw,phases,   &
-            qexc,rhc,zsig,qe,preclr,arg,rexplicit,xlcondlim,tmpa,zrh,beta,&
-            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,lat, &
-            evapl,excess,dqsmixdt,dqsicedt,dqsliqdt,corqsliq,corqsice,    &
-            corqsmix,evaplimmix,ql_incld,qi_incld,qli_incld,ldifdt,sink,  &
-            covptot,covpclr,qold,tcond,dqs,chng,chngmax,icenuclei,        &
-            acrit,precip,cfpr,qpretot,fluxq,vpice,vpliq,xadd,xbdd,cvds,   &
-            qice0,qinew,rainaut,snowaut,dpmxdt,wtot,dtdiab,dtforc,qp,     &
-            qsat,cond1,levap,leros,qsmixv,ccover,lccover,k,n,m,jn,jo,     &
-            ldetr,lconden,lactiv,locast,ltkgt0,ltklt0,ltkgthomo,lcloud,   &
-            ii,jj,kk,ll,imax,nn,aamax,dum,xsum,swap,vv,indx)
+      local(fallsrce,fallsink,convsrce,qlhs,qsexp,qsimp,qx0,qxfg,qxn, &
+      ratio,sinksum,lind2,vv,indx)
 #else
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -1997,95 +1948,60 @@ module mod_micro_nogtom
         errorq(j,i) = d_zero
         errorh(j,i) = d_zero
       end do
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-        local(dp,tnew,qvnew,tmpl,tmpi)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          dp = dpfs(1,j,i)
-          tnew = tx(1,j,i)+dt*(ttendc(1,j,i)-tentkp(1,j,i))
-          qvnew = qx(iqqv,1,j,i)+dt*(qxtendc(iqqv,1,j,i)-tenqkp(iqqv,1,j,i))
-          tmpl = qx(iqql,1,j,i)+dt*(qxtendc(iqql,1,j,i)-tenqkp(iqql,1,j,i))+&
-                 qx(iqqr,1,j,i)+dt*(qxtendc(iqqr,1,j,i)-tenqkp(iqqr,1,j,i))
-          tmpi = qx(iqqi,1,j,i)+dt*(qxtendc(iqqi,1,j,i)-tenqkp(iqqi,1,j,i))+&
-                 qx(iqqs,1,j,i)+dt*(qxtendc(iqqs,1,j,i)-tenqkp(iqqs,1,j,i))
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        dp = dpfs(1,j,i)
+        tnew = tx(1,j,i)+dt*(ttendc(1,j,i)-tentkp(1,j,i))
+        qvnew = qx(iqqv,1,j,i)+dt*(qxtendc(iqqv,1,j,i)-tenqkp(iqqv,1,j,i))
+        tmpl = qx(iqql,1,j,i)+dt*(qxtendc(iqql,1,j,i)-tenqkp(iqql,1,j,i))+&
+               qx(iqqr,1,j,i)+dt*(qxtendc(iqqr,1,j,i)-tenqkp(iqqr,1,j,i))
+        tmpi = qx(iqqi,1,j,i)+dt*(qxtendc(iqqi,1,j,i)-tenqkp(iqqi,1,j,i))+&
+               qx(iqqs,1,j,i)+dt*(qxtendc(iqqs,1,j,i)-tenqkp(iqqs,1,j,i))
+        tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+        sumq1(1,j,i) = sumq1(1,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
+        sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
+      end do
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = 2 , kz
+          dp = dpfs(k,j,i)
+          tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
+          qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
+          sumq1(k,j,i) = sumq1(k-1,j,i)
+          sumh1(k,j,i) = sumh1(k-1,j,i)
+          tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
+                 qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
+          tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
+                 qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
           tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-          sumq1(1,j,i) = sumq1(1,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
-          sumh1(1,j,i) = sumh1(1,j,i) + dp*tnew
-#ifndef STDPAR
+          sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
+          sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
         end do
-#endif
       end do
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-        local(dp,tnew,qvnew,tmpl,tmpi,k)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          do k = 2 , kz
-            dp = dpfs(k,j,i)
-            tnew = tx(k,j,i)+dt*(ttendc(k,j,i)-tentkp(k,j,i))
-            qvnew = qx(iqqv,k,j,i)+dt*(qxtendc(iqqv,k,j,i)-tenqkp(iqqv,k,j,i))
-            sumq1(k,j,i) = sumq1(k-1,j,i)
-            sumh1(k,j,i) = sumh1(k-1,j,i)
-            tmpl = qx(iqql,k,j,i)+dt*(qxtendc(iqql,k,j,i)-tenqkp(iqql,k,j,i))+&
-                   qx(iqqr,k,j,i)+dt*(qxtendc(iqqr,k,j,i)-tenqkp(iqqr,k,j,i))
-            tmpi = qx(iqqi,k,j,i)+dt*(qxtendc(iqqi,k,j,i)-tenqkp(iqqi,k,j,i))+&
-                   qx(iqqs,k,j,i)+dt*(qxtendc(iqqs,k,j,i)-tenqkp(iqqs,k,j,i))
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq1(k,j,i) = sumq1(k,j,i) + (tmpl + tmpi + qvnew)*dp*regrav
-            sumh1(k,j,i) = sumh1(k,j,i) + dp*tnew
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = 1 , kz
+          dp = dpfs(k,j,i)
+          dtgdp = dt*egrav/dp
+          rain = d_zero
+          rainh = d_zero
+          do n = 1 , nqx
+            rain = rain + dt*pfplsx(n,k+1,j,i)
+            if ( iphase(n) == 1 ) then
+              rainh = rainh+wlhvocp*dtgdp*pfplsx(n,k+1,j,i)*dp
+            else if ( iphase(n) == 2 ) then
+              rainh = rainh+wlhsocp*dtgdp*pfplsx(n,k+1,j,i)*dp
+            end if
           end do
-#ifndef STDPAR
+          sumq1(k,j,i) = sumq1(k,j,i) + rain
+          sumh1(k,j,i) = sumh1(k,j,i) - rainh
         end do
-#endif
-      end do
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-        local(dp,dtgdp,rain,rainh,k,n)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          do k = 1 , kz
-            dp = dpfs(k,j,i)
-            dtgdp = dt*egrav/dp
-            rain = d_zero
-            rainh = d_zero
-            do n = 1 , nqx
-              rain = rain + dt*pfplsx(n,k+1,j,i)
-              if ( iphase(n) == 1 ) then
-                rainh = rainh+wlhvocp*dtgdp*pfplsx(n,k+1,j,i)*dp
-              else if ( iphase(n) == 2 ) then
-                rainh = rainh+wlhsocp*dtgdp*pfplsx(n,k+1,j,i)*dp
-              end if
-            end do
-            sumq1(k,j,i) = sumq1(k,j,i) + rain
-            sumh1(k,j,i) = sumh1(k,j,i) - rainh
-          end do
-#ifndef STDPAR
-        end do
-#endif
       end do
       do concurrent ( k = 1:kz, j = jci1:jci2, i = ici1:ici2 )
         sumh1(k,j,i) = sumh1(k,j,i) / pf(k+1,j,i)
       end do
-#ifdef STDPAR
-      do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(k)
-#else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          do k = 1 , kz
-            errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
-            errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
-          end do
-#ifndef STDPAR
+      do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+        do k = 1 , kz
+          errorq(j,i) = errorq(j,i) + (sumq1(k,j,i)-sumq0(k,j,i))
+          errorh(j,i) = errorh(j,i) + (sumh1(k,j,i)-sumh0(k,j,i))
         end do
-#endif
       end do
 
       lerror = .false.
@@ -2151,28 +2067,20 @@ module mod_micro_nogtom
     ! Convert the accumlated precipitation to appropriate units for
     ! the surface physics and the output sum up through the levels
     !--------------------------------------------------------------
-#ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) local(prainx,psnowx)
-#else
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-#endif
-        prainx = pfplsl(kzp1,j,i)*dt
-        psnowx = pfplsn(kzp1,j,i)*dt
-        if ( prainx > d_zero ) then
-          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
-          mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsl(kzp1,j,i)
-          mc2mo%trrate(j,i) = pfplsl(kzp1,j,i)
-        end if
-        if ( psnowx > d_zero ) then
-          mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + psnowx
-          mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsn(kzp1,j,i)
-          mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
-          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
-        end if
-#ifndef STDPAR
-      end do
-#endif
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      prainx = pfplsl(kzp1,j,i)*dt
+      psnowx = pfplsn(kzp1,j,i)*dt
+      if ( prainx > d_zero ) then
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + prainx
+        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsl(kzp1,j,i)
+        mc2mo%trrate(j,i) = pfplsl(kzp1,j,i)
+      end if
+      if ( psnowx > d_zero ) then
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + psnowx
+        mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + pfplsn(kzp1,j,i)
+        mc2mo%trrate(j,i) = mc2mo%trrate(j,i) + pfplsn(kzp1,j,i)
+        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + pfplsn(kzp1,j,i)
+      end if
     end do
 
 #ifdef DEBUG

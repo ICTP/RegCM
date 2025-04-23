@@ -61,55 +61,44 @@ module mod_cloud_thomp
     rh_00l = 0.781_rkx + sqrt(d_one/(50.0_rkx+gridkm*gridkm*gridkm*0.5_rkx))
     rh_00o = 0.831_rkx + sqrt(d_one/(70.0_rkx+gridkm*gridkm*gridkm*0.5_rkx))
 
-#ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-      local(rh_00,rhi_max,tk,tc,qvsi,qvsw,rhum)
-#else
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          cldfra(j,i,k) = d_zero
-          rhi_max = d_zero
-          if ( qc(j,i,k) > 1.e-4_rkx .or.  &
-               qi(j,i,k) >= 1.e-6_rkx .or. &
-               qs(j,i,k) > 1.e-4_rkx ) then
-            cldfra(j,i,k) = d_one
-            qvsat(j,i,k) = qv(j,i,k)
-          else
-            tk = t(j,i,k)
-            tc = tk - tzero
-            qvsw = rslf(p(j,i,k), tk)
-            qvsi = rsif(p(j,i,k), tk)
-            if ( tc >= -12.0_rkx ) then
-              qvsat(j,i,k) = qvsw
-            else if ( tc < -20.0_rkx )  then
-              qvsat(j,i,k) = qvsi
-            else
-              qvsat(j,i,k) = qvsw - &
-                (qvsw-qvsi)*(-12.0_rkx-tc)/(-12.0_rkx+20.0_rkx)
-            end if
-            rhum = max(0.01_rkx,min(0.999_rkx,qv(j,i,k)/qvsat(j,i,k)))
-            if ( iland(j,i) == 0 ) then
-              rh_00 = rh_00o
-            else
-              rh_00 = rh_00l
-            end if
-            if ( tc >= -12.0_rkx ) then
-              cldfra(j,i,k) = max(d_zero,d_one - &
-                          sqrt((d_one-rhum)/(d_one-rh_00)))
-            else if ( tc < -12.0_rkx .and. tc > -70.0_rkx .and. &
-                      rhum > rh_00o ) then
-              rhi_max = max(rhum+1.e-6_rkx, qvsw/qvsi)
-              cldfra(j,i,k) = max(d_zero,d_one - &
-                          sqrt((rhi_max-rhum)/(rhi_max-rh_00)))
-            end if
-            cldfra(j,i,k) = max(d_zero, min(cldfra(j,i,k), d_one))
-          end if
-#ifndef STDPAR
-        end do
-      end do
-#endif
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      cldfra(j,i,k) = d_zero
+      rhi_max = d_zero
+      if ( qc(j,i,k) > 1.e-4_rkx .or.  &
+           qi(j,i,k) >= 1.e-6_rkx .or. &
+           qs(j,i,k) > 1.e-4_rkx ) then
+        cldfra(j,i,k) = d_one
+        qvsat(j,i,k) = qv(j,i,k)
+      else
+        tk = t(j,i,k)
+        tc = tk - tzero
+        qvsw = rslf(p(j,i,k), tk)
+        qvsi = rsif(p(j,i,k), tk)
+        if ( tc >= -12.0_rkx ) then
+          qvsat(j,i,k) = qvsw
+        else if ( tc < -20.0_rkx )  then
+          qvsat(j,i,k) = qvsi
+        else
+          qvsat(j,i,k) = qvsw - &
+            (qvsw-qvsi)*(-12.0_rkx-tc)/(-12.0_rkx+20.0_rkx)
+        end if
+        rhum = max(0.01_rkx,min(0.999_rkx,qv(j,i,k)/qvsat(j,i,k)))
+        if ( iland(j,i) == 0 ) then
+          rh_00 = rh_00o
+        else
+          rh_00 = rh_00l
+        end if
+        if ( tc >= -12.0_rkx ) then
+          cldfra(j,i,k) = max(d_zero,d_one - &
+                      sqrt((d_one-rhum)/(d_one-rh_00)))
+        else if ( tc < -12.0_rkx .and. tc > -70.0_rkx .and. &
+                  rhum > rh_00o ) then
+          rhi_max = max(rhum+1.e-6_rkx, qvsw/qvsi)
+          cldfra(j,i,k) = max(d_zero,d_one - &
+                      sqrt((rhi_max-rhum)/(rhi_max-rh_00)))
+        end if
+        cldfra(j,i,k) = max(d_zero, min(cldfra(j,i,k), d_one))
+      end if
     end do
 
     contains

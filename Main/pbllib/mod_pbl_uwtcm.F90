@@ -162,16 +162,13 @@ module mod_pbl_uwtcm
 
     ! Main do loop
 #ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
-      local(temps,templ,deltat,rvls,pfac,rpfac,tbbls,uflxp,vflxp,rhoxsf,   &
-            tskx,tvcon,fracz,dudz,dvdz,thgb,pblx,ustxsq,qfxx,hfxx,uvdragx, &
-            thvflx,q0s,tvfac,svs,cpoxlv,pfcor,ustx,thv0,thx_t,thvx_t,dthv, &
-            dthv_t,zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,   &
-            exnerfl,rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx, &
-            zax,kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,   &
-            rrhoxhl,uxs,qxs,rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,    &
-            bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,    &
-            kpbl2dx,chix,chixs,chifxx,ktop,kbot,itr,ilay,kpbconv,iteration,k)
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+      local(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,exnerfl, &
+            rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx,zax,    &
+            kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,      &
+            rrhoxhl,uxs,qxs,rhoxhl,exnerhl,rexnerhl,rdzq,vxs,qcxs,aimp,   &
+            bimp,cimp,uimp1,rimp1,uimp2,rimp2,rlv,orlv,cp,ocp,qix,qixs,   &
+            chix,chixs,chifxx,ktop,kbot)
 #else
     do i = ici1 , ici2
       do j = jci1 , jci2

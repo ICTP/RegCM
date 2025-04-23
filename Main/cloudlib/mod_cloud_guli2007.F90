@@ -49,30 +49,19 @@ module mod_cloud_guli2007
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-#ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz ) &
-      local(qgkg,stddev)
-#else
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-#endif
-          stddev = 1.0_rkx + (0.04_rkx/(z(j,i,k)/80000.0_rkx*0.625_rkx)) * &
+    do concurrent ( j = jci1:jci2, i = ici1:ici2, k = 1:kz )
+      stddev = 1.0_rkx + (0.04_rkx/(z(j,i,k)/80000.0_rkx*0.625_rkx)) * &
             exp(-log(0.0005_rkx*z(j,i,k))**2/0.625_rkx)
-          qgkg = qt(j,i,k)*1.0e3_rkx/stddev
-          if ( qgkg < 0.18_rkx ) then
-            fcc(j,i,k) = d_zero
-          else if ( qgkg > 2.0_rkx ) then
-            fcc(j,i,k) = d_one
-          else
-            fcc(j,i,k) = -0.1754_rkx + 0.9811_rkx*qgkg - &
-                                       0.2223_rkx*qgkg*qgkg - &
-                                       0.0104_rkx*qgkg*qgkg*qgkg
-          end if
-#ifndef STDPAR
-        end do
-      end do
-#endif
+      qgkg = qt(j,i,k)*1.0e3_rkx/stddev
+      if ( qgkg < 0.18_rkx ) then
+        fcc(j,i,k) = d_zero
+      else if ( qgkg > 2.0_rkx ) then
+        fcc(j,i,k) = d_one
+      else
+        fcc(j,i,k) = -0.1754_rkx + 0.9811_rkx*qgkg - &
+                                   0.2223_rkx*qgkg*qgkg - &
+                                   0.0104_rkx*qgkg*qgkg*qgkg
+      end if
     end do
 
   end subroutine gulisa_cldfrac

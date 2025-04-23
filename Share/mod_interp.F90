@@ -350,36 +350,28 @@ module mod_interp
     !
     dlon = abs(min(hlon(2)-hlon(1),hlon(nlon)-hlon(nlon-1)))
     dlat = abs(min(hlat(2)-hlat(1),hlat(nlat)-hlat(nlat-1)))
-#ifdef STDPAR
-    do concurrent ( j = 1:jx, i = 1:iy ) local(j1,j2,i1,i2,p1,q1,p2,q2)
-#else
-    do i = 1 , iy
-      do j = 1 , jx
-#endif
-        j1 = whereislon(nlon,alon(j,i),hlon)
-        ! Assume global data here
-        if ( j1 > nlon ) j1 = 1
-        if ( j1 < 1 ) j1 = nlon
-        j2 = j1 + 1
-        ! Assume global data here
-        if ( j2 > nlon ) j2 = 1
-        i1 = whereislat(nlat,alat(j,i),hlat)
-        i2 = i1 + 1
-        if ( b2(j1,i1) < missc .or. b2(j2,i1) < missc .or. &
-             b2(j1,i2) < missc .or. b2(j2,i2) < missc ) then
-          b3(j,i) = missl
-        else
-          p1 = mod(alon(j,i)-hlon(j1),dlon)
-          if ( p1 < 0.0_rkx ) p1 = dlon + p1
-          q1 = abs(mod(alat(j,i)-hlat(i1),dlat))
-          q2 = dlat - q1
-          p2 = dlon - p1
-          b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
-                     (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
-        end if
-#ifndef STDPAR
-      end do
-#endif
+    do concurrent ( j = 1:jx, i = 1:iy )
+      j1 = whereislon(nlon,alon(j,i),hlon)
+      ! Assume global data here
+      if ( j1 > nlon ) j1 = 1
+      if ( j1 < 1 ) j1 = nlon
+      j2 = j1 + 1
+      ! Assume global data here
+      if ( j2 > nlon ) j2 = 1
+      i1 = whereislat(nlat,alat(j,i),hlat)
+      i2 = i1 + 1
+      if ( b2(j1,i1) < missc .or. b2(j2,i1) < missc .or. &
+           b2(j1,i2) < missc .or. b2(j2,i2) < missc ) then
+        b3(j,i) = missl
+      else
+        p1 = mod(alon(j,i)-hlon(j1),dlon)
+        if ( p1 < 0.0_rkx ) p1 = dlon + p1
+        q1 = abs(mod(alat(j,i)-hlat(i1),dlat))
+        q2 = dlat - q1
+        p2 = dlon - p1
+        b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
+                   (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
+      end if
     end do
   end subroutine bilinx_2d
 

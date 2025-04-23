@@ -119,11 +119,7 @@ module mod_earth
     real(rk8) , intent(out) , dimension(3,ni) :: x
     real(rk8) :: rlat , rlon
     integer(ik4) :: i
-#ifdef STDPAR
-    do concurrent ( i = 1:ni ) local(rlat,rlon)
-#else
-    do i = 1 , ni
-#endif
+    do concurrent ( i = 1:ni )
       rlat = max(min(dble(lat(i)),89.999_rk8),-89.999_rk8)*degrad
       rlon = dble(lon(i))*degrad
       x(1,i) = cos(rlat) * sin(rlon)
@@ -144,21 +140,13 @@ module mod_earth
     end if
     nlon = size(lon)
     nlat = size(lat)
-#ifdef STDPAR
-    do concurrent ( i = 1:nlon, j = 1:nlat ) local(n,rlat,rlon)
-#else
-    do j = 1 , nlat
-      do i = 1 , nlon
-#endif
-        n = (j-1)*nlon+i
-        rlat = max(min(dble(lat(j)),89.999_rk8),-89.999_rk8)*degrad
-        rlon = dble(lon(i))*degrad
-        x(1,n) = cos(rlat) * sin(rlon)
-        x(2,n) = sin(rlat)
-        x(3,n) = cos(rlat) * cos(rlon)
-#ifndef STDPAR
-      end do
-#endif
+    do concurrent ( i = 1:nlon, j = 1:nlat )
+      n = (j-1)*nlon+i
+      rlat = max(min(dble(lat(j)),89.999_rk8),-89.999_rk8)*degrad
+      rlon = dble(lon(i))*degrad
+      x(1,n) = cos(rlat) * sin(rlon)
+      x(2,n) = sin(rlat)
+      x(3,n) = cos(rlat) * cos(rlon)
     end do
   end subroutine ll2xyz_arrays
 
@@ -175,21 +163,13 @@ module mod_earth
     end if
     nlon = size(lon,1)
     nlat = size(lat,2)
-#ifdef STDPAR
-    do concurrent ( i = 1:nlon, j = 1:nlat ) local(n,rlat,rlon)
-#else
-    do j = 1 , nlat
-      do i = 1 , nlon
-#endif
-        n = (j-1)*nlon+i
-        rlat = max(min(dble(lat(i,j)),89.999_rk8),-89.999_rk8)*degrad
-        rlon = dble(lon(i,j))*degrad
-        x(1,n) = cos(rlat) * sin(rlon)
-        x(2,n) = sin(rlat)
-        x(3,n) = cos(rlat) * cos(rlon)
-#ifndef STDPAR
-      end do
-#endif
+    do concurrent ( i = 1:nlon, j = 1:nlat )
+      n = (j-1)*nlon+i
+      rlat = max(min(dble(lat(i,j)),89.999_rk8),-89.999_rk8)*degrad
+      rlon = dble(lon(i,j))*degrad
+      x(1,n) = cos(rlat) * sin(rlon)
+      x(2,n) = sin(rlat)
+      x(3,n) = cos(rlat) * cos(rlon)
     end do
   end subroutine ll2xyz_grid
 

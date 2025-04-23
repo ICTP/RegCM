@@ -92,16 +92,7 @@ module mod_ocn_zeng
       wt1 = (threedays-dtocn)/threedays
       wt2 = 1.0_rkx-wt1
 
-#ifdef STDPAR
-      do concurrent ( i = iocnbeg:iocnend ) &
-        local(t995,q995,uv995,z995,dqh,dth,facttq,lh,qs,sh,zo,tau,tsurf, &
-              ustar,uv10,zi,cd,dthv,zq,zh,zu,obu,qstar,xdens,th,thv,um,  &
-              thvstar,tstar,visa,zot,wc,zeta,zoq,tha,cpm,rlv,rs,rd,td,   &
-              tdelta,delta,q,ustarw,fd,l,phidl,aa,bb,lamb,dtstend,dts,   &
-              fs,tskin_new,nconv)
-#else
-      do i = iocnbeg , iocnend
-#endif
+      do concurrent ( i = iocnbeg:iocnend )
         if ( mask(i) /= 1 ) cycle
 
         ! Get temperature from SST

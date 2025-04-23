@@ -523,6 +523,16 @@ module mod_rad_radiation
   real(rkx) , parameter :: mxarg = 25.0_rkx
 #endif
 
+ !
+ ! For OpenACC:
+ ! "declare create" is a data region defined as having the same scope as the
+ ! scoping unit in which it's used.  Primarily used for module and global
+ ! variables. If using module data directly (i.e. not passed in as an argument)
+ ! in a device subroutine, it's required.
+ !
+
+!$acc declare create(g1,g2,g3,g4,ab,bb,abp,bbp)
+
   contains
   !
   !----------------------------------------------------------------------
@@ -1386,11 +1396,7 @@ module mod_rad_radiation
     !
     ! Calculate emissivity Planck factor
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,wvl)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       do wvl = 1 , nlwspi
         emplnk(wvl,n) = f1(wvl)/(tplnke(n)**4*(exp(f3(wvl)/tplnke(n))-d_one))
       end do
@@ -1437,11 +1443,7 @@ module mod_rad_radiation
     ! Evaluate the ozone path length integrals to interfaces;
     ! factors of 0.1 and 0.01 to convert pressures from cgs to mks:
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       plos(1,n) = 0.1_rkx*cplos*o3vmr(1,n)*pnm(1,n)
       plol(1,n) = 0.01_rkx*cplol*o3vmr(1,n)*pnm(1,n)*pnm(1,n)
       do k = 2 , kzp1
@@ -1506,11 +1508,7 @@ module mod_rad_radiation
     ! Tint is lower interface temperature
     ! (not available for bottom layer, so use ground temperature)
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,dpnm,dpnmsq,dy,rtnm)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       tint(kzp1,n) = ts(n)
       tint4(kzp1,n) = tint(kzp1,n)**4
       tplnka(1,n) = tnm(1,n)
@@ -1682,13 +1680,7 @@ module mod_rad_radiation
     ! above each interface by starting from the top and adding layers down:
     ! For the extra layer above model top:
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(tautot,taucsc,wtau,wt,wtot,gtot,ftot,ws,gs,ts,lm,alp,gam, &
-            ne,ue,apg,amg,extins,rdenom,rdirexp,tdnmexp,tauray,taugab,k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       !-----------------------------------------------------------------
       !
       ! Initialize all total transmission values to 0, so that nighttime
@@ -1972,13 +1964,7 @@ module mod_rad_radiation
     ! The top layer is assumed to be a purely absorbing ozone layer, and
     ! that the mean diffusivity for diffuse mod_transmission is 1.66:
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(arg,rdenom,rdirexp,tdnmexp,tautot,wtot,gtot,ftot,extins, &
-            ts,ws,gs,lm,alp,gam,ue,ne,apg,amg,taugab,tauray,k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       !-------------------------------------------------------------------
       !
       ! Initialize all total transmimission values to 0, so that nighttime
@@ -2385,19 +2371,9 @@ module mod_rad_radiation
     ! Initialize
     !
 #ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local( &
-      k,k1,k2,iband,kn,wvl,a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat, &
-      l,beta,cf812,corfac,denom,dplco2,dplol,dplos,ds2c,dtym10,et,et2,et4,  &
-      f1co2,g2,g4,k21,k22,o3bndi,omet,oneme,p1,p2,pbar,phi,pi,posqt,psi,    &
-      rbeta13,rbeta8,rbeta9,rdpnm,rdpnmsq,realnu,rphat,rsqti,rsum,sqwp,     &
-      t1t4,t2t5,tcrfac,te,tlocal,tmp1,tmp2,tmp3,tpath,tr1,tr2,tr5,tr6,tr9,  &
-      tr10,u1,u13,u2,u8,u9,ubar,wco2,dplh2o,dtp,dtz,sqti,dpnm,dtyp15,       &
-      dtyp15sq,f1sqwp,f2co2,f3co2,fwk,fwku,rbeta7,sqrtu,t1co2,to3h2o,tpatha,&
-      trab2,trab4,trab6,u7,uc1,uc,ux,tco2,to3,dw,abstrc,th2o,pnew,dtx,dty,  &
-      to3co2,duptyp,du1,du2,duch4,dbetac,du01,du11,dbeta01,dbeta11,duco11,  &
-      duco12,duco13,duco21,duco22,duco23,tpnm,abso,emm,o3emm,term1,term2,   &
-      term3,term4,term5,term7,term8,trline,zinpl,temh2o,dbvtit,term6,pnmsq, &
-      term9,dbvtly,tbar,pinpl,uinpl,winpl,bplnk,xplnk)
+    do concurrent ( n = n1:n2 ) local(abso,emm,o3emm,term1,term2,term3, &
+      term4,term5,term6,term7,term8,term9,zinpl,temh2o,trline,dbvtit,   &
+      pnmsq,dbvtly,tbar,pinpl,uinpl,winpl,bplnk,xplnk)
 #else
     do n = n1 , n2
 #endif
@@ -3150,16 +3126,8 @@ module mod_rad_radiation
     real(rkx) , dimension(2) :: term7 , term8 , trline
     integer(ik4) :: k , kk , iband , l
 #ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k,kk,iband,l,term6,term9,emis,   &
-      a,a11,a21,a22,a23,a31,a41,a51,a61,absbnd,alphat,beta,cf812,et,   &
-      et2,et4,ex,exm1sq,f1co2,f1sqwp,f2co2,f3co2,fwk,g1,g2,g3,g4,omet, &
-      o3bndi,oneme,pbar,phat,phi,pi,posqt,psi,k21,k22,trem4,trem6,     &
-      rbeta13,rbeta7,rbeta8,rbeta9,realnu,rsqti,sqti,sqwp,t1co2,t1i,   &
-      t1t4,t2t5,tpathe,tcrfac,te,tlayr5,tlocal,tmp1,tmp2,tmp3,tpath,   &
-      u1,u13,u2,u7,u8,u9,ubar,wco2,tr1,tr2,tr3,tr4,tr7,tr8,corfac,     &
-      dbvtt,dtp,dtz,pnew,rsum,uc,uc1,troco2,term1,term2,term3,term4,   &
-      term5,term7,term8,trline,ux,tco2,th2o,to3,emstrc,h2oems,co2ems,  &
-      o3ems,xsum,dtx,dty,co2plk)
+    do concurrent ( n = n1:n2 ) local(term1,term2,term3,term4,term5, &
+      term7,term8,emis,trline)
 #else
     do n = n1 , n2
 #endif
@@ -3429,11 +3397,7 @@ module mod_rad_radiation
     !
     ! Convert pressure from pascals to dynes/cm2
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       do k = 1 , kz
         pbr(k,n) = pmid(k,n)*d_10
         pnm(k,n) = pint(k,n)*d_10
@@ -3531,12 +3495,7 @@ module mod_rad_radiation
     real(rkx) :: alpha1 , alpha2 , dpnm , pbar , rsqrt , rt , co2fac
     integer(ik4) :: n , k
 
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(k,alpha1,alpha2,dpnm,pbar,rsqrt,rt,co2fac)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       !-----------------------------------------------------------------------
       !   Calculate path lengths for the trace gases
       !-----------------------------------------------------------------------
@@ -3879,9 +3838,7 @@ module mod_rad_radiation
     ! Define solar incident radiation and interface pressures:
     !
 #ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(sqrco2,xptop,pdel,path,ptho2,ptho3,pthco2,pthh2o, &
-      h2ostr,zenfac,k)
+    do concurrent ( n = n1:n2 ) local(ww)
 #else
     do n = n1 , n2
 #endif
@@ -4013,12 +3970,7 @@ module mod_rad_radiation
       ! Set reflectivities for surface based on mid-point wavelength
       !
       wavmid = (wavmin(ns)+wavmax(ns))*d_half
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) &
-        local(tmp1l,tmp2l,tmp3l,tmp1i,tmp2i,tmp3i,k)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         if ( czengt0(n) ) then
           do k = 1 , kz
             !
@@ -4112,11 +4064,7 @@ module mod_rad_radiation
                   tauxar3d(:,:,ns),tauasc3d(:,:,ns),      &
                   gtota3d(:,:,ns),ftota3d(:,:,ns),        &
                   tottrn,exptdn,rdndif,rdif,tdif,rdir,tdir,explay)
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(rdenom,k)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         if ( czengt0(n) ) then
           rupdir(kzp1,n) = diralb(n)
           rupdif(kzp1,n) = difalb(n)
@@ -4163,11 +4111,7 @@ module mod_rad_radiation
       if ( abs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
       if ( abs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
       if ( abs(po2(ns)) > dlowval ) psf = psf*po2(ns)
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(k)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         if ( czengt0(n) ) then
           solflx(n) = solin(n)*frcsol(ns)*psf
           fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(1,n)    - fluxup(1,n))
@@ -4215,11 +4159,7 @@ module mod_rad_radiation
       !  end if
       !end do
 
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(k)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         tauaer(n) = tauxar3d(1,n,ns)
         tauasc(n) = tauasc3d(1,n,ns)
         ftota(n) =  ftota3d(1,n,ns)
@@ -4261,11 +4201,7 @@ module mod_rad_radiation
         ! refers to top of column; 2 on interface quantities refers to
         ! the surface:
         !
-#ifdef STDPAR
-        do concurrent ( n = n1:n2 ) local(k,rdenom)
-#else
-        do n = n1 , n2
-#endif
+        do concurrent ( n = n1:n2 )
           if ( czengt0(n) ) then
             rupdir(2,n) = diralb(n)
             rupdif(2,n) = difalb(n)
@@ -4326,11 +4262,7 @@ module mod_rad_radiation
       ! overlying surface; 0 on interface quantities refers to top of
       ! column; 2 on interface quantities refers to the surface:
       !
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(rdenom,k)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         if ( czengt0(n) ) then
           rupdir(2,n) = diralb(n)
           rupdif(2,n) = difalb(n)
@@ -4574,11 +4506,7 @@ module mod_rad_radiation
     call time_begin(subroutine_name,indx)
 #endif
 
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       rtclrsf(1,n) = d_one/tclrsf(1,n)
       do k = 1 , kz
         fclb4(k,n) = d_zero
@@ -4638,11 +4566,7 @@ module mod_rad_radiation
     ! Find the lowest and highest level cloud for each grid point
     ! Note: Vertical indexing here proceeds from bottom to top
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       klov(n) = 0
       done(n) = .false.
       do k = 1 , kz
@@ -4696,11 +4620,7 @@ module mod_rad_radiation
       ! delt=t**4 in layer above current sigma level km.
       ! delt1=t**4 in layer below current sigma level km.
       !
-#ifdef STDPAR
-      do concurrent ( n = n1:n2 ) local(bk1,bk2,absbt,delt,delt1,k,km,tmp)
-#else
-      do n = n1 , n2
-#endif
+      do concurrent ( n = n1:n2 )
         do km = 1 , 4
           do k = 1 , kz
             absnxt(k,km,n) = absgasnxt(k,km,n)
@@ -4798,11 +4718,7 @@ module mod_rad_radiation
       ! FAB radiative forcing sur fsul
       !
       if ( linteract .and. irad == 1 ) then
-#ifdef STDPAR
-        do concurrent ( n = n1:n2 ) local(k1,k2)
-#else
-        do n = n1 , n2
-#endif
+        do concurrent ( n = n1:n2 )
           do k1 = 1 , kzp1
             fsul0(k1,n) = fsul(k1,n) ! save fsul0 = no dust
             fsdl0(k1,n) = fsdl(k1,n) !
@@ -4828,11 +4744,7 @@ module mod_rad_radiation
       end do
       ! return to no aerosol LW effect situation if idirect == 1
       if ( lzero ) then
-#ifdef STDPAR
-        do concurrent ( n = n1:n2 ) local(k1,k2)
-#else
-        do n = n1 , n2
-#endif
+        do concurrent ( n = n1:n2 )
           do k1 = 1 , kzp1
             fsul(k1,n) = fsul0(k1,n)
             fsdl(k1,n) = fsdl0(k1,n)
@@ -4881,12 +4793,7 @@ module mod_rad_radiation
     ! Note: Vertical indexing here proceeds from bottom to top
     !
     khighest = khiv(intmax(khiv,n1,n2))
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) &
-      local(tmp1,lstart,km,km1,km2,km3,km4,k,k1,k2,k3)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       if ( skip(n) ) cycle
       do km = 3 , khighest
         km1 = kzp1 - km
@@ -4967,11 +4874,7 @@ module mod_rad_radiation
     !
     ! Downward longwave flux
     !
-#ifdef STDPAR
-    do concurrent ( n = n1:n2 ) local(k)
-#else
-    do n = n1 , n2
-#endif
+    do concurrent ( n = n1:n2 )
       flwds(n) = fdl(kzp1,n)
       !
       ! Net flux
@@ -5151,11 +5054,7 @@ module mod_rad_radiation
       ! Compute Total Cloud fraction
       !
       if ( luse_max_rnovl ) then
-#ifdef STDPAR
-        do concurrent ( n = rt%n1:rt%n2 ) local(k)
-#else
-        do n = rt%n1 , rt%n2
-#endif
+        do concurrent ( n = rt%n1:rt%n2 )
           rt%totcf(n) = d_one
           do k = 2 , kzp1
             rt%totcf(n) = rt%totcf(n) * &
@@ -5164,11 +5063,7 @@ module mod_rad_radiation
           end do
         end do
       else
-#ifdef STDPAR
-        do concurrent ( n = rt%n1:rt%n2 ) local(k)
-#else
-        do n = rt%n1 , rt%n2
-#endif
+        do concurrent ( n = rt%n1:rt%n2 )
           rt%totcf(n) = d_one
           do k = 2 , kzp1
             rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(k,n))
@@ -5176,11 +5071,7 @@ module mod_rad_radiation
         end do
       end if
 
-#ifdef STDPAR
-      do concurrent ( n = rt%n1:rt%n2 ) local(k,betafac)
-#else
-      do n = rt%n1 , rt%n2
-#endif
+      do concurrent ( n = rt%n1:rt%n2 )
         !
         ! Convert units of shortwave fields needed by rest of model
         ! from CGS to MKS
@@ -5248,15 +5139,7 @@ module mod_rad_radiation
       xcfc11 = 0.7273_rkx
       xcfc12 = 0.4000_rkx
 #endif
-#ifdef STDPAR
-#ifdef RCEMIP
-      do concurrent ( n = rt%n1:rt%n2 ) local(k,pratio)
-#else
-      do concurrent ( n = rt%n1:rt%n2 ) local(k,alat,pratio)
-#endif
-#else
-      do n = rt%n1 , rt%n2
-#endif
+      do concurrent ( n = rt%n1:rt%n2 )
 #ifndef RCEMIP
         alat = abs(rt%dlat(n))
         if ( alat <= 45.0_rkx ) then
