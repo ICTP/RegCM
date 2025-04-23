@@ -5,7 +5,7 @@
   !
 !DIR$ ATTRIBUTES FORCEINLINE :: esatliq
   pure elemental real(rkx) function esatliq(t) result(es)
-    use mod_constants , only : rwat , wlhv
+    use mod_constants , only : rwat
     implicit none
     real(rkx) , intent(in) :: t     ! Temperature (K)
 

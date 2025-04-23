@@ -62,7 +62,7 @@ module mod_micro_nogtom
   use mod_constants , only : tzero , rtice , rtwat_rtice_r
   use mod_constants , only : c5alvcp , c5alscp , rhoh2o , rovcp
   use mod_constants , only : wlhfocp , wlhsocp , wlhvocp
-  use mod_constants , only : rwat , wlhs , wlhv , ep1
+  use mod_constants , only : rwat , wlhs , ep1
   use mod_constants , only : c5les , c5ies , c4les , c4ies
   use mod_constants , only : egrav , regrav , ep1
   use mod_runparams , only : nqx
@@ -149,7 +149,6 @@ module mod_micro_nogtom
   ! Mass variables
   ! Microphysics
   ! for convection detrainment source and subsidence source/sink terms
-  real(rkx) , dimension(mxqx) :: convsrce
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   ! fluxes convergence of species
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -225,6 +224,7 @@ module mod_micro_nogtom
   real(rkx) , parameter :: activcf = 2.0_rkx*zerocf
   real(rkx) , parameter :: maxsat  = 0.5_rkx
 
+  logical , parameter :: vfqi_tlat = .false.
   contains
 
 #include <esatliq.inc>
@@ -365,6 +365,7 @@ module mod_micro_nogtom
     real(rkx) :: alfaw , phases , qexc , rhc , zsig , preclr , arg
     real(rkx) :: rexplicit , xlcondlim , tmpa , zrh , beta , beta1
     real(rkx) :: cond , dtdp , cdmax , tdiff , cons1 , qvnew
+    real(rkx) :: lat
     ! local real constants for evaporation
     real(rkx) :: dpr , denom , dpevap , evapi , evapl , excess
     real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
@@ -663,7 +664,7 @@ module mod_micro_nogtom
             subsat,totcond,qliqfrac,qicefrac,qicetot,dp,gdp,dtgdp,rdtgdp, &
             alpha1,facl,faci,facw,corr,acond,zdl,infactor,alfaw,phases,   &
             qexc,rhc,zsig,qe,preclr,arg,rexplicit,xlcondlim,tmpa,zrh,beta,&
-            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,     &
+            beta1,cond,dtdp,cdmax,tdiff,cons1,dpr,denom,dpevap,evapi,lat, &
             evapl,excess,dqsmixdt,dqsicedt,dqsliqdt,corqsliq,corqsice,    &
             corqsmix,evaplimmix,ql_incld,qi_incld,qli_incld,ldifdt,sink,  &
             covptot,covpclr,qold,tcond,dqs,chng,chngmax,icenuclei,        &
@@ -893,7 +894,16 @@ module mod_micro_nogtom
               if ( lfall(n) ) then
                 ! Sink to next layer, constant fall speed
                 ! *AMT* now included in first guess.
-                sink = vqx(n) * dens * dtgdp
+                if ( vfqi_tlat ) then
+                  if ( n == iqqi ) then
+                    lat = mo2mc%xlat(j,i)
+                    sink = ice_fallspeed(tk,lat) * dens * dtgdp
+                  else
+                    sink = vqx(n) * dens * dtgdp
+                  end if
+                else
+                  sink = vqx(n) * dens * dtgdp
+                end if
                 fallsink(n) = sink
                 qxfg(n) = qxfg(n)/(d_one+sink)
               end if  !lfall
@@ -2195,6 +2205,36 @@ module mod_micro_nogtom
     real(rkx) , intent(in) :: t , phase
     eewm = ep2*(phase * esatliq(t) + (d_one-phase) * esatice(t))
   end function eewm
+
+  !
+  ! For the temperature dependency of particle diameters:
+  !   David L. Mitchell, Anne Garnier, Jacques Pelon, and Ehsan Erfani
+  !   CALIPSO (IIR–CALIOP) retrievals of cirrus cloud ice-particle
+  !   concentrations
+  !   https://doi.org/10.5194/acp-18-17325-2018
+  ! For the fallspeed function of diameters:
+  !   Thomas Kuhn and Sandra Vázquez-Martín
+  !   Microphysical properties and fall speed measurements of snow ice
+  !   crystals using the Dual Ice Crystal Imager (D-ICI)
+  !   https://doi.org/10.5194/amt-13-1273-2020
+  !
+  pure real(rkx) function ice_fallspeed(t,lat)
+!$acc routine seq
+    implicit none
+    real(rkx) , intent(in) :: t , lat
+    real(rkx) :: xlat , dsize , w1 , fsp1 , fsp2
+
+    ! degrees
+    xlat = 90.0_rkx - lat
+    ! microns
+    dsize = max(10.0_rkx,min(2.0_rkx*(t-190.0_rkx),90.0_rkx))
+    dsize = max(10.0_rkx, dsize - 0.5_rkx * max(0.0_rkx,(89.0_rkx-xlat)))
+    dsize = max(10.0_rkx, dsize - 0.5_rkx * max(0.0_rkx,(20.0_rkx-xlat)))
+    w1 = min(1.0_rkx,max(0.0_rkx,(dsize-50.0_rkx)/20.0_rkx))
+    fsp1 = 0.020 * dsize**0.41
+    fsp2 = 0.0013 * dsize**0.98
+    ice_fallspeed = w1*fsp2 + (1.0_rkx-w1)*fsp1
+  end function ice_fallspeed
 
  ! subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
  !   implicit none
