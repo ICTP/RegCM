@@ -162,7 +162,7 @@ module mod_pbl_uwtcm
 
     ! Main do loop
 #ifdef STDPAR
-    do concurrent ( j = jci1:jci2, i = ici1:ici2 )
+    do concurrent ( j = jci1:jci2, i = ici1:ici2 ) &
       local(zqx,kth,kzm,rhoxfl,rcldb,tke,tkes,bbls,nsquar,presfl,exnerfl, &
             rexnerfl,shear,buoyan,rdza,rrhoxfl,ux,vx,qx,thx,uthvx,zax,    &
             kethl,thlx,thlxs,thxs,tx,tvx,rttenx,preshl,qcx,qwx,qwxs,      &
